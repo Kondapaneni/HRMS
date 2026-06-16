@@ -107,7 +107,7 @@ const AdminDashboard = () => {
         <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm flex flex-col">
           <h3 className="text-base font-semibold text-slate-900 mb-4">Monthly Attendance Trend</h3>
           <div className="flex-1 min-h-[250px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minHeight={1}>
               <BarChart data={dashboardData.attendanceData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
@@ -125,7 +125,7 @@ const AdminDashboard = () => {
         <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm flex flex-col">
           <h3 className="text-base font-semibold text-slate-900 mb-4">Salary Distribution</h3>
           <div className="flex-1 min-h-[250px] w-full flex items-center justify-center">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minHeight={1}>
               <PieChart>
                 <Pie
                   data={dashboardData.salaryData}

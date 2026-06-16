@@ -22,18 +22,18 @@ const EmployeeDashboard = () => {
     queryKey: ['employee', 'dashboard'],
     queryFn: async () => {
       const [attRes, leavesRes, perfRes, profileRes, payslipsRes] = await Promise.all([
-        api.get('/employee/attendance'),
-        api.get('/employee/leaves'),
-        api.get('/employee/performance'),
-        api.get('/employee/profile'),
+        api.get('/employee/attendance').catch(() => ({ data: [] })),
+        api.get('/employee/leaves').catch(() => ({ data: null })),
+        api.get('/employee/performance').catch(() => ({ data: {} })),
+        api.get('/employee/profile').catch(() => ({ data: {} })),
         api.get('/employee/payroll').catch(() => ({ data: { payslips: [] } }))
       ]);
       return {
         attendance: attRes.data,
         leaves: leavesRes.data,
-        performance: perfRes.data.currentMonthSummary || null,
-        fullProfile: profileRes.data.profile || null,
-        latestPayslip: payslipsRes.data.payslips?.[0] || null
+        performance: perfRes.data?.currentMonthSummary || null,
+        fullProfile: profileRes.data?.profile || null,
+        latestPayslip: payslipsRes.data?.payslips?.[0] || null
       };
     },
     staleTime: 30 * 1000
@@ -95,7 +95,7 @@ const EmployeeDashboard = () => {
   };
 
   const todayStr = new Date().toLocaleDateString('en-CA');
-  const todayRecord = attendance.find(r => r.date.split('T')[0] === todayStr) || attendance.find(r => new Date(r.date).toDateString() === new Date().toDateString());
+  const todayRecord = attendance.find(r => r.date?.split('T')[0] === todayStr) || attendance.find(r => r.date && new Date(r.date).toDateString() === new Date().toDateString());
   const checkedIn = todayRecord && todayRecord.checkIn && !todayRecord.checkOut;
   const checkOutTime = todayRecord && todayRecord.checkOut;
 

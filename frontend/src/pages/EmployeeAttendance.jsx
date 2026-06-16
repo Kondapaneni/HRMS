@@ -118,7 +118,7 @@ const EmployeeAttendance = () => {
   });
 
   const todayStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD local
-  const todayRecord = history.find(r => r.date.split('T')[0] === todayStr) || history.find(r => new Date(r.date).toDateString() === new Date().toDateString());
+  const todayRecord = history.find(r => r.date?.split('T')[0] === todayStr) || history.find(r => r.date && new Date(r.date).toDateString() === new Date().toDateString());
 
   const checkedIn = todayRecord && todayRecord.checkIn && !todayRecord.checkOut;
   const checkOutTime = todayRecord && todayRecord.checkOut;
