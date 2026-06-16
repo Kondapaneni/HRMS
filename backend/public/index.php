@@ -58,17 +58,20 @@ $app->get('/api/debug/auth', function (Request $request, Response $response, $ar
     $authHeader = $request->getHeader('Authorization');
     $httpAuth = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
     $redirectAuth = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? null;
+    $apacheHeaders = function_exists('apache_request_headers') ? apache_request_headers() : [];
+    $apacheAuth = $apacheHeaders['Authorization'] ?? $apacheHeaders['authorization'] ?? null;
     
     $secret = $_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '';
     
     $result = [
-        'auth_header_from_slim' => $authHeader ? $authHeader[0] : 'MISSING',
+        'slim_header' => !empty($authHeader) ? substr($authHeader[0], 0, 30) . '...' : 'MISSING',
         'HTTP_AUTHORIZATION' => $httpAuth ? substr($httpAuth, 0, 30) . '...' : 'MISSING',
         'REDIRECT_HTTP_AUTHORIZATION' => $redirectAuth ? substr($redirectAuth, 0, 30) . '...' : 'MISSING',
+        'apache_request_headers' => $apacheAuth ? substr($apacheAuth, 0, 30) . '...' : 'MISSING',
         'secret_len' => strlen($secret),
     ];
     
-    // Try to decode if we have a token
+    // Try to decode
     $tokenStr = null;
     if (!empty($authHeader)) {
         $tokenStr = str_replace('Bearer ', '', $authHeader[0]);
@@ -76,19 +79,20 @@ $app->get('/api/debug/auth', function (Request $request, Response $response, $ar
         $tokenStr = str_replace('Bearer ', '', $httpAuth);
     } elseif ($redirectAuth) {
         $tokenStr = str_replace('Bearer ', '', $redirectAuth);
+    } elseif ($apacheAuth) {
+        $tokenStr = str_replace('Bearer ', '', $apacheAuth);
     }
     
-    if ($tokenStr) {
+    if ($tokenStr && $secret) {
         try {
-            $decoded = JWT::decode($tokenStr, new Key($secret, 'HS256'));
+            $decoded = JWT::decode($tokenStr, new \Firebase\JWT\Key($secret, 'HS256'));
             $result['decode'] = 'SUCCESS';
-            $result['token_role'] = $decoded->role ?? 'none';
-            $result['token_exp'] = date('Y-m-d H:i:s', $decoded->exp ?? 0);
+            $result['role'] = $decoded->role ?? 'none';
         } catch (\Exception $e) {
             $result['decode'] = 'FAILED: ' . $e->getMessage();
         }
     } else {
-        $result['decode'] = 'NO TOKEN FOUND';
+        $result['decode'] = $tokenStr ? 'NO SECRET' : 'NO TOKEN';
     }
     
     $response->getBody()->write(json_encode($result));
