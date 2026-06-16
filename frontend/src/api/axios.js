@@ -59,17 +59,6 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    // If the server returns 401 (expired/invalid token), clear auth and redirect to login
-    if (error.response && error.response.status === 401) {
-      const token = localStorage.getItem('token');
-      // Only redirect if there was a token (i.e., user was supposedly logged in)
-      // Avoid redirect loops on the login endpoint itself
-      if (token && !error.config?.url?.includes('/login')) {
-        localStorage.removeItem('token');
-        // Use window.location to force a full reload to clear React state
-        window.location.href = '/';
-      }
-    }
     return Promise.reject(error);
   }
 );
