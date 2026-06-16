@@ -53,6 +53,24 @@ $app->get('/', function ($request, $response, $args) {
     return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
 });
 
+// Temporary debug endpoint - REMOVE AFTER FIXING
+$app->get('/api/debug/env', function ($request, $response, $args) {
+    $secret_env = $_ENV['JWT_SECRET'] ?? null;
+    $secret_getenv = getenv('JWT_SECRET');
+    $secret_server = $_SERVER['JWT_SECRET'] ?? null;
+    $dotenvPath = __DIR__ . '/../.env';
+    
+    $response->getBody()->write(json_encode([
+        'dotenv_file_exists' => file_exists($dotenvPath),
+        'jwt_in_ENV' => $secret_env ? 'yes (len=' . strlen($secret_env) . ')' : 'NO',
+        'jwt_in_getenv' => $secret_getenv ? 'yes (len=' . strlen($secret_getenv) . ')' : 'NO',
+        'jwt_in_SERVER' => $secret_server ? 'yes (len=' . strlen($secret_server) . ')' : 'NO',
+        'resolved_secret_empty' => empty($secret_env ?? $secret_getenv ?? ''),
+        'php_sapi' => php_sapi_name(),
+    ]));
+    return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+});
+
 // Login endpoint
 $app->post('/api/login', function (Request $request, Response $response, $args) {
     $data = $request->getParsedBody();
