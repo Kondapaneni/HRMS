@@ -2,10 +2,14 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
-import { registerSW } from 'virtual:pwa-register'
-
-// Register the PWA service worker explicitly
-registerSW({ immediate: true })
+// Unregister any existing service workers from previous PWA setup
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
+    for (const registration of registrations) {
+      registration.unregister();
+    }
+  });
+}
 
 // Force IST timezone for all Date formatting
 const originalToLocaleString = Date.prototype.toLocaleString;
