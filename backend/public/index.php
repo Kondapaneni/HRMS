@@ -53,6 +53,48 @@ $app->get('/', function ($request, $response, $args) {
     return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
 });
 
+// Temporary debug - REMOVE AFTER FIXING
+$app->get('/api/debug/auth', function (Request $request, Response $response, $args) {
+    $authHeader = $request->getHeader('Authorization');
+    $httpAuth = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
+    $redirectAuth = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? null;
+    
+    $secret = $_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '';
+    
+    $result = [
+        'auth_header_from_slim' => $authHeader ? $authHeader[0] : 'MISSING',
+        'HTTP_AUTHORIZATION' => $httpAuth ? substr($httpAuth, 0, 30) . '...' : 'MISSING',
+        'REDIRECT_HTTP_AUTHORIZATION' => $redirectAuth ? substr($redirectAuth, 0, 30) . '...' : 'MISSING',
+        'secret_len' => strlen($secret),
+    ];
+    
+    // Try to decode if we have a token
+    $tokenStr = null;
+    if (!empty($authHeader)) {
+        $tokenStr = str_replace('Bearer ', '', $authHeader[0]);
+    } elseif ($httpAuth) {
+        $tokenStr = str_replace('Bearer ', '', $httpAuth);
+    } elseif ($redirectAuth) {
+        $tokenStr = str_replace('Bearer ', '', $redirectAuth);
+    }
+    
+    if ($tokenStr) {
+        try {
+            $decoded = JWT::decode($tokenStr, new Key($secret, 'HS256'));
+            $result['decode'] = 'SUCCESS';
+            $result['token_role'] = $decoded->role ?? 'none';
+            $result['token_exp'] = date('Y-m-d H:i:s', $decoded->exp ?? 0);
+        } catch (\Exception $e) {
+            $result['decode'] = 'FAILED: ' . $e->getMessage();
+        }
+    } else {
+        $result['decode'] = 'NO TOKEN FOUND';
+    }
+    
+    $response->getBody()->write(json_encode($result));
+    return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+});
+
 // Login endpoint
 $app->post('/api/login', function (Request $request, Response $response, $args) {
     $data = $request->getParsedBody();
