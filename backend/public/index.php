@@ -53,52 +53,6 @@ $app->get('/', function ($request, $response, $args) {
     return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
 });
 
-// Temporary debug - REMOVE AFTER FIXING
-$app->get('/api/debug/auth', function (Request $request, Response $response, $args) {
-    $authHeader = $request->getHeader('Authorization');
-    $httpAuth = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
-    $redirectAuth = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? null;
-    $apacheHeaders = function_exists('apache_request_headers') ? apache_request_headers() : [];
-    $apacheAuth = $apacheHeaders['Authorization'] ?? $apacheHeaders['authorization'] ?? null;
-    
-    $secret = $_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '';
-    
-    $result = [
-        'slim_header' => !empty($authHeader) ? substr($authHeader[0], 0, 30) . '...' : 'MISSING',
-        'HTTP_AUTHORIZATION' => $httpAuth ? substr($httpAuth, 0, 30) . '...' : 'MISSING',
-        'REDIRECT_HTTP_AUTHORIZATION' => $redirectAuth ? substr($redirectAuth, 0, 30) . '...' : 'MISSING',
-        'apache_request_headers' => $apacheAuth ? substr($apacheAuth, 0, 30) . '...' : 'MISSING',
-        'secret_len' => strlen($secret),
-    ];
-    
-    // Try to decode
-    $tokenStr = null;
-    if (!empty($authHeader)) {
-        $tokenStr = str_replace('Bearer ', '', $authHeader[0]);
-    } elseif ($httpAuth) {
-        $tokenStr = str_replace('Bearer ', '', $httpAuth);
-    } elseif ($redirectAuth) {
-        $tokenStr = str_replace('Bearer ', '', $redirectAuth);
-    } elseif ($apacheAuth) {
-        $tokenStr = str_replace('Bearer ', '', $apacheAuth);
-    }
-    
-    if ($tokenStr && $secret) {
-        try {
-            $decoded = JWT::decode($tokenStr, new \Firebase\JWT\Key($secret, 'HS256'));
-            $result['decode'] = 'SUCCESS';
-            $result['role'] = $decoded->role ?? 'none';
-        } catch (\Exception $e) {
-            $result['decode'] = 'FAILED: ' . $e->getMessage();
-        }
-    } else {
-        $result['decode'] = $tokenStr ? 'NO SECRET' : 'NO TOKEN';
-    }
-    
-    $response->getBody()->write(json_encode($result));
-    return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
-});
-
 // Login endpoint
 $app->post('/api/login', function (Request $request, Response $response, $args) {
     $data = $request->getParsedBody();
