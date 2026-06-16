@@ -1,5 +1,9 @@
 RewriteEngine On
 
+# Pass Authorization header to PHP
+CGIPassAuth On
+SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+
 # Explicitly set the DirectoryIndex so that / loads index.html
 DirectoryIndex index.html index.php
 

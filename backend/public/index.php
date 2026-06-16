@@ -72,7 +72,7 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
     $user = $stmt->fetch();
 
     if ($user && password_verify($password, $user['password'])) {
-        $secret = $_ENV['JWT_SECRET'] ?? '';
+        $secret = $_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '';
         $payload = [
             'iss' => 'acme_hrms',
             'iat' => time(),
