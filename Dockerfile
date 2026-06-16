@@ -4,8 +4,18 @@ WORKDIR /app
 COPY frontend/package*.json ./
 RUN npm install
 COPY frontend/ .
-RUN npm run build
 
+# Declare the variables so Docker accepts them from Render
+ARG VITE_SUPABASE_URL
+ARG VITE_SUPABASE_ANON_KEY
+ARG VITE_API_URL
+
+# Make them available as environment variables for the Vite build step
+ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
+ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
+ENV VITE_API_URL=$VITE_API_URL
+
+RUN npm run build
 # Stage 2: Setup Backend and Combine
 FROM php:8.2-apache
 
