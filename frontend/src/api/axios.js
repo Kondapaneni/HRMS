@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api', // Proxied to our PHP backend via Vite locally, or absolute URL in production
+  baseURL: '/api', // Always use /api relative path since frontend and backend are hosted together
   headers: {
     'Content-Type': 'application/json',
   },
