@@ -14,6 +14,7 @@ export default defineConfig({
       injectRegister: false,
       // Disable workbox caching to only use PWA for installation/native feel
       workbox: {
+        navigateFallback: null,
         runtimeCaching: [],
         globPatterns: [] // Don't pre-cache any assets
       },
