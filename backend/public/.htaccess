@@ -1,4 +1,14 @@
 RewriteEngine On
+
+# Explicitly set the DirectoryIndex so that / loads index.html
+DirectoryIndex index.html index.php
+
+# If the request starts with api/, route it to index.php
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^ index.php [QSA,L]
+RewriteRule ^api/ index.php [QSA,L]
+
+# For all other non-file requests, route to index.html (React SPA)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.html [QSA,L]

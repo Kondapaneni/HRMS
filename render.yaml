@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: acme-hrms
+    env: docker
+    repo: https://github.com/Kondapaneni/HRMS.git
+    branch: main
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_DATABASE
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: GOOGLE_MAPS_API_KEY
+        sync: false
+      - key: GOOGLE_GEOCODING_API_KEY
+        sync: false
