@@ -86,9 +86,15 @@ const EmployeeAttendance = () => {
   };
 
   // Status computation matching PHP logic
-  const resolveStatusKey = (s) => {
-    if (!s) return 'missing';
-    const l = s.toLowerCase();
+  const resolveStatusKey = (record) => {
+    if (!record || !record.status) return 'missing';
+    const l = record.status.toLowerCase();
+    
+    const isToday = new Date(record.date).toDateString() === new Date().toDateString();
+    if (!isToday && record.checkIn && !record.checkOut && l.includes('present')) {
+      return l.includes('late') ? 'late-missing-checkout' : 'missing-checkout';
+    }
+
     if (l.includes('present')) return l;
     if (l === 'weekend') return 'week-off';
     if (l === 'holiday') return 'holiday';
@@ -107,9 +113,11 @@ const EmployeeAttendance = () => {
   const filteredHistory = history.filter(record => {
     if (searchDate && !formatDateStr(record.date).includes(searchDate)) return false;
     if (statusFilter !== 'all') {
-      const recordStatus = resolveStatusKey(record.status);
+      const recordStatus = resolveStatusKey(record);
       if (statusFilter === 'present') {
         if (!recordStatus.startsWith('present')) return false;
+      } else if (statusFilter === 'missed') {
+        if (!recordStatus.includes('missing')) return false;
       } else if (recordStatus !== statusFilter) {
         return false;
       }
@@ -123,14 +131,16 @@ const EmployeeAttendance = () => {
   const checkedIn = todayRecord && todayRecord.checkIn && !todayRecord.checkOut;
   const checkOutTime = todayRecord && todayRecord.checkOut;
 
-  const presentCount = history.filter(r => resolveStatusKey(r.status).startsWith('present')).length;
-  const leaveCount = history.filter(r => resolveStatusKey(r.status).endsWith('leave')).length;
+  const presentCount = history.filter(r => resolveStatusKey(r).startsWith('present')).length;
+  const leaveCount = history.filter(r => resolveStatusKey(r).endsWith('leave')).length;
 
   const statusPalette = {
     'present': { label: 'Present', classes: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
     'present (late)': { label: 'Present (Late)', classes: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
     'present (early)': { label: 'Present (Early)', classes: 'bg-orange-100 text-orange-800 border-orange-200' },
     'present (late+early)': { label: 'Present (Late+Early)', classes: 'bg-orange-100 text-orange-800 border-orange-200' },
+    'missing-checkout': { label: 'Checkout Missing', classes: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
+    'late-missing-checkout': { label: 'Late + Checkout Missing', classes: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
     'paid leave': { label: 'Paid Leave', classes: 'bg-blue-100 text-blue-800 border-blue-200' },
     'unpaid leave': { label: 'Unpaid Leave', classes: 'bg-blue-100 text-blue-800 border-blue-200' },
     'sandwich leave': { label: 'Sandwich Leave', classes: 'bg-blue-100 text-blue-800 border-blue-200' },
@@ -296,7 +306,7 @@ const EmployeeAttendance = () => {
                   </tr>
                 ) : (
                   filteredHistory.map((record, i) => {
-                    const statusKey = resolveStatusKey(record.status);
+                    const statusKey = resolveStatusKey(record);
                     const config = statusPalette[statusKey] || statusPalette['missing'];
                     return (
                       <tr key={i} className="border-b border-slate-100 hover:bg-slate-50 last:border-0">
