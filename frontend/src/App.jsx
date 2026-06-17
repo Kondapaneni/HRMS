@@ -37,6 +37,7 @@ import NotFound from './pages/NotFound'
 import { Toaster } from 'react-hot-toast'
 import SnowflakeCursor from './components/CustomCursor'
 import OfflineOverlay from './components/OfflineOverlay'
+import UpdateOverlay from './components/UpdateOverlay'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -67,6 +68,7 @@ function App() {
   return (
     <PersistQueryClientProvider client={queryClient} persistOptions={{ persister }}>
       <AuthProvider>
+        <UpdateOverlay />
         <OfflineOverlay />
         <SnowflakeCursor />
         <Toaster position="top-right" />
