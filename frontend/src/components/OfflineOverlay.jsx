@@ -350,6 +350,11 @@ const OfflineOverlay = ({
             <canvas ref={canvasRef} className={`w-full h-auto ${className}`} />
           </div>
 
+          <h1 className="text-3xl font-bold text-slate-800 mb-4 text-center">You are Offline !</h1>
+          <p className="text-slate-500 mb-8 max-w-md text-center leading-relaxed">
+            It looks like your internet connection has dropped. Please check your network to continue using Acme HRMS.
+          </p>
+
           <button 
             onClick={handleTryAgain}
             disabled={isChecking}
