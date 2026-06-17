@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+import api from '../api/axios';
 import { Calendar, CheckCircle2, XCircle, Clock, Search, ChevronLeft, ChevronRight, User } from 'lucide-react';
 
 const AdminLeaves = () => {
@@ -16,11 +16,8 @@ const AdminLeaves = () => {
   const { data: leavesResponse, isLoading: loading } = useQuery({
     queryKey: ['admin', 'leaves', page, search],
     queryFn: async () => {
-      const token = localStorage.getItem('token');
       const offset = (page - 1) * limit;
-      const response = await axios.get(`http://localhost:8081/api/admin/leaves?limit=${limit}&offset=${offset}&search=${search}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get(`/admin/leaves?limit=${limit}&offset=${offset}&search=${search}`);
       return response.data;
     },
   });
@@ -46,10 +43,7 @@ const AdminLeaves = () => {
     }
 
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(`http://localhost:8081/api/admin/leaves/${id}/${action}`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.post(`/admin/leaves/${id}/${action}`);
       
       // Refresh the real data in the background
       queryClient.invalidateQueries({ queryKey: ['admin', 'leaves'] });

@@ -1,7 +1,7 @@
 import React, { useState, Fragment } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
+import api from '../api/axios';
 import { DollarSign, Search, ChevronLeft, ChevronRight, Download, Eye, Calculator, X } from 'lucide-react';
 import { pdf } from '@react-pdf/renderer';
 import PayslipPDF from '../components/PayslipPDF';
@@ -29,10 +29,7 @@ const AdminPayroll = () => {
   const { data: employees = [] } = useQuery({
     queryKey: ['admin', 'employees-dropdown'],
     queryFn: async () => {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`http://localhost:8081/api/admin/employees?limit=100`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get(`/admin/employees?limit=100`);
       return response.data.employees || [];
     },
   });
@@ -41,11 +38,8 @@ const AdminPayroll = () => {
   const { data: payrollResponse, isLoading: loading } = useQuery({
     queryKey: ['admin', 'payroll', page, search],
     queryFn: async () => {
-      const token = localStorage.getItem('token');
       const offset = (page - 1) * limit;
-      const response = await axios.get(`http://localhost:8081/api/admin/payroll?limit=${limit}&offset=${offset}&search=${search}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get(`/admin/payroll?limit=${limit}&offset=${offset}&search=${search}`);
       return response.data;
     },
     staleTime: 15 * 60 * 1000, // payroll rarely changes — 15 min cache
@@ -64,13 +58,10 @@ const AdminPayroll = () => {
 
     try {
       setGenerating(true);
-      const token = localStorage.getItem('token');
-      await axios.post('http://localhost:8081/api/admin/payroll/generate', {
+      await api.post('/admin/payroll/generate', {
         employeeId: selectedEmployee,
         month: parseInt(selectedMonth),
         year: parseInt(selectedYear)
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
       });
       
       alert('Payslip generated successfully!');
