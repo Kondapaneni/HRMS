@@ -105,7 +105,7 @@ const EmployeeMobileLeaves = ({ setIsModalOpen }) => {
           </div>
         ) : (
           <div className="space-y-3">
-            {history.map((record, index) => {
+            {history.slice(0, 10).map((record, index) => {
               const start = new Date(record.startDate);
               const end = new Date(record.endDate);
               const conf = getStatusConfig(record.status);
