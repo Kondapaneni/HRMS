@@ -171,7 +171,7 @@ const EmployeeLayout = () => {
 
           <button
             onClick={() => setShowLogoutModal(true)}
-            className="flex items-center gap-1.5 text-rose-500 hover:text-rose-600 transition-colors text-sm font-semibold bg-rose-50/50 hover:bg-rose-50 p-2.5 sm:px-3 sm:py-1.5 rounded-full"
+            className="md:hidden flex items-center gap-1.5 text-rose-500 hover:text-rose-600 transition-colors text-sm font-semibold bg-rose-50/50 hover:bg-rose-50 p-2.5 sm:px-3 sm:py-1.5 rounded-full"
           >
             <LogOut className="w-5 h-5 sm:w-4 sm:h-4" />
             <span className="hidden sm:inline">Logout</span>
