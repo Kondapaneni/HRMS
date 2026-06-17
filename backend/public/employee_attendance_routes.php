@@ -31,6 +31,7 @@ $app->post('/api/employee/attendance/punch', function (Request $request, Respons
     $lat = $data['latitude'] ?? null;
     $lng = $data['longitude'] ?? null;
     $address = $data['address'] ?? null;
+    $photoUrl = $data['photo'] ?? null;
     
     // Override address with Google Geocoding API if key is present
     if ($lat && $lng) {
@@ -80,19 +81,19 @@ $app->post('/api/employee/attendance/punch', function (Request $request, Respons
             if ($record) {
                 if (in_array(strtolower($record['status']), ['weekend', 'holiday'])) {
                     $stmtUpdate = $conn->prepare('
-                        UPDATE attendance SET "checkIn" = ?, status = ?, "checkInLat" = ?, "checkInLng" = ?, "checkInAddress" = ?, "updatedAt" = CURRENT_TIMESTAMP
+                        UPDATE attendance SET "checkIn" = ?, status = ?, "checkInLat" = ?, "checkInLng" = ?, "checkInAddress" = ?, "checkInPhoto" = ?, "updatedAt" = CURRENT_TIMESTAMP
                         WHERE id = ?
                     ');
-                    $stmtUpdate->execute([$now, $status, $lat, $lng, $address, $record['id']]);
+                    $stmtUpdate->execute([$now, $status, $lat, $lng, $address, $photoUrl, $record['id']]);
                 } else {
                     throw new Exception('Already checked in for today.');
                 }
             } else {
                 $stmtInsert = $conn->prepare('
-                    INSERT INTO attendance ("employeeId", date, "checkIn", status, "checkInLat", "checkInLng", "checkInAddress")
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO attendance ("employeeId", date, "checkIn", status, "checkInLat", "checkInLng", "checkInAddress", "checkInPhoto")
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 ');
-                $stmtInsert->execute([$decodedToken->id, $today, $now, $status, $lat, $lng, $address]);
+                $stmtInsert->execute([$decodedToken->id, $today, $now, $status, $lat, $lng, $address, $photoUrl]);
             }
 
         } else if ($action === 'check-out') {
@@ -125,10 +126,10 @@ $app->post('/api/employee/attendance/punch', function (Request $request, Respons
             $hours = round(($checkOutTime - $checkInTime) / 3600, 2);
 
             $stmtUpdate = $conn->prepare('
-                UPDATE attendance SET "checkOut" = ?, status = ?, hours = ?, "checkOutLat" = ?, "checkOutLng" = ?, "checkOutAddress" = ?, "updatedAt" = CURRENT_TIMESTAMP
+                UPDATE attendance SET "checkOut" = ?, status = ?, hours = ?, "checkOutLat" = ?, "checkOutLng" = ?, "checkOutAddress" = ?, "checkOutPhoto" = ?, "updatedAt" = CURRENT_TIMESTAMP
                 WHERE id = ?
             ');
-            $stmtUpdate->execute([$now, $newStatus, $hours, $lat, $lng, $address, $record['id']]);
+            $stmtUpdate->execute([$now, $newStatus, $hours, $lat, $lng, $address, $photoUrl, $record['id']]);
             
         } else if ($action === 'punch') {
             if (!$record || !$record['checkIn']) {
@@ -139,8 +140,8 @@ $app->post('/api/employee/attendance/punch', function (Request $request, Respons
             }
 
             // Record intermediate punch
-            $stmtPunch = $conn->prepare('INSERT INTO attendance_punches ("attendanceId", "employeeId", "punchTime", latitude, longitude, address) VALUES (?, ?, ?, ?, ?, ?)');
-            $stmtPunch->execute([$record['id'], $decodedToken->id, $now, $lat, $lng, $address]);
+            $stmtPunch = $conn->prepare('INSERT INTO attendance_punches ("attendanceId", "employeeId", "punchTime", latitude, longitude, address, photo) VALUES (?, ?, ?, ?, ?, ?, ?)');
+            $stmtPunch->execute([$record['id'], $decodedToken->id, $now, $lat, $lng, $address, $photoUrl]);
             
         } else {
             throw new Exception('Invalid action.');
@@ -154,5 +155,27 @@ $app->post('/api/employee/attendance/punch', function (Request $request, Respons
         $conn->rollBack();
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+})->add(new AuthMiddleware(['employee']));
+
+// Get Geofences
+$app->get('/api/employee/geofences', function (Request $request, Response $response, $args) {
+    $db = new Database();
+    $conn = $db->getConnection();
+    
+    try {
+        $stmt = $conn->query('SELECT * FROM geofences ORDER BY id ASC');
+        $geofences = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        $apiKey = $_ENV['GOOGLE_GEOCODING_API_KEY'] ?? '';
+        
+        $response->getBody()->write(json_encode([
+            'geofences' => $geofences,
+            'googleMapsApiKey' => $apiKey
+        ]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+    } catch (Exception $e) {
+        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['employee']));

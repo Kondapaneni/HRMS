@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { LogIn, LogOut, Clock, Calendar, Bell, Shield, ChevronRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
@@ -10,6 +10,7 @@ import { useAuth } from '../contexts/AuthContext';
 const EmployeeMobileDashboard = () => {
   const { profile } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [punchingAction, setPunchingAction] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -61,41 +62,7 @@ const EmployeeMobileDashboard = () => {
   };
 
   const handlePunch = async (action) => {
-    if (!navigator.geolocation) {
-      toast.error('Geolocation is not supported by your browser.');
-      return;
-    }
-
-    setPunchingAction(action);
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
-        const addr = await reverseGeocode(lat, lng);
-
-        try {
-          await api.post('/employee/attendance/punch', {
-            action,
-            latitude: lat,
-            longitude: lng,
-            address: addr
-          });
-          toast.success(`Successfully ${action.replace('-', ' ')}ed!`);
-          queryClient.invalidateQueries({ queryKey: ['employee', 'dashboard'] });
-        } catch (error) {
-          console.error(error);
-          toast.error(error.response?.data?.error || `Failed to ${action}.`);
-        } finally {
-          setPunchingAction(null);
-        }
-      },
-      (error) => {
-        toast.error('Unable to read your location. Please allow location access to check in/out.');
-        setPunchingAction(null);
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 120000 }
-    );
+    navigate('/employee/attendance/map', { state: { action } });
   };
   const [liveSeconds, setLiveSeconds] = useState(0);
 

@@ -15,6 +15,8 @@ import EmployeePayroll from './pages/EmployeePayroll'
 import EmployeeProfile from './pages/EmployeeProfile'
 import EmployeePerformance from './pages/EmployeePerformance'
 import EditProfilePage from './pages/EditProfilePage'
+import EmployeeMobileMap from './pages/EmployeeMobileMap'
+import EmployeeMobileCamera from './pages/EmployeeMobileCamera'
 import AdminLayout from './components/AdminLayout'
 import AdminEmployees from './pages/AdminEmployees'
 import AdminDirectory from './pages/AdminDirectory'
@@ -118,6 +120,23 @@ function App() {
               <Route path="profile" element={<EmployeeProfile />} />
               <Route path="profile/edit" element={<EditProfilePage />} />
             </Route>
+
+            <Route
+              path="/employee/attendance/map"
+              element={
+                <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
+                  <EmployeeMobileMap />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/employee/attendance/camera"
+              element={
+                <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
+                  <EmployeeMobileCamera />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Catch-all 404 Route */}
             <Route path="*" element={<NotFound />} />
