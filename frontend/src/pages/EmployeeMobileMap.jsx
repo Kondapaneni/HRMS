@@ -210,7 +210,7 @@ const EmployeeMobileMap = () => {
     });
   };
 
-  const isGeoFenceEnabled = profile?.geoFenceEnabled === 1 || profile?.geoFenceEnabled === true;
+  const isGeoFenceEnabled = profile?.geoFenceEnabled == 1 || profile?.geoFenceEnabled === true || profile?.geoFenceEnabled === '1' || profile?.geoFenceEnabled === 'true';
   
   // Determine if user can proceed
   let canProceed = false;

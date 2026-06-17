@@ -75,7 +75,7 @@ const EmployeeDashboard = () => {
         const addr = await reverseGeocode(lat, lng);
 
         let isAllowed = true;
-        const isGeoFenceEnabled = profile?.geoFenceEnabled === 1 || profile?.geoFenceEnabled === true;
+        const isGeoFenceEnabled = profile?.geoFenceEnabled == 1 || profile?.geoFenceEnabled === true || profile?.geoFenceEnabled === '1' || profile?.geoFenceEnabled === 'true';
         
         if (isGeoFenceEnabled && action !== 'punch') {
           try {
