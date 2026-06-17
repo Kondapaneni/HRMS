@@ -146,6 +146,12 @@ const EmployeeLayout = () => {
         {/* Top Header - Minimalist */}
         <header className="h-14 shrink-0 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 flex items-center justify-between md:justify-end sticky top-0 z-40 md:relative md:z-10">
           <div className="flex items-center gap-5">
+            <button className="relative text-slate-500 hover:text-slate-700 transition-colors">
+              <Bell size={20} />
+            </button>
+
+            <div className="h-6 w-px bg-slate-200"></div>
+
             <div className="flex items-center gap-3 cursor-pointer group">
               <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-semibold text-sm overflow-hidden border border-slate-200">
                 {profile?.avatar ? (
@@ -161,12 +167,6 @@ const EmployeeLayout = () => {
                 <p className="text-xs text-slate-500 mt-1 capitalize">{profile?.role || 'Employee'}</p>
               </div>
             </div>
-
-            <div className="h-6 w-px bg-slate-200"></div>
-
-            <button className="relative text-slate-500 hover:text-slate-700 transition-colors">
-              <Bell size={20} />
-            </button>
           </div>
 
           <button
