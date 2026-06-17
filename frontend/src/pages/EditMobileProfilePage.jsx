@@ -90,9 +90,9 @@ const EditMobileProfilePage = () => {
   }
 
   return (
-    <div className="bg-slate-50 flex flex-col -mx-4 sm:-mx-6 -mt-4 sm:-mt-6 min-h-full pb-20">
+    <div className="relative pb-6">
       {/* Header */}
-      <div className="relative pt-6 pb-6 px-4 bg-slate-900 shrink-0 overflow-hidden">
+      <div className="-mx-4 -mt-4 px-4 pt-8 pb-20 relative overflow-hidden bg-slate-900">
         <motion.div animate={{ scale: [1, 1.2, 1], x: [0, 30, 0] }} transition={{ duration: 8, repeat: Infinity }} className="absolute -top-10 -left-10 w-40 h-40 bg-[#ff928b] rounded-full mix-blend-screen filter blur-[30px] opacity-60" />
         <motion.div animate={{ scale: [1, 1.4, 1], x: [0, -20, 0] }} transition={{ duration: 10, repeat: Infinity, delay: 1 }} className="absolute -bottom-10 -right-10 w-40 h-40 bg-[#7bdff2] rounded-full mix-blend-screen filter blur-[30px] opacity-60" />
         <div className="relative z-10 flex items-center justify-between">
@@ -107,10 +107,10 @@ const EditMobileProfilePage = () => {
       </div>
 
       {/* Form Content */}
-      <div className="px-4 py-6 space-y-6">
+      <div className="space-y-6 relative z-20 -mt-12 mx-1">
         
         {/* Personal Section */}
-        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 space-y-4">
+        <div className="bg-white p-5 rounded-[24px] shadow-lg border border-slate-100/50 space-y-4">
           <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">Personal Details</h3>
           
           <div className="grid grid-cols-2 gap-3">
@@ -185,7 +185,7 @@ const EditMobileProfilePage = () => {
         </div>
 
         {/* Emergency Section */}
-        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 space-y-4">
+        <div className="bg-white p-5 rounded-[24px] shadow-lg border border-slate-100/50 space-y-4">
           <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-2 text-rose-500">Emergency Contact</h3>
           <div className="space-y-1">
             <label className="text-[11px] font-semibold text-slate-500 uppercase">Contact Name</label>
