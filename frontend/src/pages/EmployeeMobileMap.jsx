@@ -204,7 +204,7 @@ const EmployeeMobileMap = () => {
   // Determine if user can proceed
   let canProceed = false;
   if (currentLocation) {
-    if (!isGeoFenceEnabled) {
+    if (!isGeoFenceEnabled || action === 'punch') {
       canProceed = true;
     } else if (isInsideGeofence === true) {
       canProceed = true;
@@ -281,7 +281,7 @@ const EmployeeMobileMap = () => {
           </div>
 
           {/* Geofence Status */}
-          {currentLocation && isGeoFenceEnabled && isInsideGeofence !== null && (
+          {currentLocation && isGeoFenceEnabled && action !== 'punch' && isInsideGeofence !== null && (
             <div className={`p-4 rounded-2xl mb-6 border ${isInsideGeofence ? 'bg-emerald-50 border-emerald-100' : 'bg-red-50 border-red-100'}`}>
               <div className="flex items-start gap-3">
                 {isInsideGeofence ? (
@@ -305,14 +305,14 @@ const EmployeeMobileMap = () => {
             </div>
           )}
 
-          {/* Warning for disabled geofence */}
-          {currentLocation && !isGeoFenceEnabled && (
+          {/* Warning for disabled geofence or punch action */}
+          {currentLocation && (!isGeoFenceEnabled || action === 'punch') && (
             <div className="p-4 rounded-2xl mb-6 bg-slate-50 border border-slate-100">
               <div className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 text-slate-500 shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="text-sm font-bold text-slate-700">Remote Punching Enabled</h4>
-                  <p className="text-xs mt-1 text-slate-500">Your location will be recorded with this punch.</p>
+                  <h4 className="text-sm font-bold text-slate-700">Remote Punching Allowed</h4>
+                  <p className="text-xs mt-1 text-slate-500">Your location will be recorded with this {action === 'punch' ? 'punch' : 'action'}.</p>
                 </div>
               </div>
             </div>

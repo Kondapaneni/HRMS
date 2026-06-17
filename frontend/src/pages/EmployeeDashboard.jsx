@@ -49,6 +49,17 @@ const EmployeeDashboard = () => {
     return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
   };
 
+  const getDistanceFromLatLonInMeters = (lat1, lon1, lat2, lon2) => {
+    const R = 6371e3;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
+
   const handlePunch = async (action) => {
     if (!navigator.geolocation) {
       toast.error('Geolocation is not supported by your browser.');
@@ -62,6 +73,35 @@ const EmployeeDashboard = () => {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
         const addr = await reverseGeocode(lat, lng);
+
+        let isAllowed = true;
+        const isGeoFenceEnabled = profile?.geoFenceEnabled === 1 || profile?.geoFenceEnabled === true;
+        
+        if (isGeoFenceEnabled && action !== 'punch') {
+          try {
+            const geofenceRes = await api.get('/employee/geofences');
+            const geofences = geofenceRes.data?.geofences || [];
+            if (geofences.length > 0) {
+              let insideAny = false;
+              geofences.forEach(gf => {
+                const d = getDistanceFromLatLonInMeters(lat, lng, parseFloat(gf.latitude), parseFloat(gf.longitude));
+                if (d <= parseFloat(gf.radius)) insideAny = true;
+              });
+              if (!insideAny) isAllowed = false;
+            }
+          } catch (err) {
+            console.error('Failed to validate geofences:', err);
+            toast.error('Failed to validate geofence. Please try again.');
+            setPunchingAction(null);
+            return;
+          }
+        }
+        
+        if (!isAllowed) {
+          toast.error(`You are outside the company premises. Geofencing is required to ${action.replace('-', ' ')}.`);
+          setPunchingAction(null);
+          return;
+        }
 
         try {
           await api.post('/employee/attendance/punch', {
