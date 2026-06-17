@@ -320,16 +320,19 @@ $app->put('/api/admin/employees/{id}/settings', function (Request $request, Resp
         $stmt = $conn->prepare($sql);
         $stmt->execute($updateValues);
         
-        if ($disableMfa) {
-            // Query user_id to delete MFA secrets
-            $stmtUser = $conn->prepare('SELECT "userId" FROM employee WHERE id = ?');
-            $stmtUser->execute([$args['id']]);
-            $userId = $stmtUser->fetchColumn();
-            
-            if ($userId) {
-                $conn->prepare('DELETE FROM mfa_secrets WHERE user_id = ?')->execute([$userId]);
-                $conn->prepare('DELETE FROM mfa_backup_codes WHERE user_id = ?')->execute([$userId]);
-            }
+        // Always need userId if we update user table or delete MFA
+        $stmtUser = $conn->prepare('SELECT "userId" FROM employee WHERE id = ?');
+        $stmtUser->execute([$args['id']]);
+        $userId = $stmtUser->fetchColumn();
+        
+        if (isset($data['status']) && $userId) {
+            $isActiveVal = ($data['status'] === 'active') ? 'true' : 'false';
+            $conn->prepare('UPDATE users SET "isActive" = ? WHERE id = ?')->execute([$isActiveVal, $userId]);
+        }
+        
+        if ($disableMfa && $userId) {
+            $conn->prepare('DELETE FROM mfa_secrets WHERE user_id = ?')->execute([$userId]);
+            $conn->prepare('DELETE FROM mfa_backup_codes WHERE user_id = ?')->execute([$userId]);
         }
         
         $conn->commit();
