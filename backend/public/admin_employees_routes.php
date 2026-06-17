@@ -276,7 +276,7 @@ $app->put('/api/admin/employees/{id}/settings', function (Request $request, Resp
     try {
         $updateFields = [];
         $updateValues = [];
-        $allowedFields = ['webAttendanceEnabled', 'geoFenceEnabled', 'status', 'mfaEnabled', 'employmentStatus', 'employmentStatusDate', 'employmentStatusReason'];
+        $allowedFields = ['webAttendanceEnabled', 'geoFenceEnabled', 'status', 'employmentStatus', 'employmentStatusDate', 'employmentStatusReason'];
         
         $disableMfa = false;
 
@@ -311,19 +311,16 @@ $app->put('/api/admin/employees/{id}/settings', function (Request $request, Resp
             }
         }
         
-        if (empty($updateFields)) {
-            $response->getBody()->write(json_encode(['message' => 'No settings to update']));
-            return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
-        }
-
-        $updateValues[] = $args['id'];
-        $sql = 'UPDATE employee SET ' . implode(', ', $updateFields) . ' WHERE id = ?';
-        
         $conn->beginTransaction();
-        $stmt = $conn->prepare($sql);
-        $stmt->execute($updateValues);
         
-        // Query user_id to sync users table and handle MFA deletion
+        if (!empty($updateFields)) {
+            $updateValues[] = $args['id'];
+            $sql = 'UPDATE employee SET ' . implode(', ', $updateFields) . ' WHERE id = ?';
+            $stmt = $conn->prepare($sql);
+            $stmt->execute($updateValues);
+        }
+        
+        // Query user_id to update users table and handle MFA deletion
         $stmtUser = $conn->prepare('SELECT "userId" FROM employee WHERE id = ?');
         $stmtUser->execute([$args['id']]);
         $userId = $stmtUser->fetchColumn();
