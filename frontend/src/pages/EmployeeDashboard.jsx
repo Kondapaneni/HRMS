@@ -45,6 +45,8 @@ const EmployeeDashboard = () => {
   const fullProfile = dashboardData?.fullProfile || profile;
   const latestPayslip = dashboardData?.latestPayslip || null;
 
+  const isWebAttendanceEnabled = fullProfile?.webAttendanceEnabled == 1 || fullProfile?.webAttendanceEnabled === true || fullProfile?.webAttendanceEnabled === '1' || fullProfile?.webAttendanceEnabled === 'true';
+
   const reverseGeocode = async (lat, lng) => {
     return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
   };
@@ -210,32 +212,41 @@ const EmployeeDashboard = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3">
-              <button
-                onClick={() => handlePunch('check-in')}
-                disabled={punchingAction || checkedIn || checkOutTime}
-                className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-11 px-6 min-w-[140px] disabled:opacity-50 transition-all hover:shadow-md"
-              >
-                <LogIn className="mr-2 h-4 w-4" />
-                {punchingAction === 'check-in' ? 'Checking In...' : 'Check In'}
-              </button>
+              {!isWebAttendanceEnabled ? (
+                <div className="w-full flex items-center justify-center p-3 bg-red-50 text-red-600 rounded-lg border border-red-100 text-sm font-medium">
+                  <AlertCircle size={16} className="mr-2" />
+                  Web attendance is disabled for you. Please use the mobile app.
+                </div>
+              ) : (
+                <>
+                  <button
+                    onClick={() => handlePunch('check-in')}
+                    disabled={punchingAction || checkedIn || checkOutTime}
+                    className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-11 px-6 min-w-[140px] disabled:opacity-50 transition-all hover:shadow-md"
+                  >
+                    <LogIn className="mr-2 h-4 w-4" />
+                    {punchingAction === 'check-in' ? 'Checking In...' : 'Check In'}
+                  </button>
 
-              <button
-                onClick={() => handlePunch('punch')}
-                disabled={punchingAction || !checkedIn || checkOutTime}
-                className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-11 px-6 min-w-[140px] disabled:opacity-50 transition-all hover:shadow-md"
-              >
-                <Clock className="mr-2 h-4 w-4 text-slate-500" />
-                {punchingAction === 'punch' ? 'Punching...' : 'Punch'}
-              </button>
+                  <button
+                    onClick={() => handlePunch('punch')}
+                    disabled={punchingAction || !checkedIn || checkOutTime}
+                    className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-11 px-6 min-w-[140px] disabled:opacity-50 transition-all hover:shadow-md"
+                  >
+                    <Clock className="mr-2 h-4 w-4 text-slate-500" />
+                    {punchingAction === 'punch' ? 'Punching...' : 'Punch'}
+                  </button>
 
-              <button
-                onClick={() => handlePunch('check-out')}
-                disabled={punchingAction || !checkedIn || checkOutTime}
-                className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-11 px-6 min-w-[140px] disabled:opacity-50 transition-all hover:shadow-md"
-              >
-                <LogOut className="mr-2 h-4 w-4 text-slate-500" />
-                {punchingAction === 'check-out' ? 'Checking Out...' : 'Check Out'}
-              </button>
+                  <button
+                    onClick={() => handlePunch('check-out')}
+                    disabled={punchingAction || !checkedIn || checkOutTime}
+                    className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-11 px-6 min-w-[140px] disabled:opacity-50 transition-all hover:shadow-md"
+                  >
+                    <LogOut className="mr-2 h-4 w-4 text-slate-500" />
+                    {punchingAction === 'check-out' ? 'Checking Out...' : 'Check Out'}
+                  </button>
+                </>
+              )}
             </div>
           </div>
 

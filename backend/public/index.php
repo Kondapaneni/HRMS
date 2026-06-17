@@ -105,7 +105,7 @@ $app->get('/api/me', function (Request $request, Response $response, $args) {
     $conn = $db->getConnection();
     
     $stmt = $conn->prepare('
-        SELECT u.id, u.email, u."firstName", u."lastName", u.role, u.department, u.position, u."isActive", e.avatar, e."employeeId", e."geoFenceEnabled"
+        SELECT u.id, u.email, u."firstName", u."lastName", u.role, u.department, u.position, u."isActive", e.avatar, e."employeeId", e."geoFenceEnabled", e."webAttendanceEnabled"
         FROM users u 
         LEFT JOIN employee e ON u.id = e."userId" 
         WHERE u.id = ?
