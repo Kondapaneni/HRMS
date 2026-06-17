@@ -188,6 +188,17 @@ const EmployeeMobileMap = () => {
     loadGoogleMapsScript();
   }, [currentLocation, data]);
 
+  // Force user home after 5 seconds of resolving location and geofence
+  useEffect(() => {
+    if (currentLocation && isInsideGeofence !== null) {
+      const timer = setTimeout(() => {
+        toast.error('Time limit exceeded. Please try again.');
+        navigate('/employee', { replace: true });
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [currentLocation, isInsideGeofence, navigate]);
+
   const handleProceed = () => {
     navigate('/employee/attendance/camera', {
       state: {
