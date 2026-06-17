@@ -211,8 +211,8 @@ const EmployeeMobileCamera = () => {
         {!photoDataUrl && !cameraError && (
           <div className="absolute inset-0 pointer-events-none">
             {/* Face guide oval */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[60%] w-64 h-80 border-2 border-dashed border-white/50 rounded-[100%] shadow-[0_0_0_9999px_rgba(0,0,0,0.4)]"></div>
-            <p className="absolute top-[20%] left-0 right-0 text-center text-white font-medium drop-shadow-md">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[60%] w-80 h-96 border-2 border-dashed border-white/50 rounded-[100%] shadow-[0_0_0_9999px_rgba(0,0,0,0.4)]"></div>
+            <p className="absolute top-[15%] left-0 right-0 text-center text-white font-medium drop-shadow-md">
               Position your face in the frame
             </p>
           </div>
