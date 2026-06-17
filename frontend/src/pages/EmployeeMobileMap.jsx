@@ -38,7 +38,7 @@ const EmployeeMobileMap = () => {
       const response = await api.get('/employee/geofences');
       return response.data;
     },
-    staleTime: 5 * 60 * 1000 // 5 mins
+    staleTime: 0 // Fetch latest every time to ensure geofence enabled status is up to date
   });
 
   // Get user location
@@ -210,7 +210,8 @@ const EmployeeMobileMap = () => {
     });
   };
 
-  const isGeoFenceEnabled = profile?.geoFenceEnabled == 1 || profile?.geoFenceEnabled === true || profile?.geoFenceEnabled === '1' || profile?.geoFenceEnabled === 'true';
+  const rawGeoFenceEnabled = data?.geoFenceEnabled !== undefined ? data.geoFenceEnabled : profile?.geoFenceEnabled;
+  const isGeoFenceEnabled = rawGeoFenceEnabled == 1 || rawGeoFenceEnabled === true || rawGeoFenceEnabled === '1' || rawGeoFenceEnabled === 'true';
   
   // Determine if user can proceed
   let canProceed = false;
