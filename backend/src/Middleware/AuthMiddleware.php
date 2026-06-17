@@ -50,6 +50,18 @@ class AuthMiddleware
             $db = new Database();
             $conn = $db->getConnection();
             if ($conn) {
+                // Check if user is active
+                $stmtCheck = $conn->prepare('SELECT "isActive" FROM users WHERE id = :uid');
+                $stmtCheck->execute([':uid' => $decoded->id ?? '']);
+                $userActiveStatus = $stmtCheck->fetchColumn();
+                
+                if ($userActiveStatus !== false) {
+                    $isActive = ($userActiveStatus === true || $userActiveStatus === 'true' || $userActiveStatus == 1);
+                    if (!$isActive) {
+                        return $this->forbiddenResponse("Your account has been deactivated. Please contact your administrator.");
+                    }
+                }
+
                 $stmt = $conn->prepare("
                     SELECT 
                         set_config('app.current_user_id', :uid, false),
