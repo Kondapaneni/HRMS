@@ -191,7 +191,7 @@ const EmployeeMobileCamera = () => {
               <img
                 src={photoDataUrl}
                 alt="Captured"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover -scale-x-100"
               />
             ) : (
               <video
@@ -199,7 +199,7 @@ const EmployeeMobileCamera = () => {
                 autoPlay
                 playsInline
                 muted
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover -scale-x-100"
               />
             )}
             {/* Hidden canvas for capturing frame */}
