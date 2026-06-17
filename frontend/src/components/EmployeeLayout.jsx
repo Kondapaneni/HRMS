@@ -185,7 +185,7 @@ const EmployeeLayout = () => {
 
         {/* Mobile Bottom Navigation */}
         <div 
-          className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 flex justify-around items-center h-[90px] px-2 shadow-[0_-8px_30px_rgba(0,0,0,0.04)] pb-4 pt-1 touch-none select-none"
+          className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 flex justify-around items-center h-[100px] px-2 shadow-[0_-8px_30px_rgba(0,0,0,0.04)] pb-8 pt-2 touch-none select-none"
           onTouchStart={handleTouchMove}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
@@ -222,7 +222,7 @@ const EmployeeLayout = () => {
                     <div className="absolute top-0 left-1/4 right-1/4 h-1 bg-gradient-to-b from-white to-transparent opacity-80 rounded-full"></div>
                   </motion.div>
                 )}
-                <Icon className={`w-[26px] h-[26px] mb-1 transition-all duration-300 ${isActive ? 'text-[#ff928b] scale-110 drop-shadow-sm' : 'text-slate-400 group-hover:text-slate-500 group-active:scale-95'}`} strokeWidth={isActive ? 2.5 : 2} />
+                <Icon className={`w-[26px] h-[26px] mb-1.5 transition-all duration-300 ${isActive ? 'text-[#ff928b] scale-110 drop-shadow-sm' : 'text-slate-400 group-hover:text-slate-500 group-active:scale-95'}`} strokeWidth={isActive ? 2.5 : 2} />
                 <span className={`text-[10px] font-bold tracking-wide transition-all duration-300 ${isActive ? 'text-[#ff928b]' : 'text-slate-400'}`}>{item.label}</span>
               </Link>
             );

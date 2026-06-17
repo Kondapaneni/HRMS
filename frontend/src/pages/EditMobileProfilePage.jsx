@@ -90,9 +90,9 @@ const EditMobileProfilePage = () => {
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-white flex flex-col overflow-hidden">
+    <div className="bg-slate-50 flex flex-col -mx-4 sm:-mx-6 -mt-4 sm:-mt-6 min-h-full pb-20">
       {/* Header */}
-      <div className="relative pt-12 pb-6 px-4 bg-slate-900 shrink-0 overflow-hidden">
+      <div className="relative pt-6 pb-6 px-4 bg-slate-900 shrink-0 overflow-hidden">
         <motion.div animate={{ scale: [1, 1.2, 1], x: [0, 30, 0] }} transition={{ duration: 8, repeat: Infinity }} className="absolute -top-10 -left-10 w-40 h-40 bg-[#ff928b] rounded-full mix-blend-screen filter blur-[30px] opacity-60" />
         <motion.div animate={{ scale: [1, 1.4, 1], x: [0, -20, 0] }} transition={{ duration: 10, repeat: Infinity, delay: 1 }} className="absolute -bottom-10 -right-10 w-40 h-40 bg-[#7bdff2] rounded-full mix-blend-screen filter blur-[30px] opacity-60" />
         <div className="relative z-10 flex items-center justify-between">
@@ -107,7 +107,7 @@ const EditMobileProfilePage = () => {
       </div>
 
       {/* Form Content */}
-      <div className="flex-1 overflow-y-auto px-4 py-6 pb-24 space-y-6 bg-slate-50">
+      <div className="px-4 py-6 space-y-6">
         
         {/* Personal Section */}
         <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 space-y-4">
