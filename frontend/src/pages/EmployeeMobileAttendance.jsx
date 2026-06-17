@@ -22,8 +22,16 @@ const EmployeeMobileAttendance = () => {
   const [searchDate, setSearchDate] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+
   const filteredHistory = history.filter(record => {
-    const rDate = new Date(record.date).toLocaleDateString('en-GB');
+    const recordObj = new Date(record.date);
+    if (recordObj.getMonth() !== currentMonth || recordObj.getFullYear() !== currentYear) {
+      return false;
+    }
+
+    const rDate = recordObj.toLocaleDateString('en-GB');
     const matchesSearch = rDate.includes(searchDate) || record.date.includes(searchDate);
     
     if (statusFilter === 'all') return matchesSearch;
