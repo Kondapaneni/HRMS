@@ -61,9 +61,10 @@ $app->get('/api/admin/employees/{id}', function (Request $request, Response $res
     
     try {
         $stmt = $conn->prepare('
-            SELECT e.*, b.name as branch_name 
+            SELECT e.*, b.name as branch_name, u."isActive" 
             FROM employee e 
             LEFT JOIN branches b ON e.branch = b.id::text 
+            LEFT JOIN users u ON e."userId" = u.id
             WHERE e.id = ?
         ');
         $stmt->execute([$args['id']]);
@@ -284,8 +285,10 @@ $app->put('/api/admin/employees/{id}/settings', function (Request $request, Resp
             $status = $data['employmentStatus'];
             if (in_array($status, ['Exited', 'Terminated', 'Absconded'])) {
                 $data['status'] = 'inactive';
+                $data['isActive'] = false;
             } else if ($status === 'Active') {
                 $data['status'] = 'active';
+                $data['isActive'] = true;
                 $data['employmentStatusDate'] = null;
                 $data['employmentStatusReason'] = null;
             }
@@ -329,9 +332,9 @@ $app->put('/api/admin/employees/{id}/settings', function (Request $request, Resp
             $userUpdates = [];
             $userValues = [];
             
-            if (isset($data['status'])) {
+            if (isset($data['isActive'])) {
                 $userUpdates[] = '"isActive" = ?';
-                $userValues[] = ($data['status'] === 'active') ? 'true' : 'false';
+                $userValues[] = $data['isActive'] ? 'true' : 'false';
             }
             
             if (isset($data['mfaEnabled'])) {

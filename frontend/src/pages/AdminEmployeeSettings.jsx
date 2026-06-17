@@ -33,6 +33,7 @@ const AdminEmployeeSettings = () => {
     geoFenceEnabled: employeeData.geoFenceEnabled === 1 || employeeData.geoFenceEnabled === true,
     mfaEnabled: employeeData.mfaEnabled === 1 || employeeData.mfaEnabled === true,
     status: employeeData.status || 'active',
+    isActive: employeeData.isActive === true || employeeData.isActive === 1,
     employmentStatus: employeeData.employmentStatus || 'Active',
     employmentStatusDate: employeeData.employmentStatusDate || '',
     employmentStatusReason: employeeData.employmentStatusReason || ''
@@ -91,12 +92,7 @@ const AdminEmployeeSettings = () => {
   };
 
   const handleStatusToggle = () => {
-    if (settings.employmentStatus !== 'Active') {
-      toast.error("Account access is controlled by Employment Status");
-      return;
-    }
-    const newStatus = settings.status === 'active' ? 'inactive' : 'active';
-    updateSetting('status', newStatus);
+    updateSetting('isActive', !settings.isActive);
   };
 
   const handleEmploymentStatusChange = (e) => {
@@ -106,7 +102,8 @@ const AdminEmployeeSettings = () => {
       setShowExitModal(true);
     } else {
       updateSetting('employmentStatus', 'Active', { 
-        status: 'active', 
+        status: 'active',
+        isActive: true,
         employmentStatusDate: null, 
         employmentStatusReason: null 
       });
@@ -121,6 +118,7 @@ const AdminEmployeeSettings = () => {
     
     updateSetting('employmentStatus', pendingStatus, {
       status: 'inactive',
+      isActive: false,
       employmentStatusDate: date,
       employmentStatusReason: reason
     });
@@ -233,18 +231,16 @@ const AdminEmployeeSettings = () => {
               <div>
                 <p className="font-medium text-slate-900">Employee account access</p>
                 <p className="text-sm text-slate-500 mt-1 mb-2">When enabled, the employee can sign in. When disabled, sign-in is blocked.</p>
-                <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ${settings.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                  Current status: {settings.status}
+                <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ${settings.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                  Current status: {settings.isActive ? 'Active' : 'Inactive'}
                 </span>
-                {isExit && <p className="text-xs text-amber-600 mt-2">Account access is controlled by the Employment Status setting above.</p>}
               </div>
               <button 
                 type="button" 
                 onClick={handleStatusToggle}
-                disabled={isExit}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${settings.status === 'active' ? 'bg-blue-600' : 'bg-slate-200'} ${isExit ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${settings.isActive ? 'bg-blue-600' : 'bg-slate-200'}`}
               >
-                <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${settings.status === 'active' ? 'translate-x-5' : 'translate-x-0'}`} />
+                <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${settings.isActive ? 'translate-x-5' : 'translate-x-0'}`} />
               </button>
             </div>
             
