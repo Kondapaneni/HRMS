@@ -15,6 +15,7 @@ const AdminAttendanceLocation = () => {
   const mapInstanceRef = useRef(null);
   const markersRef = useRef({ checkIn: null, checkOut: null, punch: [] });
   const infoWindowRef = useRef(null);
+  const pinnedMarkerRef = useRef(null);
 
   const { data, isLoading: loading } = useQuery({
     queryKey: ['admin', 'attendance-location', id],
@@ -73,6 +74,11 @@ const AdminAttendanceLocation = () => {
       });
       mapInstanceRef.current = map;
 
+      map.addListener('click', () => {
+        pinnedMarkerRef.current = null;
+        hidePhotoInfo();
+      });
+
       const infoWindow = new window.google.maps.InfoWindow({
         maxWidth: 260,
         pixelOffset: new window.google.maps.Size(0, -10),
@@ -103,8 +109,20 @@ const AdminAttendanceLocation = () => {
           },
         });
 
-        marker.addListener('mouseover', () => showPhotoInfo(key, marker, index));
-        marker.addListener('mouseout', hidePhotoInfo);
+        marker.addListener('mouseover', () => {
+          if (pinnedMarkerRef.current !== marker) {
+            showPhotoInfo(key, marker, index);
+          }
+        });
+        marker.addListener('mouseout', () => {
+          if (pinnedMarkerRef.current !== marker) {
+            hidePhotoInfo();
+          }
+        });
+        marker.addListener('click', () => {
+          pinnedMarkerRef.current = marker;
+          showPhotoInfo(key, marker, index);
+        });
         return marker;
       };
 
@@ -257,6 +275,7 @@ const AdminAttendanceLocation = () => {
     marker.setMap(map);
     map.panTo(marker.getPosition());
     map.setZoom(17);
+    window.google.maps.event.trigger(marker, 'click');
   };
 
   if (loading || !data) {
