@@ -62,10 +62,12 @@ api.interceptors.response.use(
     if (error.response && error.response.status === 403) {
       if (error.response.data?.error === 'Your account has been deactivated. Please contact your administrator.') {
         localStorage.removeItem('token');
-        toast.error(error.response.data.error, { duration: 5000 });
-        setTimeout(() => {
-          window.location.href = '/login';
-        }, 1500);
+        if (window.location.pathname !== '/') {
+          toast.error(error.response.data.error, { duration: 5000 });
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 1500);
+        }
       }
     }
     return Promise.reject(error);

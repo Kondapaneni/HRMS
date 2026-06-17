@@ -60,7 +60,6 @@ $app->get('/api/admin/employees/{id}', function (Request $request, Response $res
     $conn = $db->getConnection();
     
     try {
-        $conn->exec('ALTER TABLE users ADD COLUMN IF NOT EXISTS "mfaEnabled" BOOLEAN DEFAULT false');
         $stmt = $conn->prepare('
             SELECT e.*, b.name as branch_name, u."isActive", u."mfaEnabled" 
             FROM employee e 
