@@ -320,19 +320,36 @@ $app->put('/api/admin/employees/{id}/settings', function (Request $request, Resp
         $stmt = $conn->prepare($sql);
         $stmt->execute($updateValues);
         
-        // Always need userId if we update user table or delete MFA
+        // Query user_id to sync users table and handle MFA deletion
         $stmtUser = $conn->prepare('SELECT "userId" FROM employee WHERE id = ?');
         $stmtUser->execute([$args['id']]);
         $userId = $stmtUser->fetchColumn();
         
-        if (isset($data['status']) && $userId) {
-            $isActiveVal = ($data['status'] === 'active') ? 'true' : 'false';
-            $conn->prepare('UPDATE users SET "isActive" = ? WHERE id = ?')->execute([$isActiveVal, $userId]);
-        }
-        
-        if ($disableMfa && $userId) {
-            $conn->prepare('DELETE FROM mfa_secrets WHERE user_id = ?')->execute([$userId]);
-            $conn->prepare('DELETE FROM mfa_backup_codes WHERE user_id = ?')->execute([$userId]);
+        if ($userId) {
+            $userUpdates = [];
+            $userValues = [];
+            
+            if (isset($data['status'])) {
+                $userUpdates[] = '"isActive" = ?';
+                $userValues[] = ($data['status'] === 'active') ? 'true' : 'false';
+            }
+            
+            if (isset($data['mfaEnabled'])) {
+                $conn->exec('ALTER TABLE users ADD COLUMN IF NOT EXISTS "mfaEnabled" BOOLEAN DEFAULT false');
+                $userUpdates[] = '"mfaEnabled" = ?';
+                $userValues[] = $data['mfaEnabled'] ? 'true' : 'false';
+            }
+            
+            if (!empty($userUpdates)) {
+                $userValues[] = $userId;
+                $sqlUser = 'UPDATE users SET ' . implode(', ', $userUpdates) . ' WHERE id = ?';
+                $conn->prepare($sqlUser)->execute($userValues);
+            }
+            
+            if ($disableMfa) {
+                $conn->prepare('DELETE FROM mfa_secrets WHERE user_id = ?')->execute([$userId]);
+                $conn->prepare('DELETE FROM mfa_backup_codes WHERE user_id = ?')->execute([$userId]);
+            }
         }
         
         $conn->commit();
