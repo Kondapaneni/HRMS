@@ -53,33 +53,6 @@ $app->get('/', function ($request, $response, $args) {
     return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
 });
 
-// Temporary DB health check - REMOVE AFTER FIXING
-$app->get('/api/debug/db', function ($request, $response, $args) {
-    $result = [
-        'DB_HOST' => !empty($_ENV['DB_HOST']) ? $_ENV['DB_HOST'] : 'MISSING',
-        'DB_PORT' => !empty($_ENV['DB_PORT']) ? $_ENV['DB_PORT'] : 'MISSING',
-        'DB_DATABASE' => !empty($_ENV['DB_DATABASE']) ? $_ENV['DB_DATABASE'] : 'MISSING',
-        'DB_USERNAME' => !empty($_ENV['DB_USERNAME']) ? $_ENV['DB_USERNAME'] : 'MISSING',
-        'DB_PASSWORD' => !empty($_ENV['DB_PASSWORD']) ? 'SET (len=' . strlen($_ENV['DB_PASSWORD']) . ')' : 'MISSING',
-    ];
-    
-    try {
-        $db = new Database();
-        $conn = $db->getConnection();
-        if ($conn) {
-            $stmt = $conn->query('SELECT 1 as ok');
-            $result['db_connection'] = 'SUCCESS';
-        } else {
-            $result['db_connection'] = 'FAILED - getConnection returned null';
-        }
-    } catch (\Exception $e) {
-        $result['db_connection'] = 'ERROR: ' . $e->getMessage();
-    }
-    
-    $response->getBody()->write(json_encode($result));
-    return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
-});
-
 // Login endpoint
 $app->post('/api/login', function (Request $request, Response $response, $args) {
     $data = $request->getParsedBody();
