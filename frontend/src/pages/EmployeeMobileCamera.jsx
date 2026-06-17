@@ -191,7 +191,7 @@ const EmployeeMobileCamera = () => {
               <img
                 src={photoDataUrl}
                 alt="Captured"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
               />
             ) : (
               <video
@@ -199,7 +199,7 @@ const EmployeeMobileCamera = () => {
                 autoPlay
                 playsInline
                 muted
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
               />
             )}
             {/* Hidden canvas for capturing frame */}
@@ -210,11 +210,15 @@ const EmployeeMobileCamera = () => {
         {/* Overlay Guides */}
         {!photoDataUrl && !cameraError && (
           <div className="absolute inset-0 pointer-events-none">
-            {/* Face guide oval */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[60%] w-80 h-96 border-2 border-dashed border-white/50 rounded-[100%] shadow-[0_0_0_9999px_rgba(0,0,0,0.4)]"></div>
-            <p className="absolute top-[15%] left-0 right-0 text-center text-white font-medium drop-shadow-md">
-              Position your face in the frame
-            </p>
+            {/* Face guide oval container */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[60%] w-80 h-96">
+              {/* Oval shape with shadow */}
+              <div className="w-full h-full border-2 border-dashed border-white/50 rounded-[100%] shadow-[0_0_0_9999px_rgba(0,0,0,0.4)]"></div>
+              {/* Text placed right below the oval */}
+              <p className="absolute -bottom-12 left-0 right-0 text-center text-white font-medium drop-shadow-md">
+                Position your face in the frame
+              </p>
+            </div>
           </div>
         )}
       </div>
