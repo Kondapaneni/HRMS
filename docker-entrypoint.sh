@@ -15,7 +15,10 @@ if [ ! -f "$ENV_FILE" ]; then
   for var in $ENV_VARS; do
     val=$(printenv "$var" 2>/dev/null)
     if [ -n "$val" ]; then
-      echo "${var}=\"${val}\"" >> "$ENV_FILE"
+      # Use single quotes to prevent phpdotenv from interpreting $ and other specials
+      # Escape any existing single quotes in the value
+      escaped_val=$(printf '%s' "$val" | sed "s/'/'\\\\''/" )
+      echo "${var}='${escaped_val}'" >> "$ENV_FILE"
     fi
   done
 
