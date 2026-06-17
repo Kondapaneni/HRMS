@@ -19,8 +19,6 @@ const EmployeeMobileProfile = () => {
   const { fetchProfile } = useAuth();
   const [activeSection, setActiveSection] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const controls = useDragControls();
 
   const { data: profileResponse, isLoading: loading } = useQuery({
@@ -43,41 +41,8 @@ const EmployeeMobileProfile = () => {
     workMode = '', weekOff = '', emergencyContact = '', emergencyPhone = '', avatar = '', timeline = ''
   } = profileData || {};
 
-  const [formData, setFormData] = useState({
-    firstName: '', lastName: '', email: '', phone: '', address: '',
-    gender: '', maritalStatus: '', nationality: '', dateOfBirth: '',
-    bloodGroup: '', emergencyContact: '', emergencyPhone: ''
-  });
-
   const handleEditClick = () => {
-    setFormData({
-      firstName, lastName, email, phone, address, 
-      gender: gender ? gender.toLowerCase() : '', 
-      maritalStatus: maritalStatus ? maritalStatus.toLowerCase() : '', 
-      nationality, 
-      dateOfBirth: dateOfBirth ? dateOfBirth.split('T')[0] : '', 
-      bloodGroup, emergencyContact, emergencyPhone
-    });
-    setIsEditing(true);
-  };
-
-  const handleSaveProfile = async () => {
-    if (!formData.firstName || !formData.lastName || !formData.email) {
-       toast.error('First name, last name, and email are required');
-       return;
-    }
-    setIsSaving(true);
-    try {
-      await api.put('/employee/profile', formData);
-      toast.success('Profile updated successfully!');
-      queryClient.invalidateQueries(['employee', 'profile']);
-      if (fetchProfile) await fetchProfile();
-      setIsEditing(false);
-    } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to update profile');
-    } finally {
-      setIsSaving(false);
-    }
+    navigate('/employee/profile/edit');
   };
 
   const fullName = `${firstName || ''} ${lastName || ''}`.trim();
@@ -458,126 +423,7 @@ const EmployeeMobileProfile = () => {
         )}
       </AnimatePresence>
 
-      {/* Edit Profile Fullscreen Modal */}
-      <AnimatePresence>
-        {isEditing && (
-          <motion.div 
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed inset-0 z-[110] bg-white flex flex-col overflow-hidden"
-          >
-            {/* Header */}
-              <div className="relative pt-12 pb-6 px-4 bg-slate-900 shrink-0 overflow-hidden">
-                <motion.div animate={{ scale: [1, 1.2, 1], x: [0, 30, 0] }} transition={{ duration: 8, repeat: Infinity }} className="absolute -top-10 -left-10 w-40 h-40 bg-[#ff928b] rounded-full mix-blend-screen filter blur-[30px] opacity-60" />
-                <motion.div animate={{ scale: [1, 1.4, 1], x: [0, -20, 0] }} transition={{ duration: 10, repeat: Infinity, delay: 1 }} className="absolute -bottom-10 -right-10 w-40 h-40 bg-[#7bdff2] rounded-full mix-blend-screen filter blur-[30px] opacity-60" />
-                <div className="relative z-10 flex items-center justify-between">
-                  <button onClick={() => setIsEditing(false)} className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center backdrop-blur-md">
-                    <X className="w-5 h-5" />
-                  </button>
-                  <h2 className="text-xl font-bold text-white tracking-tight">Edit Profile</h2>
-                  <button onClick={handleSaveProfile} disabled={isSaving} className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center shadow-lg disabled:opacity-50">
-                    {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Form Content */}
-              <div className="flex-1 overflow-y-auto px-4 py-6 pb-24 space-y-6 bg-slate-50">
-                
-                {/* Personal Section */}
-                <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 space-y-4">
-                  <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">Personal Details</h3>
-                  
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-semibold text-slate-500 uppercase">First Name *</label>
-                      <input type="text" value={formData.firstName} onChange={(e) => setFormData({...formData, firstName: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-semibold text-slate-500 uppercase">Last Name *</label>
-                      <input type="text" value={formData.lastName} onChange={(e) => setFormData({...formData, lastName: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-500 uppercase">Email *</label>
-                    <input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-500 uppercase">Phone</label>
-                    <input type="tel" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-500 uppercase">Date of Birth</label>
-                    <input type="date" value={formData.dateOfBirth} onChange={(e) => setFormData({...formData, dateOfBirth: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-semibold text-slate-500 uppercase">Gender</label>
-                      <select value={formData.gender} onChange={(e) => setFormData({...formData, gender: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all appearance-none">
-                        <option value="">Select</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                        <option value="other">Other</option>
-                      </select>
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-semibold text-slate-500 uppercase">Blood Group</label>
-                      <select value={formData.bloodGroup} onChange={(e) => setFormData({...formData, bloodGroup: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all appearance-none">
-                        <option value="">Select</option>
-                        <option value="A+">A+</option><option value="A-">A-</option>
-                        <option value="B+">B+</option><option value="B-">B-</option>
-                        <option value="AB+">AB+</option><option value="AB-">AB-</option>
-                        <option value="O+">O+</option><option value="O-">O-</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-semibold text-slate-500 uppercase">Marital Status</label>
-                      <select value={formData.maritalStatus} onChange={(e) => setFormData({...formData, maritalStatus: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all appearance-none">
-                        <option value="">Select</option>
-                        <option value="single">Single</option>
-                        <option value="married">Married</option>
-                        <option value="divorced">Divorced</option>
-                        <option value="widowed">Widowed</option>
-                      </select>
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-semibold text-slate-500 uppercase">Nationality</label>
-                      <input type="text" value={formData.nationality} onChange={(e) => setFormData({...formData, nationality: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-500 uppercase">Address</label>
-                    <textarea value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} rows="3" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none"></textarea>
-                  </div>
-                </div>
-
-                {/* Emergency Section */}
-                <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 space-y-4">
-                  <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-2 text-rose-500">Emergency Contact</h3>
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-500 uppercase">Contact Name</label>
-                    <input type="text" value={formData.emergencyContact} onChange={(e) => setFormData({...formData, emergencyContact: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-semibold text-slate-500 uppercase">Contact Phone</label>
-                    <input type="tel" value={formData.emergencyPhone} onChange={(e) => setFormData({...formData, emergencyPhone: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
-                  </div>
-                </div>
-
-              </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Edit Profile Fullscreen Modal (Removed) */}
     </div>
   );
 };

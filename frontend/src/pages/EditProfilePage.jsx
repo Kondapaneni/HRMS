@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
+import EditMobileProfilePage from './EditMobileProfilePage';
 
 const EditProfilePage = () => {
   const navigate = useNavigate();
@@ -97,7 +98,11 @@ const EditProfilePage = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <>
+      <div className="md:hidden">
+        <EditMobileProfilePage />
+      </div>
+      <div className="hidden md:block space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">Edit Profile</h1>
@@ -230,7 +235,8 @@ const EditProfilePage = () => {
         </div>
 
       </form>
-    </div>
+      </div>
+    </>
   );
 };
 
