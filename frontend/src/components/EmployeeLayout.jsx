@@ -145,7 +145,7 @@ const EmployeeLayout = () => {
 
         {/* Top Header - Minimalist */}
         <header className="h-14 shrink-0 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 flex items-center justify-between md:justify-end sticky top-0 z-40 md:relative md:z-10">
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-5 flex-row-reverse md:flex-row">
             <button className="relative text-slate-500 hover:text-slate-700 transition-colors">
               <Bell size={20} />
             </button>
