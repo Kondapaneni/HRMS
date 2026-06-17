@@ -323,8 +323,8 @@ const EmployeeMobileMap = () => {
               <div className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 text-slate-500 shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="text-sm font-bold text-slate-700">Remote Punching Allowed</h4>
-                  <p className="text-xs mt-1 text-slate-500">Your location will be recorded with this {action === 'punch' ? 'punch' : 'action'}.</p>
+                  <h4 className="text-sm font-bold text-slate-700">Remote {getActionLabel()} Allowed</h4>
+                  <p className="text-xs mt-1 text-slate-500">Your location will be recorded with this {getActionLabel().toLowerCase()}.</p>
                 </div>
               </div>
             </div>
