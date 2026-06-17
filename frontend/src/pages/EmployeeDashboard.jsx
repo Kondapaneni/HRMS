@@ -75,11 +75,13 @@ const EmployeeDashboard = () => {
         const addr = await reverseGeocode(lat, lng);
 
         let isAllowed = true;
-        const isGeoFenceEnabled = profile?.geoFenceEnabled == 1 || profile?.geoFenceEnabled === true || profile?.geoFenceEnabled === '1' || profile?.geoFenceEnabled === 'true';
         
-        if (isGeoFenceEnabled && action !== 'punch') {
-          try {
-            const geofenceRes = await api.get('/employee/geofences');
+        try {
+          const geofenceRes = await api.get('/employee/geofences');
+          const serverGeoFenceEnabled = geofenceRes.data?.geoFenceEnabled;
+          const isGeoFenceEnabled = serverGeoFenceEnabled == 1 || serverGeoFenceEnabled === true || serverGeoFenceEnabled === '1' || serverGeoFenceEnabled === 'true';
+          
+          if (isGeoFenceEnabled && action !== 'punch') {
             const geofences = geofenceRes.data?.geofences || [];
             if (geofences.length > 0) {
               let insideAny = false;
@@ -89,12 +91,12 @@ const EmployeeDashboard = () => {
               });
               if (!insideAny) isAllowed = false;
             }
-          } catch (err) {
-            console.error('Failed to validate geofences:', err);
-            toast.error('Failed to validate geofence. Please try again.');
-            setPunchingAction(null);
-            return;
           }
+        } catch (err) {
+          console.error('Failed to validate geofences:', err);
+          toast.error('Failed to validate geofence. Please try again.');
+          setPunchingAction(null);
+          return;
         }
         
         if (!isAllowed) {
