@@ -37,7 +37,7 @@ const EmployeeMobileCamera = () => {
         stream.getTracks().forEach(track => track.stop());
       }
       const newStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 1280 } },
+        video: { facingMode: 'user' },
         audio: false
       });
       setStream(newStream);
@@ -191,7 +191,7 @@ const EmployeeMobileCamera = () => {
               <img
                 src={photoDataUrl}
                 alt="Captured"
-                className="w-full h-full object-contain"
+                className="w-full h-full object-cover"
               />
             ) : (
               <video
@@ -199,7 +199,7 @@ const EmployeeMobileCamera = () => {
                 autoPlay
                 playsInline
                 muted
-                className="w-full h-full object-contain"
+                className="w-full h-full object-cover"
               />
             )}
             {/* Hidden canvas for capturing frame */}
