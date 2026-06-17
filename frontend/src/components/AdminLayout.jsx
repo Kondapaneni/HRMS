@@ -52,7 +52,7 @@ const AdminLayout = () => {
   };
 
   return (
-    <div className="h-screen overflow-hidden bg-slate-50 flex font-sans text-slate-800 relative z-0">
+    <div className="h-[100dvh] w-full overflow-hidden bg-slate-50 flex font-sans text-slate-800 relative z-0">
       
       {/* Global Animated Background Graphics */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
@@ -116,7 +116,7 @@ const AdminLayout = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden relative z-30 bg-transparent">
+      <main className="flex-1 flex flex-col h-[100dvh] overflow-hidden relative z-30 bg-transparent">
         
         {/* Top Header */}
         <header className="h-14 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 flex items-center justify-between z-10 shrink-0">
@@ -163,8 +163,7 @@ const AdminLayout = () => {
           </div>
         </header>
 
-        {/* Dynamic Content */}
-        <div id="main-scroll-container" className="flex-1 overflow-y-auto p-4 sm:p-6">
+        <div id="main-scroll-container" className="flex-1 overflow-y-auto overscroll-y-contain p-4 sm:p-6" style={{ WebkitOverflowScrolling: 'touch' }}>
           <Outlet />
         </div>
       </main>

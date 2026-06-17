@@ -13,10 +13,24 @@
   --bg-color: #f8f9fa;
 }
 
-body {
+html, body {
   margin: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden; /* Prevent native scrolling at the root level */
+  position: fixed; /* Lock body in place for iOS PWA bounce prevention */
+  overscroll-behavior: none; /* Disable bounce */
+  -webkit-overflow-scrolling: auto;
   font-family: "Nunito", ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--bg-color);
+}
+
+#root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }

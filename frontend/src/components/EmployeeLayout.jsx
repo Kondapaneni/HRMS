@@ -78,7 +78,7 @@ const EmployeeLayout = () => {
   };
 
   return (
-    <div className="min-h-screen md:h-screen md:overflow-hidden bg-slate-50 flex font-sans text-slate-800 relative z-0">
+    <div className="h-[100dvh] w-full overflow-hidden bg-slate-50 flex font-sans text-slate-800 relative z-0">
 
       {/* Global Animated Background Graphics */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden fixed md:absolute">
@@ -141,7 +141,7 @@ const EmployeeLayout = () => {
       </aside>
 
       {/* Main Content Wrapper */}
-      <main className="flex-1 flex flex-col min-h-screen md:h-screen md:overflow-hidden relative z-30 bg-transparent">
+      <main className="flex-1 flex flex-col h-[100dvh] overflow-hidden relative z-30 bg-transparent">
 
         {/* Top Header - Minimalist */}
         <header className="h-14 shrink-0 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 flex items-center justify-between md:justify-end sticky top-0 z-40 md:relative md:z-10">
@@ -179,7 +179,7 @@ const EmployeeLayout = () => {
         </header>
 
         {/* Dynamic Page Content */}
-        <div className="flex-1 md:overflow-auto p-4 sm:p-6 pb-[110px] md:pb-6">
+        <div className="flex-1 overflow-y-auto overscroll-y-contain p-4 sm:p-6 pb-[110px] md:pb-6" style={{ WebkitOverflowScrolling: 'touch' }}>
           <Outlet />
         </div>
 
