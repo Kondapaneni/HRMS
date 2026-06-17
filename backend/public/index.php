@@ -72,6 +72,12 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
     $user = $stmt->fetch();
 
     if ($user && password_verify($password, $user['password'])) {
+        $isActive = ($user['isActive'] === true || $user['isActive'] === 'true' || $user['isActive'] == 1);
+        if (!$isActive) {
+            $response->getBody()->write(json_encode(['error' => 'Your account has been deactivated. Please contact your administrator.']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+        }
+        
         $secret = $_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '';
         $payload = [
             'iss' => 'acme_hrms',
