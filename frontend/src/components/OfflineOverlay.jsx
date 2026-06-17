@@ -40,44 +40,38 @@ const OfflineOverlay = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[9999] bg-white/80 backdrop-blur-md flex items-center justify-center p-4"
+          className="fixed inset-0 z-[9999] bg-slate-50 flex flex-col items-center justify-center p-4 overflow-hidden"
         >
-          <motion.div 
-            initial={{ scale: 0.9, y: 20 }}
-            animate={{ scale: 1, y: 0 }}
-            exit={{ scale: 0.9, y: 20 }}
-            className="bg-white rounded-3xl shadow-2xl border border-slate-200 p-8 max-w-sm w-full text-center overflow-hidden"
-          >
-            <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-2">
-              <WifiOff className="w-10 h-10" />
-            </div>
-            
-            <div className="h-20 mb-2 -mx-4">
-              <FuzzyText 
-                baseIntensity={0.2}
-                hoverIntensity={0.5}
-                enableHover
-                color="#0f172a"
-                fontSize="3.5rem"
-                fontWeight={800}
-              >
-                OFFLINE
-              </FuzzyText>
-            </div>
-            
-            <p className="text-slate-500 mb-8 leading-relaxed">
-              It looks like your internet connection has dropped. Please check your network to continue using Acme HRMS.
-            </p>
-            
-            <button 
-              onClick={handleTryAgain}
-              disabled={isChecking}
-              className="w-full inline-flex items-center justify-center gap-2 bg-slate-900 text-white rounded-xl h-12 font-medium hover:bg-slate-800 transition-colors disabled:opacity-70"
+          <div className="h-32 md:h-48 mb-2 relative flex items-center justify-center w-full max-w-2xl">
+            <FuzzyText 
+              baseIntensity={0.2}
+              hoverIntensity={0.5}
+              enableHover
+              color="#0f172a"
+              fontSize="clamp(3.5rem, 12vw, 6rem)"
+              fontWeight={900}
             >
-              <RefreshCcw className={`w-4 h-4 ${isChecking ? 'animate-spin' : ''}`} />
-              {isChecking ? 'Checking...' : 'Try Again'}
-            </button>
-          </motion.div>
+              OFFLINE
+            </FuzzyText>
+          </div>
+          
+          <div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <WifiOff className="w-10 h-10" />
+          </div>
+          
+          <h1 className="text-3xl font-bold text-slate-800 mb-4 text-center">Connection Lost</h1>
+          <p className="text-slate-500 mb-8 max-w-md text-center leading-relaxed">
+            It looks like your internet connection has dropped. Please check your network to continue using Acme HRMS.
+          </p>
+          
+          <button 
+            onClick={handleTryAgain}
+            disabled={isChecking}
+            className="inline-flex items-center gap-2 px-8 py-4 bg-slate-900 text-white rounded-xl font-medium hover:bg-slate-800 transition-colors shadow-sm disabled:opacity-70"
+          >
+            <RefreshCcw className={`w-5 h-5 ${isChecking ? 'animate-spin' : ''}`} />
+            {isChecking ? 'Checking...' : 'Try Again'}
+          </button>
         </motion.div>
       )}
     </AnimatePresence>

@@ -53,13 +53,16 @@ class AuthMiddleware
                 // Check if user is active
                 $stmtCheck = $conn->prepare('SELECT "isActive" FROM users WHERE id = :uid');
                 $stmtCheck->execute([':uid' => $decoded->id ?? '']);
-                $userActiveStatus = $stmtCheck->fetchColumn();
+                $userRow = $stmtCheck->fetch();
                 
-                if ($userActiveStatus !== false) {
-                    $isActive = ($userActiveStatus === true || $userActiveStatus === 'true' || $userActiveStatus == 1);
+                if ($userRow !== false) {
+                    $userActiveStatus = $userRow['isActive'];
+                    $isActive = ($userActiveStatus === true || $userActiveStatus === 'true' || $userActiveStatus === 't' || $userActiveStatus == 1);
                     if (!$isActive) {
                         return $this->forbiddenResponse("Your account has been deactivated. Please contact your administrator.");
                     }
+                } else {
+                    return $this->unauthorizedResponse("User account not found.");
                 }
 
                 $stmt = $conn->prepare("
