@@ -33,24 +33,23 @@ class AuthMiddleware
 
         try {
             $decoded = JWT::decode($token, new Key($secret, 'HS256'));
-            
-            // Check roles if specified
-            if (!empty($this->requiredRoles) && !in_array($decoded->role, $this->requiredRoles)) {
-                return $this->forbiddenResponse("Insufficient permissions. Required roles: " . implode(', ', $this->requiredRoles));
-            }
+        } catch (Exception $e) {
+            return $this->unauthorizedResponse("Invalid or expired token: " . $e->getMessage() . " (Secret empty? " . (empty($secret) ? 'yes' : 'no') . ")");
+        }
 
-            // Append decoded token to request attributes
-            $request = $request->withAttribute('user', $decoded);
+        // Check roles if specified
+        if (!empty($this->requiredRoles) && !in_array($decoded->role, $this->requiredRoles)) {
+            return $this->forbiddenResponse("Insufficient permissions. Required roles: " . implode(', ', $this->requiredRoles));
+        }
 
-            // Set Postgres session variables for audit triggers
+        // Append decoded token to request attributes
+        $request = $request->withAttribute('user', $decoded);
+
+        // Set Postgres session variables for audit triggers
+        try {
             $db = new Database();
             $conn = $db->getConnection();
             if ($conn) {
-                // We use set_config to set custom settings, 'true' means local to transaction.
-                // Wait, PDO by default operates outside a transaction unless beginTransaction is called.
-                // Actually, if it's outside a transaction, 'true' might not persist across queries. 
-                // We should use 'false' to make it persist for the connection session, 
-                // since the connection is created per HTTP request lifecycle.
                 $stmt = $conn->prepare("
                     SELECT 
                         set_config('app.current_user_id', :uid, false),
@@ -66,15 +65,15 @@ class AuthMiddleware
                     ':role' => $decoded->role ?? '',
                     ':ip' => $_SERVER['REMOTE_ADDR'] ?? '',
                     ':ua' => $_SERVER['HTTP_USER_AGENT'] ?? '',
-                    ':sid' => bin2hex(random_bytes(16)) // Unique ID for this request
+                    ':sid' => bin2hex(random_bytes(16))
                 ]);
             }
-
-            return $handler->handle($request);
-
         } catch (Exception $e) {
-            return $this->unauthorizedResponse("Invalid or expired token: " . $e->getMessage() . " (Secret empty? " . (empty($secret) ? 'yes' : 'no') . ")");
+            // Log but don't block the request — audit is non-critical
+            error_log("AuthMiddleware: Failed to set audit context: " . $e->getMessage());
         }
+
+        return $handler->handle($request);
     }
 
     private function unauthorizedResponse(string $message): Response
