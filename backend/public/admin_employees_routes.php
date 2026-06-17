@@ -61,7 +61,7 @@ $app->get('/api/admin/employees/{id}', function (Request $request, Response $res
     
     try {
         $stmt = $conn->prepare('
-            SELECT e.*, b.name as branch_name, u."isActive" 
+            SELECT e.*, b.name as branch_name, u."isActive", u."mfaEnabled" 
             FROM employee e 
             LEFT JOIN branches b ON e.branch = b.id::text 
             LEFT JOIN users u ON e."userId" = u.id
