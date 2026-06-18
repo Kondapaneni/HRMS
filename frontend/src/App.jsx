@@ -6,6 +6,9 @@ import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persist
 import { AuthProvider } from './contexts/AuthContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import Login from './pages/Login'
+import ChangePassword from './pages/ChangePassword'
+import ForgotPassword from './pages/ForgotPassword'
+import ResetPassword from './pages/ResetPassword'
 import AdminDashboard from './pages/AdminDashboard'
 import EmployeeDashboard from './pages/EmployeeDashboard'
 import EmployeeLayout from './components/EmployeeLayout'
@@ -78,6 +81,16 @@ function App() {
         <Router>
           <Routes>
             <Route path="/" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route 
+              path="/change-password" 
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'employee', 'hr', 'manager']}>
+                  <ChangePassword />
+                </ProtectedRoute>
+              } 
+            />
             <Route
               path="/admin"
               element={

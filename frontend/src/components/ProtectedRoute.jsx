@@ -61,6 +61,11 @@ export const ProtectedRoute = ({ children, allowedRoles }) => {
       return <Navigate to="/" state={{ from: location }} replace />;
     }
 
+    // Force password change check
+    if (profile.forcePasswordChange && location.pathname !== '/change-password') {
+      return <Navigate to="/change-password" replace />;
+    }
+
     // Role check: profile.role is always read from the database via /auth/me
     if (!allowedRoles.includes(profile.role)) {
       // Redirect to the page this user actually belongs on

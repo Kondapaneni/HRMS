@@ -1,0 +1,41 @@
+<div style="font-family: 'Inter', Arial, sans-serif; background-color: #f8fafc; padding: 0 0 40px 0; color: #333; width: 100%; margin: 0;">
+  
+  <div style="background-color: #0f172a; padding: 40px 20px 80px 20px; text-align: center; position: relative; overflow: hidden;">
+    <!-- Gradient Orbs -->
+    <div style="position: absolute; top: -30px; left: -20px; width: 150px; height: 150px; background-color: #ff928b; border-radius: 50%; opacity: 0.35; filter: blur(35px);"></div>
+    <div style="position: absolute; top: -10px; right: -20px; width: 120px; height: 120px; background-color: #7bdff2; border-radius: 50%; opacity: 0.35; filter: blur(30px);"></div>
+    <div style="position: absolute; bottom: -20px; left: 30%; width: 180px; height: 180px; background-color: #84dcc6; border-radius: 50%; opacity: 0.25; filter: blur(40px);"></div>
+    
+    <div style="position: relative; z-index: 10;">
+      <p style="color: #cbd5e1; margin: 0 0 6px 0; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; font-weight: bold;">Leave Request</p>
+      <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 900; letter-spacing: -0.5px;">Hello, {{employeeName}}</h1>
+      <p style="color: #e2e8f0; margin: 6px 0 0 0; font-size: 14px;">Update on Your Leave Request</p>
+    </div>
+  </div>
+
+  <div style="max-width: 500px; margin: -40px auto 0 auto; background-color: #ffffff; border-radius: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); padding: 30px; position: relative; z-index: 20;">
+    
+    <div style="padding-bottom: 15px; border-bottom: 1px solid #f1f5f9; margin-bottom: 25px;">
+      <h2 style="font-size: 18px; font-weight: bold; color: #0f172a; margin: 0;">Request Status: <span style="color: inherit; /* statusColor */">{{status}}</span></h2>
+      <p style="font-size: 11px; font-weight: 500; color: #64748b; margin: 5px 0 0 0; text-transform: uppercase; letter-spacing: 1px;">Leave Details</p>
+    </div>
+
+    <p style="font-size: 15px; line-height: 1.6; color: #475569; margin-top: 0;">Your recent leave request has been reviewed. Here are the details of your request.</p>
+    
+    <div style="margin: 30px 0; padding: 20px 0; border-top: 1px dashed #cbd5e1; border-bottom: 1px dashed #cbd5e1;">
+      <div style="margin-bottom: 16px;">
+        <span style="font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 4px;">Leave Type</span>
+        <span style="font-size: 16px; font-weight: bold; color: #0f172a;">{{leaveType}}</span>
+      </div>
+      <div>
+        <span style="font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 4px;">Date Range</span>
+        <span style="font-size: 16px; font-weight: bold; color: #0f172a;">{{startDate}} to {{endDate}}</span>
+      </div>
+    </div>
+
+  </div>
+  
+  <div style="text-align: center; padding: 30px 20px 0 20px; color: #94a3b8; font-size: 12px;">
+    &copy; {{currentYear}} Acme HRMS. All rights reserved.
+  </div>
+</div>

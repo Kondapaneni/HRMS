@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Settings, Send, UserPlus, Info, ArrowLeft, Archive, Trash2, MailOpen, Clock, MoreVertical, CornerUpLeft, CornerUpRight, Star } from 'lucide-react';
+import { Mail, Settings, Send, UserPlus, Info, ArrowLeft, Archive, Trash2, MailOpen, Clock, MoreVertical, CornerUpLeft, CornerUpRight, Star, Lock } from 'lucide-react';
+import WelcomeEmailTemplate from '../components/emailTemplates/WelcomeEmailTemplate';
+import LeaveEmailTemplate from '../components/emailTemplates/LeaveEmailTemplate';
+import ResetPasswordEmailTemplate from '../components/emailTemplates/ResetPasswordEmailTemplate';
 
 const AdminEmailTemplates = () => {
   const [activeTemplate, setActiveTemplate] = useState('welcome');
@@ -10,55 +13,25 @@ const AdminEmailTemplates = () => {
       id: 'welcome',
       name: 'Employee Welcome',
       icon: <UserPlus size={18} />,
-      description: 'Sent automatically when a new employee account is created.',
+      description: 'Sent automatically when a New Employee Account is Created.',
       subject: 'Welcome to Acme HRMS - Your Account Details',
-      content: (
-        <div className="space-y-4 text-sm text-slate-700 font-sans">
-          <p>Hello <span className="px-1 py-0.5 bg-blue-100 text-blue-800 rounded font-mono text-xs font-semibold">[Employee First Name]</span>,</p>
-          <p>Your account has been created successfully.</p>
-          
-          <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 shadow-sm inline-block">
-            <p className="mb-2"><span className="font-semibold text-slate-500 w-20 inline-block">Email:</span> <span className="text-slate-900 font-medium">[Employee Email]</span></p>
-            <p><span className="font-semibold text-slate-500 w-20 inline-block">Password:</span> <span className="text-slate-900 font-mono bg-slate-200 px-2 py-1 rounded">[Generated Password]</span></p>
-          </div>
-
-          <p>You can login here: <a href="#" className="text-blue-600 underline">[Deployed Frontend URL]</a></p>
-          
-          <p className="text-amber-600 bg-amber-50 p-2 rounded border border-amber-100 flex items-center gap-2 max-w-max">
-            <Info size={16} />
-            Please change your password after logging in.
-          </p>
-
-          <div className="pt-4 mt-6 border-t border-slate-100">
-            <p className="text-slate-500">Best regards,<br/><span className="font-semibold text-slate-700">HR Team</span></p>
-          </div>
-        </div>
-      )
+      content: <WelcomeEmailTemplate />
     },
     {
       id: 'leave_request',
       name: 'Leave Request Status',
       icon: <Send size={18} />,
-      description: 'Sent when a leave request is approved or rejected.',
+      description: 'Sent when a Leave Request is Approved or Rejected.',
       subject: 'Update on Your Leave Request',
-      content: (
-        <div className="space-y-4 text-sm text-slate-700 font-sans">
-          <p>Hello <span className="px-1 py-0.5 bg-blue-100 text-blue-800 rounded font-mono text-xs font-semibold">[Employee Name]</span>,</p>
-          <p>Your recent leave request has been <span className="px-1 py-0.5 bg-green-100 text-green-800 rounded font-mono text-xs font-semibold">[Approved/Rejected]</span>.</p>
-          
-          <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 shadow-sm inline-block">
-            <p className="mb-2"><span className="font-semibold text-slate-500 w-24 inline-block">Leave Type:</span> <span className="text-slate-900">[Leave Type]</span></p>
-            <p className="mb-2"><span className="font-semibold text-slate-500 w-24 inline-block">Date:</span> <span className="text-slate-900">[Start Date] to [End Date]</span></p>
-            <p><span className="font-semibold text-slate-500 w-24 inline-block">Reason:</span> <span className="text-slate-900 italic">"[Manager Reason]"</span></p>
-          </div>
-
-          <p>You can view the full details in your employee dashboard.</p>
-
-          <div className="pt-4 mt-6 border-t border-slate-100">
-            <p className="text-slate-500">Best regards,<br/><span className="font-semibold text-slate-700">HR Team</span></p>
-          </div>
-        </div>
-      )
+      content: <LeaveEmailTemplate />
+    },
+    {
+      id: 'reset_password',
+      name: 'Password Reset',
+      icon: <Lock size={18} />,
+      description: 'Sent when a user requests to reset their password.',
+      subject: 'Password Reset - Acme HRMS',
+      content: <ResetPasswordEmailTemplate />
     }
   ];
 
@@ -66,7 +39,7 @@ const AdminEmailTemplates = () => {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 relative z-10">
-      
+
       {/* Page Header */}
       <div className="flex justify-between items-end">
         <div>
@@ -80,29 +53,25 @@ const AdminEmailTemplates = () => {
             Preview the automated emails sent by the Acme HRMS system to employees.
           </p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors shadow-sm">
-          <Settings size={16} /> Configure SMTP
-        </button>
       </div>
 
       {/* Main Layout Grid */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
-        
+
         {/* Sidebar List */}
         <div className="md:col-span-4 lg:col-span-3 space-y-3">
           <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-1">Available Templates</h2>
-          
+
           {templates.map((template) => (
             <motion.button
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.98 }}
               key={template.id}
               onClick={() => setActiveTemplate(template.id)}
-              className={`w-full text-left p-4 rounded-xl border transition-all duration-200 flex items-start gap-3 ${
-                activeTemplate === template.id 
-                ? 'bg-white border-indigo-200 shadow-md shadow-indigo-100 ring-1 ring-indigo-100' 
+              className={`w-full text-left p-4 rounded-xl border transition-all duration-200 flex items-start gap-3 ${activeTemplate === template.id
+                ? 'bg-white border-indigo-200 shadow-md shadow-indigo-100 ring-1 ring-indigo-100'
                 : 'bg-white/60 border-slate-200 hover:bg-white hover:border-slate-300 hover:shadow-sm'
-              }`}
+                }`}
             >
               <div className={`p-2 rounded-lg mt-0.5 ${activeTemplate === template.id ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-500'}`}>
                 {template.icon}
@@ -121,7 +90,7 @@ const AdminEmailTemplates = () => {
 
         {/* Preview Pane - Gmail UI Mockup */}
         <div className="md:col-span-8 lg:col-span-9 bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col min-h-[600px] font-sans">
-          
+
           {/* Gmail Toolbar */}
           <div className="flex items-center justify-between px-4 py-2 border-b border-slate-100 bg-white">
             <div className="flex items-center gap-4 text-slate-500">
@@ -140,7 +109,7 @@ const AdminEmailTemplates = () => {
 
           {/* Email Content Area */}
           <div className="flex-1 overflow-y-auto bg-white">
-            <motion.div 
+            <motion.div
               key={currentTemplate?.id}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -172,7 +141,7 @@ const AdminEmailTemplates = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-3 text-slate-500">
-                  <span className="text-xs">{new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} (0 minutes ago)</span>
+                  <span className="text-xs">{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (0 minutes ago)</span>
                   <button className="hover:bg-slate-100 p-1.5 rounded-full"><Star size={16} /></button>
                   <button className="hover:bg-slate-100 p-1.5 rounded-full"><CornerUpLeft size={16} /></button>
                   <button className="hover:bg-slate-100 p-1.5 rounded-full"><MoreVertical size={16} /></button>
@@ -180,7 +149,7 @@ const AdminEmailTemplates = () => {
               </div>
 
               {/* Actual Email Body */}
-              <div className="ml-0 md:ml-12 max-w-3xl text-sm text-slate-800">
+              <div className="text-sm text-slate-800">
                 {currentTemplate?.content}
               </div>
 
@@ -196,7 +165,7 @@ const AdminEmailTemplates = () => {
 
             </motion.div>
           </div>
-          
+
         </div>
 
       </div>

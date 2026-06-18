@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, Lock, ArrowRight, Briefcase, Eye, EyeOff } from 'lucide-react';
-import { useNavigate, Navigate } from 'react-router-dom';
+import { useNavigate, Navigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 const Login = () => {
@@ -21,6 +21,9 @@ const Login = () => {
   if (user) {
     if (profileLoading || !profile) {
       return <div className="min-h-screen flex items-center justify-center bg-[#f8f9fa] text-slate-500">Signing in...</div>;
+    }
+    if (profile.forcePasswordChange) {
+      return <Navigate to="/change-password" replace />;
     }
     return <Navigate to={ADMIN_ROLES.includes(profile.role) ? '/admin' : '/employee'} replace />;
   }
@@ -48,7 +51,9 @@ const Login = () => {
       const userData = await signIn(email, password);
 
       // Redirect based on role
-      if (ADMIN_ROLES.includes(userData.role)) {
+      if (userData.forcePasswordChange) {
+        navigate('/change-password');
+      } else if (ADMIN_ROLES.includes(userData.role)) {
         navigate('/admin');
       } else if (userData.role === 'employee') {
         navigate('/employee');
@@ -213,9 +218,9 @@ const Login = () => {
                   </label>
                 </div>
 
-                <a href="#" className="text-sm font-black text-[#3B82F6] hover:text-[#2563EB] transition-colors hover:underline decoration-[3px] underline-offset-4">
+                <Link to="/forgot-password" className="text-sm font-black text-[#3B82F6] hover:text-[#2563EB] transition-colors hover:underline decoration-[3px] underline-offset-4">
                   Forgot Password?
-                </a>
+                </Link>
               </motion.div>
 
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}>

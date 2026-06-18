@@ -404,8 +404,8 @@ $app->post('/api/employees', function (Request $request, Response $response, $ar
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
         $role = 'employee';
         
-        $stmtUser = $conn->prepare('INSERT INTO users (email, password, "firstName", "lastName", role, department, position) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id');
-        $stmtUser->execute([$email, $hashedPassword, $firstName, $lastName, $role, $department, $position]);
+        $stmtUser = $conn->prepare('INSERT INTO users (email, password, "firstName", "lastName", role, department, position, "forcePasswordChange") VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id');
+        $stmtUser->execute([$email, $hashedPassword, $firstName, $lastName, $role, $department, $position, 'true']);
         
         $userId = $stmtUser->fetchColumn();
 
@@ -427,7 +427,15 @@ $app->post('/api/employees', function (Request $request, Response $response, $ar
         // 3. Queue Welcome Email
         $loginLink = $_ENV['FRONTEND_URL'] ?? 'https://hrms-qwv3.onrender.com';
         $subject = 'Welcome to Acme HRMS - Your Account Details';
-        $body = "Hello $firstName,\n\nYour account has been created successfully.\n\nEmail: $email\nPassword: $password\n\nYou can login here: $loginLink\n\nPlease change your password after logging in.\n\nBest regards,\nHR Team";
+        
+        $currentYear = date('Y');
+        
+        $template = file_get_contents(__DIR__ . '/../src/Templates/welcome_email.html');
+        $body = str_replace(
+            ['{{firstName}}', '{{email}}', '{{password}}', '{{loginLink}}', '{{currentYear}}'],
+            [htmlspecialchars($firstName), htmlspecialchars($email), htmlspecialchars($password), htmlspecialchars($loginLink), htmlspecialchars($currentYear)],
+            $template
+        );
         
         $stmtQueue = $conn->prepare('INSERT INTO email_queue (to_email, subject, body) VALUES (?, ?, ?)');
         $stmtQueue->execute([$email, $subject, $body]);

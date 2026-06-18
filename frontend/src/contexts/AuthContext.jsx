@@ -51,9 +51,9 @@ export const AuthProvider = ({ children }) => {
     const { token, user: userData } = response.data;
 
     localStorage.setItem('token', token);
-    setUser({ email: userData.email, id: userData.id });
 
     // Fetch the full profile (which includes the avatar from the employees table)
+    // fetchProfile will set both user and profile state together
     await fetchProfile();
 
     return userData;
