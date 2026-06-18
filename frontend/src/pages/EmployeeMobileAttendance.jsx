@@ -27,6 +27,15 @@ const EmployeeMobileAttendance = () => {
 
   const filteredHistory = history.filter(record => {
     const recordObj = new Date(record.date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const rDateZero = new Date(recordObj);
+    rDateZero.setHours(0, 0, 0, 0);
+
+    if (rDateZero > today) {
+      return false;
+    }
+
     if (recordObj.getMonth() !== currentMonth || recordObj.getFullYear() !== currentYear) {
       return false;
     }

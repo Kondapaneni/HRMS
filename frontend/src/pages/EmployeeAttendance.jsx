@@ -111,6 +111,15 @@ const EmployeeAttendance = () => {
   };
 
   const filteredHistory = history.filter(record => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const rDateZero = new Date(record.date);
+    rDateZero.setHours(0, 0, 0, 0);
+
+    if (rDateZero > today) {
+      return false;
+    }
+
     if (searchDate && !formatDateStr(record.date).includes(searchDate)) return false;
     if (statusFilter !== 'all') {
       const recordStatus = resolveStatusKey(record);
