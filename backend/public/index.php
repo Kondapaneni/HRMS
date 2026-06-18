@@ -188,7 +188,7 @@ $app->post('/api/forgot-password', function (Request $request, Response $respons
     $conn = $db->getConnection();
 
     // Check if user exists
-    $stmt = $conn->prepare("SELECT id, name FROM users WHERE email = :email");
+    $stmt = $conn->prepare('SELECT id, "firstName", "lastName" FROM users WHERE email = :email');
     $stmt->execute(['email' => $email]);
     $user = $stmt->fetch();
 
@@ -221,10 +221,11 @@ $app->post('/api/forgot-password', function (Request $request, Response $respons
         }
 
         // Queue email
+        $fullName = trim(($user['firstName'] ?? '') . ' ' . ($user['lastName'] ?? ''));
         $queueStmt = $conn->prepare("INSERT INTO email_queue (recipient_email, recipient_name, subject, body) VALUES (:email, :name, :subject, :body)");
         $queueStmt->execute([
             'email' => $email,
-            'name' => $user['name'],
+            'name' => $fullName,
             'subject' => 'Password Reset - Acme HRMS',
             'body' => $emailContent
         ]);
