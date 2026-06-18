@@ -389,6 +389,14 @@ $app->post('/api/employees', function (Request $request, Response $response, $ar
     $db = new Database();
     $conn = $db->getConnection();
 
+    // Check if email already exists
+    $stmtCheck = $conn->prepare('SELECT id FROM users WHERE email = ?');
+    $stmtCheck->execute([$email]);
+    if ($stmtCheck->fetchColumn()) {
+        $response->getBody()->write(json_encode(['error' => 'An employee with this email address already exists.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+
     try {
         $conn->beginTransaction();
 
@@ -435,7 +443,13 @@ $app->post('/api/employees', function (Request $request, Response $response, $ar
 
     } catch (\Exception $e) {
         $conn->rollBack();
-        $response->getBody()->write(json_encode(['error' => 'Transaction failed: ' . $e->getMessage()]));
+        
+        $errorMsg = 'An error occurred while creating the employee.';
+        if (strpos($e->getMessage(), '23505') !== false && strpos($e->getMessage(), 'users_email_key') !== false) {
+            $errorMsg = 'An employee with this email address already exists.';
+        }
+        
+        $response->getBody()->write(json_encode(['error' => $errorMsg]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['admin']));
