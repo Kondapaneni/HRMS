@@ -378,7 +378,7 @@ $app->post('/api/employees', function (Request $request, Response $response, $ar
     $branch = $data['branch_id'] ?? '';
     $joinDate = $data['joinDate'] ?? null;
     $salary = $data['salary'] ?? 0;
-    $status = $data['status'] ?? 'Active';
+    $status = strtolower($data['status'] ?? 'active');
     $managerId = $data['manager_id'] ?? null;
 
     if (empty($email) || empty($password)) {
