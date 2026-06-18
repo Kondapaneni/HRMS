@@ -279,7 +279,7 @@ const EmployeeMobileDashboard = () => {
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Unpaid Used</span>
             </div>
           </div>
-          <Link to="/employee/leaves" className="flex items-center justify-center w-full rounded-xl bg-[#84dcc6] text-slate-900 font-semibold text-sm py-3 hover:bg-[#7bcab4] active:scale-[0.98] transition-all">
+          <Link to="/employee/leaves/apply" className="flex items-center justify-center w-full rounded-xl bg-[#84dcc6] text-slate-900 font-semibold text-sm py-3 hover:bg-[#7bcab4] active:scale-[0.98] transition-all">
             Apply leave
           </Link>
         </div>

@@ -2,9 +2,10 @@ import React from 'react';
 import { Calendar as CalendarIcon, Plus, Clock, CheckCircle, XCircle, AlertCircle, FileText } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import api from '../api/axios';
 
-const EmployeeMobileLeaves = ({ setIsModalOpen }) => {
+const EmployeeMobileLeaves = () => {
   const { data: leavesData, isLoading: loading, error: queryError } = useQuery({
     queryKey: ['employee', 'leaves'],
     queryFn: async () => {
@@ -62,13 +63,13 @@ const EmployeeMobileLeaves = ({ setIsModalOpen }) => {
             </div>
           </div>
 
-          <button 
-            onClick={() => setIsModalOpen(true)}
+          <Link 
+            to="/employee/leaves/apply"
             className="w-full rounded-xl bg-white text-slate-900 font-bold text-sm py-3.5 flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-md"
           >
             <Plus className="w-5 h-5" />
             Apply for Leave
-          </button>
+          </Link>
         </div>
       </section>
 

@@ -14,6 +14,7 @@ import EmployeeDashboard from './pages/EmployeeDashboard'
 import EmployeeLayout from './components/EmployeeLayout'
 import EmployeeAttendance from './pages/EmployeeAttendance'
 import EmployeeLeaves from './pages/EmployeeLeaves'
+import EmployeeApplyLeavePage from './pages/EmployeeApplyLeavePage'
 import EmployeePayroll from './pages/EmployeePayroll'
 import EmployeeProfile from './pages/EmployeeProfile'
 import EmployeePerformance from './pages/EmployeePerformance'
@@ -130,6 +131,7 @@ function App() {
               <Route index element={<EmployeeDashboard />} />
               <Route path="attendance" element={<EmployeeAttendance />} />
               <Route path="leaves" element={<EmployeeLeaves />} />
+              <Route path="leaves/apply" element={<EmployeeApplyLeavePage />} />
               <Route path="payroll" element={<EmployeePayroll />} />
               <Route path="performance" element={<EmployeePerformance />} />
               <Route path="profile" element={<EmployeeProfile />} />
