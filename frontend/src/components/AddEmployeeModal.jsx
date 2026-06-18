@@ -10,7 +10,7 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const [formData, setFormData] = useState({
+  const initialFormState = {
     firstName: '',
     lastName: '',
     email: '',
@@ -23,7 +23,9 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
     salary: '',
     status: 'Active',
     manager_id: ''
-  });
+  };
+
+  const [formData, setFormData] = useState(initialFormState);
 
   const generateRandomPassword = () => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()';
@@ -37,7 +39,14 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
   useEffect(() => {
     if (isOpen) {
       fetchBranches();
-      setFormData(prev => ({ ...prev, password: generateRandomPassword() }));
+      setFormData({ 
+        ...initialFormState, 
+        password: generateRandomPassword() 
+      });
+    } else {
+      // Optional: clear form when closed
+      setFormData(initialFormState);
+      setError(null);
     }
   }, [isOpen]);
 
