@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { 
+import React, { useState, useEffect } from 'react';
+import {
   User, Mail, Phone, MapPin, Briefcase, CalendarDays, Building2,
   Shield, CreditCard, Heart, HeartHandshake, Globe, Clock3, Laptop,
   Calendar, Clock, UserCheck, Camera, ChevronRight, FileText, ChevronLeft,
@@ -20,6 +20,17 @@ const EmployeeMobileProfile = () => {
   const [activeSection, setActiveSection] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const controls = useDragControls();
+
+  useEffect(() => {
+    if (activeSection) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [activeSection]);
 
   const { data: profileResponse, isLoading: loading } = useQuery({
     queryKey: ['employee', 'profile'],
@@ -76,7 +87,7 @@ const EmployeeMobileProfile = () => {
 
       const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
       await api.post('/employee/profile/avatar', { avatar: data.publicUrl });
-      
+
       toast.success('Profile picture updated successfully!');
       queryClient.invalidateQueries(['employee', 'profile']);
       if (fetchProfile) await fetchProfile();
@@ -111,16 +122,16 @@ const EmployeeMobileProfile = () => {
         anniversaryDate.setFullYear(join.getFullYear() + yearsCompleted);
         if (anniversaryDate > now) break;
         if (profileData?.status?.toLowerCase() !== 'active' && profileData?.employmentStatusDate) {
-           const exitDate = new Date(profileData.employmentStatusDate);
-           if (anniversaryDate > exitDate) break;
+          const exitDate = new Date(profileData.employmentStatusDate);
+          if (anniversaryDate > exitDate) break;
         }
         const title = `${yearsCompleted}${yearsCompleted === 1 ? 'st' : yearsCompleted === 2 ? 'nd' : yearsCompleted === 3 ? 'rd' : 'th'} Work Anniversary`;
         if (!history.some(e => e.title === title)) {
-           history.push({
-             date: anniversaryDate.toISOString().split('T')[0],
-             title: title,
-             description: `Completed ${yearsCompleted} year${yearsCompleted > 1 ? 's' : ''} at Acme Corp!`
-           });
+          history.push({
+            date: anniversaryDate.toISOString().split('T')[0],
+            title: title,
+            description: `Completed ${yearsCompleted} year${yearsCompleted > 1 ? 's' : ''} at Acme Corp!`
+          });
         }
       }
     }
@@ -166,7 +177,7 @@ const EmployeeMobileProfile = () => {
 
   // Render Section Content
   const renderContent = () => {
-    switch(activeSection) {
+    switch (activeSection) {
       case 'personal':
         return (
           <div className="space-y-3">
@@ -280,16 +291,16 @@ const EmployeeMobileProfile = () => {
           transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
           className="absolute bottom-0 left-20 w-80 h-80 bg-[#84dcc6] rounded-full mix-blend-screen filter blur-[50px] opacity-50"
         />
-        
+
         {/* Subtle Glass Overlay */}
         <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
-        
+
         <div className="relative z-10 px-2 flex justify-between items-start">
           <div>
             <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">My Account</p>
             <h1 className="text-3xl font-black text-white tracking-tight drop-shadow-sm mb-0.5">Profile</h1>
           </div>
-          <button 
+          <button
             onClick={handleEditClick}
             className="text-xs font-bold bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-xl backdrop-blur-md transition-colors shadow-md"
           >
@@ -315,24 +326,24 @@ const EmployeeMobileProfile = () => {
                   </div>
                 )}
               </div>
-              
+
               {/* Camera Upload Button Badge */}
               <label className="absolute bottom-0 right-0 w-8 h-8 bg-blue-500 border-2 border-white rounded-full flex items-center justify-center text-white cursor-pointer shadow-md active:scale-95 transition-transform z-10">
                 <Camera className="w-4 h-4" />
-                <input 
-                  type="file" 
-                  accept="image/*" 
-                  className="hidden" 
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
                   onChange={handleImageUpload}
                   disabled={isUploading}
                 />
               </label>
             </div>
           </div>
-          
+
           <h2 className="text-xl font-bold text-slate-900">{fullName}</h2>
           <p className="text-sm font-medium text-slate-500">{position || 'Employee'}</p>
-          
+
           <div className="flex gap-2 mt-4 w-full">
             <div className="flex-1 bg-slate-50 rounded-xl p-3 text-center border border-slate-100">
               <p className="text-[10px] uppercase font-bold text-slate-400 mb-0.5">ID</p>
@@ -372,7 +383,7 @@ const EmployeeMobileProfile = () => {
       <AnimatePresence>
         {activeSection && (
           <div className="fixed inset-x-0 top-0 bottom-[100px] z-[100] flex flex-col justify-end overflow-hidden">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -394,9 +405,9 @@ const EmployeeMobileProfile = () => {
                   setActiveSection(null);
                 }
               }}
-              className="absolute bottom-0 left-0 right-0 bg-white rounded-t-[32px] shadow-2xl h-[60dvh] flex flex-col"
+              className="absolute bottom-0 left-0 right-0 bg-white rounded-t-[32px] shadow-2xl h-[55dvh] flex flex-col"
             >
-              <div 
+              <div
                 className="shrink-0 pt-3 pb-4 flex flex-col items-center cursor-grab active:cursor-grabbing"
                 onPointerDown={(e) => controls.start(e)}
                 style={{ touchAction: 'none' }}
@@ -406,7 +417,7 @@ const EmployeeMobileProfile = () => {
                   <h3 className="text-xl font-bold text-slate-900">
                     {sections.find(s => s.id === activeSection)?.label}
                   </h3>
-                  <button 
+                  <button
                     onClick={() => setActiveSection(null)}
                     className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"
                   >
@@ -414,7 +425,7 @@ const EmployeeMobileProfile = () => {
                   </button>
                 </div>
               </div>
-              
+
               <div className="flex-1 overflow-y-auto px-6 pb-8 overscroll-contain">
                 {renderContent()}
               </div>
