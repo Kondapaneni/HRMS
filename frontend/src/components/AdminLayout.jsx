@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { 
   LogOut, Users, Settings, Activity, Briefcase, 
   Search, Bell, Menu, Home, Calendar, Clock, 
-  BarChart2, ChevronDown, DollarSign, Monitor, FileText, Shield, Network
+  BarChart2, ChevronDown, DollarSign, Monitor, FileText, Shield, Network, Mail
 } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -33,6 +33,7 @@ const AdminLayout = () => {
     { icon: <DollarSign size={18} />, label: 'Payroll', path: '/admin/payroll' },
     { icon: <Monitor size={18} />, label: 'Assets', path: '/admin/assets' },
     { icon: <Briefcase size={18} />, label: 'Recruitment', path: '/admin/recruitment' },
+    { icon: <Mail size={18} />, label: 'Email Templates', path: '/admin/email-templates' },
     { icon: <FileText size={18} />, label: 'Audit Logs', path: '/admin/audit-logs' },
     { icon: <Shield size={18} />, label: 'Feature Access', path: '/admin/feature-access' },
     { icon: <Settings size={18} />, label: 'Settings', path: '/admin/settings' },

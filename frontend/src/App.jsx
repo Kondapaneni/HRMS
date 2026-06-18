@@ -34,6 +34,7 @@ import AdminAssets from './pages/AdminAssets'
 import AdminHolidays from './pages/AdminHolidays'
 import AdminHolidaysArchive from './pages/AdminHolidaysArchive'
 import AdminSettings from './pages/AdminSettings'
+import AdminEmailTemplates from './pages/AdminEmailTemplates'
 import AdminPerformance from './pages/AdminPerformance'
 import NotFound from './pages/NotFound'
 import { Toaster } from 'react-hot-toast'
@@ -101,6 +102,7 @@ function App() {
               <Route path="assets" element={<AdminAssets />} />
               <Route path="holidays" element={<AdminHolidays />} />
               <Route path="holidays/archive" element={<AdminHolidaysArchive />} />
+              <Route path="email-templates" element={<AdminEmailTemplates />} />
               <Route path="performance" element={<AdminPerformance />} />
               <Route path="settings" element={<AdminSettings />} />
             </Route>
