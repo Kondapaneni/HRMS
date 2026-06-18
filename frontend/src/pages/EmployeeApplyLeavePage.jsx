@@ -167,7 +167,7 @@ const EmployeeApplyLeavePage = () => {
   const submitting = applyMutation.isPending;
 
   return (
-    <div className="space-y-6 pb-2 min-h-[calc(100vh-80px)] bg-slate-50 md:bg-transparent -mx-4 md:mx-0 px-4 md:px-0">
+    <div className="relative pb-6">
       
       {/* Mobile Header Hero */}
       <div className="md:hidden -mx-4 -mt-4 px-4 pt-8 pb-20 relative overflow-hidden bg-slate-900">
@@ -193,7 +193,7 @@ const EmployeeApplyLeavePage = () => {
       </div>
 
       {/* Desktop Header */}
-      <div className="hidden md:flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="hidden md:flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">Apply Leave</h1>
           <p className="text-sm text-slate-500 mt-1">Submit a new leave request</p>
