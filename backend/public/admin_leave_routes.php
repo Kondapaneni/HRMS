@@ -4,7 +4,6 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Middleware\AuthMiddleware;
 use App\Config\Database;
-use App\Config\Database;
 
 function queueLeaveEmail($conn, $empId, $leaveType, $startDate, $endDate, $status) {
     $stmtEmp = $conn->prepare('SELECT "firstName", "lastName", email FROM users WHERE id = ?');
