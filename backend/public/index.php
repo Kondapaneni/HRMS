@@ -53,6 +53,8 @@ $app->get('/', function ($request, $response, $args) {
     return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
 });
 
+use App\Utils\RateLimiter;
+
 // Login endpoint
 $app->post('/api/login', function (Request $request, Response $response, $args) {
     $data = $request->getParsedBody();
@@ -65,6 +67,14 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
     if (!$conn) {
         $response->getBody()->write(json_encode(['error' => 'Database connection error']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    }
+
+    $ip = RateLimiter::getClientIp();
+    $action = 'login';
+    
+    if (!RateLimiter::checkLimit($conn, $ip, $action, 5, 15)) {
+        $response->getBody()->write(json_encode(['error' => 'Too many login attempts. Please try again in 15 minutes.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(429);
     }
 
     $stmt = $conn->prepare('SELECT * FROM users WHERE email = ?');
@@ -96,8 +106,13 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
             'token' => $jwt,
             'user' => $user
         ]));
+        
+        RateLimiter::clearAttempts($conn, $ip, $action);
+        
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     }
+
+    RateLimiter::recordAttempt($conn, $ip, $action);
 
     $response->getBody()->write(json_encode(['error' => 'Invalid email or password']));
     return $response->withHeader('Content-Type', 'application/json')->withStatus(401);
@@ -186,6 +201,16 @@ $app->post('/api/forgot-password', function (Request $request, Response $respons
 
     $db = new Database();
     $conn = $db->getConnection();
+
+    $ip = RateLimiter::getClientIp();
+    $action = 'forgot_password';
+
+    if (!RateLimiter::checkLimit($conn, $ip, $action, 3, 60)) {
+        $response->getBody()->write(json_encode(['error' => 'Too many password reset requests. Please try again later.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(429);
+    }
+    
+    RateLimiter::recordAttempt($conn, $ip, $action);
 
     // Check if user exists
     $stmt = $conn->prepare('SELECT id, "firstName", "lastName" FROM users WHERE email = :email');

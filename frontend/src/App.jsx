@@ -40,10 +40,12 @@ import AdminHolidaysArchive from './pages/AdminHolidaysArchive'
 import AdminSettings from './pages/AdminSettings'
 import AdminEmailTemplates from './pages/AdminEmailTemplates'
 import AdminPerformance from './pages/AdminPerformance'
+import ComingSoon from './pages/ComingSoon'
 import NotFound from './pages/NotFound'
+import TooManyRequests from './pages/TooManyRequests'
 import { Toaster } from 'react-hot-toast'
 import SnowflakeCursor from './components/CustomCursor'
-import OfflineOverlay from './components/OfflineOverlay'
+import OfflinePage from './pages/OfflinePage'
 import UpdateOverlay from './components/UpdateOverlay'
 
 const queryClient = new QueryClient({
@@ -76,7 +78,7 @@ function App() {
     <PersistQueryClientProvider client={queryClient} persistOptions={{ persister }}>
       <AuthProvider>
         <UpdateOverlay />
-        <OfflineOverlay />
+        <OfflinePage />
         <SnowflakeCursor />
         <Toaster position="top-right" />
         <Router>
@@ -84,6 +86,7 @@ function App() {
             <Route path="/" element={<Login />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/too-many-requests" element={<TooManyRequests />} />
             <Route 
               path="/change-password" 
               element={
@@ -117,8 +120,9 @@ function App() {
               <Route path="holidays" element={<AdminHolidays />} />
               <Route path="holidays/archive" element={<AdminHolidaysArchive />} />
               <Route path="email-templates" element={<AdminEmailTemplates />} />
-              <Route path="performance" element={<AdminPerformance />} />
               <Route path="settings" element={<AdminSettings />} />
+              <Route path="performance" element={<AdminPerformance />} />
+              <Route path="recruitment" element={<ComingSoon />} />
             </Route>
             <Route
               path="/employee"

@@ -62,6 +62,7 @@ const Login = () => {
       }
 
     } catch (err) {
+      if (err.response?.status === 429) return;
       setError(err.response?.data?.error || err.message || 'Failed to sign in. Please check your credentials.');
     } finally {
       setIsLoading(false);

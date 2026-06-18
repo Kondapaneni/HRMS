@@ -35,6 +35,7 @@ const ForgotPassword = () => {
       setIsSubmitted(true);
       toast.success('Password reset link sent!');
     } catch (err) {
+      if (err.response?.status === 429) return;
       setError(err.response?.data?.error || err.message || 'Failed to request reset');
     } finally {
       setIsLoading(false);

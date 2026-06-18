@@ -69,6 +69,11 @@ api.interceptors.response.use(
           }, 1500);
         }
       }
+    } else if (error.response && error.response.status === 429) {
+      // Redirect to TooManyRequests page for rate limits
+      if (window.location.pathname !== '/too-many-requests') {
+        window.location.href = '/too-many-requests';
+      }
     }
     return Promise.reject(error);
   }
