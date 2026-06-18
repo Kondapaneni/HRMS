@@ -25,9 +25,19 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
     manager_id: ''
   });
 
+  const generateRandomPassword = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()';
+    let pass = '';
+    for (let i = 0; i < 12; i++) {
+      pass += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return pass;
+  };
+
   useEffect(() => {
     if (isOpen) {
       fetchBranches();
+      setFormData(prev => ({ ...prev, password: generateRandomPassword() }));
     }
   }, [isOpen]);
 
@@ -155,7 +165,7 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Password *</label>
-                <input required type="password" name="password" value={formData.password} onChange={handleChange} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />
+                <input required type="text" readOnly name="password" value={formData.password} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm bg-slate-100 text-slate-500 cursor-not-allowed outline-none transition-all" />
               </div>
             </div>
 
