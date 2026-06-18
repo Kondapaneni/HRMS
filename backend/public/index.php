@@ -207,7 +207,8 @@ $app->post('/api/forgot-password', function (Request $request, Response $respons
 
         // Build reset link
         // Hardcoded to frontend dev server for now
-        $resetLink = "http://localhost:5173/reset-password?token=" . $token;
+        $frontendUrl = rtrim($_ENV['FRONTEND_URL'] ?? 'http://localhost:5173', '/');
+        $resetLink = $frontendUrl . "/reset-password?token=" . $token;
 
         // Load and prepare email template
         $templatePath = __DIR__ . '/../src/Templates/reset_password.html';
