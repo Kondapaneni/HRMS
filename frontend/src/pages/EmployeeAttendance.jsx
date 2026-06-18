@@ -33,6 +33,22 @@ const EmployeeAttendance = () => {
     staleTime: 30 * 1000
   });
 
+  const { data: leavesData } = useQuery({
+    queryKey: ['employee', 'leaves'],
+    queryFn: async () => {
+      const res = await api.get('/employee/leaves');
+      return res.data;
+    },
+    staleTime: 5 * 60 * 1000
+  });
+
+  const leavesHistory = leavesData?.history || [];
+  const todayDateStr = new Date().toLocaleDateString('en-CA');
+  const isOnLeaveToday = leavesHistory.some(leave => {
+    if (leave.status?.toLowerCase() !== 'approved') return false;
+    return todayDateStr >= leave.startDate && todayDateStr <= leave.endDate;
+  });
+
   const punchMutation = useMutation({
     mutationFn: async (payload) => {
       return api.post('/employee/attendance/punch', payload);
@@ -186,6 +202,13 @@ const EmployeeAttendance = () => {
         </div>
       )}
 
+      {isOnLeaveToday && (
+        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800 font-medium flex items-center gap-2 shadow-sm">
+          <Calendar className="w-5 h-5" />
+          You are currently on an approved leave. Check-in is disabled.
+        </div>
+      )}
+
       {/* Check-in / Check-out Card */}
       <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
         <div className="p-6">
@@ -212,7 +235,7 @@ const EmployeeAttendance = () => {
             <div className="flex flex-wrap justify-center gap-3">
               <button
                 onClick={() => handlePunch('check-in')}
-                disabled={punchingAction || checkedIn || checkOutTime}
+                disabled={punchingAction || checkedIn || checkOutTime || isOnLeaveToday}
                 className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-11 px-6 min-w-[140px] disabled:opacity-50 transition-colors"
               >
                 <LogIn className="mr-2 h-4 w-4" />
@@ -221,7 +244,7 @@ const EmployeeAttendance = () => {
 
               <button
                 onClick={() => handlePunch('punch')}
-                disabled={punchingAction || !checkedIn || checkOutTime}
+                disabled={punchingAction || !checkedIn || checkOutTime || isOnLeaveToday}
                 className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-11 px-6 min-w-[140px] disabled:opacity-50 transition-colors"
               >
                 <Clock className="mr-2 h-4 w-4" />
@@ -230,7 +253,7 @@ const EmployeeAttendance = () => {
 
               <button
                 onClick={() => handlePunch('check-out')}
-                disabled={punchingAction || !checkedIn || checkOutTime}
+                disabled={punchingAction || !checkedIn || checkOutTime || isOnLeaveToday}
                 className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-11 px-6 min-w-[140px] disabled:opacity-50 transition-colors"
               >
                 <LogOut className="mr-2 h-4 w-4" />

@@ -57,6 +57,12 @@ const EmployeeMobileDashboard = () => {
   const checkedIn = todayRecord && todayRecord.checkIn && !todayRecord.checkOut;
   const checkOutTime = todayRecord && todayRecord.checkOut;
 
+  const leavesHistory = leaves?.history || [];
+  const isOnLeaveToday = leavesHistory.some(leave => {
+    if (leave.status?.toLowerCase() !== 'approved') return false;
+    return todayStr >= leave.startDate && todayStr <= leave.endDate;
+  });
+
   const reverseGeocode = async (lat, lng) => {
     return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
   };
@@ -220,7 +226,12 @@ const EmployeeMobileDashboard = () => {
           </div>
 
           <div className="w-full flex flex-col gap-3">
-            {todayRecord?.status === 'Leave' ? (
+            {isOnLeaveToday ? (
+              <div className="w-full rounded-xl bg-blue-50 text-blue-800 font-semibold py-3 text-center text-sm border border-blue-100 flex flex-col items-center gap-1.5 shadow-sm">
+                <Calendar className="w-5 h-5" />
+                <span>You are on an approved leave today.</span>
+              </div>
+            ) : todayRecord?.status === 'Leave' ? (
               <div className="w-full rounded-xl bg-slate-100 text-slate-500 font-semibold py-2.5 text-center text-sm">
                 Attendance Blocked - Approved Leave Today
               </div>

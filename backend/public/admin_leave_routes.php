@@ -251,6 +251,14 @@ $app->post('/api/admin/leaves/{id}/approve', function (Request $request, Respons
         }
 
         $empId = $leaveToApprove['employeeId'];
+        
+        // Check for conflicting attendance records
+        $stmtCheckAtt = $conn->prepare('SELECT id FROM attendance WHERE "employeeId" = ? AND date >= ? AND date <= ? AND "checkIn" IS NOT NULL LIMIT 1');
+        $stmtCheckAtt->execute([$empId, $leaveToApprove['startDate'], $leaveToApprove['endDate']]);
+        if ($stmtCheckAtt->fetch()) {
+            throw new Exception("Cannot approve leave. The employee has already checked in on one or more of these dates.");
+        }
+
         $isPaid = strtolower($leaveToApprove['leaveType']) === 'paid';
         
         if ($isPaid) {

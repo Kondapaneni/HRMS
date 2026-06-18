@@ -70,6 +70,13 @@ $app->post('/api/employee/attendance/punch', function (Request $request, Respons
         $record = $stmt->fetch();
 
         if ($action === 'check-in') {
+            // Check if employee is on an approved leave today
+            $stmtLeave = $conn->prepare('SELECT id FROM leaves WHERE "employeeId" = ? AND status = \'approved\' AND "startDate" <= ? AND "endDate" >= ? LIMIT 1');
+            $stmtLeave->execute([$decodedToken->id, $today, $today]);
+            if ($stmtLeave->fetch()) {
+                throw new Exception('You are on an approved leave today. Cannot check in.');
+            }
+
             $status = 'present';
             if ($shiftStartTime) {
                 $checkInTimeStr = date('H:i:s', strtotime($now));
