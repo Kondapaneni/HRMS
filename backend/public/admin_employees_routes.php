@@ -425,7 +425,7 @@ $app->post('/api/employees', function (Request $request, Response $response, $ar
         ]);
 
         // 3. Queue Welcome Email
-        $loginLink = $_ENV['FRONTEND_URL'] ?? 'http://localhost:5173';
+        $loginLink = $_ENV['FRONTEND_URL'] ?? 'https://hrms-qwv3.onrender.com';
         $subject = 'Welcome to Acme HRMS - Your Account Details';
         $body = "Hello $firstName,\n\nYour account has been created successfully.\n\nEmail: $email\nPassword: $password\n\nYou can login here: $loginLink/login\n\nPlease change your password after logging in.\n\nBest regards,\nHR Team";
         
