@@ -221,11 +221,9 @@ $app->post('/api/forgot-password', function (Request $request, Response $respons
         }
 
         // Queue email
-        $fullName = trim(($user['firstName'] ?? '') . ' ' . ($user['lastName'] ?? ''));
-        $queueStmt = $conn->prepare("INSERT INTO email_queue (recipient_email, recipient_name, subject, body) VALUES (:email, :name, :subject, :body)");
+        $queueStmt = $conn->prepare("INSERT INTO email_queue (to_email, subject, body) VALUES (:email, :subject, :body)");
         $queueStmt->execute([
             'email' => $email,
-            'name' => $fullName,
             'subject' => 'Password Reset - Acme HRMS',
             'body' => $emailContent
         ]);
