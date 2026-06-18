@@ -394,7 +394,7 @@ const EmployeeMobileProfile = () => {
                   setActiveSection(null);
                 }
               }}
-              className="absolute bottom-0 left-0 right-0 bg-white rounded-t-[32px] shadow-2xl h-[75dvh] flex flex-col"
+              className="absolute bottom-0 left-0 right-0 bg-white rounded-t-[32px] shadow-2xl h-[60dvh] flex flex-col"
             >
               <div 
                 className="shrink-0 pt-3 pb-4 flex flex-col items-center cursor-grab active:cursor-grabbing"
