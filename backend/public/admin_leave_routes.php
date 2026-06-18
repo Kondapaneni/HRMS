@@ -4,6 +4,32 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Middleware\AuthMiddleware;
 use App\Config\Database;
+use App\Config\Database;
+
+function queueLeaveEmail($conn, $empId, $leaveType, $startDate, $endDate, $status) {
+    $stmtEmp = $conn->prepare('SELECT "firstName", "lastName", email FROM users WHERE id = ?');
+    $stmtEmp->execute([$empId]);
+    $employee = $stmtEmp->fetch(PDO::FETCH_ASSOC);
+
+    if ($employee && !empty($employee['email'])) {
+        $templatePath = __DIR__ . '/../src/Templates/leave_email.html';
+        if (file_exists($templatePath)) {
+            $emailContent = file_get_contents($templatePath);
+            $employeeName = trim(($employee['firstName'] ?? '') . ' ' . ($employee['lastName'] ?? ''));
+            $emailContent = str_replace('{{employeeName}}', htmlspecialchars($employeeName), $emailContent);
+            $emailContent = str_replace('{{status}}', htmlspecialchars(ucfirst($status)), $emailContent);
+            $emailContent = str_replace('{{leaveType}}', htmlspecialchars(ucfirst($leaveType)), $emailContent);
+            $emailContent = str_replace('{{startDate}}', date('F j, Y', strtotime($startDate)), $emailContent);
+            $emailContent = str_replace('{{endDate}}', date('F j, Y', strtotime($endDate)), $emailContent);
+            $emailContent = str_replace('{{currentYear}}', date('Y'), $emailContent);
+            
+            $subject = "Leave Request " . ucfirst($status);
+            $stmtQueue = $conn->prepare('INSERT INTO email_queue (to_email, subject, body) VALUES (?, ?, ?)');
+            $stmtQueue->execute([$employee['email'], $subject, $emailContent]);
+        }
+    }
+}
+
 // Get all leaves for admin
 function insertSandwichLeave($conn, $employeeId, $dateStr, $adminId) {
     $stmtCheck = $conn->prepare('SELECT id FROM leaves WHERE "employeeId" = ? AND CAST("startDate" AS DATE) <= ? AND CAST("endDate" AS DATE) >= ? AND status ILIKE \'approved\'');
@@ -382,6 +408,16 @@ $app->post('/api/admin/leaves/{id}/approve', function (Request $request, Respons
             applySandwichPolicy($conn, $empId, $leave['startDate'], $leave['endDate'], $decodedToken->id);
         }
 
+        // Queue email notification for the original requested date range
+        queueLeaveEmail(
+            $conn, 
+            $leaveToApprove['employeeId'], 
+            $leaveToApprove['leaveType'], 
+            $leaveToApprove['startDate'], 
+            $leaveToApprove['endDate'], 
+            'approved'
+        );
+
         $conn->commit();
         $response->getBody()->write(json_encode(['message' => 'Leave approved successfully']));
         return $response->withHeader('Content-Type', 'application/json');
@@ -400,9 +436,25 @@ $app->post('/api/admin/leaves/{id}/reject', function (Request $request, Response
     $db = new Database();
     $conn = $db->getConnection();
     
+    // Fetch leave details before rejecting to send email
+    $stmtLeave = $conn->prepare('SELECT "employeeId", "leaveType", "startDate", "endDate" FROM leaves WHERE id = ?');
+    $stmtLeave->execute([$id]);
+    $leaveToReject = $stmtLeave->fetch(PDO::FETCH_ASSOC);
+
     $stmt = $conn->prepare('UPDATE leaves SET status = \'rejected\', "approvedBy" = ? WHERE id = ?');
     $stmt->execute([$decodedToken->id, $id]);
     
+    if ($leaveToReject) {
+        queueLeaveEmail(
+            $conn, 
+            $leaveToReject['employeeId'], 
+            $leaveToReject['leaveType'], 
+            $leaveToReject['startDate'], 
+            $leaveToReject['endDate'], 
+            'rejected'
+        );
+    }
+
     $response->getBody()->write(json_encode(['message' => 'Leave rejected successfully']));
     return $response->withHeader('Content-Type', 'application/json');
 })->add(new AuthMiddleware(['admin']));
