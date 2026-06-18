@@ -371,7 +371,7 @@ const EmployeeMobileProfile = () => {
       {/* Detail Slide-Over Modal */}
       <AnimatePresence>
         {activeSection && (
-          <div className="fixed inset-0 z-[100] flex flex-col justify-end">
+          <div className="fixed inset-x-0 top-0 bottom-[100px] z-[100] flex flex-col justify-end overflow-hidden">
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -394,7 +394,7 @@ const EmployeeMobileProfile = () => {
                   setActiveSection(null);
                 }
               }}
-              className="absolute bottom-0 left-0 right-0 bg-white rounded-t-[32px] shadow-2xl max-h-[85dvh] flex flex-col"
+              className="absolute bottom-0 left-0 right-0 bg-white rounded-t-[32px] shadow-2xl h-[75dvh] flex flex-col"
             >
               <div 
                 className="shrink-0 pt-3 pb-4 flex flex-col items-center cursor-grab active:cursor-grabbing"

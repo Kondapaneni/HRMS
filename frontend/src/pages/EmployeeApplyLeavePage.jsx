@@ -123,16 +123,16 @@ const EmployeeApplyLeavePage = () => {
       const isSelectedEnd = endDate === dateStr;
       const isInRange = startDate && endDate && dateStr > startDate && dateStr < endDate;
 
-      let btnClass = "rounded-xl border border-slate-200 bg-white py-2.5 text-sm transition-all ";
+      let btnClass = "rounded-xl border py-2.5 text-sm transition-all ";
 
       if (isSelectedStart || isSelectedEnd) {
         btnClass += "bg-blue-600 text-white font-bold border-blue-600 shadow-md ";
       } else if (isInRange) {
         btnClass += "bg-blue-50 text-blue-800 border-blue-200 ";
       } else if (isDisabled) {
-        btnClass += "bg-slate-50 text-slate-400 cursor-not-allowed opacity-60 ";
+        btnClass += "bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed opacity-60 ";
       } else {
-        btnClass += "text-slate-700 hover:bg-slate-50 active:scale-95 ";
+        btnClass += "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 active:scale-95 ";
       }
 
       if (isApproved) {
@@ -170,7 +170,7 @@ const EmployeeApplyLeavePage = () => {
     <div className="space-y-6 pb-2 min-h-[calc(100vh-80px)] bg-slate-50 md:bg-transparent -mx-4 md:mx-0 px-4 md:px-0">
       
       {/* Mobile Header Hero */}
-      <div className="md:hidden -mx-4 -mt-4 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900">
+      <div className="md:hidden -mx-4 -mt-4 px-4 pt-8 pb-20 relative overflow-hidden bg-slate-900">
         <motion.div
           animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
@@ -207,7 +207,7 @@ const EmployeeApplyLeavePage = () => {
         </button>
       </div>
 
-      <div className="relative z-20 md:-mt-0 -mt-8 max-w-2xl mx-auto space-y-6">
+      <div className="relative z-20 md:-mt-0 -mt-12 mx-1 md:mx-auto max-w-2xl space-y-6">
         <form onSubmit={handleApplyLeave} className="bg-white p-5 md:p-8 rounded-[24px] shadow-lg border border-slate-100/50 space-y-6">
           
           <div className="space-y-2">
