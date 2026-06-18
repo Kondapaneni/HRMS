@@ -15,6 +15,9 @@ ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
 ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
 ENV VITE_API_URL=$VITE_API_URL
 
+# Copy backend files so Vite can resolve the raw HTML templates
+COPY backend/ /backend/
+
 RUN npm run build
 # Stage 2: Setup Backend and Combine
 FROM php:8.2-apache
