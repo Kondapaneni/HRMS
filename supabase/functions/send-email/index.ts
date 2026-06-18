@@ -52,7 +52,7 @@ serve(async (req: Request) => {
       from: user,
       to: to_email,
       subject: subject,
-      text: body,
+      html: body,
     };
 
     await transporter.sendMail(mailOptions);
