@@ -72,8 +72,15 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
     $ip = RateLimiter::getClientIp();
     $action = 'login';
     
-    if (!RateLimiter::checkLimit($conn, $ip, $action, 5, 15)) {
-        $response->getBody()->write(json_encode(['error' => 'Too many login attempts. Please try again in 15 minutes.']));
+    // Fetch dynamic settings from global_settings
+    $stmt = $conn->query('SELECT login_rate_limit_attempts, login_rate_limit_window, session_timeout FROM global_settings ORDER BY id ASC LIMIT 1');
+    $settings = $stmt->fetch(PDO::FETCH_ASSOC);
+    $maxAttempts = $settings['login_rate_limit_attempts'] ?? 5;
+    $windowMinutes = $settings['login_rate_limit_window'] ?? 15;
+    $sessionTimeout = $settings['session_timeout'] ?? '30';
+
+    if (!RateLimiter::checkLimit($conn, $ip, $action, $maxAttempts, $windowMinutes)) {
+        $response->getBody()->write(json_encode(['error' => "Too many login attempts. Please try again in {$windowMinutes} minutes."]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(429);
     }
 
@@ -92,7 +99,7 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
         $payload = [
             'iss' => 'acme_hrms',
             'iat' => time(),
-            'exp' => time() + (60 * 60 * 24), // 1 day expiration
+            'exp' => ($sessionTimeout === 'never') ? time() + (60 * 60 * 24 * 365 * 10) : time() + ((int)$sessionTimeout * 60), // Dynamic expiration
             'id' => $user['id'],
             'email' => $user['email'],
             'role' => $user['role']
@@ -205,7 +212,13 @@ $app->post('/api/forgot-password', function (Request $request, Response $respons
     $ip = RateLimiter::getClientIp();
     $action = 'forgot_password';
 
-    if (!RateLimiter::checkLimit($conn, $ip, $action, 3, 60)) {
+    // Fetch dynamic rate limits from global_settings
+    $stmt = $conn->query('SELECT forgot_password_rate_limit_attempts, forgot_password_rate_limit_window FROM global_settings ORDER BY id ASC LIMIT 1');
+    $settings = $stmt->fetch(PDO::FETCH_ASSOC);
+    $maxAttempts = $settings['forgot_password_rate_limit_attempts'] ?? 3;
+    $windowMinutes = $settings['forgot_password_rate_limit_window'] ?? 60;
+
+    if (!RateLimiter::checkLimit($conn, $ip, $action, $maxAttempts, $windowMinutes)) {
         $response->getBody()->write(json_encode(['error' => 'Too many password reset requests. Please try again later.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(429);
     }

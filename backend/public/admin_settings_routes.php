@@ -15,9 +15,14 @@ $app->get('/api/admin/settings', function (Request $request, Response $response,
     if (!$settings) {
         // If no settings exist, initialize default settings
         $stmt = $conn->prepare('
-            INSERT INTO global_settings (session_timeout) VALUES (?) RETURNING *
+            INSERT INTO global_settings (
+                session_timeout, 
+                login_rate_limit_attempts, login_rate_limit_window, 
+                forgot_password_rate_limit_attempts, forgot_password_rate_limit_window,
+                maps_rate_limit_attempts, maps_rate_limit_window
+            ) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING *
         ');
-        $stmt->execute(['30']);
+        $stmt->execute(['30', 5, 15, 3, 60, 5, 10]);
         $settings = $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
@@ -41,19 +46,42 @@ $app->post('/api/admin/settings', function (Request $request, Response $response
             $stmtUpdate = $conn->prepare('
                 UPDATE global_settings SET 
                     session_timeout = ?,
+                    login_rate_limit_attempts = ?,
+                    login_rate_limit_window = ?,
+                    forgot_password_rate_limit_attempts = ?,
+                    forgot_password_rate_limit_window = ?,
+                    maps_rate_limit_attempts = ?,
+                    maps_rate_limit_window = ?,
                     updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
             ');
             $stmtUpdate->execute([
                 $data['session_timeout'] ?? '30',
+                $data['login_rate_limit_attempts'] ?? 5,
+                $data['login_rate_limit_window'] ?? 15,
+                $data['forgot_password_rate_limit_attempts'] ?? 3,
+                $data['forgot_password_rate_limit_window'] ?? 60,
+                $data['maps_rate_limit_attempts'] ?? 5,
+                $data['maps_rate_limit_window'] ?? 10,
                 $settingId
             ]);
         } else {
             $stmtInsert = $conn->prepare('
-                INSERT INTO global_settings (session_timeout) VALUES (?)
+                INSERT INTO global_settings (
+                    session_timeout, 
+                    login_rate_limit_attempts, login_rate_limit_window, 
+                    forgot_password_rate_limit_attempts, forgot_password_rate_limit_window,
+                    maps_rate_limit_attempts, maps_rate_limit_window
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
             ');
             $stmtInsert->execute([
-                $data['session_timeout'] ?? '30'
+                $data['session_timeout'] ?? '30',
+                $data['login_rate_limit_attempts'] ?? 5,
+                $data['login_rate_limit_window'] ?? 15,
+                $data['forgot_password_rate_limit_attempts'] ?? 3,
+                $data['forgot_password_rate_limit_window'] ?? 60,
+                $data['maps_rate_limit_attempts'] ?? 5,
+                $data['maps_rate_limit_window'] ?? 10
             ]);
         }
 

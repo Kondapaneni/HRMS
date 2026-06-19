@@ -35,6 +35,41 @@ class RateLimiter
     }
 
     /**
+     * Gets the remaining time in seconds until the lockout expires.
+     * Returns null if not locked out.
+     */
+    public static function getLockoutRemainingTime(PDO $conn, string $ip, string $action, int $maxAttempts, int $windowMinutes): ?int
+    {
+        $stmt = $conn->prepare("
+            SELECT created_at 
+            FROM rate_limits 
+            WHERE ip_address = :ip 
+              AND action = :action 
+              AND created_at > CURRENT_TIMESTAMP - INTERVAL '$windowMinutes minutes'
+            ORDER BY created_at ASC
+        ");
+        $stmt->execute([
+            'ip' => $ip,
+            'action' => $action
+        ]);
+        
+        $attempts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $count = count($attempts);
+        
+        if ($count < $maxAttempts) {
+            return null;
+        }
+
+        // We need (count - maxAttempts + 1) attempts to expire to get below the limit.
+        $targetIndex = $count - $maxAttempts;
+        $targetAttemptTime = strtotime($attempts[$targetIndex]['created_at']);
+        $unlockTime = $targetAttemptTime + ($windowMinutes * 60);
+        $remaining = $unlockTime - time();
+
+        return $remaining > 0 ? $remaining : null;
+    }
+
+    /**
      * Records an attempt.
      */
     public static function recordAttempt(PDO $conn, string $ip, string $action): void

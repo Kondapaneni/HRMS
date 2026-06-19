@@ -3,6 +3,7 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Middleware\AuthMiddleware;
 use App\Config\Database;
+use App\Utils\RateLimiter;
 
 // Get Employee Attendance History
 $app->get('/api/employee/attendance', function (Request $request, Response $response, $args) {
@@ -165,13 +166,55 @@ $app->post('/api/employee/attendance/punch', function (Request $request, Respons
     }
 })->add(new AuthMiddleware(['employee']));
 
+// Get Maps Rate Limit Status
+$app->get('/api/employee/maps-rate-limit-status', function (Request $request, Response $response, $args) {
+    $db = new Database();
+    $conn = $db->getConnection();
+    $ip = RateLimiter::getClientIp();
+    $action = 'load_map';
+
+    try {
+        $stmtLimit = $conn->query('SELECT maps_rate_limit_attempts, maps_rate_limit_window FROM global_settings ORDER BY id ASC LIMIT 1');
+        $settings = $stmtLimit->fetch(PDO::FETCH_ASSOC);
+        $maxAttempts = $settings['maps_rate_limit_attempts'] ?? 5;
+        $windowMinutes = $settings['maps_rate_limit_window'] ?? 10;
+
+        $secondsRemaining = RateLimiter::getLockoutRemainingTime($conn, $ip, $action, $maxAttempts, $windowMinutes);
+
+        $response->getBody()->write(json_encode([
+            'locked' => $secondsRemaining !== null,
+            'secondsRemaining' => $secondsRemaining
+        ]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+    } catch (Exception $e) {
+        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    }
+});
+
 // Get Geofences
 $app->get('/api/employee/geofences', function (Request $request, Response $response, $args) {
     $decodedToken = $request->getAttribute('user');
     $db = new Database();
     $conn = $db->getConnection();
     
+    $ip = RateLimiter::getClientIp();
+    $action = 'load_map';
+
     try {
+        // Fetch dynamic rate limits
+        $stmtLimit = $conn->query('SELECT maps_rate_limit_attempts, maps_rate_limit_window FROM global_settings ORDER BY id ASC LIMIT 1');
+        $settings = $stmtLimit->fetch(PDO::FETCH_ASSOC);
+        $maxAttempts = $settings['maps_rate_limit_attempts'] ?? 5;
+        $windowMinutes = $settings['maps_rate_limit_window'] ?? 10;
+
+        if (!RateLimiter::checkLimit($conn, $ip, $action, $maxAttempts, $windowMinutes)) {
+            $response->getBody()->write(json_encode(['error' => "Too many map loads. Please try again in {$windowMinutes} minutes."]));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(429);
+        }
+        
+        RateLimiter::recordAttempt($conn, $ip, $action);
+
         $stmt = $conn->query('SELECT * FROM geofences ORDER BY id ASC');
         $geofences = $stmt->fetchAll(PDO::FETCH_ASSOC);
         

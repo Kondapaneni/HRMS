@@ -21,19 +21,18 @@ $app->get('/api/admin/dashboard/stats', function (Request $request, Response $re
             FROM attendance a
             JOIN employee e ON a.\"employeeId\"::varchar = e.\"userId\"::varchar
             WHERE a.date = CURRENT_DATE 
-              AND a.status IN ('Present', 'Half Day')
+              AND LOWER(TRIM(a.status)) IN ('present', 'present (late)', 'present (early)', 'present (late+early)', 'present-full-shift')
               AND e.status = 'active'
         ");
         $presentToday = (int) $presentStmt->fetchColumn();
 
         // 3. On Leave Today (Active employees only)
         $leaveStmt = $conn->query("
-            SELECT COUNT(DISTINCT l.id) 
-            FROM leaves l
-            JOIN employee e ON l.\"employeeId\"::varchar = e.\"userId\"::varchar
-            WHERE CURRENT_DATE >= l.\"startDate\" 
-              AND CURRENT_DATE <= l.\"endDate\" 
-              AND l.status = 'Approved'
+            SELECT COUNT(DISTINCT a.id) 
+            FROM attendance a
+            JOIN employee e ON a.\"employeeId\"::varchar = e.\"userId\"::varchar
+            WHERE a.date = CURRENT_DATE 
+              AND LOWER(TRIM(a.status)) IN ('leave', 'paid leave', 'unpaid leave', 'sandwich leave')
               AND e.status = 'active'
         ");
         $onLeaveToday = (int) $leaveStmt->fetchColumn();
@@ -43,8 +42,8 @@ $app->get('/api/admin/dashboard/stats', function (Request $request, Response $re
             SELECT 
                 TO_CHAR(a.date, 'Mon') as month,
                 EXTRACT(MONTH FROM a.date) as month_num,
-                SUM(CASE WHEN a.status IN ('Present', 'Half Day') THEN 1 ELSE 0 END) as present,
-                SUM(CASE WHEN a.status = 'Leave' THEN 1 ELSE 0 END) as leave
+                SUM(CASE WHEN LOWER(TRIM(a.status)) IN ('present', 'present (late)', 'present (early)', 'present (late+early)', 'present-full-shift') THEN 1 ELSE 0 END) as present,
+                SUM(CASE WHEN LOWER(TRIM(a.status)) IN ('leave', 'paid leave', 'unpaid leave', 'sandwich leave') THEN 1 ELSE 0 END) as leave
             FROM attendance a
             JOIN employee e ON a.\"employeeId\"::varchar = e.\"userId\"::varchar
             WHERE a.date >= CURRENT_DATE - INTERVAL '6 months'

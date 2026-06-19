@@ -13,6 +13,7 @@ const EmployeeMobileDashboard = () => {
   const navigate = useNavigate();
   const [punchingAction, setPunchingAction] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [lockoutSeconds, setLockoutSeconds] = useState(null);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -22,19 +23,21 @@ const EmployeeMobileDashboard = () => {
   const { data: dashboardData, isLoading: loading } = useQuery({
     queryKey: ['employee', 'dashboard'],
     queryFn: async () => {
-      const [attRes, leavesRes, perfRes, profileRes, payslipsRes] = await Promise.all([
+      const [attRes, leavesRes, perfRes, profileRes, payslipsRes, mapsRateRes] = await Promise.all([
         api.get('/employee/attendance').catch(() => ({ data: [] })),
         api.get('/employee/leaves').catch(() => ({ data: null })),
         api.get('/employee/performance').catch(() => ({ data: {} })),
         api.get('/employee/profile').catch(() => ({ data: {} })),
-        api.get('/employee/payroll').catch(() => ({ data: { payslips: [] } }))
+        api.get('/employee/payroll').catch(() => ({ data: { payslips: [] } })),
+        api.get('/employee/maps-rate-limit-status').catch(() => ({ data: { locked: false } }))
       ]);
       return {
         attendance: attRes.data,
         leaves: leavesRes.data,
         performance: perfRes.data?.currentMonthSummary || null,
         fullProfile: profileRes.data?.profile || null,
-        latestPayslip: payslipsRes.data?.payslips?.[0] || null
+        latestPayslip: payslipsRes.data?.payslips?.[0] || null,
+        mapsRateLimit: mapsRateRes.data
       };
     },
     staleTime: 30 * 1000
@@ -44,6 +47,28 @@ const EmployeeMobileDashboard = () => {
   const leaves = dashboardData?.leaves || null;
   const fullProfile = dashboardData?.fullProfile || profile;
   const latestPayslip = dashboardData?.latestPayslip || null;
+
+  useEffect(() => {
+    if (dashboardData?.mapsRateLimit?.locked && dashboardData.mapsRateLimit.secondsRemaining > 0) {
+      setLockoutSeconds(dashboardData.mapsRateLimit.secondsRemaining);
+    }
+  }, [dashboardData]);
+
+  useEffect(() => {
+    if (lockoutSeconds !== null && lockoutSeconds > 0) {
+      const timer = setInterval(() => {
+        setLockoutSeconds(prev => (prev > 0 ? prev - 1 : null));
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [lockoutSeconds]);
+
+  const isLocked = lockoutSeconds !== null && lockoutSeconds > 0;
+  const formatLockoutTimer = (seconds) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `Locked (${m}m ${s}s)`;
+  };
 
   const getGreeting = () => {
     const hour = currentTime.getHours();
@@ -238,29 +263,29 @@ const EmployeeMobileDashboard = () => {
             ) : !checkedIn && !checkOutTime ? (
               <button
                 onClick={() => handlePunch('check-in')}
-                disabled={punchingAction}
+                disabled={punchingAction || isLocked}
                 className="w-full rounded-xl bg-blue-600 text-white font-semibold py-3 flex items-center justify-center gap-2 text-sm hover:bg-blue-700 active:scale-[0.98] transition-all disabled:opacity-50"
               >
                 <LogIn className="w-4 h-4" />
-                Check In
+                {isLocked ? formatLockoutTimer(lockoutSeconds) : 'Check In'}
               </button>
             ) : checkedIn && !checkOutTime ? (
               <div className="grid grid-cols-2 gap-3 w-full">
                 <button
                   onClick={() => handlePunch('punch')}
-                  disabled={punchingAction}
+                  disabled={punchingAction || isLocked}
                   className="rounded-xl border-2 border-slate-200 bg-white text-slate-700 font-semibold py-2.5 flex items-center justify-center gap-2 text-sm hover:bg-slate-50 active:scale-[0.98] transition-all disabled:opacity-50"
                 >
                   <Clock className="w-4 h-4 text-amber-500" />
-                  Punch
+                  {isLocked ? formatLockoutTimer(lockoutSeconds) : 'Punch'}
                 </button>
                 <button
                   onClick={() => handlePunch('check-out')}
-                  disabled={punchingAction}
+                  disabled={punchingAction || isLocked}
                   className="rounded-xl bg-slate-900 text-white font-semibold py-2.5 flex items-center justify-center gap-2 text-sm hover:bg-slate-800 active:scale-[0.98] transition-all disabled:opacity-50"
                 >
                   <LogOut className="w-4 h-4" />
-                  Check Out
+                  {isLocked ? formatLockoutTimer(lockoutSeconds) : 'Check Out'}
                 </button>
               </div>
             ) : (
