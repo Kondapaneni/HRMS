@@ -236,7 +236,7 @@ export default function EmployeeMobileChat() {
   const renderTicks = (msg, chat) => {
     if (!chat || !profile) return null;
     if (msg._pending) {
-      return <Check size={14} className="text-blue-200 ml-1 inline-block shrink-0" />;
+      return <Check size={14} className="text-slate-400 ml-1 inline-block shrink-0" />;
     }
 
     // Check if all other participants have read the message
@@ -245,9 +245,9 @@ export default function EmployeeMobileChat() {
     const readCount = (msg.readBy || []).filter(id => id !== profile.id).length;
 
     if (readCount > 0 && readCount >= numOtherParticipants) {
-      return <CheckCheck size={14} className="text-white ml-1 inline-block shrink-0 drop-shadow-sm" />;
+      return <CheckCheck size={14} className="text-[#53bdeb] ml-1 inline-block shrink-0" />;
     } else {
-      return <CheckCheck size={14} className="text-blue-200 ml-1 inline-block shrink-0" />;
+      return <CheckCheck size={14} className="text-slate-400 ml-1 inline-block shrink-0" />;
     }
   };
 
@@ -314,14 +314,14 @@ export default function EmployeeMobileChat() {
                   </div>
                 )}
                 <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
-                  <div className={`max-w-[85%] rounded-2xl px-4 py-2 pb-1.5 shadow-sm relative ${isMine ? 'bg-blue-600 text-white rounded-tr-sm' : 'bg-white border border-slate-100 text-slate-800 rounded-tl-sm'}`}>
+                  <div className={`max-w-[85%] rounded-2xl px-4 py-2 pb-1.5 shadow-sm relative ${isMine ? 'bg-[#d9fdd3] text-slate-800 rounded-tr-sm' : 'bg-white border border-slate-100 text-slate-800 rounded-tl-sm'}`}>
                     {!isMine && activeChat.type === 'group' && (
                       <div className="text-xs font-bold text-blue-500 mb-1">{sender?.firstName}</div>
                     )}
                     <div className="text-[15px] whitespace-pre-wrap break-words pr-14 pb-2">
                       {msg.content}
                     </div>
-                    <div className={`text-[10px] text-right absolute bottom-1 right-3 flex items-center justify-end ${isMine ? 'text-blue-100' : 'text-slate-400'}`}>
+                    <div className={`text-[10px] text-right absolute bottom-1 right-3 flex items-center justify-end ${isMine ? 'text-slate-400' : 'text-slate-400'}`}>
                       {format(new Date(msg.createdAt), 'HH:mm')}
                       {isMine && renderTicks(msg, activeChat)}
                     </div>
