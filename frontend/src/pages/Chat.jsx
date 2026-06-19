@@ -633,30 +633,38 @@ export default function Chat() {
                       <div className="p-4">
                         <h3 className="text-slate-900 font-bold mb-3 text-lg">Members can</h3>
                         <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100">
-                          <label className="flex items-start justify-between p-4 border-b border-slate-100 cursor-pointer hover:bg-slate-50 transition-colors">
+                          <div onClick={() => setGroupPermissions({...groupPermissions, editSettings: !groupPermissions.editSettings})} className="flex items-start justify-between p-4 border-b border-slate-100 cursor-pointer hover:bg-slate-50 transition-colors">
                             <div className="flex-1 mr-4">
                               <div className="text-lg text-slate-900 font-medium mb-1">Edit group settings</div>
                               <div className="text-sm text-slate-500 leading-relaxed">This includes the group name, icon, description, disappearing message timer, advanced chat privacy, and the ability to pin, keep or unkeep messages.</div>
                             </div>
-                            <input type="checkbox" checked={groupPermissions.editSettings} onChange={e => setGroupPermissions({...groupPermissions, editSettings: e.target.checked})} className="w-6 h-6 rounded-full text-[#00a884] focus:ring-[#00a884] mt-1 cursor-pointer" />
-                          </label>
-                          <label className="flex items-center justify-between p-4 border-b border-slate-100 cursor-pointer hover:bg-slate-50 transition-colors">
+                            <div className={`w-11 h-6 shrink-0 flex items-center rounded-full p-1 mt-1 transition-colors ${groupPermissions.editSettings ? 'bg-[#00a884]' : 'bg-slate-300'}`}>
+                              <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${groupPermissions.editSettings ? 'translate-x-5' : 'translate-x-0'}`} />
+                            </div>
+                          </div>
+                          <div onClick={() => setGroupPermissions({...groupPermissions, sendMessages: !groupPermissions.sendMessages})} className="flex items-center justify-between p-4 border-b border-slate-100 cursor-pointer hover:bg-slate-50 transition-colors">
                             <div className="text-lg text-slate-900 font-medium">Send new messages</div>
-                            <input type="checkbox" checked={groupPermissions.sendMessages} onChange={e => setGroupPermissions({...groupPermissions, sendMessages: e.target.checked})} className="w-6 h-6 rounded-full text-[#00a884] focus:ring-[#00a884] cursor-pointer" />
-                          </label>
-                          <label className="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-50 transition-colors">
+                            <div className={`w-11 h-6 shrink-0 flex items-center rounded-full p-1 transition-colors ${groupPermissions.sendMessages ? 'bg-[#00a884]' : 'bg-slate-300'}`}>
+                              <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${groupPermissions.sendMessages ? 'translate-x-5' : 'translate-x-0'}`} />
+                            </div>
+                          </div>
+                          <div onClick={() => setGroupPermissions({...groupPermissions, addMembers: !groupPermissions.addMembers})} className="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-50 transition-colors">
                             <div className="text-lg text-slate-900 font-medium">Add other members</div>
-                            <input type="checkbox" checked={groupPermissions.addMembers} onChange={e => setGroupPermissions({...groupPermissions, addMembers: e.target.checked})} className="w-6 h-6 rounded-full text-[#00a884] focus:ring-[#00a884] cursor-pointer" />
-                          </label>
+                            <div className={`w-11 h-6 shrink-0 flex items-center rounded-full p-1 transition-colors ${groupPermissions.addMembers ? 'bg-[#00a884]' : 'bg-slate-300'}`}>
+                              <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${groupPermissions.addMembers ? 'translate-x-5' : 'translate-x-0'}`} />
+                            </div>
+                          </div>
                         </div>
                         <p className="text-sm text-slate-500 mt-3 mb-6 px-2">Turning off these settings means that only group admins can perform this action.</p>
 
                         <h3 className="text-slate-900 font-bold mb-3 text-lg">Admins can</h3>
                         <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100">
-                          <label className="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-50 transition-colors">
+                          <div onClick={() => setGroupPermissions({...groupPermissions, approveNewMembers: !groupPermissions.approveNewMembers})} className="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-50 transition-colors">
                             <div className="text-lg text-slate-900 font-medium">Approve new members</div>
-                            <input type="checkbox" checked={groupPermissions.approveNewMembers} onChange={e => setGroupPermissions({...groupPermissions, approveNewMembers: e.target.checked})} className="w-6 h-6 rounded-full text-[#00a884] focus:ring-[#00a884] cursor-pointer" />
-                          </label>
+                            <div className={`w-11 h-6 shrink-0 flex items-center rounded-full p-1 transition-colors ${groupPermissions.approveNewMembers ? 'bg-[#00a884]' : 'bg-slate-300'}`}>
+                              <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${groupPermissions.approveNewMembers ? 'translate-x-5' : 'translate-x-0'}`} />
+                            </div>
+                          </div>
                         </div>
                         <p className="text-sm text-slate-500 mt-3 px-2">When turned on, admins must approve anyone who wants to join this group.</p>
                       </div>
