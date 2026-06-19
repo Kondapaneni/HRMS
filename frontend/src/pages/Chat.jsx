@@ -3,10 +3,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Search, Send, Plus, Users, User, ArrowLeft, MessageSquare, MoreVertical, Paperclip, Smile, Check, CheckCheck, Mic } from 'lucide-react';
+import { Search, Send, Plus, Users, User, ArrowLeft, MessageSquare, MoreVertical, Paperclip, Smile, Check, CheckCheck, Mic, FileText, Image as ImageIcon, X, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { format, isToday, isYesterday } from 'date-fns';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import EmojiPicker from 'emoji-picker-react';
 
 const BackgroundOrbs = () => (
   <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
@@ -38,6 +39,9 @@ export default function Chat() {
   const [groupName, setGroupName] = useState('');
   const [selectedGroupParticipants, setSelectedGroupParticipants] = useState([]);
   const [pendingMessages, setPendingMessages] = useState([]);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [attachment, setAttachment] = useState(null);
+  const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
   const prevChatIdRef = useRef(null);
@@ -148,11 +152,36 @@ export default function Chat() {
 
   // 4. Send Message Mutation
   const sendMessageMutation = useMutation({
-    mutationFn: async ({ payload, tempId }) => {
-      const res = await api.post(`/chat/${activeChat.id}/messages`, payload);
+    mutationFn: async ({ payload, tempId, fileToUpload }) => {
+      let attachmentData = null;
+      if (fileToUpload) {
+        const fileExt = fileToUpload.name.split('.').pop();
+        const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+        const filePath = `${profile.id}/${fileName}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('chat_attachments')
+          .upload(filePath, fileToUpload);
+          
+        if (uploadError) throw new Error('File upload failed');
+        
+        const { data } = supabase.storage
+          .from('chat_attachments')
+          .getPublicUrl(filePath);
+          
+        attachmentData = {
+          attachmentUrl: data.publicUrl,
+          attachmentType: fileToUpload.type,
+          attachmentName: fileToUpload.name,
+          attachmentSize: fileToUpload.size
+        };
+      }
+      
+      const finalPayload = { ...payload, ...attachmentData };
+      const res = await api.post(`/chat/${activeChat.id}/messages`, finalPayload);
       return { data: res.data, tempId };
     },
-    onMutate: async ({ payload, tempId }) => {
+    onMutate: async ({ payload, tempId, fileToUpload }) => {
       const tempMsg = {
         id: tempId,
         chatId: activeChat.id,
@@ -162,11 +191,17 @@ export default function Chat() {
         readBy: [],
         createdAt: new Date().toISOString(),
         _pending: true,
+        attachmentUrl: fileToUpload ? URL.createObjectURL(fileToUpload) : null,
+        attachmentType: fileToUpload ? fileToUpload.type : null,
+        attachmentName: fileToUpload ? fileToUpload.name : null,
+        attachmentSize: fileToUpload ? fileToUpload.size : null
       };
 
       setPendingMessages(prev => [...prev, tempMsg]);
 
       setMessageText('');
+      setAttachment(null);
+      setShowEmojiPicker(false);
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
       }
@@ -189,18 +224,33 @@ export default function Chat() {
 
   const handleSendMessage = (e) => {
     e.preventDefault();
-    if (!messageText.trim() || !activeChat) return;
+    if (!messageText.trim() && !attachment) return;
 
     try {
       const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`;
       sendMessageMutation.mutate({
-        payload: { content: messageText },
-        tempId
+        payload: { content: messageText.trim() },
+        tempId,
+        fileToUpload: attachment
       });
     } catch (err) {
       console.error(err);
       toast.error('Failed to send message');
     }
+  };
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    // Check size limit (10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File size must be less than 10MB');
+      return;
+    }
+    
+    setAttachment(file);
+    setShowEmojiPicker(false);
   };
 
   // 5. Create Chat Mutation
@@ -546,6 +596,24 @@ export default function Chat() {
                           <div className="text-xs font-bold text-blue-500 mb-1">{sender?.firstName}</div>
                         )}
                         <div className="text-sm text-slate-800 whitespace-pre-wrap break-words pr-14 pb-2">
+                          {msg.attachmentUrl && (
+                            <div className="mb-2 w-full max-w-xs md:max-w-md">
+                              {msg.attachmentType?.startsWith('image/') ? (
+                                <img src={msg.attachmentUrl} alt="attachment" className="rounded-lg w-full object-cover border border-slate-200 shadow-sm" style={{ maxHeight: '300px' }} />
+                              ) : (
+                                <a href={msg.attachmentUrl} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 p-3 rounded-lg border shadow-sm transition-colors ${isMine ? 'bg-white/40 border-white/50 hover:bg-white/50' : 'bg-slate-50 border-slate-200 hover:bg-slate-100'}`}>
+                                  <div className={`p-2 rounded-lg shrink-0 ${isMine ? 'bg-white/50 text-slate-800' : 'bg-white border border-slate-200 text-blue-600'}`}>
+                                    <FileText size={20} />
+                                  </div>
+                                  <div className="overflow-hidden">
+                                    <div className="text-sm font-semibold truncate">{msg.attachmentName || 'Document'}</div>
+                                    <div className={`text-xs ${isMine ? 'text-slate-600' : 'text-slate-500'}`}>{(msg.attachmentSize / 1024 / 1024).toFixed(2)} MB</div>
+                                  </div>
+                                  <Download size={16} className={`ml-auto shrink-0 ${isMine ? 'text-slate-700' : 'text-slate-400'}`} />
+                                </a>
+                              )}
+                            </div>
+                          )}
                           {msg.content}
                         </div>
                         <div className="text-[10px] text-slate-400 text-right absolute bottom-1 right-2 flex items-center justify-end">
@@ -561,39 +629,74 @@ export default function Chat() {
             </div>
 
             {/* Input Footer */}
-            <div className="min-h-[68px] py-2 px-4 bg-white/80 backdrop-blur-md flex items-end gap-3 shrink-0 border-t border-slate-200">
-              <div className="flex gap-3 text-slate-500 px-2 shrink-0 pb-3">
-                <Smile size={24} className="cursor-pointer hover:text-slate-700" />
-                <Paperclip size={24} className="cursor-pointer hover:text-slate-700" />
+            <div className="bg-white/80 backdrop-blur-md flex flex-col shrink-0 border-t border-slate-200 relative z-20">
+              <AnimatePresence>
+                {attachment && (
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="p-3 mx-4 mt-2 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm">
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <div className="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 border border-blue-200">
+                        {attachment.type.startsWith('image/') ? <ImageIcon size={20} /> : <FileText size={20} />}
+                      </div>
+                      <div className="truncate">
+                        <div className="text-sm font-bold text-slate-800 truncate">{attachment.name}</div>
+                        <div className="text-xs text-slate-500 font-medium">{(attachment.size / 1024 / 1024).toFixed(2)} MB</div>
+                      </div>
+                    </div>
+                    <button onClick={() => setAttachment(null)} className="p-2 text-slate-400 hover:text-red-500 rounded-full hover:bg-red-50 transition-colors">
+                      <X size={20} />
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <div className="min-h-[68px] py-2 px-4 flex items-end gap-3">
+                <input type="file" ref={fileInputRef} onChange={handleFileSelect} className="hidden" accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+                
+                <div className="flex gap-2 text-slate-500 px-1 shrink-0 pb-2">
+                  <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+                    <Smile size={24} className="cursor-pointer hover:text-slate-700" />
+                  </button>
+                  <button type="button" onClick={() => fileInputRef.current?.click()} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+                    <Paperclip size={24} className="cursor-pointer hover:text-slate-700" />
+                  </button>
+                </div>
+                <form onSubmit={handleSendMessage} className="flex-1 flex bg-white rounded-2xl px-5 py-2 border border-slate-200 shadow-sm focus-within:border-[#00a884] focus-within:ring-1 focus-within:ring-[#00a884] items-end">
+                  <textarea
+                    ref={textareaRef}
+                    value={messageText}
+                    onChange={e => {
+                      setMessageText(e.target.value);
+                      e.target.style.height = 'auto';
+                      e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
+                    }}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        if (messageText.trim() || attachment) handleSendMessage(e);
+                      }
+                    }}
+                    placeholder="Type a message..."
+                    rows={1}
+                    className="bg-transparent border-none outline-none w-full text-slate-700 resize-none overflow-y-auto chat-scrollbar py-1.5"
+                    style={{ minHeight: '36px', maxHeight: '120px' }}
+                  />
+                </form>
+                <button
+                  onClick={handleSendMessage}
+                  disabled={(!messageText.trim() && !attachment) || sendMessageMutation.isPending}
+                  className={`w-11 h-11 mb-1 rounded-full flex items-center justify-center shrink-0 transition-all ${messageText.trim() || attachment ? 'bg-[#00a884] text-white hover:bg-[#008f6f] shadow-md scale-100' : 'bg-slate-200 text-slate-400 cursor-not-allowed scale-95'}`}
+                >
+                  <Send size={18} />
+                </button>
               </div>
-              <form onSubmit={handleSendMessage} className="flex-1 flex bg-white rounded-2xl px-5 py-2 border border-slate-200 shadow-sm focus-within:border-[#00a884] focus-within:ring-1 focus-within:ring-[#00a884] items-end">
-                <textarea
-                  ref={textareaRef}
-                  value={messageText}
-                  onChange={e => {
-                    setMessageText(e.target.value);
-                    e.target.style.height = 'auto';
-                    e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
-                  }}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      if (messageText.trim()) handleSendMessage(e);
-                    }
-                  }}
-                  placeholder="Type a message"
-                  rows={1}
-                  className="bg-transparent border-none outline-none w-full text-slate-700 resize-none overflow-y-auto chat-scrollbar py-1.5"
-                  style={{ minHeight: '36px', maxHeight: '120px' }}
-                />
-              </form>
-              <button
-                onClick={handleSendMessage}
-                disabled={!messageText.trim() || sendMessageMutation.isPending}
-                className={`w-10 h-10 mb-1 rounded-full flex items-center justify-center shrink-0 transition-colors ${messageText.trim() ? 'bg-[#00a884] text-white hover:bg-[#008f6f]' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}
-              >
-                <Send size={18} />
-              </button>
+              
+              <AnimatePresence>
+                {showEmojiPicker && (
+                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 320, opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden border-t border-slate-200 bg-slate-50">
+                    <EmojiPicker onEmojiClick={(e) => setMessageText(prev => prev + e.emoji)} width="100%" height={320} searchDisabled skinTonesDisabled />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
         )}

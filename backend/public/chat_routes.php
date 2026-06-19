@@ -186,19 +186,31 @@ $app->post('/api/chat/{id}/messages', function (Request $request, Response $resp
         return $response->withStatus(403);
     }
     
-    $encryptedContent = ChatEncryption::encrypt($data['content']);
+    $attachmentUrl = $data['attachmentUrl'] ?? null;
+    $attachmentType = $data['attachmentType'] ?? null;
+    $attachmentName = $data['attachmentName'] ?? null;
+    $attachmentSize = $data['attachmentSize'] ?? null;
+    
+    // Allow empty content if there's an attachment
+    $textContent = $data['content'] ?? '';
+    $encryptedContent = ChatEncryption::encrypt($textContent);
+    
     $stmt = $conn->prepare('
-        INSERT INTO chat_messages ("chatId", "senderId", "content") 
-        VALUES (?, ?, ?) RETURNING *
+        INSERT INTO chat_messages ("chatId", "senderId", "content", "attachmentUrl", "attachmentType", "attachmentName", "attachmentSize") 
+        VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING *
     ');
     $stmt->execute([
         $chatId, 
         $userId, 
-        $encryptedContent
+        $encryptedContent,
+        $attachmentUrl,
+        $attachmentType,
+        $attachmentName,
+        $attachmentSize
     ]);
     
     $msg = $stmt->fetch();
-    $msg['content'] = $data['content'];
+    $msg['content'] = $textContent;
     $msg['deliveredTo'] = is_string($msg['deliveredTo']) ? json_decode($msg['deliveredTo'], true) : $msg['deliveredTo'];
     $msg['readBy'] = is_string($msg['readBy']) ? json_decode($msg['readBy'], true) : $msg['readBy'];
     
