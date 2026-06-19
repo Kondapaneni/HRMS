@@ -317,7 +317,7 @@ const AdminAttendanceRegularize = () => {
             )}
             {(rec.checkIn || rec.checkOut) && (
               <button
-                onClick={() => navigate(`/admin/attendance/location/${rec.attendanceRecordId}`)}
+                onClick={() => navigate(`/admin/attendance/location?id=${rec.attendanceRecordId}&date=${rec.date}`)}
                 className="flex-none px-2 bg-white border border-slate-200 text-blue-600 hover:bg-blue-50 text-xs font-medium rounded-lg transition-colors cursor-pointer"
                 title="View Location"
               >

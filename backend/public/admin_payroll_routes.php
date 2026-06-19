@@ -94,7 +94,7 @@ $app->get('/api/admin/payroll', function (Request $request, Response $response, 
     ]));
     
     return $response->withHeader('Content-Type', 'application/json');
-})->add(new AuthMiddleware(['admin']));
+})->add(new AuthMiddleware(['admin'], 'payroll'));
 
 // Generate payslip
 $app->post('/api/admin/payroll/generate', function (Request $request, Response $response, $args) {
@@ -231,5 +231,5 @@ $app->post('/api/admin/payroll/generate', function (Request $request, Response $
 
     $response->getBody()->write(json_encode(['message' => 'Payslip generated successfully']));
     return $response->withHeader('Content-Type', 'application/json');
-})->add(new AuthMiddleware(['admin']));
+})->add(new AuthMiddleware(['admin'], 'payroll'));
 

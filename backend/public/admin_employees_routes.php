@@ -35,7 +35,7 @@ $app->get('/api/admin/employees', function (Request $request, Response $response
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware(['admin']));
+})->add(new AuthMiddleware(['admin'], 'employees'));
 
 // Get all branches
 $app->get('/api/branches', function (Request $request, Response $response, $args) {
@@ -136,7 +136,7 @@ $app->get('/api/admin/employees/{id}', function (Request $request, Response $res
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware(['admin']));
+})->add(new AuthMiddleware(['admin'], 'employees'));
 
 // Update employee for admin
 $app->put('/api/admin/employees/{id}', function (Request $request, Response $response, $args) {
@@ -265,7 +265,7 @@ $app->put('/api/admin/employees/{id}', function (Request $request, Response $res
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware(['admin']));
+})->add(new AuthMiddleware(['admin'], 'employees'));
 
 // Update employee settings for admin
 $app->put('/api/admin/employees/{id}/settings', function (Request $request, Response $response, $args) {
@@ -362,7 +362,7 @@ $app->put('/api/admin/employees/{id}/settings', function (Request $request, Resp
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware(['admin']));
+})->add(new AuthMiddleware(['admin'], 'employees'));
 
 // Create Employee endpoint
 $app->post('/api/employees', function (Request $request, Response $response, $args) {
@@ -460,4 +460,4 @@ $app->post('/api/employees', function (Request $request, Response $response, $ar
         $response->getBody()->write(json_encode(['error' => $errorMsg]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware(['admin']));
+})->add(new AuthMiddleware(['admin'], 'employees'));

@@ -40,10 +40,10 @@ const AdminAssets = () => {
   });
 
   const { data: users = [], isLoading: usersLoading } = useQuery({
-    queryKey: ['admin', 'feature-access-users'],
+    queryKey: ['admin', 'employees'],
     queryFn: async () => {
-      const res = await api.get('/admin/feature-access');
-      return res.data;
+      const res = await api.get('/admin/employees');
+      return res.data.employees;
     },
   });
 
@@ -337,11 +337,11 @@ const AdminAssets = () => {
                       )}
                       
                       {filteredUsersForModal.map(u => {
-                        const isCurrent = selectedAsset.employee_id === u.id;
+                        const isCurrent = selectedAsset.employee_id === u.userId;
                         return (
                           <div 
-                            key={u.id}
-                            onClick={() => !isCurrent && handleAssignUser(u.id)}
+                            key={u.userId}
+                            onClick={() => !isCurrent && handleAssignUser(u.userId)}
                             className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${
                               isCurrent
                                 ? 'border-blue-500 bg-blue-50 cursor-default' 

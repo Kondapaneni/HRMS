@@ -29,7 +29,7 @@ $app->get('/api/admin/assets', function (Request $request, Response $response, $
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware(['admin']));
+})->add(new AuthMiddleware(['admin'], 'assets'));
 
 // POST /api/admin/assets
 // Creates a new asset
@@ -78,7 +78,7 @@ $app->post('/api/admin/assets', function (Request $request, Response $response, 
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware(['admin']));
+})->add(new AuthMiddleware(['admin'], 'assets'));
 
 // PUT /api/admin/assets/{id}
 // Updates an asset (e.g., assignment)
@@ -156,7 +156,7 @@ $app->put('/api/admin/assets/{id}', function (Request $request, Response $respon
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware(['admin']));
+})->add(new AuthMiddleware(['admin'], 'assets'));
 
 // GET /api/admin/assets/{id}/history
 // Fetches the assignment and status history of an asset
@@ -190,7 +190,7 @@ $app->get('/api/admin/assets/{id}/history', function (Request $request, Response
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware(['admin']));
+})->add(new AuthMiddleware(['admin'], 'assets'));
 
 // DELETE /api/admin/assets/{id}
 // Deletes an asset
@@ -215,4 +215,4 @@ $app->delete('/api/admin/assets/{id}', function (Request $request, Response $res
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware(['admin']));
+})->add(new AuthMiddleware(['admin'], 'assets'));

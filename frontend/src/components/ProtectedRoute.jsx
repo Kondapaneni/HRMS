@@ -68,6 +68,24 @@ export const ProtectedRoute = ({ children, allowedRoles }) => {
 
     // Role check: profile.role is always read from the database via /auth/me
     if (!allowedRoles.includes(profile.role)) {
+      // Feature access check for employees
+      if (profile.role === 'employee' && profile.featureAccess) {
+        const path = location.pathname;
+        const fa = profile.featureAccess;
+        let hasAccess = false;
+
+        if (path.startsWith('/admin/attendance') && fa.canAttendance) hasAccess = true;
+        else if (path.startsWith('/admin/leaves') && fa.canLeave) hasAccess = true;
+        else if (path.startsWith('/admin/payroll') && fa.canPayroll) hasAccess = true;
+        else if ((path === '/admin/employees' || path.startsWith('/admin/employees/') || path.startsWith('/admin/directory')) && fa.canEmployees) hasAccess = true;
+        else if (path.startsWith('/admin/recruitment') && fa.canRecruitment) hasAccess = true;
+        else if (path.startsWith('/admin/assets') && fa.canAssets) hasAccess = true;
+
+        if (hasAccess) {
+          return children;
+        }
+      }
+
       // Redirect to the page this user actually belongs on
       return <Navigate to={getRoleHomePath(profile.role)} replace />;
     }

@@ -14,10 +14,12 @@ use App\Config\Database;
 class AuthMiddleware
 {
     private $requiredRoles;
+    private $requiredFeature;
 
-    public function __construct(array $requiredRoles = [])
+    public function __construct(array $requiredRoles = [], ?string $requiredFeature = null)
     {
         $this->requiredRoles = $requiredRoles;
+        $this->requiredFeature = $requiredFeature;
     }
 
     public function __invoke(Request $request, RequestHandler $handler): Response
@@ -38,8 +40,32 @@ class AuthMiddleware
         }
 
         // Check roles if specified
-        if (!empty($this->requiredRoles) && !in_array($decoded->role, $this->requiredRoles)) {
-            return $this->forbiddenResponse("Insufficient permissions. Required roles: " . implode(', ', $this->requiredRoles));
+        $roleAllowed = false;
+        if (empty($this->requiredRoles) || in_array($decoded->role, $this->requiredRoles)) {
+            $roleAllowed = true;
+        }
+
+        if (!$roleAllowed && $this->requiredFeature && $decoded->role === 'employee') {
+            try {
+                $db = new Database();
+                $conn = $db->getConnection();
+                if ($conn) {
+                    $featureCol = 'can' . ucfirst($this->requiredFeature);
+                    // Check if column exists to prevent SQL errors, but we know the schema.
+                    $stmtCheck = $conn->prepare("SELECT \"$featureCol\" FROM user_feature_access WHERE \"userId\" = :uid");
+                    $stmtCheck->execute([':uid' => $decoded->id]);
+                    $fa = $stmtCheck->fetch();
+                    if ($fa && $fa[$featureCol]) {
+                        $roleAllowed = true;
+                    }
+                }
+            } catch (Exception $e) {
+                error_log("AuthMiddleware: Failed to check feature access: " . $e->getMessage());
+            }
+        }
+
+        if (!$roleAllowed) {
+            return $this->forbiddenResponse("Insufficient permissions. Required roles: " . implode(', ', $this->requiredRoles) . ($this->requiredFeature ? " or feature access: {$this->requiredFeature}" : ""));
         }
 
         // Append decoded token to request attributes

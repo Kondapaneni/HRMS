@@ -441,7 +441,7 @@ $app->get('/api/admin/attendance', function (Request $request, Response $respons
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware(['admin']));
+})->add(new AuthMiddleware(['admin'], 'attendance'));
 
 // GET /api/admin/geolocations
 $app->get('/api/admin/geolocations', function (Request $request, Response $response, $args) {
@@ -456,7 +456,7 @@ $app->get('/api/admin/geolocations', function (Request $request, Response $respo
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware(['admin']));
+})->add(new AuthMiddleware(['admin'], 'attendance'));
 
 // POST /api/admin/geolocations
 $app->post('/api/admin/geolocations', function (Request $request, Response $response, $args) {
@@ -483,7 +483,7 @@ $app->post('/api/admin/geolocations', function (Request $request, Response $resp
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware(['admin']));
+})->add(new AuthMiddleware(['admin'], 'attendance'));
 
 // GET /api/admin/shifttimes
 $app->get('/api/admin/shifttimes', function (Request $request, Response $response, $args) {
@@ -498,7 +498,7 @@ $app->get('/api/admin/shifttimes', function (Request $request, Response $respons
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware(['admin']));
+})->add(new AuthMiddleware(['admin'], 'attendance'));
 
 // POST /api/admin/shifttimes
 $app->post('/api/admin/shifttimes', function (Request $request, Response $response, $args) {
@@ -524,7 +524,7 @@ $app->post('/api/admin/shifttimes', function (Request $request, Response $respon
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware(['admin']));
+})->add(new AuthMiddleware(['admin'], 'attendance'));
 
 // POST /api/admin/attendance/regularize
 $app->post('/api/admin/attendance/regularize', function (Request $request, Response $response, $args) {
@@ -709,7 +709,7 @@ $app->post('/api/admin/attendance/regularize', function (Request $request, Respo
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware(['admin']));
+})->add(new AuthMiddleware(['admin'], 'attendance'));
 
 // GET /api/admin/attendance/employee/{id}
 $app->get('/api/admin/attendance/employee/{id}', function (Request $request, Response $response, $args) {
@@ -911,7 +911,7 @@ $app->get('/api/admin/attendance/employee/{id}', function (Request $request, Res
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware(['admin']));
+})->add(new AuthMiddleware(['admin'], 'attendance'));
 
 // GET /api/admin/attendance/location/{id}
 $app->get('/api/admin/attendance/location/{id}', function (Request $request, Response $response, $args) {
@@ -953,4 +953,4 @@ $app->get('/api/admin/attendance/location/{id}', function (Request $request, Res
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware(['admin']));
+})->add(new AuthMiddleware(['admin'], 'attendance'));

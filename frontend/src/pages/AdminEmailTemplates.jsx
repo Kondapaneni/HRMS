@@ -22,7 +22,7 @@ const AdminEmailTemplates = () => {
       name: 'Leave Request Status',
       icon: <Send size={18} />,
       description: 'Sent when a Leave Request is Approved or Rejected.',
-      subject: 'Update on Your Leave Request',
+      subject: 'Update on Your Leave Request - Acme HRMS',
       content: <LeaveEmailTemplate />
     },
     {

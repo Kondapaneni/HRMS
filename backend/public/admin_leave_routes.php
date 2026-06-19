@@ -228,7 +228,7 @@ $app->get('/api/admin/leaves', function (Request $request, Response $response, $
     ]));
     
     return $response->withHeader('Content-Type', 'application/json');
-})->add(new AuthMiddleware(['admin']));
+})->add(new AuthMiddleware(['admin'], 'leave'));
 
 // Approve leave
 $app->post('/api/admin/leaves/{id}/approve', function (Request $request, Response $response, $args) {
@@ -433,7 +433,7 @@ $app->post('/api/admin/leaves/{id}/approve', function (Request $request, Respons
         $response->getBody()->write(json_encode(['error' => 'Failed to approve leave: ' . $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware(['admin']));
+})->add(new AuthMiddleware(['admin'], 'leave'));
 
 // Reject leave
 $app->post('/api/admin/leaves/{id}/reject', function (Request $request, Response $response, $args) {
@@ -464,5 +464,5 @@ $app->post('/api/admin/leaves/{id}/reject', function (Request $request, Response
 
     $response->getBody()->write(json_encode(['message' => 'Leave rejected successfully']));
     return $response->withHeader('Content-Type', 'application/json');
-})->add(new AuthMiddleware(['admin']));
+})->add(new AuthMiddleware(['admin'], 'leave'));
 

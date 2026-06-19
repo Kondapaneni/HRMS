@@ -8,9 +8,16 @@ import {
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import GlobalSearch from './GlobalSearch';
+import EmployeeLayout from './EmployeeLayout';
 
 const AdminLayout = () => {
   const { profile, signOut } = useAuth();
+  
+  // If the user is an employee (with feature access), swap to the Employee layout entirely
+  if (profile?.role === 'employee') {
+    return <EmployeeLayout />;
+  }
+
   const navigate = useNavigate();
   const location = useLocation();
 

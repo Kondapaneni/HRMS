@@ -33,7 +33,7 @@ $app->get('/api/admin/holidays', function (Request $request, Response $response,
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware(['admin']));
+})->add(new AuthMiddleware(['admin'], 'attendance'));
 
 // POST /api/admin/holidays - Add or Update a holiday
 $app->post('/api/admin/holidays', function (Request $request, Response $response, $args) {
@@ -83,7 +83,7 @@ $app->post('/api/admin/holidays', function (Request $request, Response $response
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware(['admin']));
+})->add(new AuthMiddleware(['admin'], 'attendance'));
 
 // DELETE /api/admin/holidays/{date}
 $app->delete('/api/admin/holidays/{date}', function (Request $request, Response $response, $args) {
@@ -101,7 +101,7 @@ $app->delete('/api/admin/holidays/{date}', function (Request $request, Response 
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware(['admin']));
+})->add(new AuthMiddleware(['admin'], 'attendance'));
 
 // GET /api/admin/holidays/archived
 $app->get('/api/admin/holidays/archived', function (Request $request, Response $response, $args) {
@@ -119,7 +119,7 @@ $app->get('/api/admin/holidays/archived', function (Request $request, Response $
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware(['admin']));
+})->add(new AuthMiddleware(['admin'], 'attendance'));
 
 // PUT /api/admin/holidays/{date}/restore
 $app->put('/api/admin/holidays/{date}/restore', function (Request $request, Response $response, $args) {
@@ -137,5 +137,5 @@ $app->put('/api/admin/holidays/{date}/restore', function (Request $request, Resp
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware(['admin']));
+})->add(new AuthMiddleware(['admin'], 'attendance'));
 

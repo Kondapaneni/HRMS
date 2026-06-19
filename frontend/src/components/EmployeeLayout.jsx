@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import {
-  LogOut, User, Calendar,
+  LogOut, User, Calendar, Users, Briefcase, Monitor,
   Home, Clock, BarChart2, DollarSign, Activity, Bell, Search, Menu, Wallet
 } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
@@ -63,6 +63,17 @@ const EmployeeLayout = () => {
     { icon: <Wallet size={18} />, label: 'Payroll', path: '/employee/payroll' },
     { icon: <BarChart2 size={18} />, label: 'Performance', path: '/employee/performance' },
   ];
+
+  const adminFeatures = [
+    { icon: <Users size={18} />, label: 'Employees', path: '/admin/employees', feature: 'canEmployees', activePaths: ['/admin/employees', '/admin/directory'] },
+    { icon: <Clock size={18} />, label: 'Attendance', path: '/admin/attendance', feature: 'canAttendance', activePaths: ['/admin/attendance'] },
+    { icon: <Calendar size={18} />, label: 'Leave Management', path: '/admin/leaves', feature: 'canLeave', activePaths: ['/admin/leaves'] },
+    { icon: <Wallet size={18} />, label: 'Payroll', path: '/admin/payroll', feature: 'canPayroll', activePaths: ['/admin/payroll'] },
+    { icon: <Monitor size={18} />, label: 'Assets', path: '/admin/assets', feature: 'canAssets', activePaths: ['/admin/assets'] },
+    { icon: <Briefcase size={18} />, label: 'Recruitment', path: '/admin/recruitment', feature: 'canRecruitment', activePaths: ['/admin/recruitment'] },
+  ];
+
+  const visibleAdminFeatures = profile?.featureAccess ? adminFeatures.filter(f => profile.featureAccess[f.feature]) : [];
 
   const shapeVariants = {
     animate: (i) => ({
@@ -127,6 +138,30 @@ const EmployeeLayout = () => {
               );
             })}
           </nav>
+
+          {visibleAdminFeatures.length > 0 && (
+            <div className="pt-4 mt-4 border-t border-slate-200">
+              <p className="px-2 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">Admin Features</p>
+              <nav className="space-y-1">
+                {visibleAdminFeatures.map((item, idx) => {
+                  const isActive = item.activePaths.some(p => location.pathname === p || location.pathname.startsWith(`${p}/`));
+                  return (
+                    <Link
+                      key={idx}
+                      to={item.path}
+                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive
+                        ? 'bg-blue-50 text-blue-700'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                        }`}
+                    >
+                      <span className={isActive ? 'text-blue-600' : 'text-slate-400'}>{item.icon}</span>
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </nav>
+            </div>
+          )}
         </div>
 
         <div className="p-4 border-t border-slate-200">
