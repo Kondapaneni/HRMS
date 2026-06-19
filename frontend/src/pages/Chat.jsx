@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Search, Send, Plus, Users, User, ArrowLeft, MessageSquare, MoreVertical, Paperclip, Smile, Check, CheckCheck, Mic, FileText, Image as ImageIcon, X, Download, Camera, ChevronRight } from 'lucide-react';
+import { Search, Send, Plus, Users, User, ArrowLeft, MessageSquare, MoreVertical, Paperclip, Smile, Check, CheckCheck, Mic, FileText, Image as ImageIcon, X, Download, Camera, ChevronRight, Phone, Video } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { format, isToday, isYesterday } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
