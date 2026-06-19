@@ -261,7 +261,7 @@ export default function EmployeeMobileChat() {
       const res = await api.post('/chat', { ...payload, ...avatarData });
       return res.data;
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries(['chat', 'list']);
       setShowNewChat(false);
       setIsCreatingGroup(false);
@@ -269,7 +269,12 @@ export default function EmployeeMobileChat() {
       setGroupName('');
       setSelectedGroupParticipants([]);
       setGroupAvatarFile(null);
-      toast.success('Group created successfully');
+      
+      if (variables.payload && variables.payload.type === 'personal') {
+        toast.success('Chat created successfully');
+      } else {
+        toast.success('Group created successfully');
+      }
     }
   });
 

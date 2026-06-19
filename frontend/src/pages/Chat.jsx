@@ -288,7 +288,7 @@ export default function Chat() {
       const res = await api.post('/chat', { ...payload, ...avatarData });
       return res.data;
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries(['chat', 'list']);
       setShowNewChat(false);
       setIsCreatingGroup(false);
@@ -296,7 +296,12 @@ export default function Chat() {
       setGroupName('');
       setSelectedGroupParticipants([]);
       setGroupAvatarFile(null);
-      toast.success('Group created successfully');
+      
+      if (variables.payload && variables.payload.type === 'personal') {
+        toast.success('Chat created successfully');
+      } else {
+        toast.success('Group created successfully');
+      }
     }
   });
 
