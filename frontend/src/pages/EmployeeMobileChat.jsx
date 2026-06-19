@@ -308,7 +308,7 @@ export default function EmployeeMobileChat() {
   };
 
   const getChatAvatar = (chat) => {
-    if (chat.type === 'group') return null;
+    if (chat.type === 'group') return chat.group_avatar || null;
     const other = chat.participants.find(p => p.id !== profile?.id);
     return other?.avatar || null;
   };
