@@ -21,6 +21,7 @@ import EmployeePerformance from './pages/EmployeePerformance'
 import EditProfilePage from './pages/EditProfilePage'
 import EmployeeMobileMap from './pages/EmployeeMobileMap'
 import EmployeeMobileCamera from './pages/EmployeeMobileCamera'
+import EmployeeMobileChat from './pages/EmployeeMobileChat'
 import AdminLayout from './components/AdminLayout'
 import AdminEmployees from './pages/AdminEmployees'
 import AdminDirectory from './pages/AdminDirectory'
@@ -160,6 +161,14 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
                   <EmployeeMobileCamera />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/employee/chat/mobile"
+              element={
+                <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
+                  <EmployeeMobileChat />
                 </ProtectedRoute>
               }
             />

@@ -298,6 +298,28 @@ const EmployeeMobileDashboard = () => {
         </div>
       </section>
 
+      {/* Team Chat Entry */}
+      <section className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
+        <div className="px-6 pt-6 pb-4 border-b border-slate-100">
+          <h2 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">Communications</h2>
+          <p className="text-[11px] font-medium text-slate-500 mt-1 uppercase tracking-wider">Secure Team Chat</p>
+        </div>
+        <div className="p-6">
+          <Link to="/employee/chat/mobile" className="flex items-center justify-between w-full rounded-xl bg-blue-600 text-white font-semibold text-sm px-6 py-4 hover:bg-blue-700 active:scale-[0.98] transition-all shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="bg-white/20 p-2 rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+              </div>
+              <div className="text-left">
+                <div className="text-base">Open Mobile Chat</div>
+                <div className="text-xs text-blue-200 font-normal mt-0.5">Connect with your colleagues</div>
+              </div>
+            </div>
+            <ChevronRight className="w-5 h-5 text-blue-200" />
+          </Link>
+        </div>
+      </section>
+
       {/* Leave Balance */}
       <section className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
         <div className="px-6 pt-6 pb-4 border-b border-slate-100">
@@ -347,24 +369,6 @@ const EmployeeMobileDashboard = () => {
           <Link to="/employee/payroll" className="flex items-center justify-center w-full rounded-xl border-2 border-slate-200 bg-white text-slate-700 font-semibold text-sm py-3 hover:bg-slate-50 active:scale-[0.98] transition-all">
             View payroll
           </Link>
-        </div>
-      </section>
-
-      {/* Recent Notifications */}
-      <section className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
-        <div className="px-6 pt-6 pb-4 border-b border-slate-100 flex justify-between items-center">
-          <div>
-            <h2 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">Recent notifications</h2>
-            <p className="text-[11px] font-medium text-slate-500 mt-1 uppercase tracking-wider">Unread: 0</p>
-          </div>
-          <button className="text-slate-400 hover:text-slate-600 transition-colors">
-            <ChevronRight className="w-5 h-5" />
-          </button>
-        </div>
-        <div className="p-8 flex flex-col items-center justify-center text-center">
-          <Bell className="w-10 h-10 text-slate-300 mb-3" />
-          <h3 className="text-slate-700 font-bold">No notifications</h3>
-          <p className="text-sm text-slate-500 mt-1">You are all caught up.</p>
         </div>
       </section>
 
