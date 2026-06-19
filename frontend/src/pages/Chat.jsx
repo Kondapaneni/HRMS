@@ -16,6 +16,9 @@ export default function Chat() {
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
   const [groupName, setGroupName] = useState('');
   const [selectedGroupParticipants, setSelectedGroupParticipants] = useState([]);
+  const [pendingMessageIds, setPendingMessageIds] = useState(new Set());
+  const messagesEndRef = useRef(null);
+  const textareaRef = useRef(null);
   const prevChatIdRef = useRef(null);
   const prevMessagesLengthRef = useRef(0);
 
