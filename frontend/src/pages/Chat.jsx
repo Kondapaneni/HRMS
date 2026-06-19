@@ -37,6 +37,7 @@ export default function Chat() {
   const [showNewChat, setShowNewChat] = useState(false);
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
   const [groupCreationStep, setGroupCreationStep] = useState(1);
+  const [contactSearchQuery, setContactSearchQuery] = useState('');
   const [groupName, setGroupName] = useState('');
   const [selectedGroupParticipants, setSelectedGroupParticipants] = useState([]);
   const [groupAvatarFile, setGroupAvatarFile] = useState(null);
@@ -345,7 +346,12 @@ export default function Chat() {
 
   const getDecryptedLastMessage = (chat) => {
     if (!chat.last_message) return 'Start chatting';
-    return chat.last_message.content || 'Start chatting';
+    if (chat.last_message.content) return chat.last_message.content;
+    if (chat.last_message.attachmentType) {
+      if (chat.last_message.attachmentType.startsWith('image/')) return '📷 Photo';
+      return '📄 Document';
+    }
+    return 'Start chatting';
   };
 
   // Renders ticks for a message. Uses the provided chat's participants for context.
@@ -530,13 +536,16 @@ export default function Chat() {
                     <div className="p-2 bg-white border-b border-slate-100">
                       <div className="bg-slate-100 rounded-lg flex items-center px-3 py-1.5">
                         <Search size={18} className="text-slate-400 mr-2" />
-                        <input type="text" placeholder="Search name or number" className="bg-transparent border-none outline-none text-sm w-full" />
+                        <input type="text" value={contactSearchQuery} onChange={e => setContactSearchQuery(e.target.value)} placeholder="Search name or number" className="bg-transparent border-none outline-none text-sm w-full" />
                       </div>
                     </div>
                     <div className="flex-1 overflow-y-auto chat-scrollbar bg-white">
                       <div className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider bg-slate-50 border-b border-slate-100">Frequently contacted</div>
-                      {users.filter(u => u.id !== profile?.id).map(u => (
-                        <label key={u.id} className="flex items-center gap-4 w-full p-3 hover:bg-slate-50 cursor-pointer border-b border-slate-50">
+                      {users
+                        .filter(u => u.id !== profile?.id)
+                        .filter(u => `${u.firstName} ${u.lastName}`.toLowerCase().includes(contactSearchQuery.toLowerCase()))
+                        .map(u => (
+                        <div key={u.id} onClick={() => toggleGroupParticipant(u.id)} className="flex items-center gap-4 w-full p-3 hover:bg-slate-50 cursor-pointer border-b border-slate-50 transition-colors">
                           <div className="w-12 h-12 rounded-full bg-slate-200 overflow-hidden shrink-0">
                             {u.avatar ? <img src={u.avatar} className="w-full h-full object-cover" /> : <User className="w-full h-full p-2.5 text-white bg-slate-400" />}
                           </div>
@@ -547,7 +556,7 @@ export default function Chat() {
                           <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${selectedGroupParticipants.includes(u.id) ? 'bg-[#008069] border-[#008069]' : 'border-slate-300'}`}>
                             {selectedGroupParticipants.includes(u.id) && <Check size={14} className="text-white" />}
                           </div>
-                        </label>
+                        </div>
                       ))}
                     </div>
                   </>
