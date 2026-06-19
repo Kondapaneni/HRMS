@@ -40,6 +40,7 @@ export default function EmployeeMobileChat() {
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
   const [groupCreationStep, setGroupCreationStep] = useState(1);
   const [contactSearchQuery, setContactSearchQuery] = useState('');
+  const [showContactInfo, setShowContactInfo] = useState(false);
   const [groupName, setGroupName] = useState('');
   const [selectedGroupParticipants, setSelectedGroupParticipants] = useState([]);
   const [groupAvatarFile, setGroupAvatarFile] = useState(null);
@@ -358,6 +359,89 @@ export default function EmployeeMobileChat() {
   };
 
   // Rendering
+  if (showContactInfo && activeChat) {
+    return (
+      <div className="flex flex-col h-[calc(100vh-4rem)] bg-slate-50 font-sans -m-4 sm:-m-6 relative z-10 overflow-hidden">
+        <div className="h-14 bg-[#008069] text-white flex items-center px-4 shrink-0 shadow-sm z-20">
+          <button onClick={() => setShowContactInfo(false)} className="mr-4 active:opacity-50 transition-opacity">
+            <ArrowLeft size={24} />
+          </button>
+          <h2 className="font-semibold text-lg">{activeChat.type === 'group' ? 'Group info' : 'Contact info'}</h2>
+        </div>
+        <div className="flex-1 overflow-y-auto chat-scrollbar pb-6">
+          <div className="bg-white flex flex-col items-center pt-8 pb-6 shadow-sm mb-2">
+            <div className="w-32 h-32 rounded-full bg-slate-200 overflow-hidden shadow-md mb-4">
+              {getChatAvatar(activeChat) ? (
+                <img src={getChatAvatar(activeChat)} className="w-full h-full object-cover" />
+              ) : (
+                activeChat.type === 'group' ? <Users className="w-full h-full p-6 text-white bg-slate-400" /> : <User className="w-full h-full p-6 text-white bg-slate-400" />
+              )}
+            </div>
+            <h2 className="text-2xl font-semibold text-slate-900 mb-1">{getChatName(activeChat)}</h2>
+            
+            {activeChat.type === 'personal' && (() => {
+              const other = activeChat.participants.find(p => p.id !== profile?.id);
+              return (
+                <>
+                  <p className="text-slate-500 text-sm mb-4">{other?.designation || 'Employee'}</p>
+                  <div className="flex gap-8 mt-2 text-[#008069]">
+                    <div className="flex flex-col items-center cursor-pointer active:opacity-50 transition-opacity"><MessageSquare size={24} className="mb-1"/><span className="text-xs font-medium">Message</span></div>
+                    <div className="flex flex-col items-center cursor-pointer active:opacity-50 transition-opacity"><Phone size={24} className="mb-1"/><span className="text-xs font-medium">Audio</span></div>
+                    <div className="flex flex-col items-center cursor-pointer active:opacity-50 transition-opacity"><Video size={24} className="mb-1"/><span className="text-xs font-medium">Video</span></div>
+                  </div>
+                </>
+              );
+            })()}
+            {activeChat.type === 'group' && (
+              <p className="text-slate-500 text-sm mb-4">Group • {activeChat.participants.length} participants</p>
+            )}
+          </div>
+
+          <div className="bg-white p-4 shadow-sm mb-2 text-slate-800">
+             <div className="text-[#008069] text-xs font-semibold uppercase tracking-wider mb-2">About and phone number</div>
+             <div className="text-md mb-1 font-medium">Available on Acme Chat</div>
+             <div className="text-sm text-slate-500 mb-4">About</div>
+             <div className="border-t border-slate-100 pt-3 text-md font-medium">
+               {activeChat.type === 'personal' ? (activeChat.participants.find(p => p.id !== profile?.id)?.phone || 'No phone number') : 'Group details'}
+             </div>
+             <div className="text-sm text-slate-500">Phone</div>
+          </div>
+
+          {activeChat.type === 'group' && (
+            <div className="bg-white shadow-sm mb-2">
+              <div className="p-4 border-b border-slate-100">
+                <div className="text-[#008069] text-xs font-semibold uppercase tracking-wider">Participants</div>
+              </div>
+              <div>
+                {activeChat.participants.map(p => (
+                  <div key={p.id} className="flex items-center gap-3 p-3 active:bg-slate-50 cursor-pointer">
+                    <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden shrink-0">
+                      {p.avatar ? <img src={p.avatar} className="w-full h-full object-cover" /> : <User className="w-full h-full p-2 text-white bg-slate-400" />}
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-medium text-slate-800">{p.firstName} {p.lastName} {p.id === profile?.id ? '(You)' : ''}</div>
+                      <div className="text-xs text-slate-500 truncate">{p.designation || 'Employee'}</div>
+                    </div>
+                    {activeChat.admin_ids?.includes(p.id) && (
+                      <span className="text-[10px] bg-emerald-100 text-[#008069] px-2 py-0.5 rounded border border-emerald-200 font-bold">Admin</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          <div className="bg-white shadow-sm mb-6 mt-2 cursor-pointer active:bg-slate-50 transition-colors">
+             <div className="p-4 flex items-center text-red-500 font-medium">
+               <X size={20} className="mr-4" />
+               {activeChat.type === 'group' ? 'Exit group' : 'Block contact'}
+             </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (activeChat) {
     return (
       <div className="flex h-[100dvh] flex-col bg-slate-50 overflow-hidden relative">

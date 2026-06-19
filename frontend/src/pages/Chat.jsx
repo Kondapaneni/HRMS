@@ -38,6 +38,7 @@ export default function Chat() {
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
   const [groupCreationStep, setGroupCreationStep] = useState(1);
   const [contactSearchQuery, setContactSearchQuery] = useState('');
+  const [showContactInfo, setShowContactInfo] = useState(false);
   const [groupName, setGroupName] = useState('');
   const [selectedGroupParticipants, setSelectedGroupParticipants] = useState([]);
   const [groupAvatarFile, setGroupAvatarFile] = useState(null);
@@ -722,7 +723,7 @@ export default function Chat() {
               </div>
               <div className="flex gap-4 text-slate-500">
                 <Search size={20} className="cursor-pointer hover:text-slate-700" />
-                <MoreVertical size={20} className="cursor-pointer hover:text-slate-700" />
+                <MoreVertical onClick={() => setShowContactInfo(!showContactInfo)} size={20} className="cursor-pointer hover:text-slate-700" />
               </div>
             </div>
 
@@ -856,6 +857,87 @@ export default function Chat() {
           </div>
         )}
       </div>
+
+      {/* Contact Info Sidebar */}
+      {showContactInfo && activeChat && (
+        <div className="w-80 flex flex-col bg-slate-50 border-l border-slate-200 shrink-0 hidden lg:flex relative z-10 shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.05)]">
+          <div className="h-16 bg-white flex items-center px-4 border-b border-slate-200 shrink-0 shadow-sm z-10">
+            <button onClick={() => setShowContactInfo(false)} className="mr-4 p-2 rounded-full hover:bg-slate-100 text-slate-500 transition-colors"><X size={20} /></button>
+            <h2 className="font-semibold text-slate-800">{activeChat.type === 'group' ? 'Group info' : 'Contact info'}</h2>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto chat-scrollbar bg-slate-50">
+            <div className="bg-white flex flex-col items-center pt-8 pb-6 shadow-sm mb-2">
+              <div className="w-40 h-40 rounded-full bg-slate-200 overflow-hidden shadow-md mb-4">
+                {getChatAvatar(activeChat) ? (
+                  <img src={getChatAvatar(activeChat)} className="w-full h-full object-cover" />
+                ) : (
+                  activeChat.type === 'group' ? <Users className="w-full h-full p-8 text-white bg-slate-400" /> : <User className="w-full h-full p-8 text-white bg-slate-400" />
+                )}
+              </div>
+              <h2 className="text-2xl font-semibold text-slate-900 mb-1">{getChatName(activeChat)}</h2>
+              
+              {activeChat.type === 'personal' && (() => {
+                const other = activeChat.participants.find(p => p.id !== profile?.id);
+                return (
+                  <>
+                    <p className="text-slate-500 text-sm mb-4">{other?.designation || 'Employee'}</p>
+                    <div className="flex gap-6 mt-2 text-slate-600">
+                      <div className="flex flex-col items-center cursor-pointer hover:text-[#008069] transition-colors"><MessageSquare size={24} className="mb-1"/><span className="text-xs font-medium">Message</span></div>
+                      <div className="flex flex-col items-center cursor-pointer hover:text-[#008069] transition-colors"><Phone size={24} className="mb-1"/><span className="text-xs font-medium">Audio</span></div>
+                      <div className="flex flex-col items-center cursor-pointer hover:text-[#008069] transition-colors"><Video size={24} className="mb-1"/><span className="text-xs font-medium">Video</span></div>
+                    </div>
+                  </>
+                );
+              })()}
+              {activeChat.type === 'group' && (
+                <p className="text-slate-500 text-sm mb-4">Group • {activeChat.participants.length} participants</p>
+              )}
+            </div>
+
+            <div className="bg-white p-4 shadow-sm mb-2 text-slate-800">
+               <div className="text-[#008069] text-xs font-semibold uppercase tracking-wider mb-2">About and phone number</div>
+               <div className="text-md mb-1 font-medium">Available on Acme Chat</div>
+               <div className="text-sm text-slate-500 mb-4">About</div>
+               <div className="border-t border-slate-100 pt-3 text-md font-medium">
+                 {activeChat.type === 'personal' ? (activeChat.participants.find(p => p.id !== profile?.id)?.phone || 'No phone number') : 'Group details'}
+               </div>
+               <div className="text-sm text-slate-500">Phone</div>
+            </div>
+
+            {activeChat.type === 'group' && (
+              <div className="bg-white shadow-sm mb-2">
+                <div className="p-4 border-b border-slate-100">
+                  <div className="text-[#008069] text-xs font-semibold uppercase tracking-wider">Participants</div>
+                </div>
+                <div className="max-h-60 overflow-y-auto chat-scrollbar">
+                  {activeChat.participants.map(p => (
+                    <div key={p.id} className="flex items-center gap-3 p-3 hover:bg-slate-50 cursor-pointer">
+                      <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden shrink-0">
+                        {p.avatar ? <img src={p.avatar} className="w-full h-full object-cover" /> : <User className="w-full h-full p-2 text-white bg-slate-400" />}
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium text-slate-800">{p.firstName} {p.lastName} {p.id === profile?.id ? '(You)' : ''}</div>
+                        <div className="text-xs text-slate-500 truncate">{p.designation || 'Employee'}</div>
+                      </div>
+                      {activeChat.admin_ids?.includes(p.id) && (
+                        <span className="text-[10px] bg-emerald-100 text-[#008069] px-2 py-0.5 rounded border border-emerald-200 font-bold">Admin</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            <div className="bg-white shadow-sm mb-6 mt-2 cursor-pointer hover:bg-slate-50 transition-colors">
+               <div className="p-4 flex items-center text-red-500 font-medium">
+                 <X size={20} className="mr-4" />
+                 {activeChat.type === 'group' ? 'Exit group' : 'Block contact'}
+               </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
