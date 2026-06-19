@@ -16,7 +16,7 @@ export default function Chat() {
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
   const [groupName, setGroupName] = useState('');
   const [selectedGroupParticipants, setSelectedGroupParticipants] = useState([]);
-  const [pendingMessageIds, setPendingMessageIds] = useState(new Set());
+  const [pendingMessages, setPendingMessages] = useState([]);
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
   const prevChatIdRef = useRef(null);
@@ -132,7 +132,6 @@ export default function Chat() {
       return { data: res.data, tempId };
     },
     onMutate: async ({ payload, tempId }) => {
-      // Optimistic update — add a temporary message with pending state (single tick)
       const tempMsg = {
         id: tempId,
         chatId: activeChat.id,
@@ -141,36 +140,28 @@ export default function Chat() {
         deliveredTo: [],
         readBy: [],
         createdAt: new Date().toISOString(),
-        _pending: true, // local flag for single tick
+        _pending: true,
       };
-      setPendingMessageIds(prev => new Set([...prev, tempId]));
-      queryClient.setQueryData(['chat', 'messages', activeChat.id], old => [...(old || []), tempMsg]);
+
+      setPendingMessages(prev => [...prev, tempMsg]);
+
       setMessageText('');
-      if (textareaRef.current) textareaRef.current.style.height = 'auto';
+      if (textareaRef.current) {
+        textareaRef.current.style.height = 'auto';
+      }
       scrollToBottom();
     },
     onSuccess: ({ data, tempId }) => {
-      // Replace optimistic message with real server-confirmed message (double ticks)
-      setPendingMessageIds(prev => {
-        const next = new Set(prev);
-        next.delete(tempId);
-        return next;
-      });
+      setPendingMessages(prev => prev.filter(m => m.id !== tempId));
+
       queryClient.setQueryData(['chat', 'messages', activeChat.id], old => {
-        return (old || []).map(m => m.id === tempId ? data : m);
+        if (old?.find(m => m.id === data.id)) return old;
+        return [...(old || []), data];
       });
       scrollToBottom();
     },
     onError: (err, { tempId }) => {
-      // Remove the optimistic message on failure
-      setPendingMessageIds(prev => {
-        const next = new Set(prev);
-        next.delete(tempId);
-        return next;
-      });
-      queryClient.setQueryData(['chat', 'messages', activeChat.id], old => {
-        return (old || []).filter(m => m.id !== tempId);
-      });
+      setPendingMessages(prev => prev.filter(m => m.id !== tempId));
       toast.error('Failed to send message');
     }
   });
@@ -259,7 +250,7 @@ export default function Chat() {
     if (!chat || !profile) return null;
 
     // Single tick = message is still being sent (optimistic/pending)
-    if (msg._pending || pendingMessageIds.has(msg.id)) {
+    if (msg._pending) {
       return <Check size={14} className="text-slate-400 ml-1 inline-block shrink-0" />;
     }
 
@@ -285,6 +276,14 @@ export default function Chat() {
     if (isToday(date)) return format(date, 'HH:mm');
     if (isYesterday(date)) return 'Yesterday';
     return format(date, 'dd/MM/yy');
+  };
+
+  const getOverlayDate = (dateStr) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    if (isToday(date)) return 'Today';
+    if (isYesterday(date)) return 'Yesterday';
+    return format(date, 'dd/MM/yyyy');
   };
 
   // WhatsApp clone layout
@@ -503,24 +502,37 @@ export default function Chat() {
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-3 chat-scrollbar">
 
-              {messages.map(msg => {
+              {[...messages, ...pendingMessages].map((msg, index, arr) => {
                 const isMine = msg.senderId === profile?.id;
                 const sender = activeChat.participants.find(p => p.id === msg.senderId);
+                const msgDate = new Date(msg.createdAt).toDateString();
+                const prevMsgDate = index > 0 ? new Date(arr[index-1].createdAt).toDateString() : null;
+                const showDateOverlay = msgDate !== prevMsgDate;
+
                 return (
-                  <div key={msg.id} className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
-                    <div className={`max-w-[75%] md:max-w-[65%] rounded-lg px-3 py-2 pb-1 shadow-sm relative ${isMine ? 'bg-[#d9fdd3] rounded-tr-none' : 'bg-white rounded-tl-none'}`}>
-                      {!isMine && activeChat.type === 'group' && (
-                        <div className="text-xs font-bold text-blue-500 mb-1">{sender?.firstName}</div>
-                      )}
-                      <div className="text-sm text-slate-800 whitespace-pre-wrap break-words pr-12">
-                        {msg.content}
+                  <React.Fragment key={msg.id}>
+                    {showDateOverlay && (
+                      <div className="flex justify-center my-4">
+                        <span className="bg-white/80 text-slate-500 text-[11px] font-bold px-3 py-1 rounded-md uppercase tracking-wider shadow-sm backdrop-blur-sm">
+                          {getOverlayDate(msg.createdAt)}
+                        </span>
                       </div>
-                      <div className="text-[10px] text-slate-400 text-right mt-1 ml-4 absolute bottom-1 right-2 flex items-center justify-end">
-                        {format(new Date(msg.createdAt), 'HH:mm')}
-                        {isMine && renderMessageTicks(msg)}
+                    )}
+                    <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
+                      <div className={`max-w-[75%] md:max-w-[65%] rounded-lg px-3 py-2 pb-1 shadow-sm relative ${isMine ? 'bg-[#d9fdd3] rounded-tr-none' : 'bg-white rounded-tl-none'}`}>
+                        {!isMine && activeChat.type === 'group' && (
+                          <div className="text-xs font-bold text-blue-500 mb-1">{sender?.firstName}</div>
+                        )}
+                        <div className="text-sm text-slate-800 whitespace-pre-wrap break-words pr-14 pb-2">
+                          {msg.content}
+                        </div>
+                        <div className="text-[10px] text-slate-400 text-right absolute bottom-1 right-2 flex items-center justify-end">
+                          {format(new Date(msg.createdAt), 'HH:mm')}
+                          {isMine && renderMessageTicks(msg)}
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </React.Fragment>
                 );
               })}
               <div ref={messagesEndRef} />

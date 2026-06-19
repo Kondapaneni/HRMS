@@ -18,7 +18,7 @@ export default function EmployeeMobileChat() {
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
   const [groupName, setGroupName] = useState('');
   const [selectedGroupParticipants, setSelectedGroupParticipants] = useState([]);
-  const [pendingMessageIds, setPendingMessageIds] = useState(new Set());
+  const [pendingMessages, setPendingMessages] = useState([]);
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
   const prevChatIdRef = useRef(null);
@@ -128,32 +128,21 @@ export default function EmployeeMobileChat() {
         createdAt: new Date().toISOString(),
         _pending: true,
       };
-      setPendingMessageIds(prev => new Set([...prev, tempId]));
-      queryClient.setQueryData(['chat', 'messages', activeChat.id], old => [...(old || []), tempMsg]);
+      setPendingMessages(prev => [...prev, tempMsg]);
       setMessageText('');
       if (textareaRef.current) textareaRef.current.style.height = 'auto';
       scrollToBottom();
     },
     onSuccess: ({ data, tempId }) => {
-      setPendingMessageIds(prev => {
-        const next = new Set(prev);
-        next.delete(tempId);
-        return next;
-      });
+      setPendingMessages(prev => prev.filter(m => m.id !== tempId));
       queryClient.setQueryData(['chat', 'messages', activeChat.id], old => {
-        return (old || []).map(m => m.id === tempId ? data : m);
+        if (old?.find(m => m.id === data.id)) return old;
+        return [...(old || []), data];
       });
       scrollToBottom();
     },
     onError: (err, { tempId }) => {
-      setPendingMessageIds(prev => {
-        const next = new Set(prev);
-        next.delete(tempId);
-        return next;
-      });
-      queryClient.setQueryData(['chat', 'messages', activeChat.id], old => {
-        return (old || []).filter(m => m.id !== tempId);
-      });
+      setPendingMessages(prev => prev.filter(m => m.id !== tempId));
       toast.error('Failed to send message');
     }
   });
@@ -225,7 +214,7 @@ export default function EmployeeMobileChat() {
 
   const renderTicks = (msg, chat) => {
     if (!chat || !profile) return null;
-    if (msg._pending || pendingMessageIds.has(msg.id)) {
+    if (msg._pending) {
       return <Check size={14} className="text-slate-400 ml-1 inline-block shrink-0" />;
     }
     const chatParticipants = chat.participants.filter(p => p.id !== profile.id);
@@ -245,6 +234,14 @@ export default function EmployeeMobileChat() {
     if (isToday(date)) return format(date, 'HH:mm');
     if (isYesterday(date)) return 'Yesterday';
     return format(date, 'dd/MM/yy');
+  };
+
+  const getOverlayDate = (dateStr) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    if (isToday(date)) return 'Today';
+    if (isYesterday(date)) return 'Yesterday';
+    return format(date, 'dd/MM/yyyy');
   };
 
   // Rendering
@@ -275,32 +272,45 @@ export default function EmployeeMobileChat() {
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3 pb-[100px]">
-          {messages.map(msg => {
+        <div className="flex-1 overflow-y-auto p-4 space-y-3 pb-[120px]">
+          {[...messages, ...pendingMessages].map((msg, index, arr) => {
             const isMine = msg.senderId === profile?.id;
             const sender = activeChat.participants.find(p => p.id === msg.senderId);
+            const msgDate = new Date(msg.createdAt).toDateString();
+            const prevMsgDate = index > 0 ? new Date(arr[index-1].createdAt).toDateString() : null;
+            const showDateOverlay = msgDate !== prevMsgDate;
+
             return (
-              <div key={msg.id} className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
-                <div className={`max-w-[85%] rounded-2xl px-4 py-2 pb-1.5 shadow-sm relative ${isMine ? 'bg-blue-600 text-white rounded-tr-sm' : 'bg-white border border-slate-100 text-slate-800 rounded-tl-sm'}`}>
-                  {!isMine && activeChat.type === 'group' && (
-                    <div className="text-xs font-bold text-blue-500 mb-1">{sender?.firstName}</div>
-                  )}
-                  <div className="text-[15px] whitespace-pre-wrap break-words pr-10">
-                    {msg.content}
+              <React.Fragment key={msg.id}>
+                {showDateOverlay && (
+                  <div className="flex justify-center my-4">
+                    <span className="bg-slate-200/60 text-slate-600 text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm backdrop-blur-sm">
+                      {getOverlayDate(msg.createdAt)}
+                    </span>
                   </div>
-                  <div className={`text-[10px] text-right mt-1 ml-4 absolute bottom-1.5 right-3 flex items-center justify-end ${isMine ? 'text-blue-100' : 'text-slate-400'}`}>
-                    {format(new Date(msg.createdAt), 'HH:mm')}
-                    {isMine && renderTicks(msg, activeChat)}
+                )}
+                <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
+                  <div className={`max-w-[85%] rounded-2xl px-4 py-2 pb-1.5 shadow-sm relative ${isMine ? 'bg-blue-600 text-white rounded-tr-sm' : 'bg-white border border-slate-100 text-slate-800 rounded-tl-sm'}`}>
+                    {!isMine && activeChat.type === 'group' && (
+                      <div className="text-xs font-bold text-blue-500 mb-1">{sender?.firstName}</div>
+                    )}
+                    <div className="text-[15px] whitespace-pre-wrap break-words pr-14 pb-2">
+                      {msg.content}
+                    </div>
+                    <div className={`text-[10px] text-right absolute bottom-1 right-3 flex items-center justify-end ${isMine ? 'text-blue-100' : 'text-slate-400'}`}>
+                      {format(new Date(msg.createdAt), 'HH:mm')}
+                      {isMine && renderTicks(msg, activeChat)}
+                    </div>
                   </div>
                 </div>
-              </div>
+              </React.Fragment>
             );
           })}
           <div ref={messagesEndRef} />
         </div>
 
         {/* Input area fixed at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-3 pb-safe z-20">
+        <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-3 pb-8 z-20">
           <form onSubmit={handleSendMessage} className="flex items-end gap-2">
             <div className="flex-1 flex bg-slate-100 rounded-3xl px-4 py-2 items-end">
               <textarea
@@ -479,9 +489,6 @@ export default function EmployeeMobileChat() {
                     <img src={getChatAvatar(chat)} className="w-full h-full object-cover" />
                   ) : (
                     <Users className="w-full h-full p-3 text-slate-400 bg-slate-100" />
-                  )}
-                  {chat.unread_count > 0 && (
-                    <div className="absolute top-0 right-0 w-3.5 h-3.5 bg-blue-500 border-2 border-white rounded-full"></div>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
