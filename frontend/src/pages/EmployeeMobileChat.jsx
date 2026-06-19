@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Search, Send, Plus, Users, User, ArrowLeft, Paperclip, Smile, Check, CheckCheck, FileText, Image as ImageIcon, X, Download } from 'lucide-react';
+import { Search, Send, Plus, Users, User, ArrowLeft, Paperclip, Smile, Check, CheckCheck, FileText, Image as ImageIcon, X, Download, Camera, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { format, isToday, isYesterday } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -38,8 +38,17 @@ export default function EmployeeMobileChat() {
   const [messageText, setMessageText] = useState('');
   const [showNewChat, setShowNewChat] = useState(false);
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
+  const [groupCreationStep, setGroupCreationStep] = useState(1);
   const [groupName, setGroupName] = useState('');
   const [selectedGroupParticipants, setSelectedGroupParticipants] = useState([]);
+  const [groupAvatarFile, setGroupAvatarFile] = useState(null);
+  const [groupPermissions, setGroupPermissions] = useState({
+    editSettings: true,
+    sendMessages: true,
+    addMembers: true,
+    approveNewMembers: false
+  });
+  const groupAvatarInputRef = useRef(null);
   const [pendingMessages, setPendingMessages] = useState([]);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [attachment, setAttachment] = useState(null);
@@ -229,31 +238,54 @@ export default function EmployeeMobileChat() {
 
   // 4. Create Chat
   const createChatMutation = useMutation({
-    mutationFn: async (payload) => {
-      const res = await api.post('/chat', payload);
+    mutationFn: async ({ payload, fileToUpload }) => {
+      let avatarData = null;
+      if (fileToUpload) {
+        const fileExt = fileToUpload.name.split('.').pop();
+        const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+        const filePath = `groups/${fileName}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('chat_attachments')
+          .upload(filePath, fileToUpload);
+          
+        if (uploadError) throw new Error('Group icon upload failed');
+        
+        const { data } = supabase.storage
+          .from('chat_attachments')
+          .getPublicUrl(filePath);
+          
+        avatarData = { group_avatar: data.publicUrl };
+      }
+      const res = await api.post('/chat', { ...payload, ...avatarData });
       return res.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['chat', 'list']);
       setShowNewChat(false);
       setIsCreatingGroup(false);
+      setGroupCreationStep(1);
       setGroupName('');
       setSelectedGroupParticipants([]);
-      toast.success('Chat created');
+      setGroupAvatarFile(null);
+      toast.success('Group created successfully');
     }
   });
 
   const handleCreatePersonalChat = (targetUserId) => {
-    createChatMutation.mutate({ type: 'personal', participants: [targetUserId] });
+    createChatMutation.mutate({ payload: { type: 'personal', participants: [targetUserId] } });
   };
 
   const handleCreateGroupChat = () => {
-    if (!groupName.trim()) return toast.error('Group name is required');
     if (selectedGroupParticipants.length === 0) return toast.error('Select at least one participant');
     createChatMutation.mutate({
-      type: 'group',
-      name: groupName,
-      participants: selectedGroupParticipants
+      payload: {
+        type: 'group',
+        name: groupName || 'Group Chat',
+        participants: selectedGroupParticipants,
+        permissions: groupPermissions
+      },
+      fileToUpload: groupAvatarFile
     });
   };
 
@@ -477,57 +509,157 @@ export default function EmployeeMobileChat() {
         <BackgroundOrbs />
         <div className="flex items-center px-4 py-4 bg-white/80 backdrop-blur-md border-b border-slate-200 z-10 shadow-sm relative shrink-0">
           <button
-            onClick={() => isCreatingGroup ? setIsCreatingGroup(false) : setShowNewChat(false)}
+            onClick={() => {
+              if (isCreatingGroup) {
+                if (groupCreationStep > 1) setGroupCreationStep(groupCreationStep - 1);
+                else { setIsCreatingGroup(false); setGroupCreationStep(1); }
+              } else {
+                setShowNewChat(false);
+              }
+            }}
             className="p-2 -ml-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <h1 className="ml-2 text-lg font-bold text-slate-900">{isCreatingGroup ? 'New Group' : 'New Chat'}</h1>
+          <h1 className="ml-2 text-lg font-bold text-slate-900">{isCreatingGroup ? (groupCreationStep === 3 ? 'Group permissions' : 'New Group') : 'New Chat'}</h1>
         </div>
 
         {isCreatingGroup ? (
-          <div className="flex flex-col h-full overflow-hidden bg-white/50 backdrop-blur-sm relative z-10">
-            <div className="p-4 border-b border-slate-100 flex items-center gap-3 bg-slate-50">
-              <div className="w-12 h-12 rounded-full bg-slate-200 flex items-center justify-center text-slate-400 shrink-0 border border-slate-300">
-                <Users size={24} />
-              </div>
-              <input
-                type="text"
-                value={groupName}
-                onChange={e => setGroupName(e.target.value)}
-                placeholder="Group Subject"
-                className="flex-1 bg-transparent border-b-2 border-blue-600 px-2 py-2 outline-none font-medium text-slate-900"
-              />
-            </div>
-            <div className="p-4 bg-white border-b border-slate-100 flex justify-between items-center shrink-0 shadow-sm z-10">
-              <span className="text-sm font-semibold text-slate-500">{selectedGroupParticipants.length} selected</span>
-              <button
-                onClick={handleCreateGroupChat}
-                disabled={createChatMutation.isPending || !groupName.trim() || selectedGroupParticipants.length === 0}
-                className="bg-blue-600 text-white px-5 py-2 rounded-full text-sm font-bold disabled:opacity-50 shadow-sm"
-              >
-                Create Group
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-2 space-y-1 pb-safe">
-              {users.filter(u => u.id !== profile?.id).map(u => (
-                <label key={u.id} className="flex items-center gap-4 w-full p-3 hover:bg-slate-50 rounded-2xl cursor-pointer transition-colors">
+          <div className="flex flex-col h-full overflow-hidden bg-slate-50 relative z-10">
+            {groupCreationStep === 1 && (
+              <>
+                <div className="p-3 bg-white border-b border-slate-100 flex items-center justify-between shadow-sm z-10">
+                  <div className="text-sm font-semibold text-slate-500">{selectedGroupParticipants.length}/1023 selected</div>
+                  <button
+                    onClick={() => setGroupCreationStep(2)}
+                    disabled={selectedGroupParticipants.length === 0}
+                    className="text-[#008069] font-bold disabled:opacity-50"
+                  >
+                    Next
+                  </button>
+                </div>
+                <div className="p-2 bg-white border-b border-slate-100">
+                  <div className="bg-slate-100 rounded-lg flex items-center px-3 py-1.5">
+                    <Search size={18} className="text-slate-400 mr-2" />
+                    <input type="text" placeholder="Search name or number" className="bg-transparent border-none outline-none text-sm w-full" />
+                  </div>
+                </div>
+                <div className="flex-1 overflow-y-auto chat-scrollbar bg-white">
+                  <div className="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider bg-slate-50 border-b border-slate-100">Frequently contacted</div>
+                  {users.filter(u => u.id !== profile?.id).map(u => (
+                    <label key={u.id} className="flex items-center gap-4 w-full p-3 hover:bg-slate-50 cursor-pointer border-b border-slate-50">
+                      <div className="w-12 h-12 rounded-full bg-slate-200 overflow-hidden shrink-0">
+                        {u.avatar ? <img src={u.avatar} className="w-full h-full object-cover" /> : <User className="w-full h-full p-2.5 text-white bg-slate-400" />}
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-bold text-slate-800 text-lg">{u.firstName} {u.lastName}</div>
+                        <div className="text-sm text-slate-500">{u.designation || 'Employee'}</div>
+                      </div>
+                      <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${selectedGroupParticipants.includes(u.id) ? 'bg-[#008069] border-[#008069]' : 'border-slate-300'}`}>
+                        {selectedGroupParticipants.includes(u.id) && <Check size={14} className="text-white" />}
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {groupCreationStep === 2 && (
+              <>
+                <div className="p-4 bg-white border-b border-slate-100 flex items-center gap-4 shadow-sm z-10">
+                  <button onClick={() => groupAvatarInputRef.current?.click()} className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 shrink-0 border border-slate-200 hover:bg-slate-200 transition-colors relative overflow-hidden">
+                    {groupAvatarFile ? <img src={URL.createObjectURL(groupAvatarFile)} className="w-full h-full object-cover" /> : <Camera size={24} />}
+                    <input type="file" ref={groupAvatarInputRef} onChange={e => e.target.files[0] && setGroupAvatarFile(e.target.files[0])} className="hidden" accept="image/*" />
+                  </button>
                   <input
-                    type="checkbox"
-                    checked={selectedGroupParticipants.includes(u.id)}
-                    onChange={() => toggleGroupParticipant(u.id)}
-                    className="w-5 h-5 text-blue-600 rounded-full border-slate-300 focus:ring-blue-600"
+                    type="text"
+                    value={groupName}
+                    onChange={e => setGroupName(e.target.value)}
+                    placeholder="Group name (optional)"
+                    className="flex-1 border-b-2 border-[#008069] px-2 py-2 outline-none font-medium text-slate-900 bg-transparent"
                   />
-                  <div className="w-12 h-12 rounded-full bg-slate-200 overflow-hidden shrink-0 border border-slate-100 shadow-sm">
-                    {u.avatar ? <img src={u.avatar} className="w-full h-full object-cover" /> : <User className="w-full h-full p-2.5 text-slate-400 bg-slate-100" />}
+                </div>
+                <div className="bg-white mt-2 border-y border-slate-100">
+                  <div className="flex items-center justify-between p-4 border-b border-slate-100 cursor-pointer hover:bg-slate-50">
+                    <span className="text-slate-800 text-lg">Disappearing messages</span>
+                    <div className="flex items-center text-slate-500">
+                      <span className="mr-2">Off</span>
+                      <ChevronRight size={20} />
+                    </div>
                   </div>
-                  <div className="flex-1 pb-1">
-                    <div className="font-bold text-slate-800">{u.firstName} {u.lastName}</div>
-                    <div className="text-xs text-slate-500 font-medium">{u.designation || 'Employee'}</div>
+                  <div onClick={() => setGroupCreationStep(3)} className="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-50">
+                    <span className="text-slate-800 text-lg">Group permissions</span>
+                    <ChevronRight size={20} className="text-slate-500" />
                   </div>
-                </label>
-              ))}
-            </div>
+                </div>
+                <div className="mt-4 px-4">
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Members: {selectedGroupParticipants.length} of 1023</span>
+                </div>
+                <div className="flex-1 overflow-y-auto chat-scrollbar p-4 flex flex-wrap content-start gap-4">
+                  {selectedGroupParticipants.map(id => {
+                    const u = users.find(user => user.id === id);
+                    if (!u) return null;
+                    return (
+                      <div key={u.id} className="flex flex-col items-center relative w-16">
+                        <div className="w-14 h-14 rounded-full bg-slate-200 overflow-hidden mb-1">
+                          {u.avatar ? <img src={u.avatar} className="w-full h-full object-cover" /> : <User className="w-full h-full p-3 text-white bg-slate-400" />}
+                        </div>
+                        <button onClick={() => toggleGroupParticipant(u.id)} className="absolute -top-1 -right-1 w-6 h-6 bg-slate-400 text-white rounded-full flex items-center justify-center border-2 border-slate-50 hover:bg-red-500 transition-colors shadow-sm">
+                          <X size={14} />
+                        </button>
+                        <span className="text-xs text-slate-700 font-medium truncate w-full text-center">{u.firstName}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="p-4 bg-transparent shrink-0 flex justify-center pb-safe">
+                  <button
+                    onClick={handleCreateGroupChat}
+                    disabled={createChatMutation.isPending}
+                    className="bg-[#00a884] text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:bg-[#008f6f] disabled:opacity-50 transition-all active:scale-95"
+                  >
+                    <Check size={28} />
+                  </button>
+                </div>
+              </>
+            )}
+
+            {groupCreationStep === 3 && (
+              <>
+                <div className="flex-1 overflow-y-auto chat-scrollbar bg-slate-50 pb-safe">
+                  <div className="p-4">
+                    <h3 className="text-slate-900 font-bold mb-3 text-lg">Members can</h3>
+                    <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100">
+                      <label className="flex items-start justify-between p-4 border-b border-slate-100 cursor-pointer hover:bg-slate-50 transition-colors">
+                        <div className="flex-1 mr-4">
+                          <div className="text-lg text-slate-900 font-medium mb-1">Edit group settings</div>
+                          <div className="text-sm text-slate-500 leading-relaxed">This includes the group name, icon, description, disappearing message timer, advanced chat privacy, and the ability to pin, keep or unkeep messages.</div>
+                        </div>
+                        <input type="checkbox" checked={groupPermissions.editSettings} onChange={e => setGroupPermissions({...groupPermissions, editSettings: e.target.checked})} className="w-6 h-6 rounded-full text-[#00a884] focus:ring-[#00a884] mt-1 cursor-pointer" />
+                      </label>
+                      <label className="flex items-center justify-between p-4 border-b border-slate-100 cursor-pointer hover:bg-slate-50 transition-colors">
+                        <div className="text-lg text-slate-900 font-medium">Send new messages</div>
+                        <input type="checkbox" checked={groupPermissions.sendMessages} onChange={e => setGroupPermissions({...groupPermissions, sendMessages: e.target.checked})} className="w-6 h-6 rounded-full text-[#00a884] focus:ring-[#00a884] cursor-pointer" />
+                      </label>
+                      <label className="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-50 transition-colors">
+                        <div className="text-lg text-slate-900 font-medium">Add other members</div>
+                        <input type="checkbox" checked={groupPermissions.addMembers} onChange={e => setGroupPermissions({...groupPermissions, addMembers: e.target.checked})} className="w-6 h-6 rounded-full text-[#00a884] focus:ring-[#00a884] cursor-pointer" />
+                      </label>
+                    </div>
+                    <p className="text-sm text-slate-500 mt-3 mb-6 px-2">Turning off these settings means that only group admins can perform this action.</p>
+
+                    <h3 className="text-slate-900 font-bold mb-3 text-lg">Admins can</h3>
+                    <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100">
+                      <label className="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-50 transition-colors">
+                        <div className="text-lg text-slate-900 font-medium">Approve new members</div>
+                        <input type="checkbox" checked={groupPermissions.approveNewMembers} onChange={e => setGroupPermissions({...groupPermissions, approveNewMembers: e.target.checked})} className="w-6 h-6 rounded-full text-[#00a884] focus:ring-[#00a884] cursor-pointer" />
+                      </label>
+                    </div>
+                    <p className="text-sm text-slate-500 mt-3 px-2">When turned on, admins must approve anyone who wants to join this group.</p>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         ) : (
           <div className="flex-1 flex flex-col bg-white/50 backdrop-blur-sm overflow-hidden relative z-10">

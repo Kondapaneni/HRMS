@@ -32,7 +32,7 @@ $app->get('/api/chat', function (Request $request, Response $response) {
     $conn = $db->getConnection();
     
     $sql = '
-        SELECT c.id, c.type, c.name, c."createdAt",
+        SELECT c.id, c.type, c.name, c."createdAt", c."group_avatar", c."permissions", c."admin_ids",
             (SELECT json_agg(json_build_object(\'id\', u.id, \'firstName\', u."firstName", \'lastName\', u."lastName", \'email\', u.email, \'avatar\', e.avatar))
              FROM chat_participants cp2 
              JOIN users u ON u.id = cp2."userId"
@@ -63,6 +63,8 @@ $app->get('/api/chat', function (Request $request, Response $response) {
     
     foreach ($chats as &$chat) {
         $chat['participants'] = json_decode($chat['participants'], true);
+        $chat['permissions'] = is_string($chat['permissions']) ? json_decode($chat['permissions'], true) : $chat['permissions'];
+        $chat['admin_ids'] = is_string($chat['admin_ids']) ? json_decode($chat['admin_ids'], true) : $chat['admin_ids'];
         $chat['unread_count'] = (int) $chat['unread_count'];
         if ($chat['last_message']) {
             $lm = json_decode($chat['last_message'], true);
@@ -87,6 +89,8 @@ $app->post('/api/chat', function (Request $request, Response $response) {
     $type = $data['type'] ?? 'personal';
     $name = $data['name'] ?? null;
     $participantIds = $data['participants'] ?? [];
+    $groupAvatar = $data['group_avatar'] ?? null;
+    $permissions = $data['permissions'] ?? '{"editSettings": true, "sendMessages": true, "addMembers": true, "approveNewMembers": false}';
     
     if (!in_array($userId, $participantIds)) {
         $participantIds[] = $userId;
@@ -123,8 +127,11 @@ $app->post('/api/chat', function (Request $request, Response $response) {
             }
         }
         
-        $stmt = $conn->prepare('INSERT INTO chats (type, name) VALUES (?, ?) RETURNING id');
-        $stmt->execute([$type, $name]);
+        $adminIds = json_encode([$userId]);
+        $permsStr = is_string($permissions) ? $permissions : json_encode($permissions);
+
+        $stmt = $conn->prepare('INSERT INTO chats (type, name, "group_avatar", "permissions", "admin_ids") VALUES (?, ?, ?, ?::jsonb, ?::jsonb) RETURNING id');
+        $stmt->execute([$type, $name, $groupAvatar, $permsStr, $adminIds]);
         $chatId = $stmt->fetchColumn();
         
         $insertPart = $conn->prepare('INSERT INTO chat_participants ("chatId", "userId") VALUES (?, ?)');
