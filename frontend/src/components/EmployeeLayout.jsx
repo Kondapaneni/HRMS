@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import {
   LogOut, User, Calendar, Users, Briefcase, Monitor,
-  Home, Clock, BarChart2, DollarSign, Activity, Bell, Search, Menu, Wallet
+  Home, Clock, BarChart2, DollarSign, Activity, Bell, Search, Menu, Wallet, MessageSquare
 } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
+import api from '../api/axios';
 
 const EmployeeLayout = () => {
   const { profile, signOut } = useAuth();
@@ -61,8 +63,23 @@ const EmployeeLayout = () => {
     { icon: <Clock size={18} />, label: 'Attendance', path: '/employee/attendance' },
     { icon: <Calendar size={18} />, label: 'Leaves', path: '/employee/leaves' },
     { icon: <Wallet size={18} />, label: 'Payroll', path: '/employee/payroll' },
+    { icon: <MessageSquare size={18} />, label: 'Secure Chat', path: '/employee/chat' },
     { icon: <BarChart2 size={18} />, label: 'Performance', path: '/employee/performance' },
   ];
+
+  // Fetch chat list (shared cache with Chat.jsx) to keep unread badges perfectly synced
+  const { data: chats = [] } = useQuery({
+    queryKey: ['chat', 'list'],
+    queryFn: async () => {
+      const res = await api.get('/chat');
+      return res.data;
+    },
+    refetchInterval: 1500,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
+  });
+
+  const totalUnread = chats.reduce((sum, chat) => sum + (chat.unread_count || 0), 0);
 
   const adminFeatures = [
     { icon: <Users size={18} />, label: 'Employees', path: '/admin/employees', feature: 'canEmployees', activePaths: ['/admin/employees', '/admin/directory'] },
@@ -133,7 +150,12 @@ const EmployeeLayout = () => {
                     }`}
                 >
                   <span className={isActive ? 'text-blue-600' : 'text-slate-400'}>{item.icon}</span>
-                  {item.label}
+                  <span className="flex-1">{item.label}</span>
+                  {item.label === 'Secure Chat' && totalUnread > 0 && (
+                    <span className="bg-[#25d366] text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                      {totalUnread}
+                    </span>
+                  )}
                 </Link>
               );
             })}

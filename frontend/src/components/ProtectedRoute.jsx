@@ -74,7 +74,7 @@ export const ProtectedRoute = ({ children, allowedRoles }) => {
         const fa = profile.featureAccess;
         let hasAccess = false;
 
-        if (path.startsWith('/admin/attendance') && fa.canAttendance) hasAccess = true;
+        if ((path.startsWith('/admin/attendance') || path.startsWith('/admin/holidays')) && fa.canAttendance) hasAccess = true;
         else if (path.startsWith('/admin/leaves') && fa.canLeave) hasAccess = true;
         else if (path.startsWith('/admin/payroll') && fa.canPayroll) hasAccess = true;
         else if ((path === '/admin/employees' || path.startsWith('/admin/employees/') || path.startsWith('/admin/directory')) && fa.canEmployees) hasAccess = true;

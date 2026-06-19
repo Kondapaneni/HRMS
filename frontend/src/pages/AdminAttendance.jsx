@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import { Search, ChevronLeft, ChevronRight, Calendar, MapPin, Loader2, Plus, Clock, Globe, ChevronUp, ChevronDown, CalendarCheck, CalendarDays } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -16,9 +15,6 @@ const AdminAttendance = () => {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [page, setPage] = useState(1);
-
-  const [showGeoModal, setShowGeoModal] = useState(false);
-  const [showShiftModal, setShowShiftModal] = useState(false);
 
   // Debounce search input
   useEffect(() => {
@@ -43,21 +39,6 @@ const AdminAttendance = () => {
   const attendanceRows = attendanceResponse?.attendance || [];
   const totalPages = attendanceResponse?.pagination?.totalPages || 1;
 
-  // Extras query (geo locations + shift times) — rarely changes
-  const { data: extrasData } = useQuery({
-    queryKey: ['admin', 'attendance-extras'],
-    queryFn: async () => {
-      const [geoRes, shiftRes] = await Promise.all([
-        api.get('/admin/geolocations'),
-        api.get('/admin/shifttimes')
-      ]);
-      return { geoLocations: geoRes.data || [], shiftTimes: shiftRes.data || [] };
-    },
-  });
-
-  const geoLocations = extrasData?.geoLocations || [];
-  const shiftTimes = extrasData?.shiftTimes || [];
-
   // Scroll listener — pure UI, no data fetching
   useEffect(() => {
     const handleScroll = () => {
@@ -78,7 +59,7 @@ const AdminAttendance = () => {
         window.removeEventListener('resize', handleScroll);
       };
     }
-  }, [attendanceRows, geoLocations, shiftTimes]);
+  }, [attendanceRows]);
 
   const handlePrevDay = () => {
     const d = new Date(date);
@@ -92,31 +73,7 @@ const AdminAttendance = () => {
     setDate(d.toISOString().split('T')[0]);
   };
 
-  const handleAddGeo = async (e) => {
-    e.preventDefault();
-    const fd = new FormData(e.target);
-    try {
-      await api.post('/admin/geolocations', Object.fromEntries(fd));
-      toast.success('Geo location saved successfully');
-      setShowGeoModal(false);
-      queryClient.invalidateQueries({ queryKey: ['admin', 'attendance-extras'] });
-    } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to save geo location');
-    }
-  };
 
-  const handleAddShift = async (e) => {
-    e.preventDefault();
-    const fd = new FormData(e.target);
-    try {
-      await api.post('/admin/shifttimes', Object.fromEntries(fd));
-      toast.success('Shift time saved successfully');
-      setShowShiftModal(false);
-      queryClient.invalidateQueries({ queryKey: ['admin', 'attendance-extras'] });
-    } catch (err) {
-      toast.error(err.response?.data?.error || 'Failed to save shift time');
-    }
-  };
 
   const parseShiftWindow = (shiftTime) => {
     const defaultShift = { start: '09:45', end: '18:30' };
@@ -249,16 +206,10 @@ const AdminAttendance = () => {
             <CalendarCheck className="w-4 h-4 mr-2 text-slate-500" /> Regularize
           </button>
           <button
-            onClick={() => setShowGeoModal(true)}
+            onClick={() => navigate('/admin/attendance/config')}
             className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-10 px-4 py-2 transition-colors cursor-pointer"
           >
-            <Globe className="w-4 h-4 mr-2 text-slate-500" /> Geo Location
-          </button>
-          <button
-            onClick={() => setShowShiftModal(true)}
-            className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-10 px-4 py-2 transition-colors cursor-pointer"
-          >
-            <Clock className="w-4 h-4 mr-2 text-slate-500" /> Shift Time
+            <Globe className="w-4 h-4 mr-2 text-slate-500" /> Locations & Shifts
           </button>
           <button
             onClick={() => navigate('/admin/holidays')}
@@ -390,147 +341,7 @@ const AdminAttendance = () => {
         )}
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
-        {/* Geo Locations */}
-        {geoLocations.length > 0 && (
-          <div className="rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden">
-            <div className="p-5 border-b border-slate-100 bg-slate-50/50">
-              <h3 className="text-lg font-semibold text-slate-900">Saved Geo Locations</h3>
-              <p className="text-sm text-slate-500 mt-1">Coordinates stored for attendance verification.</p>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500">
-                  <tr>
-                    <th className="h-10 px-4 font-medium">Name</th>
-                    <th className="h-10 px-4 font-medium">Latitude</th>
-                    <th className="h-10 px-4 font-medium">Longitude</th>
-                    <th className="h-10 px-4 font-medium">Radius</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {geoLocations.map((loc) => (
-                    <tr key={loc.id} className="hover:bg-slate-50/50">
-                      <td className="px-4 py-3 font-medium text-slate-900">{loc.name}</td>
-                      <td className="px-4 py-3 text-slate-600">{loc.latitude}</td>
-                      <td className="px-4 py-3 text-slate-600">{loc.longitude}</td>
-                      <td className="px-4 py-3 text-slate-600">{loc.radius}m</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
 
-        {/* Shift Times */}
-        {shiftTimes.length > 0 && (
-          <div className="rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden">
-            <div className="p-5 border-b border-slate-100 bg-slate-50/50">
-              <h3 className="text-lg font-semibold text-slate-900">Saved Shift Times</h3>
-              <p className="text-sm text-slate-500 mt-1">Shift windows available for assignment.</p>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500">
-                  <tr>
-                    <th className="h-10 px-4 font-medium">Shift</th>
-                    <th className="h-10 px-4 font-medium">Start Time</th>
-                    <th className="h-10 px-4 font-medium">End Time</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {shiftTimes.map((shift) => (
-                    <tr key={shift.id} className="hover:bg-slate-50/50">
-                      <td className="px-4 py-3 font-medium text-slate-900">{shift.shiftLabel}</td>
-                      <td className="px-4 py-3 text-slate-600">{new Date(`2000-01-01T${shift.startTime}`).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
-                      <td className="px-4 py-3 text-slate-600">{new Date(`2000-01-01T${shift.endTime}`).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Geo Modal */}
-      {showGeoModal && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <form onSubmit={handleAddGeo}>
-              <div className="p-6 border-b border-slate-100">
-                <h2 className="text-lg font-semibold text-slate-900">Add Geo Location</h2>
-                <p className="text-sm text-slate-500 mt-1">Save permitted attendance coordinates for this site.</p>
-              </div>
-              <div className="p-6 space-y-4">
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-slate-700">Name <span className="text-red-500">*</span></label>
-                  <input required type="text" name="location_name" placeholder="Office Name" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-slate-700">Latitude <span className="text-red-500">*</span></label>
-                    <input required type="text" name="latitude" placeholder="12.9716" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-slate-700">Longitude <span className="text-red-500">*</span></label>
-                    <input required type="text" name="longitude" placeholder="77.5946" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" />
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-slate-700">Radius (meters) <span className="text-red-500">*</span></label>
-                  <input required type="number" name="radius" defaultValue="100" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" />
-                </div>
-              </div>
-              <div className="p-6 pt-0 flex justify-end gap-3 bg-slate-50">
-                <button type="button" onClick={() => setShowGeoModal(false)} className="px-4 py-2 text-sm font-medium border border-slate-300 rounded-md text-slate-700 bg-white hover:bg-slate-50 mt-6 cursor-pointer">
-                  Cancel
-                </button>
-                <button type="submit" className="px-4 py-2 text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 mt-6 cursor-pointer">
-                  Save Location
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>,
-        document.body
-      )}
-
-      {/* Shift Modal */}
-      {showShiftModal && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <form onSubmit={handleAddShift}>
-              <div className="p-6 border-b border-slate-100">
-                <h2 className="text-lg font-semibold text-slate-900">Add Shift Time</h2>
-                <p className="text-sm text-slate-500 mt-1">Create a new shift using start and end time.</p>
-              </div>
-              <div className="p-6 space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-slate-700">Start Time <span className="text-red-500">*</span></label>
-                    <input required type="time" name="start_time" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-slate-700">End Time <span className="text-red-500">*</span></label>
-                    <input required type="time" name="end_time" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" />
-                  </div>
-                </div>
-              </div>
-              <div className="p-6 pt-0 flex justify-end gap-3 bg-slate-50">
-                <button type="button" onClick={() => setShowShiftModal(false)} className="px-4 py-2 text-sm font-medium border border-slate-300 rounded-md text-slate-700 bg-white hover:bg-slate-50 mt-6 cursor-pointer">
-                  Cancel
-                </button>
-                <button type="submit" className="px-4 py-2 text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 mt-6 cursor-pointer">
-                  Save Shift Time
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>,
-        document.body
-      )}
 
       {/* Floating Scroll Button */}
       {isScrollable && (

@@ -28,6 +28,7 @@ import AdminEmployeeView from './pages/AdminEmployeeView'
 import AdminEmployeeEdit from './pages/AdminEmployeeEdit'
 import AdminEmployeeSettings from './pages/AdminEmployeeSettings'
 import AdminAttendance from './pages/AdminAttendance'
+import AdminAttendanceConfig from './pages/AdminAttendanceConfig'
 import AdminAttendanceRegularize from './pages/AdminAttendanceRegularize'
 import AdminAttendanceLocation from './pages/AdminAttendanceLocation'
 import AdminLeaves from './pages/AdminLeaves'
@@ -40,6 +41,7 @@ import AdminHolidaysArchive from './pages/AdminHolidaysArchive'
 import AdminSettings from './pages/AdminSettings'
 import AdminEmailTemplates from './pages/AdminEmailTemplates'
 import AdminPerformance from './pages/AdminPerformance'
+import Chat from './pages/Chat'
 import ComingSoon from './pages/ComingSoon'
 import NotFound from './pages/NotFound'
 import TooManyRequests from './pages/TooManyRequests'
@@ -110,6 +112,7 @@ function App() {
               <Route path="employees/:id/edit" element={<AdminEmployeeEdit />} />
               <Route path="employees/:id/settings" element={<AdminEmployeeSettings />} />
               <Route path="attendance" element={<AdminAttendance />} />
+              <Route path="attendance/config" element={<AdminAttendanceConfig />} />
               <Route path="attendance/regularize" element={<AdminAttendanceRegularize />} />
               <Route path="attendance/location" element={<AdminAttendanceLocation />} />
               <Route path="leaves" element={<AdminLeaves />} />
@@ -122,6 +125,7 @@ function App() {
               <Route path="email-templates" element={<AdminEmailTemplates />} />
               <Route path="settings" element={<AdminSettings />} />
               <Route path="performance" element={<AdminPerformance />} />
+              <Route path="chat" element={<Chat />} />
               <Route path="recruitment" element={<ComingSoon />} />
             </Route>
             <Route
@@ -138,6 +142,7 @@ function App() {
               <Route path="leaves/apply" element={<EmployeeApplyLeavePage />} />
               <Route path="payroll" element={<EmployeePayroll />} />
               <Route path="performance" element={<EmployeePerformance />} />
+              <Route path="chat" element={<Chat />} />
               <Route path="profile" element={<EmployeeProfile />} />
               <Route path="profile/edit" element={<EditProfilePage />} />
             </Route>

@@ -3,12 +3,14 @@ import { useAuth } from '../contexts/AuthContext';
 import { 
   LogOut, Users, Settings, Activity, Briefcase, 
   Search, Bell, Menu, Home, Calendar, Clock, 
-  BarChart2, ChevronDown, DollarSign, Monitor, FileText, Shield, Network, Mail
+  BarChart2, ChevronDown, DollarSign, Monitor, FileText, Shield, Network, Mail, MessageSquare
 } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import GlobalSearch from './GlobalSearch';
 import EmployeeLayout from './EmployeeLayout';
+import api from '../api/axios';
 
 const AdminLayout = () => {
   const { profile, signOut } = useAuth();
@@ -41,10 +43,25 @@ const AdminLayout = () => {
     { icon: <Monitor size={18} />, label: 'Assets', path: '/admin/assets' },
     { icon: <Briefcase size={18} />, label: 'Recruitment', path: '/admin/recruitment' },
     { icon: <Mail size={18} />, label: 'Email Templates', path: '/admin/email-templates' },
+    { icon: <MessageSquare size={18} />, label: 'Secure Chat', path: '/admin/chat' },
     { icon: <FileText size={18} />, label: 'Audit Logs', path: '/admin/audit-logs' },
     { icon: <Shield size={18} />, label: 'Feature Access', path: '/admin/feature-access' },
     { icon: <Settings size={18} />, label: 'Settings', path: '/admin/settings' },
   ];
+
+  // Fetch chat list (shared cache with Chat.jsx) to keep unread badges perfectly synced
+  const { data: chats = [] } = useQuery({
+    queryKey: ['chat', 'list'],
+    queryFn: async () => {
+      const res = await api.get('/chat');
+      return res.data;
+    },
+    refetchInterval: 1500,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
+  });
+
+  const totalUnread = chats.reduce((sum, chat) => sum + (chat.unread_count || 0), 0);
 
   const shapeVariants = {
     animate: (i) => ({
@@ -105,7 +122,12 @@ const AdminLayout = () => {
                   }`}
                 >
                   <span className={isActive ? 'text-blue-600' : 'text-slate-400'}>{item.icon}</span>
-                  {item.label}
+                  <span className="flex-1">{item.label}</span>
+                  {item.label === 'Secure Chat' && totalUnread > 0 && (
+                    <span className="bg-[#25d366] text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                      {totalUnread}
+                    </span>
+                  )}
                 </Link>
               );
             })}

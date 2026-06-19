@@ -485,6 +485,50 @@ $app->post('/api/admin/geolocations', function (Request $request, Response $resp
     }
 })->add(new AuthMiddleware(['admin'], 'attendance'));
 
+// PUT /api/admin/geolocations/{id}
+$app->put('/api/admin/geolocations/{id}', function (Request $request, Response $response, $args) {
+    $id = $args['id'];
+    $data = $request->getParsedBody();
+    $db = new Database();
+    $conn = $db->getConnection();
+    
+    $name = trim($data['location_name'] ?? '');
+    $lat = (float)($data['latitude'] ?? 0);
+    $lng = (float)($data['longitude'] ?? 0);
+    $rad = (int)($data['radius'] ?? 100);
+
+    if (!$name || !$lat || !$lng) {
+        $response->getBody()->write(json_encode(['error' => 'Name, latitude, and longitude are required']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+
+    try {
+        $stmt = $conn->prepare('UPDATE geofences SET name = ?, latitude = ?, longitude = ?, radius = ? WHERE id = ?');
+        $stmt->execute([$name, $lat, $lng, $rad, $id]);
+        $response->getBody()->write(json_encode(['message' => 'Geo location updated successfully']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+    } catch (\Exception $e) {
+        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    }
+})->add(new AuthMiddleware(['admin'], 'attendance'));
+
+// DELETE /api/admin/geolocations/{id}
+$app->delete('/api/admin/geolocations/{id}', function (Request $request, Response $response, $args) {
+    $id = $args['id'];
+    $db = new Database();
+    $conn = $db->getConnection();
+    try {
+        $stmt = $conn->prepare('DELETE FROM geofences WHERE id = ?');
+        $stmt->execute([$id]);
+        $response->getBody()->write(json_encode(['message' => 'Geo location deleted successfully']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+    } catch (\Exception $e) {
+        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    }
+})->add(new AuthMiddleware(['admin'], 'attendance'));
+
 // GET /api/admin/shifttimes
 $app->get('/api/admin/shifttimes', function (Request $request, Response $response, $args) {
     $db = new Database();
@@ -520,6 +564,49 @@ $app->post('/api/admin/shifttimes', function (Request $request, Response $respon
         $stmt->execute([$label, $start, $end]);
         $response->getBody()->write(json_encode(['message' => 'Shift time added successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
+    } catch (\Exception $e) {
+        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    }
+})->add(new AuthMiddleware(['admin'], 'attendance'));
+
+// PUT /api/admin/shifttimes/{id}
+$app->put('/api/admin/shifttimes/{id}', function (Request $request, Response $response, $args) {
+    $id = $args['id'];
+    $data = $request->getParsedBody();
+    $db = new Database();
+    $conn = $db->getConnection();
+    
+    $start = trim($data['start_time'] ?? '');
+    $end = trim($data['end_time'] ?? '');
+
+    if (!$start || !$end) {
+        $response->getBody()->write(json_encode(['error' => 'Start and end time are required']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+
+    try {
+        $stmt = $conn->prepare('UPDATE shift_times SET "shiftLabel" = ?, "startTime" = ?, "endTime" = ? WHERE id = ?');
+        $label = date('h:i A', strtotime($start)) . ' to ' . date('h:i A', strtotime($end));
+        $stmt->execute([$label, $start, $end, $id]);
+        $response->getBody()->write(json_encode(['message' => 'Shift time updated successfully']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+    } catch (\Exception $e) {
+        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    }
+})->add(new AuthMiddleware(['admin'], 'attendance'));
+
+// DELETE /api/admin/shifttimes/{id}
+$app->delete('/api/admin/shifttimes/{id}', function (Request $request, Response $response, $args) {
+    $id = $args['id'];
+    $db = new Database();
+    $conn = $db->getConnection();
+    try {
+        $stmt = $conn->prepare('DELETE FROM shift_times WHERE id = ?');
+        $stmt->execute([$id]);
+        $response->getBody()->write(json_encode(['message' => 'Shift time deleted successfully']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (\Exception $e) {
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
