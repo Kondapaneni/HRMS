@@ -31,6 +31,14 @@ export default function Chat() {
     staleTime: 0, // Always consider data stale so refetches actually run
   });
 
+  const { data: users = [] } = useQuery({
+    queryKey: ['chat', 'users'],
+    queryFn: async () => {
+      const res = await api.get('/chat/users');
+      return res.data;
+    }
+  });
+
 
 
   const { data: messages = [], isLoading: isLoadingMessages } = useQuery({
@@ -421,7 +429,7 @@ export default function Chat() {
                   </button>
                 </div>
                 <div className="flex-1 overflow-y-auto p-4 space-y-1 chat-scrollbar">
-                  {usersAndKeys.filter(u => u.id !== profile?.id).map(u => (
+                  {users.filter(u => u.id !== profile?.id).map(u => (
                     <label key={u.id} className="flex items-center gap-3 w-full p-2 hover:bg-slate-50 rounded cursor-pointer">
                       <input
                         type="checkbox"
@@ -450,14 +458,14 @@ export default function Chat() {
                 <div className="p-4 flex-1 overflow-y-auto chat-scrollbar">
                   <h3 className="text-[#008069] text-sm font-semibold mb-4 uppercase tracking-wider">Contacts</h3>
                   <div className="space-y-1">
-                    {usersAndKeys.filter(u => u.id !== profile?.id).map(u => (
+                    {users.filter(u => u.id !== profile?.id).map(u => (
                       <button key={u.id} onClick={() => handleCreatePersonalChat(u.id)} className="flex items-center gap-3 w-full p-2 hover:bg-slate-50 rounded text-left">
                         <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden shrink-0">
                           {u.avatar ? <img src={u.avatar} className="w-full h-full object-cover" /> : <User className="w-full h-full p-2 text-white bg-slate-400" />}
                         </div>
                         <div className="flex-1 border-b border-slate-100 pb-2">
                           <div className="font-medium text-slate-800">{u.firstName} {u.lastName}</div>
-                          <div className="text-xs text-slate-500">{u.publicKey ? 'Available for secure chat' : 'Needs to login for secure chat'}</div>
+                          <div className="text-xs text-slate-500">Available on Acme Chat</div>
                         </div>
                       </button>
                     ))}

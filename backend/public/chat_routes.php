@@ -5,6 +5,23 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Middleware\AuthMiddleware;
 use App\Config\Database;
 
+// GET /api/chat/users - Get all active users for chat
+$app->get('/api/chat/users', function (Request $request, Response $response) {
+    $db = new Database();
+    $conn = $db->getConnection();
+    
+    $stmt = $conn->query('
+        SELECT u.id, u.email, u."firstName", u."lastName", e.avatar 
+        FROM users u
+        LEFT JOIN employee e ON u.id = e."userId"
+        WHERE u."isActive" = true
+    ');
+    
+    $users = $stmt->fetchAll();
+    
+    $response->getBody()->write(json_encode($users));
+    return $response->withHeader('Content-Type', 'application/json');
+})->add(new AuthMiddleware(['admin', 'employee', 'hr', 'manager']));
 
 // GET /api/chat - Get all my chats with latest message
 $app->get('/api/chat', function (Request $request, Response $response) {
