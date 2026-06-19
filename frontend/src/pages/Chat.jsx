@@ -3,8 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { generateKeyPair, saveMySecretKey, getMySecretKey, encryptMessage, decryptMessage } from '../lib/crypto';
-import { Search, Send, Plus, Users, User, ArrowLeft, MessageSquare, MoreVertical, Paperclip, Smile, Check, CheckCheck, Mic, Lock } from 'lucide-react';
+import { Search, Send, Plus, Users, User, ArrowLeft, MessageSquare, MoreVertical, Paperclip, Smile, Check, CheckCheck, Mic } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { format, isToday, isYesterday } from 'date-fns';
 
@@ -17,43 +16,10 @@ export default function Chat() {
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
   const [groupName, setGroupName] = useState('');
   const [selectedGroupParticipants, setSelectedGroupParticipants] = useState([]);
-  const [mySecret, setMySecret] = useState(() => getMySecretKey());
-  const [pendingMessageIds, setPendingMessageIds] = useState(new Set());
-  const messagesEndRef = useRef(null);
-  const textareaRef = useRef(null);
   const prevChatIdRef = useRef(null);
   const prevMessagesLengthRef = useRef(0);
 
-  // 1. Crypto Initialization
-  useEffect(() => {
-    const initCrypto = async () => {
-      let secretStr = localStorage.getItem('chat_secret_key');
-      let pubStr = localStorage.getItem('chat_public_key');
-
-      // If either key is missing, generate a fresh pair.
-      // This is safe since if their public key isn't on the server, they can't decrypt historical messages anyway.
-      if (!secretStr || !pubStr) {
-        const keys = generateKeyPair();
-        localStorage.setItem('chat_secret_key', keys.secretKey);
-        localStorage.setItem('chat_public_key', keys.publicKey);
-        secretStr = keys.secretKey;
-        pubStr = keys.publicKey;
-      }
-
-      // Always ensure the server has our public key
-      try {
-        await api.post('/chat/keys', { publicKey: pubStr });
-      } catch (e) {
-        console.error('Failed to upload public key', e);
-      }
-
-      // getMySecretKey handles base64 decoding
-      setMySecret(getMySecretKey());
-    };
-    initCrypto();
-  }, []);
-
-  // 2. Fetch Data
+  // 1. Fetch Data
   const { data: chats = [] } = useQuery({
     queryKey: ['chat', 'list'],
     queryFn: async () => {
@@ -65,13 +31,7 @@ export default function Chat() {
     staleTime: 0, // Always consider data stale so refetches actually run
   });
 
-  const { data: usersAndKeys = [] } = useQuery({
-    queryKey: ['chat', 'keys'],
-    queryFn: async () => {
-      const res = await api.get('/chat/keys');
-      return res.data;
-    }
-  });
+
 
   const { data: messages = [], isLoading: isLoadingMessages } = useQuery({
     queryKey: ['chat', 'messages', activeChat?.id],
@@ -166,8 +126,7 @@ export default function Chat() {
         id: tempId,
         chatId: activeChat.id,
         senderId: profile.id,
-        encryptedPayload: payload.encryptedPayload,
-        encryptedSymmetricKeys: payload.encryptedSymmetricKeys,
+        content: payload.content,
         deliveredTo: [],
         readBy: [],
         createdAt: new Date().toISOString(),
@@ -207,41 +166,17 @@ export default function Chat() {
 
   const handleSendMessage = (e) => {
     e.preventDefault();
-    if (!messageText.trim() || !activeChat || !mySecret) return;
-
-    // Build recipient map
-    const recipientPublicKeysMap = {};
-    const missingKeys = [];
-
-    activeChat.participants.forEach(p => {
-      const userKey = usersAndKeys.find(u => u.id === p.id);
-      if (userKey && userKey.publicKey) {
-        recipientPublicKeysMap[p.id] = userKey.publicKey;
-      } else {
-        missingKeys.push(p.firstName);
-      }
-    });
-
-    if (missingKeys.length > 0) {
-      toast.error(`Cannot encrypt: Missing public keys for ${missingKeys.join(', ')}. They need to open the chat app once.`);
-      return;
-    }
+    if (!messageText.trim() || !activeChat) return;
 
     try {
-      const { encryptedPayload, encryptedSymmetricKeys } = encryptMessage(
-        messageText,
-        recipientPublicKeysMap,
-        mySecret
-      );
-
       const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`;
       sendMessageMutation.mutate({
-        payload: { encryptedPayload, encryptedSymmetricKeys },
+        payload: { content: messageText },
         tempId
       });
     } catch (err) {
       console.error(err);
-      toast.error('Encryption failed');
+      toast.error('Failed to send message');
     }
   };
 
@@ -290,23 +225,6 @@ export default function Chat() {
     );
   };
 
-  // Helper to decrypt messages for display
-  const decryptedMessages = useMemo(() => {
-    if (!mySecret || !profile) return [];
-    return messages.map(msg => {
-      const myEncryptedKey = msg.encryptedSymmetricKeys[profile.id];
-      if (!myEncryptedKey) return { ...msg, decryptedText: '🔒 [Decryption failed: No key for you]' };
-
-      const senderKey = usersAndKeys.find(u => u.id === msg.senderId)?.publicKey;
-      if (!senderKey) return { ...msg, decryptedText: '🔒 [Decryption failed: Unknown sender key]' };
-
-      const decrypted = decryptMessage(msg.encryptedPayload, myEncryptedKey, senderKey, mySecret);
-      return {
-        ...msg,
-        decryptedText: decrypted || '🔒 [Decryption error]'
-      };
-    });
-  }, [messages, mySecret, profile, usersAndKeys]);
 
   const getChatName = (chat) => {
     if (chat.type === 'group') return chat.name;
@@ -322,17 +240,7 @@ export default function Chat() {
 
   const getDecryptedLastMessage = (chat) => {
     if (!chat.last_message) return 'Start chatting';
-    if (!mySecret || !profile || usersAndKeys.length === 0) return 'Decrypting...';
-
-    const msg = chat.last_message;
-    const myEncryptedKey = msg.encryptedSymmetricKeys?.[profile.id];
-    if (!myEncryptedKey) return 'Encrypted message';
-
-    const senderKey = usersAndKeys.find(u => u.id === msg.senderId)?.publicKey;
-    if (!senderKey) return 'Waiting for key...';
-
-    const decrypted = decryptMessage(msg.encryptedPayload, myEncryptedKey, senderKey, mySecret);
-    return decrypted || 'Encrypted message';
+    return chat.last_message.content || 'Start chatting';
   };
 
   // Renders ticks for a message. Uses the provided chat's participants for context.
@@ -587,14 +495,8 @@ export default function Chat() {
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-3 chat-scrollbar">
-              <div className="flex justify-center mb-6">
-                <div className="bg-[#ffeecd] text-slate-700 text-xs px-3 py-1.5 rounded-md shadow-sm max-w-sm text-center flex items-center justify-center gap-2 border border-orange-100">
-                  <Lock size={12} className="text-amber-600 shrink-0 fill-amber-600/20" /> 
-                  <span className="leading-relaxed">Messages are end-to-end encrypted. No one outside of this chat, not even the database admin, can read them.</span>
-                </div>
-              </div>
 
-              {decryptedMessages.map(msg => {
+              {messages.map(msg => {
                 const isMine = msg.senderId === profile?.id;
                 const sender = activeChat.participants.find(p => p.id === msg.senderId);
                 return (
@@ -604,7 +506,7 @@ export default function Chat() {
                         <div className="text-xs font-bold text-blue-500 mb-1">{sender?.firstName}</div>
                       )}
                       <div className="text-sm text-slate-800 whitespace-pre-wrap break-words pr-12">
-                        {msg.decryptedText}
+                        {msg.content}
                       </div>
                       <div className="text-[10px] text-slate-400 text-right mt-1 ml-4 absolute bottom-1 right-2 flex items-center justify-end">
                         {format(new Date(msg.createdAt), 'HH:mm')}

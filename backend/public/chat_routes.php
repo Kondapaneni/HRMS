@@ -5,48 +5,6 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Middleware\AuthMiddleware;
 use App\Config\Database;
 
-// GET /api/chat/keys - Get public keys for all active users
-$app->get('/api/chat/keys', function (Request $request, Response $response) {
-    $db = new Database();
-    $conn = $db->getConnection();
-    
-    $stmt = $conn->query('
-        SELECT u.id, u.email, u."firstName", u."lastName", e.avatar, uk."publicKey" 
-        FROM users u
-        LEFT JOIN employee e ON u.id = e."userId"
-        LEFT JOIN user_public_keys uk ON u.id = uk."userId"
-        WHERE u."isActive" = true
-    ');
-    
-    $keys = $stmt->fetchAll();
-    
-    $response->getBody()->write(json_encode($keys));
-    return $response->withHeader('Content-Type', 'application/json');
-})->add(new AuthMiddleware(['admin', 'employee', 'hr', 'manager']));
-
-// POST /api/chat/keys - Save/Update my public key
-$app->post('/api/chat/keys', function (Request $request, Response $response) {
-    $userId = $request->getAttribute('user')->id;
-    $data = $request->getParsedBody();
-    
-    if (empty($data['publicKey'])) {
-        $response->getBody()->write(json_encode(['error' => 'Public key is required']));
-        return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
-    }
-    
-    $db = new Database();
-    $conn = $db->getConnection();
-    
-    $stmt = $conn->prepare('
-        INSERT INTO user_public_keys ("userId", "publicKey")
-        VALUES (?, ?)
-        ON CONFLICT ("userId") DO UPDATE SET "publicKey" = EXCLUDED."publicKey", "updatedAt" = CURRENT_TIMESTAMP
-    ');
-    $stmt->execute([$userId, $data['publicKey']]);
-    
-    $response->getBody()->write(json_encode(['success' => true]));
-    return $response->withHeader('Content-Type', 'application/json');
-})->add(new AuthMiddleware(['admin', 'employee', 'hr', 'manager']));
 
 // GET /api/chat - Get all my chats with latest message
 $app->get('/api/chat', function (Request $request, Response $response) {
@@ -90,7 +48,6 @@ $app->get('/api/chat', function (Request $request, Response $response) {
         $chat['unread_count'] = (int) $chat['unread_count'];
         if ($chat['last_message']) {
             $lm = json_decode($chat['last_message'], true);
-            $lm['encryptedSymmetricKeys'] = is_string($lm['encryptedSymmetricKeys']) ? json_decode($lm['encryptedSymmetricKeys'], true) : $lm['encryptedSymmetricKeys'];
             $lm['deliveredTo'] = is_string($lm['deliveredTo']) ? json_decode($lm['deliveredTo'], true) : $lm['deliveredTo'];
             $lm['readBy'] = is_string($lm['readBy']) ? json_decode($lm['readBy'], true) : $lm['readBy'];
             $chat['last_message'] = $lm;
@@ -186,7 +143,6 @@ $app->get('/api/chat/{id}/messages', function (Request $request, Response $respo
     $messages = $stmt->fetchAll();
     
     foreach ($messages as &$msg) {
-        $msg['encryptedSymmetricKeys'] = is_string($msg['encryptedSymmetricKeys']) ? json_decode($msg['encryptedSymmetricKeys'], true) : $msg['encryptedSymmetricKeys'];
         $msg['deliveredTo'] = is_string($msg['deliveredTo']) ? json_decode($msg['deliveredTo'], true) : $msg['deliveredTo'];
         $msg['readBy'] = is_string($msg['readBy']) ? json_decode($msg['readBy'], true) : $msg['readBy'];
     }
@@ -211,18 +167,16 @@ $app->post('/api/chat/{id}/messages', function (Request $request, Response $resp
     }
     
     $stmt = $conn->prepare('
-        INSERT INTO chat_messages ("chatId", "senderId", "encryptedPayload", "encryptedSymmetricKeys") 
-        VALUES (?, ?, ?, ?) RETURNING *
+        INSERT INTO chat_messages ("chatId", "senderId", "content") 
+        VALUES (?, ?, ?) RETURNING *
     ');
     $stmt->execute([
         $chatId, 
         $userId, 
-        $data['encryptedPayload'], 
-        json_encode($data['encryptedSymmetricKeys'])
+        $data['content']
     ]);
     
     $msg = $stmt->fetch();
-    $msg['encryptedSymmetricKeys'] = is_string($msg['encryptedSymmetricKeys']) ? json_decode($msg['encryptedSymmetricKeys'], true) : $msg['encryptedSymmetricKeys'];
     $msg['deliveredTo'] = is_string($msg['deliveredTo']) ? json_decode($msg['deliveredTo'], true) : $msg['deliveredTo'];
     $msg['readBy'] = is_string($msg['readBy']) ? json_decode($msg['readBy'], true) : $msg['readBy'];
     
