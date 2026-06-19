@@ -4,6 +4,7 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Middleware\AuthMiddleware;
 use App\Config\Database;
+use App\Utils\ChatEncryption;
 
 // GET /api/chat/users - Get all active users for chat
 $app->get('/api/chat/users', function (Request $request, Response $response) {
@@ -65,6 +66,7 @@ $app->get('/api/chat', function (Request $request, Response $response) {
         $chat['unread_count'] = (int) $chat['unread_count'];
         if ($chat['last_message']) {
             $lm = json_decode($chat['last_message'], true);
+            $lm['content'] = ChatEncryption::decrypt($lm['content']);
             $lm['deliveredTo'] = is_string($lm['deliveredTo']) ? json_decode($lm['deliveredTo'], true) : $lm['deliveredTo'];
             $lm['readBy'] = is_string($lm['readBy']) ? json_decode($lm['readBy'], true) : $lm['readBy'];
             $chat['last_message'] = $lm;
@@ -160,6 +162,7 @@ $app->get('/api/chat/{id}/messages', function (Request $request, Response $respo
     $messages = $stmt->fetchAll();
     
     foreach ($messages as &$msg) {
+        $msg['content'] = ChatEncryption::decrypt($msg['content']);
         $msg['deliveredTo'] = is_string($msg['deliveredTo']) ? json_decode($msg['deliveredTo'], true) : $msg['deliveredTo'];
         $msg['readBy'] = is_string($msg['readBy']) ? json_decode($msg['readBy'], true) : $msg['readBy'];
     }
@@ -183,6 +186,7 @@ $app->post('/api/chat/{id}/messages', function (Request $request, Response $resp
         return $response->withStatus(403);
     }
     
+    $encryptedContent = ChatEncryption::encrypt($data['content']);
     $stmt = $conn->prepare('
         INSERT INTO chat_messages ("chatId", "senderId", "content") 
         VALUES (?, ?, ?) RETURNING *
@@ -190,10 +194,11 @@ $app->post('/api/chat/{id}/messages', function (Request $request, Response $resp
     $stmt->execute([
         $chatId, 
         $userId, 
-        $data['content']
+        $encryptedContent
     ]);
     
     $msg = $stmt->fetch();
+    $msg['content'] = $data['content'];
     $msg['deliveredTo'] = is_string($msg['deliveredTo']) ? json_decode($msg['deliveredTo'], true) : $msg['deliveredTo'];
     $msg['readBy'] = is_string($msg['readBy']) ? json_decode($msg['readBy'], true) : $msg['readBy'];
     

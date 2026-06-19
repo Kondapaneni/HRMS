@@ -95,7 +95,7 @@ export default function Chat() {
   useLayoutEffect(() => {
     const isNewChat = prevChatIdRef.current !== activeChat?.id;
     const isInitialLoad = isNewChat || (prevMessagesLengthRef.current === 0 && messages.length > 0);
-    
+
     scrollToBottom(isInitialLoad);
 
     prevChatIdRef.current = activeChat?.id;
@@ -299,11 +299,7 @@ export default function Chat() {
           <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden">
             {profile?.avatar ? <img src={profile.avatar} className="w-full h-full object-cover" /> : <User className="w-full h-full p-2 text-slate-500 bg-slate-200" />}
           </div>
-          <div className="flex gap-4 text-slate-500">
-            <Users size={20} className="cursor-pointer hover:text-slate-700" />
-            <MessageSquare size={20} className="cursor-pointer hover:text-slate-700" />
-            <MoreVertical size={20} className="cursor-pointer hover:text-slate-700" />
-          </div>
+
         </div>
 
         {/* Search */}
@@ -376,7 +372,7 @@ export default function Chat() {
             onClick={() => { setShowNewChat(true); setActiveChat(null); }}
             className="flex items-center gap-2 text-sm font-medium text-white bg-slate-800 px-4 py-2 rounded-full hover:bg-slate-700 transition-all shadow-md"
           >
-            <Plus size={18} /> New Secure Chat
+            <Plus size={18} /> New Chat
           </button>
         </div>
       </div>
@@ -557,19 +553,13 @@ export default function Chat() {
                   style={{ minHeight: '36px', maxHeight: '120px' }}
                 />
               </form>
-              {messageText.trim() ? (
-                <button
-                  onClick={handleSendMessage}
-                  disabled={sendMessageMutation.isPending}
-                  className="w-10 h-10 mb-1 rounded-full bg-[#00a884] text-white flex items-center justify-center shrink-0 hover:bg-[#008f6f] transition-colors"
-                >
-                  <Send size={18} className="ml-1" />
-                </button>
-              ) : (
-                <button className="w-10 h-10 mb-1 rounded-full text-slate-500 flex items-center justify-center shrink-0 hover:bg-slate-200 transition-colors">
-                  <Mic size={22} />
-                </button>
-              )}
+              <button
+                onClick={handleSendMessage}
+                disabled={!messageText.trim() || sendMessageMutation.isPending}
+                className={`w-10 h-10 mb-1 rounded-full flex items-center justify-center shrink-0 transition-colors ${messageText.trim() ? 'bg-[#00a884] text-white hover:bg-[#008f6f]' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}
+              >
+                <Send size={18} />
+              </button>
             </div>
           </div>
         )}
