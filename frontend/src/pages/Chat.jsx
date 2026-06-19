@@ -6,6 +6,27 @@ import { useAuth } from '../contexts/AuthContext';
 import { Search, Send, Plus, Users, User, ArrowLeft, MessageSquare, MoreVertical, Paperclip, Smile, Check, CheckCheck, Mic } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { format, isToday, isYesterday } from 'date-fns';
+import { motion } from 'framer-motion';
+
+const BackgroundOrbs = () => (
+  <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+    <motion.div
+      animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
+      transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+      className="absolute -top-20 -left-10 w-72 h-72 bg-[#ff928b] rounded-full mix-blend-multiply filter blur-[60px] opacity-20 pointer-events-none"
+    />
+    <motion.div
+      animate={{ scale: [1, 1.4, 1], x: [0, -40, 0], y: [0, 50, 0] }}
+      transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+      className="absolute -top-10 -right-10 w-64 h-64 bg-[#7bdff2] rounded-full mix-blend-multiply filter blur-[60px] opacity-20 pointer-events-none"
+    />
+    <motion.div
+      animate={{ scale: [1, 1.3, 1], x: [0, 30, 0], y: [0, -40, 0] }}
+      transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+      className="absolute bottom-0 left-20 w-80 h-80 bg-[#84dcc6] rounded-full mix-blend-multiply filter blur-[70px] opacity-20 pointer-events-none"
+    />
+  </div>
+);
 
 export default function Chat() {
   const { profile } = useAuth();
@@ -289,6 +310,7 @@ export default function Chat() {
   // WhatsApp clone layout
   return (
     <div className="flex h-[calc(100vh-3.5rem)] bg-transparent font-sans -m-4 sm:-m-6 relative z-10 overflow-hidden">
+      <BackgroundOrbs />
 
       {/* Sidebar */}
       <div className={`w-full md:w-80 lg:w-96 flex flex-col bg-white/80 backdrop-blur-md border-r border-slate-200 shrink-0 ${activeChat || showNewChat ? 'hidden md:flex' : 'flex'}`}>

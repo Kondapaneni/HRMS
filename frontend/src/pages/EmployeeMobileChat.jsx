@@ -7,6 +7,27 @@ import { useAuth } from '../contexts/AuthContext';
 import { Search, Send, Plus, Users, User, ArrowLeft, Paperclip, Smile, Check, CheckCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { format, isToday, isYesterday } from 'date-fns';
+import { motion } from 'framer-motion';
+
+const BackgroundOrbs = () => (
+  <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+    <motion.div
+      animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
+      transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+      className="absolute -top-20 -left-10 w-72 h-72 bg-[#ff928b] rounded-full mix-blend-multiply filter blur-[60px] opacity-20 pointer-events-none"
+    />
+    <motion.div
+      animate={{ scale: [1, 1.4, 1], x: [0, -40, 0], y: [0, 50, 0] }}
+      transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+      className="absolute -top-10 -right-10 w-64 h-64 bg-[#7bdff2] rounded-full mix-blend-multiply filter blur-[60px] opacity-20 pointer-events-none"
+    />
+    <motion.div
+      animate={{ scale: [1, 1.3, 1], x: [0, 30, 0], y: [0, -40, 0] }}
+      transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+      className="absolute bottom-0 left-20 w-80 h-80 bg-[#84dcc6] rounded-full mix-blend-multiply filter blur-[70px] opacity-20 pointer-events-none"
+    />
+  </div>
+);
 
 export default function EmployeeMobileChat() {
   const navigate = useNavigate();
@@ -215,16 +236,18 @@ export default function EmployeeMobileChat() {
   const renderTicks = (msg, chat) => {
     if (!chat || !profile) return null;
     if (msg._pending) {
-      return <Check size={14} className="text-slate-400 ml-1 inline-block shrink-0" />;
+      return <Check size={14} className="text-blue-200 ml-1 inline-block shrink-0" />;
     }
+
+    // Check if all other participants have read the message
     const chatParticipants = chat.participants.filter(p => p.id !== profile.id);
     const numOtherParticipants = chatParticipants.length;
     const readCount = (msg.readBy || []).filter(id => id !== profile.id).length;
 
     if (readCount > 0 && readCount >= numOtherParticipants) {
-      return <CheckCheck size={14} className="text-blue-500 ml-1 inline-block shrink-0" />;
+      return <CheckCheck size={14} className="text-white ml-1 inline-block shrink-0 drop-shadow-sm" />;
     } else {
-      return <CheckCheck size={14} className="text-slate-400 ml-1 inline-block shrink-0" />;
+      return <CheckCheck size={14} className="text-blue-200 ml-1 inline-block shrink-0" />;
     }
   };
 
@@ -248,8 +271,9 @@ export default function EmployeeMobileChat() {
   if (activeChat) {
     return (
       <div className="flex h-[100dvh] flex-col bg-slate-50 overflow-hidden relative">
+        <BackgroundOrbs />
         {/* Header */}
-        <div className="flex items-center px-4 py-4 bg-white border-b border-slate-200 z-10 shadow-sm relative shrink-0">
+        <div className="flex items-center px-4 py-4 bg-white/80 backdrop-blur-md border-b border-slate-200 z-10 shadow-sm relative shrink-0">
           <button
             onClick={() => setActiveChat(null)}
             className="p-2 -ml-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
@@ -310,7 +334,7 @@ export default function EmployeeMobileChat() {
         </div>
 
         {/* Input area fixed at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-3 pb-8 z-20">
+        <div className="absolute bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-slate-200 p-3 pb-8 z-20">
           <form onSubmit={handleSendMessage} className="flex items-end gap-2">
             <div className="flex-1 flex bg-slate-100 rounded-3xl px-4 py-2 items-end">
               <textarea
@@ -338,7 +362,7 @@ export default function EmployeeMobileChat() {
               disabled={!messageText.trim() || sendMessageMutation.isPending}
               className={`w-11 h-11 mb-0.5 rounded-full flex items-center justify-center shrink-0 transition-all shadow-sm ${messageText.trim() ? 'bg-blue-600 text-white scale-100' : 'bg-slate-200 text-slate-400 scale-95'}`}
             >
-              <Send size={20} className={messageText.trim() ? 'translate-x-0.5' : ''} />
+              <Send size={20} />
             </button>
           </form>
         </div>
@@ -349,7 +373,8 @@ export default function EmployeeMobileChat() {
   if (showNewChat) {
     return (
       <div className="flex h-[100dvh] flex-col bg-slate-50 overflow-hidden relative">
-        <div className="flex items-center px-4 py-4 bg-white border-b border-slate-200 z-10 shadow-sm relative shrink-0">
+        <BackgroundOrbs />
+        <div className="flex items-center px-4 py-4 bg-white/80 backdrop-blur-md border-b border-slate-200 z-10 shadow-sm relative shrink-0">
           <button
             onClick={() => isCreatingGroup ? setIsCreatingGroup(false) : setShowNewChat(false)}
             className="p-2 -ml-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
@@ -360,7 +385,7 @@ export default function EmployeeMobileChat() {
         </div>
 
         {isCreatingGroup ? (
-          <div className="flex flex-col h-full overflow-hidden bg-white">
+          <div className="flex flex-col h-full overflow-hidden bg-white/50 backdrop-blur-sm relative z-10">
             <div className="p-4 border-b border-slate-100 flex items-center gap-3 bg-slate-50">
               <div className="w-12 h-12 rounded-full bg-slate-200 flex items-center justify-center text-slate-400 shrink-0 border border-slate-300">
                 <Users size={24} />
@@ -404,7 +429,7 @@ export default function EmployeeMobileChat() {
             </div>
           </div>
         ) : (
-          <div className="flex-1 flex flex-col bg-white overflow-hidden">
+          <div className="flex-1 flex flex-col bg-white/50 backdrop-blur-sm overflow-hidden relative z-10">
             <button onClick={() => setIsCreatingGroup(true)} className="flex items-center gap-4 w-full p-4 hover:bg-slate-50 border-b border-slate-100 text-left transition-colors">
               <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 border border-blue-200 shadow-sm"><Users size={24} /></div>
               <span className="font-bold text-blue-700 text-base">New Group Chat</span>
@@ -433,8 +458,9 @@ export default function EmployeeMobileChat() {
 
   return (
     <div className="flex h-[100dvh] flex-col bg-slate-50 overflow-hidden relative">
+      <BackgroundOrbs />
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 bg-white border-b border-slate-200 z-10 shadow-sm relative shrink-0">
+      <div className="flex items-center justify-between px-5 py-4 bg-white/80 backdrop-blur-md border-b border-slate-200 z-10 shadow-sm relative shrink-0">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate('/employee', { replace: true })}
@@ -453,7 +479,7 @@ export default function EmployeeMobileChat() {
       </div>
 
       {/* Chat List */}
-      <div className="flex-1 overflow-y-auto bg-white">
+      <div className="flex-1 overflow-y-auto bg-transparent relative z-10">
         {chats.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center p-6 text-center">
             <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mb-4 border border-blue-100">
