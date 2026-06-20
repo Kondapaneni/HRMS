@@ -43,6 +43,7 @@ export default function EmployeeMobileChat() {
   const [showContactInfo, setShowContactInfo] = useState(false);
   const [adminToggleDialog, setAdminToggleDialog] = useState({ isOpen: false, targetUser: null, isCurrentlyAdmin: false });
   const [showMessageSearch, setShowMessageSearch] = useState(false);
+  const [messageSearchQuery, setMessageSearchQuery] = useState('');
   const [groupName, setGroupName] = useState('');
   const [selectedGroupParticipants, setSelectedGroupParticipants] = useState([]);
   const [groupAvatarFile, setGroupAvatarFile] = useState(null);
@@ -294,6 +295,36 @@ export default function EmployeeMobileChat() {
     }
   });
 
+  const updateGroupAvatarMutation = useMutation({
+    mutationFn: async ({ chatId, fileToUpload }) => {
+      const fileExt = fileToUpload.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `groups/${fileName}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('chat_attachments')
+        .upload(filePath, fileToUpload);
+        
+      if (uploadError) throw new Error('Group icon upload failed');
+      
+      const { data } = supabase.storage
+        .from('chat_attachments')
+        .getPublicUrl(filePath);
+        
+      const res = await api.put(`/chat/${chatId}/avatar`, { group_avatar: data.publicUrl });
+      return { ...res.data, group_avatar: data.publicUrl };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries(['chat', 'list']);
+      setActiveChat(prev => prev ? { ...prev, group_avatar: data.group_avatar } : null);
+      toast.success('Group avatar updated');
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.error || err.message || 'Failed to update avatar');
+    }
+  });
+
+
   const createChatMutation = useMutation({
     mutationFn: async ({ payload, fileToUpload }) => {
       let avatarData = null;
@@ -485,11 +516,29 @@ export default function EmployeeMobileChat() {
         </div>
         <div className="flex-1 overflow-y-auto chat-scrollbar pb-6">
           <div className="bg-white flex flex-col items-center pt-8 pb-6 shadow-sm mb-2">
-            <div className="w-32 h-32 rounded-full bg-slate-200 overflow-hidden shadow-md mb-4">
-              {getChatAvatar(activeChat) ? (
-                <img src={getChatAvatar(activeChat)} className="w-full h-full object-cover" />
-              ) : (
-                activeChat.type === 'group' ? <Users className="w-full h-full p-6 text-white bg-slate-400" /> : <User className="w-full h-full p-6 text-white bg-slate-400" />
+            <div className="relative mb-4">
+              <div className="w-32 h-32 rounded-full bg-slate-200 overflow-hidden shadow-md">
+                {getChatAvatar(activeChat) ? (
+                  <img src={getChatAvatar(activeChat)} className="w-full h-full object-cover" />
+                ) : (
+                  activeChat.type === 'group' ? <Users className="w-full h-full p-6 text-white bg-slate-400" /> : <User className="w-full h-full p-6 text-white bg-slate-400" />
+                )}
+              </div>
+              {activeChat.type === 'group' && activeChat.admin_ids?.includes(profile?.id) && (
+                <label className="absolute bottom-0 right-0 w-10 h-10 bg-[#008069] rounded-full flex items-center justify-center text-white cursor-pointer shadow-lg border-2 border-white">
+                  <Camera size={18} />
+                  <input 
+                    type="file" 
+                    className="hidden" 
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file && activeChat) {
+                        updateGroupAvatarMutation.mutate({ chatId: activeChat.id, fileToUpload: file });
+                      }
+                    }}
+                  />
+                </label>
               )}
             </div>
             <div className="flex items-center justify-center gap-2 mb-1 group px-4">
@@ -835,11 +884,61 @@ export default function EmployeeMobileChat() {
               </p>
             </div>
           </div>
+          
+          <div className="flex gap-1 ml-2">
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowMessageSearch(!showMessageSearch);
+                if (showMessageSearch) setMessageSearchQuery('');
+              }} 
+              className={`p-2 rounded-full transition-colors ${showMessageSearch ? 'bg-[#e7fce3] text-[#008069]' : 'text-slate-500 hover:bg-slate-100'}`}
+            >
+              <Search className="w-5 h-5" />
+            </button>
+          </div>
         </div>
+
+        <AnimatePresence>
+          {showMessageSearch && (
+            <motion.div 
+              initial={{ height: 0, opacity: 0 }} 
+              animate={{ height: 'auto', opacity: 1 }} 
+              exit={{ height: 0, opacity: 0 }}
+              className="bg-white border-b border-slate-200 shadow-sm z-10 overflow-hidden shrink-0"
+            >
+              <div className="p-3">
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Search size={16} className="text-slate-400" />
+                  </div>
+                  <input
+                    type="text"
+                    value={messageSearchQuery}
+                    onChange={(e) => setMessageSearchQuery(e.target.value)}
+                    placeholder="Search messages..."
+                    className="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-lg focus:ring-2 focus:ring-[#008069] focus:border-transparent block pl-10 pr-10 p-2.5 transition-all"
+                    autoFocus
+                  />
+                  {messageSearchQuery && (
+                    <button 
+                      onClick={() => setMessageSearchQuery('')}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+                    >
+                      <X size={16} />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3 pb-[120px]">
-          {[...messages, ...pendingMessages].map((msg, index, arr) => {
+          {[...messages, ...pendingMessages]
+            .filter(msg => !messageSearchQuery || (msg.content && msg.content.toLowerCase().includes(messageSearchQuery.toLowerCase())))
+            .map((msg, index, arr) => {
             const isMine = msg.senderId === profile?.id;
             const sender = activeChat.participants.find(p => p.id === msg.senderId);
             const msgDate = new Date(msg.createdAt).toDateString();
