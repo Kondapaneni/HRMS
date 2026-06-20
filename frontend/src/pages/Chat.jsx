@@ -404,7 +404,7 @@ export default function Chat() {
         );
       });
       queryClient.invalidateQueries({ queryKey: ['chat', 'list'] });
-      // toast.success('Group settings updated');
+      toast.success('Group settings updated');
       
       setActiveChat(prev => {
         if (prev && prev.id === variables.chatId) {
