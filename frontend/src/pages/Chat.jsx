@@ -362,7 +362,15 @@ export default function Chat() {
       const res = await api.put(`/chat/${chatId}/permissions`, { permissionKey, permissionValue });
       return res.data;
     },
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
+      queryClient.setQueryData(['chat', 'list'], (old) => {
+        if (!old) return old;
+        return old.map(chat => 
+          chat.id === variables.chatId 
+            ? { ...chat, permissions: data.permissions }
+            : chat
+        );
+      });
       queryClient.invalidateQueries(['chat', 'list']);
       toast.success('Group settings updated');
       
