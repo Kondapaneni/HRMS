@@ -1269,7 +1269,6 @@ export default function Chat() {
                       removeParticipantMutation.mutate({ chatId: activeChat.id, userId: profile?.id });
                     }
                   });
-                }
               }
             }}
             className="bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] cursor-pointer hover:bg-slate-50 transition-colors shrink-0 z-10 border-t border-slate-100"
