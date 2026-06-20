@@ -529,6 +529,13 @@ export default function EmployeeMobileChat() {
              {activeChat.type === 'personal' && <div className="text-sm text-slate-500">Phone</div>}
           </div>
 
+          <div className="bg-white p-4 shadow-sm mb-2 cursor-pointer active:bg-slate-50 transition-colors flex items-center gap-3 text-red-500 font-medium text-lg">
+            <X size={24} />
+            <div className="flex-1">
+               {activeChat.type === 'group' ? 'Exit group' : 'Block contact'}
+            </div>
+          </div>
+
           {activeChat.type === 'group' && (() => {
             const amIAdmin = activeChat.admin_ids?.includes(profile?.id);
             return (
@@ -620,16 +627,7 @@ export default function EmployeeMobileChat() {
             );
           })()}
         </div>
-        <div className="bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] cursor-pointer active:bg-slate-50 transition-colors shrink-0 z-10 border-t border-slate-100">
-          <div className="flex items-center gap-3 p-3 text-red-500 font-medium">
-            <div className="w-10 h-10 flex items-center justify-center shrink-0">
-               <X size={24} />
-            </div>
-            <div className="flex-1">
-               {activeChat.type === 'group' ? 'Exit group' : 'Block contact'}
-            </div>
-          </div>
-        </div>
+
         
         {/* Admin Toggle Dialog */}
         <AnimatePresence>
