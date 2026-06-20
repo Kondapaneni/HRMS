@@ -64,9 +64,11 @@ $app->get('/api/chat', function (Request $request, Response $response) {
     $chats = $stmt->fetchAll();
     
     foreach ($chats as &$chat) {
-        $chat['participants'] = json_decode($chat['participants'], true);
+        $chat['participants'] = is_string($chat['participants']) ? json_decode($chat['participants'], true) : $chat['participants'];
         $chat['permissions'] = is_string($chat['permissions']) ? json_decode($chat['permissions'], true) : $chat['permissions'];
         $chat['admin_ids'] = is_string($chat['admin_ids']) ? json_decode($chat['admin_ids'], true) : $chat['admin_ids'];
+        $chat['pending_participants'] = is_string($chat['pending_participants']) ? json_decode($chat['pending_participants'], true) : ($chat['pending_participants'] ?? []);
+        if (!is_array($chat['pending_participants'])) $chat['pending_participants'] = [];
         $chat['unread_count'] = (int) $chat['unread_count'];
         if ($chat['last_message']) {
             $lm = json_decode($chat['last_message'], true);
