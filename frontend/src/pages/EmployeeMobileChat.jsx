@@ -124,6 +124,11 @@ export default function EmployeeMobileChat() {
     };
   }, [activeChat, queryClient]);
 
+  useEffect(() => {
+    setShowMessageSearch(false);
+    setMessageSearchQuery('');
+  }, [activeChat]);
+
   const scrollToBottom = (instant = false) => {
     if (instant) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
