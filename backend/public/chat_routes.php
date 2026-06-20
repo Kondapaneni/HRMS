@@ -187,6 +187,22 @@ $app->post('/api/chat/{id}/messages', function (Request $request, Response $resp
     $db = new Database();
     $conn = $db->getConnection();
     
+    $stmt = $conn->prepare('SELECT type, admin_ids, permissions FROM chats WHERE id = ?');
+    $stmt->execute([$chatId]);
+    $chat = $stmt->fetch();
+    
+    // Check sendMessages permission
+    if ($chat && $chat['type'] === 'group') {
+        $permissions = is_string($chat['permissions']) ? json_decode($chat['permissions'], true) : ($chat['permissions'] ?? []);
+        $adminIds = is_string($chat['admin_ids']) ? json_decode($chat['admin_ids'], true) : ($chat['admin_ids'] ?? []);
+        
+        $canSend = $permissions['sendMessages'] ?? true;
+        if (!$canSend && !in_array($userId, $adminIds)) {
+            $response->getBody()->write(json_encode(['error' => 'Only admins can send messages in this group']));
+            return $response->withStatus(403)->withHeader('Content-Type', 'application/json');
+        }
+    }
+    
     $stmt = $conn->prepare('SELECT 1 FROM chat_participants WHERE "chatId" = ? AND "userId" = ?');
     $stmt->execute([$chatId, $userId]);
     if (!$stmt->fetchColumn()) {
@@ -261,4 +277,397 @@ $app->post('/api/chat/{id}/messages/receipts', function (Request $request, Respo
     
     $response->getBody()->write(json_encode(['success' => true]));
     return $response->withHeader('Content-Type', 'application/json');
+})->add(new AuthMiddleware(['admin', 'employee', 'hr', 'manager']));
+
+// PUT /api/chat/{id}
+$app->put('/api/chat/{id}', function (Request $request, Response $response, $args) {
+    $currentUserId = $request->getAttribute('user')->id;
+    $chatId = $args['id'];
+    $data = $request->getParsedBody();
+    $name = $data['name'] ?? null;
+    
+    if (!$name) {
+        $response->getBody()->write(json_encode(['error' => 'Name is required']));
+        return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+    }
+    
+    $db = new Database();
+    $conn = $db->getConnection();
+    
+    // Check if chat exists and is a group
+    $stmt = $conn->prepare('SELECT type, admin_ids, permissions FROM chats WHERE id = ?');
+    $stmt->execute([$chatId]);
+    $chat = $stmt->fetch();
+    
+    if (!$chat || $chat['type'] !== 'group') {
+        $response->getBody()->write(json_encode(['error' => 'Not a group chat']));
+        return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+    }
+    
+    $adminIds = is_string($chat['admin_ids']) ? json_decode($chat['admin_ids'], true) : ($chat['admin_ids'] ?? []);
+    $permissions = is_string($chat['permissions']) ? json_decode($chat['permissions'], true) : ($chat['permissions'] ?? []);
+    
+    // Check if current user is allowed to edit group info
+    $canEdit = $permissions['editSettings'] ?? true;
+    if (!$canEdit && !in_array($currentUserId, $adminIds)) {
+        $response->getBody()->write(json_encode(['error' => 'Only admins can edit group info']));
+        return $response->withStatus(403)->withHeader('Content-Type', 'application/json');
+    }
+    
+    $stmt = $conn->prepare('UPDATE chats SET name = ? WHERE id = ?');
+    $stmt->execute([$name, $chatId]);
+    
+    $response->getBody()->write(json_encode(['success' => true, 'name' => $name]));
+    return $response->withHeader('Content-Type', 'application/json');
+})->add(new AuthMiddleware(['admin', 'employee', 'hr', 'manager']));
+
+// PUT /api/chat/{id}/avatar
+$app->put('/api/chat/{id}/avatar', function (Request $request, Response $response, $args) {
+    $currentUserId = $request->getAttribute('user')->id;
+    $chatId = $args['id'];
+    $data = $request->getParsedBody();
+    $groupAvatar = $data['group_avatar'] ?? null;
+    
+    if (!$groupAvatar) {
+        $response->getBody()->write(json_encode(['error' => 'Group avatar URL is required']));
+        return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+    }
+    
+    $db = new Database();
+    $conn = $db->getConnection();
+    
+    // Check if chat exists and is a group
+    $stmt = $conn->prepare('SELECT type, admin_ids, permissions FROM chats WHERE id = ?');
+    $stmt->execute([$chatId]);
+    $chat = $stmt->fetch();
+    
+    if (!$chat || $chat['type'] !== 'group') {
+        $response->getBody()->write(json_encode(['error' => 'Not a group chat']));
+        return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+    }
+    
+    $adminIds = is_string($chat['admin_ids']) ? json_decode($chat['admin_ids'], true) : ($chat['admin_ids'] ?? []);
+    $permissions = is_string($chat['permissions']) ? json_decode($chat['permissions'], true) : ($chat['permissions'] ?? []);
+    
+    // Check if current user is allowed to edit group info
+    $canEdit = $permissions['editSettings'] ?? true;
+    if (!$canEdit && !in_array($currentUserId, $adminIds)) {
+        $response->getBody()->write(json_encode(['error' => 'Only admins can edit group info']));
+        return $response->withStatus(403)->withHeader('Content-Type', 'application/json');
+    }
+    
+    $stmt = $conn->prepare('UPDATE chats SET group_avatar = ? WHERE id = ?');
+    $stmt->execute([$groupAvatar, $chatId]);
+    
+    $response->getBody()->write(json_encode(['success' => true, 'group_avatar' => $groupAvatar]));
+    return $response->withHeader('Content-Type', 'application/json');
+})->add(new AuthMiddleware(['admin', 'employee', 'hr', 'manager']));
+
+// PUT /api/chat/{id}/admins/toggle
+$app->put('/api/chat/{id}/admins/toggle', function (Request $request, Response $response, $args) {
+    $currentUserId = $request->getAttribute('user')->id;
+    $chatId = $args['id'];
+    $data = $request->getParsedBody();
+    $targetUserId = $data['targetUserId'] ?? null;
+    
+    if (!$targetUserId) {
+        $response->getBody()->write(json_encode(['error' => 'targetUserId is required']));
+        return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+    }
+    
+    $db = new Database();
+    $conn = $db->getConnection();
+    
+    // Check if chat exists and is a group
+    $stmt = $conn->prepare('SELECT type, admin_ids FROM chats WHERE id = ?');
+    $stmt->execute([$chatId]);
+    $chat = $stmt->fetch();
+    
+    if (!$chat || $chat['type'] !== 'group') {
+        $response->getBody()->write(json_encode(['error' => 'Not a group chat']));
+        return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+    }
+    
+    $adminIds = is_string($chat['admin_ids']) ? json_decode($chat['admin_ids'], true) : ($chat['admin_ids'] ?? []);
+    
+    // Check if current user is an admin
+    if (!in_array($currentUserId, $adminIds)) {
+        return $response->withStatus(403);
+    }
+    
+    // Check if target user is a participant
+    $stmt = $conn->prepare('SELECT 1 FROM chat_participants WHERE "chatId" = ? AND "userId" = ?');
+    $stmt->execute([$chatId, $targetUserId]);
+    if (!$stmt->fetchColumn()) {
+        $response->getBody()->write(json_encode(['error' => 'Target user is not a participant']));
+        return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+    }
+    
+    // Toggle admin status
+    if (in_array($targetUserId, $adminIds)) {
+        // Only allow remove if there's more than 1 admin
+        if (count($adminIds) <= 1) {
+            $response->getBody()->write(json_encode(['error' => 'Cannot remove the last admin']));
+            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+        }
+        $adminIds = array_values(array_filter($adminIds, fn($id) => $id !== $targetUserId));
+    } else {
+        $adminIds[] = $targetUserId;
+    }
+    
+    $stmt = $conn->prepare('UPDATE chats SET admin_ids = ?::jsonb WHERE id = ?');
+    $stmt->execute([json_encode($adminIds), $chatId]);
+    
+    $response->getBody()->write(json_encode(['success' => true, 'admin_ids' => $adminIds]));
+    return $response->withHeader('Content-Type', 'application/json');
+})->add(new AuthMiddleware(['admin', 'employee', 'hr', 'manager']));
+
+// PUT /api/chat/{id}/permissions
+$app->put('/api/chat/{id}/permissions', function (Request $request, Response $response, $args) {
+    $currentUserId = $request->getAttribute('user')->id;
+    $chatId = $args['id'];
+    $data = $request->getParsedBody();
+    $permissionKey = $data['permissionKey'] ?? null;
+    $permissionValue = $data['permissionValue'] ?? null;
+    
+    if (!$permissionKey || $permissionValue === null) {
+        $response->getBody()->write(json_encode(['error' => 'permissionKey and permissionValue are required']));
+        return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+    }
+    
+    $db = new Database();
+    $conn = $db->getConnection();
+    
+    $stmt = $conn->prepare('SELECT type, admin_ids, permissions FROM chats WHERE id = ?');
+    $stmt->execute([$chatId]);
+    $chat = $stmt->fetch();
+    
+    if (!$chat || $chat['type'] !== 'group') {
+        $response->getBody()->write(json_encode(['error' => 'Not a group chat']));
+        return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+    }
+    
+    $adminIds = is_string($chat['admin_ids']) ? json_decode($chat['admin_ids'], true) : ($chat['admin_ids'] ?? []);
+    
+    // Check if current user is an admin
+    if (!in_array($currentUserId, $adminIds)) {
+        return $response->withStatus(403);
+    }
+    
+    $permissions = is_string($chat['permissions']) ? json_decode($chat['permissions'], true) : ($chat['permissions'] ?? []);
+    
+    // Update the specific permission
+    $permissions[$permissionKey] = (bool)$permissionValue;
+    
+    $stmt = $conn->prepare('UPDATE chats SET permissions = ?::jsonb WHERE id = ?');
+    $stmt->execute([json_encode($permissions), $chatId]);
+    
+    $response->getBody()->write(json_encode(['success' => true, 'permissions' => $permissions]));
+    return $response->withHeader('Content-Type', 'application/json');
+})->add(new AuthMiddleware(['admin', 'employee', 'hr', 'manager']));
+
+// POST /api/chat/{id}/participants
+$app->post('/api/chat/{id}/participants', function (Request $request, Response $response, $args) {
+    $currentUserId = $request->getAttribute('user')->id;
+    $chatId = $args['id'];
+    $data = $request->getParsedBody();
+    $userIds = $data['userIds'] ?? [];
+    
+    if (empty($userIds) || !is_array($userIds)) {
+        $response->getBody()->write(json_encode(['error' => 'userIds array is required']));
+        return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+    }
+    
+    $db = new Database();
+    $conn = $db->getConnection();
+    
+    // Check if chat exists and user is participant
+    $stmt = $conn->prepare('SELECT type, admin_ids, permissions, pending_participants FROM chats WHERE id = ?');
+    $stmt->execute([$chatId]);
+    $chat = $stmt->fetch();
+    
+    if (!$chat || $chat['type'] !== 'group') {
+        $response->getBody()->write(json_encode(['error' => 'Not a group chat']));
+        return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+    }
+    
+    $stmt = $conn->prepare('SELECT 1 FROM chat_participants WHERE "chatId" = ? AND "userId" = ?');
+    $stmt->execute([$chatId, $currentUserId]);
+    if (!$stmt->fetchColumn()) {
+        return $response->withStatus(403);
+    }
+    
+    $adminIds = is_string($chat['admin_ids']) ? json_decode($chat['admin_ids'], true) : ($chat['admin_ids'] ?? []);
+    $permissions = is_string($chat['permissions']) ? json_decode($chat['permissions'], true) : ($chat['permissions'] ?? []);
+    $pending = is_string($chat['pending_participants']) ? json_decode($chat['pending_participants'], true) : ($chat['pending_participants'] ?? []);
+    
+    $amIAdmin = in_array($currentUserId, $adminIds);
+    $canAdd = $permissions['addMembers'] ?? true;
+    
+    if (!$canAdd && !$amIAdmin) {
+        $response->getBody()->write(json_encode(['error' => 'Only admins can add members to this group']));
+        return $response->withStatus(403)->withHeader('Content-Type', 'application/json');
+    }
+    
+    $requiresApproval = ($permissions['approveNewMembers'] ?? false) && !$amIAdmin;
+    
+    try {
+        $conn->beginTransaction();
+        
+        if ($requiresApproval) {
+            // Add to pending
+            foreach ($userIds as $uid) {
+                if (!in_array($uid, $pending)) {
+                    $pending[] = $uid;
+                }
+            }
+            $stmt = $conn->prepare('UPDATE chats SET pending_participants = ?::jsonb WHERE id = ?');
+            $stmt->execute([json_encode(array_values($pending)), $chatId]);
+            $status = 'pending';
+        } else {
+            // Directly add
+            $insertPart = $conn->prepare('INSERT INTO chat_participants ("chatId", "userId") VALUES (?, ?) ON CONFLICT DO NOTHING');
+            foreach ($userIds as $uid) {
+                $insertPart->execute([$chatId, $uid]);
+            }
+            // Remove from pending if they were there
+            $pending = array_values(array_filter($pending, fn($id) => !in_array($id, $userIds)));
+            $stmt = $conn->prepare('UPDATE chats SET pending_participants = ?::jsonb WHERE id = ?');
+            $stmt->execute([json_encode($pending), $chatId]);
+            $status = 'added';
+        }
+        
+        $conn->commit();
+        $response->getBody()->write(json_encode(['success' => true, 'status' => $status]));
+        return $response->withHeader('Content-Type', 'application/json');
+    } catch (\Exception $e) {
+        $conn->rollBack();
+        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
+    }
+})->add(new AuthMiddleware(['admin', 'employee', 'hr', 'manager']));
+
+// PUT /api/chat/{id}/participants/pending
+$app->put('/api/chat/{id}/participants/pending', function (Request $request, Response $response, $args) {
+    $currentUserId = $request->getAttribute('user')->id;
+    $chatId = $args['id'];
+    $data = $request->getParsedBody();
+    $userId = $data['userId'] ?? null;
+    $action = $data['action'] ?? null; // 'approve' or 'reject'
+    
+    if (!$userId || !in_array($action, ['approve', 'reject'])) {
+        $response->getBody()->write(json_encode(['error' => 'Valid userId and action (approve/reject) are required']));
+        return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+    }
+    
+    $db = new Database();
+    $conn = $db->getConnection();
+    
+    $stmt = $conn->prepare('SELECT type, admin_ids, pending_participants FROM chats WHERE id = ?');
+    $stmt->execute([$chatId]);
+    $chat = $stmt->fetch();
+    
+    if (!$chat || $chat['type'] !== 'group') {
+        $response->getBody()->write(json_encode(['error' => 'Not a group chat']));
+        return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+    }
+    
+    $adminIds = is_string($chat['admin_ids']) ? json_decode($chat['admin_ids'], true) : ($chat['admin_ids'] ?? []);
+    if (!in_array($currentUserId, $adminIds)) {
+        return $response->withStatus(403);
+    }
+    
+    $pending = is_string($chat['pending_participants']) ? json_decode($chat['pending_participants'], true) : ($chat['pending_participants'] ?? []);
+    
+    if (!in_array($userId, $pending)) {
+        $response->getBody()->write(json_encode(['error' => 'User not in pending list']));
+        return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+    }
+    
+    try {
+        $conn->beginTransaction();
+        
+        $pending = array_values(array_filter($pending, fn($id) => $id !== $userId));
+        $stmt = $conn->prepare('UPDATE chats SET pending_participants = ?::jsonb WHERE id = ?');
+        $stmt->execute([json_encode($pending), $chatId]);
+        
+        if ($action === 'approve') {
+            $insertPart = $conn->prepare('INSERT INTO chat_participants ("chatId", "userId") VALUES (?, ?) ON CONFLICT DO NOTHING');
+            $insertPart->execute([$chatId, $userId]);
+        }
+        
+        $conn->commit();
+        $response->getBody()->write(json_encode(['success' => true, 'action' => $action]));
+        return $response->withHeader('Content-Type', 'application/json');
+    } catch (\Exception $e) {
+        $conn->rollBack();
+        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
+    }
+})->add(new AuthMiddleware(['admin', 'employee', 'hr', 'manager']));
+
+// DELETE /api/chat/{id}/participants/{userId}
+$app->delete('/api/chat/{id}/participants/{userId}', function (Request $request, Response $response, $args) {
+    $currentUserId = $request->getAttribute('user')->id;
+    $chatId = $args['id'];
+    $userIdToRemove = $args['userId'];
+    
+    $db = new Database();
+    $conn = $db->getConnection();
+    
+    $stmt = $conn->prepare('SELECT type, admin_ids FROM chats WHERE id = ?');
+    $stmt->execute([$chatId]);
+    $chat = $stmt->fetch();
+    
+    if (!$chat || $chat['type'] !== 'group') {
+        $response->getBody()->write(json_encode(['error' => 'Not a group chat']));
+        return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+    }
+    
+    $adminIds = is_string($chat['admin_ids']) ? json_decode($chat['admin_ids'], true) : ($chat['admin_ids'] ?? []);
+    
+    // Authorization
+    if ($currentUserId !== $userIdToRemove) {
+        if (!in_array($currentUserId, $adminIds)) {
+            $response->getBody()->write(json_encode(['error' => 'Only admins can remove members']));
+            return $response->withStatus(403)->withHeader('Content-Type', 'application/json');
+        }
+    } else {
+        // User is exiting
+        if (in_array($currentUserId, $adminIds) && count($adminIds) === 1) {
+            $stmt = $conn->prepare('SELECT COUNT(*) FROM chat_participants WHERE "chatId" = ?');
+            $stmt->execute([$chatId]);
+            $participantCount = (int)$stmt->fetchColumn();
+            
+            if ($participantCount > 1) {
+                $response->getBody()->write(json_encode(['error' => 'You must promote another member to admin before exiting.']));
+                return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+            } else {
+                $response->getBody()->write(json_encode(['error' => 'You are the only member in the group, you cannot exit.']));
+                return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+            }
+        }
+    }
+    
+    try {
+        $conn->beginTransaction();
+        
+        $stmt = $conn->prepare('DELETE FROM chat_participants WHERE "chatId" = ? AND "userId" = ?');
+        $stmt->execute([$chatId, $userIdToRemove]);
+        
+        // Remove from admins if they were an admin
+        if (in_array($userIdToRemove, $adminIds)) {
+            $adminIds = array_values(array_filter($adminIds, fn($id) => $id !== $userIdToRemove));
+            $stmt = $conn->prepare('UPDATE chats SET admin_ids = ?::jsonb WHERE id = ?');
+            $stmt->execute([json_encode($adminIds), $chatId]);
+        }
+        
+        $conn->commit();
+        $response->getBody()->write(json_encode(['success' => true]));
+        return $response->withHeader('Content-Type', 'application/json');
+    } catch (\Exception $e) {
+        $conn->rollBack();
+        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
+    }
 })->add(new AuthMiddleware(['admin', 'employee', 'hr', 'manager']));

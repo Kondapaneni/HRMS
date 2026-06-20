@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Search, Send, Plus, Users, User, ArrowLeft, Paperclip, Smile, Check, CheckCheck, FileText, Image as ImageIcon, X, Download, Camera, ChevronRight, Phone, Video, MoreVertical, MessageSquare } from 'lucide-react';
+import { Search, Send, Plus, Users, User, ArrowLeft, Paperclip, Smile, Check, CheckCheck, FileText, Image as ImageIcon, X, Download, Camera, ChevronRight, Phone, Video, MoreVertical, MessageSquare, Shield, Edit2, UserPlus } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { format, isToday, isYesterday } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -41,6 +41,8 @@ export default function EmployeeMobileChat() {
   const [groupCreationStep, setGroupCreationStep] = useState(1);
   const [contactSearchQuery, setContactSearchQuery] = useState('');
   const [showContactInfo, setShowContactInfo] = useState(false);
+  const [adminToggleDialog, setAdminToggleDialog] = useState({ isOpen: false, targetUser: null, isCurrentlyAdmin: false });
+  const [showMessageSearch, setShowMessageSearch] = useState(false);
   const [groupName, setGroupName] = useState('');
   const [selectedGroupParticipants, setSelectedGroupParticipants] = useState([]);
   const [groupAvatarFile, setGroupAvatarFile] = useState(null);
@@ -59,6 +61,13 @@ export default function EmployeeMobileChat() {
   const textareaRef = useRef(null);
   const prevChatIdRef = useRef(null);
   const prevMessagesLengthRef = useRef(0);
+  
+  const [renameDialog, setRenameDialog] = useState({ isOpen: false, name: '' });
+  
+  const [addMembersDialog, setAddMembersDialog] = useState(false);
+  const [pendingMembersDialog, setPendingMembersDialog] = useState(false);
+  const [selectedNewMembers, setSelectedNewMembers] = useState([]);
+  const [addMembersSearchQuery, setAddMembersSearchQuery] = useState('');
 
   // 1. Fetch Data
   const { data: chats = [] } = useQuery({
@@ -238,7 +247,53 @@ export default function EmployeeMobileChat() {
     setShowEmojiPicker(false);
   };
 
+  const addMembersMutation = useMutation({
+    mutationFn: async ({ chatId, userIds }) => {
+      const res = await api.post(`/chat/${chatId}/participants`, { userIds });
+      return res.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['chat', 'list'] });
+      toast.success(data.status === 'pending' ? 'Approval requested for new members' : 'Members added successfully');
+      setAddMembersDialog(false);
+      setSelectedNewMembers([]);
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.error || 'Failed to add members');
+    }
+  });
+
+  const managePendingMutation = useMutation({
+    mutationFn: async ({ chatId, userId, action }) => {
+      const res = await api.put(`/chat/${chatId}/participants/pending`, { userId, action });
+      return res.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['chat', 'list'] });
+      toast.success(`Request ${data.action}d`);
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.error || 'Failed to process request');
+    }
+  });
+
   // 4. Create Chat
+  const renameGroupMutation = useMutation({
+    mutationFn: async ({ chatId, name }) => {
+      const res = await api.put(`/chat/${chatId}`, { name });
+      return res.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['chat', 'list'] });
+      setActiveChat(prev => prev ? { ...prev, name: data.name } : null);
+      toast.success('Group name updated');
+      setRenameDialog({ isOpen: false, name: '' });
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.error || 'Failed to rename group');
+    }
+  });
+
   const createChatMutation = useMutation({
     mutationFn: async ({ payload, fileToUpload }) => {
       let avatarData = null;
@@ -278,6 +333,66 @@ export default function EmployeeMobileChat() {
       }
     }
   });
+
+  const toggleAdminMutation = useMutation({
+    mutationFn: async ({ chatId, targetUserId }) => {
+      const res = await api.put(`/chat/${chatId}/admins/toggle`, { targetUserId });
+      return res.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries(['chat', 'list']);
+      toast.success('Admin status updated');
+      
+      // Optionally update local state for immediate feedback
+      if (activeChat) {
+        setActiveChat({
+          ...activeChat,
+          admin_ids: data.admin_ids
+        });
+      }
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.error || 'Failed to update admin status');
+    }
+  });
+
+  const updatePermissionsMutation = useMutation({
+    mutationFn: async ({ chatId, permissionKey, permissionValue }) => {
+      const res = await api.put(`/chat/${chatId}/permissions`, { permissionKey, permissionValue });
+      return res.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries(['chat', 'list']);
+      toast.success('Group settings updated');
+      
+      if (activeChat) {
+        setActiveChat({
+          ...activeChat,
+          permissions: data.permissions
+        });
+      }
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.error || 'Failed to update group settings');
+    }
+  });
+
+  const handleTogglePermission = (permissionKey) => {
+    if (!activeChat || activeChat.type !== 'group') return;
+    const isAmIAdmin = activeChat.admin_ids?.includes(profile?.id);
+    if (!isAmIAdmin) return;
+    
+    const currentValue = activeChat.permissions?.[permissionKey];
+    updatePermissionsMutation.mutate({ 
+      chatId: activeChat.id, 
+      permissionKey, 
+      permissionValue: !currentValue 
+    });
+  };
+
+  const handleToggleAdmin = (targetUserId, currentAdmins) => {
+    // Replaced by direct click handler invoking the modal
+  };
 
   const handleCreatePersonalChat = (targetUserId) => {
     createChatMutation.mutate({ payload: { type: 'personal', participants: [targetUserId] } });
@@ -377,18 +492,25 @@ export default function EmployeeMobileChat() {
                 activeChat.type === 'group' ? <Users className="w-full h-full p-6 text-white bg-slate-400" /> : <User className="w-full h-full p-6 text-white bg-slate-400" />
               )}
             </div>
-            <h2 className="text-2xl font-semibold text-slate-900 mb-1">{getChatName(activeChat)}</h2>
+            <div className="flex items-center justify-center gap-2 mb-1 group px-4">
+              <h2 className="text-2xl font-semibold text-slate-900 text-center">{getChatName(activeChat)}</h2>
+              {activeChat.type === 'group' && (() => {
+                const amIAdmin = activeChat.admin_ids?.includes(profile?.id);
+                const canEdit = activeChat.permissions?.editSettings !== false || amIAdmin;
+                return canEdit && (
+                  <button onClick={() => setRenameDialog({ isOpen: true, name: activeChat.name })} className="p-2 text-slate-400 active:text-blue-600 active:bg-blue-50 rounded-full transition-all">
+                    <Edit2 size={18} />
+                  </button>
+                );
+              })()}
+            </div>
             
             {activeChat.type === 'personal' && (() => {
               const other = activeChat.participants.find(p => p.id !== profile?.id);
               return (
                 <>
                   <p className="text-slate-500 text-sm mb-4">{other?.designation || 'Employee'}</p>
-                  <div className="flex gap-8 mt-2 text-[#008069]">
-                    <div className="flex flex-col items-center cursor-pointer active:opacity-50 transition-opacity"><MessageSquare size={24} className="mb-1"/><span className="text-xs font-medium">Message</span></div>
-                    <div className="flex flex-col items-center cursor-pointer active:opacity-50 transition-opacity"><Phone size={24} className="mb-1"/><span className="text-xs font-medium">Audio</span></div>
-                    <div className="flex flex-col items-center cursor-pointer active:opacity-50 transition-opacity"><Video size={24} className="mb-1"/><span className="text-xs font-medium">Video</span></div>
-                  </div>
+
                 </>
               );
             })()}
@@ -404,17 +526,82 @@ export default function EmployeeMobileChat() {
              <div className="border-t border-slate-100 pt-3 text-md font-medium">
                {activeChat.type === 'personal' ? (activeChat.participants.find(p => p.id !== profile?.id)?.phone || 'No phone number') : 'Group details'}
              </div>
-             <div className="text-sm text-slate-500">Phone</div>
+             {activeChat.type === 'personal' && <div className="text-sm text-slate-500">Phone</div>}
           </div>
 
-          {activeChat.type === 'group' && (
-            <div className="bg-white shadow-sm mb-2">
-              <div className="p-4 border-b border-slate-100">
-                <div className="text-[#008069] text-xs font-semibold uppercase tracking-wider">Participants</div>
+          {activeChat.type === 'group' && (() => {
+            const amIAdmin = activeChat.admin_ids?.includes(profile?.id);
+            return (
+            <div className="bg-white p-4 shadow-sm mb-2 text-slate-800">
+              <div className="text-[#008069] text-xs font-semibold uppercase tracking-wider mb-3">Group Settings</div>
+              <div className="space-y-1">
+                <div 
+                  onClick={() => handleTogglePermission('editSettings')}
+                  className={`flex justify-between items-center p-2 -mx-2 rounded ${amIAdmin ? 'active:bg-slate-50 cursor-pointer transition-colors' : ''}`}
+                >
+                  <span className="text-sm font-medium">Edit Group Info</span>
+                  <span className={`text-xs px-2 py-1 rounded text-slate-600 ${amIAdmin ? 'bg-blue-50 text-blue-700 font-semibold shadow-sm' : 'bg-slate-100'}`}>
+                    {activeChat.permissions?.editSettings ? 'All Members' : 'Admins Only'}
+                  </span>
+                </div>
+                <div 
+                  onClick={() => handleTogglePermission('sendMessages')}
+                  className={`flex justify-between items-center p-2 -mx-2 rounded ${amIAdmin ? 'active:bg-slate-50 cursor-pointer transition-colors' : ''}`}
+                >
+                  <span className="text-sm font-medium">Send Messages</span>
+                  <span className={`text-xs px-2 py-1 rounded text-slate-600 ${amIAdmin ? 'bg-blue-50 text-blue-700 font-semibold shadow-sm' : 'bg-slate-100'}`}>
+                    {activeChat.permissions?.sendMessages ? 'All Members' : 'Admins Only'}
+                  </span>
+                </div>
+                <div 
+                  onClick={() => handleTogglePermission('addMembers')}
+                  className={`flex justify-between items-center p-2 -mx-2 rounded ${amIAdmin ? 'active:bg-slate-50 cursor-pointer transition-colors' : ''}`}
+                >
+                  <span className="text-sm font-medium">Add New Members</span>
+                  <span className={`text-xs px-2 py-1 rounded text-slate-600 ${amIAdmin ? 'bg-blue-50 text-blue-700 font-semibold shadow-sm' : 'bg-slate-100'}`}>
+                    {activeChat.permissions?.addMembers ? 'All Members' : 'Admins Only'}
+                  </span>
+                </div>
               </div>
-              <div>
-                {activeChat.participants.map(p => (
-                  <div key={p.id} className="flex items-center gap-3 p-3 active:bg-slate-50 cursor-pointer">
+            </div>
+            );
+          })()}
+
+          {activeChat.type === 'group' && (() => {
+            const amIAdmin = activeChat.admin_ids?.includes(profile?.id);
+            const canAdd = activeChat.permissions?.addMembers !== false || amIAdmin;
+            const pendingCount = activeChat.pending_participants?.length || 0;
+            return (
+            <div className="bg-white shadow-sm mt-2">
+              <div className="p-4 border-b border-slate-100 flex justify-between items-center">
+                <div className="text-[#008069] text-xs font-semibold uppercase tracking-wider">Participants</div>
+                <div className="flex gap-2">
+                  {amIAdmin && pendingCount > 0 && (
+                    <button onClick={() => setPendingMembersDialog(true)} className="text-xs text-orange-600 font-semibold flex items-center active:bg-orange-50 px-2 py-1 rounded transition-colors border border-orange-200">
+                      Pending ({pendingCount})
+                    </button>
+                  )}
+                  {canAdd && (
+                    <button onClick={() => setAddMembersDialog(true)} className="text-xs text-[#008069] font-semibold flex items-center active:bg-slate-50 px-2 py-1 rounded transition-colors border border-slate-200">
+                      <UserPlus size={14} className="mr-1" /> Add
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div className="max-h-60 overflow-y-auto chat-scrollbar">
+                {activeChat.participants.map(p => {
+                  const amIAdmin = activeChat.admin_ids?.includes(profile?.id);
+                  const isClickable = amIAdmin && p.id !== profile?.id;
+                  return (
+                  <div 
+                    key={p.id} 
+                    onClick={() => {
+                      if (isClickable) {
+                        setAdminToggleDialog({ isOpen: true, targetUser: p, isCurrentlyAdmin: activeChat.admin_ids?.includes(p.id) });
+                      }
+                    }}
+                    className={`flex items-center gap-3 p-3 ${isClickable ? 'active:bg-slate-50 cursor-pointer' : ''}`}
+                  >
                     <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden shrink-0">
                       {p.avatar ? <img src={p.avatar} className="w-full h-full object-cover" /> : <User className="w-full h-full p-2 text-white bg-slate-400" />}
                     </div>
@@ -426,18 +613,199 @@ export default function EmployeeMobileChat() {
                       <span className="text-[10px] bg-emerald-100 text-[#008069] px-2 py-0.5 rounded border border-emerald-200 font-bold">Admin</span>
                     )}
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
-          )}
-          
-          <div className="bg-white shadow-sm mb-6 mt-2 cursor-pointer active:bg-slate-50 transition-colors">
-             <div className="p-4 flex items-center text-red-500 font-medium">
-               <X size={20} className="mr-4" />
+            );
+          })()}
+        </div>
+        <div className="bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] cursor-pointer active:bg-slate-50 transition-colors shrink-0 z-10 border-t border-slate-100">
+          <div className="flex items-center gap-3 p-3 text-red-500 font-medium">
+            <div className="w-10 h-10 flex items-center justify-center shrink-0">
+               <X size={24} />
+            </div>
+            <div className="flex-1">
                {activeChat.type === 'group' ? 'Exit group' : 'Block contact'}
-             </div>
+            </div>
           </div>
         </div>
+        
+        {/* Admin Toggle Dialog */}
+        <AnimatePresence>
+          {adminToggleDialog.isOpen && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-slate-900/50 z-[100] flex items-center justify-center p-4">
+              <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden">
+                <div className="p-5 text-center">
+                  <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-4">
+                    <Shield size={24} />
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-900 mb-2">
+                    {adminToggleDialog.isCurrentlyAdmin ? 'Remove Admin' : 'Make Admin'}
+                  </h3>
+                  <p className="text-sm text-slate-500 mb-6">
+                    {adminToggleDialog.isCurrentlyAdmin 
+                      ? `Are you sure you want to remove ${adminToggleDialog.targetUser?.firstName} from the admin list?` 
+                      : `Are you sure you want to promote ${adminToggleDialog.targetUser?.firstName} to admin? They will be able to manage this group.`}
+                  </p>
+                  <div className="flex gap-3">
+                    <button onClick={() => setAdminToggleDialog({ isOpen: false, targetUser: null, isCurrentlyAdmin: false })} className="flex-1 px-4 py-2 bg-slate-100 active:bg-slate-200 text-slate-700 font-medium rounded-lg transition-colors">
+                      Cancel
+                    </button>
+                    <button onClick={() => {
+                      if (adminToggleDialog.targetUser) {
+                        toggleAdminMutation.mutate({ chatId: activeChat.id, targetUserId: adminToggleDialog.targetUser.id });
+                      }
+                      setAdminToggleDialog({ isOpen: false, targetUser: null, isCurrentlyAdmin: false });
+                    }} className="flex-1 px-4 py-2 bg-[#008069] active:bg-[#00695c] text-white font-medium rounded-lg transition-colors shadow-sm">
+                      Confirm
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Rename Group Dialog */}
+        <AnimatePresence>
+          {renameDialog.isOpen && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-slate-900/50 z-[100] flex items-center justify-center p-4">
+              <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden">
+                <div className="p-5">
+                  <h3 className="text-lg font-bold text-slate-900 mb-4 text-center">Rename Group</h3>
+                  <input 
+                    type="text" 
+                    value={renameDialog.name}
+                    onChange={(e) => setRenameDialog(prev => ({ ...prev, name: e.target.value }))}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-[#008069] focus:border-transparent mb-6 transition-all"
+                    placeholder="Group Name"
+                    autoFocus
+                  />
+                  <div className="flex gap-3">
+                    <button onClick={() => setRenameDialog({ isOpen: false, name: '' })} className="flex-1 px-4 py-2 bg-slate-100 active:bg-slate-200 text-slate-700 font-medium rounded-lg transition-colors">
+                      Cancel
+                    </button>
+                    <button 
+                      onClick={() => {
+                        if (renameDialog.name.trim()) {
+                          renameGroupMutation.mutate({ chatId: activeChat.id, name: renameDialog.name.trim() });
+                        }
+                      }} 
+                      disabled={!renameDialog.name.trim() || renameGroupMutation.isPending}
+                      className="flex-1 px-4 py-2 bg-[#008069] active:bg-[#00695c] disabled:opacity-50 text-white font-medium rounded-lg transition-colors shadow-sm"
+                    >
+                      Save
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Add Members Dialog */}
+        <AnimatePresence>
+          {addMembersDialog && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-slate-900/50 z-[100] flex items-center justify-center p-4">
+              <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden flex flex-col max-h-[80vh]">
+                <div className="p-4 border-b border-slate-100">
+                  <h3 className="text-lg font-bold text-slate-900 text-center mb-4">Add Members</h3>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Search size={16} className="text-slate-400" />
+                    </div>
+                    <input
+                      type="text"
+                      value={addMembersSearchQuery}
+                      onChange={(e) => setAddMembersSearchQuery(e.target.value)}
+                      placeholder="Search by name or designation..."
+                      className="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-lg focus:ring-2 focus:ring-[#008069] focus:border-transparent block pl-10 p-2.5 transition-all"
+                    />
+                  </div>
+                </div>
+                <div className="p-2 overflow-y-auto chat-scrollbar flex-1">
+                  {users
+                    .filter(u => u.id !== profile?.id && !activeChat?.participants.some(p => p.id === u.id) && !activeChat?.pending_participants?.includes(u.id))
+                    .filter(u => (u.firstName + ' ' + u.lastName).toLowerCase().includes(addMembersSearchQuery.toLowerCase()) || (u.designation || '').toLowerCase().includes(addMembersSearchQuery.toLowerCase()))
+                    .map(u => (
+                    <div key={u.id} onClick={() => setSelectedNewMembers(prev => prev.includes(u.id) ? prev.filter(id => id !== u.id) : [...prev, u.id])} className="flex items-center gap-3 w-full p-2 hover:bg-slate-50 rounded cursor-pointer transition-colors">
+                      <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden shrink-0">
+                        {u.avatar ? <img src={u.avatar} className="w-full h-full object-cover" /> : <User className="w-full h-full p-2 text-white bg-slate-400" />}
+                      </div>
+                      <div className="flex-1 border-b border-slate-50 pb-2">
+                        <div className="font-medium text-slate-800">{u.firstName} {u.lastName}</div>
+                        <div className="text-xs text-slate-500">{u.designation || 'Employee'}</div>
+                      </div>
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${selectedNewMembers.includes(u.id) ? 'bg-[#008069] border-[#008069]' : 'border-slate-300'}`}>
+                        {selectedNewMembers.includes(u.id) && <Check size={12} className="text-white" />}
+                      </div>
+                    </div>
+                  ))}
+                  {users.filter(u => u.id !== profile?.id && !activeChat?.participants.some(p => p.id === u.id) && !activeChat?.pending_participants?.includes(u.id)).length === 0 && (
+                    <div className="text-center text-slate-500 py-8 text-sm">No new users available to add.</div>
+                  )}
+                  {users.filter(u => u.id !== profile?.id && !activeChat?.participants.some(p => p.id === u.id) && !activeChat?.pending_participants?.includes(u.id)).length > 0 && 
+                   users.filter(u => u.id !== profile?.id && !activeChat?.participants.some(p => p.id === u.id) && !activeChat?.pending_participants?.includes(u.id))
+                        .filter(u => (u.firstName + ' ' + u.lastName).toLowerCase().includes(addMembersSearchQuery.toLowerCase()) || (u.designation || '').toLowerCase().includes(addMembersSearchQuery.toLowerCase())).length === 0 && (
+                    <div className="text-center text-slate-500 py-8 text-sm">No results found for "{addMembersSearchQuery}"</div>
+                  )}
+                </div>
+                <div className="p-4 border-t border-slate-100 bg-slate-50 flex gap-3">
+                  <button onClick={() => { setAddMembersDialog(false); setSelectedNewMembers([]); setAddMembersSearchQuery(''); }} className="flex-1 px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium rounded-lg transition-colors">
+                    Cancel
+                  </button>
+                  <button 
+                    onClick={() => addMembersMutation.mutate({ chatId: activeChat.id, userIds: selectedNewMembers })}
+                    disabled={selectedNewMembers.length === 0 || addMembersMutation.isPending}
+                    className="flex-1 px-4 py-2 bg-[#008069] hover:bg-[#00695c] disabled:opacity-50 text-white font-medium rounded-lg transition-colors shadow-sm"
+                  >
+                    Add {selectedNewMembers.length > 0 ? `(${selectedNewMembers.length})` : ''}
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Pending Members Dialog */}
+        <AnimatePresence>
+          {pendingMembersDialog && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-slate-900/50 z-[100] flex items-center justify-center p-4">
+              <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden flex flex-col max-h-[80vh]">
+                <div className="p-4 border-b border-slate-100 flex justify-between items-center">
+                  <h3 className="text-lg font-bold text-slate-900">Pending Approvals</h3>
+                  <button onClick={() => setPendingMembersDialog(false)} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+                </div>
+                <div className="p-2 overflow-y-auto chat-scrollbar flex-1">
+                  {activeChat?.pending_participants?.map(uid => {
+                    const u = users.find(user => user.id === uid);
+                    if (!u) return null;
+                    return (
+                      <div key={u.id} className="flex items-center gap-3 w-full p-2 border-b border-slate-50">
+                        <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden shrink-0">
+                          {u.avatar ? <img src={u.avatar} className="w-full h-full object-cover" /> : <User className="w-full h-full p-2 text-white bg-slate-400" />}
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium text-slate-800">{u.firstName} {u.lastName}</div>
+                          <div className="text-xs text-slate-500">Requested to join</div>
+                        </div>
+                        <div className="flex gap-2 shrink-0">
+                          <button onClick={() => managePendingMutation.mutate({ chatId: activeChat.id, userId: u.id, action: 'reject' })} className="w-8 h-8 rounded-full bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-100 transition-colors">
+                            <X size={16} />
+                          </button>
+                          <button onClick={() => managePendingMutation.mutate({ chatId: activeChat.id, userId: u.id, action: 'approve' })} className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-100 transition-colors">
+                            <Check size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     );
   }
@@ -454,18 +822,20 @@ export default function EmployeeMobileChat() {
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden shrink-0 ml-2">
-            {getChatAvatar(activeChat) ? (
-              <img src={getChatAvatar(activeChat)} className="w-full h-full object-cover" />
-            ) : (
-              <Users className="w-full h-full p-2 text-white bg-slate-400" />
-            )}
-          </div>
-          <div className="ml-3 flex-1 min-w-0">
-            <h1 className="text-base font-bold text-slate-900 truncate">{getChatName(activeChat)}</h1>
-            <p className="text-xs text-slate-500 truncate">
-              {activeChat.participants.map(p => p.firstName).join(', ')}
-            </p>
+          <div className="flex items-center flex-1 min-w-0 cursor-pointer" onClick={() => setShowContactInfo(!showContactInfo)}>
+            <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden shrink-0 ml-2">
+              {getChatAvatar(activeChat) ? (
+                <img src={getChatAvatar(activeChat)} className="w-full h-full object-cover" />
+              ) : (
+                <Users className="w-full h-full p-2 text-white bg-slate-400" />
+              )}
+            </div>
+            <div className="ml-3 flex-1 min-w-0">
+              <h1 className="text-base font-bold text-slate-900 truncate">{getChatName(activeChat)}</h1>
+              <p className="text-xs text-slate-500 truncate">
+                {activeChat.participants.map(p => p.firstName).join(', ')}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -526,74 +896,80 @@ export default function EmployeeMobileChat() {
         </div>
 
         {/* Input area fixed at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-slate-200 z-20">
-          <AnimatePresence>
-            {attachment && (
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="p-3 bg-slate-50/80 backdrop-blur-sm border-b border-slate-200 flex items-center justify-between shadow-sm">
-                <div className="flex items-center gap-3 overflow-hidden">
-                  <div className="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 border border-blue-200">
-                    {attachment.type.startsWith('image/') ? <ImageIcon size={20} /> : <FileText size={20} />}
+        {activeChat.type === 'group' && activeChat.permissions?.sendMessages === false && !activeChat.admin_ids?.includes(profile?.id) ? (
+          <div className="absolute bottom-0 left-0 right-0 bg-slate-50 py-4 px-4 text-center text-sm text-slate-500 font-medium border-t border-slate-200 z-20 pb-8">
+            Only admins can send messages in this group.
+          </div>
+        ) : (
+          <div className="absolute bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-slate-200 z-20">
+            <AnimatePresence>
+              {attachment && (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="p-3 bg-slate-50/80 backdrop-blur-sm border-b border-slate-200 flex items-center justify-between shadow-sm">
+                  <div className="flex items-center gap-3 overflow-hidden">
+                    <div className="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 border border-blue-200">
+                      {attachment.type.startsWith('image/') ? <ImageIcon size={20} /> : <FileText size={20} />}
+                    </div>
+                    <div className="truncate">
+                      <div className="text-sm font-bold text-slate-800 truncate">{attachment.name}</div>
+                      <div className="text-xs text-slate-500 font-medium">{(attachment.size / 1024 / 1024).toFixed(2)} MB</div>
+                    </div>
                   </div>
-                  <div className="truncate">
-                    <div className="text-sm font-bold text-slate-800 truncate">{attachment.name}</div>
-                    <div className="text-xs text-slate-500 font-medium">{(attachment.size / 1024 / 1024).toFixed(2)} MB</div>
-                  </div>
-                </div>
-                <button onClick={() => setAttachment(null)} className="p-2 text-slate-400 hover:text-red-500 rounded-full hover:bg-red-50 transition-colors">
-                  <X size={20} />
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                  <button onClick={() => setAttachment(null)} className="p-2 text-slate-400 hover:text-red-500 rounded-full hover:bg-red-50 transition-colors">
+                    <X size={20} />
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-          <form onSubmit={handleSendMessage} className="flex items-end gap-1.5 p-2 pb-8">
-            <input type="file" ref={fileInputRef} onChange={handleFileSelect} className="hidden" accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
-            
-            <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="p-2.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-full shrink-0 transition-colors mb-0.5">
-              <Smile size={24} />
-            </button>
-            <button type="button" onClick={() => fileInputRef.current?.click()} className="p-2.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-full shrink-0 transition-colors mb-0.5">
-              <Paperclip size={24} />
-            </button>
+            <form onSubmit={handleSendMessage} className="flex items-end gap-1.5 p-2 pb-8">
+              <input type="file" ref={fileInputRef} onChange={handleFileSelect} className="hidden" accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+              
+              <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="p-2.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-full shrink-0 transition-colors mb-0.5">
+                <Smile size={24} />
+              </button>
+              <button type="button" onClick={() => fileInputRef.current?.click()} className="p-2.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-full shrink-0 transition-colors mb-0.5">
+                <Paperclip size={24} />
+              </button>
 
-            <div className="flex-1 flex bg-slate-100 rounded-3xl px-4 py-2.5 items-end shadow-inner border border-slate-200/60 focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
-              <textarea
-                ref={textareaRef}
-                value={messageText}
-                onChange={e => {
-                  setMessageText(e.target.value);
-                  e.target.style.height = 'auto';
-                  e.target.style.height = `${Math.min(e.target.scrollHeight, 100)}px`;
-                }}
-                onKeyDown={e => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    if (messageText.trim() || attachment) handleSendMessage(e);
-                  }
-                }}
-                placeholder="Message..."
-                rows={1}
-                className="bg-transparent border-none outline-none w-full text-slate-800 font-medium resize-none overflow-y-auto chat-scrollbar placeholder:text-slate-400"
-                style={{ minHeight: '24px', maxHeight: '100px' }}
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={(!messageText.trim() && !attachment) || sendMessageMutation.isPending}
-              className={`w-11 h-11 mb-0.5 ml-0.5 rounded-full flex items-center justify-center shrink-0 transition-all shadow-md ${messageText.trim() || attachment ? 'bg-blue-600 text-white scale-100 shadow-blue-200' : 'bg-slate-200 text-slate-400 scale-90 shadow-none'}`}
-            >
-              <Send size={20} />
-            </button>
-          </form>
+              <div className="flex-1 flex bg-slate-100 rounded-3xl px-4 py-2.5 items-end shadow-inner border border-slate-200/60 focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
+                <textarea
+                  ref={textareaRef}
+                  value={messageText}
+                  onChange={e => {
+                    setMessageText(e.target.value);
+                    e.target.style.height = 'auto';
+                    e.target.style.height = `${Math.min(e.target.scrollHeight, 100)}px`;
+                  }}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      if (messageText.trim() || attachment) handleSendMessage(e);
+                    }
+                  }}
+                  placeholder="Message..."
+                  rows={1}
+                  className="bg-transparent border-none outline-none w-full text-slate-800 font-medium resize-none overflow-y-auto chat-scrollbar placeholder:text-slate-400"
+                  style={{ minHeight: '24px', maxHeight: '100px' }}
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={(!messageText.trim() && !attachment) || sendMessageMutation.isPending}
+                className={`w-11 h-11 mb-0.5 ml-0.5 rounded-full flex items-center justify-center shrink-0 transition-all shadow-md ${messageText.trim() || attachment ? 'bg-blue-600 text-white scale-100 shadow-blue-200' : 'bg-slate-200 text-slate-400 scale-90 shadow-none'}`}
+              >
+                <Send size={20} />
+              </button>
+            </form>
 
-          <AnimatePresence>
-            {showEmojiPicker && (
-              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 300, opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden bg-slate-50 border-t border-slate-200">
-                <EmojiPicker onEmojiClick={(e) => setMessageText(prev => prev + e.emoji)} width="100%" height={300} searchDisabled skinTonesDisabled />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+            <AnimatePresence>
+              {showEmojiPicker && (
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 280, opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden border-t border-slate-200 bg-slate-50 relative z-30 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
+                  <EmojiPicker onEmojiClick={(e) => setMessageText(prev => prev + e.emoji)} width="100%" height={280} searchDisabled skinTonesDisabled />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        )}
       </div>
     );
   }

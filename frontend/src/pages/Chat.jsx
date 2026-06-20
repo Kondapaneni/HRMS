@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { Search, Send, Plus, Users, User, ArrowLeft, MessageSquare, MoreVertical, Paperclip, Smile, Check, CheckCheck, Mic, FileText, Image as ImageIcon, X, Download, Camera, ChevronRight, Phone, Video } from 'lucide-react';
+import { Search, Send, Plus, Users, User, ArrowLeft, MessageSquare, MoreVertical, Paperclip, Smile, Check, CheckCheck, Mic, FileText, Image as ImageIcon, X, Download, Camera, ChevronRight, Phone, Video, Shield, Edit2, UserPlus } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { format, isToday, isYesterday } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -39,6 +39,7 @@ export default function Chat() {
   const [groupCreationStep, setGroupCreationStep] = useState(1);
   const [contactSearchQuery, setContactSearchQuery] = useState('');
   const [showContactInfo, setShowContactInfo] = useState(false);
+  const [adminToggleDialog, setAdminToggleDialog] = useState({ isOpen: false, targetUser: null, isCurrentlyAdmin: false });
   const [groupName, setGroupName] = useState('');
   const [selectedGroupParticipants, setSelectedGroupParticipants] = useState([]);
   const [groupAvatarFile, setGroupAvatarFile] = useState(null);
@@ -57,6 +58,16 @@ export default function Chat() {
   const textareaRef = useRef(null);
   const prevChatIdRef = useRef(null);
   const prevMessagesLengthRef = useRef(0);
+  
+  const [renameDialog, setRenameDialog] = useState({ isOpen: false, name: '' });
+  
+  const [addMembersDialog, setAddMembersDialog] = useState(false);
+  const [pendingMembersDialog, setPendingMembersDialog] = useState(false);
+  const [selectedNewMembers, setSelectedNewMembers] = useState([]);
+  const [addMembersSearchQuery, setAddMembersSearchQuery] = useState('');
+  
+  const [showMessageSearch, setShowMessageSearch] = useState(false);
+  const [messageSearchQuery, setMessageSearchQuery] = useState('');
 
   // 1. Fetch Data
   const { data: chats = [] } = useQuery({
@@ -306,6 +317,160 @@ export default function Chat() {
     }
   });
 
+  const toggleAdminMutation = useMutation({
+    mutationFn: async ({ chatId, targetUserId }) => {
+      const res = await api.put(`/chat/${chatId}/admins/toggle`, { targetUserId });
+      return res.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries(['chat', 'list']);
+      toast.success('Admin status updated');
+      
+      // Optionally update local state for immediate feedback
+      if (activeChat) {
+        setActiveChat({
+          ...activeChat,
+          admin_ids: data.admin_ids
+        });
+      }
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.error || 'Failed to update admin status');
+    }
+  });
+
+  const updatePermissionsMutation = useMutation({
+    mutationFn: async ({ chatId, permissionKey, permissionValue }) => {
+      const res = await api.put(`/chat/${chatId}/permissions`, { permissionKey, permissionValue });
+      return res.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries(['chat', 'list']);
+      toast.success('Group settings updated');
+      
+      if (activeChat) {
+        setActiveChat({
+          ...activeChat,
+          permissions: data.permissions
+        });
+      }
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.error || 'Failed to update group settings');
+    }
+  });
+
+  const handleTogglePermission = (permissionKey) => {
+    if (!activeChat || activeChat.type !== 'group') return;
+    const isAmIAdmin = activeChat.admin_ids?.includes(profile?.id);
+    if (!isAmIAdmin) return;
+    
+    const currentValue = activeChat.permissions?.[permissionKey];
+    updatePermissionsMutation.mutate({ 
+      chatId: activeChat.id, 
+      permissionKey, 
+      permissionValue: !currentValue 
+    });
+  };
+
+  const handleToggleAdmin = (targetUserId, currentAdmins) => {
+    // Replaced by direct click handler invoking the modal
+  };
+
+  const renameGroupMutation = useMutation({
+    mutationFn: async ({ chatId, name }) => {
+      const res = await api.put(`/chat/${chatId}`, { name });
+      return res.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['chat', 'list'] });
+      setActiveChat(prev => prev ? { ...prev, name: data.name } : null);
+      toast.success('Group name updated');
+      setRenameDialog({ isOpen: false, name: '' });
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.error || 'Failed to rename group');
+    }
+  });
+
+  const updateGroupAvatarMutation = useMutation({
+    mutationFn: async ({ chatId, fileToUpload }) => {
+      const fileExt = fileToUpload.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `groups/${fileName}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('chat_attachments')
+        .upload(filePath, fileToUpload);
+        
+      if (uploadError) throw new Error('Group icon upload failed');
+      
+      const { data } = supabase.storage
+        .from('chat_attachments')
+        .getPublicUrl(filePath);
+        
+      const res = await api.put(`/chat/${chatId}/avatar`, { group_avatar: data.publicUrl });
+      return { ...res.data, group_avatar: data.publicUrl };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries(['chat', 'list']);
+      setActiveChat(prev => prev ? { ...prev, group_avatar: data.group_avatar } : null);
+      toast.success('Group avatar updated');
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.error || err.message || 'Failed to update avatar');
+    }
+  });
+
+  const addMembersMutation = useMutation({
+    mutationFn: async ({ chatId, userIds }) => {
+      const res = await api.post(`/chat/${chatId}/participants`, { userIds });
+      return res.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['chat', 'list'] });
+      toast.success(data.status === 'pending' ? 'Approval requested for new members' : 'Members added successfully');
+      setAddMembersDialog(false);
+      setSelectedNewMembers([]);
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.error || 'Failed to add members');
+    }
+  });
+
+  const managePendingMutation = useMutation({
+    mutationFn: async ({ chatId, userId, action }) => {
+      const res = await api.put(`/chat/${chatId}/participants/pending`, { userId, action });
+      return res.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['chat', 'list'] });
+      toast.success(`Request ${data.action}d`);
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.error || 'Failed to process request');
+    }
+  });
+
+  const removeParticipantMutation = useMutation({
+    mutationFn: async ({ chatId, userId }) => {
+      const res = await api.delete(`/chat/${chatId}/participants/${userId}`);
+      return res.data;
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['chat', 'list'] });
+      if (variables.userId === profile?.id) {
+        toast.success('You have left the group');
+        setActiveChat(null);
+      } else {
+        toast.success('Participant removed');
+      }
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.error || 'Failed to process request');
+    }
+  });
+
   const handleCreatePersonalChat = (targetUserId) => {
     createChatMutation.mutate({
       payload: {
@@ -493,7 +658,7 @@ export default function Chat() {
       </div>
 
       {/* Main Chat Area */}
-      <div className={`flex-1 flex flex-col bg-transparent relative min-h-0 overflow-hidden ${!activeChat && !showNewChat ? 'hidden md:flex items-center justify-center' : 'flex'}`}>
+      <div className={`flex-1 flex-col bg-transparent relative min-h-0 overflow-hidden ${showContactInfo ? 'hidden' : (!activeChat && !showNewChat ? 'hidden md:flex items-center justify-center' : 'flex')}`}>
 
         {!activeChat && !showNewChat ? (
           <div className="text-center relative z-10">
@@ -705,8 +870,8 @@ export default function Chat() {
           <div className="flex-1 flex flex-col relative z-10 min-h-0 overflow-hidden">
             {/* Header */}
             <div className="h-16 bg-white/80 backdrop-blur-md flex items-center justify-between px-4 border-b border-slate-200 shrink-0">
-              <div className="flex items-center gap-3">
-                <button onClick={() => setActiveChat(null)} className="md:hidden mr-2 text-slate-600"><ArrowLeft size={20} /></button>
+              <div className="flex items-center gap-3 cursor-pointer" onClick={() => setShowContactInfo(!showContactInfo)}>
+                <button onClick={(e) => { e.stopPropagation(); setActiveChat(null); }} className="md:hidden mr-2 text-slate-600"><ArrowLeft size={20} /></button>
                 <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden shrink-0">
                   {getChatAvatar(activeChat) ? (
                     <img src={getChatAvatar(activeChat)} className="w-full h-full object-cover" />
@@ -722,15 +887,44 @@ export default function Chat() {
                 </div>
               </div>
               <div className="flex gap-4 text-slate-500">
-                <Search size={20} className="cursor-pointer hover:text-slate-700" />
+                <Search onClick={() => setShowMessageSearch(!showMessageSearch)} size={20} className={`cursor-pointer transition-colors ${showMessageSearch ? 'text-[#008069]' : 'hover:text-slate-700'}`} />
                 <MoreVertical onClick={() => setShowContactInfo(!showContactInfo)} size={20} className="cursor-pointer hover:text-slate-700" />
               </div>
             </div>
 
+            <AnimatePresence>
+              {showMessageSearch && (
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="bg-white border-b border-slate-200 px-4 py-2 shrink-0 relative z-10 shadow-sm overflow-hidden">
+                  <div className="relative flex items-center">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Search size={16} className="text-slate-400" />
+                    </div>
+                    <input
+                      type="text"
+                      autoFocus
+                      value={messageSearchQuery}
+                      onChange={(e) => setMessageSearchQuery(e.target.value)}
+                      placeholder="Search messages..."
+                      className="w-full bg-slate-100 border-none text-slate-800 text-sm rounded-lg focus:ring-2 focus:ring-[#008069] block pl-10 p-2 transition-all outline-none"
+                    />
+                    {messageSearchQuery && (
+                      <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                        <button onClick={() => setMessageSearchQuery('')} className="p-1 hover:bg-slate-200 rounded-full text-slate-400 hover:text-slate-600 transition-colors">
+                          <X size={14} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-3 chat-scrollbar">
 
-              {[...messages, ...pendingMessages].map((msg, index, arr) => {
+              {[...messages, ...pendingMessages]
+                .filter(msg => !messageSearchQuery || (msg.content && msg.content.toLowerCase().includes(messageSearchQuery.toLowerCase())))
+                .map((msg, index, arr) => {
                 const isMine = msg.senderId === profile?.id;
                 const sender = activeChat.participants.find(p => p.id === msg.senderId);
                 const msgDate = new Date(msg.createdAt).toDateString();
@@ -785,6 +979,11 @@ export default function Chat() {
             </div>
 
             {/* Input Footer */}
+            {activeChat.type === 'group' && activeChat.permissions?.sendMessages === false && !activeChat.admin_ids?.includes(profile?.id) ? (
+              <div className="bg-slate-50 py-4 px-4 text-center text-sm text-slate-500 font-medium border-t border-slate-200 shrink-0">
+                Only admins can send messages in this group.
+              </div>
+            ) : (
             <div className="bg-white/80 backdrop-blur-md flex flex-col shrink-0 border-t border-slate-200 relative z-20">
               <AnimatePresence>
                 {attachment && (
@@ -854,13 +1053,14 @@ export default function Chat() {
                 )}
               </AnimatePresence>
             </div>
+            )}
           </div>
         )}
       </div>
 
       {/* Contact Info Sidebar */}
       {showContactInfo && activeChat && (
-        <div className="w-80 flex flex-col bg-slate-50 border-l border-slate-200 shrink-0 hidden lg:flex relative z-10 shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.05)]">
+        <div className="flex-1 flex flex-col bg-slate-50 border-l border-slate-200 relative z-10 shadow-[-4px_0_15px_-3px_rgba(0,0,0,0.05)]">
           <div className="h-16 bg-white flex items-center px-4 border-b border-slate-200 shrink-0 shadow-sm z-10">
             <button onClick={() => setShowContactInfo(false)} className="mr-4 p-2 rounded-full hover:bg-slate-100 text-slate-500 transition-colors"><X size={20} /></button>
             <h2 className="font-semibold text-slate-800">{activeChat.type === 'group' ? 'Group info' : 'Contact info'}</h2>
@@ -868,25 +1068,59 @@ export default function Chat() {
           
           <div className="flex-1 overflow-y-auto chat-scrollbar bg-slate-50">
             <div className="bg-white flex flex-col items-center pt-8 pb-6 shadow-sm mb-2">
-              <div className="w-40 h-40 rounded-full bg-slate-200 overflow-hidden shadow-md mb-4">
+              <div className="w-40 h-40 rounded-full bg-slate-200 overflow-hidden shadow-md mb-4 relative group">
                 {getChatAvatar(activeChat) ? (
                   <img src={getChatAvatar(activeChat)} className="w-full h-full object-cover" />
                 ) : (
                   activeChat.type === 'group' ? <Users className="w-full h-full p-8 text-white bg-slate-400" /> : <User className="w-full h-full p-8 text-white bg-slate-400" />
                 )}
+                
+                {/* Admin avatar change overlay */}
+                {activeChat.type === 'group' && (() => {
+                  const amIAdmin = activeChat.admin_ids?.includes(profile?.id);
+                  const canEdit = activeChat.permissions?.editSettings !== false || amIAdmin;
+                  return canEdit && (
+                    <label className="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center cursor-pointer transition-all">
+                      <div className="flex flex-col items-center text-white">
+                        <Camera size={24} className="mb-1" />
+                        <span className="text-xs font-semibold">CHANGE</span>
+                      </div>
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        className="hidden" 
+                        onChange={(e) => {
+                          if (e.target.files?.[0]) {
+                            updateGroupAvatarMutation.mutate({ 
+                              chatId: activeChat.id, 
+                              fileToUpload: e.target.files[0] 
+                            });
+                          }
+                        }}
+                      />
+                    </label>
+                  );
+                })()}
               </div>
-              <h2 className="text-2xl font-semibold text-slate-900 mb-1">{getChatName(activeChat)}</h2>
+              <div className="flex items-center justify-center gap-2 mb-1 group px-4">
+                <h2 className="text-2xl font-semibold text-slate-900 text-center">{getChatName(activeChat)}</h2>
+                {activeChat.type === 'group' && (() => {
+                  const amIAdmin = activeChat.admin_ids?.includes(profile?.id);
+                  const canEdit = activeChat.permissions?.editSettings !== false || amIAdmin;
+                  return canEdit && (
+                    <button onClick={() => setRenameDialog({ isOpen: true, name: activeChat.name })} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-full opacity-0 group-hover:opacity-100 transition-all">
+                      <Edit2 size={16} />
+                    </button>
+                  );
+                })()}
+              </div>
               
               {activeChat.type === 'personal' && (() => {
                 const other = activeChat.participants.find(p => p.id !== profile?.id);
                 return (
                   <>
                     <p className="text-slate-500 text-sm mb-4">{other?.designation || 'Employee'}</p>
-                    <div className="flex gap-6 mt-2 text-slate-600">
-                      <div className="flex flex-col items-center cursor-pointer hover:text-[#008069] transition-colors"><MessageSquare size={24} className="mb-1"/><span className="text-xs font-medium">Message</span></div>
-                      <div className="flex flex-col items-center cursor-pointer hover:text-[#008069] transition-colors"><Phone size={24} className="mb-1"/><span className="text-xs font-medium">Audio</span></div>
-                      <div className="flex flex-col items-center cursor-pointer hover:text-[#008069] transition-colors"><Video size={24} className="mb-1"/><span className="text-xs font-medium">Video</span></div>
-                    </div>
+
                   </>
                 );
               })()}
@@ -902,17 +1136,82 @@ export default function Chat() {
                <div className="border-t border-slate-100 pt-3 text-md font-medium">
                  {activeChat.type === 'personal' ? (activeChat.participants.find(p => p.id !== profile?.id)?.phone || 'No phone number') : 'Group details'}
                </div>
-               <div className="text-sm text-slate-500">Phone</div>
+               {activeChat.type === 'personal' && <div className="text-sm text-slate-500">Phone</div>}
             </div>
 
-            {activeChat.type === 'group' && (
+            {activeChat.type === 'group' && (() => {
+              const amIAdmin = activeChat.admin_ids?.includes(profile?.id);
+              return (
+              <div className="bg-white p-4 shadow-sm mb-2 text-slate-800">
+                <div className="text-[#008069] text-xs font-semibold uppercase tracking-wider mb-3">Group Settings</div>
+                <div className="space-y-1">
+                  <div 
+                    onClick={() => handleTogglePermission('editSettings')}
+                    className={`flex justify-between items-center p-2 -mx-2 rounded ${amIAdmin ? 'cursor-pointer hover:bg-slate-50 transition-colors' : ''}`}
+                  >
+                    <span className="text-sm font-medium">Edit Group Info</span>
+                    <span className={`text-xs px-2 py-1 rounded text-slate-600 ${amIAdmin ? 'bg-blue-50 text-blue-700 font-semibold shadow-sm' : 'bg-slate-100'}`}>
+                      {activeChat.permissions?.editSettings ? 'All Members' : 'Admins Only'}
+                    </span>
+                  </div>
+                  <div 
+                    onClick={() => handleTogglePermission('sendMessages')}
+                    className={`flex justify-between items-center p-2 -mx-2 rounded ${amIAdmin ? 'cursor-pointer hover:bg-slate-50 transition-colors' : ''}`}
+                  >
+                    <span className="text-sm font-medium">Send Messages</span>
+                    <span className={`text-xs px-2 py-1 rounded text-slate-600 ${amIAdmin ? 'bg-blue-50 text-blue-700 font-semibold shadow-sm' : 'bg-slate-100'}`}>
+                      {activeChat.permissions?.sendMessages ? 'All Members' : 'Admins Only'}
+                    </span>
+                  </div>
+                  <div 
+                    onClick={() => handleTogglePermission('addMembers')}
+                    className={`flex justify-between items-center p-2 -mx-2 rounded ${amIAdmin ? 'cursor-pointer hover:bg-slate-50 transition-colors' : ''}`}
+                  >
+                    <span className="text-sm font-medium">Add New Members</span>
+                    <span className={`text-xs px-2 py-1 rounded text-slate-600 ${amIAdmin ? 'bg-blue-50 text-blue-700 font-semibold shadow-sm' : 'bg-slate-100'}`}>
+                      {activeChat.permissions?.addMembers ? 'All Members' : 'Admins Only'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              );
+            })()}
+
+            {activeChat.type === 'group' && (() => {
+              const amIAdmin = activeChat.admin_ids?.includes(profile?.id);
+              const canAdd = activeChat.permissions?.addMembers !== false || amIAdmin;
+              const pendingCount = activeChat.pending_participants?.length || 0;
+              return (
               <div className="bg-white shadow-sm mb-2">
-                <div className="p-4 border-b border-slate-100">
+                <div className="p-4 border-b border-slate-100 flex justify-between items-center">
                   <div className="text-[#008069] text-xs font-semibold uppercase tracking-wider">Participants</div>
+                  <div className="flex gap-2">
+                    {amIAdmin && pendingCount > 0 && (
+                      <button onClick={() => setPendingMembersDialog(true)} className="text-xs text-orange-600 font-semibold flex items-center hover:bg-orange-50 px-2 py-1 rounded transition-colors border border-orange-200">
+                        Pending ({pendingCount})
+                      </button>
+                    )}
+                    {canAdd && (
+                      <button onClick={() => setAddMembersDialog(true)} className="text-xs text-[#008069] font-semibold flex items-center hover:bg-slate-50 px-2 py-1 rounded transition-colors border border-slate-200">
+                        <UserPlus size={14} className="mr-1" /> Add
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <div className="max-h-60 overflow-y-auto chat-scrollbar">
-                  {activeChat.participants.map(p => (
-                    <div key={p.id} className="flex items-center gap-3 p-3 hover:bg-slate-50 cursor-pointer">
+                  {activeChat.participants.map(p => {
+                    const amIAdmin = activeChat.admin_ids?.includes(profile?.id);
+                    const isClickable = amIAdmin && p.id !== profile?.id;
+                    return (
+                    <div 
+                      key={p.id} 
+                      onClick={() => {
+                        if (isClickable) {
+                          setAdminToggleDialog({ isOpen: true, targetUser: p, isCurrentlyAdmin: activeChat.admin_ids?.includes(p.id) });
+                        }
+                      }}
+                      className={`flex items-center gap-3 p-3 ${isClickable ? 'hover:bg-slate-50 cursor-pointer' : ''}`}
+                    >
                       <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden shrink-0">
                         {p.avatar ? <img src={p.avatar} className="w-full h-full object-cover" /> : <User className="w-full h-full p-2 text-white bg-slate-400" />}
                       </div>
@@ -924,20 +1223,229 @@ export default function Chat() {
                         <span className="text-[10px] bg-emerald-100 text-[#008069] px-2 py-0.5 rounded border border-emerald-200 font-bold">Admin</span>
                       )}
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
-            )}
-            
-            <div className="bg-white shadow-sm mb-6 mt-2 cursor-pointer hover:bg-slate-50 transition-colors">
-               <div className="p-4 flex items-center text-red-500 font-medium">
-                 <X size={20} className="mr-4" />
+              );
+            })()}
+          </div>
+          <div 
+            onClick={() => {
+              if (activeChat.type === 'group') {
+                const amIAdmin = activeChat.admin_ids?.includes(profile?.id);
+                if (amIAdmin && activeChat.admin_ids.length === 1) {
+                  if (activeChat.participants.length > 1) {
+                    toast.error('You must promote another member to admin before exiting.');
+                    return;
+                  } else {
+                    toast.error('You are the only member in the group, you cannot exit.');
+                    return;
+                  }
+                }
+                if (window.confirm('Are you sure you want to exit this group?')) {
+                  removeParticipantMutation.mutate({ chatId: activeChat.id, userId: profile?.id });
+                }
+              }
+            }}
+            className="bg-white shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] cursor-pointer hover:bg-slate-50 transition-colors shrink-0 z-10 border-t border-slate-100"
+          >
+             <div className="flex items-center gap-3 p-3 text-red-500 font-medium">
+               <div className="w-10 h-10 flex items-center justify-center shrink-0">
+                 <X size={24} />
+               </div>
+               <div className="flex-1">
                  {activeChat.type === 'group' ? 'Exit group' : 'Block contact'}
                </div>
-            </div>
+             </div>
           </div>
         </div>
       )}
+
+      {/* Admin Toggle Dialog */}
+      {/* Admin Toggle / Participant Options Dialog */}
+      <AnimatePresence>
+        {adminToggleDialog.isOpen && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-slate-900/50 z-[100] flex items-center justify-center p-4">
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden">
+              <div className="p-5">
+                <div className="flex items-center justify-center gap-3 mb-4">
+                  <div className="w-12 h-12 rounded-full bg-slate-200 overflow-hidden shrink-0 border border-slate-200">
+                    {adminToggleDialog.targetUser?.avatar ? <img src={adminToggleDialog.targetUser.avatar} className="w-full h-full object-cover" /> : <User className="w-full h-full p-2 text-white bg-slate-400" />}
+                  </div>
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 text-center mb-6">
+                  Manage {adminToggleDialog.targetUser?.firstName}
+                </h3>
+                
+                <div className="space-y-3">
+                  <button onClick={() => {
+                    toggleAdminMutation.mutate({ chatId: activeChat.id, targetUserId: adminToggleDialog.targetUser.id });
+                    setAdminToggleDialog({ isOpen: false, targetUser: null, isCurrentlyAdmin: false });
+                  }} className="w-full px-4 py-3 bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium rounded-lg transition-colors border border-slate-200 text-left flex justify-between items-center">
+                    <span>{adminToggleDialog.isCurrentlyAdmin ? 'Remove Admin Privileges' : 'Make Group Admin'}</span>
+                    <Shield size={18} className={adminToggleDialog.isCurrentlyAdmin ? 'text-slate-400' : 'text-[#008069]'} />
+                  </button>
+                  
+                  <button onClick={() => {
+                    if (window.confirm(`Are you sure you want to remove ${adminToggleDialog.targetUser?.firstName} from the group?`)) {
+                      removeParticipantMutation.mutate({ chatId: activeChat.id, userId: adminToggleDialog.targetUser.id });
+                      setAdminToggleDialog({ isOpen: false, targetUser: null, isCurrentlyAdmin: false });
+                    }
+                  }} className="w-full px-4 py-3 bg-red-50 hover:bg-red-100 text-red-600 font-medium rounded-lg transition-colors border border-red-100 text-left flex justify-between items-center">
+                    <span>Remove from Group</span>
+                    <X size={18} />
+                  </button>
+                  
+                  <button onClick={() => setAdminToggleDialog({ isOpen: false, targetUser: null, isCurrentlyAdmin: false })} className="w-full px-4 py-3 bg-white hover:bg-slate-50 text-slate-600 font-medium rounded-lg transition-colors text-center mt-2">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Rename Group Dialog */}
+      <AnimatePresence>
+        {renameDialog.isOpen && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-slate-900/50 z-[100] flex items-center justify-center p-4">
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden">
+              <div className="p-5">
+                <h3 className="text-lg font-bold text-slate-900 mb-4 text-center">Rename Group</h3>
+                <input 
+                  type="text" 
+                  value={renameDialog.name}
+                  onChange={(e) => setRenameDialog(prev => ({ ...prev, name: e.target.value }))}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-[#008069] focus:border-transparent mb-6 transition-all"
+                  placeholder="Group Name"
+                  autoFocus
+                />
+                <div className="flex gap-3">
+                  <button onClick={() => setRenameDialog({ isOpen: false, name: '' })} className="flex-1 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition-colors">
+                    Cancel
+                  </button>
+                  <button 
+                    onClick={() => {
+                      if (renameDialog.name.trim()) {
+                        renameGroupMutation.mutate({ chatId: activeChat.id, name: renameDialog.name.trim() });
+                      }
+                    }} 
+                    disabled={!renameDialog.name.trim() || renameGroupMutation.isPending}
+                    className="flex-1 px-4 py-2 bg-[#008069] hover:bg-[#00695c] disabled:opacity-50 text-white font-medium rounded-lg transition-colors shadow-sm"
+                  >
+                    Save
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Add Members Dialog */}
+      <AnimatePresence>
+        {addMembersDialog && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-slate-900/50 z-[100] flex items-center justify-center p-4">
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden flex flex-col max-h-[80vh]">
+              <div className="p-4 border-b border-slate-100">
+                <h3 className="text-lg font-bold text-slate-900 text-center mb-4">Add Members</h3>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Search size={16} className="text-slate-400" />
+                  </div>
+                  <input
+                    type="text"
+                    value={addMembersSearchQuery}
+                    onChange={(e) => setAddMembersSearchQuery(e.target.value)}
+                    placeholder="Search by name or designation..."
+                    className="w-full bg-slate-50 border border-slate-200 text-slate-800 text-sm rounded-lg focus:ring-2 focus:ring-[#008069] focus:border-transparent block pl-10 p-2.5 transition-all"
+                  />
+                </div>
+              </div>
+              <div className="p-2 overflow-y-auto chat-scrollbar flex-1">
+                {users
+                  .filter(u => u.id !== profile?.id && !activeChat?.participants.some(p => p.id === u.id) && !activeChat?.pending_participants?.includes(u.id))
+                  .filter(u => (u.firstName + ' ' + u.lastName).toLowerCase().includes(addMembersSearchQuery.toLowerCase()) || (u.designation || '').toLowerCase().includes(addMembersSearchQuery.toLowerCase()))
+                  .map(u => (
+                  <div key={u.id} onClick={() => setSelectedNewMembers(prev => prev.includes(u.id) ? prev.filter(id => id !== u.id) : [...prev, u.id])} className="flex items-center gap-3 w-full p-2 hover:bg-slate-50 rounded cursor-pointer transition-colors">
+                    <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden shrink-0">
+                      {u.avatar ? <img src={u.avatar} className="w-full h-full object-cover" /> : <User className="w-full h-full p-2 text-white bg-slate-400" />}
+                    </div>
+                    <div className="flex-1 border-b border-slate-50 pb-2">
+                      <div className="font-medium text-slate-800">{u.firstName} {u.lastName}</div>
+                      <div className="text-xs text-slate-500">{u.designation || 'Employee'}</div>
+                    </div>
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${selectedNewMembers.includes(u.id) ? 'bg-[#008069] border-[#008069]' : 'border-slate-300'}`}>
+                      {selectedNewMembers.includes(u.id) && <Check size={12} className="text-white" />}
+                    </div>
+                  </div>
+                ))}
+                {users.filter(u => u.id !== profile?.id && !activeChat?.participants.some(p => p.id === u.id) && !activeChat?.pending_participants?.includes(u.id)).length === 0 && (
+                  <div className="text-center text-slate-500 py-8 text-sm">No new users available to add.</div>
+                )}
+                {users.filter(u => u.id !== profile?.id && !activeChat?.participants.some(p => p.id === u.id) && !activeChat?.pending_participants?.includes(u.id)).length > 0 && 
+                 users.filter(u => u.id !== profile?.id && !activeChat?.participants.some(p => p.id === u.id) && !activeChat?.pending_participants?.includes(u.id))
+                      .filter(u => (u.firstName + ' ' + u.lastName).toLowerCase().includes(addMembersSearchQuery.toLowerCase()) || (u.designation || '').toLowerCase().includes(addMembersSearchQuery.toLowerCase())).length === 0 && (
+                  <div className="text-center text-slate-500 py-8 text-sm">No results found for "{addMembersSearchQuery}"</div>
+                )}
+              </div>
+              <div className="p-4 border-t border-slate-100 bg-slate-50 flex gap-3">
+                <button onClick={() => { setAddMembersDialog(false); setSelectedNewMembers([]); setAddMembersSearchQuery(''); }} className="flex-1 px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium rounded-lg transition-colors">
+                  Cancel
+                </button>
+                <button 
+                  onClick={() => addMembersMutation.mutate({ chatId: activeChat.id, userIds: selectedNewMembers })}
+                  disabled={selectedNewMembers.length === 0 || addMembersMutation.isPending}
+                  className="flex-1 px-4 py-2 bg-[#008069] hover:bg-[#00695c] disabled:opacity-50 text-white font-medium rounded-lg transition-colors shadow-sm"
+                >
+                  Add {selectedNewMembers.length > 0 ? `(${selectedNewMembers.length})` : ''}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Pending Members Dialog */}
+      <AnimatePresence>
+        {pendingMembersDialog && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-slate-900/50 z-[100] flex items-center justify-center p-4">
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden flex flex-col max-h-[80vh]">
+              <div className="p-4 border-b border-slate-100 flex justify-between items-center">
+                <h3 className="text-lg font-bold text-slate-900">Pending Approvals</h3>
+                <button onClick={() => setPendingMembersDialog(false)} className="text-slate-400 hover:text-slate-600"><X size={20} /></button>
+              </div>
+              <div className="p-2 overflow-y-auto chat-scrollbar flex-1">
+                {activeChat?.pending_participants?.map(uid => {
+                  const u = users.find(user => user.id === uid);
+                  if (!u) return null;
+                  return (
+                    <div key={u.id} className="flex items-center gap-3 w-full p-2 border-b border-slate-50">
+                      <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden shrink-0">
+                        {u.avatar ? <img src={u.avatar} className="w-full h-full object-cover" /> : <User className="w-full h-full p-2 text-white bg-slate-400" />}
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium text-slate-800">{u.firstName} {u.lastName}</div>
+                        <div className="text-xs text-slate-500">Requested to join</div>
+                      </div>
+                      <div className="flex gap-2 shrink-0">
+                        <button onClick={() => managePendingMutation.mutate({ chatId: activeChat.id, userId: u.id, action: 'reject' })} className="w-8 h-8 rounded-full bg-red-50 text-red-600 flex items-center justify-center hover:bg-red-100 transition-colors">
+                          <X size={16} />
+                        </button>
+                        <button onClick={() => managePendingMutation.mutate({ chatId: activeChat.id, userId: u.id, action: 'approve' })} className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-100 transition-colors">
+                          <Check size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
