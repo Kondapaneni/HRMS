@@ -362,6 +362,38 @@ export default function Chat() {
       const res = await api.put(`/chat/${chatId}/permissions`, { permissionKey, permissionValue });
       return res.data;
     },
+    onMutate: async ({ chatId, permissionKey, permissionValue }) => {
+      await queryClient.cancelQueries({ queryKey: ['chat', 'list'] });
+      const previousChats = queryClient.getQueryData(['chat', 'list']);
+      
+      // Optimistically update query data
+      queryClient.setQueryData(['chat', 'list'], (old) => {
+        if (!old) return old;
+        return old.map(chat => 
+          chat.id === chatId 
+            ? { ...chat, permissions: { ...chat.permissions, [permissionKey]: permissionValue } }
+            : chat
+        );
+      });
+
+      // Optimistically update activeChat state
+      let previousActiveChat = null;
+      setActiveChat(prev => {
+        previousActiveChat = prev;
+        if (prev && prev.id === chatId) {
+          return {
+            ...prev,
+            permissions: {
+              ...prev.permissions,
+              [permissionKey]: permissionValue
+            }
+          };
+        }
+        return prev;
+      });
+
+      return { previousChats, previousActiveChat };
+    },
     onSuccess: (data, variables) => {
       queryClient.setQueryData(['chat', 'list'], (old) => {
         if (!old) return old;
@@ -371,17 +403,26 @@ export default function Chat() {
             : chat
         );
       });
-      queryClient.invalidateQueries(['chat', 'list']);
-      toast.success('Group settings updated');
+      queryClient.invalidateQueries({ queryKey: ['chat', 'list'] });
+      // toast.success('Group settings updated');
       
-      if (activeChat) {
-        setActiveChat({
-          ...activeChat,
-          permissions: data.permissions
-        });
-      }
+      setActiveChat(prev => {
+        if (prev && prev.id === variables.chatId) {
+          return {
+            ...prev,
+            permissions: data.permissions
+          };
+        }
+        return prev;
+      });
     },
-    onError: (err) => {
+    onError: (err, variables, context) => {
+      if (context?.previousChats) {
+        queryClient.setQueryData(['chat', 'list'], context.previousChats);
+      }
+      if (context?.previousActiveChat) {
+        setActiveChat(context.previousActiveChat);
+      }
       toast.error(err.response?.data?.error || 'Failed to update group settings');
     }
   });
@@ -628,6 +669,7 @@ export default function Chat() {
               onClick={async () => {
                 setActiveChat(chat);
                 setShowNewChat(false);
+                setShowContactInfo(false);
 
                 // Optimistically clear unread counts for instant UI feedback
                 if (chat.unread_count > 0) {
@@ -675,7 +717,7 @@ export default function Chat() {
         {/* New Chat Button */}
         <div className="min-h-[68px] px-4 bg-white/50 shrink-0 flex items-center justify-center border-t border-slate-200">
           <button
-            onClick={() => { setShowNewChat(true); setActiveChat(null); }}
+            onClick={() => { setShowNewChat(true); setActiveChat(null); setShowContactInfo(false); }}
             className="flex items-center gap-2 text-sm font-medium text-white bg-slate-800 px-4 py-2 rounded-full hover:bg-slate-700 transition-all shadow-md"
           >
             <Plus size={18} /> New Chat
