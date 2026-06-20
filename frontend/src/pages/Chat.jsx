@@ -1205,6 +1205,15 @@ export default function Chat() {
                       {activeChat.permissions?.addMembers ? 'All Members' : 'Admins Only'}
                     </span>
                   </div>
+                  <div 
+                    onClick={() => handleTogglePermission('approveNewMembers')}
+                    className={`flex justify-between items-center p-2 -mx-2 rounded ${amIAdmin ? 'cursor-pointer hover:bg-slate-50 transition-colors' : ''}`}
+                  >
+                    <span className="text-sm font-medium">Approve New Members</span>
+                    <span className={`text-xs px-2 py-1 rounded text-slate-600 ${amIAdmin ? 'bg-blue-50 text-blue-700 font-semibold shadow-sm' : 'bg-slate-100'}`}>
+                      {activeChat.permissions?.approveNewMembers ? 'On' : 'Off'}
+                    </span>
+                  </div>
                 </div>
               </div>
               );
