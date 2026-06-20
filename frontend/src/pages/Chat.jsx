@@ -128,6 +128,16 @@ export default function Chat() {
     };
   }, [activeChat, queryClient]);
 
+  // Sync activeChat when chats list updates (e.g. after toggling admin, adding/removing members)
+  useEffect(() => {
+    if (activeChat && chats.length > 0) {
+      const updatedChat = chats.find(c => c.id === activeChat.id);
+      if (updatedChat && JSON.stringify(updatedChat) !== JSON.stringify(activeChat)) {
+        setActiveChat(updatedChat);
+      }
+    }
+  }, [chats, activeChat]);
+
   // Scroll to bottom on new message or initial load
   const scrollToBottom = (instant = false) => {
     if (instant) {

@@ -129,6 +129,16 @@ export default function EmployeeMobileChat() {
     setMessageSearchQuery('');
   }, [activeChat]);
 
+  // Sync activeChat when chats list updates (e.g. after toggling admin, adding/removing members)
+  useEffect(() => {
+    if (activeChat && chats.length > 0) {
+      const updatedChat = chats.find(c => c.id === activeChat.id);
+      if (updatedChat && JSON.stringify(updatedChat) !== JSON.stringify(activeChat)) {
+        setActiveChat(updatedChat);
+      }
+    }
+  }, [chats, activeChat]);
+
   const scrollToBottom = (instant = false) => {
     if (instant) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
@@ -389,6 +399,25 @@ export default function EmployeeMobileChat() {
     },
     onError: (err) => {
       toast.error(err.response?.data?.error || 'Failed to update admin status');
+    }
+  });
+
+  const removeParticipantMutation = useMutation({
+    mutationFn: async ({ chatId, userId }) => {
+      const res = await api.delete(`/chat/${chatId}/participants/${userId}`);
+      return res.data;
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['chat', 'list'] });
+      if (variables.userId === profile?.id) {
+        toast.success('You have left the group');
+        setActiveChat(null);
+      } else {
+        toast.success('Participant removed');
+      }
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.error || 'Failed to process request');
     }
   });
 
@@ -688,29 +717,37 @@ export default function EmployeeMobileChat() {
           {adminToggleDialog.isOpen && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-slate-900/50 z-[100] flex items-center justify-center p-4">
               <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden">
-                <div className="p-5 text-center">
-                  <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-4">
-                    <Shield size={24} />
+                <div className="p-5">
+                  <div className="flex items-center justify-center gap-3 mb-4">
+                    <div className="w-12 h-12 rounded-full bg-slate-200 overflow-hidden shrink-0 border border-slate-200">
+                      {adminToggleDialog.targetUser?.avatar ? <img src={adminToggleDialog.targetUser.avatar} className="w-full h-full object-cover" /> : <User className="w-full h-full p-2 text-white bg-slate-400" />}
+                    </div>
                   </div>
-                  <h3 className="text-lg font-bold text-slate-900 mb-2">
-                    {adminToggleDialog.isCurrentlyAdmin ? 'Remove Admin' : 'Make Admin'}
+                  <h3 className="text-lg font-bold text-slate-900 text-center mb-6">
+                    Manage {adminToggleDialog.targetUser?.firstName}
                   </h3>
-                  <p className="text-sm text-slate-500 mb-6">
-                    {adminToggleDialog.isCurrentlyAdmin 
-                      ? `Are you sure you want to remove ${adminToggleDialog.targetUser?.firstName} from the admin list?` 
-                      : `Are you sure you want to promote ${adminToggleDialog.targetUser?.firstName} to admin? They will be able to manage this group.`}
-                  </p>
-                  <div className="flex gap-3">
-                    <button onClick={() => setAdminToggleDialog({ isOpen: false, targetUser: null, isCurrentlyAdmin: false })} className="flex-1 px-4 py-2 bg-slate-100 active:bg-slate-200 text-slate-700 font-medium rounded-lg transition-colors">
-                      Cancel
-                    </button>
+                  
+                  <div className="space-y-3">
                     <button onClick={() => {
-                      if (adminToggleDialog.targetUser) {
-                        toggleAdminMutation.mutate({ chatId: activeChat.id, targetUserId: adminToggleDialog.targetUser.id });
-                      }
+                      toggleAdminMutation.mutate({ chatId: activeChat.id, targetUserId: adminToggleDialog.targetUser.id });
                       setAdminToggleDialog({ isOpen: false, targetUser: null, isCurrentlyAdmin: false });
-                    }} className="flex-1 px-4 py-2 bg-[#008069] active:bg-[#00695c] text-white font-medium rounded-lg transition-colors shadow-sm">
-                      Confirm
+                    }} className="w-full px-4 py-3 bg-slate-50 active:bg-slate-100 text-slate-700 font-medium rounded-lg transition-colors border border-slate-200 text-left flex justify-between items-center">
+                      <span>{adminToggleDialog.isCurrentlyAdmin ? 'Remove Admin Privileges' : 'Make Group Admin'}</span>
+                      <Shield size={18} className={adminToggleDialog.isCurrentlyAdmin ? 'text-slate-400' : 'text-[#008069]'} />
+                    </button>
+                    
+                    <button onClick={() => {
+                      if (window.confirm(`Are you sure you want to remove ${adminToggleDialog.targetUser?.firstName} from the group?`)) {
+                        removeParticipantMutation.mutate({ chatId: activeChat.id, userId: adminToggleDialog.targetUser.id });
+                        setAdminToggleDialog({ isOpen: false, targetUser: null, isCurrentlyAdmin: false });
+                      }
+                    }} className="w-full px-4 py-3 bg-red-50 active:bg-red-100 text-red-600 font-medium rounded-lg transition-colors border border-red-100 text-left flex justify-between items-center">
+                      <span>Remove from Group</span>
+                      <X size={18} />
+                    </button>
+                    
+                    <button onClick={() => setAdminToggleDialog({ isOpen: false, targetUser: null, isCurrentlyAdmin: false })} className="w-full px-4 py-3 bg-white active:bg-slate-50 text-slate-600 font-medium rounded-lg transition-colors text-center mt-2">
+                      Cancel
                     </button>
                   </div>
                 </div>
