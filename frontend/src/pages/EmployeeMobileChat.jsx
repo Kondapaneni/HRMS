@@ -476,7 +476,7 @@ export default function EmployeeMobileChat() {
   // Rendering
   if (showContactInfo && activeChat) {
     return (
-      <div className="flex flex-col h-[calc(100vh-4rem)] bg-slate-50 font-sans -m-4 sm:-m-6 relative z-10 overflow-hidden">
+      <div className="flex flex-col h-[100dvh] bg-slate-50 font-sans relative z-10 overflow-hidden">
         <div className="h-14 bg-[#008069] text-white flex items-center px-4 shrink-0 shadow-sm z-20">
           <button onClick={() => setShowContactInfo(false)} className="mr-4 active:opacity-50 transition-opacity">
             <ArrowLeft size={24} />
