@@ -32,7 +32,7 @@ $app->get('/api/chat', function (Request $request, Response $response) {
     $conn = $db->getConnection();
     
     $sql = '
-        SELECT c.id, c.type, c.name, c."createdAt", c."group_avatar", c."permissions", c."admin_ids",
+        SELECT c.id, c.type, c.name, c."createdAt", c."group_avatar", c."permissions", c."admin_ids", c."pending_participants",
             (SELECT json_agg(json_build_object(\'id\', u.id, \'firstName\', u."firstName", \'lastName\', u."lastName", \'email\', u.email, \'avatar\', e.avatar))
              FROM chat_participants cp2 
              JOIN users u ON u.id = cp2."userId"
@@ -502,7 +502,9 @@ $app->post('/api/chat/{id}/participants', function (Request $request, Response $
     
     $adminIds = is_string($chat['admin_ids']) ? json_decode($chat['admin_ids'], true) : ($chat['admin_ids'] ?? []);
     $permissions = is_string($chat['permissions']) ? json_decode($chat['permissions'], true) : ($chat['permissions'] ?? []);
+    if (!is_array($permissions)) $permissions = [];
     $pending = is_string($chat['pending_participants']) ? json_decode($chat['pending_participants'], true) : ($chat['pending_participants'] ?? []);
+    if (!is_array($pending)) $pending = [];
     
     $amIAdmin = in_array($currentUserId, $adminIds);
     $canAdd = $permissions['addMembers'] ?? true;
@@ -594,6 +596,7 @@ $app->put('/api/chat/{id}/participants/pending', function (Request $request, Res
     }
     
     $pending = is_string($chat['pending_participants']) ? json_decode($chat['pending_participants'], true) : ($chat['pending_participants'] ?? []);
+    if (!is_array($pending)) $pending = [];
     
     if (!in_array($userId, $pending)) {
         $response->getBody()->write(json_encode(['error' => 'User not in pending list']));
