@@ -60,6 +60,13 @@ export default function Chat() {
   const prevMessagesLengthRef = useRef(0);
   
   const [renameDialog, setRenameDialog] = useState({ isOpen: false, name: '' });
+  const [confirmDialog, setConfirmDialog] = useState({ 
+    isOpen: false, 
+    title: '', 
+    message: '', 
+    confirmText: 'Confirm', 
+    onConfirm: null 
+  });
   
   const [addMembersDialog, setAddMembersDialog] = useState(false);
   const [pendingMembersDialog, setPendingMembersDialog] = useState(false);
@@ -1253,8 +1260,15 @@ export default function Chat() {
                     return;
                   }
                 }
-                if (window.confirm('Are you sure you want to exit this group?')) {
-                  removeParticipantMutation.mutate({ chatId: activeChat.id, userId: profile?.id });
+                  setConfirmDialog({
+                    isOpen: true,
+                    title: 'Exit Group',
+                    message: 'Are you sure you want to exit this group?',
+                    confirmText: 'Exit',
+                    onConfirm: () => {
+                      removeParticipantMutation.mutate({ chatId: activeChat.id, userId: profile?.id });
+                    }
+                  });
                 }
               }
             }}
@@ -1298,10 +1312,16 @@ export default function Chat() {
                   </button>
                   
                   <button onClick={() => {
-                    if (window.confirm(`Are you sure you want to remove ${adminToggleDialog.targetUser?.firstName} from the group?`)) {
-                      removeParticipantMutation.mutate({ chatId: activeChat.id, userId: adminToggleDialog.targetUser.id });
-                      setAdminToggleDialog({ isOpen: false, targetUser: null, isCurrentlyAdmin: false });
-                    }
+                    setConfirmDialog({
+                      isOpen: true,
+                      title: 'Remove from Group',
+                      message: `Are you sure you want to remove ${adminToggleDialog.targetUser?.firstName} from the group?`,
+                      confirmText: 'Remove',
+                      onConfirm: () => {
+                        removeParticipantMutation.mutate({ chatId: activeChat.id, userId: adminToggleDialog.targetUser.id });
+                        setAdminToggleDialog({ isOpen: false, targetUser: null, isCurrentlyAdmin: false });
+                      }
+                    });
                   }} className="w-full px-4 py-3 bg-red-50 hover:bg-red-100 text-red-600 font-medium rounded-lg transition-colors border border-red-100 text-left flex justify-between items-center">
                     <span>Remove from Group</span>
                     <X size={18} />
@@ -1309,6 +1329,38 @@ export default function Chat() {
                   
                   <button onClick={() => setAdminToggleDialog({ isOpen: false, targetUser: null, isCurrentlyAdmin: false })} className="w-full px-4 py-3 bg-white hover:bg-slate-50 text-slate-600 font-medium rounded-lg transition-colors text-center mt-2">
                     Cancel
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Generic Confirm Dialog */}
+      <AnimatePresence>
+        {confirmDialog.isOpen && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-slate-900/50 z-[100] flex items-center justify-center p-4">
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden">
+              <div className="p-6 text-center">
+                <div className="w-16 h-16 rounded-full bg-red-50 text-red-500 flex items-center justify-center mx-auto mb-4">
+                  <X size={32} />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-2">
+                  {confirmDialog.title}
+                </h3>
+                <p className="text-sm text-slate-500 mb-8">
+                  {confirmDialog.message}
+                </p>
+                <div className="flex gap-3">
+                  <button onClick={() => setConfirmDialog({ isOpen: false, title: '', message: '', onConfirm: null, confirmText: '' })} className="flex-1 px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-colors">
+                    Cancel
+                  </button>
+                  <button onClick={() => {
+                    if (confirmDialog.onConfirm) confirmDialog.onConfirm();
+                    setConfirmDialog({ isOpen: false, title: '', message: '', onConfirm: null, confirmText: '' });
+                  }} className="flex-1 px-4 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl transition-colors shadow-md shadow-red-500/20">
+                    {confirmDialog.confirmText}
                   </button>
                 </div>
               </div>
