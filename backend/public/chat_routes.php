@@ -413,7 +413,7 @@ $app->put('/api/chat/{id}/admins/toggle', function (Request $request, Response $
             $response->getBody()->write(json_encode(['error' => 'Cannot remove the last admin']));
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
-        $adminIds = array_values(array_filter($adminIds, fn($id) => $id !== $targetUserId));
+        $adminIds = array_values(array_filter($adminIds, fn($id) => $id != $targetUserId));
     } else {
         $adminIds[] = $targetUserId;
     }
@@ -603,7 +603,7 @@ $app->put('/api/chat/{id}/participants/pending', function (Request $request, Res
     try {
         $conn->beginTransaction();
         
-        $pending = array_values(array_filter($pending, fn($id) => $id !== $userId));
+        $pending = array_values(array_filter($pending, fn($id) => $id != $userId));
         $stmt = $conn->prepare('UPDATE chats SET pending_participants = ?::jsonb WHERE id = ?');
         $stmt->execute([json_encode($pending), $chatId]);
         
@@ -656,7 +656,7 @@ $app->delete('/api/chat/{id}/participants/{userId}', function (Request $request,
     $adminIds = is_string($chat['admin_ids']) ? json_decode($chat['admin_ids'], true) : ($chat['admin_ids'] ?? []);
     
     // Authorization
-    if ($currentUserId !== $userIdToRemove) {
+    if ($currentUserId != $userIdToRemove) {
         if (!in_array($currentUserId, $adminIds)) {
             $response->getBody()->write(json_encode(['error' => 'Only admins can remove members']));
             return $response->withStatus(403)->withHeader('Content-Type', 'application/json');
@@ -693,7 +693,7 @@ $app->delete('/api/chat/{id}/participants/{userId}', function (Request $request,
             $targetStmt->execute([$userIdToRemove]);
             $targetName = $targetStmt->fetchColumn() ?: 'User';
             
-            if ($currentUserId === $userIdToRemove) {
+            if ($currentUserId == $userIdToRemove) {
                 $msgContent = $actorName . " exited";
             } else {
                 $msgContent = $actorName . " removed " . $targetName;
@@ -705,7 +705,7 @@ $app->delete('/api/chat/{id}/participants/{userId}', function (Request $request,
         
         // Remove from admins if they were an admin
         if (in_array($userIdToRemove, $adminIds)) {
-            $adminIds = array_values(array_filter($adminIds, fn($id) => $id !== $userIdToRemove));
+            $adminIds = array_values(array_filter($adminIds, fn($id) => $id != $userIdToRemove));
             $stmt = $conn->prepare('UPDATE chats SET admin_ids = ?::jsonb WHERE id = ?');
             $stmt->execute([json_encode($adminIds), $chatId]);
         }
