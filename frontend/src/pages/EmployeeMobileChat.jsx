@@ -665,45 +665,110 @@ export default function EmployeeMobileChat() {
             return (
             <div className="bg-white p-4 shadow-sm mb-2 text-slate-800">
               <div className="text-[#008069] text-xs font-semibold uppercase tracking-wider mb-3">Group Settings</div>
-              <div className="space-y-1">
                 <div 
                   onClick={() => handleTogglePermission('editSettings')}
                   className={`flex justify-between items-center p-2 -mx-2 rounded ${amIAdmin ? 'active:bg-slate-50 cursor-pointer transition-colors' : ''}`}
                 >
                   <span className="text-sm font-medium">Edit Group Info</span>
-                  <span className={`text-xs px-2 py-1 rounded text-slate-600 ${amIAdmin ? 'bg-blue-50 text-blue-700 font-semibold shadow-sm' : 'bg-slate-100'}`}>
-                    {activeChat.permissions?.editSettings ? 'All Members' : 'Admins Only'}
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-slate-500">
+                      {activeChat.permissions?.editSettings ? 'All Members' : 'Admins Only'}
+                    </span>
+                    {amIAdmin && (
+                      <div className={`w-9 h-5 shrink-0 flex items-center rounded-full p-0.5 transition-colors ${activeChat.permissions?.editSettings ? 'bg-[#00a884]' : 'bg-slate-300'}`}>
+                        <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${activeChat.permissions?.editSettings ? 'translate-x-4' : 'translate-x-0'}`} />
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div 
                   onClick={() => handleTogglePermission('sendMessages')}
                   className={`flex justify-between items-center p-2 -mx-2 rounded ${amIAdmin ? 'active:bg-slate-50 cursor-pointer transition-colors' : ''}`}
                 >
                   <span className="text-sm font-medium">Send Messages</span>
-                  <span className={`text-xs px-2 py-1 rounded text-slate-600 ${amIAdmin ? 'bg-blue-50 text-blue-700 font-semibold shadow-sm' : 'bg-slate-100'}`}>
-                    {activeChat.permissions?.sendMessages ? 'All Members' : 'Admins Only'}
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-slate-500">
+                      {activeChat.permissions?.sendMessages ? 'All Members' : 'Admins Only'}
+                    </span>
+                    {amIAdmin && (
+                      <div className={`w-9 h-5 shrink-0 flex items-center rounded-full p-0.5 transition-colors ${activeChat.permissions?.sendMessages ? 'bg-[#00a884]' : 'bg-slate-300'}`}>
+                        <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${activeChat.permissions?.sendMessages ? 'translate-x-4' : 'translate-x-0'}`} />
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div 
                   onClick={() => handleTogglePermission('addMembers')}
                   className={`flex justify-between items-center p-2 -mx-2 rounded ${amIAdmin ? 'active:bg-slate-50 cursor-pointer transition-colors' : ''}`}
                 >
                   <span className="text-sm font-medium">Add New Members</span>
-                  <span className={`text-xs px-2 py-1 rounded text-slate-600 ${amIAdmin ? 'bg-blue-50 text-blue-700 font-semibold shadow-sm' : 'bg-slate-100'}`}>
-                    {activeChat.permissions?.addMembers ? 'All Members' : 'Admins Only'}
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-slate-500">
+                      {activeChat.permissions?.addMembers ? 'All Members' : 'Admins Only'}
+                    </span>
+                    {amIAdmin && (
+                      <div className={`w-9 h-5 shrink-0 flex items-center rounded-full p-0.5 transition-colors ${activeChat.permissions?.addMembers ? 'bg-[#00a884]' : 'bg-slate-300'}`}>
+                        <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${activeChat.permissions?.addMembers ? 'translate-x-4' : 'translate-x-0'}`} />
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div 
                   onClick={() => handleTogglePermission('approveNewMembers')}
                   className={`flex justify-between items-center p-2 -mx-2 rounded ${amIAdmin ? 'active:bg-slate-50 cursor-pointer transition-colors' : ''}`}
                 >
                   <span className="text-sm font-medium">Approve New Members</span>
-                  <span className={`text-xs px-2 py-1 rounded text-slate-600 ${amIAdmin ? 'bg-blue-50 text-blue-700 font-semibold shadow-sm' : 'bg-slate-100'}`}>
-                    {activeChat.permissions?.approveNewMembers ? 'On' : 'Off'}
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-slate-500">
+                      {activeChat.permissions?.approveNewMembers ? 'On' : 'Off'}
+                    </span>
+                    {amIAdmin && (
+                      <div className={`w-9 h-5 shrink-0 flex items-center rounded-full p-0.5 transition-colors ${activeChat.permissions?.approveNewMembers ? 'bg-[#00a884]' : 'bg-slate-300'}`}>
+                        <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${activeChat.permissions?.approveNewMembers ? 'translate-x-4' : 'translate-x-0'}`} />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
+            );
+          })()}
+
+          {activeChat.type === 'group' && (() => {
+            const amIAdmin = activeChat.admin_ids?.includes(profile?.id);
+            if (!amIAdmin) return null;
+            return (
+              <div className="bg-white p-4 shadow-sm mb-2 text-slate-800">
+                <div className="text-[#008069] text-xs font-semibold uppercase tracking-wider mb-3">Pending Approvals</div>
+                {activeChat.pending_participants?.length > 0 ? (
+                  <div className="space-y-2">
+                    {activeChat.pending_participants.map(uid => {
+                      const u = users.find(user => user.id === uid);
+                      if (!u) return null;
+                      return (
+                        <div key={u.id} className="flex items-center justify-between p-2 -mx-2 rounded hover:bg-slate-50">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-full bg-slate-200 overflow-hidden shrink-0">
+                              {u.avatar ? <img src={u.avatar} className="w-full h-full object-cover" /> : <User className="w-full h-full p-1.5 text-white bg-slate-400" />}
+                            </div>
+                            <span className="text-sm font-medium">{u.firstName} {u.lastName}</span>
+                          </div>
+                          <div className="flex gap-2 shrink-0">
+                            <button onClick={() => managePendingMutation.mutate({ chatId: activeChat.id, userId: u.id, action: 'reject' })} className="w-7 h-7 rounded-full bg-red-50 text-red-600 flex items-center justify-center active:bg-red-100 transition-colors">
+                              <X size={14} />
+                            </button>
+                            <button onClick={() => managePendingMutation.mutate({ chatId: activeChat.id, userId: u.id, action: 'approve' })} className="w-7 h-7 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center active:bg-emerald-100 transition-colors">
+                              <Check size={14} />
+                            </button>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-sm text-slate-500 py-1">No pending approvals</div>
+                )}
+              </div>
             );
           })()}
 
@@ -716,11 +781,6 @@ export default function EmployeeMobileChat() {
               <div className="p-4 border-b border-slate-100 flex justify-between items-center">
                 <div className="text-[#008069] text-xs font-semibold uppercase tracking-wider">Participants</div>
                 <div className="flex gap-2">
-                  {amIAdmin && pendingCount > 0 && (
-                    <button onClick={() => setPendingMembersDialog(true)} className="text-xs text-orange-600 font-semibold flex items-center active:bg-orange-50 px-2 py-1 rounded transition-colors border border-orange-200">
-                      Pending ({pendingCount})
-                    </button>
-                  )}
                   {canAdd && (
                     <button onClick={() => setAddMembersDialog(true)} className="text-xs text-[#008069] font-semibold flex items-center active:bg-slate-50 px-2 py-1 rounded transition-colors border border-slate-200">
                       <UserPlus size={14} className="mr-1" /> Add
