@@ -1185,6 +1185,7 @@ export default function Chat() {
               return (
               <div className="bg-white p-4 shadow-sm mb-2 text-slate-800">
                 <div className="text-[#008069] text-xs font-semibold uppercase tracking-wider mb-3">Group Settings</div>
+                <div className="space-y-1">
                   <div 
                     onClick={() => handleTogglePermission('editSettings')}
                     className={`flex justify-between items-center p-2 -mx-2 rounded ${amIAdmin ? 'cursor-pointer hover:bg-slate-50 transition-colors' : ''}`}
