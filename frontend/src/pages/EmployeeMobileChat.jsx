@@ -64,6 +64,7 @@ export default function EmployeeMobileChat() {
   const prevMessagesLengthRef = useRef(0);
   
   const [renameDialog, setRenameDialog] = useState({ isOpen: false, name: '' });
+  const [messageReadByDialog, setMessageReadByDialog] = useState({ isOpen: false, message: null });
   const [confirmDialog, setConfirmDialog] = useState({ 
     isOpen: false, 
     title: '', 
@@ -794,6 +795,65 @@ export default function EmployeeMobileChat() {
           )}
         </AnimatePresence>
 
+        {/* Message Read By Dialog */}
+        <AnimatePresence>
+          {messageReadByDialog.isOpen && messageReadByDialog.message && (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-slate-900/50 z-[100] flex items-center justify-center p-4">
+              <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden flex flex-col max-h-[80vh]">
+                <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                  <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <CheckCheck size={20} className="text-[#53bdeb]" /> Message Info
+                  </h3>
+                  <button onClick={() => setMessageReadByDialog({ isOpen: false, message: null })} className="text-slate-400 hover:text-slate-600 transition-colors">
+                    <X size={20} />
+                  </button>
+                </div>
+                
+                <div className="p-4 border-b border-slate-100 bg-white">
+                  <div className="bg-[#d9fdd3] p-3 rounded-lg text-sm text-slate-800 shadow-sm relative">
+                    <div className="whitespace-pre-wrap break-words">{messageReadByDialog.message.content || (messageReadByDialog.message.attachmentUrl ? '📎 Attachment' : 'Message')}</div>
+                    <div className="text-[10px] text-slate-500 text-right mt-1">
+                      {format(new Date(messageReadByDialog.message.createdAt), 'HH:mm')}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-2 overflow-y-auto chat-scrollbar flex-1">
+                  <div className="px-3 py-2 text-xs font-semibold text-[#008069] uppercase tracking-wider">Read by</div>
+                  {(() => {
+                    const readByIds = (messageReadByDialog.message.readBy || []).filter(id => id !== profile?.id);
+                    if (readByIds.length === 0) {
+                      return <div className="text-center text-slate-500 py-6 text-sm font-medium">No one has read this yet.</div>;
+                    }
+                    
+                    return readByIds.map(uid => {
+                      const u = activeChat.participants.find(p => p.id === uid) || users.find(user => user.id === uid);
+                      if (!u) return null;
+                      return (
+                        <div key={u.id} className="flex items-center gap-3 w-full p-2 hover:bg-slate-50 rounded transition-colors">
+                          <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden shrink-0">
+                            {u.avatar ? <img src={u.avatar} className="w-full h-full object-cover" /> : <User className="w-full h-full p-2 text-white bg-slate-400" />}
+                          </div>
+                          <div className="flex-1">
+                            <div className="font-medium text-slate-800">{u.firstName} {u.lastName}</div>
+                            <div className="text-xs text-slate-500">{u.designation || 'Employee'}</div>
+                          </div>
+                          <CheckCheck size={16} className="text-[#53bdeb]" />
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
+                <div className="p-4 border-t border-slate-100 bg-slate-50 text-center">
+                  <button onClick={() => setMessageReadByDialog({ isOpen: false, message: null })} className="px-6 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium rounded-lg transition-colors w-full">
+                    Close
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Generic Confirm Dialog */}
         <AnimatePresence>
           {confirmDialog.isOpen && (
@@ -1067,7 +1127,14 @@ export default function EmployeeMobileChat() {
                   </div>
                 )}
                 <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
-                  <div className={`max-w-[85%] rounded-2xl px-4 py-2 pb-1.5 shadow-sm relative ${isMine ? 'bg-[#d9fdd3] text-slate-800 rounded-tr-sm' : 'bg-white border border-slate-100 text-slate-800 rounded-tl-sm'}`}>
+                  <div 
+                    onClick={() => {
+                      if (isMine && activeChat.type === 'group') {
+                        setMessageReadByDialog({ isOpen: true, message: msg });
+                      }
+                    }}
+                    className={`max-w-[85%] rounded-2xl px-4 py-2 pb-1.5 shadow-sm relative ${isMine ? 'bg-[#d9fdd3] text-slate-800 rounded-tr-sm cursor-pointer hover:bg-[#cbf0c4] active:bg-[#cbf0c4] transition-colors' : 'bg-white border border-slate-100 text-slate-800 rounded-tl-sm'}`}
+                  >
                     {!isMine && activeChat.type === 'group' && (
                       <div className="text-xs font-bold text-blue-500 mb-1">{sender?.firstName}</div>
                     )}
