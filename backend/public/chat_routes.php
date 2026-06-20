@@ -41,11 +41,13 @@ $app->get('/api/chat', function (Request $request, Response $response) {
             (SELECT row_to_json(m.*) 
              FROM chat_messages m 
              WHERE m."chatId" = c.id 
+             AND m."createdAt" >= cp."joinedAt"
              ORDER BY m."createdAt" DESC LIMIT 1) as last_message,
             (SELECT COUNT(*) 
              FROM chat_messages m2 
              WHERE m2."chatId" = c.id 
              AND m2."senderId" != ?
+             AND m2."createdAt" >= cp."joinedAt"
              AND NOT (m2."readBy" @> to_jsonb(?::text))
             ) as unread_count
         FROM chats c
@@ -158,14 +160,15 @@ $app->get('/api/chat/{id}/messages', function (Request $request, Response $respo
     $conn = $db->getConnection();
     
     // Check if user is participant
-    $stmt = $conn->prepare('SELECT 1 FROM chat_participants WHERE "chatId" = ? AND "userId" = ?');
+    $stmt = $conn->prepare('SELECT "joinedAt" FROM chat_participants WHERE "chatId" = ? AND "userId" = ?');
     $stmt->execute([$chatId, $userId]);
-    if (!$stmt->fetchColumn()) {
+    $joinedAt = $stmt->fetchColumn();
+    if (!$joinedAt) {
         return $response->withStatus(403);
     }
     
-    $stmt = $conn->prepare('SELECT * FROM chat_messages WHERE "chatId" = ? ORDER BY "createdAt" ASC');
-    $stmt->execute([$chatId]);
+    $stmt = $conn->prepare('SELECT * FROM chat_messages WHERE "chatId" = ? AND "createdAt" >= ? ORDER BY "createdAt" ASC');
+    $stmt->execute([$chatId, $joinedAt]);
     $messages = $stmt->fetchAll();
     
     foreach ($messages as &$msg) {
@@ -527,8 +530,21 @@ $app->post('/api/chat/{id}/participants', function (Request $request, Response $
         } else {
             // Directly add
             $insertPart = $conn->prepare('INSERT INTO chat_participants ("chatId", "userId") VALUES (?, ?) ON CONFLICT DO NOTHING');
+            
+            $actorStmt = $conn->prepare('SELECT "firstName" FROM users WHERE id = ?');
+            $actorStmt->execute([$currentUserId]);
+            $actorName = $actorStmt->fetchColumn() ?: 'Someone';
+            $targetStmt = $conn->prepare('SELECT "firstName" FROM users WHERE id = ?');
+            $sysStmt = $conn->prepare('INSERT INTO chat_messages ("chatId", "senderId", "content", "isSystemMessage") VALUES (?, ?, ?, true)');
+            
             foreach ($userIds as $uid) {
                 $insertPart->execute([$chatId, $uid]);
+                if ($insertPart->rowCount() > 0) {
+                    $targetStmt->execute([$uid]);
+                    $targetName = $targetStmt->fetchColumn() ?: 'User';
+                    $msgContent = $actorName . " added " . $targetName;
+                    $sysStmt->execute([$chatId, $currentUserId, ChatEncryption::encrypt($msgContent)]);
+                }
             }
             // Remove from pending if they were there
             $pending = array_values(array_filter($pending, fn($id) => !in_array($id, $userIds)));
@@ -594,6 +610,19 @@ $app->put('/api/chat/{id}/participants/pending', function (Request $request, Res
         if ($action === 'approve') {
             $insertPart = $conn->prepare('INSERT INTO chat_participants ("chatId", "userId") VALUES (?, ?) ON CONFLICT DO NOTHING');
             $insertPart->execute([$chatId, $userId]);
+            if ($insertPart->rowCount() > 0) {
+                $actorStmt = $conn->prepare('SELECT "firstName" FROM users WHERE id = ?');
+                $actorStmt->execute([$currentUserId]);
+                $actorName = $actorStmt->fetchColumn() ?: 'Someone';
+                
+                $targetStmt = $conn->prepare('SELECT "firstName" FROM users WHERE id = ?');
+                $targetStmt->execute([$userId]);
+                $targetName = $targetStmt->fetchColumn() ?: 'User';
+                
+                $msgContent = $actorName . " added " . $targetName;
+                $sysStmt = $conn->prepare('INSERT INTO chat_messages ("chatId", "senderId", "content", "isSystemMessage") VALUES (?, ?, ?, true)');
+                $sysStmt->execute([$chatId, $currentUserId, ChatEncryption::encrypt($msgContent)]);
+            }
         }
         
         $conn->commit();
@@ -654,6 +683,25 @@ $app->delete('/api/chat/{id}/participants/{userId}', function (Request $request,
         
         $stmt = $conn->prepare('DELETE FROM chat_participants WHERE "chatId" = ? AND "userId" = ?');
         $stmt->execute([$chatId, $userIdToRemove]);
+        
+        if ($stmt->rowCount() > 0) {
+            $actorStmt = $conn->prepare('SELECT "firstName" FROM users WHERE id = ?');
+            $actorStmt->execute([$currentUserId]);
+            $actorName = $actorStmt->fetchColumn() ?: 'Someone';
+            
+            $targetStmt = $conn->prepare('SELECT "firstName" FROM users WHERE id = ?');
+            $targetStmt->execute([$userIdToRemove]);
+            $targetName = $targetStmt->fetchColumn() ?: 'User';
+            
+            if ($currentUserId === $userIdToRemove) {
+                $msgContent = $actorName . " exited";
+            } else {
+                $msgContent = $actorName . " removed " . $targetName;
+            }
+            
+            $sysStmt = $conn->prepare('INSERT INTO chat_messages ("chatId", "senderId", "content", "isSystemMessage") VALUES (?, ?, ?, true)');
+            $sysStmt->execute([$chatId, $currentUserId, ChatEncryption::encrypt($msgContent)]);
+        }
         
         // Remove from admins if they were an admin
         if (in_array($userIdToRemove, $adminIds)) {

@@ -1126,45 +1126,53 @@ export default function EmployeeMobileChat() {
                     </span>
                   </div>
                 )}
-                <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
-                  <div 
-                    onClick={() => {
-                      if (isMine && activeChat.type === 'group') {
-                        setMessageReadByDialog({ isOpen: true, message: msg });
-                      }
-                    }}
-                    className={`max-w-[85%] rounded-2xl px-4 py-2 pb-1.5 shadow-sm relative ${isMine ? 'bg-[#d9fdd3] text-slate-800 rounded-tr-sm cursor-pointer hover:bg-[#cbf0c4] active:bg-[#cbf0c4] transition-colors' : 'bg-white border border-slate-100 text-slate-800 rounded-tl-sm'}`}
-                  >
-                    {!isMine && activeChat.type === 'group' && (
-                      <div className="text-xs font-bold text-blue-500 mb-1">{sender?.firstName}</div>
-                    )}
-                    <div className="text-[15px] whitespace-pre-wrap break-words pr-14 pb-2">
-                      {msg.attachmentUrl && (
-                        <div className="mb-2 w-full max-w-xs">
-                          {msg.attachmentType?.startsWith('image/') ? (
-                            <img src={msg.attachmentUrl} alt="attachment" className="rounded-lg w-full object-cover border border-slate-100 shadow-sm" style={{ maxHeight: '250px' }} />
-                          ) : (
-                            <a href={msg.attachmentUrl} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 p-3 rounded-lg border shadow-sm transition-colors ${isMine ? 'bg-white/30 border-white/40 text-slate-800 hover:bg-white/40' : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'}`}>
-                              <div className={`p-2 rounded-lg shrink-0 ${isMine ? 'bg-white/40 text-slate-800' : 'bg-white border border-slate-200 text-blue-600'}`}>
-                                <FileText size={20} />
-                              </div>
-                              <div className="overflow-hidden">
-                                <div className="text-sm font-semibold truncate">{msg.attachmentName || 'Document'}</div>
-                                <div className={`text-[10px] ${isMine ? 'text-slate-600' : 'text-slate-500'}`}>{(msg.attachmentSize / 1024 / 1024).toFixed(2)} MB</div>
-                              </div>
-                              <Download size={16} className={`ml-auto shrink-0 ${isMine ? 'text-slate-700' : 'text-slate-400'}`} />
-                            </a>
-                          )}
-                        </div>
-                      )}
+                {msg.isSystemMessage ? (
+                  <div className="flex justify-center my-3 relative z-10">
+                    <span className="bg-slate-200/80 text-slate-700 text-xs font-medium px-4 py-1.5 rounded-full shadow-sm border border-slate-200/50 text-center backdrop-blur-sm">
                       {msg.content}
-                    </div>
-                    <div className={`text-[10px] text-right absolute bottom-1 right-3 flex items-center justify-end ${isMine ? 'text-slate-400' : 'text-slate-400'}`}>
-                      {format(new Date(msg.createdAt), 'HH:mm')}
-                      {isMine && renderTicks(msg, activeChat)}
+                    </span>
+                  </div>
+                ) : (
+                  <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
+                    <div 
+                      onClick={() => {
+                        if (isMine && activeChat.type === 'group') {
+                          setMessageReadByDialog({ isOpen: true, message: msg });
+                        }
+                      }}
+                      className={`max-w-[85%] rounded-2xl px-4 py-2 pb-1.5 shadow-sm relative ${isMine ? 'bg-[#d9fdd3] text-slate-800 rounded-tr-sm cursor-pointer hover:bg-[#cbf0c4] active:bg-[#cbf0c4] transition-colors' : 'bg-white border border-slate-100 text-slate-800 rounded-tl-sm'}`}
+                    >
+                      {!isMine && activeChat.type === 'group' && (
+                        <div className="text-xs font-bold text-blue-500 mb-1">{sender?.firstName}</div>
+                      )}
+                      <div className="text-[15px] whitespace-pre-wrap break-words pr-14 pb-2">
+                        {msg.attachmentUrl && (
+                          <div className="mb-2 w-full max-w-xs">
+                            {msg.attachmentType?.startsWith('image/') ? (
+                              <img src={msg.attachmentUrl} alt="attachment" className="rounded-lg w-full object-cover border border-slate-100 shadow-sm" style={{ maxHeight: '250px' }} />
+                            ) : (
+                              <a href={msg.attachmentUrl} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 p-3 rounded-lg border shadow-sm transition-colors ${isMine ? 'bg-white/30 border-white/40 text-slate-800 hover:bg-white/40' : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'}`}>
+                                <div className={`p-2 rounded-lg shrink-0 ${isMine ? 'bg-white/40 text-slate-800' : 'bg-white border border-slate-200 text-blue-600'}`}>
+                                  <FileText size={20} />
+                                </div>
+                                <div className="overflow-hidden">
+                                  <div className="text-sm font-semibold truncate">{msg.attachmentName || 'Document'}</div>
+                                  <div className={`text-[10px] ${isMine ? 'text-slate-600' : 'text-slate-500'}`}>{(msg.attachmentSize / 1024 / 1024).toFixed(2)} MB</div>
+                                </div>
+                                <Download size={16} className={`ml-auto shrink-0 ${isMine ? 'text-slate-700' : 'text-slate-400'}`} />
+                              </a>
+                            )}
+                          </div>
+                        )}
+                        {msg.content}
+                      </div>
+                      <div className={`text-[10px] text-right absolute bottom-1 right-3 flex items-center justify-end ${isMine ? 'text-slate-400' : 'text-slate-400'}`}>
+                        {format(new Date(msg.createdAt), 'HH:mm')}
+                        {isMine && renderTicks(msg, activeChat)}
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
               </React.Fragment>
             );
           })}
