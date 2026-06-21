@@ -76,9 +76,9 @@ const CandidateJobs = () => {
       </motion.div>
 
       {/* Job List */}
-      <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredJobs.length === 0 ? (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white rounded-2xl shadow-sm border border-slate-200 p-12 text-center">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="col-span-1 md:col-span-2 lg:col-span-3 bg-white rounded-2xl shadow-sm border border-slate-200 p-12 text-center">
             <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
               <Search size={32} />
             </div>
@@ -94,31 +94,29 @@ const CandidateJobs = () => {
               transition={{ delay: 0.2 + (index * 0.1) }}
               className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hover:shadow-md hover:border-blue-200 transition-all group"
             >
-              <div className="flex flex-col lg:flex-row justify-between gap-6">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h2 className="text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{job.title}</h2>
-                    <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
-                      {job.department}
-                    </span>
-                  </div>
-                  
-                  <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500 mb-4">
-                    <span className="flex items-center gap-1.5"><MapPin size={16} /> {job.location}</span>
-                    <span className="flex items-center gap-1.5"><Clock size={16} /> {job.type}</span>
-                    <span className="flex items-center gap-1.5"><Briefcase size={16} /> Mid-Senior Level</span>
-                  </div>
-                  
-                  <p className="text-slate-600 text-sm leading-relaxed max-w-3xl">
-                    {job.description}
-                  </p>
+              <div className="flex flex-col h-full">
+                <div className="flex items-center gap-3 mb-3 flex-wrap">
+                  <h2 className="text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{job.title}</h2>
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                    {job.department}
+                  </span>
                 </div>
                 
-                <div className="flex lg:flex-col items-center lg:items-end justify-between lg:justify-center shrink-0 border-t lg:border-t-0 lg:border-l border-slate-100 pt-4 lg:pt-0 lg:pl-6">
-                  <span className="text-xs font-medium text-slate-400 lg:mb-4">Posted 2 days ago</span>
+                <div className="flex flex-col gap-2 text-sm text-slate-500 mb-4">
+                  <span className="flex items-center gap-2"><MapPin size={16} /> {job.location}</span>
+                  <span className="flex items-center gap-2"><Clock size={16} /> {job.type}</span>
+                  <span className="flex items-center gap-2"><Briefcase size={16} /> Mid-Senior Level</span>
+                </div>
+                
+                <p className="text-slate-600 text-sm leading-relaxed mb-6 flex-1">
+                  {job.description}
+                </p>
+                
+                <div className="flex items-center justify-between border-t border-slate-100 pt-4 mt-auto">
+                  <span className="text-xs font-medium text-slate-400">Posted 2 days ago</span>
                   <button 
                     onClick={() => handleApply(job.title)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-semibold text-sm transition-colors shadow-sm shadow-blue-600/20 active:scale-95"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl font-semibold text-sm transition-colors shadow-sm shadow-blue-600/20 active:scale-95"
                   >
                     Apply Now
                   </button>

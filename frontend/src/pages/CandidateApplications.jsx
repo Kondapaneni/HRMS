@@ -63,9 +63,9 @@ const CandidateApplications = () => {
         </motion.div>
       </div>
 
-      <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {applications.length === 0 ? (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white rounded-2xl shadow-sm border border-slate-200 p-12 text-center">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="col-span-1 md:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-12 text-center">
             <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
               <FileText size={32} />
             </div>
@@ -93,10 +93,10 @@ const CandidateApplications = () => {
                   <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-4">
                     <div>
                       <h2 className="text-xl font-bold text-slate-900 mb-1">{app.jobTitle}</h2>
-                      <div className="flex items-center gap-3 text-sm text-slate-500">
-                        <span>{app.department}</span>
+                      <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
+                        <span className="font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">{app.department}</span>
                         <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
-                        <span>Applied on {new Date(app.appliedDate).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                        <span>{new Date(app.appliedDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                       </div>
                     </div>
                     
