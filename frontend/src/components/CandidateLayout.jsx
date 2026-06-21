@@ -43,7 +43,7 @@ const CandidateLayout = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-slate-50 flex flex-col font-sans text-slate-800 relative z-0">
+    <div className="h-[100dvh] w-full overflow-hidden bg-slate-50 flex flex-col font-sans text-slate-800 relative z-0">
       
       {/* Global Animated Background Graphics */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
@@ -56,7 +56,7 @@ const CandidateLayout = () => {
 
       {/* Top Glassmorphic Navigation */}
       <header className="sticky top-0 z-40 w-full bg-white/70 backdrop-blur-xl border-b border-white/50 shadow-sm transition-all">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             
             {/* Logo */}
@@ -135,7 +135,7 @@ const CandidateLayout = () => {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 relative z-10 pb-24 md:pb-8">
+      <main className="flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 relative z-10 pb-24 md:pb-8 overflow-y-auto overscroll-y-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
         <Outlet />
       </main>
 

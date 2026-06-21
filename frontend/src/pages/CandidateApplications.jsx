@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle2, Clock, Calendar, FileText, ChevronRight, XCircle } from 'lucide-react';
+import { CheckCircle2, Clock, Calendar, FileText, ChevronRight, XCircle, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const CandidateApplications = () => {
