@@ -42,7 +42,7 @@ const AdminRecruitment = () => {
         .select(`
           *,
           jobs (title, department),
-          users:candidate_id (email, raw_user_meta_data)
+          users:candidate_id (email, "firstName", "lastName")
         `)
         .order('applied_date', { ascending: false });
       
@@ -112,7 +112,7 @@ const AdminRecruitment = () => {
         const emailBody = `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #2563eb;">Application Update</h2>
-            <p>Hi ${viewApp.users?.raw_user_meta_data?.firstName},</p>
+            <p>Hi ${viewApp.users?.firstName},</p>
             ${bodyContent}
             <p>Best regards,<br>The Acme Team</p>
           </div>
@@ -218,7 +218,7 @@ const AdminRecruitment = () => {
               {applications.map((app) => (
                 <tr key={app.id} className="hover:bg-slate-50">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="font-medium text-slate-900">{app.users?.raw_user_meta_data?.firstName} {app.users?.raw_user_meta_data?.lastName}</div>
+                    <div className="font-medium text-slate-900">{app.users?.firstName} {app.users?.lastName}</div>
                     <div className="text-sm text-slate-500">{app.users?.email}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -252,9 +252,9 @@ const AdminRecruitment = () => {
       {viewApp && (
         <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
           <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 bg-slate-900 bg-opacity-50 transition-opacity" onClick={() => setViewApp(null)}></div>
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity" onClick={() => setViewApp(null)}></div>
             <span className="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
-            <div className="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+            <div className="relative z-10 inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
               <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div className="sm:flex sm:items-start">
                   <div className="mt-3 text-center sm:mt-0 sm:text-left w-full">
@@ -263,7 +263,7 @@ const AdminRecruitment = () => {
                     <div className="grid grid-cols-2 gap-4 mb-6">
                       <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
                         <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Candidate</p>
-                        <p className="font-bold text-slate-900">{viewApp.users?.raw_user_meta_data?.firstName} {viewApp.users?.raw_user_meta_data?.lastName}</p>
+                        <p className="font-bold text-slate-900">{viewApp.users?.firstName} {viewApp.users?.lastName}</p>
                         <p className="text-sm text-slate-600">{viewApp.users?.email}</p>
                       </div>
                       <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
@@ -310,9 +310,9 @@ const AdminRecruitment = () => {
       {isJobModalOpen && (
         <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
           <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 bg-slate-900 bg-opacity-50 transition-opacity" onClick={() => setIsJobModalOpen(false)}></div>
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity" onClick={() => setIsJobModalOpen(false)}></div>
             <span className="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
-            <div className="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+            <div className="relative z-10 inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
               <form onSubmit={handleCreateJob}>
                 <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                   <h3 className="text-xl leading-6 font-bold text-slate-900 mb-6">Post New Job</h3>
