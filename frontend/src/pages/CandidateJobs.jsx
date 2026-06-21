@@ -10,6 +10,10 @@ const CandidateJobs = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDept, setFilterDept] = useState('All');
   
+  // Application Modal State
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [selectedResumeUrl, setSelectedResumeUrl] = useState('');
+  
   const queryClient = useQueryClient();
 
   const { data: jobs = [], isLoading: isLoadingJobs } = useQuery({
