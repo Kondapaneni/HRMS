@@ -230,9 +230,9 @@ const CandidateProfile = () => {
       </div>
 
       <form onSubmit={handleSave} className="space-y-6">
-
-        {/* Personal Information Card */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Personal Information Card */}
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
           <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center gap-3">
             <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center shadow-sm border border-white">
               <User size={20} />
@@ -317,8 +317,8 @@ const CandidateProfile = () => {
           </div>
         </div>
 
-        {/* Professional Details Card */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+          {/* Professional Details Card */}
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
           <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center gap-3">
             <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center shadow-sm border border-white">
               <Briefcase size={20} />
@@ -326,7 +326,7 @@ const CandidateProfile = () => {
             <h2 className="text-lg font-bold text-slate-800">Professional Details</h2>
           </div>
 
-          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 flex-1">
             <div className="space-y-1.5">
               <label className="text-sm font-semibold text-slate-700">Current Job Title</label>
               <input
@@ -356,7 +356,7 @@ const CandidateProfile = () => {
               </select>
             </div>
 
-            <div className="space-y-1.5 md:col-span-2">
+            <div className="space-y-1.5 md:col-span-2 flex flex-col">
               <label className="text-sm font-semibold text-slate-700">Professional Summary</label>
               <textarea
                 name="bio"
@@ -364,8 +364,9 @@ const CandidateProfile = () => {
                 onChange={handleInputChange}
                 rows={4}
                 placeholder="A brief summary of your skills and career goals..."
-                className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-slate-700 font-medium bg-slate-50 focus:bg-white resize-none"
+                className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-slate-700 font-medium bg-slate-50 focus:bg-white resize-none flex-1"
               />
+            </div>
             </div>
           </div>
         </div>
