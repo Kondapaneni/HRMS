@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { User, Mail, Phone, MapPin, Briefcase, UploadCloud, Save, FileText, Camera, CheckCircle2 } from 'lucide-react';
@@ -29,14 +29,71 @@ const CandidateProfile = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSave = (e) => {
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!profile?.id) return;
+      try {
+        const { data, error } = await supabase
+          .from('candidate_profiles')
+          .select('*')
+          .eq('user_id', profile.id)
+          .single();
+          
+        if (error && error.code !== 'PGRST116') throw error; // PGRST116 is not found
+        
+        if (data) {
+          setFormData(prev => ({
+            ...prev,
+            phone: data.phone || '',
+            address: data.address || '',
+            currentTitle: data.current_title || '',
+            experience: data.experience || '',
+            bio: data.bio || '',
+            resumeUrl: data.resume_url || '',
+            avatarUrl: data.avatar_url || prev.avatarUrl
+          }));
+        }
+      } catch (err) {
+        console.error('Error fetching profile:', err);
+      }
+    };
+    
+    fetchProfile();
+  }, [profile?.id]);
+
+  const handleSave = async (e) => {
     e.preventDefault();
+    if (!profile?.id) {
+      toast.error('You must be logged in to save your profile.');
+      return;
+    }
+
     setIsSaving(true);
-    // Simulate API call
-    setTimeout(() => {
+    
+    try {
+      const { error } = await supabase
+        .from('candidate_profiles')
+        .upsert({
+          user_id: profile.id,
+          phone: formData.phone,
+          address: formData.address,
+          current_title: formData.currentTitle,
+          experience: formData.experience,
+          bio: formData.bio,
+          resume_url: formData.resumeUrl,
+          avatar_url: formData.avatarUrl,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id' });
+
+      if (error) throw error;
+      
+      toast.success('Profile saved successfully!');
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      toast.error('Failed to save profile. Please try again.');
+    } finally {
       setIsSaving(false);
-      toast.success('Profile updated successfully!');
-    }, 1000);
+    }
   };
 
   const handleFileUpload = async (e) => {
