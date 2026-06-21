@@ -120,14 +120,14 @@ const CandidateApplications = () => {
                   ) : (
                     <div>
                       {/* Timeline UI */}
-                      <div className="relative flex justify-between items-center mb-6 max-w-3xl">
+                      <div className="relative flex justify-between items-start mb-8 w-full">
                         {/* Connecting Line background */}
-                        <div className="absolute left-0 right-0 top-1/2 h-1 bg-slate-200 -translate-y-1/2 z-0 rounded-full mx-4"></div>
+                        <div className="absolute top-4 left-[12.5%] right-[12.5%] h-1 bg-slate-200 -translate-y-1/2 z-0"></div>
                         
                         {/* Active Line foreground */}
                         <div 
-                          className="absolute left-0 top-1/2 h-1 bg-blue-500 -translate-y-1/2 z-0 rounded-full mx-4 transition-all duration-1000 ease-out"
-                          style={{ width: `calc(${(currentStep - 1) / (timelineSteps.length - 1) * 100}% - 32px)` }}
+                          className="absolute top-4 left-[12.5%] h-1 bg-blue-500 -translate-y-1/2 z-0 transition-all duration-1000 ease-out"
+                          style={{ width: `calc(${(currentStep - 1) / (timelineSteps.length - 1) * 75}%)` }}
                         ></div>
 
                         {timelineSteps.map((step, idx) => {
@@ -136,7 +136,7 @@ const CandidateApplications = () => {
                           const isCurrent = stepNum === currentStep;
 
                           return (
-                            <div key={step.key} className="relative z-10 flex flex-col items-center gap-2">
+                            <div key={step.key} className="relative z-10 flex flex-col items-center flex-1">
                               <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-colors duration-500 ${
                                 isCompleted 
                                   ? 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-500/20' 
@@ -144,7 +144,7 @@ const CandidateApplications = () => {
                               } ${isCurrent ? 'ring-4 ring-blue-100' : ''}`}>
                                 {isCompleted ? <CheckCircle2 size={16} strokeWidth={3} /> : <span className="text-xs font-bold">{stepNum}</span>}
                               </div>
-                              <span className={`text-xs font-bold uppercase tracking-wider ${isCurrent ? 'text-blue-600' : (isCompleted ? 'text-slate-700' : 'text-slate-400')}`}>
+                              <span className={`mt-2 text-xs font-bold uppercase tracking-wider text-center ${isCurrent ? 'text-blue-600' : (isCompleted ? 'text-slate-700' : 'text-slate-400')}`}>
                                 {step.label}
                               </span>
                             </div>
