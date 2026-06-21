@@ -85,9 +85,13 @@ const ResetPassword = () => {
     setIsLoading(true);
 
     try {
-      await api.post('/reset-password', { token, newPassword });
+      const res = await api.post('/reset-password', { token, newPassword });
       toast.success('Password successfully reset! You can now log in.');
-      navigate('/');
+      if (res.data.role === 'candidate') {
+        navigate('/candidate/login');
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       if (err.response?.status === 429) return;
       setError(err.response?.data?.error || err.message || 'Failed to reset password');

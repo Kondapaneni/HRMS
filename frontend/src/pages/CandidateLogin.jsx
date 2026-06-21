@@ -364,7 +364,7 @@ const CandidateLogin = () => {
                     </label>
                   </div>
   
-                  <Link to="/forgot-password" className="text-xs font-black text-[#3B82F6] hover:text-[#2563EB] transition-colors hover:underline decoration-[2px] underline-offset-2">
+                  <Link to="/forgot-password?type=candidate" className="text-xs font-black text-[#3B82F6] hover:text-[#2563EB] transition-colors hover:underline decoration-[2px] underline-offset-2">
                     Forgot Password?
                   </Link>
                 </motion.div>

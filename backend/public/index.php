@@ -199,7 +199,14 @@ $app->put('/api/change-password', function (Request $request, Response $response
         $stmt = $conn->prepare('UPDATE users SET password = ?, "forcePasswordChange" = false WHERE id = ?');
         $stmt->execute([$hashedPassword, $decodedToken->id]);
         
-        $response->getBody()->write(json_encode(['message' => 'Password updated successfully']));
+        $userStmt = $conn->prepare('SELECT role FROM users WHERE id = ?');
+        $userStmt->execute([$decodedToken->id]);
+        $user = $userStmt->fetch(PDO::FETCH_ASSOC);
+        
+        $response->getBody()->write(json_encode([
+            'message' => 'Password updated successfully',
+            'role' => $user['role']
+        ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
         $response->getBody()->write(json_encode(['error' => 'Failed to update password']));
@@ -319,7 +326,7 @@ $app->post('/api/reset-password', function (Request $request, Response $response
     $conn = $db->getConnection();
 
     // Find valid token
-    $stmt = $conn->prepare("SELECT id FROM users WHERE reset_token = :token AND reset_token_expires > CURRENT_TIMESTAMP");
+    $stmt = $conn->prepare("SELECT id, role FROM users WHERE reset_token = :token AND reset_token_expires > CURRENT_TIMESTAMP");
     $stmt->execute(['token' => $token]);
     $user = $stmt->fetch();
 
@@ -338,7 +345,10 @@ $app->post('/api/reset-password', function (Request $request, Response $response
         'id' => $user['id']
     ]);
 
-    $response->getBody()->write(json_encode(['message' => 'Password has been successfully reset']));
+    $response->getBody()->write(json_encode([
+        'message' => 'Password has been successfully reset',
+        'role' => $user['role']
+    ]));
     return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
 });
 

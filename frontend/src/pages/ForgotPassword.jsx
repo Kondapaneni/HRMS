@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, ArrowRight, ShieldCheck, ArrowLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 
@@ -11,6 +11,10 @@ const ForgotPassword = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState('');
+
+  const [searchParams] = useSearchParams();
+  const type = searchParams.get('type');
+  const backLink = type === 'candidate' ? '/candidate/login' : '/';
 
   const shapeVariants = {
     animate: (i) => ({
@@ -101,7 +105,7 @@ const ForgotPassword = () => {
 
             <div className="absolute -top-6 -right-6 w-16 h-16 bg-[#F59E0B] rounded-full border-[3px] border-[#1E1B4B] shadow-[4px_4px_0px_#1E1B4B] z-20 animate-[bounce_3s_infinite]" />
             
-            <Link to="/" className="inline-flex items-center gap-2 text-slate-500 hover:text-[#1E1B4B] font-bold mb-6 transition-colors">
+            <Link to={backLink} className="inline-flex items-center gap-2 text-slate-500 hover:text-[#1E1B4B] font-bold mb-6 transition-colors">
               <ArrowLeft size={18} strokeWidth={3} />
               Back to Login
             </Link>
