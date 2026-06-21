@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
-import { User, Mail, Phone, MapPin, Briefcase, UploadCloud, Save, FileText, Camera } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Briefcase, UploadCloud, Save, FileText, Camera, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../api/supabase';
 
@@ -44,11 +44,11 @@ const CandidateProfile = () => {
     if (file) {
       setUploadedFileName(file.name);
       setIsUploadingResume(true);
-      
+
       try {
         const fileExt = file.name.split('.').pop();
         const fileName = `resume-${profile?.id || 'new'}-${Math.random()}.${fileExt}`;
-        
+
         const { error: uploadError } = await supabase.storage
           .from('resumes')
           .upload(fileName, file);
@@ -112,7 +112,7 @@ const CandidateProfile = () => {
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">My Profile</h1>
           <p className="text-sm text-slate-500 mt-1">Manage your personal information and resume to speed up applications.</p>
         </motion.div>
-        
+
         {/* Profile Avatar Upload */}
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="relative group cursor-pointer shrink-0">
           <div className="flex h-24 w-24 items-center justify-center rounded-full bg-slate-100 border-4 border-white shadow-md overflow-hidden text-2xl font-medium text-slate-600 relative">
@@ -128,10 +128,10 @@ const CandidateProfile = () => {
                 <>
                   <Camera className="h-6 w-6 mb-1" />
                   <span className="text-[10px] font-medium uppercase tracking-wider">Upload</span>
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    className="hidden" 
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
                     onChange={handleAvatarUpload}
                     disabled={isUploadingAvatar}
                   />
@@ -143,7 +143,7 @@ const CandidateProfile = () => {
       </div>
 
       <form onSubmit={handleSave} className="space-y-6">
-        
+
         {/* Personal Information Card */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
           <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center gap-3">
@@ -152,7 +152,7 @@ const CandidateProfile = () => {
             </div>
             <h2 className="text-lg font-bold text-slate-800">Personal Information</h2>
           </div>
-          
+
           <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-1.5">
               <label className="text-sm font-semibold text-slate-700">First Name</label>
@@ -165,7 +165,7 @@ const CandidateProfile = () => {
                 required
               />
             </div>
-            
+
             <div className="space-y-1.5">
               <label className="text-sm font-semibold text-slate-700">Last Name</label>
               <input
@@ -205,7 +205,7 @@ const CandidateProfile = () => {
                   name="phone"
                   value={formData.phone}
                   onChange={handleInputChange}
-                  placeholder="+1 (555) 000-0000"
+                  placeholder="+91 9440230003"
                   className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-slate-700 font-medium bg-slate-50 focus:bg-white"
                 />
               </div>
@@ -238,7 +238,7 @@ const CandidateProfile = () => {
             </div>
             <h2 className="text-lg font-bold text-slate-800">Professional Details</h2>
           </div>
-          
+
           <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-1.5">
               <label className="text-sm font-semibold text-slate-700">Current Job Title</label>
@@ -291,7 +291,7 @@ const CandidateProfile = () => {
             </div>
             <h2 className="text-lg font-bold text-slate-800">Resume / CV</h2>
           </div>
-          
+
           <div className="p-6">
             <div className="border-2 border-dashed border-slate-300 rounded-2xl p-8 flex flex-col items-center justify-center text-center bg-slate-50 hover:bg-slate-100/50 transition-colors relative">
               {isUploadingResume && (
@@ -302,10 +302,10 @@ const CandidateProfile = () => {
                   </div>
                 </div>
               )}
-              
-              <input 
-                type="file" 
-                accept=".pdf,.doc,.docx" 
+
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx"
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-0"
                 onChange={handleFileUpload}
                 disabled={isUploadingResume}
@@ -315,7 +315,7 @@ const CandidateProfile = () => {
               </div>
               <h3 className="text-lg font-bold text-slate-800 mb-1">Click to upload or drag and drop</h3>
               <p className="text-sm text-slate-500 mb-4">SVG, PNG, JPG or GIF (max. 800x400px)</p>
-              
+
               {uploadedFileName && (
                 <div className="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-2 rounded-lg border border-emerald-200 font-medium text-sm">
                   <CheckCircle2 size={16} />
