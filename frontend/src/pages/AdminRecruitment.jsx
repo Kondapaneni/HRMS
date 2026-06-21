@@ -1,14 +1,45 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Briefcase, Users, Plus, FileText, CheckCircle2, XCircle, Clock, Calendar, Mail, FileUp } from 'lucide-react';
+import React, { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+
+import { Briefcase, Users, Plus, FileText, CheckCircle2, XCircle, Clock, Calendar, Mail, FileUp, X } from 'lucide-react';
 import { supabase } from '../api/supabase';
 import toast from 'react-hot-toast';
 
 const AdminRecruitment = () => {
   const [activeTab, setActiveTab] = useState('jobs'); // 'jobs', 'applications'
-  const [jobs, setJobs] = useState([]);
-  const [applications, setApplications] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
+
+  const { data: jobs = [], isLoading: isLoadingJobs } = useQuery({
+    queryKey: ['admin', 'jobs'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('jobs')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    onError: () => toast.error('Failed to load jobs')
+  });
+
+  const { data: applications = [], isLoading: isLoadingApps } = useQuery({
+    queryKey: ['admin', 'applications'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('applications')
+        .select(`
+          *,
+          jobs (title, department),
+          users:candidate_id (email, "firstName", "lastName")
+        `)
+        .order('applied_date', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+    onError: () => toast.error('Failed to load applications')
+  });
+
+  const isLoading = isLoadingJobs || isLoadingApps;
 
   // Job Modal State
   const [isJobModalOpen, setIsJobModalOpen] = useState(false);
@@ -19,43 +50,7 @@ const AdminRecruitment = () => {
 
   // View Application Modal State
   const [viewApp, setViewApp] = useState(null);
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
-    setIsLoading(true);
-    try {
-      // Fetch Jobs
-      const { data: jobsData, error: jobsError } = await supabase
-        .from('jobs')
-        .select('*')
-        .order('created_at', { ascending: false });
-      if (jobsError) throw jobsError;
-      setJobs(jobsData || []);
-
-      // Fetch Applications with Joins (Job Title & Candidate Details)
-      // Since we don't have views set up, we'll fetch them separately or use a join if foreign keys are standard
-      const { data: appsData, error: appsError } = await supabase
-        .from('applications')
-        .select(`
-          *,
-          jobs (title, department),
-          users:candidate_id (email, "firstName", "lastName")
-        `)
-        .order('applied_date', { ascending: false });
-      
-      if (appsError) throw appsError;
-      setApplications(appsData || []);
-
-    } catch (error) {
-      console.error(error);
-      toast.error('Failed to load recruitment data');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const [viewJob, setViewJob] = useState(null);
 
   const handleCreateJob = async (e) => {
     e.preventDefault();
@@ -82,7 +77,7 @@ const AdminRecruitment = () => {
       setIsJobModalOpen(false);
       setJobFormData({ title: '', department: 'Engineering', location: 'Remote', type: 'Full-time', description: '', status: 'Draft', deadline: '' });
       setJobFile(null);
-      fetchData();
+      queryClient.invalidateQueries({ queryKey: ['admin', 'jobs'] });
     } catch (error) {
       console.error(error);
       toast.error('Failed to post job');
@@ -131,7 +126,7 @@ const AdminRecruitment = () => {
       }
       
       toast.success(`Application status updated to ${newStatus}`);
-      fetchData();
+      queryClient.invalidateQueries({ queryKey: ['admin', 'applications'] });
       setViewApp(null);
     } catch (error) {
       console.error(error);
@@ -141,19 +136,20 @@ const AdminRecruitment = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-4">
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
+        <div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">Recruitment</h1>
           <p className="text-sm text-slate-500 mt-1">Manage job postings and candidate applications.</p>
-        </motion.div>
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
+        </div>
+        <div>
           <button 
             onClick={() => setIsJobModalOpen(true)}
-            className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl font-semibold text-sm shadow-sm"
+            className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 transition-colors shadow-sm cursor-pointer"
           >
-            <Plus size={16} /> Post New Job
+            <Plus className="w-4 h-4 mr-2" />
+            Post New Job
           </button>
-        </motion.div>
+        </div>
       </div>
 
       <div className="border-b border-slate-200 mb-6">
@@ -173,83 +169,138 @@ const AdminRecruitment = () => {
         </nav>
       </div>
 
+      <div className="mb-6 flex items-center justify-between">
+        <h3 className="text-lg font-semibold text-slate-900">{activeTab === 'jobs' ? 'Job Postings' : 'Candidate Applications'}</h3>
+      </div>
+      
       {isLoading ? (
-        <div className="text-center py-12 text-slate-500 animate-pulse">Loading data...</div>
-      ) : activeTab === 'jobs' ? (
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-          <table className="min-w-full divide-y divide-slate-200">
-            <thead className="bg-slate-50">
-              <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Job Title</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Department</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Type / Location</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-slate-200">
-              {jobs.map((job) => (
-                <tr key={job.id} className="hover:bg-slate-50">
-                  <td className="px-6 py-4 whitespace-nowrap font-medium text-slate-900">{job.title}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-slate-500">{job.department}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-slate-500">{job.type} &bull; {job.location}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${job.status === 'Published' ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-800'}`}>
-                      {job.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-              {jobs.length === 0 && (
-                <tr>
-                  <td colSpan="4" className="px-6 py-10 text-center text-slate-500">No jobs posted yet.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>
+      ) : activeTab === 'jobs' ? (
+        jobs.length === 0 ? (
+          <div className="text-center py-12 text-slate-500 bg-white rounded-xl border border-slate-200">No jobs posted yet.</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {jobs.map((job) => (
+              <div key={job.id} onClick={() => setViewJob(job)} className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-all cursor-pointer hover:border-blue-300 flex flex-col">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h4 className="text-lg font-semibold text-slate-900">{job.title}</h4>
+                    <p className="text-sm text-slate-500">{job.department}</p>
+                  </div>
+                  <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${job.status === 'Published' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-700 border-slate-200'}`}>
+                    {job.status}
+                  </span>
+                </div>
+                <div className="mt-auto pt-4 border-t border-slate-100 flex flex-col gap-3 text-sm text-slate-600">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5"><Briefcase size={14} className="text-slate-400" /> {job.type}</div>
+                    <div className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span> {job.location}</div>
+                  </div>
+                  {job.deadline && (
+                    <div className="flex items-center gap-1.5 text-slate-500 text-xs">
+                      <Calendar size={14} className="text-slate-400" /> Deadline: <span className="font-medium text-slate-700">{new Date(job.deadline).toLocaleDateString()}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )
       ) : (
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-          <table className="min-w-full divide-y divide-slate-200">
-            <thead className="bg-slate-50">
-              <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Candidate</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Job</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Applied On</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Action</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-slate-200">
-              {applications.map((app) => (
-                <tr key={app.id} className="hover:bg-slate-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="font-medium text-slate-900">{app.users?.firstName} {app.users?.lastName}</div>
-                    <div className="text-sm text-slate-500">{app.users?.email}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="font-medium text-slate-900">{app.jobs?.title}</div>
-                    <div className="text-sm text-slate-500">{app.jobs?.department}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-slate-500">
-                    {new Date(app.applied_date).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                      {app.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button onClick={() => setViewApp(app)} className="text-blue-600 hover:text-blue-900">Review</button>
-                  </td>
-                </tr>
-              ))}
-              {applications.length === 0 && (
-                <tr>
-                  <td colSpan="5" className="px-6 py-10 text-center text-slate-500">No applications received yet.</td>
-                </tr>
+        applications.length === 0 ? (
+          <div className="text-center py-12 text-slate-500 bg-white rounded-xl border border-slate-200">No applications received yet.</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {applications.map((app) => (
+              <div key={app.id} className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h4 className="text-lg font-semibold text-slate-900">{app.users?.firstName} {app.users?.lastName}</h4>
+                    <p className="text-sm text-slate-500">{app.users?.email}</p>
+                  </div>
+                  <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-blue-100 text-blue-700 border-blue-200">
+                    {app.status}
+                  </span>
+                </div>
+                <div className="mb-4">
+                  <p className="text-sm font-medium text-slate-700">Applied for: {app.jobs?.title}</p>
+                  <p className="text-xs text-slate-500">{app.jobs?.department}</p>
+                </div>
+                <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
+                  <span className="text-xs text-slate-500 flex items-center gap-1.5"><Calendar size={14} className="text-slate-400" /> {new Date(app.applied_date).toLocaleDateString()}</span>
+                  <button onClick={() => setViewApp(app)} className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors">Review</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )
+      )}
+
+      {/* View Job Modal */}
+      {viewJob && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+              <h2 className="text-lg font-semibold text-slate-800">Job Details</h2>
+              <button onClick={() => setViewJob(null)} className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto flex-1">
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h3 className="text-2xl font-bold text-slate-900">{viewJob.title}</h3>
+                  <p className="text-slate-600 mt-1">{viewJob.department}</p>
+                </div>
+                <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${viewJob.status === 'Published' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-700 border-slate-200'}`}>
+                  {viewJob.status}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+                <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Type</p>
+                  <p className="font-semibold text-slate-900 flex items-center gap-1.5"><Briefcase size={14} className="text-blue-500" /> {viewJob.type}</p>
+                </div>
+                <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Location</p>
+                  <p className="font-semibold text-slate-900 flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span> {viewJob.location}</p>
+                </div>
+                <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 sm:col-span-2">
+                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Application Deadline</p>
+                  <p className="font-semibold text-slate-900 flex items-center gap-1.5">
+                    <Calendar size={14} className="text-blue-500" /> 
+                    {viewJob.deadline ? new Date(viewJob.deadline).toLocaleDateString() : 'No Deadline specified'}
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-semibold text-slate-800 mb-2">Description</h4>
+                <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200 whitespace-pre-wrap">
+                  {viewJob.description || 'No description provided.'}
+                </div>
+              </div>
+
+              {viewJob.description_pdf_url && (
+                <div className="mt-6">
+                  <h4 className="text-sm font-semibold text-slate-800 mb-2">Attached Document</h4>
+                  <a href={viewJob.description_pdf_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 bg-blue-50 px-4 py-2 rounded-lg font-medium text-sm transition-colors border border-blue-100">
+                    <FileText size={16} /> View Job Description PDF
+                  </a>
+                </div>
               )}
-            </tbody>
-          </table>
+            </div>
+            
+            <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3">
+              <button onClick={() => setViewJob(null)} className="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors cursor-pointer">
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -260,7 +311,7 @@ const AdminRecruitment = () => {
             <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
               <h2 className="text-lg font-semibold text-slate-800">Review Application</h2>
               <button onClick={() => setViewApp(null)} className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
-                <XCircle size={20} />
+                <X size={20} />
               </button>
             </div>
             
@@ -316,21 +367,21 @@ const AdminRecruitment = () => {
             <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
               <h2 className="text-lg font-semibold text-slate-800">Post New Job</h2>
               <button onClick={() => setIsJobModalOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
-                <XCircle size={20} />
+                <X size={20} />
               </button>
             </div>
             
             <div className="p-6 overflow-y-auto flex-1">
               <form id="post-job-form" onSubmit={handleCreateJob} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Job Title</label>
-                  <input type="text" required value={jobFormData.title} onChange={e => setJobFormData({...jobFormData, title: e.target.value})} className="w-full border-slate-300 rounded-xl shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm px-4 py-2 border" />
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Job Title *</label>
+                  <input type="text" required value={jobFormData.title} onChange={e => setJobFormData({...jobFormData, title: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Department</label>
-                    <select value={jobFormData.department} onChange={e => setJobFormData({...jobFormData, department: e.target.value})} className="w-full border-slate-300 rounded-xl shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm px-4 py-2 border">
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Department *</label>
+                    <select required value={jobFormData.department} onChange={e => setJobFormData({...jobFormData, department: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all bg-white cursor-pointer">
                       <option>Engineering</option>
                       <option>Product</option>
                       <option>Design</option>
@@ -340,8 +391,8 @@ const AdminRecruitment = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Type</label>
-                    <select value={jobFormData.type} onChange={e => setJobFormData({...jobFormData, type: e.target.value})} className="w-full border-slate-300 rounded-xl shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm px-4 py-2 border">
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Type *</label>
+                    <select required value={jobFormData.type} onChange={e => setJobFormData({...jobFormData, type: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all bg-white cursor-pointer">
                       <option>Full-time</option>
                       <option>Part-time</option>
                       <option>Contract</option>
@@ -351,31 +402,31 @@ const AdminRecruitment = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Location</label>
-                  <input type="text" value={jobFormData.location} onChange={e => setJobFormData({...jobFormData, location: e.target.value})} className="w-full border-slate-300 rounded-xl shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm px-4 py-2 border" />
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Location *</label>
+                  <input type="text" required value={jobFormData.location} onChange={e => setJobFormData({...jobFormData, location: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Description (Short)</label>
-                  <textarea rows={3} value={jobFormData.description} onChange={e => setJobFormData({...jobFormData, description: e.target.value})} className="w-full border-slate-300 rounded-xl shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm px-4 py-2 border" />
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Description (Short) *</label>
+                  <textarea rows={3} required value={jobFormData.description} onChange={e => setJobFormData({...jobFormData, description: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Detailed Job Description (PDF)</label>
-                  <input type="file" accept="application/pdf" onChange={e => setJobFile(e.target.files[0])} className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Detailed Job Description (PDF)</label>
+                  <input type="file" accept="application/pdf" onChange={e => setJobFile(e.target.files[0])} className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-colors" />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
-                    <select value={jobFormData.status} onChange={e => setJobFormData({...jobFormData, status: e.target.value})} className="w-full border-slate-300 rounded-xl shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm px-4 py-2 border">
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Status *</label>
+                    <select required value={jobFormData.status} onChange={e => setJobFormData({...jobFormData, status: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all bg-white cursor-pointer">
                       <option>Draft</option>
                       <option>Published</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Application Deadline</label>
-                    <input type="datetime-local" value={jobFormData.deadline} onChange={e => setJobFormData({...jobFormData, deadline: e.target.value})} className="w-full border-slate-300 rounded-xl shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm px-4 py-2 border" />
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Application Deadline</label>
+                    <input type="datetime-local" value={jobFormData.deadline} onChange={e => setJobFormData({...jobFormData, deadline: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />
                   </div>
                 </div>
               </form>
