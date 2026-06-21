@@ -5,6 +5,8 @@ import {
 } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '../api/supabase';
 
 const CandidateLayout = () => {
   const { profile, signOut } = useAuth();
@@ -12,6 +14,19 @@ const CandidateLayout = () => {
   const location = useLocation();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const { data: profileData } = useQuery({
+    queryKey: ['candidate', 'profile', profile?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('candidate_profiles')
+        .select('avatar_url')
+        .eq('user_id', profile.id)
+        .single();
+      return data;
+    },
+    enabled: !!profile?.id
+  });
 
   const handleLogout = async () => {
     try {
@@ -108,8 +123,12 @@ const CandidateLayout = () => {
 
               {/* Avatar Profile */}
               <div className="hidden sm:flex items-center gap-2 cursor-pointer group px-2 py-1 rounded-full hover:bg-slate-100/50 transition-colors">
-                <div className="w-8 h-8 rounded-full overflow-hidden bg-indigo-100 border border-white shadow-sm flex items-center justify-center text-indigo-700 font-bold text-sm">
-                  {profile?.firstName?.charAt(0) || profile?.email?.charAt(0).toUpperCase() || 'C'}
+                <div className="w-8 h-8 rounded-full overflow-hidden bg-indigo-100 border border-white shadow-sm flex items-center justify-center text-indigo-700 font-bold text-sm relative">
+                  {profileData?.avatar_url ? (
+                    <img src={profileData.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    profile?.firstName?.charAt(0) || profile?.email?.charAt(0).toUpperCase() || 'C'
+                  )}
                 </div>
               </div>
 
