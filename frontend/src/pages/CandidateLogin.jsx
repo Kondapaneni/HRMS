@@ -194,9 +194,9 @@ const CandidateLogin = () => {
             <AnimatePresence>
               {error && (
                 <motion.div 
-                  initial={{ opacity: 0, height: 0, mb: 0 }} 
-                  animate={{ opacity: 1, height: 'auto', mb: 24 }} 
-                  exit={{ opacity: 0, height: 0, mb: 0 }}
+                  initial={{ opacity: 0, height: 0, marginBottom: 0 }} 
+                  animate={{ opacity: 1, height: 'auto', marginBottom: 24 }} 
+                  exit={{ opacity: 0, height: 0, marginBottom: 0 }}
                   className="bg-red-100 border-[3px] border-red-500 rounded-xl text-red-700 font-bold p-4 overflow-hidden"
                 >
                   {error}
@@ -204,9 +204,9 @@ const CandidateLogin = () => {
               )}
               {success && (
                 <motion.div 
-                  initial={{ opacity: 0, height: 0, mb: 0 }} 
-                  animate={{ opacity: 1, height: 'auto', mb: 24 }} 
-                  exit={{ opacity: 0, height: 0, mb: 0 }}
+                  initial={{ opacity: 0, height: 0, marginBottom: 0 }} 
+                  animate={{ opacity: 1, height: 'auto', marginBottom: 24 }} 
+                  exit={{ opacity: 0, height: 0, marginBottom: 0 }}
                   className="bg-[#D1FAE5] border-[3px] border-[#10B981] rounded-xl text-[#047857] font-bold p-4 overflow-hidden flex items-start gap-3"
                 >
                   <CheckCircle2 className="shrink-0 mt-0.5" size={20} strokeWidth={2.5} />
