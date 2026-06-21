@@ -366,37 +366,34 @@ const AdminRecruitment = () => {
       {isJobModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
-            <div className="px-6 py-4 flex justify-between items-start">
-              <div>
-                <h2 className="text-xl font-semibold text-slate-800">Post New Job</h2>
-                <p className="text-sm text-slate-500 mt-1">Create a draft or publish a role directly to the candidate portal.</p>
-              </div>
-              <button onClick={() => setIsJobModalOpen(false)} className="p-2 border border-orange-400 rounded-md text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer">
+            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+              <h2 className="text-lg font-semibold text-slate-800">Post New Job</h2>
+              <button onClick={() => setIsJobModalOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
                 <X size={20} />
               </button>
             </div>
             
             <div className="p-6 overflow-y-auto flex-1">
-              <form id="post-job-form" onSubmit={handleCreateJob} className="space-y-5">
-                <div className="grid grid-cols-2 gap-6">
+              <form id="post-job-form" onSubmit={handleCreateJob} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Job Title</label>
-                    <input type="text" required value={jobFormData.title} onChange={e => setJobFormData({...jobFormData, title: e.target.value})} className="w-full px-3 py-2 border border-orange-400 rounded-md text-sm outline-none" />
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Job Title *</label>
+                    <input type="text" required value={jobFormData.title} onChange={e => setJobFormData({...jobFormData, title: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Department</label>
-                    <input type="text" required value={jobFormData.department} onChange={e => setJobFormData({...jobFormData, department: e.target.value})} className="w-full px-3 py-2 border border-orange-400 rounded-md text-sm outline-none" />
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Department *</label>
+                    <input type="text" required value={jobFormData.department} onChange={e => setJobFormData({...jobFormData, department: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Location</label>
-                    <input type="text" required value={jobFormData.location} onChange={e => setJobFormData({...jobFormData, location: e.target.value})} className="w-full px-3 py-2 border border-orange-400 rounded-md text-sm outline-none" />
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Location *</label>
+                    <input type="text" required value={jobFormData.location} onChange={e => setJobFormData({...jobFormData, location: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Job Type</label>
-                    <select required value={jobFormData.type} onChange={e => setJobFormData({...jobFormData, type: e.target.value})} className="w-full px-3 py-2 border border-orange-400 rounded-md text-sm outline-none bg-white cursor-pointer">
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Job Type *</label>
+                    <select required value={jobFormData.type} onChange={e => setJobFormData({...jobFormData, type: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all bg-white cursor-pointer">
                       <option>Full Time</option>
                       <option>Part Time</option>
                       <option>Contract</option>
@@ -405,61 +402,61 @@ const AdminRecruitment = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-6">
+                <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Experience</label>
-                    <input type="text" required value={jobFormData.experience} onChange={e => setJobFormData({...jobFormData, experience: e.target.value})} className="w-full px-3 py-2 border border-orange-400 rounded-md text-sm outline-none" />
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Experience *</label>
+                    <input type="text" required value={jobFormData.experience} onChange={e => setJobFormData({...jobFormData, experience: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Salary Min</label>
-                    <input type="text" required value={jobFormData.salary_min} onChange={e => setJobFormData({...jobFormData, salary_min: e.target.value})} className="w-full px-3 py-2 border border-orange-400 rounded-md text-sm outline-none" />
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Salary Min *</label>
+                    <input type="text" required value={jobFormData.salary_min} onChange={e => setJobFormData({...jobFormData, salary_min: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Salary Max</label>
-                    <input type="text" required value={jobFormData.salary_max} onChange={e => setJobFormData({...jobFormData, salary_max: e.target.value})} className="w-full px-3 py-2 border border-orange-400 rounded-md text-sm outline-none" />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Vacancy</label>
-                    <input type="number" required value={jobFormData.vacancy} onChange={e => setJobFormData({...jobFormData, vacancy: e.target.value})} className="w-full px-3 py-2 border border-orange-400 rounded-md text-sm outline-none" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Last Date</label>
-                    <input type="date" required value={jobFormData.deadline} onChange={e => setJobFormData({...jobFormData, deadline: e.target.value})} className="w-full px-3 py-2 border border-orange-400 rounded-md text-sm outline-none" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Attachment</label>
-                    <input type="file" accept="application/pdf" onChange={e => setJobFile(e.target.files[0])} className="w-full px-3 py-1.5 border border-orange-400 rounded-md text-sm outline-none file:mr-4 file:py-1 file:px-3 file:rounded file:border file:border-slate-300 file:text-sm file:font-medium file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200" />
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Salary Max *</label>
+                    <input type="text" required value={jobFormData.salary_max} onChange={e => setJobFormData({...jobFormData, salary_max: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Skills</label>
-                  <textarea rows={3} required value={jobFormData.skills} onChange={e => setJobFormData({...jobFormData, skills: e.target.value})} className="w-full px-3 py-2 border border-orange-400 rounded-md text-sm outline-none resize-y" />
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Vacancy *</label>
+                    <input type="number" required value={jobFormData.vacancy} onChange={e => setJobFormData({...jobFormData, vacancy: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Application Deadline</label>
+                    <input type="date" value={jobFormData.deadline} onChange={e => setJobFormData({...jobFormData, deadline: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Attachment (PDF)</label>
+                    <input type="file" accept="application/pdf" onChange={e => setJobFile(e.target.files[0])} className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-colors" />
+                  </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Qualification</label>
-                  <textarea rows={3} required value={jobFormData.qualification} onChange={e => setJobFormData({...jobFormData, qualification: e.target.value})} className="w-full px-3 py-2 border border-orange-400 rounded-md text-sm outline-none resize-y" />
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Skills</label>
+                  <textarea rows={3} required value={jobFormData.skills} onChange={e => setJobFormData({...jobFormData, skills: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all resize-y" />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
-                  <textarea rows={4} required value={jobFormData.description} onChange={e => setJobFormData({...jobFormData, description: e.target.value})} className="w-full px-3 py-2 border border-orange-400 rounded-md text-sm outline-none resize-y" />
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Qualification</label>
+                  <textarea rows={3} required value={jobFormData.qualification} onChange={e => setJobFormData({...jobFormData, qualification: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all resize-y" />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Detailed Job Description</label>
+                  <textarea rows={4} required value={jobFormData.description} onChange={e => setJobFormData({...jobFormData, description: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all resize-y" />
                 </div>
               </form>
             </div>
             
-            <div className="px-6 py-4 flex justify-end gap-4 mt-2">
-              <button type="button" onClick={() => setIsJobModalOpen(false)} className="px-5 py-2.5 text-sm font-medium text-slate-700 bg-white border border-orange-400 rounded-md hover:bg-slate-50 transition-colors cursor-pointer">
+            <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3">
+              <button type="button" onClick={() => setIsJobModalOpen(false)} className="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors cursor-pointer">
                 Cancel
               </button>
-              <button type="submit" form="post-job-form" onClick={() => setSubmitStatus('Draft')} className="px-5 py-2.5 text-sm font-medium text-slate-700 bg-white border border-orange-400 rounded-md hover:bg-slate-50 transition-colors cursor-pointer">
+              <button type="submit" form="post-job-form" onClick={() => setSubmitStatus('Draft')} className="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors cursor-pointer">
                 Save Draft
               </button>
-              <button type="submit" form="post-job-form" onClick={() => setSubmitStatus('Published')} className="px-6 py-2.5 text-sm font-medium text-white bg-teal-400 rounded-md hover:bg-teal-500 transition-colors cursor-pointer">
+              <button type="submit" form="post-job-form" onClick={() => setSubmitStatus('Published')} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors cursor-pointer">
                 Publish
               </button>
             </div>
