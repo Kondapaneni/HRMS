@@ -269,60 +269,64 @@ const CandidateJobs = () => {
 
       {/* Application Modal */}
       {selectedJob && (
-        <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity" onClick={() => setSelectedJob(null)}></div>
-            <span className="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
-            <div className="relative z-10 inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-              <form onSubmit={handleApplySubmit}>
-                <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                  <h3 className="text-xl leading-6 font-bold text-slate-900 mb-2">Apply for {selectedJob.title}</h3>
-                  <p className="text-sm text-slate-500 mb-6">{selectedJob.department} &bull; {selectedJob.location}</p>
-                  
-                  <div className="space-y-4">
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">Select Resume</label>
-                    {resumes.length === 0 ? (
-                      <div className="bg-amber-50 text-amber-700 p-4 rounded-xl border border-amber-200 text-sm">
-                        You don't have any resumes uploaded. Please go to your <a href="/candidate/profile" className="font-bold underline">Profile</a> to upload a resume first.
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        {resumes.map((resume, index) => (
-                          <label key={index} className={`flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-colors ${selectedResumeUrl === resume.url ? 'border-blue-500 bg-blue-50' : 'border-slate-200 bg-white hover:bg-slate-50'}`}>
-                            <div className="flex items-center gap-3">
-                              <input 
-                                type="radio" 
-                                name="resumeSelection" 
-                                value={resume.url}
-                                checked={selectedResumeUrl === resume.url}
-                                onChange={(e) => setSelectedResumeUrl(e.target.value)}
-                                className="w-4 h-4 text-blue-600 focus:ring-blue-500 border-slate-300"
-                              />
-                              <div className="flex flex-col">
-                                <span className={`font-medium ${selectedResumeUrl === resume.url ? 'text-blue-900' : 'text-slate-800'}`}>{resume.name}</span>
-                                {resume.isPrimary && <span className="text-xs font-semibold text-blue-600 uppercase tracking-wider mt-0.5">Primary</span>}
-                              </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+              <h2 className="text-lg font-semibold text-slate-800">Apply for {selectedJob.title}</h2>
+              <button onClick={() => setSelectedJob(null)} className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto flex-1">
+              <form id="apply-job-form" onSubmit={handleApplySubmit} className="space-y-4">
+                <p className="text-sm text-slate-500 mb-6">{selectedJob.department} &bull; {selectedJob.location}</p>
+                
+                <div className="space-y-4">
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">Select Resume</label>
+                  {resumes.length === 0 ? (
+                    <div className="bg-amber-50 text-amber-700 p-4 rounded-xl border border-amber-200 text-sm">
+                      You don't have any resumes uploaded. Please go to your <a href="/candidate/profile" className="font-bold underline">Profile</a> to upload a resume first.
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {resumes.map((resume, index) => (
+                        <label key={index} className={`flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-colors ${selectedResumeUrl === resume.url ? 'border-blue-500 bg-blue-50' : 'border-slate-200 bg-white hover:bg-slate-50'}`}>
+                          <div className="flex items-center gap-3">
+                            <input 
+                              type="radio" 
+                              name="resumeSelection" 
+                              value={resume.url}
+                              checked={selectedResumeUrl === resume.url}
+                              onChange={(e) => setSelectedResumeUrl(e.target.value)}
+                              className="w-4 h-4 text-blue-600 focus:ring-blue-500 border-slate-300"
+                            />
+                            <div className="flex flex-col">
+                              <span className={`font-medium ${selectedResumeUrl === resume.url ? 'text-blue-900' : 'text-slate-800'}`}>{resume.name}</span>
+                              {resume.isPrimary && <span className="text-xs font-semibold text-blue-600 uppercase tracking-wider mt-0.5">Primary</span>}
                             </div>
-                            <FileText className={`w-5 h-5 ${selectedResumeUrl === resume.url ? 'text-blue-500' : 'text-slate-400'}`} />
-                          </label>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="bg-slate-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-slate-200">
-                  <button 
-                    type="submit" 
-                    disabled={isApplying || resumes.length === 0 || !selectedResumeUrl}
-                    className="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-6 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isApplying ? 'Submitting...' : 'Submit Application'}
-                  </button>
-                  <button type="button" onClick={() => setSelectedJob(null)} className="mt-3 w-full inline-flex justify-center rounded-xl border border-slate-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-slate-700 hover:bg-slate-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
-                    Cancel
-                  </button>
+                          </div>
+                          <FileText className={`w-5 h-5 ${selectedResumeUrl === resume.url ? 'text-blue-500' : 'text-slate-400'}`} />
+                        </label>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </form>
+            </div>
+
+            <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3">
+              <button type="button" onClick={() => setSelectedJob(null)} className="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors cursor-pointer">
+                Cancel
+              </button>
+              <button 
+                type="submit" 
+                form="apply-job-form"
+                disabled={isApplying || resumes.length === 0 || !selectedResumeUrl}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+              >
+                {isApplying ? 'Submitting...' : 'Submit Application'}
+              </button>
             </div>
           </div>
         </div>
