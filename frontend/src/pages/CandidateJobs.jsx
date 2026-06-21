@@ -236,7 +236,7 @@ const CandidateJobs = () => {
                         rel="noreferrer"
                         className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl font-semibold text-sm transition-colors shadow-sm active:scale-95 flex items-center justify-center"
                       >
-                        JD
+                        Job Description
                       </a>
                     )}
                     <button 
