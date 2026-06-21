@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
-import { User, Mail, Phone, MapPin, Briefcase, UploadCloud, Save, FileText } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Briefcase, UploadCloud, Save, FileText, Camera } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { supabase } from '../api/supabase';
 
 const CandidateProfile = () => {
   const { profile } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingResume, setIsUploadingResume] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState(null);
 
   const [formData, setFormData] = useState({
@@ -17,7 +20,9 @@ const CandidateProfile = () => {
     address: '',
     currentTitle: '',
     experience: '',
-    bio: ''
+    bio: '',
+    resumeUrl: '',
+    avatarUrl: profile?.avatar || ''
   });
 
   const handleInputChange = (e) => {
@@ -34,21 +39,106 @@ const CandidateProfile = () => {
     }, 1000);
   };
 
-  const handleFileUpload = (e) => {
+  const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
       setUploadedFileName(file.name);
-      toast.success('Resume uploaded successfully!');
+      setIsUploadingResume(true);
+      
+      try {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `resume-${profile?.id || 'new'}-${Math.random()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('resumes')
+          .upload(fileName, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data } = supabase.storage
+          .from('resumes')
+          .getPublicUrl(fileName);
+
+        setFormData(prev => ({ ...prev, resumeUrl: data.publicUrl }));
+        toast.success('Resume uploaded to Supabase successfully!');
+      } catch (error) {
+        console.error('Upload error:', error);
+        toast.error('Failed to upload resume to storage.');
+      } finally {
+        setIsUploadingResume(false);
+      }
+    }
+  };
+
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    try {
+      setIsUploadingAvatar(true);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `candidate-${profile?.id || 'avatar'}-${Math.random()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      setFormData(prev => ({ ...prev, avatarUrl: data.publicUrl }));
+      toast.success('Profile picture uploaded successfully!');
+    } catch (error) {
+      toast.error('Failed to upload profile picture');
+      console.error(error);
+    } finally {
+      setIsUploadingAvatar(false);
     }
   };
 
   return (
     <div className="space-y-6 w-full">
       {/* Page Header */}
-      <div className="mb-8">
+      <div className="mb-8 flex flex-col sm:flex-row gap-6 items-center sm:items-start justify-between">
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">My Profile</h1>
           <p className="text-sm text-slate-500 mt-1">Manage your personal information and resume to speed up applications.</p>
+        </motion.div>
+        
+        {/* Profile Avatar Upload */}
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="relative group cursor-pointer shrink-0">
+          <div className="flex h-24 w-24 items-center justify-center rounded-full bg-slate-100 border-4 border-white shadow-md overflow-hidden text-2xl font-medium text-slate-600 relative">
+            {formData.avatarUrl ? (
+              <img src={formData.avatarUrl} alt="Profile" className="h-full w-full object-cover" />
+            ) : (
+              <span>{formData.firstName?.charAt(0) || 'C'}</span>
+            )}
+            <label className="absolute inset-0 bg-black/50 hidden group-hover:flex flex-col items-center justify-center text-white cursor-pointer transition-all">
+              {isUploadingAvatar ? (
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+              ) : (
+                <>
+                  <Camera className="h-6 w-6 mb-1" />
+                  <span className="text-[10px] font-medium uppercase tracking-wider">Upload</span>
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    className="hidden" 
+                    onChange={handleAvatarUpload}
+                    disabled={isUploadingAvatar}
+                  />
+                </>
+              )}
+            </label>
+          </div>
         </motion.div>
       </div>
 
@@ -204,11 +294,21 @@ const CandidateProfile = () => {
           
           <div className="p-6">
             <div className="border-2 border-dashed border-slate-300 rounded-2xl p-8 flex flex-col items-center justify-center text-center bg-slate-50 hover:bg-slate-100/50 transition-colors relative">
+              {isUploadingResume && (
+                <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center rounded-2xl z-10">
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <span className="text-sm font-semibold text-slate-700">Uploading to Supabase...</span>
+                  </div>
+                </div>
+              )}
+              
               <input 
                 type="file" 
                 accept=".pdf,.doc,.docx" 
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-0"
                 onChange={handleFileUpload}
+                disabled={isUploadingResume}
               />
               <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm border border-slate-200 text-blue-500 mb-4">
                 <UploadCloud size={32} />
