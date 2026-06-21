@@ -54,7 +54,7 @@ const ForgotPassword = () => {
         if (err.response.data?.secondsRemaining) {
           setLockoutSeconds(err.response.data.secondsRemaining);
         }
-        setError(err.response.data?.error || 'Too many requests. Please try again later.');
+        setError(err.response.data?.error || 'Too Many Requests. Please Try Again Later.');
         return;
       }
       setError(err.response?.data?.error || err.message || 'Failed to request reset');
@@ -74,7 +74,7 @@ const ForgotPassword = () => {
       >
         <motion.div custom={1} variants={shapeVariants} animate="animate" className="absolute w-64 h-64 bg-[#10B981] rounded-full opacity-90 top-1/4 -left-12" />
         <motion.div custom={2} variants={shapeVariants} animate="animate" className="absolute w-80 h-80 bg-[#3B82F6] rounded-3xl opacity-90 bottom-1/4 right-0 rotate-12" />
-        
+
         <div className="relative z-20 text-slate-800 max-w-md px-12 backdrop-blur-md bg-white/60 p-8 rounded-2xl border border-white/40 shadow-xl">
           <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5, duration: 0.8 }}>
             <div className="flex items-center gap-3 mb-8">
@@ -95,7 +95,7 @@ const ForgotPassword = () => {
 
       {/* RIGHT SIDE */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 relative z-20 bg-slate-50 overflow-hidden">
-        
+
         {/* Animated Background Graphics */}
         <div className="absolute inset-0 z-0 pointer-events-none">
           <motion.div custom={1} variants={shapeVariants} animate="animate" className="absolute w-64 h-64 bg-[#F59E0B] rounded-full opacity-10 -top-20 -right-20" />
@@ -103,11 +103,11 @@ const ForgotPassword = () => {
           <motion.div custom={3} variants={shapeVariants} animate="animate" className="absolute w-96 h-96 bg-[#3B82F6] rounded-full opacity-5 top-1/2 left-1/3" />
           <motion.div custom={4} variants={shapeVariants} animate="animate" className="absolute w-32 h-32 bg-[#EC4899] rounded-xl opacity-10 top-20 left-10 -rotate-12" />
           <motion.div custom={5} variants={shapeVariants} animate="animate" className="absolute w-72 h-72 bg-[#8B5CF6] rounded-full opacity-10 bottom-20 right-1/4" />
-          
+
           <motion.div custom={6} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-40 h-40 bg-[#14B8A6] rounded-2xl opacity-10 top-[-20px] left-[18rem] rotate-45" />
           <motion.div custom={7} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-28 h-28 bg-[#F43F5E] rounded-3xl opacity-10 top-32 left-[24rem] -rotate-12" />
           <motion.div custom={8} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-56 h-56 bg-[#6366F1] rounded-full opacity-[0.06] top-10 left-[35%]" />
-          
+
           <motion.div custom={9} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-36 h-36 bg-[#EAB308] rounded-2xl opacity-10 bottom-10 right-10 -rotate-12" />
           <motion.div custom={10} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-24 h-24 bg-[#06B6D4] rounded-full opacity-10 bottom-40 right-28 rotate-45" />
         </div>
@@ -121,7 +121,7 @@ const ForgotPassword = () => {
           <div className="bg-white border-[3px] border-[#1E1B4B] rounded-2xl p-8 sm:p-10 relative overflow-visible">
 
             <div className="absolute -top-6 -right-6 w-16 h-16 bg-[#F59E0B] rounded-full border-[3px] border-[#1E1B4B] shadow-[4px_4px_0px_#1E1B4B] z-20 animate-[bounce_3s_infinite]" />
-            
+
             <Link to={backLink} className="inline-flex items-center gap-2 text-slate-500 hover:text-[#1E1B4B] font-bold mb-6 transition-colors">
               <ArrowLeft size={18} strokeWidth={3} />
               Back to Login
@@ -135,11 +135,6 @@ const ForgotPassword = () => {
             {error && (
               <div className="mb-6 p-4 bg-red-100 border-[3px] border-red-500 rounded-xl text-red-700 font-bold">
                 {error}
-                {lockoutSeconds > 0 && (
-                  <p className="text-xs font-semibold text-red-600 mt-1">
-                    Please wait {Math.floor(lockoutSeconds / 60)}m {lockoutSeconds % 60}s before trying again.
-                  </p>
-                )}
               </div>
             )}
 

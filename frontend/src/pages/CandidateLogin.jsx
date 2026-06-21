@@ -23,7 +23,7 @@ const CandidateLogin = () => {
     }
     return () => clearInterval(timer);
   }, [lockoutSeconds]);
-  
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -48,7 +48,7 @@ const CandidateLogin = () => {
   };
 
   const strengthScore = calculateStrength(formData.password);
-  
+
   const getStrengthColor = () => {
     if (strengthScore <= 2) return 'bg-[#EF4444]'; // Red
     if (strengthScore <= 4) return 'bg-[#F59E0B]'; // Yellow
@@ -61,7 +61,7 @@ const CandidateLogin = () => {
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-  };  const handleAuth = async (e) => {
+  }; const handleAuth = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
@@ -74,10 +74,10 @@ const CandidateLogin = () => {
           email: formData.email,
           password: formData.password
         });
-        
+
         localStorage.setItem('token', res.data.token);
         toast.success('Welcome back!');
-        window.location.href = '/candidate/dashboard'; 
+        window.location.href = '/candidate/dashboard';
 
       } else {
         // Validation check for Sign Up
@@ -104,7 +104,7 @@ const CandidateLogin = () => {
         if (err.response.data?.secondsRemaining) {
           setLockoutSeconds(err.response.data.secondsRemaining);
         }
-        setError(err.response.data?.error || 'Too many requests. Please try again later.');
+        setError(err.response.data?.error || 'Too Many Requests. Please Try Again Later.');
         return;
       }
       setError(err.response?.data?.error || err.message || 'Authentication failed. Please try again.');
@@ -167,7 +167,7 @@ const CandidateLogin = () => {
 
       {/* RIGHT SIDE */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-8 relative z-20 bg-slate-50 overflow-hidden">
-        
+
         {/* Animated Background Graphics */}
         <div className="absolute inset-0 z-0 pointer-events-none">
           <motion.div custom={1} variants={shapeVariants} animate="animate" className="absolute w-64 h-64 bg-[#F59E0B] rounded-full opacity-10 -top-20 -right-20" />
@@ -175,11 +175,11 @@ const CandidateLogin = () => {
           <motion.div custom={3} variants={shapeVariants} animate="animate" className="absolute w-96 h-96 bg-[#3B82F6] rounded-full opacity-5 top-1/2 left-1/3" />
           <motion.div custom={4} variants={shapeVariants} animate="animate" className="absolute w-32 h-32 bg-[#EC4899] rounded-xl opacity-10 top-20 left-10 -rotate-12" />
           <motion.div custom={5} variants={shapeVariants} animate="animate" className="absolute w-72 h-72 bg-[#8B5CF6] rounded-full opacity-10 bottom-20 right-1/4" />
-          
+
           <motion.div custom={6} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-40 h-40 bg-[#14B8A6] rounded-2xl opacity-10 top-[-20px] left-[18rem] rotate-45" />
           <motion.div custom={7} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-28 h-28 bg-[#F43F5E] rounded-3xl opacity-10 top-32 left-[24rem] -rotate-12" />
           <motion.div custom={8} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-56 h-56 bg-[#6366F1] rounded-full opacity-[0.06] top-10 left-[35%]" />
-          
+
           <motion.div custom={9} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-36 h-36 bg-[#EAB308] rounded-2xl opacity-10 bottom-10 right-10 -rotate-12" />
           <motion.div custom={10} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-24 h-24 bg-[#06B6D4] rounded-full opacity-10 bottom-40 right-28 rotate-45" />
         </div>
@@ -211,24 +211,19 @@ const CandidateLogin = () => {
 
             <AnimatePresence>
               {error && (
-                <motion.div 
-                  initial={{ opacity: 0, height: 0, marginBottom: 0 }} 
-                  animate={{ opacity: 1, height: 'auto', marginBottom: 24 }} 
+                <motion.div
+                  initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                  animate={{ opacity: 1, height: 'auto', marginBottom: 24 }}
                   exit={{ opacity: 0, height: 0, marginBottom: 0 }}
                   className="bg-red-100 border-[3px] border-red-500 rounded-xl text-red-700 font-bold p-4 overflow-hidden"
                 >
                   {error}
-                  {lockoutSeconds > 0 && (
-                    <p className="text-xs font-semibold text-red-600 mt-1">
-                      Please wait {Math.floor(lockoutSeconds / 60)}m {lockoutSeconds % 60}s before trying again.
-                    </p>
-                  )}
                 </motion.div>
               )}
               {success && (
-                <motion.div 
-                  initial={{ opacity: 0, height: 0, marginBottom: 0 }} 
-                  animate={{ opacity: 1, height: 'auto', marginBottom: 24 }} 
+                <motion.div
+                  initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                  animate={{ opacity: 1, height: 'auto', marginBottom: 24 }}
                   exit={{ opacity: 0, height: 0, marginBottom: 0 }}
                   className="bg-[#D1FAE5] border-[3px] border-[#10B981] rounded-xl text-[#047857] font-bold p-4 overflow-hidden flex items-start gap-3"
                 >
@@ -298,7 +293,7 @@ const CandidateLogin = () => {
                 <label className="block text-xs font-black text-[#1E1B4B] mb-1 uppercase tracking-wide">
                   Email Address
                 </label>
-                  <div className={`relative flex items-center transition-all duration-200 rounded-xl overflow-hidden border-[3px] border-[#1E1B4B] bg-white ${isFocused === 'email' ? 'shadow-[4px_4px_0px_#10B981] -translate-y-0.5 -translate-x-0.5' : 'shadow-[2px_2px_0px_#E5E7EB]'}`}>
+                <div className={`relative flex items-center transition-all duration-200 rounded-xl overflow-hidden border-[3px] border-[#1E1B4B] bg-white ${isFocused === 'email' ? 'shadow-[4px_4px_0px_#10B981] -translate-y-0.5 -translate-x-0.5' : 'shadow-[2px_2px_0px_#E5E7EB]'}`}>
                   <div className={`pl-3 transition-colors ${isFocused === 'email' ? 'text-[#10B981]' : 'text-[#1E1B4B]'}`}>
                     <Mail size={20} strokeWidth={2.5} />
                   </div>
@@ -345,14 +340,14 @@ const CandidateLogin = () => {
                     {showPassword ? <EyeOff size={20} strokeWidth={2.5} /> : <Eye size={20} strokeWidth={2.5} />}
                   </button>
                 </div>
-                
+
                 {/* Password Strength Indicator - Only for Sign Up */}
                 {!isLogin && formData.password.length > 0 && (
                   <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mt-2">
                     <div className="flex gap-1 mb-1.5 h-1">
                       {[1, 2, 3, 4, 5].map((level) => (
-                        <div 
-                          key={level} 
+                        <div
+                          key={level}
                           className={`flex-1 rounded-full transition-all duration-300 ${strengthScore >= level ? getStrengthColor() : 'bg-slate-200'}`}
                         />
                       ))}
@@ -386,7 +381,7 @@ const CandidateLogin = () => {
                       Remember me
                     </label>
                   </div>
-  
+
                   <Link to="/forgot-password?type=candidate" className="text-xs font-black text-[#3B82F6] hover:text-[#2563EB] transition-colors hover:underline decoration-[2px] underline-offset-2">
                     Forgot Password?
                   </Link>
@@ -407,7 +402,7 @@ const CandidateLogin = () => {
             </form>
 
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.9 }} className="mt-6 text-center">
-              <button 
+              <button
                 onClick={toggleMode}
                 className="text-[#1E1B4B] text-sm font-black hover:text-[#4F46E5] transition-colors"
               >
