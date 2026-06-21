@@ -1,23 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { CheckCircle2, Clock, Calendar, FileText, ChevronRight, XCircle, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../api/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import toast from 'react-hot-toast';
+import { useQuery } from '@tanstack/react-query';
 
 const CandidateApplications = () => {
   const { profile } = useAuth();
-  const [applications, setApplications] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    if (profile?.id) {
-      fetchApplications();
-    }
-  }, [profile]);
-
-  const fetchApplications = async () => {
-    try {
+  const { data: applications = [], isLoading } = useQuery({
+    queryKey: ['candidate', 'applications', profile?.id],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('applications')
         .select(`
@@ -40,7 +32,7 @@ const CandidateApplications = () => {
       if (error) throw error;
 
       // Transform data for UI
-      const formattedApps = (data || []).map(app => {
+      return (data || []).map(app => {
         // Sort timeline
         const timeline = Array.isArray(app.application_timeline) ? app.application_timeline.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)) : [];
         const latestNote = timeline.length > 0 ? timeline[0].notes : 'Awaiting review';
@@ -64,15 +56,9 @@ const CandidateApplications = () => {
           nextStep: latestNote
         };
       });
-
-      setApplications(formattedApps);
-    } catch (err) {
-      console.error(err);
-      toast.error('Failed to load applications');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    },
+    enabled: !!profile?.id
+  });
 
   const statusConfig = {
     applied: { label: 'Applied', icon: <FileText size={16} />, color: 'text-blue-600', bg: 'bg-blue-100', border: 'border-blue-200', step: 1 },

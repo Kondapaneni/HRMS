@@ -1,74 +1,54 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Search, MapPin, Briefcase, Clock, ChevronRight, Filter, FileText, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../api/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const CandidateJobs = () => {
   const { profile } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDept, setFilterDept] = useState('All');
   
-  const [jobs, setJobs] = useState([]);
-  const [departments, setDepartments] = useState(['All']);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
 
-  // Application Modal State
-  const [selectedJob, setSelectedJob] = useState(null);
-  const [resumes, setResumes] = useState([]);
-  const [selectedResumeUrl, setSelectedResumeUrl] = useState('');
-  const [isApplying, setIsApplying] = useState(false);
-
-  useEffect(() => {
-    fetchJobs();
-    if (profile?.id) {
-      fetchResumes();
-    }
-  }, [profile]);
-
-  const fetchJobs = async () => {
-    try {
+  const { data: jobs = [], isLoading: isLoadingJobs } = useQuery({
+    queryKey: ['candidate', 'jobs'],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('jobs')
         .select('*')
         .eq('status', 'Published')
         .order('created_at', { ascending: false });
-        
       if (error) throw error;
-      setJobs(data || []);
-      
-      const depts = new Set(['All']);
-      (data || []).forEach(job => depts.add(job.department));
-      setDepartments(Array.from(depts));
-    } catch (error) {
-      console.error(error);
-      toast.error('Failed to load jobs');
-    } finally {
-      setIsLoading(false);
+      return data || [];
     }
-  };
+  });
 
-  const fetchResumes = async () => {
-    try {
+  const departments = ['All', ...new Set(jobs.map(job => job.department))];
+
+  const { data: resumes = [], isLoading: isLoadingResumes } = useQuery({
+    queryKey: ['candidate', 'resumes', profile?.id],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('candidate_profiles')
         .select('resume_url')
         .eq('user_id', profile.id)
         .single();
-        
       if (error && error.code !== 'PGRST116') throw error;
-      
-      const resumesArr = Array.isArray(data?.resume_url) ? data.resume_url : [];
-      setResumes(resumesArr);
-      
-      const primary = resumesArr.find(r => r.isPrimary);
-      if (primary) setSelectedResumeUrl(primary.url);
-      else if (resumesArr.length > 0) setSelectedResumeUrl(resumesArr[0].url);
-      
-    } catch (error) {
-      console.error('Error fetching resumes:', error);
+      return Array.isArray(data?.resume_url) ? data.resume_url : [];
+    },
+    enabled: !!profile?.id
+  });
+
+  const isLoading = isLoadingJobs || isLoadingResumes;
+
+  React.useEffect(() => {
+    if (resumes.length > 0 && !selectedResumeUrl) {
+      const primary = resumes.find(r => r.isPrimary);
+      setSelectedResumeUrl(primary ? primary.url : resumes[0].url);
     }
-  };
+  }, [resumes, selectedResumeUrl]);
 
   const filteredJobs = jobs.filter(job => {
     const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) || (job.description && job.description.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -76,36 +56,27 @@ const CandidateJobs = () => {
     return matchesSearch && matchesDept;
   });
 
-  const handleApplySubmit = async (e) => {
-    e.preventDefault();
-    if (!selectedResumeUrl) {
-      toast.error('Please select a resume to apply.');
-      return;
-    }
-    
-    setIsApplying(true);
-    try {
+  const applyMutation = useMutation({
+    mutationFn: async ({ job, resumeUrl }) => {
       // Check if already applied
       const { data: existingApp, error: checkError } = await supabase
         .from('applications')
         .select('id')
-        .eq('job_id', selectedJob.id)
+        .eq('job_id', job.id)
         .eq('candidate_id', profile.id)
         .single();
         
       if (existingApp) {
-        toast.error('You have already applied for this position.');
-        setSelectedJob(null);
-        return;
+        throw new Error('ALREADY_APPLIED');
       }
       
       // Submit Application
       const { error } = await supabase
         .from('applications')
         .insert([{
-          job_id: selectedJob.id,
+          job_id: job.id,
           candidate_id: profile.id,
-          resume_url: selectedResumeUrl,
+          resume_url: resumeUrl,
           status: 'Applied'
         }]);
         
@@ -115,7 +86,7 @@ const CandidateJobs = () => {
       const { data: newApp } = await supabase
         .from('applications')
         .select('id')
-        .eq('job_id', selectedJob.id)
+        .eq('job_id', job.id)
         .eq('candidate_id', profile.id)
         .single();
         
@@ -132,7 +103,7 @@ const CandidateJobs = () => {
            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
              <h2 style="color: #2563eb;">Application Received</h2>
              <p>Hi ${profile.firstName},</p>
-             <p>Thank you for applying for the <strong>${selectedJob.title}</strong> position at Acme HRMS.</p>
+             <p>Thank you for applying for the <strong>${job.title}</strong> position at Acme HRMS.</p>
              <p>Your application has been successfully received and is currently under review by our recruitment team. You can track your application status anytime from your Candidate Dashboard.</p>
              <p>Best regards,<br>The Acme Team</p>
            </div>
@@ -140,19 +111,35 @@ const CandidateJobs = () => {
          
          await supabase.from('email_queue').insert([{
            to_email: profile.email,
-           subject: `Application Received: ${selectedJob.title}`,
+           subject: `Application Received: ${job.title}`,
            body: emailBody
          }]);
       }
-      
-      toast.success(`Successfully applied for the ${selectedJob.title} position!`);
+    },
+    onSuccess: (_, variables) => {
+      toast.success(`Successfully applied for the ${variables.job.title} position!`);
       setSelectedJob(null);
-    } catch (error) {
-      console.error(error);
-      toast.error('Failed to submit application. Please try again.');
-    } finally {
-      setIsApplying(false);
+      queryClient.invalidateQueries(['candidate', 'dashboard']);
+      queryClient.invalidateQueries(['candidate', 'applications']);
+    },
+    onError: (error) => {
+      if (error.message === 'ALREADY_APPLIED') {
+        toast.error('You have already applied for this position.');
+        setSelectedJob(null);
+      } else {
+        console.error(error);
+        toast.error('Failed to submit application.');
+      }
     }
+  });
+
+  const handleApplySubmit = (e) => {
+    e.preventDefault();
+    if (!selectedResumeUrl) {
+      toast.error('Please select a resume to apply.');
+      return;
+    }
+    applyMutation.mutate({ job: selectedJob, resumeUrl: selectedResumeUrl });
   };
 
   return (
@@ -314,13 +301,13 @@ const CandidateJobs = () => {
               <button type="button" onClick={() => setSelectedJob(null)} className="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors cursor-pointer">
                 Cancel
               </button>
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 form="apply-job-form"
-                disabled={isApplying || resumes.length === 0 || !selectedResumeUrl}
+                disabled={applyMutation.isPending || resumes.length === 0}
                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
               >
-                {isApplying ? 'Submitting...' : 'Submit Application'}
+                {applyMutation.isPending ? 'Submitting...' : 'Submit Application'}
               </button>
             </div>
           </div>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { User, Mail, Phone, MapPin, Briefcase, UploadCloud, Save, FileText, Camera, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../api/supabase';
@@ -28,71 +29,72 @@ const CandidateProfile = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      if (!profile?.id) return;
-      try {
-        const { data, error } = await supabase
-          .from('candidate_profiles')
-          .select('*')
-          .eq('user_id', profile.id)
-          .single();
-          
-        if (error && error.code !== 'PGRST116') throw error; // PGRST116 is not found
-        
-        if (data) {
-          setFormData(prev => ({
-            ...prev,
-            phone: data.phone || '',
-            address: data.address || '',
-            currentTitle: data.current_title || '',
-            experience: data.experience || '',
-            bio: data.bio || '',
-            resumes: Array.isArray(data.resume_url) ? data.resume_url : [],
-            avatarUrl: data.avatar_url || prev.avatarUrl
-          }));
-        }
-      } catch (err) {
-        console.error('Error fetching profile:', err);
-      }
-    };
-    
-    fetchProfile();
-  }, [profile?.id]);
+  const queryClient = useQueryClient();
 
-  const handleSave = async (e) => {
+  const { data: profileData, isLoading: isLoadingProfile } = useQuery({
+    queryKey: ['candidate', 'profile', profile?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('candidate_profiles')
+        .select('*')
+        .eq('user_id', profile.id)
+        .single();
+      if (error && error.code !== 'PGRST116') throw error;
+      return data || null;
+    },
+    enabled: !!profile?.id
+  });
+
+  useEffect(() => {
+    if (profileData) {
+      setFormData(prev => ({
+        ...prev,
+        phone: profileData.phone || '',
+        address: profileData.address || '',
+        currentTitle: profileData.current_title || '',
+        experience: profileData.experience || '',
+        bio: profileData.bio || '',
+        resumes: Array.isArray(profileData.resume_url) ? profileData.resume_url : [],
+        avatarUrl: profileData.avatar_url || prev.avatarUrl
+      }));
+    }
+  }, [profileData]);
+
+  const saveMutation = useMutation({
+    mutationFn: async (updatedData) => {
+      const { error } = await supabase
+        .from('candidate_profiles')
+        .upsert({
+          user_id: profile.id,
+          phone: updatedData.phone,
+          address: updatedData.address,
+          current_title: updatedData.currentTitle,
+          experience: updatedData.experience,
+          bio: updatedData.bio,
+          resume_url: updatedData.resumes,
+          avatar_url: updatedData.avatarUrl,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id' });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Profile saved successfully!');
+      queryClient.invalidateQueries(['candidate', 'profile']);
+      queryClient.invalidateQueries(['candidate', 'dashboard']);
+    },
+    onError: (error) => {
+      console.error('Error saving profile:', error);
+      toast.error('Failed to save profile. Please try again.');
+    }
+  });
+
+  const handleSave = (e) => {
     e.preventDefault();
     if (!profile?.id) {
       toast.error('You must be logged in to save your profile.');
       return;
     }
-
-    setIsSaving(true);
-    
-    try {
-      const { error } = await supabase
-        .from('candidate_profiles')
-        .upsert({
-          user_id: profile.id,
-          phone: formData.phone,
-          address: formData.address,
-          current_title: formData.currentTitle,
-          experience: formData.experience,
-          bio: formData.bio,
-          resume_url: formData.resumes,
-          avatar_url: formData.avatarUrl,
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'user_id' });
-
-      if (error) throw error;
-      
-      toast.success('Profile saved successfully!');
-    } catch (error) {
-      console.error('Error saving profile:', error);
-      toast.error('Failed to save profile. Please try again.');
-    } finally {
-      setIsSaving(false);
-    }
+    saveMutation.mutate(formData);
   };
 
   const handleFileUpload = async (e) => {
@@ -125,19 +127,12 @@ const CandidateProfile = () => {
           isPrimary: formData.resumes.length === 0
         };
 
-        setFormData(prev => ({ 
-          ...prev, 
-          resumes: [...prev.resumes, newResume] 
-        }));
-        
-        // Auto-save immediately to persist the resume
-        await supabase.from('candidate_profiles').upsert({
-          user_id: profile.id,
-          resume_url: [...formData.resumes, newResume],
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'user_id' });
-        
-        toast.success('Resume Uploaded Successfully!');
+        const newResumes = [...formData.resumes, newResume];
+        setFormData(prev => {
+          const newData = { ...prev, resumes: newResumes };
+          saveMutation.mutate(newData);
+          return newData;
+        });
       } catch (error) {
         console.error('Upload error:', error);
         toast.error('Failed to Upload Resume!');
@@ -450,10 +445,10 @@ const CandidateProfile = () => {
         <div className="flex justify-end pt-4 pb-12">
           <button
             type="submit"
-            disabled={isSaving}
+            disabled={saveMutation.isPending}
             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-8 py-3.5 rounded-xl font-bold text-base transition-colors shadow-lg shadow-blue-600/20 disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            {isSaving ? (
+            {saveMutation.isPending ? (
               <>Saving...</>
             ) : (
               <>

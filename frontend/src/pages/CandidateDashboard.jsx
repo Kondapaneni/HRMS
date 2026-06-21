@@ -1,64 +1,52 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
 import { Briefcase, FileText, Calendar, CheckCircle2, AlertCircle, ArrowRight, Activity, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../api/supabase';
 
 const CandidateDashboard = () => {
   const { profile } = useAuth();
-  
-  const [completionStats, setCompletionStats] = useState({ percentage: 0, isComplete: false });
-  const [stats, setStats] = useState({ activeApps: 0, interviews: 0 });
+  const { data: dashboardData, isLoading } = useQuery({
+    queryKey: ['candidate', 'dashboard', profile?.id],
+    queryFn: async () => {
+      if (!profile?.id) return null;
 
-  useEffect(() => {
-    if (profile?.id) {
-      fetchDashboardData();
-    }
-  }, [profile]);
+      const [profileRes, appsRes] = await Promise.all([
+        supabase.from('candidate_profiles').select('*').eq('user_id', profile.id).single(),
+        supabase.from('applications').select('status').eq('candidate_id', profile.id)
+      ]);
 
-  const fetchDashboardData = async () => {
-    try {
-      // Fetch Profile
-      const { data: profileData } = await supabase
-        .from('candidate_profiles')
-        .select('*')
-        .eq('user_id', profile.id)
-        .single();
-        
-      if (profileData) {
-        // Calculate completion
-        const fields = ['phone', 'address', 'current_title', 'experience', 'bio'];
-        let filledCount = fields.filter(f => profileData[f] && profileData[f].trim() !== '').length;
-        
-        // Add avatars and resumes to criteria
-        if (profileData.avatar_url) filledCount++;
-        const resumes = Array.isArray(profileData.resume_url) ? profileData.resume_url : [];
-        if (resumes.length > 0) filledCount++;
-        
-        // Total fields = 7
-        const percentage = Math.round((filledCount / 7) * 100);
-        setCompletionStats({
-          percentage,
-          isComplete: percentage === 100
-        });
-      }
+      return {
+        profileData: profileRes.data || null,
+        appsData: appsRes.data || []
+      };
+    },
+    enabled: !!profile?.id,
+    staleTime: 30 * 1000
+  });
 
-      // Fetch Application Stats
-      const { data: appsData } = await supabase
-        .from('applications')
-        .select('status')
-        .eq('candidate_id', profile.id);
-        
-      if (appsData) {
-        const activeApps = appsData.filter(a => ['Applied', 'Shortlisted', 'Interviewing'].includes(a.status)).length;
-        const interviews = appsData.filter(a => a.status === 'Interviewing').length;
-        setStats({ activeApps, interviews });
-      }
-      
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  const profileData = dashboardData?.profileData;
+  const appsData = dashboardData?.appsData || [];
+
+  // Calculate completion stats
+  let percentage = 0;
+  let isComplete = false;
+  if (profileData) {
+    const fields = ['phone', 'address', 'current_title', 'experience', 'bio'];
+    let filledCount = fields.filter(f => profileData[f] && profileData[f].trim() !== '').length;
+    if (profileData.avatar_url) filledCount++;
+    const resumes = Array.isArray(profileData.resume_url) ? profileData.resume_url : [];
+    if (resumes.length > 0) filledCount++;
+    percentage = Math.round((filledCount / 7) * 100);
+    isComplete = percentage === 100;
+  }
+  const completionStats = { percentage, isComplete };
+
+  // Calculate app stats
+  const activeApps = appsData.filter(a => ['Applied', 'Shortlisted', 'Interviewing'].includes(a.status)).length;
+  const interviews = appsData.filter(a => a.status === 'Interviewing').length;
+  const stats = { activeApps, interviews };
   
   const getGreeting = () => {
     const hour = new Date().getHours();
