@@ -48,6 +48,9 @@ import CandidateLogin from './pages/CandidateLogin'
 import CandidateActivate from './pages/CandidateActivate'
 import CandidateLayout from './components/CandidateLayout'
 import CandidateDashboard from './pages/CandidateDashboard'
+import CandidateJobs from './pages/CandidateJobs'
+import CandidateApplications from './pages/CandidateApplications'
+import CandidateProfile from './pages/CandidateProfile'
 import NotFound from './pages/NotFound'
 import TooManyRequests from './pages/TooManyRequests'
 import { Toaster } from 'react-hot-toast'
@@ -190,9 +193,9 @@ function App() {
               }
             >
               <Route path="dashboard" element={<CandidateDashboard />} />
-              <Route path="jobs" element={<ComingSoon />} />
-              <Route path="applications" element={<ComingSoon />} />
-              <Route path="profile" element={<ComingSoon />} />
+              <Route path="jobs" element={<CandidateJobs />} />
+              <Route path="applications" element={<CandidateApplications />} />
+              <Route path="profile" element={<CandidateProfile />} />
             </Route>
 
             {/* Catch-all 404 Route */}
