@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { Search, MapPin, Briefcase, Clock, ChevronRight, Filter, FileText, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../api/supabase';
@@ -160,16 +159,15 @@ const CandidateJobs = () => {
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-4">
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+        <div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">Open Positions</h1>
           <p className="text-sm text-slate-500 mt-1">Discover your next career opportunity at Acme.</p>
-        </motion.div>
+        </div>
       </div>
 
       {/* Search and Filter Bar */}
-      <motion.div 
-        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-        className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 flex flex-col md:flex-row gap-4 relative z-20"
+      <div 
+        className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex flex-col md:flex-row gap-4 relative z-20"
       >
         <div className="flex-1 relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -201,26 +199,23 @@ const CandidateJobs = () => {
             <ChevronRight className="h-4 w-4 text-slate-400 rotate-90" />
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Job List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredJobs.length === 0 ? (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="col-span-1 md:col-span-2 lg:col-span-3 bg-white rounded-2xl shadow-sm border border-slate-200 p-12 text-center">
+          <div className="col-span-1 md:col-span-2 lg:col-span-3 bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
             <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
               <Search size={32} />
             </div>
             <h3 className="text-lg font-semibold text-slate-800 mb-1">No jobs found</h3>
             <p className="text-slate-500">We couldn't find any open positions matching your current filters.</p>
-          </motion.div>
+          </div>
         ) : (
           filteredJobs.map((job, index) => (
-            <motion.div 
+            <div 
               key={job.id}
-              initial={{ opacity: 0, y: 20 }} 
-              animate={{ opacity: 1, y: 0 }} 
-              transition={{ delay: 0.2 + (index * 0.1) }}
-              className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hover:shadow-md hover:border-blue-200 transition-all group"
+              className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md hover:border-blue-200 transition-all group"
             >
               <div className="flex flex-col h-full">
                 <div className="flex items-center gap-3 mb-3 flex-wrap">
@@ -262,7 +257,7 @@ const CandidateJobs = () => {
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))
         )}
       </div>

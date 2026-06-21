@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { User, Mail, Phone, MapPin, Briefcase, UploadCloud, Save, FileText, Camera, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -201,13 +200,13 @@ const CandidateProfile = () => {
     <div className="space-y-6 w-full">
       {/* Page Header */}
       <div className="mb-8 flex flex-col sm:flex-row gap-6 items-center sm:items-start justify-between">
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+        <div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">My Profile</h1>
           <p className="text-sm text-slate-500 mt-1">Manage your personal information and resume to speed up applications.</p>
-        </motion.div>
+        </div>
 
         {/* Profile Avatar Upload */}
-        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="relative group cursor-pointer shrink-0">
+        <div className="relative group cursor-pointer shrink-0">
           <div className="flex h-24 w-24 items-center justify-center rounded-full bg-slate-100 border-4 border-white shadow-md overflow-hidden text-2xl font-medium text-slate-600 relative">
             {formData.avatarUrl ? (
               <img src={formData.avatarUrl} alt="Profile" className="h-full w-full object-cover" />
@@ -232,13 +231,13 @@ const CandidateProfile = () => {
               )}
             </label>
           </div>
-        </motion.div>
+        </div>
       </div>
 
       <form onSubmit={handleSave} className="space-y-6">
 
         {/* Personal Information Card */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
           <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center gap-3">
             <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center shadow-sm border border-white">
               <User size={20} />
@@ -321,10 +320,10 @@ const CandidateProfile = () => {
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Professional Details Card */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
           <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center gap-3">
             <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center shadow-sm border border-white">
               <Briefcase size={20} />
@@ -374,10 +373,10 @@ const CandidateProfile = () => {
               />
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Resume Upload Card */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
           <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center gap-3">
             <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center shadow-sm border border-white">
               <FileText size={20} />
@@ -446,7 +445,7 @@ const CandidateProfile = () => {
               </div>
             )}
           </div>
-        </motion.div>
+        </div>
 
         <div className="flex justify-end pt-4 pb-12">
           <button

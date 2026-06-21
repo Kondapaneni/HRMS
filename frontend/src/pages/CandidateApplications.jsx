@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { CheckCircle2, Clock, Calendar, FileText, ChevronRight, XCircle, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../api/supabase';
@@ -94,21 +93,21 @@ const CandidateApplications = () => {
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-4">
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+        <div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">My Applications</h1>
           <p className="text-sm text-slate-500 mt-1">Track the status of your recent job applications.</p>
-        </motion.div>
+        </div>
         
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
+        <div>
           <Link to="/candidate/jobs" className="inline-flex items-center gap-2 bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50 text-blue-700 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all shadow-sm">
             Browse More Jobs <ChevronRight size={16} />
           </Link>
-        </motion.div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {applications.length === 0 ? (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="col-span-1 md:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-12 text-center">
+          <div className="col-span-1 md:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
             <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
               <FileText size={32} />
             </div>
@@ -117,19 +116,16 @@ const CandidateApplications = () => {
             <Link to="/candidate/jobs" className="inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-semibold text-sm transition-colors shadow-sm shadow-blue-600/20">
               View Open Jobs
             </Link>
-          </motion.div>
+          </div>
         ) : (
           applications.map((app, index) => {
             const config = statusConfig[app.status];
             const currentStep = config.step;
 
             return (
-              <motion.div 
+              <div 
                 key={app.id}
-                initial={{ opacity: 0, y: 20 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                transition={{ delay: 0.1 + (index * 0.1) }}
-                className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden group"
+                className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden group"
               >
                 {/* Header Section */}
                 <div className="p-6 border-b border-slate-100">
@@ -206,7 +202,7 @@ const CandidateApplications = () => {
                     </div>
                   )}
                 </div>
-              </motion.div>
+              </div>
             );
           })
         )}
