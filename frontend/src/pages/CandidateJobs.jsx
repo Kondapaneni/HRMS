@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, MapPin, Briefcase, Clock, ChevronRight, Filter, FileText, CheckCircle2 } from 'lucide-react';
+import { Search, MapPin, Briefcase, Clock, ChevronRight, Filter, FileText, CheckCircle2, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../api/supabase';
 import { useAuth } from '../contexts/AuthContext';
