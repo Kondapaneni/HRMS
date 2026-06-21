@@ -44,6 +44,8 @@ import AdminEmailTemplates from './pages/AdminEmailTemplates'
 import AdminPerformance from './pages/AdminPerformance'
 import Chat from './pages/Chat'
 import ComingSoon from './pages/ComingSoon'
+import CandidateLogin from './pages/CandidateLogin'
+import CandidateActivate from './pages/CandidateActivate'
 import NotFound from './pages/NotFound'
 import TooManyRequests from './pages/TooManyRequests'
 import { Toaster } from 'react-hot-toast'
@@ -87,6 +89,8 @@ function App() {
         <Router>
           <Routes>
             <Route path="/" element={<Login />} />
+            <Route path="/candidate/login" element={<CandidateLogin />} />
+            <Route path="/candidate/activate" element={<CandidateActivate />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/too-many-requests" element={<TooManyRequests />} />

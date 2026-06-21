@@ -225,6 +225,7 @@ require __DIR__ . '/admin_feature_access_routes.php';
 require __DIR__ . '/admin_performance_routes.php';
 require __DIR__ . '/admin_settings_routes.php';
 require __DIR__ . '/chat_routes.php';
+require __DIR__ . '/candidate_auth_routes.php';
 
 // Request Password Reset
 $app->post('/api/forgot-password', function (Request $request, Response $response) {
