@@ -46,6 +46,8 @@ import Chat from './pages/Chat'
 import ComingSoon from './pages/ComingSoon'
 import CandidateLogin from './pages/CandidateLogin'
 import CandidateActivate from './pages/CandidateActivate'
+import CandidateLayout from './components/CandidateLayout'
+import CandidateDashboard from './pages/CandidateDashboard'
 import NotFound from './pages/NotFound'
 import TooManyRequests from './pages/TooManyRequests'
 import { Toaster } from 'react-hot-toast'
@@ -77,6 +79,7 @@ const persister = createSyncStoragePersister({
  */
 const ADMIN_DASHBOARD_ROLES = ['admin']
 const EMPLOYEE_DASHBOARD_ROLES = ['employee', 'hr', 'manager']
+const CANDIDATE_DASHBOARD_ROLES = ['candidate']
 
 function App() {
   return (
@@ -176,6 +179,21 @@ function App() {
                 </ProtectedRoute>
               }
             />
+
+            {/* Candidate Portal Routes */}
+            <Route
+              path="/candidate"
+              element={
+                <ProtectedRoute allowedRoles={CANDIDATE_DASHBOARD_ROLES}>
+                  <CandidateLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route path="dashboard" element={<CandidateDashboard />} />
+              <Route path="jobs" element={<ComingSoon />} />
+              <Route path="applications" element={<ComingSoon />} />
+              <Route path="profile" element={<ComingSoon />} />
+            </Route>
 
             {/* Catch-all 404 Route */}
             <Route path="*" element={<NotFound />} />
