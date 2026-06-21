@@ -60,10 +60,10 @@ const CandidateProfile = () => {
           .getPublicUrl(fileName);
 
         setFormData(prev => ({ ...prev, resumeUrl: data.publicUrl }));
-        toast.success('Resume uploaded to Supabase successfully!');
+        toast.success('Resume Uploaded Successfully!');
       } catch (error) {
         console.error('Upload error:', error);
-        toast.error('Failed to upload resume to storage.');
+        toast.error('Failed to Upload Resume!');
       } finally {
         setIsUploadingResume(false);
       }
@@ -298,7 +298,7 @@ const CandidateProfile = () => {
                 <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center rounded-2xl z-10">
                   <div className="flex flex-col items-center gap-2">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                    <span className="text-sm font-semibold text-slate-700">Uploading to Supabase...</span>
+                    <span className="text-sm font-semibold text-slate-700">Uploading Resume...</span>
                   </div>
                 </div>
               )}
