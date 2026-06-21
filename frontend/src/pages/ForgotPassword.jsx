@@ -11,6 +11,17 @@ const ForgotPassword = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState('');
+  const [lockoutSeconds, setLockoutSeconds] = useState(0);
+
+  React.useEffect(() => {
+    let timer;
+    if (lockoutSeconds > 0) {
+      timer = setInterval(() => {
+        setLockoutSeconds((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [lockoutSeconds]);
 
   const [searchParams] = useSearchParams();
   const type = searchParams.get('type');
@@ -39,7 +50,13 @@ const ForgotPassword = () => {
       setIsSubmitted(true);
       toast.success('Password reset link sent!');
     } catch (err) {
-      if (err.response?.status === 429) return;
+      if (err.response?.status === 429) {
+        if (err.response.data?.secondsRemaining) {
+          setLockoutSeconds(err.response.data.secondsRemaining);
+        }
+        setError(err.response.data?.error || 'Too many requests. Please try again later.');
+        return;
+      }
       setError(err.response?.data?.error || err.message || 'Failed to request reset');
     } finally {
       setIsLoading(false);
@@ -118,6 +135,11 @@ const ForgotPassword = () => {
             {error && (
               <div className="mb-6 p-4 bg-red-100 border-[3px] border-red-500 rounded-xl text-red-700 font-bold">
                 {error}
+                {lockoutSeconds > 0 && (
+                  <p className="text-xs font-semibold text-red-600 mt-1">
+                    Please wait {Math.floor(lockoutSeconds / 60)}m {lockoutSeconds % 60}s before trying again.
+                  </p>
+                )}
               </div>
             )}
 
@@ -152,14 +174,14 @@ const ForgotPassword = () => {
                   </div>
                 </motion.div>
 
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}>
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
                   <button
                     type="submit"
-                    disabled={isLoading || !email}
-                    className="w-full mt-6 bg-[#4F46E5] text-white py-4 rounded-xl font-black text-xl flex items-center justify-center gap-2 border-[3px] border-[#1E1B4B] shadow-[8px_8px_0px_#1E1B4B] active:shadow-[0px_0px_0px_#1E1B4B] active:translate-x-[8px] active:translate-y-[8px] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={isLoading || lockoutSeconds > 0}
+                    className="w-full mt-2 bg-[#10B981] text-white py-4 rounded-xl font-black text-xl flex items-center justify-center gap-2 border-[3px] border-[#1E1B4B] shadow-[8px_8px_0px_#1E1B4B] active:shadow-[0px_0px_0px_#1E1B4B] active:translate-x-[8px] active:translate-y-[8px] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isLoading ? 'Sending...' : 'Send Reset Link'}
-                    {!isLoading && <ArrowRight size={24} strokeWidth={3} className="ml-2" />}
+                    {isLoading ? 'Sending Link...' : lockoutSeconds > 0 ? `Locked out (${Math.floor(lockoutSeconds / 60)}:${(lockoutSeconds % 60).toString().padStart(2, '0')})` : 'Send Reset Link'}
+                    {!isLoading && lockoutSeconds === 0 && <ArrowRight size={24} strokeWidth={3} className="ml-2" />}
                   </button>
                 </motion.div>
               </form>

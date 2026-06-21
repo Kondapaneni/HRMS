@@ -53,7 +53,6 @@ import CandidateJobs from './pages/CandidateJobs'
 import CandidateApplications from './pages/CandidateApplications'
 import CandidateProfile from './pages/CandidateProfile'
 import NotFound from './pages/NotFound'
-import TooManyRequests from './pages/TooManyRequests'
 import { Toaster } from 'react-hot-toast'
 import SnowflakeCursor from './components/CustomCursor'
 import OfflinePage from './pages/OfflinePage'
@@ -100,7 +99,6 @@ function App() {
             <Route path="/candidate/activate" element={<CandidateActivate />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/too-many-requests" element={<TooManyRequests />} />
             <Route 
               path="/change-password" 
               element={

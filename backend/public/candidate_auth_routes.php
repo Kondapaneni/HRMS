@@ -33,7 +33,11 @@ $app->post('/api/candidate/register', function (Request $request, Response $resp
     
     // Check rate limit (e.g. max 3 registrations per hour from same IP)
     if (!RateLimiter::checkLimit($conn, $ip, $action, 3, 60)) {
-        $response->getBody()->write(json_encode(['error' => 'Too many registration attempts. Please try again later.']));
+        $secondsRemaining = RateLimiter::getLockoutRemainingTime($conn, $ip, $action, 3, 60);
+        $response->getBody()->write(json_encode([
+            'error' => 'Too Many Registration Attempts. Please Try Again Later.',
+            'secondsRemaining' => $secondsRemaining
+        ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(429);
     }
 
@@ -140,7 +144,11 @@ $app->post('/api/candidate/login', function (Request $request, Response $respons
     
     // Rate limits
     if (!RateLimiter::checkLimit($conn, $ip, $action, 5, 15)) {
-        $response->getBody()->write(json_encode(['error' => 'Too many login attempts. Please try again later.']));
+        $secondsRemaining = RateLimiter::getLockoutRemainingTime($conn, $ip, $action, 5, 15);
+        $response->getBody()->write(json_encode([
+            'error' => 'Too Many Login Attempts. Please Try Again Later.',
+            'secondsRemaining' => $secondsRemaining
+        ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(429);
     }
 

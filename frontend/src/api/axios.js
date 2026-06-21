@@ -70,10 +70,7 @@ api.interceptors.response.use(
         }
       }
     } else if (error.response && error.response.status === 429) {
-      // Redirect to TooManyRequests page for rate limits
-      if (window.location.pathname !== '/too-many-requests') {
-        window.location.href = '/too-many-requests';
-      }
+      // 429 errors are now handled directly by the components to show inline countdowns
     }
     return Promise.reject(error);
   }

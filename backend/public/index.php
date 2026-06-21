@@ -80,7 +80,11 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
     $sessionTimeout = $settings['session_timeout'] ?? '30';
 
     if (!RateLimiter::checkLimit($conn, $ip, $action, $maxAttempts, $windowMinutes)) {
-        $response->getBody()->write(json_encode(['error' => "Too many login attempts. Please try again in {$windowMinutes} minutes."]));
+        $secondsRemaining = RateLimiter::getLockoutRemainingTime($conn, $ip, $action, $maxAttempts, $windowMinutes);
+        $response->getBody()->write(json_encode([
+            'error' => "Too Many Login Attempts. Please Try Again Later.",
+            'secondsRemaining' => $secondsRemaining
+        ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(429);
     }
 
@@ -257,7 +261,11 @@ $app->post('/api/forgot-password', function (Request $request, Response $respons
     $windowMinutes = $settings['forgot_password_rate_limit_window'] ?? 60;
 
     if (!RateLimiter::checkLimit($conn, $ip, $action, $maxAttempts, $windowMinutes)) {
-        $response->getBody()->write(json_encode(['error' => 'Too many password reset requests. Please try again later.']));
+        $secondsRemaining = RateLimiter::getLockoutRemainingTime($conn, $ip, $action, $maxAttempts, $windowMinutes);
+        $response->getBody()->write(json_encode([
+            'error' => "Too Many Reset Attempts. Please Try Again Later.",
+            'secondsRemaining' => $secondsRemaining
+        ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(429);
     }
     

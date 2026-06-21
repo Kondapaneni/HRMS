@@ -12,6 +12,17 @@ const CandidateLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [lockoutSeconds, setLockoutSeconds] = useState(0);
+
+  React.useEffect(() => {
+    let timer;
+    if (lockoutSeconds > 0) {
+      timer = setInterval(() => {
+        setLockoutSeconds((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [lockoutSeconds]);
   
   const [formData, setFormData] = useState({
     firstName: '',
@@ -89,6 +100,13 @@ const CandidateLogin = () => {
         setIsLogin(true);
       }
     } catch (err) {
+      if (err.response?.status === 429) {
+        if (err.response.data?.secondsRemaining) {
+          setLockoutSeconds(err.response.data.secondsRemaining);
+        }
+        setError(err.response.data?.error || 'Too many requests. Please try again later.');
+        return;
+      }
       setError(err.response?.data?.error || err.message || 'Authentication failed. Please try again.');
     } finally {
       setIsLoading(false);
@@ -200,6 +218,11 @@ const CandidateLogin = () => {
                   className="bg-red-100 border-[3px] border-red-500 rounded-xl text-red-700 font-bold p-4 overflow-hidden"
                 >
                   {error}
+                  {lockoutSeconds > 0 && (
+                    <p className="text-xs font-semibold text-red-600 mt-1">
+                      Please wait {Math.floor(lockoutSeconds / 60)}m {lockoutSeconds % 60}s before trying again.
+                    </p>
+                  )}
                 </motion.div>
               )}
               {success && (
@@ -373,11 +396,11 @@ const CandidateLogin = () => {
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}>
                 <button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isLoading || lockoutSeconds > 0}
                   className="w-full mt-4 bg-[#EF4444] text-white py-3 rounded-xl font-black text-lg flex items-center justify-center gap-2 border-[3px] border-[#1E1B4B] shadow-[4px_4px_0px_#1E1B4B] hover:shadow-[6px_6px_0px_#1E1B4B] active:shadow-[0px_0px_0px_#1E1B4B] active:translate-x-[4px] active:translate-y-[4px] transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
                 >
-                  {isLoading ? (isLogin ? 'Signing in...' : 'Creating Account...') : (isLogin ? 'Sign in' : 'Create Account')}
-                  {!isLoading && <ArrowRight size={20} strokeWidth={3} className="ml-2 group-hover:translate-x-1 transition-transform" />}
+                  {isLoading ? (isLogin ? 'Signing in...' : 'Creating Account...') : lockoutSeconds > 0 ? `Locked out (${Math.floor(lockoutSeconds / 60)}:${(lockoutSeconds % 60).toString().padStart(2, '0')})` : (isLogin ? 'Sign in' : 'Create Account')}
+                  {!isLoading && lockoutSeconds === 0 && <ArrowRight size={20} strokeWidth={3} className="ml-2 group-hover:translate-x-1 transition-transform" />}
                 </button>
               </motion.div>
 
