@@ -1,31 +1,159 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, MapPin, Briefcase, Clock, ChevronRight, Filter } from 'lucide-react';
+import { Search, MapPin, Briefcase, Clock, ChevronRight, Filter, FileText, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { supabase } from '../api/supabase';
+import { useAuth } from '../contexts/AuthContext';
 
 const CandidateJobs = () => {
+  const { profile } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDept, setFilterDept] = useState('All');
+  
+  const [jobs, setJobs] = useState([]);
+  const [departments, setDepartments] = useState(['All']);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Mock data for demonstration
-  const mockJobs = [
-    { id: 1, title: 'Senior Frontend Engineer', department: 'Engineering', location: 'Remote', type: 'Full-time', description: 'We are looking for an experienced React developer to help build scalable UI architectures for our core product.' },
-    { id: 2, title: 'Product Manager', department: 'Product', location: 'New York, NY', type: 'Full-time', description: 'Lead the product strategy and execution for our upcoming mobile app releases. Work closely with engineering and design.' },
-    { id: 3, title: 'UX Designer', department: 'Design', location: 'San Francisco, CA', type: 'Full-time', description: 'Create beautiful, intuitive, and user-centric interfaces. Strong portfolio in SaaS web applications required.' },
-    { id: 4, title: 'HR Coordinator', department: 'Human Resources', location: 'Chicago, IL', type: 'Contract', description: 'Assist with onboarding, employee relations, and maintaining our HRMS records. Great entry-level opportunity.' },
-    { id: 5, title: 'Backend Engineer (Go)', department: 'Engineering', location: 'Remote', type: 'Full-time', description: 'Design and build high-performance microservices using Go and PostgreSQL. Experience with cloud infrastructure is a plus.' },
-  ];
+  // Application Modal State
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [resumes, setResumes] = useState([]);
+  const [selectedResumeUrl, setSelectedResumeUrl] = useState('');
+  const [isApplying, setIsApplying] = useState(false);
 
-  const departments = ['All', 'Engineering', 'Product', 'Design', 'Human Resources'];
+  useEffect(() => {
+    fetchJobs();
+    if (profile?.id) {
+      fetchResumes();
+    }
+  }, [profile]);
 
-  const filteredJobs = mockJobs.filter(job => {
-    const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) || job.description.toLowerCase().includes(searchTerm.toLowerCase());
+  const fetchJobs = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('jobs')
+        .select('*')
+        .eq('status', 'Published')
+        .order('created_at', { ascending: false });
+        
+      if (error) throw error;
+      setJobs(data || []);
+      
+      const depts = new Set(['All']);
+      (data || []).forEach(job => depts.add(job.department));
+      setDepartments(Array.from(depts));
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to load jobs');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchResumes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('candidate_profiles')
+        .select('resume_url')
+        .eq('user_id', profile.id)
+        .single();
+        
+      if (error && error.code !== 'PGRST116') throw error;
+      
+      const resumesArr = Array.isArray(data?.resume_url) ? data.resume_url : [];
+      setResumes(resumesArr);
+      
+      const primary = resumesArr.find(r => r.isPrimary);
+      if (primary) setSelectedResumeUrl(primary.url);
+      else if (resumesArr.length > 0) setSelectedResumeUrl(resumesArr[0].url);
+      
+    } catch (error) {
+      console.error('Error fetching resumes:', error);
+    }
+  };
+
+  const filteredJobs = jobs.filter(job => {
+    const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) || (job.description && job.description.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesDept = filterDept === 'All' || job.department === filterDept;
     return matchesSearch && matchesDept;
   });
 
-  const handleApply = (title) => {
-    toast.success(`Successfully applied for the ${title} position!`);
+  const handleApplySubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedResumeUrl) {
+      toast.error('Please select a resume to apply.');
+      return;
+    }
+    
+    setIsApplying(true);
+    try {
+      // Check if already applied
+      const { data: existingApp, error: checkError } = await supabase
+        .from('applications')
+        .select('id')
+        .eq('job_id', selectedJob.id)
+        .eq('candidate_id', profile.id)
+        .single();
+        
+      if (existingApp) {
+        toast.error('You have already applied for this position.');
+        setSelectedJob(null);
+        return;
+      }
+      
+      // Submit Application
+      const { error } = await supabase
+        .from('applications')
+        .insert([{
+          job_id: selectedJob.id,
+          candidate_id: profile.id,
+          resume_url: selectedResumeUrl,
+          status: 'Applied'
+        }]);
+        
+      if (error) throw error;
+      
+      // Also log the timeline
+      const { data: newApp } = await supabase
+        .from('applications')
+        .select('id')
+        .eq('job_id', selectedJob.id)
+        .eq('candidate_id', profile.id)
+        .single();
+        
+      if (newApp) {
+         await supabase.from('application_timeline').insert([{
+           application_id: newApp.id,
+           status_change: 'Applied',
+           notes: 'Application submitted successfully',
+           updated_by: profile.id
+         }]);
+
+         // Queue email notification
+         const emailBody = `
+           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+             <h2 style="color: #2563eb;">Application Received</h2>
+             <p>Hi ${profile.firstName},</p>
+             <p>Thank you for applying for the <strong>${selectedJob.title}</strong> position at Acme HRMS.</p>
+             <p>Your application has been successfully received and is currently under review by our recruitment team. You can track your application status anytime from your Candidate Dashboard.</p>
+             <p>Best regards,<br>The Acme Team</p>
+           </div>
+         `;
+         
+         await supabase.from('email_queue').insert([{
+           to_email: profile.email,
+           subject: `Application Received: ${selectedJob.title}`,
+           body: emailBody
+         }]);
+      }
+      
+      toast.success(`Successfully applied for the ${selectedJob.title} position!`);
+      setSelectedJob(null);
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to submit application. Please try again.');
+    } finally {
+      setIsApplying(false);
+    }
   };
 
   return (
@@ -108,24 +236,98 @@ const CandidateJobs = () => {
                   <span className="flex items-center gap-2"><Briefcase size={16} /> Mid-Senior Level</span>
                 </div>
                 
-                <p className="text-slate-600 text-sm leading-relaxed mb-6 flex-1">
+                <p className="text-slate-600 text-sm leading-relaxed mb-6 flex-1 line-clamp-3">
                   {job.description}
                 </p>
                 
                 <div className="flex items-center justify-between border-t border-slate-100 pt-4 mt-auto">
-                  <span className="text-xs font-medium text-slate-400">Posted 2 days ago</span>
-                  <button 
-                    onClick={() => handleApply(job.title)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl font-semibold text-sm transition-colors shadow-sm shadow-blue-600/20 active:scale-95"
-                  >
-                    Apply Now
-                  </button>
+                  <span className="text-xs font-medium text-slate-400">Posted {new Date(job.created_at).toLocaleDateString()}</span>
+                  <div className="flex gap-2">
+                    {job.description_pdf_url && (
+                      <a 
+                        href={job.description_pdf_url} 
+                        target="_blank" 
+                        rel="noreferrer"
+                        className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl font-semibold text-sm transition-colors shadow-sm active:scale-95 flex items-center justify-center"
+                      >
+                        JD
+                      </a>
+                    )}
+                    <button 
+                      onClick={() => setSelectedJob(job)}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl font-semibold text-sm transition-colors shadow-sm shadow-blue-600/20 active:scale-95"
+                    >
+                      Apply Now
+                    </button>
+                  </div>
                 </div>
               </div>
             </motion.div>
           ))
         )}
       </div>
+
+      {/* Application Modal */}
+      {selectedJob && (
+        <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div className="fixed inset-0 bg-slate-900 bg-opacity-50 transition-opacity" onClick={() => setSelectedJob(null)}></div>
+            <span className="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+            <div className="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+              <form onSubmit={handleApplySubmit}>
+                <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                  <h3 className="text-xl leading-6 font-bold text-slate-900 mb-2">Apply for {selectedJob.title}</h3>
+                  <p className="text-sm text-slate-500 mb-6">{selectedJob.department} &bull; {selectedJob.location}</p>
+                  
+                  <div className="space-y-4">
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">Select Resume</label>
+                    {resumes.length === 0 ? (
+                      <div className="bg-amber-50 text-amber-700 p-4 rounded-xl border border-amber-200 text-sm">
+                        You don't have any resumes uploaded. Please go to your <a href="/candidate/profile" className="font-bold underline">Profile</a> to upload a resume first.
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {resumes.map((resume, index) => (
+                          <label key={index} className={`flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-colors ${selectedResumeUrl === resume.url ? 'border-blue-500 bg-blue-50' : 'border-slate-200 bg-white hover:bg-slate-50'}`}>
+                            <div className="flex items-center gap-3">
+                              <input 
+                                type="radio" 
+                                name="resumeSelection" 
+                                value={resume.url}
+                                checked={selectedResumeUrl === resume.url}
+                                onChange={(e) => setSelectedResumeUrl(e.target.value)}
+                                className="w-4 h-4 text-blue-600 focus:ring-blue-500 border-slate-300"
+                              />
+                              <div className="flex flex-col">
+                                <span className={`font-medium ${selectedResumeUrl === resume.url ? 'text-blue-900' : 'text-slate-800'}`}>{resume.name}</span>
+                                {resume.isPrimary && <span className="text-xs font-semibold text-blue-600 uppercase tracking-wider mt-0.5">Primary</span>}
+                              </div>
+                            </div>
+                            <FileText className={`w-5 h-5 ${selectedResumeUrl === resume.url ? 'text-blue-500' : 'text-slate-400'}`} />
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="bg-slate-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse border-t border-slate-200">
+                  <button 
+                    type="submit" 
+                    disabled={isApplying || resumes.length === 0 || !selectedResumeUrl}
+                    className="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-6 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isApplying ? 'Submitting...' : 'Submit Application'}
+                  </button>
+                  <button type="button" onClick={() => setSelectedJob(null)} className="mt-3 w-full inline-flex justify-center rounded-xl border border-slate-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-slate-700 hover:bg-slate-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

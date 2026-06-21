@@ -1,36 +1,79 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle2, Clock, Calendar, FileText, ChevronRight, XCircle, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { supabase } from '../api/supabase';
+import { useAuth } from '../contexts/AuthContext';
+import toast from 'react-hot-toast';
 
 const CandidateApplications = () => {
-  // Mock data for applications
-  const applications = [
-    {
-      id: 1,
-      jobTitle: 'Senior Frontend Engineer',
-      department: 'Engineering',
-      appliedDate: '2023-10-15',
-      status: 'interview', // 'applied', 'review', 'interview', 'offer', 'rejected'
-      nextStep: 'Technical Interview on Oct 25th',
-    },
-    {
-      id: 2,
-      jobTitle: 'Product Manager',
-      department: 'Product',
-      appliedDate: '2023-10-10',
-      status: 'review',
-      nextStep: 'Awaiting recruiter review',
-    },
-    {
-      id: 3,
-      jobTitle: 'UX Designer',
-      department: 'Design',
-      appliedDate: '2023-09-01',
-      status: 'rejected',
-      nextStep: 'Application closed',
+  const { profile } = useAuth();
+  const [applications, setApplications] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (profile?.id) {
+      fetchApplications();
     }
-  ];
+  }, [profile]);
+
+  const fetchApplications = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('applications')
+        .select(`
+          id,
+          status,
+          applied_date,
+          jobs (
+            title,
+            department
+          ),
+          application_timeline (
+            status_change,
+            notes,
+            created_at
+          )
+        `)
+        .eq('candidate_id', profile.id)
+        .order('applied_date', { ascending: false });
+
+      if (error) throw error;
+
+      // Transform data for UI
+      const formattedApps = (data || []).map(app => {
+        // Sort timeline
+        const timeline = Array.isArray(app.application_timeline) ? app.application_timeline.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)) : [];
+        const latestNote = timeline.length > 0 ? timeline[0].notes : 'Awaiting review';
+
+        let mappedStatus = 'applied';
+        const rawStatus = app.status ? app.status.toLowerCase() : 'applied';
+        
+        if (rawStatus === 'applied') mappedStatus = 'applied';
+        else if (rawStatus === 'shortlisted') mappedStatus = 'review';
+        else if (rawStatus === 'interviewing') mappedStatus = 'interview';
+        else if (rawStatus === 'offered') mappedStatus = 'offer';
+        else if (rawStatus === 'rejected') mappedStatus = 'rejected';
+        else mappedStatus = 'applied'; // Default fallback
+
+        return {
+          id: app.id,
+          jobTitle: app.jobs?.title || 'Unknown Job',
+          department: app.jobs?.department || '',
+          appliedDate: app.applied_date,
+          status: mappedStatus,
+          nextStep: latestNote
+        };
+      });
+
+      setApplications(formattedApps);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to load applications');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const statusConfig = {
     applied: { label: 'Applied', icon: <FileText size={16} />, color: 'text-blue-600', bg: 'bg-blue-100', border: 'border-blue-200', step: 1 },

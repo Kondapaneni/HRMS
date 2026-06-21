@@ -43,6 +43,7 @@ import AdminSettings from './pages/AdminSettings'
 import AdminEmailTemplates from './pages/AdminEmailTemplates'
 import AdminPerformance from './pages/AdminPerformance'
 import Chat from './pages/Chat'
+import AdminRecruitment from './pages/AdminRecruitment'
 import ComingSoon from './pages/ComingSoon'
 import CandidateLogin from './pages/CandidateLogin'
 import CandidateActivate from './pages/CandidateActivate'
@@ -137,7 +138,7 @@ function App() {
               <Route path="settings" element={<AdminSettings />} />
               <Route path="performance" element={<AdminPerformance />} />
               <Route path="chat" element={<Chat />} />
-              <Route path="recruitment" element={<ComingSoon />} />
+              <Route path="recruitment" element={<AdminRecruitment />} />
             </Route>
             <Route
               path="/employee"

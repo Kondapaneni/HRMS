@@ -1,11 +1,65 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Briefcase, FileText, Calendar, CheckCircle2, AlertCircle, ArrowRight, Activity, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { supabase } from '../api/supabase';
 
 const CandidateDashboard = () => {
   const { profile } = useAuth();
+  
+  const [completionStats, setCompletionStats] = useState({ percentage: 0, isComplete: false });
+  const [stats, setStats] = useState({ activeApps: 0, interviews: 0 });
+
+  useEffect(() => {
+    if (profile?.id) {
+      fetchDashboardData();
+    }
+  }, [profile]);
+
+  const fetchDashboardData = async () => {
+    try {
+      // Fetch Profile
+      const { data: profileData } = await supabase
+        .from('candidate_profiles')
+        .select('*')
+        .eq('user_id', profile.id)
+        .single();
+        
+      if (profileData) {
+        // Calculate completion
+        const fields = ['phone', 'address', 'current_title', 'experience', 'bio'];
+        let filledCount = fields.filter(f => profileData[f] && profileData[f].trim() !== '').length;
+        
+        // Add avatars and resumes to criteria
+        if (profileData.avatar_url) filledCount++;
+        const resumes = Array.isArray(profileData.resume_url) ? profileData.resume_url : [];
+        if (resumes.length > 0) filledCount++;
+        
+        // Total fields = 7
+        const percentage = Math.round((filledCount / 7) * 100);
+        setCompletionStats({
+          percentage,
+          isComplete: percentage === 100
+        });
+      }
+
+      // Fetch Application Stats
+      const { data: appsData } = await supabase
+        .from('applications')
+        .select('status')
+        .eq('candidate_id', profile.id);
+        
+      if (appsData) {
+        const activeApps = appsData.filter(a => ['Applied', 'Shortlisted', 'Interviewing'].includes(a.status)).length;
+        const interviews = appsData.filter(a => a.status === 'Interviewing').length;
+        setStats({ activeApps, interviews });
+      }
+      
+    } catch (error) {
+      console.error(error);
+    }
+  };
   
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -41,32 +95,34 @@ const CandidateDashboard = () => {
       </div>
 
       {/* Profile Completion Banner */}
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }}
-        className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 relative overflow-hidden group z-0"
-      >
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-50 to-transparent -z-10" />
-        
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-          <div className="flex-1">
-            <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-              <AlertCircle size={20} className="text-amber-500" />
-              Complete Your Profile
-            </h2>
-            <p className="text-slate-600 text-sm mt-1 mb-4">You have only completed 20% of your profile. Add your resume and experience to improve your chances of getting hired.</p>
-            
-            {/* Progress Bar */}
-            <div className="w-full bg-slate-100 rounded-full h-2.5 mb-2">
-              <div className="bg-gradient-to-r from-amber-400 to-amber-500 h-2.5 rounded-full" style={{ width: '20%' }}></div>
-            </div>
-            <p className="text-xs font-semibold text-amber-600">20% Completed</p>
-          </div>
+      {!completionStats.isComplete && (
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }}
+          className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 relative overflow-hidden group z-0"
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-50 to-transparent -z-10" />
           
-          <Link to="/candidate/profile" className="shrink-0 bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50 text-blue-700 px-6 py-3 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 shadow-sm">
-            Update Profile <ArrowRight size={16} />
-          </Link>
-        </div>
-      </motion.div>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+            <div className="flex-1 w-full">
+              <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                <AlertCircle size={20} className="text-amber-500" />
+                Complete Your Profile
+              </h2>
+              <p className="text-slate-600 text-sm mt-1 mb-4">You have only completed {completionStats.percentage}% of your profile. Add your resume and experience to improve your chances of getting hired.</p>
+              
+              {/* Progress Bar */}
+              <div className="w-full bg-slate-100 rounded-full h-2.5 mb-2">
+                <div className="bg-gradient-to-r from-amber-400 to-amber-500 h-2.5 rounded-full transition-all duration-1000 ease-out" style={{ width: `${completionStats.percentage}%` }}></div>
+              </div>
+              <p className="text-xs font-semibold text-amber-600">{completionStats.percentage}% Completed</p>
+            </div>
+            
+            <Link to="/candidate/profile" className="shrink-0 bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50 text-blue-700 px-6 py-3 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 shadow-sm">
+              Update Profile <ArrowRight size={16} />
+            </Link>
+          </div>
+        </motion.div>
+      )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -77,7 +133,7 @@ const CandidateDashboard = () => {
           <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mb-4 border border-white shadow-sm">
             <FileText size={24} />
           </div>
-          <p className="text-3xl font-black text-slate-800 mb-1">0</p>
+          <p className="text-3xl font-black text-slate-800 mb-1">{stats.activeApps}</p>
           <h3 className="text-sm font-semibold text-slate-500">Active Applications</h3>
         </motion.div>
 
@@ -87,7 +143,7 @@ const CandidateDashboard = () => {
           <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center mb-4 border border-white shadow-sm">
             <Calendar size={24} />
           </div>
-          <p className="text-3xl font-black text-slate-800 mb-1">0</p>
+          <p className="text-3xl font-black text-slate-800 mb-1">{stats.interviews}</p>
           <h3 className="text-sm font-semibold text-slate-500">Upcoming Interviews</h3>
         </motion.div>
 

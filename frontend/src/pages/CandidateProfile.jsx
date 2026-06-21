@@ -21,7 +21,7 @@ const CandidateProfile = () => {
     currentTitle: '',
     experience: '',
     bio: '',
-    resumeUrl: '',
+    resumes: [],
     avatarUrl: profile?.avatar || ''
   });
 
@@ -49,7 +49,7 @@ const CandidateProfile = () => {
             currentTitle: data.current_title || '',
             experience: data.experience || '',
             bio: data.bio || '',
-            resumeUrl: data.resume_url || '',
+            resumes: Array.isArray(data.resume_url) ? data.resume_url : [],
             avatarUrl: data.avatar_url || prev.avatarUrl
           }));
         }
@@ -80,7 +80,7 @@ const CandidateProfile = () => {
           current_title: formData.currentTitle,
           experience: formData.experience,
           bio: formData.bio,
-          resume_url: formData.resumeUrl,
+          resume_url: formData.resumes,
           avatar_url: formData.avatarUrl,
           updated_at: new Date().toISOString()
         }, { onConflict: 'user_id' });
@@ -99,7 +99,11 @@ const CandidateProfile = () => {
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      setUploadedFileName(file.name);
+      if (formData.resumes.length >= 3) {
+        toast.error('You can only upload a maximum of 3 resumes.');
+        return;
+      }
+      
       setIsUploadingResume(true);
 
       try {
@@ -116,7 +120,24 @@ const CandidateProfile = () => {
           .from('resumes')
           .getPublicUrl(fileName);
 
-        setFormData(prev => ({ ...prev, resumeUrl: data.publicUrl }));
+        const newResume = {
+          name: file.name,
+          url: data.publicUrl,
+          isPrimary: formData.resumes.length === 0
+        };
+
+        setFormData(prev => ({ 
+          ...prev, 
+          resumes: [...prev.resumes, newResume] 
+        }));
+        
+        // Auto-save immediately to persist the resume
+        await supabase.from('candidate_profiles').upsert({
+          user_id: profile.id,
+          resume_url: [...formData.resumes, newResume],
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id' });
+        
         toast.success('Resume Uploaded Successfully!');
       } catch (error) {
         console.error('Upload error:', error);
@@ -125,6 +146,21 @@ const CandidateProfile = () => {
         setIsUploadingResume(false);
       }
     }
+  };
+
+  const handleSetPrimaryResume = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      resumes: prev.resumes.map((r, i) => ({ ...r, isPrimary: i === index }))
+    }));
+  };
+
+  const handleDeleteResume = (index) => {
+    const updatedResumes = formData.resumes.filter((_, i) => i !== index);
+    if (updatedResumes.length > 0 && formData.resumes[index].isPrimary) {
+      updatedResumes[0].isPrimary = true;
+    }
+    setFormData(prev => ({ ...prev, resumes: updatedResumes }));
   };
 
   const handleAvatarUpload = async (e) => {
@@ -349,37 +385,66 @@ const CandidateProfile = () => {
             <h2 className="text-lg font-bold text-slate-800">Resume / CV</h2>
           </div>
 
-          <div className="p-6">
-            <div className="border-2 border-dashed border-slate-300 rounded-2xl p-8 flex flex-col items-center justify-center text-center bg-slate-50 hover:bg-slate-100/50 transition-colors relative">
-              {isUploadingResume && (
-                <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center rounded-2xl z-10">
-                  <div className="flex flex-col items-center gap-2">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                    <span className="text-sm font-semibold text-slate-700">Uploading Resume...</span>
-                  </div>
+          <div className="p-6 space-y-6">
+            {formData.resumes.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold text-slate-700">Uploaded Resumes ({formData.resumes.length}/3)</h3>
+                <div className="grid gap-3">
+                  {formData.resumes.map((resume, index) => (
+                    <div key={index} className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-xl">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center border border-slate-200 text-blue-600 shrink-0">
+                          <FileText size={20} />
+                        </div>
+                        <div className="overflow-hidden">
+                          <p className="font-medium text-slate-800 truncate">{resume.name}</p>
+                          <a href={resume.url} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline">View File</a>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4 shrink-0">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input 
+                            type="radio" 
+                            name="primaryResume" 
+                            checked={resume.isPrimary} 
+                            onChange={() => handleSetPrimaryResume(index)} 
+                            className="w-4 h-4 text-blue-600"
+                          />
+                          <span className="text-xs font-medium text-slate-600">Primary</span>
+                        </label>
+                        <button type="button" onClick={() => handleDeleteResume(index)} className="text-rose-500 hover:text-rose-700 text-sm font-medium">Delete</button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              )}
-
-              <input
-                type="file"
-                accept=".pdf,.doc,.docx"
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-0"
-                onChange={handleFileUpload}
-                disabled={isUploadingResume}
-              />
-              <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm border border-slate-200 text-blue-500 mb-4">
-                <UploadCloud size={32} />
               </div>
-              <h3 className="text-lg font-bold text-slate-800 mb-1">Click to upload or drag and drop</h3>
-              <p className="text-sm text-slate-500 mb-4">SVG, PNG, JPG or GIF (max. 800x400px)</p>
+            )}
 
-              {uploadedFileName && (
-                <div className="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-4 py-2 rounded-lg border border-emerald-200 font-medium text-sm">
-                  <CheckCircle2 size={16} />
-                  {uploadedFileName}
+            {formData.resumes.length < 3 && (
+              <div className="border-2 border-dashed border-slate-300 rounded-2xl p-8 flex flex-col items-center justify-center text-center bg-slate-50 hover:bg-slate-100/50 transition-colors relative">
+                {isUploadingResume && (
+                  <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center rounded-2xl z-10">
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                      <span className="text-sm font-semibold text-slate-700">Uploading Resume...</span>
+                    </div>
+                  </div>
+                )}
+
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-0"
+                  onChange={handleFileUpload}
+                  disabled={isUploadingResume}
+                />
+                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm border border-slate-200 text-blue-500 mb-4">
+                  <UploadCloud size={32} />
                 </div>
-              )}
-            </div>
+                <h3 className="text-lg font-bold text-slate-800 mb-1">Upload a new resume</h3>
+                <p className="text-sm text-slate-500 mb-4">PDF, DOC, DOCX (Max 5MB)</p>
+              </div>
+            )}
           </div>
         </motion.div>
 
