@@ -4,6 +4,7 @@ import { Mail, Settings, Send, UserPlus, Info, ArrowLeft, Archive, Trash2, MailO
 import WelcomeEmailTemplate from '../components/emailTemplates/WelcomeEmailTemplate';
 import LeaveEmailTemplate from '../components/emailTemplates/LeaveEmailTemplate';
 import ResetPasswordEmailTemplate from '../components/emailTemplates/ResetPasswordEmailTemplate';
+import CandidateActivateEmailTemplate from '../components/emailTemplates/CandidateActivateEmailTemplate';
 
 const AdminEmailTemplates = () => {
   const [activeTemplate, setActiveTemplate] = useState('welcome');
@@ -32,6 +33,14 @@ const AdminEmailTemplates = () => {
       description: 'Sent when a user requests to reset their password.',
       subject: 'Password Reset - Acme HRMS',
       content: <ResetPasswordEmailTemplate />
+    },
+    {
+      id: 'candidate_activate',
+      name: 'Candidate Account Activation',
+      icon: <UserPlus size={18} />,
+      description: 'Sent automatically when a candidate signs up to activate their account.',
+      subject: 'Activate your Acme HRMS Candidate Account',
+      content: <CandidateActivateEmailTemplate />
     }
   ];
 

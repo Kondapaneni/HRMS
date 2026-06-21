@@ -72,16 +72,17 @@ $app->post('/api/candidate/register', function (Request $request, Response $resp
     $frontendUrl = rtrim($_ENV['FRONTEND_URL'] ?? 'http://localhost:5173', '/');
     $activationLink = $frontendUrl . "/candidate/activate?token=" . $activationToken;
     
-    // Using simple HTML email
-    $emailBody = "
-    <div style='font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;'>
-        <h2>Welcome to Acme HRMS Careers!</h2>
-        <p>Hi $firstName,</p>
-        <p>Thank you for creating a candidate account. To activate your account and start exploring opportunities, please click the link below:</p>
-        <p><a href='$activationLink' style='display: inline-block; padding: 10px 20px; background-color: #3B82F6; color: white; text-decoration: none; border-radius: 5px;'>Activate Account</a></p>
-        <p>If you did not request this, you can safely ignore this email.</p>
-    </div>
-    ";
+    // Load and parse HTML template
+    $templatePath = __DIR__ . '/../src/Templates/candidate_activate_email.html';
+    $emailBody = file_get_contents($templatePath);
+    if ($emailBody !== false) {
+        $emailBody = str_replace('{{firstName}}', htmlspecialchars($firstName), $emailBody);
+        $emailBody = str_replace('{{activationLink}}', htmlspecialchars($activationLink), $emailBody);
+        $emailBody = str_replace('{{currentYear}}', date('Y'), $emailBody);
+    } else {
+        // Fallback simple email
+        $emailBody = "Click to activate: $activationLink";
+    }
 
     $queueStmt = $conn->prepare("INSERT INTO email_queue (to_email, subject, body) VALUES (:email, :subject, :body)");
     $queueStmt->execute([
