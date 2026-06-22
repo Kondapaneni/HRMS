@@ -129,7 +129,7 @@ const AdminRecruitment = () => {
   };
 
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ app, newStatus, additionalNotes = '' }) => {
+    mutationFn: async ({ app, userInfo, newStatus, additionalNotes = '' }) => {
       const { error } = await supabase.from('applications').update({ status: newStatus }).eq('id', app.id);
       if (error) throw error;
       
@@ -141,7 +141,7 @@ const AdminRecruitment = () => {
       }]);
       
       // Queue email notification based on status
-      if (app.users?.email) {
+      if (userInfo?.email) {
         let subject = `Update on your application for ${app.jobs?.title}`;
         let emailBody = '';
         const frontendUrl = window.location.origin;
@@ -150,14 +150,14 @@ const AdminRecruitment = () => {
         if (newStatus === 'Shortlisted') {
           subject = `Good News! You've been shortlisted for ${app.jobs?.title}`;
           emailBody = shortlistedEmailTemplateHtml
-            .replace(/{{firstName}}/g, app.users.firstName || 'Candidate')
+            .replace(/{{firstName}}/g, userInfo.firstName || 'Candidate')
             .replace(/{{jobTitle}}/g, app.jobs?.title)
             .replace(/{{dashboardLink}}/g, dashboardLink)
             .replace(/{{currentYear}}/g, new Date().getFullYear().toString());
         } else if (newStatus === 'Rejected') {
           subject = `Update regarding your application for ${app.jobs?.title}`;
           emailBody = rejectedEmailTemplateHtml
-            .replace(/{{firstName}}/g, app.users.firstName || 'Candidate')
+            .replace(/{{firstName}}/g, userInfo.firstName || 'Candidate')
             .replace(/{{jobTitle}}/g, app.jobs?.title)
             .replace(/{{dashboardLink}}/g, dashboardLink)
             .replace(/{{currentYear}}/g, new Date().getFullYear().toString());
@@ -172,7 +172,7 @@ const AdminRecruitment = () => {
           emailBody = `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
               <h2 style="color: #2563eb;">Application Update</h2>
-              <p>Hi ${app.users?.firstName},</p>
+              <p>Hi ${userInfo?.firstName},</p>
               ${bodyContent}
               <p>Best regards,<br>The Acme Team</p>
             </div>
@@ -180,7 +180,7 @@ const AdminRecruitment = () => {
         }
         
         await supabase.from('email_queue').insert([{
-          to_email: app.users.email,
+          to_email: userInfo.email,
           subject: subject,
           body: emailBody
         }]);
@@ -198,14 +198,16 @@ const AdminRecruitment = () => {
   });
 
   const updateApplicationStatus = (app, newStatus, additionalNotes = '') => {
-    updateStatusMutation.mutate({ app, newStatus, additionalNotes });
+    const userInfo = candidatesInfo.find(u => u.id === app.candidate_id);
+    updateStatusMutation.mutate({ app, userInfo, newStatus, additionalNotes });
   };
 
   const handleScheduleInterview = (e) => {
     e.preventDefault();
     if (!selectedApp) return;
+    const userInfo = candidatesInfo.find(u => u.id === selectedApp.candidate_id);
     const notes = `Interview scheduled for ${interviewData.date} at ${interviewData.time}, Location: ${interviewData.location}. ${interviewData.notes}`;
-    updateStatusMutation.mutate({ app: selectedApp, newStatus: interviewData.status, additionalNotes: notes }, {
+    updateStatusMutation.mutate({ app: selectedApp, userInfo, newStatus: interviewData.status, additionalNotes: notes }, {
       onSuccess: () => {
         setIsScheduleModalOpen(false);
       }
@@ -230,8 +232,10 @@ const AdminRecruitment = () => {
       await supabase.from('users').update({ role: 'employee' }).eq('id', selectedApp.candidate_id);
     },
     onSuccess: () => {
+      const userInfo = candidatesInfo.find(u => u.id === selectedApp.candidate_id);
       updateStatusMutation.mutate({ 
         app: selectedApp, 
+        userInfo,
         newStatus: 'Converted to Employee', 
         additionalNotes: `Candidate converted to employee. Designation: ${convertData.position}, Department: ${convertData.department}` 
       }, {
