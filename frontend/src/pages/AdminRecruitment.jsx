@@ -8,6 +8,8 @@ import toast from 'react-hot-toast';
 import shortlistedEmailTemplateHtml from "../../../backend/src/Templates/candidate_shortlisted_email.html?raw";
 import rejectedEmailTemplateHtml from "../../../backend/src/Templates/candidate_rejected_email.html?raw";
 import interviewEmailTemplateHtml from "../../../backend/src/Templates/candidate_interview_email.html?raw";
+import { pdf, PDFViewer } from '@react-pdf/renderer';
+import OfferLetterPDF from '../components/offerLetter/OfferLetterPDF';
 
 const AdminRecruitment = () => {
   const [activeTab, setActiveTab] = useState('jobs'); // 'jobs', 'applications'
@@ -86,6 +88,12 @@ const AdminRecruitment = () => {
     firstName: '', lastName: '', email: '', phone: '', department: '', position: '', joiningDate: '', workLocation: '', annualSalary: ''
   });
 
+  const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
+  const [offerData, setOfferData] = useState({
+    firstName: '', lastName: '', email: '', phone: '', department: '', position: '', joiningDate: '', workLocation: '', annualSalary: '', offerDeadline: ''
+  });
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+
   // Timeline UI State
   const [isTimelineModalOpen, setIsTimelineModalOpen] = useState(false);
   const [timelineApp, setTimelineApp] = useState(null);
@@ -130,7 +138,7 @@ const AdminRecruitment = () => {
   };
 
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ app, userInfo, newStatus, additionalNotes = '' }) => {
+    mutationFn: async ({ app, userInfo, newStatus, additionalNotes = '', offerLetterUrl = null }) => {
       const { error } = await supabase.from('applications').update({ status: newStatus }).eq('id', app.id);
       if (error) throw error;
       
@@ -174,7 +182,17 @@ const AdminRecruitment = () => {
         } else {
           let bodyContent = `<p>Your application status has been updated to: <strong>${newStatus}</strong>.</p>`;
           if (newStatus === 'Selected' || newStatus === 'Hired') {
-            bodyContent = `<p>Congratulations! We are thrilled to inform you that you have been selected for the <strong>${app.jobs?.title}</strong> position. We will reach out to you soon with the next steps.</p>`;
+            if (offerLetterUrl) {
+              bodyContent = `
+                <p>We are absolutely thrilled to extend an offer for the <strong>${app.jobs?.title}</strong> position at Acme HRMS!</p>
+                <p>Your interview process was exceptional, and we believe your skills will be a tremendous asset to our team. Please find your official Job Offer Letter attached via the secure link below.</p>
+                <div style="margin: 30px 0;">
+                  <a href="${offerLetterUrl}" target="_blank" style="display: block; width: 100%; box-sizing: border-box; text-align: center; background-color: #10b981; color: #ffffff; text-decoration: none; padding: 14px 0; border-radius: 12px; font-weight: bold; font-size: 15px; border: 3px solid #064e3b; box-shadow: 4px 4px 0px #064e3b;">Download Offer Letter (PDF)</a>
+                </div>
+              `;
+            } else {
+              bodyContent = `<p>Congratulations! We are thrilled to inform you that you have been selected for the <strong>${app.jobs?.title}</strong> position. We will reach out to you soon with the next steps.</p>`;
+            }
           }
           
           emailBody = `
@@ -288,6 +306,75 @@ const AdminRecruitment = () => {
       annualSalary: ''
     });
     setIsConvertModalOpen(true);
+  };
+
+  const openOfferModal = (app) => {
+    const appProfile = candidateProfiles.find(p => p.user_id === app.candidate_id);
+    const userInfo = candidatesInfo.find(u => u.id === app.candidate_id);
+    setSelectedApp(app);
+    setOfferData({
+      firstName: userInfo?.firstName || '',
+      lastName: userInfo?.lastName || '',
+      email: userInfo?.email || '',
+      phone: appProfile?.phone || '',
+      department: app.jobs?.department || '',
+      position: app.jobs?.title || '',
+      joiningDate: '',
+      workLocation: app.jobs?.location || '',
+      annualSalary: '',
+      offerDeadline: ''
+    });
+    setIsOfferModalOpen(true);
+  };
+
+  const handleSendOffer = async (e) => {
+    e.preventDefault();
+    if (!selectedApp) return;
+    setIsGeneratingPdf(true);
+    
+    try {
+      const pdfData = {
+        firstName: offerData.firstName,
+        lastName: offerData.lastName,
+        date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+        jobTitle: offerData.position,
+        department: offerData.department,
+        joiningDate: offerData.joiningDate,
+        salary: offerData.annualSalary,
+        deadlineDate: offerData.offerDeadline
+      };
+
+      const blob = await pdf(<OfferLetterPDF data={pdfData} />).toBlob();
+      
+      const fileName = `offer-${selectedApp.id}-${Date.now()}.pdf`;
+      const { error: uploadError } = await supabase.storage.from('offer_letters').upload(fileName, blob, {
+        contentType: 'application/pdf'
+      });
+      
+      if (uploadError) throw uploadError;
+      
+      const { data } = supabase.storage.from('offer_letters').getPublicUrl(fileName);
+      const publicUrl = data.publicUrl;
+      
+      const userInfo = candidatesInfo.find(u => u.id === selectedApp.candidate_id);
+      updateStatusMutation.mutate({ 
+        app: selectedApp, 
+        userInfo, 
+        newStatus: 'Hired',
+        additionalNotes: `Candidate hired and offer letter generated.`,
+        offerLetterUrl: publicUrl
+      }, {
+        onSuccess: () => {
+          setIsOfferModalOpen(false);
+          toast.success('Offer letter generated and sent successfully!');
+        }
+      });
+    } catch (error) {
+      console.error("Error generating/uploading offer letter:", error);
+      toast.error("Failed to generate and send offer letter");
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   };
 
   const getNextInterviewRound = (status) => {
@@ -536,7 +623,7 @@ const AdminRecruitment = () => {
                           )}
 
                           {isInterview && (
-                            <button disabled={updateStatusMutation.isPending} onClick={() => updateApplicationStatus(app, 'Hired')} className="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white hover:bg-slate-50 h-9 px-3 py-2 text-sm font-medium text-slate-700 disabled:opacity-50">
+                            <button disabled={updateStatusMutation.isPending} onClick={() => openOfferModal(app)} className="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white hover:bg-slate-50 h-9 px-3 py-2 text-sm font-medium text-slate-700 disabled:opacity-50">
                               Hire Candidate
                             </button>
                           )}
@@ -599,6 +686,88 @@ const AdminRecruitment = () => {
           </div>
         )}
       </div>
+
+      {/* Offer Letter Modal */}
+      {isOfferModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-5xl my-auto flex flex-col md:flex-row h-[90vh]">
+            <div className="flex-1 flex flex-col border-r border-slate-200">
+              <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-start bg-slate-50 rounded-tl-lg">
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-900">Configure Offer Letter</h3>
+                  <p className="text-sm text-slate-500">Fill in the offer details for {offerData.firstName} {offerData.lastName}</p>
+                </div>
+                <button onClick={() => setIsOfferModalOpen(false)} className="text-slate-400 hover:text-slate-500 transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-6 overflow-y-auto flex-1">
+                <form id="offerForm" onSubmit={handleSendOffer} className="space-y-6">
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-slate-700">First Name</label>
+                      <input type="text" required value={offerData.firstName} onChange={(e) => setOfferData({...offerData, firstName: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-slate-700">Last Name</label>
+                      <input type="text" required value={offerData.lastName} onChange={(e) => setOfferData({...offerData, lastName: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-slate-700">Department</label>
+                      <input type="text" required value={offerData.department} onChange={(e) => setOfferData({...offerData, department: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-slate-700">Designation / Job Title</label>
+                      <input type="text" required value={offerData.position} onChange={(e) => setOfferData({...offerData, position: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-slate-700">Joining Date</label>
+                      <input type="date" required value={offerData.joiningDate} onChange={(e) => setOfferData({...offerData, joiningDate: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-slate-700">Offer Deadline</label>
+                      <input type="date" required value={offerData.offerDeadline} onChange={(e) => setOfferData({...offerData, offerDeadline: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">Annual Compensation</label>
+                    <input type="text" required placeholder="e.g., $120,000" value={offerData.annualSalary} onChange={(e) => setOfferData({...offerData, annualSalary: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  </div>
+                </form>
+              </div>
+
+              <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3 rounded-bl-lg">
+                <button type="button" onClick={() => setIsOfferModalOpen(false)} className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors">
+                  Cancel
+                </button>
+                <button form="offerForm" type="submit" disabled={isGeneratingPdf || updateStatusMutation.isPending} className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-md hover:bg-emerald-700 transition-colors flex items-center disabled:opacity-50">
+                  {isGeneratingPdf ? 'Generating PDF...' : updateStatusMutation.isPending ? 'Sending...' : 'Confirm & Send Offer'}
+                </button>
+              </div>
+            </div>
+            
+            {/* PDF Preview Sidebar */}
+            <div className="hidden md:block w-1/2 bg-slate-200 rounded-r-lg overflow-hidden relative">
+              <PDFViewer width="100%" height="100%" className="border-none">
+                <OfferLetterPDF data={{
+                  firstName: offerData.firstName || 'Candidate',
+                  lastName: offerData.lastName || 'Name',
+                  date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+                  jobTitle: offerData.position || 'Position',
+                  department: offerData.department || 'Department',
+                  joiningDate: offerData.joiningDate || '[Joining Date]',
+                  salary: offerData.annualSalary || '[Salary]',
+                  deadlineDate: offerData.offerDeadline || '[Deadline]'
+                }} />
+              </PDFViewer>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Convert to Employee Modal */}
       {isConvertModalOpen && (

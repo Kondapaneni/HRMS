@@ -8,6 +8,7 @@ import CandidateActivateEmailTemplate from '../components/emailTemplates/Candida
 import CandidateApplicationSuccessEmailTemplate from '../components/emailTemplates/CandidateApplicationSuccessEmailTemplate';
 import CandidateShortlistedEmailTemplate from '../components/emailTemplates/CandidateShortlistedEmailTemplate';
 import CandidateInterviewEmailTemplate from '../components/emailTemplates/CandidateInterviewEmailTemplate';
+import CandidateOfferEmailTemplate from '../components/emailTemplates/CandidateOfferEmailTemplate';
 import CandidateRejectedEmailTemplate from '../components/emailTemplates/CandidateRejectedEmailTemplate';
 
 const AdminEmailTemplates = () => {
@@ -69,6 +70,14 @@ const AdminEmailTemplates = () => {
       icon: <CalendarDays size={16} />,
       subject: 'Interview Invitation for Software Engineer',
       content: <CandidateInterviewEmailTemplate />
+    },
+    {
+      id: 'candidate_offer',
+      name: 'Job Offer Extended',
+      description: 'Sent to candidates when they are hired, including their offer letter link.',
+      icon: <CheckCircle2 size={16} />,
+      subject: 'Congratulations, you have been selected!',
+      content: <CandidateOfferEmailTemplate />
     },
     {
       id: 'candidate_rejected',
