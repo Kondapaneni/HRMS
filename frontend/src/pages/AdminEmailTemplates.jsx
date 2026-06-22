@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Settings, Send, UserPlus, Info, ArrowLeft, Archive, Trash2, MailOpen, Clock, MoreVertical, CornerUpLeft, CornerUpRight, Star, Lock, ShieldCheck, UserCheck, CalendarDays, Briefcase } from 'lucide-react';
+import { Mail, Settings, Send, UserPlus, Info, ArrowLeft, Archive, Trash2, MailOpen, Clock, MoreVertical, CornerUpLeft, CornerUpRight, Star, Lock, ShieldCheck, UserCheck, CalendarDays, Briefcase, CheckCircle2, XCircle } from 'lucide-react';
 import WelcomeEmailTemplate from '../components/emailTemplates/WelcomeEmailTemplate';
 import LeaveEmailTemplate from '../components/emailTemplates/LeaveEmailTemplate';
 import ResetPasswordEmailTemplate from '../components/emailTemplates/ResetPasswordEmailTemplate';
 import CandidateActivateEmailTemplate from '../components/emailTemplates/CandidateActivateEmailTemplate';
 import CandidateApplicationSuccessEmailTemplate from '../components/emailTemplates/CandidateApplicationSuccessEmailTemplate';
+import CandidateShortlistedEmailTemplate from '../components/emailTemplates/CandidateShortlistedEmailTemplate';
+import CandidateRejectedEmailTemplate from '../components/emailTemplates/CandidateRejectedEmailTemplate';
 
 const AdminEmailTemplates = () => {
   const [activeTemplate, setActiveTemplate] = useState('welcome');
@@ -50,6 +52,22 @@ const AdminEmailTemplates = () => {
       icon: <Briefcase size={16} />,
       subject: 'Application Received Successfully',
       content: <CandidateApplicationSuccessEmailTemplate />
+    },
+    {
+      id: 'candidate_shortlisted',
+      name: 'Application Shortlisted',
+      description: 'Sent to candidates when they are shortlisted for an interview.',
+      icon: <CheckCircle2 size={16} />,
+      subject: "Good News! You've been shortlisted",
+      content: <CandidateShortlistedEmailTemplate />
+    },
+    {
+      id: 'candidate_rejected',
+      name: 'Application Rejected',
+      description: 'Sent to candidates when their application is not moving forward.',
+      icon: <XCircle size={16} />,
+      subject: 'Update regarding your application',
+      content: <CandidateRejectedEmailTemplate />
     }
   ];
 

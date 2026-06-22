@@ -5,6 +5,8 @@ import api from '../api/axios';
 
 import { Briefcase, Users, Plus, FileText, CheckCircle2, XCircle, Clock, Calendar, Mail, FileUp, X, CalendarDays, BadgeCheck, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
+import shortlistedEmailTemplateHtml from "../../../../backend/src/Templates/candidate_shortlisted_email.html?raw";
+import rejectedEmailTemplateHtml from "../../../../backend/src/Templates/candidate_rejected_email.html?raw";
 
 const AdminRecruitment = () => {
   const [activeTab, setActiveTab] = useState('jobs'); // 'jobs', 'applications'
@@ -141,26 +143,41 @@ const AdminRecruitment = () => {
       // Queue email notification based on status
       if (app.users?.email) {
         let subject = `Update on your application for ${app.jobs?.title}`;
-        let bodyContent = `<p>Your application status has been updated to: <strong>${newStatus}</strong>.</p>`;
+        let emailBody = '';
+        const frontendUrl = window.location.origin;
+        const dashboardLink = frontendUrl + "/candidate/applications";
         
         if (newStatus === 'Shortlisted') {
-          bodyContent = `<p>Great news! Your application for <strong>${app.jobs?.title}</strong> has been shortlisted. Our recruitment team will be in touch with you shortly to schedule an interview.</p>`;
-        } else if (newStatus === 'Selected' || newStatus === 'Hired') {
-          bodyContent = `<p>Congratulations! We are thrilled to inform you that you have been selected for the <strong>${app.jobs?.title}</strong> position. We will reach out to you soon with the next steps.</p>`;
+          subject = `Good News! You've been shortlisted for ${app.jobs?.title}`;
+          emailBody = shortlistedEmailTemplateHtml
+            .replace(/{{firstName}}/g, app.users.firstName || 'Candidate')
+            .replace(/{{jobTitle}}/g, app.jobs?.title)
+            .replace(/{{dashboardLink}}/g, dashboardLink)
+            .replace(/{{currentYear}}/g, new Date().getFullYear().toString());
         } else if (newStatus === 'Rejected') {
-          bodyContent = `<p>Thank you for applying for the <strong>${app.jobs?.title}</strong> position. After careful consideration, we have decided not to move forward with your application at this time. We wish you the best of luck in your job search.</p>`;
-        } else if (newStatus.includes('Interview')) {
-          bodyContent = `<p>You have been invited for a <strong>${newStatus}</strong> for the <strong>${app.jobs?.title}</strong> role.</p><p>${additionalNotes}</p>`;
+          subject = `Update regarding your application for ${app.jobs?.title}`;
+          emailBody = rejectedEmailTemplateHtml
+            .replace(/{{firstName}}/g, app.users.firstName || 'Candidate')
+            .replace(/{{jobTitle}}/g, app.jobs?.title)
+            .replace(/{{dashboardLink}}/g, dashboardLink)
+            .replace(/{{currentYear}}/g, new Date().getFullYear().toString());
+        } else {
+          let bodyContent = `<p>Your application status has been updated to: <strong>${newStatus}</strong>.</p>`;
+          if (newStatus === 'Selected' || newStatus === 'Hired') {
+            bodyContent = `<p>Congratulations! We are thrilled to inform you that you have been selected for the <strong>${app.jobs?.title}</strong> position. We will reach out to you soon with the next steps.</p>`;
+          } else if (newStatus.includes('Interview')) {
+            bodyContent = `<p>You have been invited for a <strong>${newStatus}</strong> for the <strong>${app.jobs?.title}</strong> role.</p><p>${additionalNotes}</p>`;
+          }
+          
+          emailBody = `
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #2563eb;">Application Update</h2>
+              <p>Hi ${app.users?.firstName},</p>
+              ${bodyContent}
+              <p>Best regards,<br>The Acme Team</p>
+            </div>
+          `;
         }
-        
-        const emailBody = `
-          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #2563eb;">Application Update</h2>
-            <p>Hi ${app.users?.firstName},</p>
-            ${bodyContent}
-            <p>Best regards,<br>The Acme Team</p>
-          </div>
-        `;
         
         await supabase.from('email_queue').insert([{
           to_email: app.users.email,
