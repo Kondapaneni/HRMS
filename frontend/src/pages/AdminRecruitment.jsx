@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-
-import { Briefcase, Users, Plus, FileText, CheckCircle2, XCircle, Clock, Calendar, Mail, FileUp, X } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../api/supabase';
+import api from '../api/axios';
+
+import { Briefcase, Users, Plus, FileText, CheckCircle2, XCircle, Clock, Calendar, Mail, FileUp, X, CalendarDays, BadgeCheck, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const AdminRecruitment = () => {
@@ -14,7 +15,7 @@ const AdminRecruitment = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('jobs')
-        .select('*')
+        .select('*, applications(count)')
         .order('created_at', { ascending: false });
       if (error) throw error;
       return data || [];
@@ -30,13 +31,30 @@ const AdminRecruitment = () => {
         .select(`
           *,
           jobs (title, department),
-          users:candidate_id (email, "firstName", "lastName")
+          application_timeline (status_change, notes, created_at)
         `)
         .order('applied_date', { ascending: false });
       if (error) throw error;
       return data || [];
     },
     onError: () => toast.error('Failed to load applications')
+  });
+
+  const { data: candidateProfiles = [] } = useQuery({
+    queryKey: ['admin', 'candidate_profiles'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('candidate_profiles').select('*');
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  const { data: candidatesInfo = [] } = useQuery({
+    queryKey: ['admin', 'candidates_info'],
+    queryFn: async () => {
+      const res = await api.get('/admin/candidates');
+      return res.data.candidates || [];
+    }
   });
 
   const isLoading = isLoadingJobs || isLoadingApps;
@@ -48,15 +66,29 @@ const AdminRecruitment = () => {
   });
   const [jobFile, setJobFile] = useState(null);
 
-  // View Application Modal State
-  const [viewApp, setViewApp] = useState(null);
-  const [viewJob, setViewJob] = useState(null);
-
   const [submitStatus, setSubmitStatus] = useState('Draft');
 
-  const handleCreateJob = async (e) => {
-    e.preventDefault();
-    try {
+  // Filter State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [jobFilter, setJobFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+
+  // Modals State
+  const [selectedApp, setSelectedApp] = useState(null);
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const [interviewData, setInterviewData] = useState({ date: '', time: '', location: '', notes: '', status: '1st Round Interview' });
+  
+  const [isConvertModalOpen, setIsConvertModalOpen] = useState(false);
+  const [convertData, setConvertData] = useState({
+    firstName: '', lastName: '', email: '', phone: '', department: '', position: '', joiningDate: '', workLocation: '', annualSalary: ''
+  });
+
+  // Timeline UI State
+  const [isTimelineModalOpen, setIsTimelineModalOpen] = useState(false);
+  const [timelineApp, setTimelineApp] = useState(null);
+
+  const createJobMutation = useMutation({
+    mutationFn: async () => {
       let description_pdf_url = null;
       if (jobFile) {
         const fileExt = jobFile.name.split('.').pop();
@@ -74,231 +106,598 @@ const AdminRecruitment = () => {
 
       const { error } = await supabase.from('jobs').insert([jobDataToInsert]);
       if (error) throw error;
-      
-      toast.success(submitStatus === 'Published' ? 'Job published successfully' : 'Draft saved successfully');
+      return submitStatus;
+    },
+    onSuccess: (status) => {
+      toast.success(status === 'Published' ? 'Job published successfully' : 'Draft saved successfully');
       setIsJobModalOpen(false);
       setJobFormData({ title: '', department: '', location: '', type: 'Full Time', experience: '', salary_min: '', salary_max: '', vacancy: '1', skills: '', qualification: '', description: '', status: 'Draft', deadline: '' });
       setJobFile(null);
       queryClient.invalidateQueries({ queryKey: ['admin', 'jobs'] });
-    } catch (error) {
+    },
+    onError: (error) => {
       console.error(error);
       toast.error('Failed to post job');
     }
+  });
+
+  const handleCreateJob = (e) => {
+    e.preventDefault();
+    createJobMutation.mutate();
   };
 
-  const updateApplicationStatus = async (id, newStatus) => {
-    try {
-      const { error } = await supabase.from('applications').update({ status: newStatus }).eq('id', id);
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ app, newStatus, additionalNotes = '' }) => {
+      const { error } = await supabase.from('applications').update({ status: newStatus }).eq('id', app.id);
       if (error) throw error;
       
       // Add to timeline
       await supabase.from('application_timeline').insert([{
-        application_id: id,
+        application_id: app.id,
         status_change: newStatus,
-        notes: `Application status updated to ${newStatus}`
+        notes: additionalNotes || `Application status updated to ${newStatus}`
       }]);
       
       // Queue email notification based on status
-      if (viewApp?.users?.email) {
-        let subject = `Update on your application for ${viewApp.jobs?.title}`;
+      if (app.users?.email) {
+        let subject = `Update on your application for ${app.jobs?.title}`;
         let bodyContent = `<p>Your application status has been updated to: <strong>${newStatus}</strong>.</p>`;
         
         if (newStatus === 'Shortlisted') {
-          bodyContent = `<p>Great news! Your application for <strong>${viewApp.jobs?.title}</strong> has been shortlisted. Our recruitment team will be in touch with you shortly to schedule an interview.</p>`;
-        } else if (newStatus === 'Selected') {
-          bodyContent = `<p>Congratulations! We are thrilled to inform you that you have been selected for the <strong>${viewApp.jobs?.title}</strong> position. We will reach out to you soon with the next steps.</p>`;
+          bodyContent = `<p>Great news! Your application for <strong>${app.jobs?.title}</strong> has been shortlisted. Our recruitment team will be in touch with you shortly to schedule an interview.</p>`;
+        } else if (newStatus === 'Selected' || newStatus === 'Hired') {
+          bodyContent = `<p>Congratulations! We are thrilled to inform you that you have been selected for the <strong>${app.jobs?.title}</strong> position. We will reach out to you soon with the next steps.</p>`;
         } else if (newStatus === 'Rejected') {
-          bodyContent = `<p>Thank you for applying for the <strong>${viewApp.jobs?.title}</strong> position. After careful consideration, we have decided not to move forward with your application at this time. We wish you the best of luck in your job search.</p>`;
+          bodyContent = `<p>Thank you for applying for the <strong>${app.jobs?.title}</strong> position. After careful consideration, we have decided not to move forward with your application at this time. We wish you the best of luck in your job search.</p>`;
+        } else if (newStatus.includes('Interview')) {
+          bodyContent = `<p>You have been invited for a <strong>${newStatus}</strong> for the <strong>${app.jobs?.title}</strong> role.</p><p>${additionalNotes}</p>`;
         }
         
         const emailBody = `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #2563eb;">Application Update</h2>
-            <p>Hi ${viewApp.users?.firstName},</p>
+            <p>Hi ${app.users?.firstName},</p>
             ${bodyContent}
             <p>Best regards,<br>The Acme Team</p>
           </div>
         `;
         
         await supabase.from('email_queue').insert([{
-          to_email: viewApp.users.email,
+          to_email: app.users.email,
           subject: subject,
           body: emailBody
         }]);
       }
-      
+      return newStatus;
+    },
+    onSuccess: (newStatus) => {
       toast.success(`Application status updated to ${newStatus}`);
       queryClient.invalidateQueries({ queryKey: ['admin', 'applications'] });
-      setViewApp(null);
-    } catch (error) {
+    },
+    onError: (error) => {
       console.error(error);
       toast.error('Failed to update status');
     }
+  });
+
+  const updateApplicationStatus = (app, newStatus, additionalNotes = '') => {
+    updateStatusMutation.mutate({ app, newStatus, additionalNotes });
   };
+
+  const handleScheduleInterview = (e) => {
+    e.preventDefault();
+    if (!selectedApp) return;
+    const notes = `Interview scheduled for ${interviewData.date} at ${interviewData.time}, Location: ${interviewData.location}. ${interviewData.notes}`;
+    updateStatusMutation.mutate({ app: selectedApp, newStatus: interviewData.status, additionalNotes: notes }, {
+      onSuccess: () => {
+        setIsScheduleModalOpen(false);
+      }
+    });
+  };
+
+  const convertEmployeeMutation = useMutation({
+    mutationFn: async () => {
+      // Create employee record
+      const { error: empError } = await supabase.from('employees').insert([{
+        user_id: selectedApp.candidate_id,
+        employee_id: `EMP${Math.floor(Math.random() * 10000)}`,
+        department: convertData.department,
+        designation: convertData.position,
+        joining_date: convertData.joiningDate,
+        work_location: convertData.workLocation,
+        salary: convertData.annualSalary
+      }]);
+      if (empError) throw empError;
+
+      // Update user role to employee if needed
+      await supabase.from('users').update({ role: 'employee' }).eq('id', selectedApp.candidate_id);
+    },
+    onSuccess: () => {
+      updateStatusMutation.mutate({ 
+        app: selectedApp, 
+        newStatus: 'Converted to Employee', 
+        additionalNotes: `Candidate converted to employee. Designation: ${convertData.position}, Department: ${convertData.department}` 
+      }, {
+        onSuccess: () => {
+          setIsConvertModalOpen(false);
+          toast.success('Successfully converted candidate to employee');
+        }
+      });
+    },
+    onError: (error) => {
+      console.error(error);
+      toast.error('Failed to convert to employee');
+    }
+  });
+
+  const handleConvertToEmployee = (e) => {
+    e.preventDefault();
+    if (!selectedApp) return;
+    convertEmployeeMutation.mutate();
+  };
+
+  // Helper functions
+  const openScheduleModal = (app, nextRoundStatus) => {
+    setSelectedApp(app);
+    setInterviewData({ date: '', time: '', location: '', notes: '', status: nextRoundStatus });
+    setIsScheduleModalOpen(true);
+  };
+
+  const openConvertModal = (app) => {
+    const appProfile = candidateProfiles.find(p => p.user_id === app.candidate_id);
+    const userInfo = candidatesInfo.find(u => u.id === app.candidate_id);
+    setSelectedApp(app);
+    setConvertData({
+      firstName: userInfo?.firstName || '',
+      lastName: userInfo?.lastName || '',
+      email: userInfo?.email || '',
+      phone: appProfile?.phone || '',
+      department: app.jobs?.department || '',
+      position: app.jobs?.title || '',
+      joiningDate: '',
+      workLocation: app.jobs?.location || '',
+      annualSalary: ''
+    });
+    setIsConvertModalOpen(true);
+  };
+
+  const getNextInterviewRound = (status) => {
+    if (status === 'Shortlisted') return '1st Round Interview';
+    if (status === '1st Round Interview') return '2nd Round Interview';
+    if (status === '2nd Round Interview') return '3rd Round Interview';
+    if (status === '3rd Round Interview') return 'Final Round Interview';
+    return 'Interview';
+  };
+
+  const getStatusColor = (status) => {
+    const s = status?.toLowerCase() || '';
+    if (s.includes('applied')) return 'bg-slate-100 text-slate-800 border-slate-200';
+    if (s.includes('shortlisted')) return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+    if (s.includes('interview')) return 'bg-purple-100 text-purple-800 border-purple-200';
+    if (s.includes('rejected')) return 'bg-red-100 text-red-800 border-red-200';
+    if (s.includes('hired') || s.includes('selected')) return 'bg-green-100 text-green-800 border-green-200';
+    if (s.includes('converted')) return 'bg-blue-100 text-blue-800 border-blue-200';
+    return 'bg-slate-100 text-slate-800 border-slate-200';
+  };
+
+  const filteredApplications = applications.filter(app => {
+    const appProfile = candidateProfiles.find(p => p.user_id === app.candidate_id);
+    const userInfo = candidatesInfo.find(u => u.id === app.candidate_id);
+    const matchesSearch = (userInfo?.firstName + ' ' + userInfo?.lastName).toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          (userInfo?.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          (app.jobs?.title || '').toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesJob = jobFilter ? app.job_id === jobFilter : true;
+    const matchesStatus = statusFilter ? app.status === statusFilter : true;
+    return matchesSearch && matchesJob && matchesStatus;
+  });
+
+  const openPositions = jobs.filter(j => j.status === 'Published').length;
+  const totalApplicants = applications.length;
+  const inInterview = applications.filter(a => (a.status || '').includes('Interview')).length;
+  const hiredCount = applications.filter(a => ['Hired', 'Selected', 'Converted to Employee'].includes(a.status)).length;
+
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">Recruitment</h1>
-          <p className="text-sm text-slate-500 mt-1">Manage job postings and candidate applications.</p>
+          <p className="text-sm text-slate-500 mt-1">Manage published jobs, candidate applications, and employee conversion.</p>
         </div>
-        <div>
-          <button 
-            onClick={() => setIsJobModalOpen(true)}
-            className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 transition-colors shadow-sm cursor-pointer"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Post New Job
-          </button>
-        </div>
+        <button 
+          onClick={() => setIsJobModalOpen(true)}
+          className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 transition-colors shadow-sm cursor-pointer"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Post New Job
+        </button>
       </div>
 
-      <div className="border-b border-slate-200 mb-6">
-        <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-          <button
-            onClick={() => setActiveTab('jobs')}
-            className={`${activeTab === 'jobs' ? 'border-blue-500 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'} whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2`}
-          >
-            <Briefcase size={18} /> Jobs
-          </button>
-          <button
-            onClick={() => setActiveTab('applications')}
-            className={`${activeTab === 'applications' ? 'border-blue-500 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'} whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2`}
-          >
-            <Users size={18} /> Applications
-          </button>
-        </nav>
-      </div>
-
-      <div className="mb-6 flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-slate-900">{activeTab === 'jobs' ? 'Job Postings' : 'Candidate Applications'}</h3>
-      </div>
-      
-      {isLoading ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        </div>
-      ) : activeTab === 'jobs' ? (
-        jobs.length === 0 ? (
-          <div className="text-center py-12 text-slate-500 bg-white rounded-xl border border-slate-200">No jobs posted yet.</div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {jobs.map((job) => (
-              <div key={job.id} onClick={() => setViewJob(job)} className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-all cursor-pointer hover:border-blue-300 flex flex-col">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h4 className="text-lg font-semibold text-slate-900">{job.title}</h4>
-                    <p className="text-sm text-slate-500">{job.department}</p>
-                  </div>
-                  <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${job.status === 'Published' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-700 border-slate-200'}`}>
-                    {job.status}
-                  </span>
-                </div>
-                <div className="mt-auto pt-4 border-t border-slate-100 flex flex-col gap-3 text-sm text-slate-600">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5"><Briefcase size={14} className="text-slate-400" /> {job.type}</div>
-                    <div className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span> {job.location}</div>
-                  </div>
-                  {job.deadline && (
-                    <div className="flex items-center gap-1.5 text-slate-500 text-xs">
-                      <Calendar size={14} className="text-slate-400" /> Deadline: <span className="font-medium text-slate-700">{new Date(job.deadline).toLocaleDateString()}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )
-      ) : (
-        applications.length === 0 ? (
-          <div className="text-center py-12 text-slate-500 bg-white rounded-xl border border-slate-200">No applications received yet.</div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {applications.map((app) => (
-              <div key={app.id} className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h4 className="text-lg font-semibold text-slate-900">{app.users?.firstName} {app.users?.lastName}</h4>
-                    <p className="text-sm text-slate-500">{app.users?.email}</p>
-                  </div>
-                  <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold bg-blue-100 text-blue-700 border-blue-200">
-                    {app.status}
-                  </span>
-                </div>
-                <div className="mb-4">
-                  <p className="text-sm font-medium text-slate-700">Applied for: {app.jobs?.title}</p>
-                  <p className="text-xs text-slate-500">{app.jobs?.department}</p>
-                </div>
-                <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
-                  <span className="text-xs text-slate-500 flex items-center gap-1.5"><Calendar size={14} className="text-slate-400" /> {new Date(app.applied_date).toLocaleDateString()}</span>
-                  <button onClick={() => setViewApp(app)} className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors">Review</button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )
-      )}
-
-      {/* View Job Modal */}
-      {viewJob && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-              <h2 className="text-lg font-semibold text-slate-800">Job Details</h2>
-              <button onClick={() => setViewJob(null)} className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
-                <X size={20} />
-              </button>
-            </div>
-            
-            <div className="p-6 overflow-y-auto flex-1">
-              <div className="flex justify-between items-start mb-6">
-                <div>
-                  <h3 className="text-2xl font-bold text-slate-900">{viewJob.title}</h3>
-                  <p className="text-slate-600 mt-1">{viewJob.department}</p>
-                </div>
-                <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${viewJob.status === 'Published' ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-700 border-slate-200'}`}>
-                  {viewJob.status}
-                </span>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-                <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Type</p>
-                  <p className="font-semibold text-slate-900 flex items-center gap-1.5"><Briefcase size={14} className="text-blue-500" /> {viewJob.type}</p>
-                </div>
-                <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Location</p>
-                  <p className="font-semibold text-slate-900 flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span> {viewJob.location}</p>
-                </div>
-                <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 sm:col-span-2">
-                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Application Deadline</p>
-                  <p className="font-semibold text-slate-900 flex items-center gap-1.5">
-                    <Calendar size={14} className="text-blue-500" /> 
-                    {viewJob.deadline ? new Date(viewJob.deadline).toLocaleDateString() : 'No Deadline specified'}
-                  </p>
-                </div>
-              </div>
-
+      <div className="grid gap-4 md:grid-cols-4">
+        {[
+          { label: 'Published Jobs', value: openPositions, icon: <Briefcase className="w-8 h-8 text-blue-600" />, color: 'text-blue-600' },
+          { label: 'Total Applicants', value: totalApplicants, icon: <Users className="w-8 h-8 text-green-600" />, color: 'text-green-600' },
+          { label: 'Interview Scheduled', value: inInterview, icon: <CalendarDays className="w-8 h-8 text-purple-600" />, color: 'text-purple-600' },
+          { label: 'Hired / Converted', value: hiredCount, icon: <BadgeCheck className="w-8 h-8 text-orange-600" />, color: 'text-orange-600' },
+        ].map((stat, i) => (
+          <div key={i} className="rounded-lg border border-slate-200 bg-white shadow-sm p-6">
+            <div className="flex items-center justify-between">
               <div>
-                <h4 className="text-sm font-semibold text-slate-800 mb-2">Description</h4>
-                <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200 whitespace-pre-wrap">
-                  {viewJob.description || 'No description provided.'}
+                <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
+                <p className="text-sm text-slate-500 mt-1">{stat.label}</p>
+              </div>
+              {stat.icon}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="space-y-4">
+        <div className="border-b border-slate-200 mb-6">
+          <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+            <button
+              onClick={() => setActiveTab('jobs')}
+              className={`${activeTab === 'jobs' ? 'border-blue-500 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'} whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
+            >
+              Job Postings
+            </button>
+            <button
+              onClick={() => { setActiveTab('applications'); setJobFilter(''); }}
+              className={`${activeTab === 'applications' ? 'border-blue-500 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'} whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
+            >
+              Applicants
+            </button>
+          </nav>
+        </div>
+
+        {activeTab === 'jobs' && (
+          <div className="grid gap-4">
+            {isLoadingJobs ? (
+              <div className="flex justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>
+            ) : jobs.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-slate-300 p-10 text-center text-slate-500">
+                No job postings yet. Use "Post New Job" to create one.
+              </div>
+            ) : (
+              jobs.map(job => (
+                <div key={job.id} className="rounded-lg border border-slate-200 bg-white shadow-sm p-6">
+                  <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                    <div className="space-y-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="text-lg font-semibold text-slate-900">{job.title}</h3>
+                        <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${job.status === 'Published' ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-slate-100 text-slate-800 border-slate-200'}`}>
+                          {job.status}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500">
+                        <span>{job.department}</span>
+                        <span>•</span>
+                        <span>{job.location}</span>
+                        <span>•</span>
+                        <span>{job.type}</span>
+                        <span>•</span>
+                        <span>{job.applications?.[0]?.count || 0} applicants</span>
+                      </div>
+                      <div className="grid gap-2 text-sm text-slate-500 md:grid-cols-2">
+                        <p><strong className="text-slate-700">Experience:</strong> {job.experience || 'Not specified'}</p>
+                        <p><strong className="text-slate-700">Vacancy:</strong> {job.vacancy || 1}</p>
+                        <p><strong className="text-slate-700">Qualification:</strong> {job.qualification || 'Not specified'}</p>
+                        <p><strong className="text-slate-700">Last Date:</strong> {job.deadline ? new Date(job.deadline).toLocaleDateString() : 'Open until filled'}</p>
+                      </div>
+                      <p className="text-sm text-slate-600 whitespace-pre-line mt-2">{job.description}</p>
+                    </div>
+                    <div className="flex flex-wrap gap-3 mt-4 xl:mt-0">
+                      <button 
+                        onClick={() => { setActiveTab('applications'); setJobFilter(job.id); }}
+                        className="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white hover:bg-slate-50 h-10 px-4 py-2 text-sm font-medium text-slate-700 transition-colors"
+                      >
+                        View Applicants
+                      </button>
+                      {job.description_pdf_url && (
+                        <a 
+                          href={job.description_pdf_url} 
+                          target="_blank" 
+                          rel="noreferrer"
+                          className="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white hover:bg-slate-50 h-10 px-4 py-2 text-sm font-medium text-slate-700 transition-colors"
+                        >
+                          Attachment
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {activeTab === 'applications' && (
+          <div className="space-y-4">
+            <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="grid gap-4 md:grid-cols-4">
+                <div className="space-y-2 md:col-span-2">
+                  <label className="text-sm font-medium text-slate-700">Search Applicants</label>
+                  <input 
+                    type="search" 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Candidate name, email, or job title"
+                    className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Job</label>
+                  <select 
+                    value={jobFilter}
+                    onChange={(e) => setJobFilter(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400"
+                  >
+                    <option value="">All jobs</option>
+                    {jobs.map(job => (
+                      <option key={job.id} value={job.id}>{job.title}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Status</label>
+                  <select 
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400"
+                  >
+                    <option value="">All statuses</option>
+                    {Array.from(new Set(applications.map(a => a.status || 'Applied'))).map(status => (
+                      <option key={status} value={status}>{status}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
+            </div>
 
-              {viewJob.description_pdf_url && (
-                <div className="mt-6">
-                  <h4 className="text-sm font-semibold text-slate-800 mb-2">Attached Document</h4>
-                  <a href={viewJob.description_pdf_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 bg-blue-50 px-4 py-2 rounded-lg font-medium text-sm transition-colors border border-blue-100">
-                    <FileText size={16} /> View Job Description PDF
-                  </a>
+            <div className="grid gap-4">
+              {isLoadingApps ? (
+                <div className="flex justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>
+              ) : filteredApplications.length === 0 ? (
+                <div className="rounded-lg border border-dashed border-slate-300 p-10 text-center text-slate-500">
+                  No applications found.
                 </div>
+              ) : (
+                filteredApplications.map(app => {
+                  const status = app.status || 'Applied';
+                  const isConverted = status === 'Converted to Employee';
+                  const isHired = status === 'Hired' || status === 'Selected';
+                  const isInterview = status.includes('Interview');
+                  const nextInterviewRound = getNextInterviewRound(status);
+                  const appProfile = candidateProfiles.find(p => p.user_id === app.candidate_id);
+                  const userInfo = candidatesInfo.find(u => u.id === app.candidate_id);
+                  
+                  return (
+                    <div key={app.id} className="rounded-lg border border-slate-200 bg-white shadow-sm p-6 space-y-4">
+                      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                        <div className="space-y-2">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3 className="text-lg font-semibold text-slate-900">{userInfo?.firstName || 'Candidate'} {userInfo?.lastName || ''}</h3>
+                            <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${getStatusColor(status)}`}>
+                              {status}
+                            </span>
+                          </div>
+                          <p className="text-sm text-slate-500">{app.jobs?.title} • {app.jobs?.department}</p>
+                        </div>
+                        
+                        <div className="flex flex-wrap justify-end gap-2">
+                          {app.resume_url && (
+                            <a href={app.resume_url} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center whitespace-nowrap rounded-md border border-slate-300 bg-white hover:bg-slate-50 h-9 px-3 py-2 text-sm font-medium text-slate-700">
+                              View Resume
+                            </a>
+                          )}
+
+                          {status === 'Applied' && (
+                            <button disabled={updateStatusMutation.isPending} onClick={() => updateApplicationStatus(app, 'Shortlisted')} className="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white hover:bg-slate-50 h-9 px-3 py-2 text-sm font-medium text-slate-700 disabled:opacity-50">
+                              Shortlist
+                            </button>
+                          )}
+
+                          {(status === 'Shortlisted' || isInterview) && (
+                            <button disabled={updateStatusMutation.isPending} onClick={() => openScheduleModal(app, nextInterviewRound)} className="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white hover:bg-slate-50 h-9 px-3 py-2 text-sm font-medium text-slate-700 disabled:opacity-50">
+                              Schedule {isInterview ? 'Next ' : ''}Interview
+                            </button>
+                          )}
+
+                          {isInterview && (
+                            <button disabled={updateStatusMutation.isPending} onClick={() => updateApplicationStatus(app, 'Hired')} className="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white hover:bg-slate-50 h-9 px-3 py-2 text-sm font-medium text-slate-700 disabled:opacity-50">
+                              Hire Candidate
+                            </button>
+                          )}
+
+                          {(status === 'Applied' || status === 'Shortlisted' || isInterview) && (
+                            <button disabled={updateStatusMutation.isPending} onClick={() => updateApplicationStatus(app, 'Rejected')} className="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white hover:bg-slate-50 h-9 px-3 py-2 text-sm font-medium text-slate-700 disabled:opacity-50">
+                              Reject
+                            </button>
+                          )}
+
+                          {(isHired || isConverted) && (
+                            <button 
+                              onClick={() => openConvertModal(app)} 
+                              disabled={isConverted || convertEmployeeMutation.isPending}
+                              className={`inline-flex items-center justify-center rounded-md h-9 px-3 py-2 text-sm font-medium disabled:opacity-50 ${isConverted ? 'bg-blue-300 text-white cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700 cursor-pointer'}`}
+                            >
+                              {isConverted ? 'Converted' : 'Convert to Employee'}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2 xl:grid-cols-3">
+                        <div className="min-w-0 break-words">
+                          <p className="text-sm font-semibold text-slate-700 mb-1">Email</p>
+                          <p className="text-sm text-slate-500 truncate">{userInfo?.email || 'N/A'}</p>
+                        </div>
+                        <div className="min-w-0 break-words">
+                          <p className="text-sm font-semibold text-slate-700 mb-1">Phone</p>
+                          <p className="text-sm text-slate-500">{appProfile?.phone || 'N/A'}</p>
+                        </div>
+                        <div className="min-w-0 break-words">
+                          <p className="text-sm font-semibold text-slate-700 mb-1">Experience</p>
+                          <p className="text-sm text-slate-500">{appProfile?.experience ? `${appProfile.experience} years` : 'Not specified'}</p>
+                        </div>
+                        <div className="min-w-0 break-words">
+                          <p className="text-sm font-semibold text-slate-700 mb-1">Designation</p>
+                          <p className="text-sm text-slate-500">{appProfile?.current_title || 'Not specified'}</p>
+                        </div>
+                        <div className="min-w-0 break-words">
+                          <p className="text-sm font-semibold text-slate-700 mb-1">Applied</p>
+                          <p className="text-sm text-slate-500">{new Date(app.applied_date).toLocaleDateString()}</p>
+                        </div>
+                      </div>
+
+                      <div className="pt-2 border-t border-slate-100 flex justify-end">
+                        <button 
+                          onClick={() => { setTimelineApp(app); setIsTimelineModalOpen(true); }}
+                          className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors cursor-pointer"
+                        >
+                          <Clock className="w-4 h-4 mr-1.5" />
+                          View Full Timeline
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
               )}
             </div>
+          </div>
+        )}
+      </div>
+
+      {/* Convert to Employee Modal */}
+      {isConvertModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl my-auto">
+            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-start bg-slate-50 rounded-t-lg">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-800">Convert Candidate to Employee</h2>
+                <p className="mt-1 text-sm text-slate-500">Create a staff user and employee record for this candidate.</p>
+              </div>
+              <button onClick={() => setIsConvertModalOpen(false)} className="text-slate-400 hover:text-slate-600 p-1">
+                <X size={20} />
+              </button>
+            </div>
             
-            <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3">
-              <button onClick={() => setViewJob(null)} className="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors cursor-pointer">
+            <form onSubmit={handleConvertToEmployee} className="p-6 space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">First Name</label>
+                  <input type="text" required value={convertData.firstName} onChange={e => setConvertData({...convertData, firstName: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Last Name</label>
+                  <input type="text" required value={convertData.lastName} onChange={e => setConvertData({...convertData, lastName: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
+                </div>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Email</label>
+                  <input type="email" required value={convertData.email} onChange={e => setConvertData({...convertData, email: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Phone</label>
+                  <input type="text" value={convertData.phone} onChange={e => setConvertData({...convertData, phone: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
+                </div>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Department</label>
+                  <input type="text" required value={convertData.department} onChange={e => setConvertData({...convertData, department: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Designation</label>
+                  <input type="text" required value={convertData.position} onChange={e => setConvertData({...convertData, position: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
+                </div>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Joining Date</label>
+                  <input type="date" required value={convertData.joiningDate} onChange={e => setConvertData({...convertData, joiningDate: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Work Location</label>
+                  <input type="text" required value={convertData.workLocation} onChange={e => setConvertData({...convertData, workLocation: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700">Annual Compensation (INR)</label>
+                <input type="text" required value={convertData.annualSalary} onChange={e => setConvertData({...convertData, annualSalary: e.target.value})} placeholder="e.g. 600000" className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
+              </div>
+              
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 mt-6">
+                <button type="button" onClick={() => setIsConvertModalOpen(false)} className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors cursor-pointer" disabled={convertEmployeeMutation.isPending}>
+                  Cancel
+                </button>
+                <button type="submit" disabled={convertEmployeeMutation.isPending} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors cursor-pointer disabled:opacity-50">
+                  {convertEmployeeMutation.isPending ? 'Converting...' : 'Convert to Employee'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Timeline Modal */}
+      {isTimelineModalOpen && timelineApp && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl my-auto">
+            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-start bg-slate-50 rounded-t-lg">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-800">Application Timeline</h2>
+                <p className="mt-1 text-sm text-slate-500">History of status changes for this application.</p>
+              </div>
+              <button onClick={() => setIsTimelineModalOpen(false)} className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer">
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="p-6 max-h-[60vh] overflow-y-auto chat-scrollbar">
+              <div className="relative wrap overflow-hidden p-2">
+                <div className="absolute border-opacity-20 border-slate-300 h-full border-l-2" style={{left: '50%', transform: 'translateX(-50%)'}}></div>
+                {(!timelineApp.application_timeline || timelineApp.application_timeline.length === 0) ? (
+                  <div className="rounded-xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-500 relative z-10 mx-auto w-3/4">
+                    Timeline history is not available yet.
+                  </div>
+                ) : (
+                  timelineApp.application_timeline.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).map((event, idx, arr) => {
+                    const isLatest = idx === 0;
+                    const chronologicalIdx = arr.length - 1 - idx;
+                    const isLeft = chronologicalIdx % 2 === 0;
+                    return (
+                      <div key={idx} className={`mb-8 flex justify-between items-center w-full ${isLeft ? 'flex-row-reverse' : 'flex-row'}`}>
+                        <div className="order-1 w-5/12"></div>
+                        <div className="z-20 flex items-center justify-center order-1 bg-blue-50 shadow-sm border-[3px] border-white w-10 h-10 rounded-full relative">
+                          {isLatest && (
+                            <span className="absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-40 animate-ping"></span>
+                          )}
+                          <span className="relative text-blue-600">
+                            {isLatest ? <CheckCircle2 size={18} className="text-blue-600" /> : <Clock size={16} />}
+                          </span>
+                        </div>
+                        <div className={`order-1 rounded-lg border ${isLatest ? 'border-blue-200 bg-blue-50/50 shadow-md' : 'border-slate-200 bg-white shadow-sm'} w-5/12 p-4`}>
+                          <div className="flex flex-col mb-1">
+                            <h4 className={`font-semibold ${isLatest ? 'text-blue-900' : 'text-slate-900'}`}>{event.status_change}</h4>
+                            <time className="text-xs font-medium text-slate-500 mt-1">
+                              {new Date(event.created_at).toLocaleDateString()} at {new Date(event.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                            </time>
+                          </div>
+                          {event.notes && (
+                            <p className="text-sm text-slate-600 whitespace-pre-line mt-2">{event.notes}</p>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })
+                )}
+              </div>
+            </div>
+            
+            <div className="px-6 py-4 border-t border-slate-200 flex justify-end">
+              <button onClick={() => setIsTimelineModalOpen(false)} className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors cursor-pointer">
                 Close
               </button>
             </div>
@@ -306,58 +705,49 @@ const AdminRecruitment = () => {
         </div>
       )}
 
-      {/* View Application Modal */}
-      {viewApp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-              <h2 className="text-lg font-semibold text-slate-800">Review Application</h2>
-              <button onClick={() => setViewApp(null)} className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
+      {/* Schedule Interview Modal */}
+      {isScheduleModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl my-auto">
+            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-start bg-slate-50 rounded-t-lg">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-800">Schedule {interviewData.status}</h2>
+                <p className="mt-1 text-sm text-slate-500">Enter the interview details to notify the candidate.</p>
+              </div>
+              <button onClick={() => setIsScheduleModalOpen(false)} className="text-slate-400 hover:text-slate-600 p-1">
                 <X size={20} />
               </button>
             </div>
             
-            <div className="p-6 overflow-y-auto flex-1">
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Candidate</p>
-                  <p className="font-bold text-slate-900">{viewApp.users?.firstName} {viewApp.users?.lastName}</p>
-                  <p className="text-sm text-slate-600">{viewApp.users?.email}</p>
+            <form onSubmit={handleScheduleInterview} className="p-6 space-y-4">
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Date</label>
+                  <input type="date" required value={interviewData.date} onChange={e => setInterviewData({...interviewData, date: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
                 </div>
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Job Details</p>
-                  <p className="font-bold text-slate-900">{viewApp.jobs?.title}</p>
-                  <p className="text-sm text-slate-600">{viewApp.jobs?.department}</p>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Time</label>
+                  <input type="time" required value={interviewData.time} onChange={e => setInterviewData({...interviewData, time: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
                 </div>
-              </div>
-
-              <div className="mb-6">
-                <h4 className="font-semibold text-slate-800 mb-2">Resume</h4>
-                {viewApp.resume_url ? (
-                  <a href={viewApp.resume_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 bg-blue-50 px-4 py-2 rounded-lg font-medium text-sm">
-                    <FileText size={16} /> View Candidate Resume
-                  </a>
-                ) : (
-                  <p className="text-slate-500 text-sm italic">No resume attached.</p>
-                )}
-              </div>
-
-              <div className="border-t border-slate-200 pt-6">
-                <h4 className="font-semibold text-slate-800 mb-4">Quick Actions</h4>
-                <div className="flex flex-wrap gap-3">
-                  <button onClick={() => updateApplicationStatus(viewApp.id, 'Under Review')} className="bg-amber-100 text-amber-800 hover:bg-amber-200 px-4 py-2 rounded-lg font-medium text-sm transition-colors cursor-pointer">Mark Under Review</button>
-                  <button onClick={() => updateApplicationStatus(viewApp.id, 'Shortlisted')} className="bg-indigo-100 text-indigo-800 hover:bg-indigo-200 px-4 py-2 rounded-lg font-medium text-sm transition-colors cursor-pointer">Shortlist</button>
-                  <button onClick={() => updateApplicationStatus(viewApp.id, 'Selected')} className="bg-emerald-100 text-emerald-800 hover:bg-emerald-200 px-4 py-2 rounded-lg font-medium text-sm transition-colors cursor-pointer">Select Candidate</button>
-                  <button onClick={() => updateApplicationStatus(viewApp.id, 'Rejected')} className="bg-rose-100 text-rose-800 hover:bg-rose-200 px-4 py-2 rounded-lg font-medium text-sm transition-colors cursor-pointer">Reject</button>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Location / Link</label>
+                  <input type="text" required value={interviewData.location} onChange={e => setInterviewData({...interviewData, location: e.target.value})} placeholder="Zoom link, Office, etc." className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
                 </div>
               </div>
-            </div>
-            
-            <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3">
-              <button onClick={() => setViewApp(null)} className="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors cursor-pointer">
-                Close
-              </button>
-            </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700">Additional Notes (optional)</label>
+                <textarea rows="3" value={interviewData.notes} onChange={e => setInterviewData({...interviewData, notes: e.target.value})} placeholder="Any preparation instructions..." className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
+              </div>
+              
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 mt-6">
+                <button type="button" onClick={() => setIsScheduleModalOpen(false)} className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors cursor-pointer" disabled={updateStatusMutation.isPending}>
+                  Cancel
+                </button>
+                <button type="submit" disabled={updateStatusMutation.isPending} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors cursor-pointer disabled:opacity-50">
+                  {updateStatusMutation.isPending ? 'Scheduling...' : 'Schedule Interview'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
@@ -450,14 +840,14 @@ const AdminRecruitment = () => {
             </div>
             
             <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3">
-              <button type="button" onClick={() => setIsJobModalOpen(false)} className="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors cursor-pointer">
+              <button type="button" onClick={() => setIsJobModalOpen(false)} className="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors cursor-pointer" disabled={createJobMutation.isPending}>
                 Cancel
               </button>
-              <button type="submit" form="post-job-form" onClick={() => setSubmitStatus('Draft')} className="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors cursor-pointer">
-                Save Draft
+              <button type="submit" form="post-job-form" onClick={() => setSubmitStatus('Draft')} disabled={createJobMutation.isPending} className="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors cursor-pointer disabled:opacity-50">
+                {createJobMutation.isPending && submitStatus === 'Draft' ? 'Saving...' : 'Save Draft'}
               </button>
-              <button type="submit" form="post-job-form" onClick={() => setSubmitStatus('Published')} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors cursor-pointer">
-                Publish
+              <button type="submit" form="post-job-form" onClick={() => setSubmitStatus('Published')} disabled={createJobMutation.isPending} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors cursor-pointer disabled:opacity-50">
+                {createJobMutation.isPending && submitStatus === 'Published' ? 'Publishing...' : 'Publish'}
               </button>
             </div>
           </div>

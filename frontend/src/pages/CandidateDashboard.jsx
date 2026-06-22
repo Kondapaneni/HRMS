@@ -1,25 +1,33 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
-import { Briefcase, FileText, Calendar, CheckCircle2, AlertCircle, ArrowRight, Activity, TrendingUp } from 'lucide-react';
+import { Briefcase, FileText, BadgeCheck, BellRing, UserCheck, User, FileUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../api/supabase';
 
 const CandidateDashboard = () => {
   const { profile } = useAuth();
+  
   const { data: dashboardData, isLoading } = useQuery({
     queryKey: ['candidate', 'dashboard', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return null;
 
-      const [profileRes, appsRes] = await Promise.all([
+      const [profileRes, appsRes, jobsRes, notifsRes] = await Promise.all([
         supabase.from('candidate_profiles').select('*').eq('user_id', profile.id).single(),
-        supabase.from('applications').select('status').eq('candidate_id', profile.id)
+        supabase.from('applications').select(`
+          *,
+          jobs (title, department, location)
+        `).eq('candidate_id', profile.id).order('created_at', { ascending: false }),
+        supabase.from('jobs').select('*').eq('status', 'Published').order('created_at', { ascending: false }).limit(4),
+        supabase.from('notifications').select('*', { count: 'exact', head: true }).eq('user_id', profile.id).eq('is_read', false)
       ]);
 
       return {
         profileData: profileRes.data || null,
-        appsData: appsRes.data || []
+        appsData: appsRes.data || [],
+        jobsData: jobsRes.data || [],
+        unreadNotifications: notifsRes.count || 0
       };
     },
     enabled: !!profile?.id,
@@ -27,7 +35,9 @@ const CandidateDashboard = () => {
   });
 
   const profileData = dashboardData?.profileData;
-  const appsData = dashboardData?.appsData || [];
+  const applications = dashboardData?.appsData || [];
+  const jobs = dashboardData?.jobsData || [];
+  const unreadNotifications = dashboardData?.unreadNotifications || 0;
 
   // Calculate completion stats
   let percentage = 0;
@@ -44,134 +54,156 @@ const CandidateDashboard = () => {
   const completionStats = { percentage, isComplete };
 
   // Calculate app stats
-  const activeApps = appsData.filter(a => ['Applied', 'Shortlisted', 'Interviewing'].includes(a.status)).length;
-  const interviews = appsData.filter(a => a.status === 'Interviewing').length;
-  const stats = { activeApps, interviews };
-  
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good Morning';
-    if (hour < 18) return 'Good Afternoon';
-    return 'Good Evening';
+  const totalApps = applications.length;
+  const shortlisted = applications.filter(a => ['Shortlisted', 'Interviewing'].includes(a.status)).length;
+  const recentApps = applications.slice(0, 4);
+
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'Applied': return 'bg-blue-100 text-blue-700';
+      case 'Shortlisted': return 'bg-emerald-100 text-emerald-700';
+      case 'Rejected': return 'bg-rose-100 text-rose-700';
+      case 'Hired': return 'bg-purple-100 text-purple-700';
+      default: return 'bg-slate-100 text-slate-700';
+    }
   };
 
-
+  if (isLoading) {
+    return <div className="p-6 text-slate-500">Loading dashboard...</div>;
+  }
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-2">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">{getGreeting()}, {profile?.firstName || 'Candidate'}!</h1>
-          <p className="text-sm text-slate-500 mt-1">Welcome to your candidate dashboard. Track your applications and find new opportunities.</p>
-        </div>
-        <div className="text-left sm:text-right">
-          <p className="text-lg font-semibold text-blue-600">{new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}</p>
-        </div>
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight text-slate-900">Welcome back, {profile?.firstName || 'Candidate'}!</h1>
+        <p className="text-sm text-slate-500 mt-1">Track your applications, update your profile, and apply for new opportunities.</p>
       </div>
 
-      {/* Profile Completion Banner */}
+      {/* Completion Alert */}
       {!completionStats.isComplete && (
-        <div 
-          className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 relative overflow-hidden group z-0"
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-50 to-transparent -z-10" />
-          
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-            <div className="flex-1 w-full">
-              <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                <AlertCircle size={20} className="text-amber-500" />
-                Complete Your Profile
-              </h2>
-              <p className="text-slate-600 text-sm mt-1 mb-4">You have only completed {completionStats.percentage}% of your profile. Add your resume and experience to improve your chances of getting hired.</p>
-              
-              {/* Progress Bar */}
-              <div className="w-full bg-slate-100 rounded-full h-2.5 mb-2">
-                <div className="bg-gradient-to-r from-amber-400 to-amber-500 h-2.5 rounded-full transition-all duration-1000 ease-out" style={{ width: `${completionStats.percentage}%` }}></div>
-              </div>
-              <p className="text-xs font-semibold text-amber-600">{completionStats.percentage}% Completed</p>
-            </div>
-            
-            <Link to="/candidate/profile" className="shrink-0 bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50 text-blue-700 px-6 py-3 rounded-xl font-semibold text-sm transition-all flex items-center gap-2 shadow-sm">
-              Update Profile <ArrowRight size={16} />
-            </Link>
-          </div>
+        <div className="rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800">
+          Your candidate account is ready. Complete your profile and upload a resume before applying to more jobs.
         </div>
       )}
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        
-        {/* Active Applications */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 relative overflow-hidden hover:shadow-md transition-shadow">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-bl-[80px] -z-10"></div>
-          <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mb-4 border border-white shadow-sm">
-            <FileText size={24} />
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="rounded-lg border border-slate-200 bg-white shadow-sm p-6 flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-slate-500">Applications</p>
+            <p className="text-2xl font-bold text-slate-900 mt-1">{totalApps}</p>
           </div>
-          <p className="text-3xl font-black text-slate-800 mb-1">{stats.activeApps}</p>
-          <h3 className="text-sm font-semibold text-slate-500">Active Applications</h3>
+          <FileText size={32} className="text-blue-600 opacity-80" />
         </div>
-
-        {/* Interviews */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 relative overflow-hidden hover:shadow-md transition-shadow">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-bl-[80px] -z-10"></div>
-          <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center mb-4 border border-white shadow-sm">
-            <Calendar size={24} />
+        <div className="rounded-lg border border-slate-200 bg-white shadow-sm p-6 flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-slate-500">Shortlisted</p>
+            <p className="text-2xl font-bold text-slate-900 mt-1">{shortlisted}</p>
           </div>
-          <p className="text-3xl font-black text-slate-800 mb-1">{stats.interviews}</p>
-          <h3 className="text-sm font-semibold text-slate-500">Upcoming Interviews</h3>
+          <BadgeCheck size={32} className="text-emerald-600 opacity-80" />
         </div>
-
-        {/* Total Views */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 relative overflow-hidden hover:shadow-md transition-shadow sm:col-span-2 lg:col-span-1">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-50 rounded-bl-[80px] -z-10"></div>
-          <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center mb-4 border border-white shadow-sm">
-            <TrendingUp size={24} />
+        <div className="rounded-lg border border-slate-200 bg-white shadow-sm p-6 flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-slate-500">Unread alerts</p>
+            <p className="text-2xl font-bold text-slate-900 mt-1">{unreadNotifications}</p>
           </div>
-          <p className="text-3xl font-black text-slate-800 mb-1">0</p>
-          <h3 className="text-sm font-semibold text-slate-500">Profile Views</h3>
+          <BellRing size={32} className="text-amber-600 opacity-80" />
         </div>
-
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Activity */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-          <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
-            <Activity size={20} className="text-indigo-500" />
-            Recent Activity
-          </h2>
-          
-          <div className="flex flex-col items-center justify-center py-10 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200">
-            <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm text-slate-300 mb-3 border border-slate-100">
-              <CheckCircle2 size={24} />
-            </div>
-            <p className="text-slate-600 font-medium mb-1">No recent activity</p>
-            <p className="text-sm text-slate-400">Apply to a job to see your timeline update here.</p>
+        <div className="rounded-lg border border-slate-200 bg-white shadow-sm p-6 flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-slate-500">Profile complete</p>
+            <p className="text-2xl font-bold text-slate-900 mt-1">{completionStats.percentage}%</p>
           </div>
-        </div>
-
-        {/* Recommended Jobs CTA */}
-        <div className="bg-slate-900 rounded-xl shadow-sm border border-slate-800 p-8 relative overflow-hidden text-white flex flex-col justify-center min-h-[250px]">
-          {/* Static Background Graphics for Dark Theme */}
-          <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-            <div className="absolute w-40 h-40 bg-blue-500 rounded-full opacity-20 -top-10 -right-10 blur-xl" />
-            <div className="absolute w-32 h-32 bg-indigo-500 rounded-full opacity-20 bottom-[-20px] left-10 blur-xl" />
-          </div>
-
-          <div className="relative z-10">
-            <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center text-white mb-6 border border-white/20">
-              <Briefcase size={24} />
-            </div>
-            <h2 className="text-2xl font-bold mb-2">Find Your Next Role</h2>
-            <p className="text-slate-400 text-sm mb-6 leading-relaxed max-w-sm">We are actively hiring across multiple departments. Check out our open positions and find the perfect fit for your skills.</p>
-            <Link to="/candidate/jobs" className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-xl font-semibold text-sm transition-colors shadow-lg shadow-blue-500/20">
-              Browse Open Jobs <ArrowRight size={16} />
-            </Link>
-          </div>
+          <UserCheck size={32} className="text-blue-600 opacity-80" />
         </div>
       </div>
 
+      <div className="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
+        {/* Recent Applications */}
+        <div className="rounded-lg border border-slate-200 bg-white shadow-sm flex flex-col">
+          <div className="p-6 flex items-center justify-between border-b border-slate-100">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-900">Recent applications</h2>
+              <p className="text-sm text-slate-500 mt-0.5">Latest activity from your applied jobs</p>
+            </div>
+            <Link to="/candidate/applications" className="text-sm font-medium text-blue-600 hover:text-blue-700">View all</Link>
+          </div>
+          <div className="p-6 flex-1 space-y-4">
+            {recentApps.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-slate-200 p-8 text-center text-sm text-slate-500">
+                You have not applied for any jobs yet.
+              </div>
+            ) : (
+              recentApps.map(app => (
+                <div key={app.id} className="rounded-lg border border-slate-200 p-4 hover:bg-slate-50 transition-colors">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <h3 className="font-semibold text-slate-900">{app.jobs?.title}</h3>
+                      <p className="text-sm text-slate-500 mt-0.5">{app.jobs?.department} • {app.jobs?.location}</p>
+                    </div>
+                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${getStatusBadge(app.status)}`}>
+                      {app.status}
+                    </span>
+                  </div>
+                  <p className="mt-3 text-sm text-slate-500">Applied on {new Date(app.created_at).toLocaleDateString()}</p>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Right Column */}
+        <div className="space-y-6">
+          {/* Quick Actions */}
+          <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
+            <div className="p-6 border-b border-slate-100">
+              <h2 className="text-lg font-semibold text-slate-900">Quick actions</h2>
+            </div>
+            <div className="p-6 flex flex-col gap-3">
+              <Link to="/candidate/jobs" className="inline-flex items-center justify-center rounded-md bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 text-sm font-medium transition-colors">
+                <Briefcase className="mr-2 h-4 w-4" /> Browse jobs
+              </Link>
+              <Link to="/candidate/profile" className="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-10 px-4 py-2 text-sm font-medium transition-colors">
+                <User className="mr-2 h-4 w-4" /> Update profile
+              </Link>
+              <Link to="/candidate/profile" className="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-10 px-4 py-2 text-sm font-medium transition-colors">
+                <FileUp className="mr-2 h-4 w-4" /> Manage resume
+              </Link>
+            </div>
+          </div>
+
+          {/* Fresh Openings */}
+          <div className="rounded-lg border border-slate-200 bg-white shadow-sm flex flex-col">
+            <div className="p-6 flex items-center justify-between border-b border-slate-100">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-900">Fresh openings</h2>
+                <p className="text-sm text-slate-500 mt-0.5">Published roles from recruitment</p>
+              </div>
+              <Link to="/candidate/jobs" className="text-sm font-medium text-blue-600 hover:text-blue-700">Browse</Link>
+            </div>
+            <div className="p-6 space-y-3">
+              {jobs.length === 0 ? (
+                <p className="text-sm text-slate-500 text-center py-4">No fresh openings.</p>
+              ) : (
+                jobs.map(job => (
+                  <Link key={job.id} to="/candidate/jobs" className="block rounded-lg border border-slate-200 p-4 hover:bg-slate-50 transition-colors">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="font-semibold text-slate-900 text-sm">{job.title}</p>
+                        <p className="text-xs text-slate-500 mt-0.5">{job.department} • {job.location}</p>
+                      </div>
+                      <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700">
+                        New
+                      </span>
+                    </div>
+                  </Link>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

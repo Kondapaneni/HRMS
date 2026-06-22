@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { Search, MapPin, Briefcase, Clock, ChevronRight, Filter, FileText, CheckCircle2, X } from 'lucide-react';
+import { Search, Filter, ChevronRight, FileText, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../api/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 
 const CandidateJobs = () => {
   const { profile } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterDept, setFilterDept] = useState('All');
+  const [filterDept, setFilterDept] = useState('');
+  const [filterType, setFilterType] = useState('');
   
   // Application Modal State
   const [selectedJob, setSelectedJob] = useState(null);
@@ -16,20 +18,33 @@ const CandidateJobs = () => {
   
   const queryClient = useQueryClient();
 
-  const { data: jobs = [], isLoading: isLoadingJobs } = useQuery({
-    queryKey: ['candidate', 'jobs'],
+  const { data: pageData, isLoading: isLoadingJobs } = useQuery({
+    queryKey: ['candidate', 'jobs_page', profile?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('jobs')
-        .select('*')
-        .eq('status', 'Published')
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      return data || [];
-    }
+      if (!profile?.id) return null;
+      const [jobsRes, appsRes] = await Promise.all([
+        supabase.from('jobs').select('*').eq('status', 'Published').order('created_at', { ascending: false }),
+        supabase.from('applications').select('job_id, status').eq('candidate_id', profile.id)
+      ]);
+      return {
+        jobs: jobsRes.data || [],
+        applications: appsRes.data || []
+      };
+    },
+    enabled: !!profile?.id
   });
 
-  const departments = ['All', ...new Set(jobs.map(job => job.department))];
+  const jobs = pageData?.jobs || [];
+  const applications = pageData?.applications || [];
+  
+  // Map of job_id -> application
+  const appliedJobs = applications.reduce((acc, app) => {
+    acc[app.job_id] = app;
+    return acc;
+  }, {});
+
+  const departments = [...new Set(jobs.map(job => job.department))];
+  const jobTypes = ['full-time', 'part-time', 'contract', 'internship', 'temporary', 'remote'];
 
   const { data: resumes = [], isLoading: isLoadingResumes } = useQuery({
     queryKey: ['candidate', 'resumes', profile?.id],
@@ -56,50 +71,34 @@ const CandidateJobs = () => {
 
   const filteredJobs = jobs.filter(job => {
     const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) || (job.description && job.description.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesDept = filterDept === 'All' || job.department === filterDept;
-    return matchesSearch && matchesDept;
+    const matchesDept = filterDept === '' || job.department === filterDept;
+    // Basic type matching, standardizing case
+    const matchesType = filterType === '' || (job.type && job.type.toLowerCase().replace(' ', '-') === filterType);
+    return matchesSearch && matchesDept && matchesType;
   });
 
   const applyMutation = useMutation({
     mutationFn: async ({ job, resumeUrl }) => {
-      // Check if already applied
-      const { data: existingApp, error: checkError } = await supabase
-        .from('applications')
-        .select('id')
-        .eq('job_id', job.id)
-        .eq('candidate_id', profile.id)
-        .single();
-        
-      if (existingApp) {
-        throw new Error('ALREADY_APPLIED');
-      }
-      
       // Submit Application
-      const { error } = await supabase
+      const { data: newApp, error } = await supabase
         .from('applications')
         .insert([{
           job_id: job.id,
           candidate_id: profile.id,
           resume_url: resumeUrl,
           status: 'Applied'
-        }]);
+        }])
+        .select('id')
+        .single();
         
       if (error) throw error;
       
       // Also log the timeline
-      const { data: newApp } = await supabase
-        .from('applications')
-        .select('id')
-        .eq('job_id', job.id)
-        .eq('candidate_id', profile.id)
-        .single();
-        
       if (newApp) {
          await supabase.from('application_timeline').insert([{
            application_id: newApp.id,
            status_change: 'Applied',
-           notes: 'Application submitted successfully',
-           updated_by: profile.id
+           notes: 'Application submitted successfully'
          }]);
 
          // Queue email notification
@@ -123,17 +122,13 @@ const CandidateJobs = () => {
     onSuccess: (_, variables) => {
       toast.success(`Successfully applied for the ${variables.job.title} position!`);
       setSelectedJob(null);
+      queryClient.invalidateQueries(['candidate', 'jobs_page']);
       queryClient.invalidateQueries(['candidate', 'dashboard']);
       queryClient.invalidateQueries(['candidate', 'applications']);
     },
     onError: (error) => {
-      if (error.message === 'ALREADY_APPLIED') {
-        toast.error('You have already applied for this position.');
-        setSelectedJob(null);
-      } else {
-        console.error(error);
-        toast.error('Failed to submit application.');
-      }
+      console.error(error);
+      toast.error('Failed to submit application.');
     }
   });
 
@@ -146,110 +141,158 @@ const CandidateJobs = () => {
     applyMutation.mutate({ job: selectedJob, resumeUrl: selectedResumeUrl });
   };
 
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'Published': return 'bg-blue-100 text-blue-700';
+      case 'Applied': return 'bg-emerald-100 text-emerald-700';
+      case 'Shortlisted': return 'bg-emerald-100 text-emerald-700';
+      case 'Rejected': return 'bg-rose-100 text-rose-700';
+      default: return 'bg-slate-100 text-slate-700';
+    }
+  };
+
+  const handleReset = () => {
+    setSearchTerm('');
+    setFilterDept('');
+    setFilterType('');
+  };
+
+  if (isLoading) {
+    return <div className="p-6 text-slate-500">Loading jobs...</div>;
+  }
+
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-4">
+      {/* Header */}
+      <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Open Positions</h1>
-          <p className="text-sm text-slate-500 mt-1">Discover your next career opportunity at Acme.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Available Jobs</h1>
+          <p className="text-sm text-slate-500 mt-1">Search published openings and apply through your candidate account.</p>
         </div>
+        <span className="text-sm text-slate-500">{filteredJobs.length} published roles found</span>
       </div>
 
-      {/* Search and Filter Bar */}
-      <div 
-        className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 flex flex-col md:flex-row gap-4 relative z-20"
-      >
-        <div className="flex-1 relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-5 w-5 text-slate-400" />
-          </div>
-          <input
-            type="text"
-            className="block w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-xl leading-5 bg-slate-50 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
-            placeholder="Search for job titles or keywords..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        
-        <div className="w-full md:w-64 relative flex items-center">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Filter className="h-4 w-4 text-slate-400" />
-          </div>
-          <select
-            className="block w-full pl-9 pr-10 py-2.5 border border-slate-200 rounded-xl leading-5 bg-slate-50 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors appearance-none cursor-pointer text-slate-700"
-            value={filterDept}
-            onChange={(e) => setFilterDept(e.target.value)}
-          >
-            {departments.map(dept => (
-              <option key={dept} value={dept}>{dept}</option>
-            ))}
-          </select>
-          <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
-            <ChevronRight className="h-4 w-4 text-slate-400 rotate-90" />
-          </div>
-        </div>
-      </div>
-
-      {/* Job List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredJobs.length === 0 ? (
-          <div className="col-span-1 md:col-span-2 lg:col-span-3 bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
-            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
-              <Search size={32} />
+      {/* Filter Form */}
+      <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
+        <div className="p-6">
+          <form className="grid gap-4 md:grid-cols-4" onSubmit={(e) => e.preventDefault()}>
+            <div className="space-y-2 md:col-span-2">
+              <label htmlFor="search" className="text-sm font-medium text-slate-700">Search</label>
+              <input
+                id="search"
+                type="search"
+                placeholder="Job title, department, location, skill"
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
             </div>
-            <h3 className="text-lg font-semibold text-slate-800 mb-1">No jobs found</h3>
-            <p className="text-slate-500">We couldn't find any open positions matching your current filters.</p>
+            <div className="space-y-2">
+              <label htmlFor="department" className="text-sm font-medium text-slate-700">Department</label>
+              <select
+                id="department"
+                value={filterDept}
+                onChange={e => setFilterDept(e.target.value)}
+                className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+              >
+                <option value="">All departments</option>
+                {departments.map(dept => (
+                  <option key={dept} value={dept}>{dept}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="type" className="text-sm font-medium text-slate-700">Job Type</label>
+              <select
+                id="type"
+                value={filterType}
+                onChange={e => setFilterType(e.target.value)}
+                className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+              >
+                <option value="">All types</option>
+                {jobTypes.map(type => (
+                  <option key={type} value={type}>{type.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>
+                ))}
+              </select>
+            </div>
+            <div className="md:col-span-4 flex flex-wrap gap-3 mt-2">
+              <button type="button" className="inline-flex items-center justify-center rounded-md bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 text-sm font-medium transition-colors">
+                <Search className="mr-2 h-4 w-4" /> Filter jobs
+              </button>
+              <button type="button" onClick={handleReset} className="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-10 px-4 py-2 text-sm font-medium transition-colors">
+                Reset
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {/* Jobs List */}
+      <div className="grid gap-4">
+        {filteredJobs.length === 0 ? (
+          <div className="rounded-lg border border-dashed border-slate-300 p-10 text-center text-slate-500 bg-slate-50">
+            No published jobs match your search.
           </div>
         ) : (
-          filteredJobs.map((job, index) => (
-            <div 
-              key={job.id}
-              className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md hover:border-blue-200 transition-all group"
-            >
-              <div className="flex flex-col h-full">
-                <div className="flex items-center gap-3 mb-3 flex-wrap">
-                  <h2 className="text-xl font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{job.title}</h2>
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
-                    {job.department}
-                  </span>
-                </div>
-                
-                <div className="flex flex-col gap-2 text-sm text-slate-500 mb-4">
-                  <span className="flex items-center gap-2"><MapPin size={16} /> {job.location}</span>
-                  <span className="flex items-center gap-2"><Clock size={16} /> {job.type}</span>
-                  <span className="flex items-center gap-2"><Briefcase size={16} /> Mid-Senior Level</span>
-                </div>
-                
-                <p className="text-slate-600 text-sm leading-relaxed mb-6 flex-1 line-clamp-3">
-                  {job.description}
-                </p>
-                
-                <div className="flex items-center justify-between border-t border-slate-100 pt-4 mt-auto">
-                  <span className="text-xs font-medium text-slate-400">Posted {new Date(job.created_at).toLocaleDateString()}</span>
-                  <div className="flex gap-2">
-                    {job.description_pdf_url && (
-                      <a 
-                        href={job.description_pdf_url} 
-                        target="_blank" 
-                        rel="noreferrer"
-                        className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-xl font-semibold text-sm transition-colors shadow-sm active:scale-95 flex items-center justify-center"
-                      >
-                        Job Description
-                      </a>
-                    )}
-                    <button 
-                      onClick={() => setSelectedJob(job)}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl font-semibold text-sm transition-colors shadow-sm shadow-blue-600/20 active:scale-95"
-                    >
-                      Apply Now
-                    </button>
+          filteredJobs.map(job => {
+            const application = appliedJobs[job.id];
+            
+            return (
+              <div key={job.id} className="rounded-lg border border-slate-200 bg-white shadow-sm hover:border-blue-200 transition-colors">
+                <div className="p-6">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                    <div className="space-y-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h2 className="text-xl font-semibold text-slate-900">{job.title}</h2>
+                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${getStatusBadge(job.status)}`}>
+                          {job.status}
+                        </span>
+                        {application && (
+                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${getStatusBadge(application.status)}`}>
+                            {application.status === 'Applied' ? 'Applied' : `Status: ${application.status}`}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-slate-500">{job.department} • {job.location} • {job.type}</p>
+                      <div className="grid gap-2 text-sm text-slate-500 md:grid-cols-2 mt-4">
+                        <p><strong className="text-slate-700">Experience:</strong> {job.experience || 'Not specified'}</p>
+                        <p><strong className="text-slate-700">Vacancy:</strong> {job.vacancy || 1}</p>
+                        <p><strong className="text-slate-700">Last date:</strong> {job.deadline ? new Date(job.deadline).toLocaleDateString() : 'Open until filled'}</p>
+                        <p><strong className="text-slate-700">Applicants:</strong> {job.applicants || 0}</p>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-3 shrink-0">
+                      {job.description_pdf_url && (
+                        <a 
+                          href={job.description_pdf_url} 
+                          target="_blank" 
+                          rel="noreferrer"
+                          className="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-10 px-4 py-2 text-sm font-medium transition-colors"
+                        >
+                          View job
+                        </a>
+                      )}
+                      {application ? (
+                        <Link 
+                          to="/candidate/applications"
+                          className="inline-flex items-center justify-center rounded-md bg-slate-100 text-slate-700 hover:bg-slate-200 h-10 px-4 py-2 text-sm font-medium transition-colors"
+                        >
+                          Already applied
+                        </Link>
+                      ) : (
+                        <button 
+                          onClick={() => setSelectedJob(job)}
+                          className="inline-flex items-center justify-center rounded-md bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 text-sm font-medium transition-colors"
+                        >
+                          Apply now
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 
@@ -272,7 +315,7 @@ const CandidateJobs = () => {
                   <label className="block text-sm font-semibold text-slate-700 mb-2">Select Resume</label>
                   {resumes.length === 0 ? (
                     <div className="bg-amber-50 text-amber-700 p-4 rounded-xl border border-amber-200 text-sm">
-                      You don't have any resumes uploaded. Please go to your <a href="/candidate/profile" className="font-bold underline">Profile</a> to upload a resume first.
+                      You don't have any resumes uploaded. Please go to your <Link to="/candidate/profile" className="font-bold underline">Profile</Link> to upload a resume first.
                     </div>
                   ) : (
                     <div className="space-y-3">
@@ -317,7 +360,6 @@ const CandidateJobs = () => {
           </div>
         </div>
       )}
-
     </div>
   );
 };
