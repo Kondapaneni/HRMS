@@ -95,9 +95,9 @@ const CandidateApplications = () => {
         </div>
       </div>
 
-      <div className="grid gap-4">
+      <div className="grid gap-6 lg:grid-cols-2">
         {applications.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-slate-300 p-10 text-center text-slate-500 bg-slate-50">
+          <div className="rounded-lg border border-dashed border-slate-300 p-10 text-center text-slate-500 bg-slate-50 lg:col-span-2">
             You have not submitted any applications yet.
           </div>
         ) : (
@@ -107,37 +107,37 @@ const CandidateApplications = () => {
             return (
               <div 
                 key={app.id}
-                className="rounded-lg border border-slate-200 bg-white shadow-sm"
+                className="rounded-lg border border-slate-200 bg-white shadow-sm flex flex-col h-full"
               >
-                <div className="p-6 space-y-6">
+                <div className="p-6 space-y-6 flex-1 flex flex-col">
                   {/* Header */}
-                  <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                  <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                     <div>
                       <h2 className="text-xl font-semibold text-slate-900">{app.jobTitle}</h2>
                       <p className="text-sm text-slate-500 mt-1">{app.department} • {app.location} • {app.jobType}</p>
                     </div>
-                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${getStatusBadge(app.status)}`}>
+                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold self-start ${getStatusBadge(app.status)}`}>
                       {app.status}
                     </span>
                   </div>
 
-                  {/* 4-column Grid */}
-                  <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4 text-sm">
+                  {/* 2-column Grid for details */}
+                  <div className="grid gap-3 grid-cols-2 text-sm flex-1 content-start">
                     <div className="rounded-lg bg-slate-50 p-4 border border-slate-100">
-                      <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Applied On</p>
-                      <p className="mt-2 font-semibold text-slate-800">{new Date(app.appliedDate).toLocaleDateString()}</p>
+                      <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">Applied On</p>
+                      <p className="mt-1 font-semibold text-slate-800">{new Date(app.appliedDate).toLocaleDateString()}</p>
                     </div>
                     <div className="rounded-lg bg-slate-50 p-4 border border-slate-100">
-                      <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Last Date</p>
-                      <p className="mt-2 font-semibold text-slate-800">{app.deadline ? new Date(app.deadline).toLocaleDateString() : 'Open until filled'}</p>
+                      <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">Last Date</p>
+                      <p className="mt-1 font-semibold text-slate-800">{app.deadline ? new Date(app.deadline).toLocaleDateString() : 'Open until filled'}</p>
                     </div>
                     <div className="rounded-lg bg-slate-50 p-4 border border-slate-100 overflow-hidden">
-                      <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Resume</p>
-                      <p className="mt-2 font-semibold text-slate-800 truncate" title={app.resumeName}>{app.resumeName}</p>
+                      <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">Resume</p>
+                      <p className="mt-1 font-semibold text-slate-800 truncate" title={app.resumeName}>{app.resumeName}</p>
                     </div>
                     <div className="rounded-lg bg-slate-50 p-4 border border-slate-100">
-                      <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Latest Update</p>
-                      <p className="mt-2 font-semibold text-slate-800">{new Date(latestUpdate).toLocaleDateString()}</p>
+                      <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">Latest Update</p>
+                      <p className="mt-1 font-semibold text-slate-800">{new Date(latestUpdate).toLocaleDateString()}</p>
                     </div>
                   </div>
 
