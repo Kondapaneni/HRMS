@@ -5,8 +5,8 @@ import api from '../api/axios';
 
 import { Briefcase, Users, Plus, FileText, CheckCircle2, XCircle, Clock, Calendar, Mail, FileUp, X, CalendarDays, BadgeCheck, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
-import shortlistedEmailTemplateHtml from "../../../../backend/src/Templates/candidate_shortlisted_email.html?raw";
-import rejectedEmailTemplateHtml from "../../../../backend/src/Templates/candidate_rejected_email.html?raw";
+import shortlistedEmailTemplateHtml from "../../../backend/src/Templates/candidate_shortlisted_email.html?raw";
+import rejectedEmailTemplateHtml from "../../../backend/src/Templates/candidate_rejected_email.html?raw";
 
 const AdminRecruitment = () => {
   const [activeTab, setActiveTab] = useState('jobs'); // 'jobs', 'applications'
