@@ -258,7 +258,6 @@ const CandidateJobs = () => {
                         <p><strong className="text-slate-700">Experience:</strong> {job.experience || 'Not specified'}</p>
                         <p><strong className="text-slate-700">Vacancy:</strong> {job.vacancy || 1}</p>
                         <p><strong className="text-slate-700">Last date:</strong> {job.deadline ? new Date(job.deadline).toLocaleDateString() : 'Open until filled'}</p>
-                        <p><strong className="text-slate-700">Applicants:</strong> {job.applicants || 0}</p>
                       </div>
                       <div className="mt-4 space-y-1">
                         <p className="text-sm font-semibold text-slate-700">Detailed Job Description:</p>
