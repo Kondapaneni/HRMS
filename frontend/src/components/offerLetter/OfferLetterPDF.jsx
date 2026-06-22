@@ -170,45 +170,94 @@ const OfferLetterPDF = ({ data }) => {
         </View>
 
         {/* Subject */}
-        <Text style={styles.subjectLine}>Subject: Employment Offer - {jobTitle}</Text>
+        <Text style={styles.subjectLine}>
+          Subject: Offer of Employment – {jobTitle}
+        </Text>
 
-        {/* Body Paragraphs */}
+        {/* Body */}
         <Text style={styles.bodyText}>
-          Dear {firstName},
+          Dear {firstName} {lastName},
         </Text>
 
         <Text style={styles.bodyText}>
-          We are pleased to inform you that you have been selected for the position of {jobTitle} within the {department} department at Acme HRMS.
+          We are pleased to offer you the position of {jobTitle} with our
+          organization. Based on our discussions and evaluation process, we are
+          confident that your skills, experience, and dedication will contribute
+          significantly to the growth and success of the company.
         </Text>
 
         <Text style={styles.bodyText}>
-          Your qualifications, professional attitude, and potential contributions align with the goals of our organization. We believe your skills will support our operational activities and help maintain an efficient workflow across our teams.
+          Your employment will commence on {joiningDate} and you will be assigned
+          to the {department} department. Your appointment will initially be
+          governed by the company's policies, appointment terms, and assigned
+          responsibilities. Detailed employment terms and responsibilities will be
+          shared during your onboarding process.
         </Text>
 
         <Text style={styles.bodyText}>
-          Your employment is scheduled to begin on {joiningDate}. The position includes a competitive salary package of {salary} and employee benefits in accordance with company policies and applicable regulations.
+          Your compensation package shall be {salary}. In addition to your fixed
+          remuneration, you will be eligible for benefits, incentives, and other
+          facilities as per company policies and applicable regulations.
         </Text>
 
         <Text style={styles.bodyText}>
-          Please confirm your acceptance of this offer by signing and returning this letter no later than {deadlineDate}. Additional information regarding onboarding procedures will be provided upon confirmation.
+          Your performance will be evaluated periodically based on your assigned
+          responsibilities, business objectives, and overall contribution to the
+          organization. Future salary revisions, promotions, and career growth
+          opportunities will be based on your performance and organizational
+          requirements.
         </Text>
 
         <Text style={styles.bodyText}>
-          We look forward to welcoming you as part of our team and working together toward continued growth and success.
+          If you wish to resign from your position, the applicable notice period
+          and separation policies of the organization shall apply. You will also
+          be expected to comply with all company rules, confidentiality
+          requirements, and professional standards throughout your employment.
+        </Text>
+
+        <Text style={styles.bodyText}>
+          To complete your employment formalities, you may be required to submit
+          supporting documents including identity proof, address proof,
+          educational certificates, photographs, bank account details, and any
+          other documents requested by the Human Resources department.
+        </Text>
+
+        <Text style={styles.bodyText}>
+          Please confirm your acceptance of this offer on or before {deadlineDate}.
+          Upon acceptance, further details regarding joining formalities,
+          orientation, and onboarding procedures will be communicated to you.
+        </Text>
+
+        <Text style={styles.bodyText}>
+          We are excited about the opportunity to have you join our team and look
+          forward to your valuable contribution. We wish you a successful and
+          rewarding career with our organization.
         </Text>
 
         {/* Signature */}
         <View style={styles.signatureSection}>
           <Text style={styles.bodyText}>Sincerely,</Text>
+
           <View style={styles.signatureLine} />
-          <Text style={styles.signatureName}>Harper Russo</Text>
-          <Text style={styles.signatureTitle}>Director of Operations</Text>
-          <Text style={styles.signatureTitle}>Acme HRMS</Text>
+
+          <Text style={styles.signatureName}>
+            Authorized Signatory
+          </Text>
+
+          <Text style={styles.signatureTitle}>
+            Human Resources Department
+          </Text>
+
+          <Text style={styles.signatureTitle}>
+            ACME HRMS
+          </Text>
         </View>
 
         {/* Footer */}
         <Text style={styles.footer}>
-          This is an electronically generated document and does not require a physical signature if accepted electronically.
+          Acceptance of this offer constitutes agreement to the terms and
+          conditions of employment. This document may be executed electronically
+          and shall be considered valid without a physical signature.
         </Text>
 
       </Page>
