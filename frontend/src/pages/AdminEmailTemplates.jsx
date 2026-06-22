@@ -7,6 +7,7 @@ import ResetPasswordEmailTemplate from '../components/emailTemplates/ResetPasswo
 import CandidateActivateEmailTemplate from '../components/emailTemplates/CandidateActivateEmailTemplate';
 import CandidateApplicationSuccessEmailTemplate from '../components/emailTemplates/CandidateApplicationSuccessEmailTemplate';
 import CandidateShortlistedEmailTemplate from '../components/emailTemplates/CandidateShortlistedEmailTemplate';
+import CandidateInterviewEmailTemplate from '../components/emailTemplates/CandidateInterviewEmailTemplate';
 import CandidateRejectedEmailTemplate from '../components/emailTemplates/CandidateRejectedEmailTemplate';
 
 const AdminEmailTemplates = () => {
@@ -60,6 +61,14 @@ const AdminEmailTemplates = () => {
       icon: <CheckCircle2 size={16} />,
       subject: "Good News! You've been shortlisted",
       content: <CandidateShortlistedEmailTemplate />
+    },
+    {
+      id: 'candidate_interview',
+      name: 'Interview Scheduled',
+      description: 'Sent to candidates when an interview round is scheduled.',
+      icon: <CalendarDays size={16} />,
+      subject: 'Interview Invitation for Software Engineer',
+      content: <CandidateInterviewEmailTemplate />
     },
     {
       id: 'candidate_rejected',

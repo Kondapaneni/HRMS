@@ -7,6 +7,7 @@ import { Briefcase, Users, Plus, FileText, CheckCircle2, XCircle, Clock, Calenda
 import toast from 'react-hot-toast';
 import shortlistedEmailTemplateHtml from "../../../backend/src/Templates/candidate_shortlisted_email.html?raw";
 import rejectedEmailTemplateHtml from "../../../backend/src/Templates/candidate_rejected_email.html?raw";
+import interviewEmailTemplateHtml from "../../../backend/src/Templates/candidate_interview_email.html?raw";
 
 const AdminRecruitment = () => {
   const [activeTab, setActiveTab] = useState('jobs'); // 'jobs', 'applications'
@@ -161,12 +162,19 @@ const AdminRecruitment = () => {
             .replace(/{{jobTitle}}/g, app.jobs?.title)
             .replace(/{{dashboardLink}}/g, dashboardLink)
             .replace(/{{currentYear}}/g, new Date().getFullYear().toString());
+        } else if (newStatus.includes('Interview')) {
+          subject = `Interview Invitation for ${app.jobs?.title}`;
+          emailBody = interviewEmailTemplateHtml
+            .replace(/{{firstName}}/g, userInfo.firstName || 'Candidate')
+            .replace(/{{jobTitle}}/g, app.jobs?.title)
+            .replace(/{{interviewRound}}/g, newStatus)
+            .replace(/{{additionalNotes}}/g, additionalNotes || `You have been invited for a ${newStatus}.`)
+            .replace(/{{dashboardLink}}/g, dashboardLink)
+            .replace(/{{currentYear}}/g, new Date().getFullYear().toString());
         } else {
           let bodyContent = `<p>Your application status has been updated to: <strong>${newStatus}</strong>.</p>`;
           if (newStatus === 'Selected' || newStatus === 'Hired') {
             bodyContent = `<p>Congratulations! We are thrilled to inform you that you have been selected for the <strong>${app.jobs?.title}</strong> position. We will reach out to you soon with the next steps.</p>`;
-          } else if (newStatus.includes('Interview')) {
-            bodyContent = `<p>You have been invited for a <strong>${newStatus}</strong> for the <strong>${app.jobs?.title}</strong> role.</p><p>${additionalNotes}</p>`;
           }
           
           emailBody = `
