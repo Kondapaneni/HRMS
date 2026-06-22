@@ -5,6 +5,7 @@ import { supabase } from '../api/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
+import emailTemplateHtml from '../../../../backend/src/Templates/candidate_application_success_email.html?raw';
 
 const CandidateJobs = () => {
   const { profile } = useAuth();
@@ -101,21 +102,20 @@ const CandidateJobs = () => {
            notes: 'Application submitted successfully'
          }]);
 
-         // Queue email notification
-         const emailBody = `
-           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-             <h2 style="color: #2563eb;">Application Received</h2>
-             <p>Hi ${profile.firstName},</p>
-             <p>Thank you for applying for the <strong>${job.title}</strong> position at Acme HRMS.</p>
-             <p>Your application has been successfully received and is currently under review by our recruitment team. You can track your application status anytime from your Candidate Dashboard.</p>
-             <p>Best regards,<br>The Acme Team</p>
-           </div>
-         `;
+         // Queue email notification using the new template
+         const frontendUrl = window.location.origin;
+         const dashboardLink = frontendUrl + "/candidate/applications";
+         
+         let finalEmailBody = emailTemplateHtml
+           .replace(/{{firstName}}/g, profile.firstName || profile.first_name || 'Candidate')
+           .replace(/{{jobTitle}}/g, job.title)
+           .replace(/{{dashboardLink}}/g, dashboardLink)
+           .replace(/{{currentYear}}/g, new Date().getFullYear());
          
          await supabase.from('email_queue').insert([{
            to_email: profile.email,
-           subject: `Application Received: ${job.title}`,
-           body: emailBody
+           subject: `Application Received Successfully - ${job.title}`,
+           body: finalEmailBody
          }]);
       }
     },

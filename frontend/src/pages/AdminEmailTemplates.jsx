@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Settings, Send, UserPlus, Info, ArrowLeft, Archive, Trash2, MailOpen, Clock, MoreVertical, CornerUpLeft, CornerUpRight, Star, Lock } from 'lucide-react';
+import { Mail, Settings, Send, UserPlus, Info, ArrowLeft, Archive, Trash2, MailOpen, Clock, MoreVertical, CornerUpLeft, CornerUpRight, Star, Lock, ShieldCheck, UserCheck, CalendarDays, Briefcase } from 'lucide-react';
 import WelcomeEmailTemplate from '../components/emailTemplates/WelcomeEmailTemplate';
 import LeaveEmailTemplate from '../components/emailTemplates/LeaveEmailTemplate';
 import ResetPasswordEmailTemplate from '../components/emailTemplates/ResetPasswordEmailTemplate';
 import CandidateActivateEmailTemplate from '../components/emailTemplates/CandidateActivateEmailTemplate';
+import CandidateApplicationSuccessEmailTemplate from '../components/emailTemplates/CandidateApplicationSuccessEmailTemplate';
 
 const AdminEmailTemplates = () => {
   const [activeTemplate, setActiveTemplate] = useState('welcome');
@@ -12,35 +13,43 @@ const AdminEmailTemplates = () => {
   const templates = [
     {
       id: 'welcome',
-      name: 'Employee Welcome',
-      icon: <UserPlus size={18} />,
-      description: 'Sent automatically when a New Employee Account is Created.',
-      subject: 'Welcome to Acme HRMS - Your Account Details',
+      name: 'Welcome Email (Employees)',
+      description: 'Sent to new employees when their account is created.',
+      icon: <Mail size={16} />,
+      subject: 'Welcome to Acme HRMS - Account Details',
       content: <WelcomeEmailTemplate />
     },
     {
-      id: 'leave_request',
+      id: 'leave',
       name: 'Leave Request Status',
-      icon: <Send size={18} />,
-      description: 'Sent when a Leave Request is Approved or Rejected.',
-      subject: 'Update on Your Leave Request - Acme HRMS',
+      description: 'Sent to employees when their leave request is approved or rejected.',
+      icon: <CalendarDays size={16} />,
+      subject: 'Update on your Leave Request',
       content: <LeaveEmailTemplate />
     },
     {
-      id: 'reset_password',
+      id: 'reset',
       name: 'Password Reset',
-      icon: <Lock size={18} />,
-      description: 'Sent when a user requests to reset their password.',
-      subject: 'Password Reset - Acme HRMS',
+      description: 'Sent when an employee requests a password reset.',
+      icon: <ShieldCheck size={16} />,
+      subject: 'Password Reset Request',
       content: <ResetPasswordEmailTemplate />
     },
     {
       id: 'candidate_activate',
       name: 'Candidate Account Activation',
-      icon: <UserPlus size={18} />,
-      description: 'Sent automatically when a candidate signs up to activate their account.',
+      description: 'Sent to candidates after registration to activate their account.',
+      icon: <UserCheck size={16} />,
       subject: 'Activate your Acme HRMS Candidate Account',
       content: <CandidateActivateEmailTemplate />
+    },
+    {
+      id: 'candidate_application_success',
+      name: 'Application Success',
+      description: 'Sent to candidates after they successfully apply for a job.',
+      icon: <Briefcase size={16} />,
+      subject: 'Application Received Successfully',
+      content: <CandidateApplicationSuccessEmailTemplate />
     }
   ];
 
