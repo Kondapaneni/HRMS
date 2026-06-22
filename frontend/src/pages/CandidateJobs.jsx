@@ -5,7 +5,7 @@ import { supabase } from '../api/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import emailTemplateHtml from '../../../../backend/src/Templates/candidate_application_success_email.html?raw';
+import emailTemplateHtml from '../../../backend/src/Templates/candidate_application_success_email.html?raw';
 
 const CandidateJobs = () => {
   const { profile } = useAuth();
