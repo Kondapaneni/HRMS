@@ -345,15 +345,18 @@ const AdminRecruitment = () => {
 
       const blob = await pdf(<OfferLetterPDF data={pdfData} />).toBlob();
       
-      const fileName = `offer-${selectedApp.id}-${Date.now()}.pdf`;
+      const safeFirstName = pdfData.firstName.trim().replace(/\s+/g, '-');
+      const safeLastName = pdfData.lastName.trim().replace(/\s+/g, '-');
+      const fileName = `${safeFirstName}-${safeLastName}.pdf`;
+      
       const { error: uploadError } = await supabase.storage.from('offer_letters').upload(fileName, blob, {
-        contentType: 'application/pdf'
+        contentType: 'application/pdf',
+        upsert: true
       });
       
       if (uploadError) throw uploadError;
       
-      const { data } = supabase.storage.from('offer_letters').getPublicUrl(fileName);
-      const publicUrl = data.publicUrl;
+      const proxyUrl = window.location.origin + "/Offer-Letter/" + fileName;
       
       const userInfo = candidatesInfo.find(u => u.id === selectedApp.candidate_id);
       updateStatusMutation.mutate({ 
@@ -361,7 +364,7 @@ const AdminRecruitment = () => {
         userInfo, 
         newStatus: 'Hired',
         additionalNotes: `Candidate hired and offer letter generated.`,
-        offerLetterUrl: publicUrl
+        offerLetterUrl: proxyUrl
       }, {
         onSuccess: () => {
           setIsOfferModalOpen(false);
