@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 import shortlistedEmailTemplateHtml from "../../../backend/src/Templates/candidate_shortlisted_email.html?raw";
 import rejectedEmailTemplateHtml from "../../../backend/src/Templates/candidate_rejected_email.html?raw";
 import interviewEmailTemplateHtml from "../../../backend/src/Templates/candidate_interview_email.html?raw";
+import offerEmailTemplateHtml from "../../../backend/src/Templates/candidate_offer_email.html?raw";
 import { pdf, PDFViewer } from '@react-pdf/renderer';
 import OfferLetterPDF from '../components/offerLetter/OfferLetterPDF';
 
@@ -179,20 +180,18 @@ const AdminRecruitment = () => {
             .replace(/{{additionalNotes}}/g, additionalNotes || `You have been invited for a ${newStatus}.`)
             .replace(/{{dashboardLink}}/g, dashboardLink)
             .replace(/{{currentYear}}/g, new Date().getFullYear().toString());
+        } else if ((newStatus === 'Selected' || newStatus === 'Hired') && offerLetterUrl) {
+          subject = `Job Offer: ${app.jobs?.title}`;
+          emailBody = offerEmailTemplateHtml
+            .replace(/{{firstName}}/g, userInfo.firstName || 'Candidate')
+            .replace(/{{jobTitle}}/g, app.jobs?.title)
+            .replace(/{{offerLetterUrl}}/g, offerLetterUrl)
+            .replace(/{{dashboardLink}}/g, dashboardLink)
+            .replace(/{{currentYear}}/g, new Date().getFullYear().toString());
         } else {
           let bodyContent = `<p>Your application status has been updated to: <strong>${newStatus}</strong>.</p>`;
           if (newStatus === 'Selected' || newStatus === 'Hired') {
-            if (offerLetterUrl) {
-              bodyContent = `
-                <p>We are absolutely thrilled to extend an offer for the <strong>${app.jobs?.title}</strong> position at Acme HRMS!</p>
-                <p>Your interview process was exceptional, and we believe your skills will be a tremendous asset to our team. Please find your official Job Offer Letter attached via the secure link below.</p>
-                <div style="margin: 30px 0;">
-                  <a href="${offerLetterUrl}" target="_blank" style="display: block; width: 100%; box-sizing: border-box; text-align: center; background-color: #10b981; color: #ffffff; text-decoration: none; padding: 14px 0; border-radius: 12px; font-weight: bold; font-size: 15px; border: 3px solid #064e3b; box-shadow: 4px 4px 0px #064e3b;">Download Offer Letter (PDF)</a>
-                </div>
-              `;
-            } else {
-              bodyContent = `<p>Congratulations! We are thrilled to inform you that you have been selected for the <strong>${app.jobs?.title}</strong> position. We will reach out to you soon with the next steps.</p>`;
-            }
+            bodyContent = `<p>Congratulations! We are thrilled to inform you that you have been selected for the <strong>${app.jobs?.title}</strong> position. We will reach out to you soon with the next steps.</p>`;
           }
           
           emailBody = `
@@ -754,11 +753,11 @@ const AdminRecruitment = () => {
             <div className="hidden md:block w-1/2 bg-slate-200 rounded-r-lg overflow-hidden relative">
               <PDFViewer width="100%" height="100%" className="border-none">
                 <OfferLetterPDF data={{
-                  firstName: offerData.firstName || 'Candidate',
-                  lastName: offerData.lastName || 'Name',
+                  firstName: offerData.firstName || '[Candidate',
+                  lastName: offerData.lastName || 'Name]',
                   date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
-                  jobTitle: offerData.position || 'Position',
-                  department: offerData.department || 'Department',
+                  jobTitle: offerData.position || '[Position]',
+                  department: offerData.department || '[Department]',
                   joiningDate: offerData.joiningDate || '[Joining Date]',
                   salary: offerData.annualSalary || '[Salary]',
                   deadlineDate: offerData.offerDeadline || '[Deadline]'
