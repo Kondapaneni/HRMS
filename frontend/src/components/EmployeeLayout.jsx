@@ -247,50 +247,48 @@ const EmployeeLayout = () => {
           <Outlet />
         </div>
 
-        {/* Mobile Bottom Navigation */}
+        {/* Mobile Bottom Navigation (iOS Liquid Glass) */}
         <div 
-          className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 flex justify-around items-center h-[100px] px-2 shadow-[0_-8px_30px_rgba(0,0,0,0.04)] pb-8 pt-2 touch-none select-none"
+          className="md:hidden fixed bottom-6 left-4 right-4 z-50 pointer-events-none touch-none select-none"
           onTouchStart={handleTouchMove}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
           onTouchCancel={handleTouchEnd}
         >
-          {[
-            { label: 'Home', icon: Home, path: '/employee' },
-            { label: 'Attendance', icon: Clock, path: '/employee/attendance' },
-            { label: 'Leaves', icon: Calendar, path: '/employee/leaves' },
-            { label: 'Payroll', icon: Wallet, path: '/employee/payroll' },
-            { label: 'Profile', icon: User, path: '/employee/profile' }
-          ].map((item) => {
-            const isActive = (swipePath || location.pathname) === item.path;
-            const Icon = item.icon;
+          <div className="bg-white/60 backdrop-blur-[24px] border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-full p-1.5 flex justify-around items-center pointer-events-auto">
+            {[
+              { label: 'Home', icon: Home, path: '/employee' },
+              { label: 'Attendance', icon: Clock, path: '/employee/attendance' },
+              { label: 'Leaves', icon: Calendar, path: '/employee/leaves' },
+              { label: 'Payroll', icon: Wallet, path: '/employee/payroll' },
+              { label: 'Profile', icon: User, path: '/employee/profile' }
+            ].map((item) => {
+              const isActive = (swipePath || location.pathname) === item.path;
+              const Icon = item.icon;
 
-            return (
-              <Link 
-                key={item.path} 
-                to={item.path} 
-                data-nav-path={item.path}
-                onClick={(e) => {
-                  if (swipePath) e.preventDefault();
-                }}
-                className="relative flex flex-col items-center justify-center w-full h-full z-10 group"
-              >
-                {isActive && (
-                  <motion.div
-                    layoutId="mobileNavBubble"
-                    className="absolute z-[-1] rounded-[20px] shadow-[inset_0_1px_2px_rgba(255,255,255,0.9),0_4px_16px_rgba(0,0,0,0.06)] bg-white/50 backdrop-blur-xl border border-white/70 overflow-hidden"
-                    style={{ width: '64px', height: '60px' }}
-                    transition={{ type: 'spring', bounce: 0.25, duration: 0.5 }}
-                  >
-                    {/* Top highlight for glossy 3D water effect */}
-                    <div className="absolute top-0 left-1/4 right-1/4 h-1 bg-gradient-to-b from-white to-transparent opacity-80 rounded-full"></div>
-                  </motion.div>
-                )}
-                <Icon className={`w-[26px] h-[26px] mb-1.5 transition-all duration-300 ${isActive ? 'text-[#ff928b] scale-110 drop-shadow-sm' : 'text-slate-400 group-hover:text-slate-500 group-active:scale-95'}`} strokeWidth={isActive ? 2.5 : 2} />
-                <span className={`text-[10px] font-bold tracking-wide transition-all duration-300 ${isActive ? 'text-[#ff928b]' : 'text-slate-400'}`}>{item.label}</span>
-              </Link>
-            );
-          })}
+              return (
+                <Link 
+                  key={item.path} 
+                  to={item.path} 
+                  data-nav-path={item.path}
+                  onClick={(e) => {
+                    if (swipePath) e.preventDefault();
+                  }}
+                  className="relative flex flex-col items-center justify-center w-[72px] h-[58px] z-10 group"
+                >
+                  {isActive && (
+                    <motion.div
+                      layoutId="mobileNavBubble"
+                      className="absolute inset-0 z-[-1] rounded-full bg-slate-500/15"
+                      transition={{ type: 'spring', bounce: 0.25, duration: 0.5 }}
+                    />
+                  )}
+                  <Icon className={`w-6 h-6 mb-0.5 transition-all duration-300 ${isActive ? 'text-[#ff2d55] scale-105' : 'text-slate-500 group-hover:text-slate-600 group-active:scale-95'}`} strokeWidth={isActive ? 2.5 : 2} />
+                  <span className={`text-[10px] font-medium tracking-wide transition-all duration-300 ${isActive ? 'text-[#ff2d55]' : 'text-slate-500'}`}>{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
         </div>
 
       </main>
