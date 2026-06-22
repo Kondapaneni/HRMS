@@ -267,7 +267,7 @@ const CandidateJobs = () => {
                           href={job.description_pdf_url} 
                           target="_blank" 
                           rel="noreferrer"
-                          className="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-10 px-4 py-2 text-sm font-medium transition-colors"
+                          className="inline-flex items-center justify-center whitespace-nowrap rounded-md border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-10 px-4 py-2 text-sm font-medium transition-colors"
                         >
                           View job
                         </a>
@@ -275,14 +275,14 @@ const CandidateJobs = () => {
                       {application ? (
                         <Link 
                           to="/candidate/applications"
-                          className="inline-flex items-center justify-center rounded-md bg-slate-100 text-slate-700 hover:bg-slate-200 h-10 px-4 py-2 text-sm font-medium transition-colors"
+                          className="inline-flex items-center justify-center whitespace-nowrap rounded-md bg-slate-100 text-slate-700 hover:bg-slate-200 h-10 px-4 py-2 text-sm font-medium transition-colors"
                         >
                           Already applied
                         </Link>
                       ) : (
                         <button 
                           onClick={() => setSelectedJob(job)}
-                          className="inline-flex items-center justify-center rounded-md bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 text-sm font-medium transition-colors"
+                          className="inline-flex items-center justify-center whitespace-nowrap rounded-md bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 text-sm font-medium transition-colors"
                         >
                           Apply now
                         </button>
