@@ -11,6 +11,7 @@ import interviewEmailTemplateHtml from "../../../backend/src/Templates/candidate
 import offerEmailTemplateHtml from "../../../backend/src/Templates/candidate_offer_email.html?raw";
 import { pdf, PDFViewer } from '@react-pdf/renderer';
 import OfferLetterPDF from '../components/offerLetter/OfferLetterPDF';
+import AdminDocumentsVerificationModal from '../components/AdminDocumentsVerificationModal';
 
 const AdminRecruitment = () => {
   const [activeTab, setActiveTab] = useState('jobs'); // 'jobs', 'applications'
@@ -98,6 +99,10 @@ const AdminRecruitment = () => {
   // Timeline UI State
   const [isTimelineModalOpen, setIsTimelineModalOpen] = useState(false);
   const [timelineApp, setTimelineApp] = useState(null);
+
+  // Documents Verification State
+  const [isDocsModalOpen, setIsDocsModalOpen] = useState(false);
+  const [docsModalApp, setDocsModalApp] = useState(null);
 
   const createJobMutation = useMutation({
     mutationFn: async () => {
@@ -613,6 +618,13 @@ const AdminRecruitment = () => {
                             </a>
                           )}
 
+                          <button 
+                            onClick={() => { setDocsModalApp(app); setIsDocsModalOpen(true); }}
+                            className="inline-flex items-center justify-center whitespace-nowrap rounded-md border border-slate-300 bg-white hover:bg-slate-50 h-9 px-3 py-2 text-sm font-medium text-slate-700"
+                          >
+                            Verify Documents
+                          </button>
+
                           {status === 'Applied' && (
                             <button disabled={updateStatusMutation.isPending} onClick={() => updateApplicationStatus(app, 'Shortlisted')} className="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white hover:bg-slate-50 h-9 px-3 py-2 text-sm font-medium text-slate-700 disabled:opacity-50">
                               Shortlist
@@ -1056,6 +1068,13 @@ const AdminRecruitment = () => {
             </div>
           </div>
         </div>
+      )}
+      {/* Documents Verification Modal */}
+      {isDocsModalOpen && docsModalApp && (
+        <AdminDocumentsVerificationModal 
+          application={docsModalApp} 
+          onClose={() => { setIsDocsModalOpen(false); setDocsModalApp(null); }} 
+        />
       )}
 
     </div>
