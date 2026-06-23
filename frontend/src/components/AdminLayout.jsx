@@ -11,6 +11,7 @@ import { motion } from 'framer-motion';
 import GlobalSearch from './GlobalSearch';
 import EmployeeLayout from './EmployeeLayout';
 import api from '../api/axios';
+import { supabase } from '../api/supabase';
 
 const AdminLayout = () => {
   const { profile, signOut } = useAuth();
@@ -59,6 +60,20 @@ const AdminLayout = () => {
     refetchInterval: 1500,
     refetchOnWindowFocus: true,
     staleTime: 0,
+  });
+
+  const { data: pendingDocsCount = 0 } = useQuery({
+    queryKey: ['admin_pending_docs'],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('candidate_documents')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pending');
+      
+      if (error) throw error;
+      return count || 0;
+    },
+    refetchInterval: 5000,
   });
 
   const totalUnread = chats.reduce((sum, chat) => sum + (chat.unread_count || 0), 0);
@@ -126,6 +141,11 @@ const AdminLayout = () => {
                   {item.label === 'Secure Chat' && totalUnread > 0 && (
                     <span className="bg-[#25d366] text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
                       {totalUnread}
+                    </span>
+                  )}
+                  {item.label === 'Recruitment' && pendingDocsCount > 0 && (
+                    <span className="bg-amber-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1" title={`${pendingDocsCount} documents waiting for verification`}>
+                      {pendingDocsCount}
                     </span>
                   )}
                 </Link>
