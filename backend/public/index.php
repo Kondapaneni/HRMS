@@ -362,7 +362,7 @@ $app->post('/api/reset-password', function (Request $request, Response $response
 });
 
 // Resume proxy route for clean URLs
-$app->get('/Resume/{filename}', function (Request $request, Response $response, $args) {
+$app->get('/Resume/{filename:.+}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];
     
     $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'];
@@ -389,7 +389,7 @@ $app->get('/Resume/{filename}', function (Request $request, Response $response, 
 });
 
 // Job Description proxy route for clean URLs
-$app->get('/Job-Description/{filename}', function (Request $request, Response $response, $args) {
+$app->get('/Job-Description/{filename:.+}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];
     
     $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'];
@@ -416,7 +416,7 @@ $app->get('/Job-Description/{filename}', function (Request $request, Response $r
 });
 
 // Offer Letter proxy route for clean URLs
-$app->get('/Offer-Letter/{filename}', function (Request $request, Response $response, $args) {
+$app->get('/Offer-Letter/{filename:.+}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];
     
     $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'];
@@ -455,7 +455,7 @@ function getMimeType($filename) {
 }
 
 // Avatar proxy route
-$app->get('/Avatar/{filename}', function (Request $request, Response $response, $args) {
+$app->get('/Avatar/{filename:.+}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];
     $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'];
     $supabaseUrl = $supabaseUrlBase . "/storage/v1/object/public/avatars/" . rawurlencode($filename);
@@ -471,7 +471,7 @@ $app->get('/Avatar/{filename}', function (Request $request, Response $response, 
 });
 
 // Holiday proxy route
-$app->get('/Holiday/{filename}', function (Request $request, Response $response, $args) {
+$app->get('/Holiday/{filename:.+}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];
     $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'];
     $supabaseUrl = $supabaseUrlBase . "/storage/v1/object/public/holidays/" . rawurlencode($filename);
@@ -487,7 +487,7 @@ $app->get('/Holiday/{filename}', function (Request $request, Response $response,
 });
 
 // Attendance proxy route
-$app->get('/Attendance/{filename}', function (Request $request, Response $response, $args) {
+$app->get('/Attendance/{filename:.+}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];
     $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'];
     $supabaseUrl = $supabaseUrlBase . "/storage/v1/object/public/attendance/" . rawurlencode($filename);
@@ -503,7 +503,7 @@ $app->get('/Attendance/{filename}', function (Request $request, Response $respon
 });
 
 // Chat Attachment proxy route
-$app->get('/Chat-Attachment/{filename}', function (Request $request, Response $response, $args) {
+$app->get('/Chat-Attachment/{filename:.+}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];
     $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'];
     $supabaseUrl = $supabaseUrlBase . "/storage/v1/object/public/chat_attachments/" . rawurlencode($filename);
