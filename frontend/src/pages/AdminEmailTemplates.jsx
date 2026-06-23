@@ -10,6 +10,7 @@ import CandidateShortlistedEmailTemplate from '../components/emailTemplates/Cand
 import CandidateInterviewEmailTemplate from '../components/emailTemplates/CandidateInterviewEmailTemplate';
 import CandidateOfferEmailTemplate from '../components/emailTemplates/CandidateOfferEmailTemplate';
 import CandidateRejectedEmailTemplate from '../components/emailTemplates/CandidateRejectedEmailTemplate';
+import CandidateDocumentsVerifiedEmailTemplate from '../components/emailTemplates/CandidateDocumentsVerifiedEmailTemplate';
 
 const AdminEmailTemplates = () => {
   const [activeTemplate, setActiveTemplate] = useState('welcome');
@@ -86,6 +87,14 @@ const AdminEmailTemplates = () => {
       icon: <XCircle size={16} />,
       subject: 'Update regarding your application',
       content: <CandidateRejectedEmailTemplate />
+    },
+    {
+      id: 'candidate_documents_verified',
+      name: 'Documents Verified',
+      description: 'Sent to candidates when all their pre-employment documents are approved.',
+      icon: <ShieldCheck size={16} />,
+      subject: 'Document Verification Successful',
+      content: <CandidateDocumentsVerifiedEmailTemplate />
     }
   ];
 
