@@ -365,7 +365,7 @@ $app->post('/api/reset-password', function (Request $request, Response $response
 $app->get('/Resume/{filename:.+}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];
     
-    $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'];
+    $supabaseUrlBase = ($_ENV['VITE_SUPABASE_URL'] ?? 'https://' . str_replace('db.', '', $_ENV['DB_HOST'] ?? ''));
     $supabaseUrl = $supabaseUrlBase . "/storage/v1/object/public/resumes/" . rawurlencode($filename);
     
     $context = stream_context_create([
@@ -392,7 +392,7 @@ $app->get('/Resume/{filename:.+}', function (Request $request, Response $respons
 $app->get('/Job-Description/{filename:.+}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];
     
-    $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'];
+    $supabaseUrlBase = ($_ENV['VITE_SUPABASE_URL'] ?? 'https://' . str_replace('db.', '', $_ENV['DB_HOST'] ?? ''));
     $supabaseUrl = $supabaseUrlBase . "/storage/v1/object/public/job_descriptions/" . rawurlencode($filename);
     
     $context = stream_context_create([
@@ -419,7 +419,7 @@ $app->get('/Job-Description/{filename:.+}', function (Request $request, Response
 $app->get('/Offer-Letter/{filename:.+}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];
     
-    $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'];
+    $supabaseUrlBase = ($_ENV['VITE_SUPABASE_URL'] ?? 'https://' . str_replace('db.', '', $_ENV['DB_HOST'] ?? ''));
     $supabaseUrl = $supabaseUrlBase . "/storage/v1/object/public/offer_letters/" . rawurlencode($filename);
     
     $context = stream_context_create([
@@ -457,7 +457,7 @@ function getMimeType($filename) {
 // Avatar proxy route
 $app->get('/Avatar/{filename:.+}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];
-    $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'];
+    $supabaseUrlBase = ($_ENV['VITE_SUPABASE_URL'] ?? 'https://' . str_replace('db.', '', $_ENV['DB_HOST'] ?? ''));
     $supabaseUrl = $supabaseUrlBase . "/storage/v1/object/public/avatars/" . rawurlencode($filename);
     $context = stream_context_create(["http" => ["method" => "GET", "header" => "User-Agent: PHP\r\n"]]);
     $fileContent = @file_get_contents($supabaseUrl, false, $context);
@@ -473,7 +473,7 @@ $app->get('/Avatar/{filename:.+}', function (Request $request, Response $respons
 // Holiday proxy route
 $app->get('/Holiday/{filename:.+}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];
-    $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'];
+    $supabaseUrlBase = ($_ENV['VITE_SUPABASE_URL'] ?? 'https://' . str_replace('db.', '', $_ENV['DB_HOST'] ?? ''));
     $supabaseUrl = $supabaseUrlBase . "/storage/v1/object/public/holidays/" . rawurlencode($filename);
     $context = stream_context_create(["http" => ["method" => "GET", "header" => "User-Agent: PHP\r\n"]]);
     $fileContent = @file_get_contents($supabaseUrl, false, $context);
@@ -489,7 +489,7 @@ $app->get('/Holiday/{filename:.+}', function (Request $request, Response $respon
 // Attendance proxy route
 $app->get('/Attendance/{filename:.+}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];
-    $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'];
+    $supabaseUrlBase = ($_ENV['VITE_SUPABASE_URL'] ?? 'https://' . str_replace('db.', '', $_ENV['DB_HOST'] ?? ''));
     $supabaseUrl = $supabaseUrlBase . "/storage/v1/object/public/attendance/" . rawurlencode($filename);
     $context = stream_context_create(["http" => ["method" => "GET", "header" => "User-Agent: PHP\r\n"]]);
     $fileContent = @file_get_contents($supabaseUrl, false, $context);
@@ -505,7 +505,7 @@ $app->get('/Attendance/{filename:.+}', function (Request $request, Response $res
 // Chat Attachment proxy route
 $app->get('/Chat-Attachment/{filename:.+}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];
-    $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'];
+    $supabaseUrlBase = ($_ENV['VITE_SUPABASE_URL'] ?? 'https://' . str_replace('db.', '', $_ENV['DB_HOST'] ?? ''));
     
     // Properly encode filename parts if it contains subdirectories
     $segments = explode('/', $filename);
@@ -527,7 +527,7 @@ $app->get('/Chat-Attachment/{filename:.+}', function (Request $request, Response
 // Candidate Document proxy route
 $app->get('/Candidate-Document/{filename:.+}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];
-    $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'];
+    $supabaseUrlBase = ($_ENV['VITE_SUPABASE_URL'] ?? 'https://' . str_replace('db.', '', $_ENV['DB_HOST'] ?? ''));
     
     // Properly encode filename parts if it contains subdirectories
     $segments = explode('/', $filename);
