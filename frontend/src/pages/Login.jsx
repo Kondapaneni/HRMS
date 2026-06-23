@@ -36,6 +36,9 @@ const Login = () => {
     if (profile.forcePasswordChange) {
       return <Navigate to="/change-password" replace />;
     }
+    if (profile.role === 'candidate') {
+      return <Navigate to="/candidate/dashboard" replace />;
+    }
     return <Navigate to={ADMIN_ROLES.includes(profile.role) ? '/admin' : '/employee'} replace />;
   }
 
@@ -68,6 +71,8 @@ const Login = () => {
         navigate('/admin');
       } else if (userData.role === 'employee') {
         navigate('/employee');
+      } else if (userData.role === 'candidate') {
+        navigate('/candidate/dashboard');
       } else {
         throw new Error(`Unrecognised account role '${userData.role}'. Contact your administrator.`);
       }
