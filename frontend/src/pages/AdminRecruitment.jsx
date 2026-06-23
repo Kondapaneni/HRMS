@@ -105,9 +105,9 @@ const AdminRecruitment = () => {
       if (jobFile) {
         const fileExt = jobFile.name.split('.').pop();
         const fileName = `jd-${Date.now()}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage.from('resumes').upload(fileName, jobFile);
+        const { error: uploadError } = await supabase.storage.from('job_descriptions').upload(fileName, jobFile);
         if (uploadError) throw uploadError;
-        const { data } = supabase.storage.from('resumes').getPublicUrl(fileName);
+        const { data } = supabase.storage.from('job_descriptions').getPublicUrl(fileName);
         description_pdf_url = data.publicUrl;
       }
 
