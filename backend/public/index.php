@@ -415,33 +415,6 @@ $app->get('/Job-Description/{filename:.+}', function (Request $request, Response
         ->withHeader('Content-Disposition', 'attachment; filename="' . $filename . '"');
 });
 
-// Candidate Document proxy route for clean URLs
-$app->get('/Candidate-Document/{filename:.+}', function (Request $request, Response $response, $args) {
-    $filename = $args['filename'];
-    
-    $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'];
-    $supabaseUrl = $supabaseUrlBase . "/storage/v1/object/public/candidate_documents/" . rawurlencode($filename);
-    
-    $context = stream_context_create([
-        "http" => [
-            "method" => "GET",
-            "header" => "User-Agent: PHP\r\n"
-        ]
-    ]);
-    
-    $fileContent = @file_get_contents($supabaseUrl, false, $context);
-    
-    if ($fileContent === false) {
-        $response->getBody()->write("Document not found.");
-        return $response->withStatus(404);
-    }
-    
-    $response->getBody()->write($fileContent);
-    return $response
-        ->withHeader('Content-Type', 'application/pdf')
-        ->withHeader('Content-Disposition', 'inline; filename="' . $filename . '"');
-});
-
 // Offer Letter proxy route for clean URLs
 $app->get('/Offer-Letter/{filename:.+}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];
