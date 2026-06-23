@@ -11,7 +11,7 @@ import { motion } from 'framer-motion';
 import GlobalSearch from './GlobalSearch';
 import EmployeeLayout from './EmployeeLayout';
 import api from '../api/axios';
-import { supabase } from '../api/supabase';
+import { supabase } from '../lib/supabase';
 
 const AdminLayout = () => {
   const { profile, signOut } = useAuth();

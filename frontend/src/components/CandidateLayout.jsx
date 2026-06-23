@@ -6,7 +6,7 @@ import {
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '../api/supabase';
+import { supabase } from '../lib/supabase';
 
 const CandidateLayout = () => {
   const { profile, signOut } = useAuth();

@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { Briefcase, FileText, BadgeCheck, BellRing, UserCheck, User, FileUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { supabase } from '../api/supabase';
+import { supabase } from '../lib/supabase';
 
 const CandidateDashboard = () => {
   const { profile } = useAuth();

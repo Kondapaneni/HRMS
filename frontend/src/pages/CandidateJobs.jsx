@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Search, Filter, ChevronRight, FileText, X } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { supabase } from '../api/supabase';
+import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';

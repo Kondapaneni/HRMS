@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '../api/supabase';
+import { supabase } from '../lib/supabase';
 import { FileText, UploadCloud, CheckCircle2, AlertCircle, X, Eye, Loader2, Info, Lock } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'react-hot-toast';

@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Camera, RefreshCw, UploadCloud, X, AlertCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import api from '../api/axios';
-import { supabase } from '../api/supabase';
+import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
 const EmployeeMobileCamera = () => {
