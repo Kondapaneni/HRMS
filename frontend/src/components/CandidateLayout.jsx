@@ -75,10 +75,13 @@ const CandidateLayout = () => {
           
           {/* Logo */}
           <div className="flex items-center gap-3 pr-6 border-r border-slate-300/40 mr-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white shadow-md">
-              <Briefcase size={20} strokeWidth={2.5} />
+            <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-md bg-white overflow-hidden p-0.5 border border-slate-100">
+              <img src="/pwa-192x192.png" alt="Acme Logo" className="w-full h-full object-contain rounded-full" />
             </div>
-            <span className="text-base font-bold tracking-tight text-slate-800">Careers</span>
+            <div className="flex flex-col">
+              <span className="text-base font-bold tracking-tight text-slate-800 leading-tight">Acme</span>
+              <span className="text-[10px] font-semibold tracking-wider text-blue-600 uppercase leading-none">Careers</span>
+            </div>
           </div>
 
           {/* Navigation Links */}
