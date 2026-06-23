@@ -69,92 +69,72 @@ const CandidateLayout = () => {
         <motion.div custom={5} variants={shapeVariants} animate="animate" className="absolute w-72 h-72 bg-[#8B5CF6] rounded-full opacity-10 bottom-20 right-1/4" />
       </div>
 
-      {/* Top Glassmorphic Navigation */}
-      <header className="sticky top-0 z-40 w-full bg-white/70 backdrop-blur-xl border-b border-white/50 shadow-sm transition-all">
-        <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            
-            {/* Logo */}
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded flex items-center justify-center text-white shadow-md">
-                <Briefcase size={18} strokeWidth={2.5} />
-              </div>
-              <span className="text-xl font-bold tracking-tight text-slate-900 hidden sm:block">Careers</span>
+      {/* Top Floating Navigation (Desktop) */}
+      <header className="hidden md:flex fixed top-6 left-0 right-0 z-50 justify-center pointer-events-none">
+        <div className="bg-white/50 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-full p-1.5 flex items-center pointer-events-auto">
+          
+          {/* Logo */}
+          <div className="flex items-center gap-2 px-4 border-r border-slate-300/40 mr-1">
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white shadow-md">
+              <Briefcase size={16} strokeWidth={2.5} />
             </div>
+            <span className="text-sm font-bold tracking-tight text-slate-800">Careers</span>
+          </div>
 
-            {/* Desktop Navigation Links */}
-            <nav className="hidden md:flex items-center space-x-1 lg:space-x-4">
-              {navItems.map((item) => {
-                const isActive = location.pathname.startsWith(item.path);
-                return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className={`relative flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ${
-                      isActive 
-                        ? 'text-blue-600' 
-                        : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100/50'
-                    }`}
-                  >
-                    {isActive && (
-                      <motion.div
-                        layoutId="candidateNavBackground"
-                        className="absolute inset-0 bg-blue-50/80 rounded-xl z-0"
-                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                      />
-                    )}
-                    <span className="relative z-10 flex items-center gap-2">
-                      <span className={isActive ? 'text-blue-500' : 'text-slate-400'}>{item.icon}</span>
-                      {item.label}
-                    </span>
-                  </Link>
-                );
-              })}
-            </nav>
-
-            {/* Right Side Actions */}
-            <div className="flex items-center gap-3">
-              <button className="p-2 text-slate-400 hover:text-slate-600 transition-colors relative rounded-full hover:bg-slate-100/50">
-                <Bell size={20} />
-                <span className="absolute top-1.5 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
-              </button>
-              
-              <div className="h-6 w-px bg-slate-200 hidden sm:block"></div>
-
-              {/* Avatar Profile */}
-              <div className="hidden sm:flex items-center gap-2 cursor-pointer group px-2 py-1 rounded-full hover:bg-slate-100/50 transition-colors">
-                <div className="w-8 h-8 rounded-full overflow-hidden bg-indigo-100 border border-white shadow-sm flex items-center justify-center text-indigo-700 font-bold text-sm relative">
-                  {profileData?.avatar_url ? (
-                    <img src={profileData.avatar_url} alt="Profile" className="w-full h-full object-cover" />
-                  ) : (
-                    profile?.firstName?.charAt(0) || profile?.email?.charAt(0).toUpperCase() || 'C'
+          {/* Navigation Links */}
+          <nav className="flex items-center">
+            {navItems.map((item) => {
+              const isActive = location.pathname.startsWith(item.path);
+              const Icon = item.icon.type;
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className="relative flex flex-col items-center justify-center w-[72px] h-[58px] z-10 group"
+                >
+                  {isActive && (
+                    <motion.div
+                      layoutId="candidateTopNavBubble"
+                      className="absolute inset-0 z-[-1] rounded-full shadow-[inset_0_1px_3px_rgba(255,255,255,0.8),0_4px_16px_rgba(0,0,0,0.06)] bg-white/40 backdrop-blur-xl border border-white/80 overflow-hidden"
+                      transition={{ type: 'spring', bounce: 0.25, duration: 0.5 }}
+                    />
                   )}
-                </div>
-              </div>
+                  <Icon className={`relative z-10 w-6 h-6 mb-0.5 transition-all duration-300 ${isActive ? 'text-blue-600 scale-105' : 'text-slate-500 group-hover:text-slate-600 group-active:scale-95'}`} strokeWidth={isActive ? 2.5 : 2} />
+                  <span className={`relative z-10 text-[10px] font-medium tracking-wide transition-all duration-300 ${isActive ? 'text-blue-600' : 'text-slate-500'}`}>
+                    {item.label}
+                  </span>
+                </Link>
+              );
+            })}
+          </nav>
 
-              {/* Logout Button Desktop */}
-              <button
-                onClick={() => setShowLogoutModal(true)}
-                className="hidden md:flex items-center gap-2 text-rose-500 hover:text-rose-600 hover:bg-rose-50/50 px-3 py-2 rounded-xl text-sm font-semibold transition-colors ml-2"
-              >
-                <LogOut size={16} />
-                Logout
-              </button>
-
-              {/* Mobile Menu Toggle */}
-              <button 
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-xl"
-              >
-                {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-              </button>
+          {/* Right Side Actions */}
+          <div className="flex items-center gap-2 pl-3 border-l border-slate-300/40 ml-1">
+            <button className="p-2 text-slate-500 hover:text-slate-700 transition-colors relative rounded-full hover:bg-white/50">
+              <Bell size={20} />
+              <span className="absolute top-1.5 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
+            </button>
+            
+            <div className="w-8 h-8 rounded-full overflow-hidden bg-indigo-100 border border-white shadow-sm flex items-center justify-center text-indigo-700 font-bold text-sm">
+              {profileData?.avatar_url ? (
+                <img src={profileData.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                profile?.firstName?.charAt(0) || profile?.email?.charAt(0).toUpperCase() || 'C'
+              )}
             </div>
+
+            <button
+              onClick={() => setShowLogoutModal(true)}
+              className="p-2 text-rose-500 hover:text-rose-600 hover:bg-rose-50/50 rounded-full transition-colors"
+            >
+              <LogOut size={18} />
+            </button>
           </div>
         </div>
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 relative z-10 pb-24 md:pb-8 overflow-y-auto overscroll-y-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
+      <main className="flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 md:pt-32 relative z-10 pb-24 md:pb-8 overflow-y-auto overscroll-y-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
         <Outlet />
       </main>
 
