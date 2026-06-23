@@ -24,7 +24,7 @@ const Login = () => {
     return () => clearInterval(timer);
   }, [lockoutSeconds]);
 
-  const { user, profile, profileLoading, signIn } = useAuth();
+  const { user, profile, profileLoading, signIn, signOut } = useAuth();
 
   const ADMIN_ROLES = ['admin'];
 
@@ -72,7 +72,8 @@ const Login = () => {
       } else if (userData.role === 'employee') {
         navigate('/employee');
       } else if (userData.role === 'candidate') {
-        navigate('/candidate/dashboard');
+        if (signOut) await signOut();
+        throw new Error('Please use the Candidate Portal (/candidate/login) to sign in.');
       } else {
         throw new Error(`Unrecognised account role '${userData.role}'. Contact your administrator.`);
       }
