@@ -74,6 +74,22 @@ const AdminRecruitment = () => {
     }
   });
 
+  const { data: branches = [] } = useQuery({
+    queryKey: ['admin', 'branches'],
+    queryFn: async () => {
+      const res = await api.get('/branches');
+      return res.data.branches || [];
+    }
+  });
+
+  const { data: employeesList = [] } = useQuery({
+    queryKey: ['admin', 'employees_list'],
+    queryFn: async () => {
+      const res = await api.get('/admin/employees');
+      return res.data.employees || [];
+    }
+  });
+
   const isLoading = isLoadingJobs || isLoadingApps;
 
   // Job Modal State
@@ -97,7 +113,7 @@ const AdminRecruitment = () => {
   
   const [isConvertModalOpen, setIsConvertModalOpen] = useState(false);
   const [convertData, setConvertData] = useState({
-    firstName: '', lastName: '', email: '', phone: '', department: '', position: '', joiningDate: '', workLocation: '', annualSalary: ''
+    firstName: '', lastName: '', email: '', phone: '', department: '', position: '', branch: '', joinDate: '', salary: '', status: 'Active', managerId: ''
   });
 
   const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
@@ -258,19 +274,32 @@ const AdminRecruitment = () => {
   const convertEmployeeMutation = useMutation({
     mutationFn: async () => {
       // Create employee record
-      const { error: empError } = await supabase.from('employees').insert([{
-        user_id: selectedApp.candidate_id,
-        employee_id: `EMP${Math.floor(Math.random() * 10000)}`,
-        department: convertData.department,
-        designation: convertData.position,
-        joining_date: convertData.joiningDate,
-        work_location: convertData.workLocation,
-        salary: convertData.annualSalary
+      const empId = `EMP-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+      const { error: empError } = await supabase.from('employee').insert([{
+        "userId": selectedApp.candidate_id,
+        "employeeId": empId,
+        "firstName": convertData.firstName,
+        "lastName": convertData.lastName,
+        "email": convertData.email,
+        "phone": convertData.phone,
+        "department": convertData.department,
+        "position": convertData.position,
+        "branch": convertData.branch,
+        "joinDate": convertData.joinDate,
+        "salary": parseFloat(convertData.salary),
+        "status": convertData.status.toLowerCase(),
+        "managerId": convertData.managerId || null
       }]);
       if (empError) throw empError;
 
       // Update user role to employee if needed
-      await supabase.from('users').update({ role: 'employee' }).eq('id', selectedApp.candidate_id);
+      await supabase.from('users').update({ 
+        role: 'employee',
+        "firstName": convertData.firstName,
+        "lastName": convertData.lastName,
+        department: convertData.department,
+        position: convertData.position
+      }).eq('id', selectedApp.candidate_id);
     },
     onSuccess: () => {
       const userInfo = candidatesInfo.find(u => u.id === selectedApp.candidate_id);
@@ -316,9 +345,11 @@ const AdminRecruitment = () => {
       phone: appProfile?.phone || '',
       department: app.jobs?.department || '',
       position: app.jobs?.title || '',
-      joiningDate: '',
-      workLocation: app.jobs?.location || '',
-      annualSalary: ''
+      branch: branches.length > 0 ? branches[0].id : '',
+      joinDate: '',
+      salary: '',
+      status: 'Active',
+      managerId: ''
     });
     setIsConvertModalOpen(true);
   };
@@ -848,17 +879,48 @@ const AdminRecruitment = () => {
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Joining Date</label>
-                  <input type="date" required value={convertData.joiningDate} onChange={e => setConvertData({...convertData, joiningDate: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
+                  <label className="text-sm font-medium text-slate-700">Branch</label>
+                  <select required value={convertData.branch} onChange={e => setConvertData({...convertData, branch: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 bg-white">
+                    {branches.map(b => (
+                      <option key={b.id} value={b.id}>{b.name}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Work Location</label>
-                  <input type="text" required value={convertData.workLocation} onChange={e => setConvertData({...convertData, workLocation: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
+                  <label className="text-sm font-medium text-slate-700">Join Date</label>
+                  <input type="date" required value={convertData.joinDate} onChange={e => setConvertData({...convertData, joinDate: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
+                </div>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Annual Compensation (INR)</label>
+                  <input type="number" required value={convertData.salary} onChange={e => setConvertData({...convertData, salary: e.target.value})} placeholder="e.g. 600000" className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Status</label>
+                  <select required value={convertData.status} onChange={e => setConvertData({...convertData, status: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 bg-white">
+                    <option value="Active">Active</option>
+                    <option value="On Leave">On Leave</option>
+                    <option value="Terminated">Terminated</option>
+                  </select>
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Annual Compensation (INR)</label>
-                <input type="text" required value={convertData.annualSalary} onChange={e => setConvertData({...convertData, annualSalary: e.target.value})} placeholder="e.g. 600000" className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
+                <label className="text-sm font-medium text-slate-700">Manager (Optional)</label>
+                <input 
+                  list="manager-list" 
+                  value={convertData.managerId} 
+                  onChange={e => setConvertData({...convertData, managerId: e.target.value})} 
+                  placeholder="Type to search managers..." 
+                  className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" 
+                />
+                <datalist id="manager-list">
+                  {employeesList.map(emp => (
+                    <option key={emp.employeeId} value={emp.employeeId}>
+                      {emp.firstName} {emp.lastName}
+                    </option>
+                  ))}
+                </datalist>
               </div>
               
               <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 mt-6">
