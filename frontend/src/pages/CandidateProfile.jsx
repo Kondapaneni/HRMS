@@ -168,6 +168,15 @@ const CandidateProfile = () => {
       const fileExt = file.name.split('.').pop();
       const fileName = `candidate-${profile?.id || 'avatar'}-${Math.random()}.${fileExt}`;
 
+      // Delete old avatar if it exists
+      if (formData.avatarUrl) {
+        const parts = formData.avatarUrl.split('/Avatar/');
+        if (parts.length > 1) {
+          const oldStoragePath = parts[1];
+          await supabase.storage.from('avatars').remove([oldStoragePath]);
+        }
+      }
+
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(fileName, file);

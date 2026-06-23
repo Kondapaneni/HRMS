@@ -80,6 +80,15 @@ const EmployeeProfile = () => {
       const fileName = `${employeeId || 'avatar'}-${Math.random()}.${fileExt}`;
       const filePath = `${fileName}`;
 
+      // Delete old avatar if it exists
+      if (employee?.avatar) {
+        const parts = employee.avatar.split('/Avatar/');
+        if (parts.length > 1) {
+          const oldStoragePath = parts[1];
+          await supabase.storage.from('avatars').remove([oldStoragePath]);
+        }
+      }
+
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(filePath, file);
