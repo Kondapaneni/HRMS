@@ -71,18 +71,18 @@ const CandidateLayout = () => {
 
       {/* Top Floating Navigation (Desktop) */}
       <header className="hidden md:flex fixed top-6 left-0 right-0 z-50 justify-center pointer-events-none">
-        <div className="bg-white/50 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-full p-1.5 flex items-center pointer-events-auto">
+        <div className="bg-white/50 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-full p-2 px-4 flex items-center pointer-events-auto">
           
           {/* Logo */}
-          <div className="flex items-center gap-2 px-4 border-r border-slate-300/40 mr-1">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white shadow-md">
-              <Briefcase size={16} strokeWidth={2.5} />
+          <div className="flex items-center gap-3 pr-6 border-r border-slate-300/40 mr-2">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white shadow-md">
+              <Briefcase size={20} strokeWidth={2.5} />
             </div>
-            <span className="text-sm font-bold tracking-tight text-slate-800">Careers</span>
+            <span className="text-base font-bold tracking-tight text-slate-800">Careers</span>
           </div>
 
           {/* Navigation Links */}
-          <nav className="flex items-center">
+          <nav className="flex items-center gap-2 px-2">
             {navItems.map((item) => {
               const isActive = location.pathname.startsWith(item.path);
               const Icon = item.icon.type;
@@ -90,17 +90,17 @@ const CandidateLayout = () => {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className="relative flex flex-col items-center justify-center w-[72px] h-[58px] z-10 group"
+                  className="relative flex flex-col items-center justify-center w-[86px] h-[66px] z-10 group"
                 >
                   {isActive && (
                     <motion.div
                       layoutId="candidateTopNavBubble"
-                      className="absolute inset-0 z-[-1] rounded-full shadow-[inset_0_1px_3px_rgba(255,255,255,0.8),0_4px_16px_rgba(0,0,0,0.06)] bg-white/40 backdrop-blur-xl border border-white/80 overflow-hidden"
+                      className="absolute inset-0 z-[-1] rounded-2xl shadow-[inset_0_1px_3px_rgba(255,255,255,0.8),0_4px_16px_rgba(0,0,0,0.06)] bg-white/60 backdrop-blur-xl border border-white/80 overflow-hidden"
                       transition={{ type: 'spring', bounce: 0.25, duration: 0.5 }}
                     />
                   )}
-                  <Icon className={`relative z-10 w-6 h-6 mb-0.5 transition-all duration-300 ${isActive ? 'text-blue-600 scale-105' : 'text-slate-500 group-hover:text-slate-600 group-active:scale-95'}`} strokeWidth={isActive ? 2.5 : 2} />
-                  <span className={`relative z-10 text-[10px] font-medium tracking-wide transition-all duration-300 ${isActive ? 'text-blue-600' : 'text-slate-500'}`}>
+                  <Icon className={`relative z-10 w-6 h-6 mb-1 transition-all duration-300 ${isActive ? 'text-blue-600 scale-110' : 'text-slate-500 group-hover:text-slate-600 group-active:scale-95'}`} strokeWidth={isActive ? 2.5 : 2} />
+                  <span className={`relative z-10 text-[11px] font-semibold tracking-wide transition-all duration-300 ${isActive ? 'text-blue-600' : 'text-slate-500'}`}>
                     {item.label}
                   </span>
                 </Link>
@@ -109,13 +109,13 @@ const CandidateLayout = () => {
           </nav>
 
           {/* Right Side Actions */}
-          <div className="flex items-center gap-2 pl-3 border-l border-slate-300/40 ml-1">
-            <button className="p-2 text-slate-500 hover:text-slate-700 transition-colors relative rounded-full hover:bg-white/50">
-              <Bell size={20} />
-              <span className="absolute top-1.5 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
+          <div className="flex items-center gap-4 pl-6 border-l border-slate-300/40 ml-2">
+            <button className="p-2.5 text-slate-500 hover:text-slate-700 transition-colors relative rounded-full hover:bg-white/80">
+              <Bell size={22} />
+              <span className="absolute top-2 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
             </button>
             
-            <div className="w-8 h-8 rounded-full overflow-hidden bg-indigo-100 border border-white shadow-sm flex items-center justify-center text-indigo-700 font-bold text-sm">
+            <div className="w-10 h-10 rounded-full overflow-hidden bg-indigo-100 border-2 border-white shadow-sm flex items-center justify-center text-indigo-700 font-bold text-base">
               {profileData?.avatar_url ? (
                 <img src={profileData.avatar_url} alt="Profile" className="w-full h-full object-cover" />
               ) : (
@@ -125,9 +125,9 @@ const CandidateLayout = () => {
 
             <button
               onClick={() => setShowLogoutModal(true)}
-              className="p-2 text-rose-500 hover:text-rose-600 hover:bg-rose-50/50 rounded-full transition-colors"
+              className="p-2.5 text-rose-500 hover:text-rose-600 hover:bg-rose-50/80 rounded-full transition-colors"
             >
-              <LogOut size={18} />
+              <LogOut size={22} />
             </button>
           </div>
         </div>
