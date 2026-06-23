@@ -361,6 +361,31 @@ $app->post('/api/reset-password', function (Request $request, Response $response
     return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
 });
 
+// Job Description proxy route for clean URLs
+$app->get('/Job-Description/{filename}', function (Request $request, Response $response, $args) {
+    $filename = $args['filename'];
+    $supabaseUrl = $_ENV['SUPABASE_URL'] . "/storage/v1/object/public/job_descriptions/" . rawurlencode($filename);
+    
+    $context = stream_context_create([
+        "http" => [
+            "method" => "GET",
+            "header" => "User-Agent: PHP\r\n"
+        ]
+    ]);
+    
+    $fileContent = @file_get_contents($supabaseUrl, false, $context);
+    
+    if ($fileContent === false) {
+        $response->getBody()->write("Job description not found.");
+        return $response->withStatus(404);
+    }
+    
+    $response->getBody()->write($fileContent);
+    return $response
+        ->withHeader('Content-Type', 'application/pdf')
+        ->withHeader('Content-Disposition', 'attachment; filename="' . $filename . '"');
+});
+
 // Offer Letter proxy route for clean URLs
 $app->get('/Offer-Letter/{filename}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];

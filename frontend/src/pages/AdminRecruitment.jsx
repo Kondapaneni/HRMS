@@ -104,11 +104,12 @@ const AdminRecruitment = () => {
       let description_pdf_url = null;
       if (jobFile) {
         const fileExt = jobFile.name.split('.').pop();
-        const fileName = `jd-${Date.now()}.${fileExt}`;
+        const safeTitle = jobFormData.title ? jobFormData.title.trim().replace(/\s+/g, '-') : 'Job';
+        const fileName = `${safeTitle}-Job-Description-${Date.now()}.${fileExt}`;
         const { error: uploadError } = await supabase.storage.from('job_descriptions').upload(fileName, jobFile);
         if (uploadError) throw uploadError;
-        const { data } = supabase.storage.from('job_descriptions').getPublicUrl(fileName);
-        description_pdf_url = data.publicUrl;
+        
+        description_pdf_url = window.location.origin + "/Job-Description/" + fileName;
       }
 
       const jobDataToInsert = { ...jobFormData, description_pdf_url, status: submitStatus };
