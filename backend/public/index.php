@@ -364,7 +364,7 @@ $app->post('/api/reset-password', function (Request $request, Response $response
 // Job Description proxy route for clean URLs
 $app->get('/Job-Description/{filename}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];
-    $supabaseUrl = $_ENV['SUPABASE_URL'] . "/storage/v1/object/public/job_descriptions/" . rawurlencode($filename);
+    $supabaseUrl = "https://jtgqkkhqyzfbupiqwkgf.supabase.co" . "/storage/v1/object/public/job_descriptions/" . rawurlencode($filename);
     
     $context = stream_context_create([
         "http" => [
@@ -389,7 +389,7 @@ $app->get('/Job-Description/{filename}', function (Request $request, Response $r
 // Offer Letter proxy route for clean URLs
 $app->get('/Offer-Letter/{filename}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];
-    $supabaseUrl = $_ENV['SUPABASE_URL'] . "/storage/v1/object/public/offer_letters/" . rawurlencode($filename);
+    $supabaseUrl = "https://jtgqkkhqyzfbupiqwkgf.supabase.co" . "/storage/v1/object/public/offer_letters/" . rawurlencode($filename);
     
     $context = stream_context_create([
         "http" => [
