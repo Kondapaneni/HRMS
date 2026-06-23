@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../api/supabase';
+import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 
 import { Briefcase, Users, Plus, FileText, CheckCircle2, XCircle, Clock, Calendar, Mail, FileUp, X, CalendarDays, BadgeCheck, ChevronDown } from 'lucide-react';
@@ -13,6 +14,7 @@ import { pdf, PDFViewer } from '@react-pdf/renderer';
 import OfferLetterPDF from '../components/offerLetter/OfferLetterPDF';
 
 const AdminRecruitment = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('jobs'); // 'jobs', 'applications'
   const queryClient = useQueryClient();
 
