@@ -442,5 +442,65 @@ $app->get('/Offer-Letter/{filename}', function (Request $request, Response $resp
         ->withHeader('Content-Disposition', 'attachment; filename="' . $filename . '"');
 });
 
+function getMimeType($filename) {
+    $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+    switch ($ext) {
+        case 'pdf': return 'application/pdf';
+        case 'png': return 'image/png';
+        case 'jpg': case 'jpeg': return 'image/jpeg';
+        case 'gif': return 'image/gif';
+        case 'webp': return 'image/webp';
+        default: return 'application/octet-stream';
+    }
+}
+
+// Avatar proxy route
+$app->get('/Avatar/{filename}', function (Request $request, Response $response, $args) {
+    $filename = $args['filename'];
+    $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'];
+    $supabaseUrl = $supabaseUrlBase . "/storage/v1/object/public/avatars/" . rawurlencode($filename);
+    $context = stream_context_create(["http" => ["method" => "GET", "header" => "User-Agent: PHP\r\n"]]);
+    $fileContent = @file_get_contents($supabaseUrl, false, $context);
+    
+    if ($fileContent === false) return $response->withStatus(404);
+    
+    $response->getBody()->write($fileContent);
+    return $response
+        ->withHeader('Content-Type', getMimeType($filename))
+        ->withHeader('Content-Disposition', 'inline; filename="' . $filename . '"');
+});
+
+// Holiday proxy route
+$app->get('/Holiday/{filename}', function (Request $request, Response $response, $args) {
+    $filename = $args['filename'];
+    $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'];
+    $supabaseUrl = $supabaseUrlBase . "/storage/v1/object/public/holidays/" . rawurlencode($filename);
+    $context = stream_context_create(["http" => ["method" => "GET", "header" => "User-Agent: PHP\r\n"]]);
+    $fileContent = @file_get_contents($supabaseUrl, false, $context);
+    
+    if ($fileContent === false) return $response->withStatus(404);
+    
+    $response->getBody()->write($fileContent);
+    return $response
+        ->withHeader('Content-Type', getMimeType($filename))
+        ->withHeader('Content-Disposition', 'inline; filename="' . $filename . '"');
+});
+
+// Attendance proxy route
+$app->get('/Attendance/{filename}', function (Request $request, Response $response, $args) {
+    $filename = $args['filename'];
+    $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'];
+    $supabaseUrl = $supabaseUrlBase . "/storage/v1/object/public/attendance/" . rawurlencode($filename);
+    $context = stream_context_create(["http" => ["method" => "GET", "header" => "User-Agent: PHP\r\n"]]);
+    $fileContent = @file_get_contents($supabaseUrl, false, $context);
+    
+    if ($fileContent === false) return $response->withStatus(404);
+    
+    $response->getBody()->write($fileContent);
+    return $response
+        ->withHeader('Content-Type', getMimeType($filename))
+        ->withHeader('Content-Disposition', 'inline; filename="' . $filename . '"');
+});
+
 // Run app
 $app->run();
