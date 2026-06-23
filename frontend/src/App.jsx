@@ -39,6 +39,7 @@ import AdminAuditLogs from './pages/AdminAuditLogs'
 import AdminAssets from './pages/AdminAssets'
 import AdminHolidays from './pages/AdminHolidays'
 import AdminHolidaysArchive from './pages/AdminHolidaysArchive'
+import AdminVerifyDocuments from './pages/AdminVerifyDocuments'
 import AdminSettings from './pages/AdminSettings'
 import AdminEmailTemplates from './pages/AdminEmailTemplates'
 import AdminPerformance from './pages/AdminPerformance'
@@ -136,8 +137,8 @@ function App() {
               <Route path="email-templates" element={<AdminEmailTemplates />} />
               <Route path="settings" element={<AdminSettings />} />
               <Route path="performance" element={<AdminPerformance />} />
-              <Route path="chat" element={<Chat />} />
               <Route path="recruitment" element={<AdminRecruitment />} />
+              <Route path="recruitment/verify-documents/:id" element={<AdminVerifyDocuments />} />
             </Route>
             <Route
               path="/employee"

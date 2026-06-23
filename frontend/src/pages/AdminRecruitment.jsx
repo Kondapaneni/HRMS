@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../api/supabase';
+import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 
 import { Briefcase, Users, Plus, FileText, CheckCircle2, XCircle, Clock, Calendar, Mail, FileUp, X, CalendarDays, BadgeCheck, ChevronDown } from 'lucide-react';
@@ -11,9 +12,10 @@ import interviewEmailTemplateHtml from "../../../backend/src/Templates/candidate
 import offerEmailTemplateHtml from "../../../backend/src/Templates/candidate_offer_email.html?raw";
 import { pdf, PDFViewer } from '@react-pdf/renderer';
 import OfferLetterPDF from '../components/offerLetter/OfferLetterPDF';
-import AdminDocumentsVerificationModal from '../components/AdminDocumentsVerificationModal';
+
 
 const AdminRecruitment = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('jobs'); // 'jobs', 'applications'
   const queryClient = useQueryClient();
 
@@ -619,7 +621,7 @@ const AdminRecruitment = () => {
                           )}
 
                           <button 
-                            onClick={() => { setDocsModalApp(app); setIsDocsModalOpen(true); }}
+                            onClick={() => navigate('/admin/recruitment/verify-documents/' + app.id, { state: { application: app } })}
                             className="inline-flex items-center justify-center whitespace-nowrap rounded-md border border-slate-300 bg-white hover:bg-slate-50 h-9 px-3 py-2 text-sm font-medium text-slate-700"
                           >
                             Verify Documents
@@ -1064,18 +1066,166 @@ const AdminRecruitment = () => {
               </button>
               <button type="submit" form="post-job-form" onClick={() => setSubmitStatus('Published')} disabled={createJobMutation.isPending} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors cursor-pointer disabled:opacity-50">
                 {createJobMutation.isPending && submitStatus === 'Published' ? 'Publishing...' : 'Publish'}
+            </div>
+            
+            <div className="px-6 py-4 border-t border-slate-200 flex justify-end">
+              <button onClick={() => setIsTimelineModalOpen(false)} className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors cursor-pointer">
+                Close
               </button>
             </div>
           </div>
         </div>
       )}
-      {/* Documents Verification Modal */}
-      {isDocsModalOpen && docsModalApp && (
-        <AdminDocumentsVerificationModal 
-          application={docsModalApp} 
-          onClose={() => { setIsDocsModalOpen(false); setDocsModalApp(null); }} 
-        />
+
+      {/* Schedule Interview Modal */}
+      {isScheduleModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl my-auto">
+            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-start bg-slate-50 rounded-t-lg">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-800">Schedule {interviewData.status}</h2>
+                <p className="mt-1 text-sm text-slate-500">Enter the interview details to notify the candidate.</p>
+              </div>
+              <button onClick={() => setIsScheduleModalOpen(false)} className="text-slate-400 hover:text-slate-600 p-1">
+                <X size={20} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleScheduleInterview} className="p-6 space-y-4">
+              <div className="grid gap-4 md:grid-cols-3">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Date</label>
+                  <input type="date" required value={interviewData.date} onChange={e => setInterviewData({...interviewData, date: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Time</label>
+                  <input type="time" required value={interviewData.time} onChange={e => setInterviewData({...interviewData, time: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Location / Link</label>
+                  <input type="text" required value={interviewData.location} onChange={e => setInterviewData({...interviewData, location: e.target.value})} placeholder="Zoom link, Office, etc." className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700">Additional Notes (optional)</label>
+                <textarea rows="3" value={interviewData.notes} onChange={e => setInterviewData({...interviewData, notes: e.target.value})} placeholder="Any preparation instructions..." className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
+              </div>
+              
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 mt-6">
+                <button type="button" onClick={() => setIsScheduleModalOpen(false)} className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors cursor-pointer" disabled={updateStatusMutation.isPending}>
+                  Cancel
+                </button>
+                <button type="submit" disabled={updateStatusMutation.isPending} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors cursor-pointer disabled:opacity-50">
+                  {updateStatusMutation.isPending ? 'Scheduling...' : 'Schedule Interview'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
+
+      {/* Post Job Modal */}
+      {isJobModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+              <h2 className="text-lg font-semibold text-slate-800">Post New Job</h2>
+              <button onClick={() => setIsJobModalOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto flex-1">
+              <form id="post-job-form" onSubmit={handleCreateJob} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Job Title *</label>
+                    <input type="text" required value={jobFormData.title} onChange={e => setJobFormData({...jobFormData, title: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Department *</label>
+                    <input type="text" required value={jobFormData.department} onChange={e => setJobFormData({...jobFormData, department: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Location *</label>
+                    <input type="text" required value={jobFormData.location} onChange={e => setJobFormData({...jobFormData, location: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Job Type *</label>
+                    <select required value={jobFormData.type} onChange={e => setJobFormData({...jobFormData, type: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all bg-white cursor-pointer">
+                      <option>Full Time</option>
+                      <option>Part Time</option>
+                      <option>Contract</option>
+                      <option>Internship</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Experience *</label>
+                    <input type="text" required value={jobFormData.experience} onChange={e => setJobFormData({...jobFormData, experience: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Salary Min *</label>
+                    <input type="text" required value={jobFormData.salary_min} onChange={e => setJobFormData({...jobFormData, salary_min: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Salary Max *</label>
+                    <input type="text" required value={jobFormData.salary_max} onChange={e => setJobFormData({...jobFormData, salary_max: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Vacancy *</label>
+                    <input type="number" required value={jobFormData.vacancy} onChange={e => setJobFormData({...jobFormData, vacancy: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Application Deadline</label>
+                    <input type="date" value={jobFormData.deadline} onChange={e => setJobFormData({...jobFormData, deadline: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-600 mb-1">Attachment (PDF)</label>
+                    <input type="file" accept="application/pdf" onChange={e => setJobFile(e.target.files[0])} className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-colors" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Skills</label>
+                  <textarea rows={3} required value={jobFormData.skills} onChange={e => setJobFormData({...jobFormData, skills: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all resize-y" />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Qualification</label>
+                  <textarea rows={3} required value={jobFormData.qualification} onChange={e => setJobFormData({...jobFormData, qualification: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all resize-y" />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Detailed Job Description</label>
+                  <textarea rows={4} required value={jobFormData.description} onChange={e => setJobFormData({...jobFormData, description: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all resize-y" />
+                </div>
+              </form>
+            </div>
+            
+            <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3">
+              <button type="button" onClick={() => setIsJobModalOpen(false)} className="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors cursor-pointer" disabled={createJobMutation.isPending}>
+                Cancel
+              </button>
+              <button type="submit" form="post-job-form" onClick={() => setSubmitStatus('Draft')} disabled={createJobMutation.isPending} className="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors cursor-pointer disabled:opacity-50">
+                {createJobMutation.isPending && submitStatus === 'Draft' ? 'Saving...' : 'Save Draft'}
+              </button>
+              <button type="submit" form="post-job-form" onClick={() => setSubmitStatus('Published')} disabled={createJobMutation.isPending} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors cursor-pointer disabled:opacity-50">
+                {createJobMutation.isPending && submitStatus === 'Published' ? 'Publishing...' : 'Publish'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Documents Verification Modal removed, now a separate page */}
 
     </div>
   );

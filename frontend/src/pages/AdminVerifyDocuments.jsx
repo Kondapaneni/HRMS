@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../api/supabase';
-import { X, CheckCircle2, XCircle, Eye, Loader2, FileText, AlertCircle, Send } from 'lucide-react';
+import { X, CheckCircle2, XCircle, Eye, Loader2, FileText, AlertCircle, Send, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../api/axios';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 
 const documentTypes = [
   { id: 'signed_offer_letter', label: 'Signed Offer Letter', isRequired: true, isSpecial: true },
@@ -24,21 +25,45 @@ const documentTypes = [
   { id: 'relieving_letter', label: 'Relieving Letter', isRequired: false },
 ];
 
-const AdminDocumentsVerificationModal = ({ application, onClose }) => {
+const AdminVerifyDocuments = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
   const [selectedDoc, setSelectedDoc] = useState(null);
 
-  const { data: documents = [], isLoading } = useQuery({
-    queryKey: ['admin_documents', application.candidate_id],
+  const stateApp = location.state?.application;
+
+  const { data: application, isLoading: isAppLoading } = useQuery({
+    queryKey: ['application', id],
     queryFn: async () => {
+      if (stateApp) return stateApp;
+      const { data, error } = await supabase
+        .from('applications')
+        .select('*, jobs(*), users(*)')
+        .eq('id', id)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    initialData: stateApp
+  });
+
+  const { data: documents = [], isLoading: isDocsLoading } = useQuery({
+    queryKey: ['admin_documents', application?.candidate_id],
+    queryFn: async () => {
+      if (!application?.candidate_id) return [];
       const { data, error } = await supabase
         .from('candidate_documents')
         .select('*')
         .eq('candidate_id', application.candidate_id);
       if (error) throw error;
       return data || [];
-    }
+    },
+    enabled: !!application?.candidate_id
   });
+
+  const isLoading = isAppLoading || isDocsLoading;
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ docId, status }) => {
@@ -49,7 +74,7 @@ const AdminDocumentsVerificationModal = ({ application, onClose }) => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['admin_documents', application.candidate_id]);
+      queryClient.invalidateQueries(['admin_documents', application?.candidate_id]);
       toast.success('Document status updated');
     },
     onError: () => toast.error('Failed to update status')
@@ -57,9 +82,8 @@ const AdminDocumentsVerificationModal = ({ application, onClose }) => {
 
   const sendEmailMutation = useMutation({
     mutationFn: async () => {
-      // Create a specific endpoint or use existing
       const res = await api.post('/admin/send-email', {
-        to: application.users?.email, // Need to make sure email is joined
+        to: application?.users?.email,
         subject: 'All Documents Verified Successfully',
         body: `<p>Dear Candidate,</p><p>We have successfully reviewed and verified all your submitted documents. Welcome aboard!</p>`
       });
@@ -75,27 +99,36 @@ const AdminDocumentsVerificationModal = ({ application, onClose }) => {
 
   const getDoc = (typeId) => documents.find(d => d.document_type === typeId);
 
-  // Check if all required are verified
   const allRequiredVerified = documentTypes
     .filter(d => d.isRequired)
     .every(d => getDoc(d.id)?.status === 'verified');
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
-        <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 rounded-t-xl">
-          <div>
-            <h3 className="text-xl font-bold text-slate-800">Verify Candidate Documents</h3>
-            <p className="text-sm text-slate-500">Review and approve uploaded documents</p>
-          </div>
-          <button onClick={onClose} className="p-2 text-slate-500 hover:bg-slate-200 rounded-lg">
-            <X size={20} />
-          </button>
-        </div>
+  if (isAppLoading) {
+    return <div className="flex justify-center p-8"><Loader2 className="animate-spin text-blue-500" /></div>;
+  }
 
-        <div className="flex-1 overflow-y-auto p-6 flex flex-col md:flex-row gap-6">
-          <div className="flex-1 space-y-6">
-            {isLoading ? (
+  if (!application) {
+    return <div className="p-8 text-center text-slate-500">Application not found</div>;
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto space-y-6">
+      <div className="flex items-center gap-4">
+        <button onClick={() => navigate('/admin/recruitment')} className="p-2 text-slate-500 hover:bg-slate-100 rounded-lg">
+          <ArrowLeft size={20} />
+        </button>
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Verify Candidate Documents</h1>
+          <p className="text-sm text-slate-500">
+            {application.users?.first_name || 'Candidate'} {application.users?.last_name || ''} - {application.jobs?.title}
+          </p>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-[calc(100vh-12rem)]">
+        <div className="flex-1 overflow-y-auto p-6 flex flex-col xl:flex-row gap-6">
+          <div className="flex-1 space-y-6 overflow-y-auto">
+            {isDocsLoading ? (
               <div className="flex justify-center p-8"><Loader2 className="animate-spin text-blue-500" /></div>
             ) : (
               <div className="space-y-4">
@@ -154,7 +187,7 @@ const AdminDocumentsVerificationModal = ({ application, onClose }) => {
           </div>
 
           {/* Preview Panel */}
-          <div className="w-full md:w-1/2 flex flex-col bg-slate-50 rounded-xl border border-slate-200 overflow-hidden min-h-[400px]">
+          <div className="w-full xl:w-1/2 flex flex-col bg-slate-50 rounded-xl border border-slate-200 overflow-hidden min-h-[500px]">
             {selectedDoc ? (
               <iframe src={selectedDoc} className="w-full h-full flex-1" title="Document Preview" />
             ) : (
@@ -166,7 +199,7 @@ const AdminDocumentsVerificationModal = ({ application, onClose }) => {
           </div>
         </div>
 
-        <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 rounded-b-xl flex justify-between items-center">
+        <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-between items-center">
           <div className="text-sm text-slate-600">
             {allRequiredVerified ? (
               <span className="flex items-center gap-2 text-emerald-600 font-semibold"><CheckCircle2 size={18} /> All required documents verified</span>
@@ -189,4 +222,4 @@ const AdminDocumentsVerificationModal = ({ application, onClose }) => {
   );
 };
 
-export default AdminDocumentsVerificationModal;
+export default AdminVerifyDocuments;
