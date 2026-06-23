@@ -40,16 +40,14 @@ const AdminVerifyDocuments = () => {
   const { data: application, isLoading: isAppLoading } = useQuery({
     queryKey: ['application', id],
     queryFn: async () => {
-      if (stateApp) return stateApp;
       const { data, error } = await supabase
         .from('applications')
-        .select('*, jobs(*), users(*)')
+        .select('*, jobs(*), users(*), application_timeline(*)')
         .eq('id', id)
         .single();
       if (error) throw error;
       return data;
-    },
-    initialData: stateApp
+    }
   });
 
   const { data: candidatesInfo = [] } = useQuery({
@@ -132,7 +130,7 @@ const AdminVerifyDocuments = () => {
     },
     onSuccess: () => {
       toast.success('Email sent to candidate');
-      queryClient.invalidateQueries(['application_timeline', id]);
+      queryClient.invalidateQueries(['application', id]);
     },
     onError: () => toast.error('Failed to send email')
   });
@@ -160,6 +158,9 @@ const AdminVerifyDocuments = () => {
 
   const userInfo = candidatesInfo.find(u => u.id === application.candidate_id);
 
+  const hasNotified = Array.isArray(application?.application_timeline) && 
+    application.application_timeline.some(t => t.status_change === 'Documents Verified');
+
   return (
     <div className="max-w-[1600px] mx-auto h-[calc(100dvh-8rem)] flex flex-col space-y-4">
       {/* Header Area */}
@@ -180,11 +181,15 @@ const AdminVerifyDocuments = () => {
         <div>
           <button 
             onClick={() => sendEmailMutation.mutate()} 
-            disabled={!allRequiredVerified || sendEmailMutation.isPending}
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-lg hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-sm transition-all active:scale-[0.98]"
+            disabled={!allRequiredVerified || sendEmailMutation.isPending || hasNotified}
+            className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg font-medium shadow-sm transition-all ${
+              hasNotified 
+                ? 'bg-emerald-100 text-emerald-700 cursor-not-allowed opacity-100' 
+                : 'bg-slate-900 text-white hover:bg-slate-800 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed'
+            }`}
           >
-            {sendEmailMutation.isPending ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
-            Notify Candidate
+            {hasNotified ? <CheckCircle2 size={18} /> : sendEmailMutation.isPending ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+            {hasNotified ? 'Candidate Notified' : 'Notify Candidate'}
           </button>
         </div>
       </div>
