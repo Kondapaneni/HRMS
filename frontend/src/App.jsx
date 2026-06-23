@@ -52,6 +52,7 @@ import CandidateDashboard from './pages/CandidateDashboard'
 import CandidateJobs from './pages/CandidateJobs'
 import CandidateApplications from './pages/CandidateApplications'
 import CandidateProfile from './pages/CandidateProfile'
+import CandidateDocuments from './pages/CandidateDocuments'
 import NotFound from './pages/NotFound'
 import { Toaster } from 'react-hot-toast'
 import SnowflakeCursor from './components/CustomCursor'
@@ -194,6 +195,7 @@ function App() {
               <Route path="dashboard" element={<CandidateDashboard />} />
               <Route path="jobs" element={<CandidateJobs />} />
               <Route path="applications" element={<CandidateApplications />} />
+              <Route path="documents" element={<CandidateDocuments />} />
               <Route path="profile" element={<CandidateProfile />} />
             </Route>
 

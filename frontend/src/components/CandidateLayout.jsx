@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import {
-  LogOut, Home, Briefcase, FileText, User, Menu, X, Bell
+  LogOut, Home, Briefcase, FileText, User, Menu, X, Bell, Folder
 } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -38,10 +38,11 @@ const CandidateLayout = () => {
   };
 
   const navItems = [
-    { icon: <Home size={18} />, label: 'Dashboard', path: '/candidate/dashboard' },
-    { icon: <Briefcase size={18} />, label: 'Jobs', path: '/candidate/jobs' },
-    { icon: <FileText size={18} />, label: 'Applications', path: '/candidate/applications' },
-    { icon: <User size={18} />, label: 'Profile', path: '/candidate/profile' },
+    { label: 'Dashboard', icon: <Home size={18} />, path: '/candidate/dashboard' },
+    { label: 'Jobs', icon: <Briefcase size={18} />, path: '/candidate/jobs' },
+    { label: 'Applications', icon: <FileText size={18} />, path: '/candidate/applications' },
+    { label: 'Documents', icon: <Folder size={18} />, path: '/candidate/documents' },
+    { label: 'Profile', icon: <User size={18} />, path: '/candidate/profile' }
   ];
 
   const shapeVariants = {

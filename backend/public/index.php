@@ -506,7 +506,13 @@ $app->get('/Attendance/{filename:.+}', function (Request $request, Response $res
 $app->get('/Chat-Attachment/{filename:.+}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];
     $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'];
-    $supabaseUrl = $supabaseUrlBase . "/storage/v1/object/public/chat_attachments/" . rawurlencode($filename);
+    
+    // Properly encode filename parts if it contains subdirectories
+    $segments = explode('/', $filename);
+    $encodedSegments = array_map('rawurlencode', $segments);
+    $encodedFilename = implode('/', $encodedSegments);
+    
+    $supabaseUrl = $supabaseUrlBase . "/storage/v1/object/public/chat_attachments/" . $encodedFilename;
     $context = stream_context_create(["http" => ["method" => "GET", "header" => "User-Agent: PHP\r\n"]]);
     $fileContent = @file_get_contents($supabaseUrl, false, $context);
     
@@ -515,7 +521,29 @@ $app->get('/Chat-Attachment/{filename:.+}', function (Request $request, Response
     $response->getBody()->write($fileContent);
     return $response
         ->withHeader('Content-Type', getMimeType($filename))
-        ->withHeader('Content-Disposition', 'inline; filename="' . $filename . '"');
+        ->withHeader('Content-Disposition', 'inline; filename="' . basename($filename) . '"');
+});
+
+// Candidate Document proxy route
+$app->get('/Candidate-Document/{filename:.+}', function (Request $request, Response $response, $args) {
+    $filename = $args['filename'];
+    $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'];
+    
+    // Properly encode filename parts if it contains subdirectories
+    $segments = explode('/', $filename);
+    $encodedSegments = array_map('rawurlencode', $segments);
+    $encodedFilename = implode('/', $encodedSegments);
+    
+    $supabaseUrl = $supabaseUrlBase . "/storage/v1/object/public/candidate_documents/" . $encodedFilename;
+    $context = stream_context_create(["http" => ["method" => "GET", "header" => "User-Agent: PHP\r\n"]]);
+    $fileContent = @file_get_contents($supabaseUrl, false, $context);
+    
+    if ($fileContent === false) return $response->withStatus(404);
+    
+    $response->getBody()->write($fileContent);
+    return $response
+        ->withHeader('Content-Type', getMimeType($filename))
+        ->withHeader('Content-Disposition', 'inline; filename="' . basename($filename) . '"');
 });
 
 // Run app

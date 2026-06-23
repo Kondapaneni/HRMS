@@ -73,7 +73,7 @@ const Login = () => {
         navigate('/employee');
       } else if (userData.role === 'candidate') {
         if (signOut) await signOut();
-        throw new Error('Please use the Candidate Portal (/candidate/login) to sign in.');
+        throw new Error('Please use the Candidate Portal to sign in.');
       } else {
         throw new Error(`Unrecognised account role '${userData.role}'. Contact your administrator.`);
       }
