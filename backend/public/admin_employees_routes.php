@@ -364,6 +364,71 @@ $app->put('/api/admin/employees/{id}/settings', function (Request $request, Resp
     }
 })->add(new AuthMiddleware(['admin'], 'employees'));
 
+// Convert candidate to employee
+$app->post('/api/admin/employees/convert', function (Request $request, Response $response, $args) {
+    $data = $request->getParsedBody();
+    
+    $userId = $data['userId'] ?? '';
+    $employeeId = $data['employeeId'] ?? '';
+    $firstName = $data['firstName'] ?? '';
+    $lastName = $data['lastName'] ?? '';
+    $email = $data['email'] ?? '';
+    $phone = $data['phone'] ?? '';
+    $department = $data['department'] ?? '';
+    $position = $data['position'] ?? '';
+    $branch = $data['branch'] ?? '';
+    $joinDate = $data['joinDate'] ?? null;
+    $salary = $data['salary'] ?? 0;
+    $status = $data['status'] ?? 'active';
+    $managerId = $data['managerId'] ?? null;
+
+    if (empty($userId) || empty($employeeId) || empty($firstName)) {
+        $response->getBody()->write(json_encode(['error' => 'Required fields are missing.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+
+    $db = new Database();
+    $conn = $db->getConnection();
+
+    try {
+        $conn->beginTransaction();
+
+        // 1. Insert into employee table
+        $stmtEmp = $conn->prepare('
+            INSERT INTO employee (
+                "employeeId", "userId", "firstName", "lastName", email, phone, 
+                department, position, branch, "joinDate", salary, status, "managerId"
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ');
+        $stmtEmp->execute([
+            $employeeId, $userId, $firstName, $lastName, $email, $phone, 
+            $department, $position, $branch, $joinDate, $salary, strtolower($status), $managerId
+        ]);
+
+        // 2. Update users table role and info
+        $stmtUser = $conn->prepare('
+            UPDATE users SET 
+                role = ?, "firstName" = ?, "lastName" = ?, department = ?, position = ?
+            WHERE id = ?
+        ');
+        $stmtUser->execute(['employee', $firstName, $lastName, $department, $position, $userId]);
+
+        $conn->commit();
+
+        $response->getBody()->write(json_encode([
+            'message' => 'Candidate converted to employee successfully',
+            'employeeId' => $employeeId,
+            'userId' => $userId
+        ]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
+
+    } catch (\Exception $e) {
+        $conn->rollBack();
+        $response->getBody()->write(json_encode(['error' => 'An error occurred while converting the candidate: ' . $e->getMessage()]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    }
+})->add(new AuthMiddleware(['admin'], 'employees'));
+
 // Create Employee endpoint
 $app->post('/api/employees', function (Request $request, Response $response, $args) {
     $data = $request->getParsedBody();

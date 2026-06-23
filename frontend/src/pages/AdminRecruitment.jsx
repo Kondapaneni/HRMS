@@ -273,33 +273,25 @@ const AdminRecruitment = () => {
 
   const convertEmployeeMutation = useMutation({
     mutationFn: async () => {
-      // Create employee record
       const empId = `EMP-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
-      const { error: empError } = await supabase.from('employee').insert([{
-        "userId": selectedApp.candidate_id,
-        "employeeId": empId,
-        "firstName": convertData.firstName,
-        "lastName": convertData.lastName,
-        "email": convertData.email,
-        "phone": convertData.phone,
-        "department": convertData.department,
-        "position": convertData.position,
-        "branch": convertData.branch,
-        "joinDate": convertData.joinDate,
-        "salary": parseFloat(convertData.salary),
-        "status": convertData.status.toLowerCase(),
-        "managerId": convertData.managerId || null
-      }]);
-      if (empError) throw empError;
-
-      // Update user role to employee if needed
-      await supabase.from('users').update({ 
-        role: 'employee',
-        "firstName": convertData.firstName,
-        "lastName": convertData.lastName,
+      
+      const payload = {
+        userId: selectedApp.candidate_id,
+        employeeId: empId,
+        firstName: convertData.firstName,
+        lastName: convertData.lastName,
+        email: convertData.email,
+        phone: convertData.phone,
         department: convertData.department,
-        position: convertData.position
-      }).eq('id', selectedApp.candidate_id);
+        position: convertData.position,
+        branch: convertData.branch,
+        joinDate: convertData.joinDate,
+        salary: parseFloat(convertData.salary),
+        status: convertData.status.toLowerCase(),
+        managerId: convertData.managerId || null
+      };
+
+      await api.post('/admin/employees/convert', payload);
     },
     onSuccess: () => {
       const userInfo = candidatesInfo.find(u => u.id === selectedApp.candidate_id);
