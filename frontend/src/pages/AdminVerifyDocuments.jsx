@@ -126,7 +126,7 @@ const AdminVerifyDocuments = () => {
   const selectedDocument = selectedDocType ? getDoc(selectedDocType.id) : null;
 
   return (
-    <div className="max-w-[1600px] mx-auto h-[calc(100vh-6rem)] flex flex-col space-y-4">
+    <div className="max-w-[1600px] mx-auto h-[calc(100dvh-8rem)] flex flex-col space-y-4">
       {/* Header Area */}
       <div className="flex items-center justify-between shrink-0">
         <div className="flex items-center gap-4">
