@@ -49,6 +49,14 @@ const AdminVerifyDocuments = () => {
     initialData: stateApp
   });
 
+  const { data: candidatesInfo = [] } = useQuery({
+    queryKey: ['admin', 'candidates_info'],
+    queryFn: async () => {
+      const res = await api.get('/admin/candidates');
+      return res.data.candidates || [];
+    }
+  });
+
   const { data: documents = [], isLoading: isDocsLoading } = useQuery({
     queryKey: ['admin_documents', application?.candidate_id],
     queryFn: async () => {
@@ -125,6 +133,8 @@ const AdminVerifyDocuments = () => {
   const selectedDocType = documentTypes.find(dt => dt.id === selectedDocTypeId);
   const selectedDocument = selectedDocType ? getDoc(selectedDocType.id) : null;
 
+  const userInfo = candidatesInfo.find(u => u.id === application.candidate_id);
+
   return (
     <div className="max-w-[1600px] mx-auto h-[calc(100dvh-8rem)] flex flex-col space-y-4">
       {/* Header Area */}
@@ -136,7 +146,7 @@ const AdminVerifyDocuments = () => {
           <div>
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Verify Candidate Documents</h1>
             <p className="text-sm font-medium text-slate-500 flex items-center gap-2 mt-0.5">
-              <span className="text-blue-600 font-semibold">{application.users?.firstName || 'Candidate'} {application.users?.lastName || ''}</span>
+              <span className="text-blue-600 font-semibold">{userInfo?.firstName || 'Candidate'} {userInfo?.lastName || ''}</span>
               <span className="text-slate-300">•</span>
               <span>{application.jobs?.title}</span>
             </p>
