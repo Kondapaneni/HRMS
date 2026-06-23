@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../api/supabase';
-import { FileText, UploadCloud, CheckCircle2, AlertCircle, X, Eye, Loader2, Info } from 'lucide-react';
+import { FileText, UploadCloud, CheckCircle2, AlertCircle, X, Eye, Loader2, Info, Lock } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'react-hot-toast';
 
@@ -94,6 +94,11 @@ const DocumentUploadCard = ({ docType, currentDoc, onUpload, isUploading }) => {
               <div {...getRootProps()} className="cursor-pointer p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors" title="Replace File">
                 <input {...getInputProps()} />
                 <UploadCloud size={18} />
+              </div>
+            )}
+            {currentDoc.status === 'verified' && (
+              <div className="p-2 text-emerald-500 bg-emerald-50 rounded-lg cursor-not-allowed transition-colors" title="This document has been verified and is locked">
+                <Lock size={18} />
               </div>
             )}
           </div>

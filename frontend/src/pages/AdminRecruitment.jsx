@@ -65,6 +65,15 @@ const AdminRecruitment = () => {
     }
   });
 
+  const { data: allCandidateDocuments = [] } = useQuery({
+    queryKey: ['admin', 'all_candidate_documents'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('candidate_documents').select('*');
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
   const isLoading = isLoadingJobs || isLoadingApps;
 
   // Job Modal State
