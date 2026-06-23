@@ -203,7 +203,7 @@ const CandidateDocuments = () => {
   const getDoc = (id) => documents.find(d => d.document_type === id);
 
   return (
-    <div className="max-w-4xl mx-auto pb-12">
+    <div className="w-full pb-12">
       <div className="mb-8">
         <h1 className="text-2xl md:text-3xl font-bold text-slate-800">My Documents</h1>
         <p className="text-slate-500 mt-2">Upload your required pre-employment documents securely. Only PDF files are accepted.</p>
