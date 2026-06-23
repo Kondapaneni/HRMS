@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import api from '../api/axios';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import documentVerifiedEmailTemplateHtml from "../../../backend/src/Templates/candidate_documents_verified_email.html?raw";
+import { useAuth } from '../contexts/AuthContext';
 
 const documentTypes = [
   { id: 'signed_offer_letter', label: 'Signed Offer Letter', isRequired: true, isSpecial: true },
@@ -31,6 +32,7 @@ const AdminVerifyDocuments = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
+  const { profile } = useAuth();
   const [selectedDocTypeId, setSelectedDocTypeId] = useState(null);
 
   const stateApp = location.state?.application;
@@ -117,9 +119,21 @@ const AdminVerifyDocuments = () => {
         subject: 'Document Verification Successful',
         body: emailBody
       });
+
+      // Add to timeline
+      await supabase.from('application_timeline').insert({
+        application_id: id,
+        status_change: 'Documents Verified',
+        notes: 'Sent document verification confirmation email to candidate',
+        updated_by: profile?.id
+      });
+
       return res.data;
     },
-    onSuccess: () => toast.success('Email sent to candidate'),
+    onSuccess: () => {
+      toast.success('Email sent to candidate');
+      queryClient.invalidateQueries(['application_timeline', id]);
+    },
     onError: () => toast.error('Failed to send email')
   });
 
