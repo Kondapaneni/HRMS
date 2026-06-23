@@ -361,6 +361,33 @@ $app->post('/api/reset-password', function (Request $request, Response $response
     return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
 });
 
+// Resume proxy route for clean URLs
+$app->get('/Resume/{filename}', function (Request $request, Response $response, $args) {
+    $filename = $args['filename'];
+    
+    $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'];
+    $supabaseUrl = $supabaseUrlBase . "/storage/v1/object/public/resumes/" . rawurlencode($filename);
+    
+    $context = stream_context_create([
+        "http" => [
+            "method" => "GET",
+            "header" => "User-Agent: PHP\r\n"
+        ]
+    ]);
+    
+    $fileContent = @file_get_contents($supabaseUrl, false, $context);
+    
+    if ($fileContent === false) {
+        $response->getBody()->write("Resume not found.");
+        return $response->withStatus(404);
+    }
+    
+    $response->getBody()->write($fileContent);
+    return $response
+        ->withHeader('Content-Type', 'application/pdf')
+        ->withHeader('Content-Disposition', 'inline; filename="' . $filename . '"');
+});
+
 // Job Description proxy route for clean URLs
 $app->get('/Job-Description/{filename}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];

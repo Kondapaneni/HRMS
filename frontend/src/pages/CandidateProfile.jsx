@@ -107,7 +107,8 @@ const CandidateProfile = () => {
 
       try {
         const fileExt = file.name.split('.').pop();
-        const fileName = `resume-${profile?.id || 'new'}-${Math.random()}.${fileExt}`;
+        const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '-');
+        const fileName = `Resume-${Date.now()}-${safeName}`;
 
         const { error: uploadError } = await supabase.storage
           .from('resumes')
@@ -115,13 +116,11 @@ const CandidateProfile = () => {
 
         if (uploadError) throw uploadError;
 
-        const { data } = supabase.storage
-          .from('resumes')
-          .getPublicUrl(fileName);
+        const proxyUrl = window.location.origin + "/Resume/" + fileName;
 
         const newResume = {
           name: file.name,
-          url: data.publicUrl,
+          url: proxyUrl,
           isPrimary: formData.resumes.length === 0
         };
 
