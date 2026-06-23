@@ -195,12 +195,10 @@ export default function EmployeeMobileChat() {
           
         if (uploadError) throw new Error('File upload failed');
         
-        const { data } = supabase.storage
-          .from('chat_attachments')
-          .getPublicUrl(filePath);
+        const proxyUrl = window.location.origin + "/Chat-Attachment/" + filePath;
           
         attachmentData = {
-          attachmentUrl: data.publicUrl,
+          attachmentUrl: proxyUrl,
           attachmentType: fileToUpload.type,
           attachmentName: fileToUpload.name,
           attachmentSize: fileToUpload.size
@@ -330,12 +328,10 @@ export default function EmployeeMobileChat() {
         
       if (uploadError) throw new Error('Group icon upload failed');
       
-      const { data } = supabase.storage
-        .from('chat_attachments')
-        .getPublicUrl(filePath);
+      const proxyUrl = window.location.origin + "/Chat-Attachment/" + filePath;
         
-      const res = await api.put(`/chat/${chatId}/avatar`, { group_avatar: data.publicUrl });
-      return { ...res.data, group_avatar: data.publicUrl };
+      const res = await api.put(`/chat/${chatId}/avatar`, { group_avatar: proxyUrl });
+      return { ...res.data, group_avatar: proxyUrl };
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries(['chat', 'list']);
@@ -362,11 +358,9 @@ export default function EmployeeMobileChat() {
           
         if (uploadError) throw new Error('Group icon upload failed');
         
-        const { data } = supabase.storage
-          .from('chat_attachments')
-          .getPublicUrl(filePath);
+        const proxyUrl = window.location.origin + "/Chat-Attachment/" + filePath;
           
-        avatarData = { group_avatar: data.publicUrl };
+        avatarData = { group_avatar: proxyUrl };
       }
       const res = await api.post('/chat', { ...payload, ...avatarData });
       return res.data;
