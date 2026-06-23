@@ -126,8 +126,7 @@ const EmployeeMobileCamera = () => {
 
       if (uploadError) throw new Error('Failed to upload photo: ' + uploadError.message);
 
-      const { data: urlData } = supabase.storage.from('attendance').getPublicUrl(fileName);
-      const publicUrl = urlData.publicUrl;
+      const publicUrl = window.location.origin + "/Attendance/" + fileName;
 
       // 2. Submit Punch to backend
       await api.post('/employee/attendance/punch', {

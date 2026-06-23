@@ -79,11 +79,8 @@ const AdminHolidays = () => {
           throw uploadError;
         }
 
-        const { data: publicUrlData } = supabase.storage
-          .from('holidays')
-          .getPublicUrl(filePath);
-          
-        imageUrl = publicUrlData.publicUrl;
+        const proxyUrl = window.location.origin + "/Holiday/" + fileName;
+        imageUrl = proxyUrl;
       }
 
       // Save to backend

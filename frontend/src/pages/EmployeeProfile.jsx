@@ -86,11 +86,7 @@ const EmployeeProfile = () => {
 
       if (uploadError) throw uploadError;
 
-      const { data } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
-
-      const avatarUrl = data.publicUrl;
+      const avatarUrl = window.location.origin + "/Avatar/" + fileName;
 
       await api.post('/employee/profile/avatar', { avatar: avatarUrl });
       

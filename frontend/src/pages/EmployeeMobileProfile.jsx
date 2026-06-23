@@ -85,8 +85,8 @@ const EmployeeMobileProfile = () => {
       const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file);
       if (uploadError) throw uploadError;
 
-      const { data } = supabase.storage.from('avatars').getPublicUrl(filePath);
-      await api.post('/employee/profile/avatar', { avatar: data.publicUrl });
+      const avatarUrl = window.location.origin + "/Avatar/" + fileName;
+      await api.post('/employee/profile/avatar', { avatar: avatarUrl });
 
       toast.success('Profile picture updated successfully!');
       queryClient.invalidateQueries(['employee', 'profile']);

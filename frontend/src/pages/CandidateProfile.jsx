@@ -174,11 +174,9 @@ const CandidateProfile = () => {
 
       if (uploadError) throw uploadError;
 
-      const { data } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(fileName);
+      const proxyUrl = window.location.origin + "/Avatar/" + fileName;
 
-      setFormData(prev => ({ ...prev, avatarUrl: data.publicUrl }));
+      setFormData(prev => ({ ...prev, avatarUrl: proxyUrl }));
       toast.success('Profile picture uploaded successfully!');
     } catch (error) {
       toast.error('Failed to upload profile picture');
