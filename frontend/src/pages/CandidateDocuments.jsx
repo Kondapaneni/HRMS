@@ -144,6 +144,22 @@ const CandidateDocuments = () => {
     enabled: !!profile?.id
   });
 
+  const { data: applications = [], isLoading: isLoadingApp } = useQuery({
+    queryKey: ['candidate_applications', profile?.id],
+    queryFn: async () => {
+      if (!profile?.id) return [];
+      const { data, error } = await supabase
+        .from('applications')
+        .select('*')
+        .eq('candidate_id', profile?.id);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!profile?.id
+  });
+
+  const isHired = applications.some(app => app.status === 'Hired' || app.status === 'Selected');
+
   const uploadMutation = useMutation({
     mutationFn: async ({ docTypeId, file }) => {
       const fileExt = file.name.split('.').pop();
@@ -223,14 +239,28 @@ const CandidateDocuments = () => {
   const getDoc = (id) => documents.find(d => d.document_type === id);
 
   return (
-    <div className="w-full pb-12">
-      <div className="mb-8">
+    <div className="w-full pb-12 relative">
+      {!isHired && !isLoadingApp && (
+        <div className="absolute inset-0 z-10 bg-white/60 backdrop-blur-[2px] rounded-2xl flex items-center justify-center -m-4 p-4">
+          <div className="bg-white border border-slate-200 shadow-xl rounded-2xl p-8 max-w-md text-center transform -translate-y-8">
+            <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Lock size={32} />
+            </div>
+            <h2 className="text-xl font-bold text-slate-800 mb-2">Document Portal Locked</h2>
+            <p className="text-slate-500 mb-6 leading-relaxed">
+              You can only upload pre-employment documents once you have been offered a position. Please check your applications dashboard for updates.
+            </p>
+          </div>
+        </div>
+      )}
+
+      <div className={`mb-8 ${!isHired && !isLoadingApp ? 'opacity-40 select-none' : ''}`}>
         <h1 className="text-2xl md:text-3xl font-bold text-slate-800">My Documents</h1>
         <p className="text-slate-500 mt-2">Upload your required pre-employment documents securely. Only PDF files are accepted.</p>
       </div>
 
       {/* Special Offer Letter Section */}
-      <div className="mb-10">
+      <div className={`mb-10 ${!isHired && !isLoadingApp ? 'opacity-40 select-none pointer-events-none' : ''}`}>
         <div className="flex items-center gap-2 mb-4">
           <FileText className="text-blue-600" size={24} />
           <h2 className="text-xl font-bold text-slate-800">Offer Letter Acceptance</h2>
@@ -243,7 +273,7 @@ const CandidateDocuments = () => {
         />
       </div>
 
-      <div className="grid md:grid-cols-2 gap-8">
+      <div className={`grid md:grid-cols-2 gap-8 ${!isHired && !isLoadingApp ? 'opacity-40 select-none pointer-events-none' : ''}`}>
         {/* Required Documents */}
         <div>
           <div className="flex items-center gap-2 mb-4">
