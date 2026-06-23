@@ -37,11 +37,26 @@ const CandidateLayout = () => {
     }
   };
 
+  const { data: applications = [] } = useQuery({
+    queryKey: ['candidate_applications_status', profile?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('applications')
+        .select('status')
+        .eq('candidate_id', profile.id);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!profile?.id
+  });
+
+  const isHired = applications.some(app => app.status === 'Hired' || app.status === 'Selected');
+
   const navItems = [
     { label: 'Dashboard', icon: <Home size={18} />, path: '/candidate/dashboard' },
     { label: 'Jobs', icon: <Briefcase size={18} />, path: '/candidate/jobs' },
     { label: 'Applications', icon: <FileText size={18} />, path: '/candidate/applications' },
-    { label: 'Documents', icon: <Folder size={18} />, path: '/candidate/documents' },
+    ...(isHired ? [{ label: 'Documents', icon: <Folder size={18} />, path: '/candidate/documents' }] : []),
     { label: 'Profile', icon: <User size={18} />, path: '/candidate/profile' }
   ];
 
