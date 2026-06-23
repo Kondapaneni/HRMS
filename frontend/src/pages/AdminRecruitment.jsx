@@ -607,6 +607,8 @@ const AdminRecruitment = () => {
                   const nextInterviewRound = getNextInterviewRound(status);
                   const appProfile = candidateProfiles.find(p => p.user_id === app.candidate_id);
                   const userInfo = candidatesInfo.find(u => u.id === app.candidate_id);
+                  const candidateDocs = allCandidateDocuments.filter(d => d.candidate_id === app.candidate_id);
+                  const pendingDocsCount = candidateDocs.filter(d => d.status === 'pending').length;
                   
                   return (
                     <div key={app.id} className="rounded-lg border border-slate-200 bg-white shadow-sm p-6 space-y-4">
@@ -617,6 +619,11 @@ const AdminRecruitment = () => {
                             <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${getStatusColor(status)}`}>
                               {status}
                             </span>
+                            {pendingDocsCount > 0 && (
+                              <span className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 text-amber-700 px-2.5 py-0.5 text-xs font-bold shadow-sm" title={`${pendingDocsCount} document(s) waiting for verification`}>
+                                <FileText size={12} className="mr-1.5 opacity-70" /> {pendingDocsCount} Docs Pending
+                              </span>
+                            )}
                           </div>
                           <p className="text-sm text-slate-500">{app.jobs?.title} • {app.jobs?.department}</p>
                         </div>
