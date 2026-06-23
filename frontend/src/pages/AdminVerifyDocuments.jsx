@@ -5,6 +5,7 @@ import { X, CheckCircle2, XCircle, Eye, Loader2, FileText, AlertCircle, Send, Ar
 import toast from 'react-hot-toast';
 import api from '../api/axios';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import documentVerifiedEmailTemplateHtml from "../../../backend/src/Templates/candidate_documents_verified_email.html?raw";
 
 const documentTypes = [
   { id: 'signed_offer_letter', label: 'Signed Offer Letter', isRequired: true, isSpecial: true },
@@ -101,10 +102,20 @@ const AdminVerifyDocuments = () => {
 
   const sendEmailMutation = useMutation({
     mutationFn: async () => {
+      const userInfo = candidatesInfo.find(u => u.id === application?.candidate_id);
+      const frontendUrl = window.location.origin;
+      const dashboardLink = frontendUrl + "/candidate/applications";
+      
+      const emailBody = documentVerifiedEmailTemplateHtml
+        .replace(/{{firstName}}/g, userInfo?.firstName || 'Candidate')
+        .replace(/{{jobTitle}}/g, application?.jobs?.title || 'the')
+        .replace(/{{dashboardLink}}/g, dashboardLink)
+        .replace(/{{currentYear}}/g, new Date().getFullYear().toString());
+
       const res = await api.post('/admin/send-email', {
-        to: application?.users?.email,
-        subject: 'All Documents Verified Successfully',
-        body: `<p>Dear Candidate,</p><p>We have successfully reviewed and verified all your submitted documents. Welcome aboard!</p>`
+        to: userInfo?.email || application?.users?.email,
+        subject: 'Document Verification Successful',
+        body: emailBody
       });
       return res.data;
     },
