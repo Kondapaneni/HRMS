@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '../../api/supabase';
+import { supabase } from '../api/supabase';
 import { X, CheckCircle2, XCircle, Eye, Loader2, FileText, AlertCircle, Send } from 'lucide-react';
 import toast from 'react-hot-toast';
-import api from '../../api/axios';
+import api from '../api/axios';
 
 const documentTypes = [
   { id: 'signed_offer_letter', label: 'Signed Offer Letter', isRequired: true, isSpecial: true },
