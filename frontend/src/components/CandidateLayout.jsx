@@ -153,7 +153,7 @@ const CandidateLayout = () => {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 md:pt-32 relative z-10 pb-24 md:pb-8 overflow-y-auto overscroll-y-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
+      <main className="flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 md:pt-32 pb-24 md:pb-8 overflow-y-auto overscroll-y-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
         <Outlet />
       </main>
 

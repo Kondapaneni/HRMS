@@ -160,7 +160,7 @@ const CandidateApplications = () => {
       </div>
       {/* Timeline Modal */}
       {isTimelineModalOpen && timelineApp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 overflow-y-auto">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl my-auto">
             <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-start bg-slate-50 rounded-t-lg">
               <div>
