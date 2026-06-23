@@ -152,7 +152,22 @@ const CandidateDocuments = () => {
 
       const proxyUrl = window.location.origin + "/Candidate-Document/" + filePath;
 
-      // Delete existing
+      // Delete existing from storage and DB
+      const { data: existingDoc } = await supabase
+        .from('candidate_documents')
+        .select('*')
+        .eq('candidate_id', profile.id)
+        .eq('document_type', docTypeId)
+        .maybeSingle();
+
+      if (existingDoc && existingDoc.file_path) {
+        const parts = existingDoc.file_path.split('/Candidate-Document/');
+        if (parts.length > 1) {
+          const oldStoragePath = parts[1];
+          await supabase.storage.from('candidate_documents').remove([oldStoragePath]);
+        }
+      }
+
       await supabase.from('candidate_documents').delete().match({ candidate_id: profile.id, document_type: docTypeId });
       
       // Insert new
