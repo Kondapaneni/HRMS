@@ -365,13 +365,7 @@ $app->post('/api/reset-password', function (Request $request, Response $response
 $app->get('/Job-Description/{filename}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];
     
-    // Dynamically resolve Supabase URL without hardcoding
-    $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'] ?? $_ENV['SUPABASE_URL'] ?? null;
-    if (!$supabaseUrlBase && isset($_ENV['DB_HOST'])) {
-        $parts = explode('.', $_ENV['DB_HOST']);
-        $supabaseUrlBase = "https://" . $parts[1] . ".supabase.co";
-    }
-    
+    $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'];
     $supabaseUrl = $supabaseUrlBase . "/storage/v1/object/public/job_descriptions/" . rawurlencode($filename);
     
     $context = stream_context_create([
@@ -398,13 +392,7 @@ $app->get('/Job-Description/{filename}', function (Request $request, Response $r
 $app->get('/Offer-Letter/{filename}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];
     
-    // Dynamically resolve Supabase URL without hardcoding
-    $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'] ?? $_ENV['SUPABASE_URL'] ?? null;
-    if (!$supabaseUrlBase && isset($_ENV['DB_HOST'])) {
-        $parts = explode('.', $_ENV['DB_HOST']);
-        $supabaseUrlBase = "https://" . $parts[1] . ".supabase.co";
-    }
-    
+    $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'];
     $supabaseUrl = $supabaseUrlBase . "/storage/v1/object/public/offer_letters/" . rawurlencode($filename);
     
     $context = stream_context_create([
