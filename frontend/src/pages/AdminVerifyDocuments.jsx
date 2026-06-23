@@ -136,7 +136,7 @@ const AdminVerifyDocuments = () => {
           <div>
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Verify Candidate Documents</h1>
             <p className="text-sm font-medium text-slate-500 flex items-center gap-2 mt-0.5">
-              <span className="text-blue-600 font-semibold">{application.users?.first_name || 'Candidate'} {application.users?.last_name || ''}</span>
+              <span className="text-blue-600 font-semibold">{application.users?.firstName || 'Candidate'} {application.users?.lastName || ''}</span>
               <span className="text-slate-300">•</span>
               <span>{application.jobs?.title}</span>
             </p>
