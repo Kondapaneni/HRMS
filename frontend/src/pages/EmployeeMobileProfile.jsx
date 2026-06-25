@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   User, Mail, Phone, MapPin, Briefcase, CalendarDays, Building2,
   Shield, CreditCard, Heart, HeartHandshake, Globe, Clock3, Laptop,
-  Calendar, Clock, UserCheck, Camera, ChevronRight, FileText, ChevronLeft,
+  Calendar, Clock, UserCheck, Users, Camera, ChevronRight, FileText, ChevronLeft,
   Loader2, X, Save
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -172,6 +172,7 @@ const EmployeeMobileProfile = () => {
     { id: 'work', label: 'Work Information', icon: Briefcase, color: 'text-purple-500', bg: 'bg-purple-50' },
     { id: 'shift', label: 'Work Shift', icon: Clock3, color: 'text-orange-500', bg: 'bg-orange-50' },
     { id: 'emergency', label: 'Emergency Contact', icon: Shield, color: 'text-rose-500', bg: 'bg-rose-50' },
+    { id: 'my-team', label: 'My Team', icon: Users, color: 'text-cyan-500', bg: 'bg-cyan-50' },
     { id: 'assets', label: 'My Assets', icon: Laptop, color: 'text-teal-500', bg: 'bg-teal-50' },
     { id: 'timeline', label: 'Timeline', icon: Clock, color: 'text-indigo-500', bg: 'bg-indigo-50' }
   ];
@@ -187,6 +188,26 @@ const EmployeeMobileProfile = () => {
       </div>
     </div>
   );
+
+  const TeamMemberCard = ({ employee }) => {
+    if (!employee) return null;
+    const initial = `${(employee.firstName || '').charAt(0)}${(employee.lastName || '').charAt(0)}`.toUpperCase() || 'U';
+    return (
+      <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+        <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shrink-0 overflow-hidden font-bold text-slate-400 border border-slate-200 shadow-sm">
+          {employee.avatar ? (
+            <img src={employee.avatar} alt="Avatar" className="w-full h-full object-cover" />
+          ) : (
+            <span>{initial}</span>
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold text-slate-800 truncate">{employee.firstName} {employee.lastName}</p>
+          <p className="text-[11px] font-medium text-slate-500 truncate mt-0.5">{employee.position || 'Employee'}</p>
+        </div>
+      </div>
+    );
+  };
 
   // Render Section Content
   const renderContent = () => {
@@ -232,6 +253,44 @@ const EmployeeMobileProfile = () => {
           <div className="space-y-3">
             <DetailItem icon={User} label="Contact Name" value={emergencyContact} />
             <DetailItem icon={Phone} label="Contact Phone" value={emergencyPhone} />
+          </div>
+        );
+      case 'my-team':
+        return (
+          <div className="space-y-6">
+            {!teamData ? (
+              <div className="text-center py-8 bg-slate-50 rounded-xl border border-slate-100">
+                <Users className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+                <p className="text-sm text-slate-500 font-medium">No team data available</p>
+              </div>
+            ) : (
+              <>
+                {teamData.manager && (
+                  <div className="space-y-3">
+                    <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest pl-1">Reporting Manager</h4>
+                    <TeamMemberCard employee={teamData.manager} />
+                  </div>
+                )}
+                
+                {teamData.peers?.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest pl-1">Peers</h4>
+                    <div className="space-y-3">
+                      {teamData.peers.map(peer => <TeamMemberCard key={peer.id} employee={peer} />)}
+                    </div>
+                  </div>
+                )}
+
+                {teamData.subordinates?.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest pl-1">Direct Reports</h4>
+                    <div className="space-y-3">
+                      {teamData.subordinates.map(sub => <TeamMemberCard key={sub.id} employee={sub} />)}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         );
       case 'assets':

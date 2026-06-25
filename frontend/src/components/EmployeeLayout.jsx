@@ -21,7 +21,7 @@ const EmployeeLayout = () => {
     const touch = e.touches[0];
     const element = document.elementFromPoint(touch.clientX, touch.clientY);
     if (!element) return;
-    
+
     const navItem = element.closest('[data-nav-path]');
     if (navItem) {
       const path = navItem.getAttribute('data-nav-path');
@@ -204,13 +204,21 @@ const EmployeeLayout = () => {
         {/* Top Header - Minimalist */}
         <header className="h-14 shrink-0 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 flex items-center justify-between md:justify-end sticky top-0 z-40 md:relative md:z-10">
           <div className="flex items-center gap-5 flex-row-reverse md:flex-row">
-            <button className="relative text-slate-500 hover:text-slate-700 transition-colors">
+            <button
+              className="relative text-slate-500 hover:text-slate-700 transition-colors"
+              onClick={() => navigate('/employee/chat/mobile')}
+            >
               <Bell size={20} />
+              {totalUnread > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 bg-[#25d366] text-white text-[9px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-1 border-2 border-white">
+                  {totalUnread}
+                </span>
+              )}
             </button>
 
             <div className="h-6 w-px bg-slate-200"></div>
 
-            <div 
+            <div
               className="flex items-center gap-3 cursor-pointer group"
               onClick={() => {
                 if (window.innerWidth < 768) {
@@ -249,7 +257,7 @@ const EmployeeLayout = () => {
         </div>
 
         {/* Mobile Bottom Navigation (iOS Liquid Glass) */}
-        <div 
+        <div
           className="md:hidden fixed bottom-6 left-4 right-4 z-50 pointer-events-none touch-none select-none"
           onTouchStart={handleTouchMove}
           onTouchMove={handleTouchMove}
@@ -268,9 +276,9 @@ const EmployeeLayout = () => {
               const Icon = item.icon;
 
               return (
-                <Link 
-                  key={item.path} 
-                  to={item.path} 
+                <Link
+                  key={item.path}
+                  to={item.path}
                   data-nav-path={item.path}
                   onClick={(e) => {
                     if (swipePath) e.preventDefault();
@@ -298,7 +306,7 @@ const EmployeeLayout = () => {
       <AnimatePresence>
         {showLogoutModal && (
           <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 sm:p-0">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -329,7 +337,7 @@ const EmployeeLayout = () => {
                 <p className="text-slate-500 text-sm mb-6 px-2">
                   Are you sure you want to log out of your account? You will need to sign in again.
                 </p>
-                
+
                 <div className="flex w-full gap-3">
                   <button
                     onClick={() => setShowLogoutModal(false)}
