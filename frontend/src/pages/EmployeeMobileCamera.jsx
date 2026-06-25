@@ -17,6 +17,7 @@ const EmployeeMobileCamera = () => {
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
+  const streamRef = useRef(null);
 
   const [stream, setStream] = useState(null);
   const [photoDataUrl, setPhotoDataUrl] = useState(null);
@@ -33,14 +34,15 @@ const EmployeeMobileCamera = () => {
   const startCamera = useCallback(async () => {
     try {
       setCameraError('');
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
       }
       const newStream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'user' },
         audio: false
       });
       setStream(newStream);
+      streamRef.current = newStream;
       if (videoRef.current) {
         videoRef.current.srcObject = newStream;
       }
@@ -48,17 +50,17 @@ const EmployeeMobileCamera = () => {
       console.error("Camera access error:", err);
       setCameraError('Unable to access camera. Please check permissions.');
     }
-  }, [stream]);
+  }, []);
 
   // Start camera on mount
   useEffect(() => {
     startCamera();
     return () => {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
       }
     };
-  }, []);
+  }, [startCamera]);
 
   const capturePhoto = () => {
     if (!videoRef.current || !canvasRef.current) return;
@@ -80,8 +82,9 @@ const EmployeeMobileCamera = () => {
     setPhotoDataUrl(dataUrl);
 
     // Stop tracks to save battery
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
       setStream(null);
     }
   };
