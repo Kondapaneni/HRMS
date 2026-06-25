@@ -82,8 +82,7 @@ const AdminPayroll = () => {
   const handleDownload = async (payslip) => {
     try {
       const blob = await pdf(<PayslipPDF payslip={payslip} />).toBlob();
-      const downloadBlob = new Blob([blob], { type: 'application/octet-stream' });
-      const url = URL.createObjectURL(downloadBlob);
+      const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.download = `${payslip.employeeName.replace(/[^a-zA-Z0-9 _-]/g, '')} - Payslip - ${getMonthName(payslip.month)} ${payslip.year}.pdf`;
