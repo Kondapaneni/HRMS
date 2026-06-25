@@ -41,8 +41,11 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    // Initial load
-    fetchProfile().then(() => {
+    // Initial load - Ensure splash screen shows for at least 2.5 seconds for animation
+    Promise.all([
+      fetchProfile(),
+      new Promise(resolve => setTimeout(resolve, 2500))
+    ]).then(() => {
       setLoading(false);
     });
   }, [fetchProfile]);
