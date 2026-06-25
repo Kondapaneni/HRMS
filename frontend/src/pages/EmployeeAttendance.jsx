@@ -3,6 +3,7 @@ import { Calendar, Clock, LogIn, LogOut, Search, AlertCircle } from 'lucide-reac
 import api from '../api/axios';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../contexts/AuthContext';
+import toast from 'react-hot-toast';
 
 import EmployeeMobileAttendance from './EmployeeMobileAttendance';
 
@@ -57,7 +58,8 @@ const EmployeeAttendance = () => {
     mutationFn: async (payload) => {
       return api.post('/employee/attendance/punch', payload);
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
+      toast.success(`Successfully ${variables.action.replace('-', ' ')}ed!`);
       queryClient.invalidateQueries({
         queryKey: ['employee', 'attendance']
       });
@@ -70,7 +72,9 @@ const EmployeeAttendance = () => {
 
   const handlePunch = async (action) => {
     if (!navigator.geolocation) {
-      setError('Geolocation is not supported by your browser.');
+      const errorMsg = 'Geolocation is not supported by your browser.';
+      setError(errorMsg);
+      toast.error(errorMsg);
       return;
     }
 
@@ -92,13 +96,17 @@ const EmployeeAttendance = () => {
           });
         } catch (err) {
           console.error(err);
-          setError(err.response?.data?.error || `Failed to ${action}.`);
+          const errorMsg = err.response?.data?.error || `Failed to ${action}.`;
+          setError(errorMsg);
+          toast.error(errorMsg);
         } finally {
           setPunchingAction(null);
         }
       },
       (error) => {
-        setError('Unable to read your location. Please allow location access to check in/out.');
+        const errorMsg = 'Unable to read your location. Please allow location access to check in/out.';
+        setError(errorMsg);
+        toast.error(errorMsg);
         setPunchingAction(null);
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 120000 }
