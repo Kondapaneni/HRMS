@@ -203,7 +203,7 @@ const ResetPassword = () => {
                 </div>
 
                 {/* Password Strength Indicator */}
-                {newPassword.length > 0 && (
+                {newPassword.length > 0 && !isPasswordValid && (
                   <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mt-4">
                     <div className="flex gap-2 mb-2 h-2">
                       {[1, 2, 3, 4, 5].map((level) => (
