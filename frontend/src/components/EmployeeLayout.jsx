@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import {
   LogOut, User, Calendar, Users, Briefcase, Monitor,
-  Home, Clock, BarChart2, DollarSign, Activity, Bell, Search, Menu, Wallet, MessageSquare
+  Home, Clock, BarChart2, DollarSign, Activity, Bell, Search, Menu, Wallet, MessageSquare,
+  Smartphone
 } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -351,6 +352,40 @@ const EmployeeLayout = () => {
           </div>
         )}
       </AnimatePresence>
+
+      <style>{`
+        .orientation-warning {
+          display: none;
+        }
+        @media (orientation: landscape) and (max-width: 1024px) {
+          .orientation-warning {
+            display: flex;
+          }
+        }
+      `}</style>
+
+      {/* Landscape Orientation Warning Overlay for Mobile/Tablet */}
+      <div className="orientation-warning fixed inset-0 z-[9999] flex-col items-center justify-center bg-slate-950/95 backdrop-blur-md p-6 text-center select-none">
+        <div className="relative mb-6">
+          {/* Animated phone rotation container */}
+          <div className="w-20 h-20 border-2 border-dashed border-white/20 rounded-full flex items-center justify-center animate-[spin_8s_linear_infinite]">
+            <Smartphone className="w-8 h-8 text-blue-400 opacity-20" />
+          </div>
+          {/* Main phone rotation icon */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <motion.div
+              animate={{ rotate: [0, -90, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <Smartphone className="w-10 h-10 text-white" />
+            </motion.div>
+          </div>
+        </div>
+        <h3 className="text-xl font-bold text-white mb-2">Rotate your device</h3>
+        <p className="text-slate-400 text-sm max-w-xs">
+          Please rotate your screen back to portrait orientation for the best Acme HRMS experience.
+        </p>
+      </div>
 
     </div>
   );
