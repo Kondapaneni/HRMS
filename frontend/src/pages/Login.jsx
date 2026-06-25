@@ -149,7 +149,7 @@ const Login = () => {
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 0.2, type: "spring", bounce: 0.4 }}
-          className="w-full max-w-md relative z-10"
+          className="w-full max-w-md relative z-10 mb-20 sm:mb-28 lg:mb-0"
         >
           <div className="bg-white border-[3px] border-[#1E1B4B] rounded-2xl p-8 sm:p-10 relative overflow-visible">
 
