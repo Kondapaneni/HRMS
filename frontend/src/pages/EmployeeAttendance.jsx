@@ -1,15 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { Calendar, Clock, LogIn, LogOut, Search } from 'lucide-react';
+import { Calendar, Clock, LogIn, LogOut, Search, AlertCircle } from 'lucide-react';
 import api from '../api/axios';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '../contexts/AuthContext';
 
 import EmployeeMobileAttendance from './EmployeeMobileAttendance';
 
 const EmployeeAttendance = () => {
+  const { profile } = useAuth();
   const queryClient = useQueryClient();
   const [error, setError] = useState(null);
   const [punchingAction, setPunchingAction] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date());
+
+  const isWebAttendanceEnabled = profile?.webAttendanceEnabled == 1 || profile?.webAttendanceEnabled === true || profile?.webAttendanceEnabled === '1' || profile?.webAttendanceEnabled === 'true';
 
   // Filters
   const [searchDate, setSearchDate] = useState('');
@@ -232,33 +236,42 @@ const EmployeeAttendance = () => {
               )}
             </div>
 
-            <div className="flex flex-wrap justify-center gap-3">
-              <button
-                onClick={() => handlePunch('check-in')}
-                disabled={punchingAction || checkedIn || checkOutTime || isOnLeaveToday}
-                className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-11 px-6 min-w-[140px] disabled:opacity-50 transition-colors"
-              >
-                <LogIn className="mr-2 h-4 w-4" />
-                {punchingAction === 'check-in' ? 'Checking In...' : 'Check In'}
-              </button>
+            <div className="flex flex-wrap justify-center gap-3 w-full sm:w-auto">
+              {!isWebAttendanceEnabled ? (
+                <div className="w-full flex items-center justify-center p-3 bg-red-50 text-red-600 rounded-lg border border-red-100 text-sm font-medium shadow-sm">
+                  <AlertCircle size={16} className="mr-2 shrink-0" />
+                  Web Attendance is Disabled for You. Please use the Mobile App.
+                </div>
+              ) : (
+                <>
+                  <button
+                    onClick={() => handlePunch('check-in')}
+                    disabled={punchingAction || checkedIn || checkOutTime || isOnLeaveToday}
+                    className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-11 px-6 min-w-[140px] disabled:opacity-50 transition-colors"
+                  >
+                    <LogIn className="mr-2 h-4 w-4" />
+                    {punchingAction === 'check-in' ? 'Checking In...' : 'Check In'}
+                  </button>
 
-              <button
-                onClick={() => handlePunch('punch')}
-                disabled={punchingAction || !checkedIn || checkOutTime || isOnLeaveToday}
-                className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-11 px-6 min-w-[140px] disabled:opacity-50 transition-colors"
-              >
-                <Clock className="mr-2 h-4 w-4" />
-                {punchingAction === 'punch' ? 'Punching...' : 'Punch'}
-              </button>
+                  <button
+                    onClick={() => handlePunch('punch')}
+                    disabled={punchingAction || !checkedIn || checkOutTime || isOnLeaveToday}
+                    className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-11 px-6 min-w-[140px] disabled:opacity-50 transition-colors"
+                  >
+                    <Clock className="mr-2 h-4 w-4" />
+                    {punchingAction === 'punch' ? 'Punching...' : 'Punch'}
+                  </button>
 
-              <button
-                onClick={() => handlePunch('check-out')}
-                disabled={punchingAction || !checkedIn || checkOutTime || isOnLeaveToday}
-                className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-11 px-6 min-w-[140px] disabled:opacity-50 transition-colors"
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                {punchingAction === 'check-out' ? 'Checking Out...' : 'Check Out'}
-              </button>
+                  <button
+                    onClick={() => handlePunch('check-out')}
+                    disabled={punchingAction || !checkedIn || checkOutTime || isOnLeaveToday}
+                    className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-11 px-6 min-w-[140px] disabled:opacity-50 transition-colors"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    {punchingAction === 'check-out' ? 'Checking Out...' : 'Check Out'}
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
