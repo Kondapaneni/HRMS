@@ -55,7 +55,8 @@ const EmployeePayroll = () => {
       };
       
       const blob = await pdf(<PayslipPDF payslip={formattedPayslip} />).toBlob();
-      const url = URL.createObjectURL(blob);
+      const downloadBlob = new Blob([blob], { type: 'application/octet-stream' });
+      const url = URL.createObjectURL(downloadBlob);
       const link = document.createElement('a');
       link.href = url;
       link.download = `${formattedPayslip.employeeName.replace(/[^a-zA-Z0-9 _-]/g, '')} - Payslip - ${getMonthYearString(payslip.month, payslip.year)}.pdf`;
