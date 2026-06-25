@@ -4,6 +4,8 @@ import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axios';
+import { pdf } from '@react-pdf/renderer';
+import PayslipPDF from '../components/PayslipPDF';
 
 const EmployeeMobilePayroll = ({ profile }) => {
   const { data: payslips = [], isLoading: loading } = useQuery({
@@ -56,6 +58,29 @@ const EmployeeMobilePayroll = ({ profile }) => {
   const getMonthYearString = (month, year) => {
     const date = new Date(year, month - 1, 1);
     return date.toLocaleString('default', { month: 'short', year: 'numeric' });
+  };
+
+  const handleDownload = async (payslip) => {
+    try {
+      const formattedPayslip = {
+        ...payslip,
+        employeeName: payslip.employeeName || `${profile?.firstName || ''} ${profile?.lastName || ''}`.trim() || 'Employee',
+        employeeCode: payslip.employeeCode || payslip.details?.employeeNumber || profile?.employeeId || 'N/A'
+      };
+      
+      const blob = await pdf(<PayslipPDF payslip={formattedPayslip} />).toBlob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${formattedPayslip.employeeName.replace(/[^a-zA-Z0-9 _-]/g, '')} - Payslip - ${getMonthYearString(payslip.month, payslip.year)}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Error generating PDF:', err);
+      toast.error('Failed to generate PDF document.');
+    }
   };
 
   return (
@@ -290,7 +315,7 @@ const EmployeeMobilePayroll = ({ profile }) => {
                 </div>
 
                 <button 
-                  onClick={() => toast.success("Downloading PDF...")}
+                  onClick={() => handleDownload(selectedPayslip)}
                   className="w-full bg-[#84dcc6] text-slate-900 font-bold text-sm py-4 rounded-[16px] flex justify-center items-center gap-2 active:scale-[0.98] transition-all shadow-sm"
                 >
                   <Download className="w-5 h-5" />
