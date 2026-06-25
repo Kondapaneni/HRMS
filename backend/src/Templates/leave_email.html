@@ -1,62 +1,174 @@
-<table width="100%" cellpadding="0" cellspacing="0"
-  style="font-family: 'Inter', Arial, sans-serif; background-color: #f8fafc; padding: 0 0 40px 0; color: #333; margin: 0; width: 100%;">
+<table
+  width="100%"
+  cellpadding="0"
+  cellspacing="0"
+  style="
+    font-family: &quot;Inter&quot;, Arial, sans-serif;
+    background-color: #f8fafc;
+    padding: 0 0 40px 0;
+    color: #333;
+    margin: 0;
+    width: 100%;
+  "
+>
   <tr>
     <td align="center">
-
-      <table width="100%" cellpadding="0" cellspacing="0"
-        style="max-width: 500px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
+      <table
+        width="100%"
+        cellpadding="0"
+        cellspacing="0"
+        style="
+          max-width: 500px;
+          margin: 0 auto;
+          background-color: #ffffff;
+          border-radius: 16px;
+          overflow: hidden;
+          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        "
+      >
         <tr>
-          <td align="center" style="background-color: #0f172a; padding: 40px 20px 40px 20px;">
+          <td
+            align="center"
+            style="background-color: #0f172a; padding: 40px 20px 40px 20px"
+          >
             <p
-              style="color: #cbd5e1; margin: 0 0 6px 0; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; font-weight: bold;">
-              Leave Request</p>
-            <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 900; letter-spacing: -0.5px;">Hello,
-              {{employeeName}}</h1>
-            <p style="color: #e2e8f0; margin: 6px 0 0 0; font-size: 14px;">Acme HRMS</p>
+              style="
+                color: #cbd5e1;
+                margin: 0 0 6px 0;
+                font-size: 11px;
+                text-transform: uppercase;
+                letter-spacing: 2px;
+                font-weight: bold;
+              "
+            >
+              Leave Request
+            </p>
+            <h1
+              style="
+                color: #ffffff;
+                margin: 0;
+                font-size: 28px;
+                font-weight: 900;
+                letter-spacing: -0.5px;
+              "
+            >
+              Hello, {{employeeName}}
+            </h1>
+            <p style="color: #e2e8f0; margin: 6px 0 0 0; font-size: 14px">
+              Acme HRMS
+            </p>
           </td>
         </tr>
         <tr>
-          <td style="padding: 30px; text-align: left;">
-
-            <div style="padding-bottom: 15px; border-bottom: 1px solid #f1f5f9; margin-bottom: 25px;">
-              <h2 style="font-size: 18px; font-weight: bold; color: #0f172a; margin: 0;">Request Status: <span
-                  style="color: inherit; /* statusColor */">{{status}}</span></h2>
+          <td style="padding: 30px; text-align: left">
+            <div
+              style="
+                padding-bottom: 15px;
+                border-bottom: 1px solid #f1f5f9;
+                margin-bottom: 25px;
+              "
+            >
+              <h2
+                style="
+                  font-size: 18px;
+                  font-weight: bold;
+                  color: #0f172a;
+                  margin: 0;
+                "
+              >
+                Request Status:
+                <span style="color: inherit; /* statusColor */"
+                  >{{status}}</span
+                >
+              </h2>
               <p
-                style="font-size: 11px; font-weight: 500; color: #64748b; margin: 5px 0 0 0; text-transform: uppercase; letter-spacing: 1px;">
-                Leave Details</p>
+                style="
+                  font-size: 11px;
+                  font-weight: 500;
+                  color: #64748b;
+                  margin: 5px 0 0 0;
+                  text-transform: uppercase;
+                  letter-spacing: 1px;
+                "
+              >
+                Leave Details
+              </p>
             </div>
 
-            <p style="font-size: 15px; line-height: 1.6; color: #475569; margin-top: 0;">Your recent leave request has
-              been reviewed. Here are the details of your request.</p>
+            <p
+              style="
+                font-size: 15px;
+                line-height: 1.6;
+                color: #475569;
+                margin-top: 0;
+              "
+            >
+              Your recent leave request has been reviewed. Here are the details
+              of your request.
+            </p>
 
             <div
-              style="margin: 30px 0; padding: 20px 0; border-top: 1px dashed #cbd5e1; border-bottom: 1px dashed #cbd5e1;">
-              <div style="margin-bottom: 16px;">
+              style="
+                margin: 30px 0;
+                padding: 20px 0;
+                border-top: 1px dashed #cbd5e1;
+                border-bottom: 1px dashed #cbd5e1;
+              "
+            >
+              <div style="margin-bottom: 16px">
                 <span
-                  style="font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 4px;">Leave
-                  Type</span>
-                <span style="font-size: 16px; font-weight: bold; color: #0f172a;">{{leaveType}}</span>
+                  style="
+                    font-size: 12px;
+                    font-weight: bold;
+                    color: #64748b;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                    display: block;
+                    margin-bottom: 4px;
+                  "
+                  >Leave Type</span
+                >
+                <span style="font-size: 16px; font-weight: bold; color: #0f172a"
+                  >{{leaveType}}</span
+                >
               </div>
               <div>
                 <span
-                  style="font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 4px;">Date
-                  Range</span>
-                <span style="font-size: 16px; font-weight: bold; color: #0f172a;">{{startDate}} to {{endDate}}</span>
+                  style="
+                    font-size: 12px;
+                    font-weight: bold;
+                    color: #64748b;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                    display: block;
+                    margin-bottom: 4px;
+                  "
+                  >Date Range</span
+                >
+                <span style="font-size: 16px; font-weight: bold; color: #0f172a"
+                  >{{startDate}} to {{endDate}}</span
+                >
               </div>
             </div>
-
           </td>
         </tr>
       </table>
 
-      <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 500px; margin: 0 auto;">
+      <table
+        width="100%"
+        cellpadding="0"
+        cellspacing="0"
+        style="max-width: 500px; margin: 0 auto"
+      >
         <tr>
-          <td align="center" style="padding: 30px 20px 0 20px; color: #94a3b8; font-size: 12px;">
+          <td
+            align="center"
+            style="padding: 30px 20px 0 20px; color: #94a3b8; font-size: 12px"
+          >
             &copy; {{currentYear}} Acme HRMS. All rights reserved.
           </td>
         </tr>
       </table>
-
     </td>
   </tr>
 </table>

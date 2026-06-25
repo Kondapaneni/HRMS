@@ -1,14 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../contexts/AuthContext";
 import {
-  LogOut, User, Calendar, Users, Briefcase, Monitor,
-  Home, Clock, BarChart2, DollarSign, Activity, Bell, Search, Menu, Wallet, MessageSquare,
-  Smartphone
-} from 'lucide-react';
-import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { motion, AnimatePresence } from 'framer-motion';
-import api from '../api/axios';
+  LogOut,
+  User,
+  Calendar,
+  Users,
+  Briefcase,
+  Monitor,
+  Home,
+  Clock,
+  BarChart2,
+  DollarSign,
+  Activity,
+  Bell,
+  Search,
+  Menu,
+  Wallet,
+  MessageSquare,
+  Smartphone,
+} from "lucide-react";
+import { useNavigate, useLocation, Outlet, Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { motion, AnimatePresence } from "framer-motion";
+import api from "../api/axios";
 
 const EmployeeLayout = () => {
   const { profile, signOut } = useAuth();
@@ -21,10 +35,10 @@ const EmployeeLayout = () => {
     const touch = e.touches[0];
     const element = document.elementFromPoint(touch.clientX, touch.clientY);
     if (!element) return;
-    
-    const navItem = element.closest('[data-nav-path]');
+
+    const navItem = element.closest("[data-nav-path]");
     if (navItem) {
-      const path = navItem.getAttribute('data-nav-path');
+      const path = navItem.getAttribute("data-nav-path");
       if (path && path !== swipePath) {
         setSwipePath(path);
       }
@@ -40,39 +54,55 @@ const EmployeeLayout = () => {
 
   useEffect(() => {
     if (showLogoutModal) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     }
     return () => {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     };
   }, [showLogoutModal]);
 
   const handleLogout = async () => {
     try {
       await signOut();
-      navigate('/');
+      navigate("/");
     } catch (e) {
       console.error("Logout failed", e);
     }
   };
 
   const navItems = [
-    { icon: <Home size={18} />, label: 'Dashboard', path: '/employee' },
-    { icon: <User size={18} />, label: 'My Profile', path: '/employee/profile' },
-    { icon: <Clock size={18} />, label: 'Attendance', path: '/employee/attendance' },
-    { icon: <Calendar size={18} />, label: 'Leaves', path: '/employee/leaves' },
-    { icon: <Wallet size={18} />, label: 'Payroll', path: '/employee/payroll' },
-    { icon: <MessageSquare size={18} />, label: 'Secure Chat', path: '/employee/chat' },
-    { icon: <BarChart2 size={18} />, label: 'Performance', path: '/employee/performance' },
+    { icon: <Home size={18} />, label: "Dashboard", path: "/employee" },
+    {
+      icon: <User size={18} />,
+      label: "My Profile",
+      path: "/employee/profile",
+    },
+    {
+      icon: <Clock size={18} />,
+      label: "Attendance",
+      path: "/employee/attendance",
+    },
+    { icon: <Calendar size={18} />, label: "Leaves", path: "/employee/leaves" },
+    { icon: <Wallet size={18} />, label: "Payroll", path: "/employee/payroll" },
+    {
+      icon: <MessageSquare size={18} />,
+      label: "Secure Chat",
+      path: "/employee/chat",
+    },
+    {
+      icon: <BarChart2 size={18} />,
+      label: "Performance",
+      path: "/employee/performance",
+    },
   ];
 
   // Fetch chat list (shared cache with Chat.jsx) to keep unread badges perfectly synced
   const { data: chats = [] } = useQuery({
-    queryKey: ['chat', 'list'],
+    queryKey: ["chat", "list"],
     queryFn: async () => {
-      const res = await api.get('/chat');
+      const res = await api.get("/chat");
       return res.data;
     },
     refetchInterval: 1500,
@@ -80,18 +110,59 @@ const EmployeeLayout = () => {
     staleTime: 0,
   });
 
-  const totalUnread = chats.reduce((sum, chat) => sum + (chat.unread_count || 0), 0);
+  const totalUnread = chats.reduce(
+    (sum, chat) => sum + (chat.unread_count || 0),
+    0,
+  );
 
   const adminFeatures = [
-    { icon: <Users size={18} />, label: 'Employees', path: '/admin/employees', feature: 'canEmployees', activePaths: ['/admin/employees', '/admin/directory'] },
-    { icon: <Clock size={18} />, label: 'Attendance', path: '/admin/attendance', feature: 'canAttendance', activePaths: ['/admin/attendance'] },
-    { icon: <Calendar size={18} />, label: 'Leave Management', path: '/admin/leaves', feature: 'canLeave', activePaths: ['/admin/leaves'] },
-    { icon: <Wallet size={18} />, label: 'Payroll', path: '/admin/payroll', feature: 'canPayroll', activePaths: ['/admin/payroll'] },
-    { icon: <Monitor size={18} />, label: 'Assets', path: '/admin/assets', feature: 'canAssets', activePaths: ['/admin/assets'] },
-    { icon: <Briefcase size={18} />, label: 'Recruitment', path: '/admin/recruitment', feature: 'canRecruitment', activePaths: ['/admin/recruitment'] },
+    {
+      icon: <Users size={18} />,
+      label: "Employees",
+      path: "/admin/employees",
+      feature: "canEmployees",
+      activePaths: ["/admin/employees", "/admin/directory"],
+    },
+    {
+      icon: <Clock size={18} />,
+      label: "Attendance",
+      path: "/admin/attendance",
+      feature: "canAttendance",
+      activePaths: ["/admin/attendance"],
+    },
+    {
+      icon: <Calendar size={18} />,
+      label: "Leave Management",
+      path: "/admin/leaves",
+      feature: "canLeave",
+      activePaths: ["/admin/leaves"],
+    },
+    {
+      icon: <Wallet size={18} />,
+      label: "Payroll",
+      path: "/admin/payroll",
+      feature: "canPayroll",
+      activePaths: ["/admin/payroll"],
+    },
+    {
+      icon: <Monitor size={18} />,
+      label: "Assets",
+      path: "/admin/assets",
+      feature: "canAssets",
+      activePaths: ["/admin/assets"],
+    },
+    {
+      icon: <Briefcase size={18} />,
+      label: "Recruitment",
+      path: "/admin/recruitment",
+      feature: "canRecruitment",
+      activePaths: ["/admin/recruitment"],
+    },
   ];
 
-  const visibleAdminFeatures = profile?.featureAccess ? adminFeatures.filter(f => profile.featureAccess[f.feature]) : [];
+  const visibleAdminFeatures = profile?.featureAccess
+    ? adminFeatures.filter((f) => profile.featureAccess[f.feature])
+    : [];
 
   const shapeVariants = {
     animate: (i) => ({
@@ -101,30 +172,79 @@ const EmployeeLayout = () => {
       transition: {
         duration: 5 + i * 2,
         repeat: Infinity,
-        ease: "easeInOut"
-      }
-    })
+        ease: "easeInOut",
+      },
+    }),
   };
 
   return (
     <div className="h-[100dvh] w-full overflow-hidden bg-slate-50 flex font-sans text-slate-800 relative z-0">
-
       {/* Global Animated Background Graphics */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden fixed md:absolute">
-        <motion.div custom={1} variants={shapeVariants} animate="animate" className="absolute w-64 h-64 bg-[#F59E0B] rounded-full opacity-10 -top-20 -right-20" />
-        <motion.div custom={2} variants={shapeVariants} animate="animate" className="absolute w-48 h-48 bg-[#10B981] rounded-3xl opacity-10 bottom-[-40px] left-1/4 rotate-12" />
-        <motion.div custom={3} variants={shapeVariants} animate="animate" className="absolute w-96 h-96 bg-[#3B82F6] rounded-full opacity-5 top-1/2 left-1/3" />
-        <motion.div custom={4} variants={shapeVariants} animate="animate" className="absolute w-32 h-32 bg-[#EC4899] rounded-xl opacity-10 top-20 left-10 -rotate-12" />
-        <motion.div custom={5} variants={shapeVariants} animate="animate" className="absolute w-72 h-72 bg-[#8B5CF6] rounded-full opacity-10 bottom-20 right-1/4" />
+        <motion.div
+          custom={1}
+          variants={shapeVariants}
+          animate="animate"
+          className="absolute w-64 h-64 bg-[#F59E0B] rounded-full opacity-10 -top-20 -right-20"
+        />
+        <motion.div
+          custom={2}
+          variants={shapeVariants}
+          animate="animate"
+          className="absolute w-48 h-48 bg-[#10B981] rounded-3xl opacity-10 bottom-[-40px] left-1/4 rotate-12"
+        />
+        <motion.div
+          custom={3}
+          variants={shapeVariants}
+          animate="animate"
+          className="absolute w-96 h-96 bg-[#3B82F6] rounded-full opacity-5 top-1/2 left-1/3"
+        />
+        <motion.div
+          custom={4}
+          variants={shapeVariants}
+          animate="animate"
+          className="absolute w-32 h-32 bg-[#EC4899] rounded-xl opacity-10 top-20 left-10 -rotate-12"
+        />
+        <motion.div
+          custom={5}
+          variants={shapeVariants}
+          animate="animate"
+          className="absolute w-72 h-72 bg-[#8B5CF6] rounded-full opacity-10 bottom-20 right-1/4"
+        />
 
         {/* Additional top-left boxes */}
-        <motion.div custom={6} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-40 h-40 bg-[#14B8A6] rounded-2xl opacity-10 top-[-20px] left-[18rem] rotate-45" />
-        <motion.div custom={7} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-28 h-28 bg-[#F43F5E] rounded-3xl opacity-10 top-32 left-[24rem] -rotate-12" />
-        <motion.div custom={8} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-56 h-56 bg-[#6366F1] rounded-full opacity-[0.06] top-10 left-[35%]" />
+        <motion.div
+          custom={6}
+          variants={shapeVariants}
+          animate="animate"
+          className="hidden md:block absolute w-40 h-40 bg-[#14B8A6] rounded-2xl opacity-10 top-[-20px] left-[18rem] rotate-45"
+        />
+        <motion.div
+          custom={7}
+          variants={shapeVariants}
+          animate="animate"
+          className="hidden md:block absolute w-28 h-28 bg-[#F43F5E] rounded-3xl opacity-10 top-32 left-[24rem] -rotate-12"
+        />
+        <motion.div
+          custom={8}
+          variants={shapeVariants}
+          animate="animate"
+          className="hidden md:block absolute w-56 h-56 bg-[#6366F1] rounded-full opacity-[0.06] top-10 left-[35%]"
+        />
 
         {/* Additional bottom-right boxes */}
-        <motion.div custom={9} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-36 h-36 bg-[#EAB308] rounded-2xl opacity-10 bottom-10 right-10 -rotate-12" />
-        <motion.div custom={10} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-24 h-24 bg-[#06B6D4] rounded-full opacity-10 bottom-40 right-28 rotate-45" />
+        <motion.div
+          custom={9}
+          variants={shapeVariants}
+          animate="animate"
+          className="hidden md:block absolute w-36 h-36 bg-[#EAB308] rounded-2xl opacity-10 bottom-10 right-10 -rotate-12"
+        />
+        <motion.div
+          custom={10}
+          variants={shapeVariants}
+          animate="animate"
+          className="hidden md:block absolute w-24 h-24 bg-[#06B6D4] rounded-full opacity-10 bottom-40 right-28 rotate-45"
+        />
       </div>
 
       {/* Sidebar - Clean, Professional */}
@@ -133,11 +253,15 @@ const EmployeeLayout = () => {
           <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white mr-3">
             <Activity size={18} strokeWidth={2.5} />
           </div>
-          <span className="text-lg font-semibold tracking-tight text-slate-900">Acme HRMS</span>
+          <span className="text-lg font-semibold tracking-tight text-slate-900">
+            Acme HRMS
+          </span>
         </div>
 
         <div className="p-4 overflow-y-auto flex-1">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 px-2">Employee Portal</p>
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 px-2">
+            Employee Portal
+          </p>
           <nav className="space-y-1">
             {navItems.map((item, idx) => {
               const isActive = location.pathname === item.path;
@@ -145,14 +269,19 @@ const EmployeeLayout = () => {
                 <Link
                   key={idx}
                   to={item.path}
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                    }`}
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActive
+                      ? "bg-blue-50 text-blue-700"
+                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                  }`}
                 >
-                  <span className={isActive ? 'text-blue-600' : 'text-slate-400'}>{item.icon}</span>
+                  <span
+                    className={isActive ? "text-blue-600" : "text-slate-400"}
+                  >
+                    {item.icon}
+                  </span>
                   <span className="flex-1">{item.label}</span>
-                  {item.label === 'Secure Chat' && totalUnread > 0 && (
+                  {item.label === "Secure Chat" && totalUnread > 0 && (
                     <span className="bg-[#25d366] text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
                       {totalUnread}
                     </span>
@@ -164,20 +293,33 @@ const EmployeeLayout = () => {
 
           {visibleAdminFeatures.length > 0 && (
             <div className="pt-4 mt-4 border-t border-slate-200">
-              <p className="px-2 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">Admin Features</p>
+              <p className="px-2 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                Admin Features
+              </p>
               <nav className="space-y-1">
                 {visibleAdminFeatures.map((item, idx) => {
-                  const isActive = item.activePaths.some(p => location.pathname === p || location.pathname.startsWith(`${p}/`));
+                  const isActive = item.activePaths.some(
+                    (p) =>
+                      location.pathname === p ||
+                      location.pathname.startsWith(`${p}/`),
+                  );
                   return (
                     <Link
                       key={idx}
                       to={item.path}
-                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive
-                        ? 'bg-blue-50 text-blue-700'
-                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                        }`}
+                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                        isActive
+                          ? "bg-blue-50 text-blue-700"
+                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                      }`}
                     >
-                      <span className={isActive ? 'text-blue-600' : 'text-slate-400'}>{item.icon}</span>
+                      <span
+                        className={
+                          isActive ? "text-blue-600" : "text-slate-400"
+                        }
+                      >
+                        {item.icon}
+                      </span>
                       {item.label}
                     </Link>
                   );
@@ -200,7 +342,6 @@ const EmployeeLayout = () => {
 
       {/* Main Content Wrapper */}
       <main className="flex-1 flex flex-col h-[100dvh] overflow-hidden relative z-30 bg-transparent">
-
         {/* Top Header - Minimalist */}
         <header className="h-14 shrink-0 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 flex items-center justify-between md:justify-end sticky top-0 z-40 md:relative md:z-10">
           <div className="flex items-center gap-5 flex-row-reverse md:flex-row">
@@ -210,26 +351,32 @@ const EmployeeLayout = () => {
 
             <div className="h-6 w-px bg-slate-200"></div>
 
-            <div 
+            <div
               className="flex items-center gap-3 cursor-pointer group"
               onClick={() => {
                 if (window.innerWidth < 768) {
-                  navigate('/employee/profile');
+                  navigate("/employee/profile");
                 }
               }}
             >
               <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-semibold text-sm overflow-hidden border border-slate-200">
                 {profile?.avatar ? (
-                  <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                  <img
+                    src={profile.avatar}
+                    alt="Avatar"
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
-                  (profile?.email || 'E').charAt(0).toUpperCase()
+                  (profile?.email || "E").charAt(0).toUpperCase()
                 )}
               </div>
               <div className="hidden sm:block text-left">
                 <p className="text-sm font-medium text-slate-700 leading-none group-hover:text-blue-600 transition-colors">
-                  {profile?.email?.split('@')[0] || 'Employee'}
+                  {profile?.email?.split("@")[0] || "Employee"}
                 </p>
-                <p className="text-xs text-slate-500 mt-1 capitalize">{profile?.role || 'Employee'}</p>
+                <p className="text-xs text-slate-500 mt-1 capitalize">
+                  {profile?.role || "Employee"}
+                </p>
               </div>
             </div>
           </div>
@@ -244,12 +391,15 @@ const EmployeeLayout = () => {
         </header>
 
         {/* Dynamic Page Content */}
-        <div className="flex-1 overflow-y-auto overscroll-y-contain p-4 sm:p-6 pb-[110px] md:pb-6" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div
+          className="flex-1 overflow-y-auto overscroll-y-contain p-4 sm:p-6 pb-[110px] md:pb-6"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
           <Outlet />
         </div>
 
         {/* Mobile Bottom Navigation (iOS Liquid Glass) */}
-        <div 
+        <div
           className="md:hidden fixed bottom-6 left-4 right-4 z-50 pointer-events-none touch-none select-none"
           onTouchStart={handleTouchMove}
           onTouchMove={handleTouchMove}
@@ -258,19 +408,23 @@ const EmployeeLayout = () => {
         >
           <div className="bg-white/50 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-full p-1.5 flex justify-around items-center pointer-events-auto">
             {[
-              { label: 'Home', icon: Home, path: '/employee' },
-              { label: 'Attendance', icon: Clock, path: '/employee/attendance' },
-              { label: 'Leaves', icon: Calendar, path: '/employee/leaves' },
-              { label: 'Payroll', icon: Wallet, path: '/employee/payroll' },
-              { label: 'Profile', icon: User, path: '/employee/profile' }
+              { label: "Home", icon: Home, path: "/employee" },
+              {
+                label: "Attendance",
+                icon: Clock,
+                path: "/employee/attendance",
+              },
+              { label: "Leaves", icon: Calendar, path: "/employee/leaves" },
+              { label: "Payroll", icon: Wallet, path: "/employee/payroll" },
+              { label: "Profile", icon: User, path: "/employee/profile" },
             ].map((item) => {
               const isActive = (swipePath || location.pathname) === item.path;
               const Icon = item.icon;
 
               return (
-                <Link 
-                  key={item.path} 
-                  to={item.path} 
+                <Link
+                  key={item.path}
+                  to={item.path}
                   data-nav-path={item.path}
                   onClick={(e) => {
                     if (swipePath) e.preventDefault();
@@ -281,24 +435,34 @@ const EmployeeLayout = () => {
                     <motion.div
                       layoutId="mobileNavBubble"
                       className="absolute inset-0 z-[-1] rounded-full shadow-[inset_0_1px_3px_rgba(255,255,255,0.8),0_4px_16px_rgba(0,0,0,0.06)] bg-white/40 backdrop-blur-xl border border-white/80 overflow-hidden"
-                      transition={{ type: 'spring', bounce: 0.25, duration: 0.5 }}
+                      transition={{
+                        type: "spring",
+                        bounce: 0.25,
+                        duration: 0.5,
+                      }}
                     />
                   )}
-                  <Icon className={`relative z-10 w-6 h-6 mb-0.5 transition-all duration-300 ${isActive ? 'text-[#ff2d55] scale-105' : 'text-slate-500 group-hover:text-slate-600 group-active:scale-95'}`} strokeWidth={isActive ? 2.5 : 2} />
-                  <span className={`relative z-10 text-[10px] font-medium tracking-wide transition-all duration-300 ${isActive ? 'text-[#ff2d55]' : 'text-slate-500'}`}>{item.label}</span>
+                  <Icon
+                    className={`relative z-10 w-6 h-6 mb-0.5 transition-all duration-300 ${isActive ? "text-[#ff2d55] scale-105" : "text-slate-500 group-hover:text-slate-600 group-active:scale-95"}`}
+                    strokeWidth={isActive ? 2.5 : 2}
+                  />
+                  <span
+                    className={`relative z-10 text-[10px] font-medium tracking-wide transition-all duration-300 ${isActive ? "text-[#ff2d55]" : "text-slate-500"}`}
+                  >
+                    {item.label}
+                  </span>
                 </Link>
               );
             })}
           </div>
         </div>
-
       </main>
 
       {/* Logout Confirmation Modal */}
       <AnimatePresence>
         {showLogoutModal && (
           <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 sm:p-0">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -306,10 +470,10 @@ const EmployeeLayout = () => {
               className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm cursor-pointer"
             />
             <motion.div
-              initial={{ opacity: 0, y: '100%', scale: 1 }}
+              initial={{ opacity: 0, y: "100%", scale: 1 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: '100%', scale: 0.95 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              exit={{ opacity: 0, y: "100%", scale: 0.95 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
               drag="y"
               dragConstraints={{ top: 0 }}
               dragElastic={{ top: 0, bottom: 0.6 }}
@@ -325,11 +489,14 @@ const EmployeeLayout = () => {
                 <div className="w-16 h-16 bg-rose-100 text-rose-500 rounded-full flex items-center justify-center mb-4 ring-4 ring-rose-50">
                   <LogOut size={28} className="ml-1" />
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-2">Log Out</h3>
+                <h3 className="text-xl font-bold text-slate-900 mb-2">
+                  Log Out
+                </h3>
                 <p className="text-slate-500 text-sm mb-6 px-2">
-                  Are you sure you want to log out of your account? You will need to sign in again.
+                  Are you sure you want to log out of your account? You will
+                  need to sign in again.
                 </p>
-                
+
                 <div className="flex w-full gap-3">
                   <button
                     onClick={() => setShowLogoutModal(false)}
@@ -381,12 +548,14 @@ const EmployeeLayout = () => {
             </motion.div>
           </div>
         </div>
-        <h3 className="text-xl font-black text-slate-900 mb-2 uppercase tracking-wide">Rotate your device</h3>
+        <h3 className="text-xl font-black text-slate-900 mb-2 uppercase tracking-wide">
+          Rotate your device
+        </h3>
         <p className="text-slate-500 text-sm max-w-xs font-medium leading-relaxed">
-          Please rotate your screen back to portrait orientation for the best Acme HRMS experience.
+          Please rotate your screen back to portrait orientation for the best
+          Acme HRMS experience.
         </p>
       </div>
-
     </div>
   );
 };

@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { RefreshCcw } from 'lucide-react';
-import FuzzyText from '../components/FuzzyText';
+import React, { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { RefreshCcw } from "lucide-react";
+import FuzzyText from "../components/FuzzyText";
 
 const OfflinePage = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -11,12 +11,12 @@ const OfflinePage = () => {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
 
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
     };
   }, []);
 
@@ -54,9 +54,12 @@ const OfflinePage = () => {
             </FuzzyText>
           </div>
 
-          <h1 className="text-3xl font-bold text-slate-800 mb-4 text-center">You are Offline !</h1>
+          <h1 className="text-3xl font-bold text-slate-800 mb-4 text-center">
+            You are Offline !
+          </h1>
           <p className="text-slate-500 mb-8 max-w-md text-center leading-relaxed">
-            It looks like your internet connection has dropped. Please check your network to continue using Acme HRMS.
+            It looks like your internet connection has dropped. Please check
+            your network to continue using Acme HRMS.
           </p>
 
           <button
@@ -64,8 +67,10 @@ const OfflinePage = () => {
             disabled={isChecking}
             className="inline-flex items-center gap-2 px-8 py-4 bg-slate-900 text-white rounded-xl font-medium hover:bg-slate-800 transition-colors shadow-sm disabled:opacity-70 cursor-pointer"
           >
-            <RefreshCcw className={`w-5 h-5 ${isChecking ? 'animate-spin' : ''}`} />
-            {isChecking ? 'Checking...' : 'Try Again'}
+            <RefreshCcw
+              className={`w-5 h-5 ${isChecking ? "animate-spin" : ""}`}
+            />
+            {isChecking ? "Checking..." : "Try Again"}
           </button>
         </motion.div>
       )}

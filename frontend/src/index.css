@@ -4,16 +4,21 @@
   --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif;
   --animate-shimmer: shimmer 2.5s infinite linear;
   --keyframes-shimmer: {
-    0% { transform: translateX(-150%) skewX(-15deg); }
-    100% { transform: translateX(150%) skewX(-15deg); }
-  }
+    0% {
+      transform: translateX(-150%) skewX(-15deg);
+    }
+    100% {
+      transform: translateX(150%) skewX(-15deg);
+    }
+  };
 }
 
 :root {
   --bg-color: #f8f9fa;
 }
 
-html, body {
+html,
+body {
   margin: 0;
   height: 100%;
   width: 100%;

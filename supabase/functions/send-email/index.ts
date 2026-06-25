@@ -4,7 +4,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 serve(async (req: Request) => {
@@ -15,7 +16,7 @@ serve(async (req: Request) => {
   let recordId = null;
   const supabaseClient = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
   );
 
   try {
@@ -25,9 +26,11 @@ serve(async (req: Request) => {
     if (!record) {
       throw new Error("Invalid payload: no record found.");
     }
-    
+
     if (!record.to_email || !record.subject || !record.body) {
-      throw new Error("Invalid payload: missing email fields. " + JSON.stringify(record));
+      throw new Error(
+        "Invalid payload: missing email fields. " + JSON.stringify(record),
+      );
     }
 
     recordId = record.id;
@@ -37,7 +40,9 @@ serve(async (req: Request) => {
     const pass = Deno.env.get("GMAIL_APP_PASSWORD");
 
     if (!user || !pass) {
-      throw new Error("Gmail credentials not configured in Edge Function secrets.");
+      throw new Error(
+        "Gmail credentials not configured in Edge Function secrets.",
+      );
     }
 
     const transporter = nodemailer.createTransport({
@@ -58,7 +63,10 @@ serve(async (req: Request) => {
     await transporter.sendMail(mailOptions);
 
     if (recordId) {
-      await supabaseClient.from("email_queue").update({ status: "processed" }).eq("id", recordId);
+      await supabaseClient
+        .from("email_queue")
+        .update({ status: "processed" })
+        .eq("id", recordId);
     }
 
     return new Response(JSON.stringify({ success: true, id: recordId }), {
@@ -67,12 +75,15 @@ serve(async (req: Request) => {
     });
   } catch (error: any) {
     console.error("Error in send-email function:", error.message);
-    
+
     if (recordId) {
-      await supabaseClient.from("email_queue").update({ 
-         status: "failed", 
-         body: error.message // Put the error message in the body so we can see what went wrong
-      }).eq("id", recordId);
+      await supabaseClient
+        .from("email_queue")
+        .update({
+          status: "failed",
+          body: error.message, // Put the error message in the body so we can see what went wrong
+        })
+        .eq("id", recordId);
     }
 
     return new Response(JSON.stringify({ error: error.message }), {

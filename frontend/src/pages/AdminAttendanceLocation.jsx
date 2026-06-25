@@ -1,15 +1,21 @@
-import React, { useEffect, useRef } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import axios from '../api/axios';
-import { toast } from 'react-hot-toast';
-import { MapPin, ArrowRightToLine, ArrowLeftFromLine, MapPinOff, ArrowLeft } from 'lucide-react';
+import React, { useEffect, useRef } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import axios from "../api/axios";
+import { toast } from "react-hot-toast";
+import {
+  MapPin,
+  ArrowRightToLine,
+  ArrowLeftFromLine,
+  MapPinOff,
+  ArrowLeft,
+} from "lucide-react";
 
 const AdminAttendanceLocation = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const id = searchParams.get('id');
-  const date = searchParams.get('date');
+  const id = searchParams.get("id");
+  const date = searchParams.get("date");
 
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
@@ -18,15 +24,15 @@ const AdminAttendanceLocation = () => {
   const pinnedMarkerRef = useRef(null);
 
   const { data, isLoading: loading } = useQuery({
-    queryKey: ['admin', 'attendance-location', id],
+    queryKey: ["admin", "attendance-location", id],
     queryFn: async () => {
       const response = await axios.get(`/admin/attendance/location/${id}`);
       return response.data;
     },
     enabled: !!id,
     onError: () => {
-      toast.error('Failed to fetch attendance location details.');
-      navigate('/admin/attendance');
+      toast.error("Failed to fetch attendance location details.");
+      navigate("/admin/attendance");
     },
   });
 
@@ -38,14 +44,14 @@ const AdminAttendanceLocation = () => {
         initMap();
         return;
       }
-      const existingScript = document.getElementById('google-maps-script');
+      const existingScript = document.getElementById("google-maps-script");
       if (existingScript) {
-        existingScript.addEventListener('load', initMap);
+        existingScript.addEventListener("load", initMap);
         return;
       }
-      
-      const script = document.createElement('script');
-      script.id = 'google-maps-script';
+
+      const script = document.createElement("script");
+      script.id = "google-maps-script";
       script.src = `https://maps.googleapis.com/maps/api/js?key=${data.googleMapsApiKey}&callback=initGoogleMap`;
       script.async = true;
       script.defer = true;
@@ -55,26 +61,32 @@ const AdminAttendanceLocation = () => {
 
     const initMap = () => {
       const { record, punches } = data;
-      
+
       const checkInCoords = record.checkInLat && record.checkInLng;
       const checkOutCoords = record.checkOutLat && record.checkOutLng;
-      
+
       let defaultCenter = { lat: 0, lng: 0 };
       if (checkInCoords) {
-        defaultCenter = { lat: parseFloat(record.checkInLat), lng: parseFloat(record.checkInLng) };
+        defaultCenter = {
+          lat: parseFloat(record.checkInLat),
+          lng: parseFloat(record.checkInLng),
+        };
       } else if (checkOutCoords) {
-        defaultCenter = { lat: parseFloat(record.checkOutLat), lng: parseFloat(record.checkOutLng) };
+        defaultCenter = {
+          lat: parseFloat(record.checkOutLat),
+          lng: parseFloat(record.checkOutLng),
+        };
       }
 
       const map = new window.google.maps.Map(mapRef.current, {
         center: defaultCenter,
         zoom: 12,
         disableDefaultUI: true,
-        gestureHandling: 'greedy',
+        gestureHandling: "greedy",
       });
       mapInstanceRef.current = map;
 
-      map.addListener('click', () => {
+      map.addListener("click", () => {
         pinnedMarkerRef.current = null;
         hidePhotoInfo();
       });
@@ -96,7 +108,8 @@ const AdminAttendanceLocation = () => {
             </circle>
           </svg>
         `;
-        const iconUrl = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+        const iconUrl =
+          "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
 
         const marker = new window.google.maps.Marker({
           position,
@@ -109,17 +122,17 @@ const AdminAttendanceLocation = () => {
           },
         });
 
-        marker.addListener('mouseover', () => {
+        marker.addListener("mouseover", () => {
           if (pinnedMarkerRef.current !== marker) {
             showPhotoInfo(key, marker, index);
           }
         });
-        marker.addListener('mouseout', () => {
+        marker.addListener("mouseout", () => {
           if (pinnedMarkerRef.current !== marker) {
             hidePhotoInfo();
           }
         });
-        marker.addListener('click', () => {
+        marker.addListener("click", () => {
           pinnedMarkerRef.current = marker;
           showPhotoInfo(key, marker, index);
         });
@@ -128,19 +141,25 @@ const AdminAttendanceLocation = () => {
 
       if (checkInCoords) {
         markersRef.current.checkIn = createMarker(
-          { lat: parseFloat(record.checkInLat), lng: parseFloat(record.checkInLng) },
-          'Check In',
-          '#22c55e',
-          'checkIn'
+          {
+            lat: parseFloat(record.checkInLat),
+            lng: parseFloat(record.checkInLng),
+          },
+          "Check In",
+          "#22c55e",
+          "checkIn",
         );
       }
 
       if (checkOutCoords) {
         markersRef.current.checkOut = createMarker(
-          { lat: parseFloat(record.checkOutLat), lng: parseFloat(record.checkOutLng) },
-          'Check Out',
-          '#ef4444',
-          'checkOut'
+          {
+            lat: parseFloat(record.checkOutLat),
+            lng: parseFloat(record.checkOutLng),
+          },
+          "Check Out",
+          "#ef4444",
+          "checkOut",
         );
       }
 
@@ -148,11 +167,14 @@ const AdminAttendanceLocation = () => {
         punches.forEach((punch, idx) => {
           if (punch.latitude && punch.longitude) {
             const marker = createMarker(
-              { lat: parseFloat(punch.latitude), lng: parseFloat(punch.longitude) },
+              {
+                lat: parseFloat(punch.latitude),
+                lng: parseFloat(punch.longitude),
+              },
               `Punch In #${idx + 1}`,
-              '#2563eb',
-              'punch',
-              idx
+              "#2563eb",
+              "punch",
+              idx,
             );
             markersRef.current.punch.push(marker);
           }
@@ -173,7 +195,7 @@ const AdminAttendanceLocation = () => {
           bounds.extend(markersRef.current.checkOut.getPosition());
           hasMarkers = true;
         }
-        markersRef.current.punch.forEach(m => {
+        markersRef.current.punch.forEach((m) => {
           m.setMap(map);
           bounds.extend(m.getPosition());
           hasMarkers = true;
@@ -182,10 +204,14 @@ const AdminAttendanceLocation = () => {
         if (hasMarkers) {
           map.fitBounds(bounds);
           // Limit zoom so it doesn't zoom in too close if there's only 1 marker
-          const listener = window.google.maps.event.addListener(map, "idle", function() { 
-            if (map.getZoom() > 16) map.setZoom(16); 
-            window.google.maps.event.removeListener(listener); 
-          });
+          const listener = window.google.maps.event.addListener(
+            map,
+            "idle",
+            function () {
+              if (map.getZoom() > 16) map.setZoom(16);
+              window.google.maps.event.removeListener(listener);
+            },
+          );
         }
       };
 
@@ -203,19 +229,19 @@ const AdminAttendanceLocation = () => {
       const { record, punches } = data;
       let photoUrl, lat, lng, address, title;
 
-      if (key === 'checkIn') {
+      if (key === "checkIn") {
         photoUrl = record.checkInPhoto;
         lat = record.checkInLat;
         lng = record.checkInLng;
         address = record.checkInAddress;
-        title = 'Check In';
-      } else if (key === 'checkOut') {
+        title = "Check In";
+      } else if (key === "checkOut") {
         photoUrl = record.checkOutPhoto;
         lat = record.checkOutLat;
         lng = record.checkOutLng;
         address = record.checkOutAddress;
-        title = 'Check Out';
-      } else if (key === 'punch') {
+        title = "Check Out";
+      } else if (key === "punch") {
         const punch = punches[index] || {};
         photoUrl = punch.photo;
         lat = punch.latitude;
@@ -226,16 +252,16 @@ const AdminAttendanceLocation = () => {
 
       let content = `<div style="max-width:280px;font-family:Arial, sans-serif;color:#111;">
         <div style="font-weight:700;margin-bottom:8px;">${title}</div>`;
-      
+
       if (photoUrl) {
         content += `<div style="margin-bottom:8px;"><img src="${photoUrl}" alt="${title}" style="width:100%;height:auto;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.15);" /></div>`;
       } else {
         content += `<div style="margin-bottom:8px;padding:10px;background:#f8fafc;border-radius:12px;color:#475569;">No photo available</div>`;
       }
-      
+
       content += `<div style="font-size:13px;line-height:1.5;color:#334155;">
-        <div><strong>Location:</strong> ${lat && lng ? `${lat}, ${lng}` : 'Not available'}</div>
-        <div style="margin-top:6px;"><strong>Address:</strong> ${address || 'Not available'}</div>
+        <div><strong>Location:</strong> ${lat && lng ? `${lat}, ${lng}` : "Not available"}</div>
+        <div style="margin-top:6px;"><strong>Address:</strong> ${address || "Not available"}</div>
       </div></div>`;
 
       infoWindow.setContent(content);
@@ -247,7 +273,6 @@ const AdminAttendanceLocation = () => {
     };
 
     loadGoogleMapsScript();
-
   }, [data]);
 
   const showAllMarkers = () => {
@@ -261,10 +286,10 @@ const AdminAttendanceLocation = () => {
     // Hide all markers
     if (markersRef.current.checkIn) markersRef.current.checkIn.setMap(null);
     if (markersRef.current.checkOut) markersRef.current.checkOut.setMap(null);
-    markersRef.current.punch.forEach(m => m.setMap(null));
+    markersRef.current.punch.forEach((m) => m.setMap(null));
 
     let marker;
-    if (key === 'punch') {
+    if (key === "punch") {
       marker = markersRef.current.punch[index];
     } else {
       marker = markersRef.current[key];
@@ -275,7 +300,7 @@ const AdminAttendanceLocation = () => {
     marker.setMap(map);
     map.panTo(marker.getPosition());
     map.setZoom(17);
-    window.google.maps.event.trigger(marker, 'click');
+    window.google.maps.event.trigger(marker, "click");
   };
 
   if (loading || !data) {
@@ -290,41 +315,69 @@ const AdminAttendanceLocation = () => {
   }
 
   const { record, employee, punches } = data;
-  const displayDate = new Date(record.date).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
+  const displayDate = new Date(record.date)
+    .toLocaleDateString("en-US", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    })
+    .toUpperCase();
   const employeeName = `${employee.firstName} ${employee.lastName}`;
-  
-  const checkInTime = record.checkIn ? new Date(record.checkIn).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'No record';
-  const checkInCoordsStr = (record.checkInLat && record.checkInLng) ? `${parseFloat(record.checkInLat).toFixed(6)}, ${parseFloat(record.checkInLng).toFixed(6)}` : 'No location';
-  
-  const checkOutTime = record.checkOut ? new Date(record.checkOut).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'Missing';
-  const checkOutCoordsStr = (record.checkOutLat && record.checkOutLng) ? `${parseFloat(record.checkOutLat).toFixed(6)}, ${parseFloat(record.checkOutLng).toFixed(6)}` : 'No location';
+
+  const checkInTime = record.checkIn
+    ? new Date(record.checkIn).toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "No record";
+  const checkInCoordsStr =
+    record.checkInLat && record.checkInLng
+      ? `${parseFloat(record.checkInLat).toFixed(6)}, ${parseFloat(record.checkInLng).toFixed(6)}`
+      : "No location";
+
+  const checkOutTime = record.checkOut
+    ? new Date(record.checkOut).toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "Missing";
+  const checkOutCoordsStr =
+    record.checkOutLat && record.checkOutLng
+      ? `${parseFloat(record.checkOutLat).toFixed(6)}, ${parseFloat(record.checkOutLng).toFixed(6)}`
+      : "No location";
 
   return (
     <div className="flex h-[calc(100vh-8rem)] flex-col gap-4 overflow-hidden">
       <div className="flex items-center justify-between mb-2">
         <button
-          onClick={() => navigate(`/admin/attendance?date=${date || record.date}`)}
+          onClick={() =>
+            navigate(`/admin/attendance?date=${date || record.date}`)
+          }
           className="inline-flex items-center text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors cursor-pointer"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Attendance
         </button>
       </div>
-      
+
       <div className="grid gap-4 md:grid-cols-[320px_1fr] lg:grid-cols-[360px_1fr] min-h-0 flex-1">
         <aside className="flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden h-full">
           <div className="flex items-start justify-between gap-3 border-b border-slate-200 p-4 bg-slate-50/50">
             <div className="space-y-1">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Map view</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                Map view
+              </p>
               <h2 className="text-base font-semibold tracking-tight text-slate-900">
                 {displayDate} - {employeeName}
               </h2>
             </div>
           </div>
-          
+
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">Remote clock in / clock out</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">
+                Remote clock in / clock out
+              </p>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -332,13 +385,17 @@ const AdminAttendanceLocation = () => {
                       <ArrowRightToLine className="w-5 h-5" />
                     </span>
                     <div>
-                      <p className="text-sm font-semibold text-slate-900">{checkInTime}</p>
-                      <p className="text-xs text-slate-500">{checkInCoordsStr}</p>
+                      <p className="text-sm font-semibold text-slate-900">
+                        {checkInTime}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {checkInCoordsStr}
+                      </p>
                     </div>
                   </div>
                   {record.checkInLat && record.checkInLng && (
                     <button
-                      onClick={() => focusMarker('checkIn')}
+                      onClick={() => focusMarker("checkIn")}
                       className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-emerald-600 shadow-sm hover:border-emerald-600 hover:bg-emerald-50 transition-all cursor-pointer"
                       title="Focus on map"
                     >
@@ -353,13 +410,17 @@ const AdminAttendanceLocation = () => {
                       <ArrowLeftFromLine className="w-5 h-5" />
                     </span>
                     <div>
-                      <p className="text-sm font-semibold text-slate-900">{checkOutTime}</p>
-                      <p className="text-xs text-slate-500">{checkOutCoordsStr}</p>
+                      <p className="text-sm font-semibold text-slate-900">
+                        {checkOutTime}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {checkOutCoordsStr}
+                      </p>
                     </div>
                   </div>
                   {record.checkOutLat && record.checkOutLng && (
                     <button
-                      onClick={() => focusMarker('checkOut')}
+                      onClick={() => focusMarker("checkOut")}
                       className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-rose-600 shadow-sm hover:border-rose-600 hover:bg-rose-50 transition-all cursor-pointer"
                       title="Focus on map"
                     >
@@ -371,11 +432,16 @@ const AdminAttendanceLocation = () => {
             </section>
 
             <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">Location punches</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">
+                Location punches
+              </p>
               {punches && punches.length > 0 ? (
                 <div className="space-y-3">
                   {punches.map((punch, idx) => (
-                    <div key={punch.id} className="rounded-lg border border-slate-100 bg-slate-50 p-3">
+                    <div
+                      key={punch.id}
+                      className="rounded-lg border border-slate-100 bg-slate-50 p-3"
+                    >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-600">
@@ -383,16 +449,21 @@ const AdminAttendanceLocation = () => {
                           </span>
                           <div>
                             <p className="text-sm font-semibold text-slate-900">
-                              {new Date(punch.punchTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                              {new Date(punch.punchTime).toLocaleTimeString(
+                                "en-US",
+                                { hour: "2-digit", minute: "2-digit" },
+                              )}
                             </p>
                             <p className="text-xs text-slate-500">
-                              {(punch.latitude && punch.longitude) ? `${parseFloat(punch.latitude).toFixed(6)}, ${parseFloat(punch.longitude).toFixed(6)}` : 'No location'}
+                              {punch.latitude && punch.longitude
+                                ? `${parseFloat(punch.latitude).toFixed(6)}, ${parseFloat(punch.longitude).toFixed(6)}`
+                                : "No location"}
                             </p>
                           </div>
                         </div>
-                        {(punch.latitude && punch.longitude) && (
+                        {punch.latitude && punch.longitude && (
                           <button
-                            onClick={() => focusMarker('punch', idx)}
+                            onClick={() => focusMarker("punch", idx)}
                             className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-blue-600 shadow-sm hover:border-blue-600 hover:bg-blue-50 transition-all cursor-pointer"
                             title="Focus on map"
                           >
@@ -416,8 +487,12 @@ const AdminAttendanceLocation = () => {
         <section className="relative flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden h-full min-h-0">
           <div className="p-4 border-b border-slate-200 bg-slate-50/50 flex justify-between items-center">
             <div>
-              <h2 className="text-sm font-semibold text-slate-900">Attendance Map</h2>
-              <p className="text-xs text-slate-500">Visual markers for check-in, check-out and punches.</p>
+              <h2 className="text-sm font-semibold text-slate-900">
+                Attendance Map
+              </h2>
+              <p className="text-xs text-slate-500">
+                Visual markers for check-in, check-out and punches.
+              </p>
             </div>
             {!data.googleMapsApiKey && (
               <div className="px-2 py-1 bg-amber-50 text-amber-700 text-xs rounded border border-amber-200 font-medium">
@@ -433,7 +508,8 @@ const AdminAttendanceLocation = () => {
                 <MapPinOff className="w-10 h-10 mb-3 text-slate-300" />
                 <p className="font-medium text-slate-700">Map is unavailable</p>
                 <p className="text-xs mt-1 max-w-sm text-center">
-                  Please provide a valid Google Maps API Key in the backend `.env` file to view the attendance map.
+                  Please provide a valid Google Maps API Key in the backend
+                  `.env` file to view the attendance map.
                 </p>
               </div>
             )}

@@ -1,9 +1,9 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.jsx'
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import "./index.css";
+import App from "./App.jsx";
 // Unregister any existing service workers from previous PWA setup
-if ('serviceWorker' in navigator) {
+if ("serviceWorker" in navigator) {
   navigator.serviceWorker.getRegistrations().then((registrations) => {
     for (const registration of registrations) {
       registration.unregister();
@@ -14,21 +14,30 @@ if ('serviceWorker' in navigator) {
 // Force IST timezone for all Date formatting
 const originalToLocaleString = Date.prototype.toLocaleString;
 Date.prototype.toLocaleString = function (locales, options) {
-  return originalToLocaleString.call(this, locales, { timeZone: 'Asia/Kolkata', ...(options || {}) });
+  return originalToLocaleString.call(this, locales, {
+    timeZone: "Asia/Kolkata",
+    ...(options || {}),
+  });
 };
 
 const originalToLocaleDateString = Date.prototype.toLocaleDateString;
 Date.prototype.toLocaleDateString = function (locales, options) {
-  return originalToLocaleDateString.call(this, locales, { timeZone: 'Asia/Kolkata', ...(options || {}) });
+  return originalToLocaleDateString.call(this, locales, {
+    timeZone: "Asia/Kolkata",
+    ...(options || {}),
+  });
 };
 
 const originalToLocaleTimeString = Date.prototype.toLocaleTimeString;
 Date.prototype.toLocaleTimeString = function (locales, options) {
-  return originalToLocaleTimeString.call(this, locales, { timeZone: 'Asia/Kolkata', ...(options || {}) });
+  return originalToLocaleTimeString.call(this, locales, {
+    timeZone: "Asia/Kolkata",
+    ...(options || {}),
+  });
 };
 
-createRoot(document.getElementById('root')).render(
+createRoot(document.getElementById("root")).render(
   <StrictMode>
     <App />
   </StrictMode>,
-)
+);

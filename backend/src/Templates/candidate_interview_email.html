@@ -1,47 +1,177 @@
-<table width="100%" cellpadding="0" cellspacing="0" style="font-family: 'Inter', Arial, sans-serif; background-color: #f8fafc; padding: 0 0 40px 0; color: #333; margin: 0; width: 100%;">
+<table
+  width="100%"
+  cellpadding="0"
+  cellspacing="0"
+  style="
+    font-family: &quot;Inter&quot;, Arial, sans-serif;
+    background-color: #f8fafc;
+    padding: 0 0 40px 0;
+    color: #333;
+    margin: 0;
+    width: 100%;
+  "
+>
   <tr>
     <td align="center">
-      
-      <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 500px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
+      <table
+        width="100%"
+        cellpadding="0"
+        cellspacing="0"
+        style="
+          max-width: 500px;
+          margin: 0 auto;
+          background-color: #ffffff;
+          border-radius: 16px;
+          overflow: hidden;
+          box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        "
+      >
         <tr>
-          <td align="center" style="background-color: #1E1B4B; padding: 40px 20px 40px 20px;">
-            <p style="color: #cbd5e1; margin: 0 0 6px 0; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; font-weight: bold;">Careers Portal</p>
-            <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 900; letter-spacing: -0.5px;">Hello, {{firstName}}</h1>
-            <p style="color: #e2e8f0; margin: 6px 0 0 0; font-size: 14px;">Interview Scheduled</p>
+          <td
+            align="center"
+            style="background-color: #1e1b4b; padding: 40px 20px 40px 20px"
+          >
+            <p
+              style="
+                color: #cbd5e1;
+                margin: 0 0 6px 0;
+                font-size: 11px;
+                text-transform: uppercase;
+                letter-spacing: 2px;
+                font-weight: bold;
+              "
+            >
+              Careers Portal
+            </p>
+            <h1
+              style="
+                color: #ffffff;
+                margin: 0;
+                font-size: 28px;
+                font-weight: 900;
+                letter-spacing: -0.5px;
+              "
+            >
+              Hello, {{firstName}}
+            </h1>
+            <p style="color: #e2e8f0; margin: 6px 0 0 0; font-size: 14px">
+              Interview Scheduled
+            </p>
           </td>
         </tr>
         <tr>
-          <td style="padding: 30px; text-align: left;">
-    
-            <div style="padding-bottom: 15px; border-bottom: 1px solid #f1f5f9; margin-bottom: 25px;">
-              <h2 style="font-size: 18px; font-weight: bold; color: #0f172a; margin: 0;">Application Update</h2>
-              <p style="font-size: 11px; font-weight: 500; color: #8b5cf6; margin: 5px 0 0 0; text-transform: uppercase; letter-spacing: 1px;">Status: {{interviewRound}}</p>
+          <td style="padding: 30px; text-align: left">
+            <div
+              style="
+                padding-bottom: 15px;
+                border-bottom: 1px solid #f1f5f9;
+                margin-bottom: 25px;
+              "
+            >
+              <h2
+                style="
+                  font-size: 18px;
+                  font-weight: bold;
+                  color: #0f172a;
+                  margin: 0;
+                "
+              >
+                Application Update
+              </h2>
+              <p
+                style="
+                  font-size: 11px;
+                  font-weight: 500;
+                  color: #8b5cf6;
+                  margin: 5px 0 0 0;
+                  text-transform: uppercase;
+                  letter-spacing: 1px;
+                "
+              >
+                Status: {{interviewRound}}
+              </p>
             </div>
 
-            <p style="font-size: 15px; line-height: 1.6; color: #475569; margin-top: 0;">You have been invited for a <strong>{{interviewRound}}</strong> for the <strong>{{jobTitle}}</strong> position at Acme HRMS.</p>
-            
-            <div style="background-color: #f8fafc; border-left: 4px solid #8b5cf6; padding: 16px; margin: 20px 0; border-radius: 0 8px 8px 0;">
-              <p style="font-size: 14px; line-height: 1.6; color: #334155; margin: 0; white-space: pre-wrap;">{{additionalNotes}}</p>
+            <p
+              style="
+                font-size: 15px;
+                line-height: 1.6;
+                color: #475569;
+                margin-top: 0;
+              "
+            >
+              You have been invited for a
+              <strong>{{interviewRound}}</strong> for the
+              <strong>{{jobTitle}}</strong> position at Acme HRMS.
+            </p>
+
+            <div
+              style="
+                background-color: #f8fafc;
+                border-left: 4px solid #8b5cf6;
+                padding: 16px;
+                margin: 20px 0;
+                border-radius: 0 8px 8px 0;
+              "
+            >
+              <p
+                style="
+                  font-size: 14px;
+                  line-height: 1.6;
+                  color: #334155;
+                  margin: 0;
+                  white-space: pre-wrap;
+                "
+              >
+                {{additionalNotes}}
+              </p>
             </div>
 
-            <p style="font-size: 15px; line-height: 1.6; color: #475569;">Please review the details above. If you have any questions or need to reschedule, please reach out to our recruitment team.</p>
+            <p style="font-size: 15px; line-height: 1.6; color: #475569">
+              Please review the details above. If you have any questions or need
+              to reschedule, please reach out to our recruitment team.
+            </p>
 
-            <div style="margin: 30px 0;">
-              <a href="{{dashboardLink}}" style="display: block; width: 100%; box-sizing: border-box; text-align: center; background-color: #8b5cf6; color: #ffffff; text-decoration: none; padding: 14px 0; border-radius: 12px; font-weight: bold; font-size: 15px; border: 3px solid #1E1B4B; box-shadow: 4px 4px 0px #1E1B4B;">View Application Dashboard</a>
+            <div style="margin: 30px 0">
+              <a
+                href="{{dashboardLink}}"
+                style="
+                  display: block;
+                  width: 100%;
+                  box-sizing: border-box;
+                  text-align: center;
+                  background-color: #8b5cf6;
+                  color: #ffffff;
+                  text-decoration: none;
+                  padding: 14px 0;
+                  border-radius: 12px;
+                  font-weight: bold;
+                  font-size: 15px;
+                  border: 3px solid #1e1b4b;
+                  box-shadow: 4px 4px 0px #1e1b4b;
+                "
+                >View Application Dashboard</a
+              >
             </div>
-
           </td>
         </tr>
       </table>
-      
-      <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 500px; margin: 0 auto;">
+
+      <table
+        width="100%"
+        cellpadding="0"
+        cellspacing="0"
+        style="max-width: 500px; margin: 0 auto"
+      >
         <tr>
-          <td align="center" style="padding: 30px 20px 0 20px; color: #94a3b8; font-size: 12px;">
+          <td
+            align="center"
+            style="padding: 30px 20px 0 20px; color: #94a3b8; font-size: 12px"
+          >
             &copy; {{currentYear}} Acme HRMS. All rights reserved.
           </td>
         </tr>
       </table>
-      
     </td>
   </tr>
 </table>

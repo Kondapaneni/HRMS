@@ -1,6 +1,12 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import api from '../api/axios';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import api from "../api/axios";
 
 const AuthContext = createContext({});
 
@@ -12,7 +18,7 @@ export const AuthProvider = ({ children }) => {
   const [profileLoading, setProfileLoading] = useState(false);
 
   const fetchProfile = useCallback(async () => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
       setProfile(null);
       setUser(null);
@@ -22,17 +28,20 @@ export const AuthProvider = ({ children }) => {
 
     setProfileLoading(true);
     try {
-      const response = await api.get('/me');
+      const response = await api.get("/me");
       setProfile(response.data);
       setUser({ email: response.data.email, id: response.data.id });
     } catch (error) {
-      console.error('Failed to fetch profile:', error);
+      console.error("Failed to fetch profile:", error);
       // Only log the user out if the server responded with an authentication error (401/403)
       // If there's no response (network error/offline) or a 500 error, keep them logged in
-      if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+      if (
+        error.response &&
+        (error.response.status === 401 || error.response.status === 403)
+      ) {
         setProfile(null);
         setUser(null);
-        localStorage.removeItem('token');
+        localStorage.removeItem("token");
       }
     } finally {
       setProfileLoading(false);
@@ -47,10 +56,10 @@ export const AuthProvider = ({ children }) => {
   }, [fetchProfile]);
 
   const signIn = async (email, password) => {
-    const response = await api.post('/login', { email, password });
+    const response = await api.post("/login", { email, password });
     const { token, user: userData } = response.data;
 
-    localStorage.setItem('token', token);
+    localStorage.setItem("token", token);
 
     // Fetch the full profile (which includes the avatar from the employees table)
     // fetchProfile will set both user and profile state together
@@ -62,7 +71,7 @@ export const AuthProvider = ({ children }) => {
   const signOut = async () => {
     setProfile(null);
     setUser(null);
-    localStorage.removeItem('token');
+    localStorage.removeItem("token");
     queryClient.clear();
   };
 
@@ -84,10 +93,16 @@ export const AuthProvider = ({ children }) => {
             <div className="absolute inset-0 border-4 border-blue-100 rounded-full"></div>
             <div className="absolute inset-0 border-4 border-blue-600 rounded-full animate-spin border-t-transparent"></div>
           </div>
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight mb-1">Acme HRMS</h1>
-          <p className="text-sm font-medium text-slate-500 animate-pulse">Loading Workspace...</p>
+          <h1 className="text-2xl font-bold text-slate-800 tracking-tight mb-1">
+            Acme HRMS
+          </h1>
+          <p className="text-sm font-medium text-slate-500 animate-pulse">
+            Loading Workspace...
+          </p>
         </div>
-      ) : children}
+      ) : (
+        children
+      )}
     </AuthContext.Provider>
   );
 };

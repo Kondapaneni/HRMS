@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { RefreshCw, Download } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { RefreshCw, Download } from "lucide-react";
 
 export default function UpdateOverlay() {
   const [updateAvailable, setUpdateAvailable] = useState(false);
@@ -10,7 +10,7 @@ export default function UpdateOverlay() {
       try {
         // Cache buster parameter to avoid getting a cached version.json
         const res = await fetch(`/version.json?t=${new Date().getTime()}`, {
-          cache: 'no-store',
+          cache: "no-store",
         });
 
         if (res.ok) {
@@ -24,7 +24,7 @@ export default function UpdateOverlay() {
         }
       } catch (e) {
         // Silently fail if offline or server is unreachable
-        console.error('Version check failed:', e);
+        console.error("Version check failed:", e);
       }
     };
 
@@ -33,22 +33,22 @@ export default function UpdateOverlay() {
 
     // Check when window regains focus (e.g. user switches back to the app)
     const handleFocus = () => checkVersion();
-    window.addEventListener('focus', handleFocus);
+    window.addEventListener("focus", handleFocus);
 
     // Also check periodically every 5 minutes while the app is open
     const interval = setInterval(checkVersion, 5 * 60 * 1000);
 
     return () => {
-      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener("focus", handleFocus);
       clearInterval(interval);
     };
   }, []);
 
   const handleUpdate = () => {
     // Attempt to clear caches if any exist (PWA/ServiceWorker caches)
-    if ('caches' in window) {
+    if ("caches" in window) {
       caches.keys().then((names) => {
-        names.forEach(name => caches.delete(name));
+        names.forEach((name) => caches.delete(name));
       });
     }
     // Hard reload to fetch new assets
@@ -65,7 +65,10 @@ export default function UpdateOverlay() {
             className="bg-white rounded-[24px] p-6 sm:p-8 max-w-sm w-full shadow-2xl flex flex-col items-center text-center border border-slate-100"
           >
             <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mb-5 ring-8 ring-blue-50 relative">
-              <RefreshCw size={28} className="animate-[spin_4s_linear_infinite]" />
+              <RefreshCw
+                size={28}
+                className="animate-[spin_4s_linear_infinite]"
+              />
               <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1 shadow-sm">
                 <Download size={14} className="text-blue-500" />
               </div>
@@ -76,7 +79,8 @@ export default function UpdateOverlay() {
             </h2>
 
             <p className="text-slate-500 text-sm mb-8 leading-relaxed px-2">
-              A New Version of Acme HRMS is ready. You must Update to Continue Using the Application Securely.
+              A New Version of Acme HRMS is ready. You must Update to Continue
+              Using the Application Securely.
             </p>
 
             <button

@@ -1,59 +1,59 @@
-'use client';
-import { useEffect, useRef } from 'react';
+"use client";
+import { useEffect, useRef } from "react";
 
 const SnowflakeCursor = ({ element, zIndex }) => {
   const canvasRef = useRef(null);
   const particles = useRef([]);
   const canvImages = useRef([]);
   const animationFrame = useRef(null);
-  const possibleEmoji = ['❄️'];
+  const possibleEmoji = ["❄️"];
   const prefersReducedMotion = useRef(null);
-  
+
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
     prefersReducedMotion.current = window.matchMedia(
-      '(prefers-reduced-motion: reduce)'
+      "(prefers-reduced-motion: reduce)",
     );
-    const canvas = document.createElement('canvas');
-    const context = canvas.getContext('2d');
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
     if (!context) return;
     const targetElement = element || document.body;
-    canvas.style.position = element ? 'absolute' : 'fixed';
-    canvas.style.top = '0';
-    canvas.style.left = '0';
-    canvas.style.pointerEvents = 'none';
-    canvas.style.zIndex = zIndex ? zIndex.toString() : '9999';
+    canvas.style.position = element ? "absolute" : "fixed";
+    canvas.style.top = "0";
+    canvas.style.left = "0";
+    canvas.style.pointerEvents = "none";
+    canvas.style.zIndex = zIndex ? zIndex.toString() : "9999";
     targetElement.appendChild(canvas);
     canvasRef.current = canvas;
-    
+
     const setCanvasSize = () => {
       canvas.width = element ? targetElement.clientWidth : window.innerWidth;
       canvas.height = element ? targetElement.clientHeight : window.innerHeight;
     };
-    
+
     const createEmojiImages = () => {
-      context.font = '12px serif';
-      context.textBaseline = 'middle';
-      context.textAlign = 'center';
+      context.font = "12px serif";
+      context.textBaseline = "middle";
+      context.textAlign = "center";
       possibleEmoji.forEach((emoji) => {
         const measurements = context.measureText(emoji);
-        const bgCanvas = document.createElement('canvas');
-        const bgContext = bgCanvas.getContext('2d');
+        const bgCanvas = document.createElement("canvas");
+        const bgContext = bgCanvas.getContext("2d");
         if (!bgContext) return;
         bgCanvas.width = measurements.width;
         bgCanvas.height = measurements.actualBoundingBoxAscent * 2;
-        bgContext.textAlign = 'center';
-        bgContext.font = '12px serif';
-        bgContext.textBaseline = 'middle';
+        bgContext.textAlign = "center";
+        bgContext.font = "12px serif";
+        bgContext.textBaseline = "middle";
         bgContext.fillText(
           emoji,
           bgCanvas.width / 2,
-          measurements.actualBoundingBoxAscent
+          measurements.actualBoundingBoxAscent,
         );
         canvImages.current.push(bgCanvas);
       });
     };
-    
+
     const addParticle = (x, y) => {
       const randomImage =
         canvImages.current[
@@ -61,7 +61,7 @@ const SnowflakeCursor = ({ element, zIndex }) => {
         ];
       particles.current.push(new Particle(x, y, randomImage));
     };
-    
+
     const onMouseMove = (e) => {
       const x = element
         ? e.clientX - targetElement.getBoundingClientRect().left
@@ -71,7 +71,7 @@ const SnowflakeCursor = ({ element, zIndex }) => {
         : e.clientY;
       addParticle(x, y);
     };
-    
+
     const updateParticles = () => {
       if (!context || !canvas) return;
       context.clearRect(0, 0, canvas.width, canvas.height);
@@ -82,21 +82,21 @@ const SnowflakeCursor = ({ element, zIndex }) => {
         }
       });
     };
-    
+
     const animationLoop = () => {
       updateParticles();
       animationFrame.current = requestAnimationFrame(animationLoop);
     };
-    
+
     const init = () => {
       if (prefersReducedMotion.current?.matches) return;
       setCanvasSize();
       createEmojiImages();
-      targetElement.addEventListener('mousemove', onMouseMove);
-      window.addEventListener('resize', setCanvasSize);
+      targetElement.addEventListener("mousemove", onMouseMove);
+      window.addEventListener("resize", setCanvasSize);
       animationLoop();
     };
-    
+
     const destroy = () => {
       if (canvasRef.current) {
         canvasRef.current.remove();
@@ -104,10 +104,10 @@ const SnowflakeCursor = ({ element, zIndex }) => {
       if (animationFrame.current) {
         cancelAnimationFrame(animationFrame.current);
       }
-      targetElement.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('resize', setCanvasSize);
+      targetElement.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("resize", setCanvasSize);
     };
-    
+
     prefersReducedMotion.current.onchange = () => {
       if (prefersReducedMotion.current?.matches) {
         destroy();
@@ -115,11 +115,11 @@ const SnowflakeCursor = ({ element, zIndex }) => {
         init();
       }
     };
-    
+
     init();
     return () => destroy();
   }, [element]);
-  
+
   return null;
 };
 

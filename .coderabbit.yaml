@@ -10,18 +10,18 @@ tone_instructions: "You are a senior full-stack engineer and security auditor. P
 reviews:
   # Review profile: "assertive" for thorough reviews, "chill" for minimal reviews
   profile: "assertive"
-  
+
   # Disable AI poems in pull request summaries
   poem: false
-  
+
   # Enable high-level summary of changes
   high_level_summary: true
-  
+
   # Configure automated review triggers
   auto_review:
     enabled: true
     drafts: false # Do not auto-review draft pull requests
-    
+
   # File path filters to ignore/exclude from review (prefixed with "!")
   path_filters:
     - "!node_modules/**"

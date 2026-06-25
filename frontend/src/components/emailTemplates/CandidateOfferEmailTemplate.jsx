@@ -1,18 +1,18 @@
-import templateHtml from '../../../../backend/src/Templates/candidate_offer_email.html?raw';
+import templateHtml from "../../../../backend/src/Templates/candidate_offer_email.html?raw";
 
 const CandidateOfferEmailTemplate = () => {
   // Replace the template variables with mock data for preview
   const previewHtml = templateHtml
-    .replace(/{{firstName}}/g, 'Bhavya')
-    .replace(/{{jobTitle}}/g, 'Software Engineer')
-    .replace(/{{offerLetterUrl}}/g, '#')
-    .replace(/{{dashboardLink}}/g, '#')
+    .replace(/{{firstName}}/g, "Bhavya")
+    .replace(/{{jobTitle}}/g, "Software Engineer")
+    .replace(/{{offerLetterUrl}}/g, "#")
+    .replace(/{{dashboardLink}}/g, "#")
     .replace(/{{currentYear}}/g, new Date().getFullYear());
 
   return (
-    <div 
+    <div
       className="email-template-preview"
-      dangerouslySetInnerHTML={{ __html: previewHtml }} 
+      dangerouslySetInnerHTML={{ __html: previewHtml }}
     />
   );
 };

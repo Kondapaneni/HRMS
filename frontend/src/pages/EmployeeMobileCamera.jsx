@@ -1,11 +1,11 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useQueryClient } from '@tanstack/react-query';
-import { Camera, RefreshCw, UploadCloud, X, AlertCircle } from 'lucide-react';
-import { toast } from 'react-hot-toast';
-import api from '../api/axios';
-import { supabase } from '../lib/supabase';
-import { useAuth } from '../contexts/AuthContext';
+import React, { useRef, useState, useEffect, useCallback } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
+import { Camera, RefreshCw, UploadCloud, X, AlertCircle } from "lucide-react";
+import { toast } from "react-hot-toast";
+import api from "../api/axios";
+import { supabase } from "../lib/supabase";
+import { useAuth } from "../contexts/AuthContext";
 
 const EmployeeMobileCamera = () => {
   const navigate = useNavigate();
@@ -21,25 +21,25 @@ const EmployeeMobileCamera = () => {
 
   const [stream, setStream] = useState(null);
   const [photoDataUrl, setPhotoDataUrl] = useState(null);
-  const [cameraError, setCameraError] = useState('');
+  const [cameraError, setCameraError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Redirect if missing data
   useEffect(() => {
     if (!action || !latitude || !longitude) {
-      navigate('/employee', { replace: true });
+      navigate("/employee", { replace: true });
     }
   }, [action, latitude, longitude, navigate]);
 
   const startCamera = useCallback(async () => {
     try {
-      setCameraError('');
+      setCameraError("");
       if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current.getTracks().forEach((track) => track.stop());
       }
       const newStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user' },
-        audio: false
+        video: { facingMode: "user" },
+        audio: false,
       });
       setStream(newStream);
       streamRef.current = newStream;
@@ -48,7 +48,7 @@ const EmployeeMobileCamera = () => {
       }
     } catch (err) {
       console.error("Camera access error:", err);
-      setCameraError('Unable to access camera. Please check permissions.');
+      setCameraError("Unable to access camera. Please check permissions.");
     }
   }, []);
 
@@ -57,7 +57,7 @@ const EmployeeMobileCamera = () => {
     startCamera();
     return () => {
       if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current.getTracks().forEach((track) => track.stop());
       }
     };
   }, [startCamera]);
@@ -72,18 +72,18 @@ const EmployeeMobileCamera = () => {
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
 
     // If using front camera, we might want to mirror it, but usually standard is fine.
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     // Compress a bit to save bandwidth
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
     setPhotoDataUrl(dataUrl);
 
     // Stop tracks to save battery
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
       setStream(null);
     }
@@ -94,8 +94,8 @@ const EmployeeMobileCamera = () => {
     startCamera();
   };
 
-  const b64toBlob = (b64Data, contentType = '', sliceSize = 512) => {
-    const byteCharacters = atob(b64Data.split(',')[1]);
+  const b64toBlob = (b64Data, contentType = "", sliceSize = 512) => {
+    const byteCharacters = atob(b64Data.split(",")[1]);
     const byteArrays = [];
 
     for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
@@ -119,40 +119,44 @@ const EmployeeMobileCamera = () => {
 
     try {
       // 1. Upload photo to Supabase Storage (using 'avatars' bucket for convenience)
-      const blob = b64toBlob(photoDataUrl, 'image/jpeg');
-      const fileName = `attendance-${profile?.employeeId || 'emp'}-${Date.now()}.jpg`;
+      const blob = b64toBlob(photoDataUrl, "image/jpeg");
+      const fileName = `attendance-${profile?.employeeId || "emp"}-${Date.now()}.jpg`;
 
-      const { error: uploadError } = await supabase.storage.from('attendance').upload(fileName, blob, {
-        contentType: 'image/jpeg',
-        upsert: false
-      });
+      const { error: uploadError } = await supabase.storage
+        .from("attendance")
+        .upload(fileName, blob, {
+          contentType: "image/jpeg",
+          upsert: false,
+        });
 
-      if (uploadError) throw new Error('Failed to upload photo: ' + uploadError.message);
+      if (uploadError)
+        throw new Error("Failed to upload photo: " + uploadError.message);
 
       const publicUrl = window.location.origin + "/Attendance/" + fileName;
 
       // 2. Submit Punch to backend
-      await api.post('/employee/attendance/punch', {
+      await api.post("/employee/attendance/punch", {
         action,
         latitude,
         longitude,
         address,
-        photo: publicUrl
+        photo: publicUrl,
       });
 
-      toast.success(`Successfully ${action.replace('-', ' ')}ed!`);
-      queryClient.invalidateQueries({ queryKey: ['employee', 'dashboard'] });
-      navigate('/employee', { replace: true });
-
+      toast.success(`Successfully ${action.replace("-", " ")}ed!`);
+      queryClient.invalidateQueries({ queryKey: ["employee", "dashboard"] });
+      navigate("/employee", { replace: true });
     } catch (err) {
       console.error(err);
-      toast.error(err.response?.data?.error || err.message || `Failed to ${action}.`);
+      toast.error(
+        err.response?.data?.error || err.message || `Failed to ${action}.`,
+      );
       setIsSubmitting(false);
     }
   };
 
   const handleCancel = () => {
-    navigate('/employee', { replace: true });
+    navigate("/employee", { replace: true });
   };
 
   return (
@@ -167,14 +171,13 @@ const EmployeeMobileCamera = () => {
           <X className="w-6 h-6" />
         </button>
         <div className="px-3 py-1 bg-black/40 text-white rounded-full text-sm font-semibold tracking-wider uppercase backdrop-blur-md">
-          {action ? action.replace('-', ' ') : 'Camera'}
+          {action ? action.replace("-", " ") : "Camera"}
         </div>
         <div className="w-10"></div> {/* Spacer to center the title */}
       </div>
 
       {/* Main Content */}
       <div className="flex-1 relative flex items-center justify-center bg-black min-h-0">
-
         {cameraError ? (
           <div className="flex flex-col items-center justify-center p-8 text-center">
             <AlertCircle className="w-16 h-16 text-rose-500 mb-4" />

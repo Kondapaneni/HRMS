@@ -1,21 +1,29 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import api from '../api/axios';
-import { toast } from 'react-hot-toast';
-import { MapPin, MapPinOff, ArrowLeft, Loader2, Navigation, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import React, { useEffect, useState, useRef } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import api from "../api/axios";
+import { toast } from "react-hot-toast";
+import {
+  MapPin,
+  MapPinOff,
+  ArrowLeft,
+  Loader2,
+  Navigation,
+  AlertCircle,
+  CheckCircle2,
+} from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
 
 const EmployeeMobileMap = () => {
   const navigate = useNavigate();
   const locationState = useLocation().state;
   const action = locationState?.action;
-  
+
   const { profile } = useAuth();
-  
+
   const [currentLocation, setCurrentLocation] = useState(null);
-  const [address, setAddress] = useState('Locating...');
-  const [locationError, setLocationError] = useState('');
+  const [address, setAddress] = useState("Locating...");
+  const [locationError, setLocationError] = useState("");
   const [isInsideGeofence, setIsInsideGeofence] = useState(null); // null = checking, true/false
   const [distanceToNearest, setDistanceToNearest] = useState(null);
 
@@ -27,24 +35,24 @@ const EmployeeMobileMap = () => {
   // Redirect if no action provided
   useEffect(() => {
     if (!action) {
-      navigate('/employee', { replace: true });
+      navigate("/employee", { replace: true });
     }
   }, [action, navigate]);
 
   // Fetch geofences from backend
   const { data, isLoading: loadingGeofences } = useQuery({
-    queryKey: ['employee', 'geofences'],
+    queryKey: ["employee", "geofences"],
     queryFn: async () => {
-      const response = await api.get('/employee/geofences');
+      const response = await api.get("/employee/geofences");
       return response.data;
     },
-    staleTime: 0 // Fetch latest every time to ensure geofence enabled status is up to date
+    staleTime: 0, // Fetch latest every time to ensure geofence enabled status is up to date
   });
 
   // Get user location
   useEffect(() => {
     if (!navigator.geolocation) {
-      setLocationError('Geolocation is not supported by your browser.');
+      setLocationError("Geolocation is not supported by your browser.");
       return;
     }
 
@@ -56,7 +64,9 @@ const EmployeeMobileMap = () => {
 
         // Reverse geocoding via Nominatim
         try {
-          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
+          );
           const data = await res.json();
           if (data && data.display_name) {
             setAddress(data.display_name);
@@ -68,33 +78,34 @@ const EmployeeMobileMap = () => {
         }
       },
       (error) => {
-        let errorMsg = 'Unable to read your location.';
-        if (error.code === 1) errorMsg = 'Location permission denied.';
-        else if (error.code === 2) errorMsg = 'Location unavailable.';
-        else if (error.code === 3) errorMsg = 'Location request timed out.';
+        let errorMsg = "Unable to read your location.";
+        if (error.code === 1) errorMsg = "Location permission denied.";
+        else if (error.code === 2) errorMsg = "Location unavailable.";
+        else if (error.code === 3) errorMsg = "Location request timed out.";
         setLocationError(errorMsg);
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
     );
   }, []);
 
   // Initialize Map and check geofence distance
   useEffect(() => {
-    if (!currentLocation || !data || !data.googleMapsApiKey || !mapRef.current) return;
+    if (!currentLocation || !data || !data.googleMapsApiKey || !mapRef.current)
+      return;
 
     const loadGoogleMapsScript = () => {
       if (window.google && window.google.maps) {
         initMap();
         return;
       }
-      const existingScript = document.getElementById('google-maps-script');
+      const existingScript = document.getElementById("google-maps-script");
       if (existingScript) {
-        existingScript.addEventListener('load', initMap);
+        existingScript.addEventListener("load", initMap);
         return;
       }
-      
-      const script = document.createElement('script');
-      script.id = 'google-maps-script';
+
+      const script = document.createElement("script");
+      script.id = "google-maps-script";
       script.src = `https://maps.googleapis.com/maps/api/js?key=${data.googleMapsApiKey}&libraries=geometry&callback=initGoogleMap`;
       script.async = true;
       script.defer = true;
@@ -107,7 +118,7 @@ const EmployeeMobileMap = () => {
         center: currentLocation,
         zoom: 16,
         disableDefaultUI: true,
-        gestureHandling: 'greedy',
+        gestureHandling: "greedy",
       });
       mapInstanceRef.current = map;
 
@@ -115,19 +126,19 @@ const EmployeeMobileMap = () => {
       markerRef.current = new window.google.maps.Marker({
         position: currentLocation,
         map,
-        title: 'Your Location',
+        title: "Your Location",
         icon: {
           path: window.google.maps.SymbolPath.CIRCLE,
           scale: 8,
-          fillColor: '#3b82f6',
+          fillColor: "#3b82f6",
           fillOpacity: 1,
-          strokeColor: '#ffffff',
+          strokeColor: "#ffffff",
           strokeWeight: 3,
         },
       });
 
       // Clear previous circles
-      circlesRef.current.forEach(c => c.setMap(null));
+      circlesRef.current.forEach((c) => c.setMap(null));
       circlesRef.current = [];
 
       const geofences = data.geofences || [];
@@ -139,16 +150,19 @@ const EmployeeMobileMap = () => {
         console.error("Google Maps Geometry library not loaded!");
       }
 
-      geofences.forEach(gf => {
-        const gfCenter = { lat: parseFloat(gf.latitude), lng: parseFloat(gf.longitude) };
+      geofences.forEach((gf) => {
+        const gfCenter = {
+          lat: parseFloat(gf.latitude),
+          lng: parseFloat(gf.longitude),
+        };
         const radius = parseInt(gf.radius, 10);
 
         // Draw circle
         const circle = new window.google.maps.Circle({
-          strokeColor: '#3b82f6',
+          strokeColor: "#3b82f6",
           strokeOpacity: 0.8,
           strokeWeight: 2,
-          fillColor: '#3b82f6',
+          fillColor: "#3b82f6",
           fillOpacity: 0.15,
           map,
           center: gfCenter,
@@ -158,19 +172,29 @@ const EmployeeMobileMap = () => {
 
         // Calculate distance
         if (window.google.maps.geometry) {
-          const userLatLng = new window.google.maps.LatLng(currentLocation.lat, currentLocation.lng);
-          const gfLatLng = new window.google.maps.LatLng(gfCenter.lat, gfCenter.lng);
-          const distance = window.google.maps.geometry.spherical.computeDistanceBetween(userLatLng, gfLatLng);
-          
+          const userLatLng = new window.google.maps.LatLng(
+            currentLocation.lat,
+            currentLocation.lng,
+          );
+          const gfLatLng = new window.google.maps.LatLng(
+            gfCenter.lat,
+            gfCenter.lng,
+          );
+          const distance =
+            window.google.maps.geometry.spherical.computeDistanceBetween(
+              userLatLng,
+              gfLatLng,
+            );
+
           if (distance < minDistance) {
             minDistance = distance;
           }
-          
+
           if (distance <= radius) {
             isInsideAny = true;
             circle.setOptions({
-              strokeColor: '#22c55e',
-              fillColor: '#22c55e',
+              strokeColor: "#22c55e",
+              fillColor: "#22c55e",
             });
           }
         }
@@ -192,31 +216,38 @@ const EmployeeMobileMap = () => {
   useEffect(() => {
     if (currentLocation && isInsideGeofence !== null) {
       const timer = setTimeout(() => {
-        toast.error('Time limit exceeded. Please try again.');
-        navigate('/employee', { replace: true });
+        toast.error("Time limit exceeded. Please try again.");
+        navigate("/employee", { replace: true });
       }, 5000);
       return () => clearTimeout(timer);
     }
   }, [currentLocation, isInsideGeofence, navigate]);
 
   const handleProceed = () => {
-    navigate('/employee/attendance/camera', {
+    navigate("/employee/attendance/camera", {
       state: {
         action,
         latitude: currentLocation.lat,
         longitude: currentLocation.lng,
-        address
-      }
+        address,
+      },
     });
   };
 
-  const rawGeoFenceEnabled = data?.geoFenceEnabled !== undefined ? data.geoFenceEnabled : profile?.geoFenceEnabled;
-  const isGeoFenceEnabled = rawGeoFenceEnabled == 1 || rawGeoFenceEnabled === true || rawGeoFenceEnabled === '1' || rawGeoFenceEnabled === 'true';
-  
+  const rawGeoFenceEnabled =
+    data?.geoFenceEnabled !== undefined
+      ? data.geoFenceEnabled
+      : profile?.geoFenceEnabled;
+  const isGeoFenceEnabled =
+    rawGeoFenceEnabled == 1 ||
+    rawGeoFenceEnabled === true ||
+    rawGeoFenceEnabled === "1" ||
+    rawGeoFenceEnabled === "true";
+
   // Determine if user can proceed
   let canProceed = false;
   if (currentLocation) {
-    if (!isGeoFenceEnabled || action === 'punch') {
+    if (!isGeoFenceEnabled || action === "punch") {
       canProceed = true;
     } else if (isInsideGeofence === true) {
       canProceed = true;
@@ -224,10 +255,10 @@ const EmployeeMobileMap = () => {
   }
 
   const getActionLabel = () => {
-    if (!action) return 'Punch';
-    if (action === 'check-in') return 'Check In';
-    if (action === 'check-out') return 'Check Out';
-    return 'Punch';
+    if (!action) return "Punch";
+    if (action === "check-in") return "Check In";
+    if (action === "check-out") return "Check Out";
+    return "Punch";
   };
 
   return (
@@ -235,25 +266,28 @@ const EmployeeMobileMap = () => {
       {/* Header */}
       <div className="flex items-center px-4 py-4 bg-white border-b border-slate-200 z-10 shadow-sm relative">
         <button
-          onClick={() => navigate('/employee', { replace: true })}
+          onClick={() => navigate("/employee", { replace: true })}
           className="p-2 -ml-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <h1 className="ml-2 text-lg font-bold text-slate-900">Verify Location</h1>
+        <h1 className="ml-2 text-lg font-bold text-slate-900">
+          Verify Location
+        </h1>
       </div>
 
       {/* Main Content Area */}
       <div className="flex-1 relative flex flex-col min-h-0">
-        
         {/* Map Container */}
         <div className="flex-1 relative bg-slate-100">
           {locationError ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
               <MapPinOff className="w-12 h-12 text-slate-300 mb-4" />
-              <h3 className="text-slate-900 font-bold text-lg mb-2">Location Access Denied</h3>
+              <h3 className="text-slate-900 font-bold text-lg mb-2">
+                Location Access Denied
+              </h3>
               <p className="text-slate-500 text-sm">{locationError}</p>
-              <button 
+              <button
                 onClick={() => window.location.reload()}
                 className="mt-6 px-6 py-2 bg-blue-600 text-white rounded-lg font-medium shadow-sm active:scale-95 transition-transform"
               >
@@ -263,13 +297,17 @@ const EmployeeMobileMap = () => {
           ) : !currentLocation || loadingGeofences ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-white/50 backdrop-blur-sm z-10">
               <Loader2 className="w-10 h-10 text-blue-600 animate-spin mb-4" />
-              <p className="text-slate-600 font-medium animate-pulse">Acquiring GPS Signal...</p>
+              <p className="text-slate-600 font-medium animate-pulse">
+                Acquiring GPS Signal...
+              </p>
             </div>
           ) : !data?.googleMapsApiKey ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-slate-100 z-10">
               <MapPin className="w-12 h-12 text-slate-300 mb-4" />
               <p className="text-slate-500 font-medium">Map unavailable</p>
-              <p className="text-xs text-slate-400 mt-1 max-w-xs">Waiting for admin to configure Google Maps API key.</p>
+              <p className="text-xs text-slate-400 mt-1 max-w-xs">
+                Waiting for admin to configure Google Maps API key.
+              </p>
             </div>
           ) : (
             <div ref={mapRef} className="w-full h-full"></div>
@@ -287,44 +325,64 @@ const EmployeeMobileMap = () => {
               <Navigation className="w-5 h-5 text-blue-600" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-sm font-bold tracking-tight text-slate-900 mb-1">Current Location</h3>
-              <p className="text-sm text-slate-500 leading-snug line-clamp-2">{address}</p>
+              <h3 className="text-sm font-bold tracking-tight text-slate-900 mb-1">
+                Current Location
+              </h3>
+              <p className="text-sm text-slate-500 leading-snug line-clamp-2">
+                {address}
+              </p>
             </div>
           </div>
 
           {/* Geofence Status */}
-          {currentLocation && isGeoFenceEnabled && action !== 'punch' && isInsideGeofence !== null && (
-            <div className={`p-4 rounded-2xl mb-6 border ${isInsideGeofence ? 'bg-emerald-50 border-emerald-100' : 'bg-red-50 border-red-100'}`}>
-              <div className="flex items-start gap-3">
-                {isInsideGeofence ? (
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
-                ) : (
-                  <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
-                )}
-                <div>
-                  <h4 className={`text-sm font-bold ${isInsideGeofence ? 'text-emerald-900' : 'text-red-900'}`}>
-                    {isInsideGeofence ? 'Inside Geofence' : 'Outside Geofence'}
-                  </h4>
-                  <p className={`text-xs mt-1 ${isInsideGeofence ? 'text-emerald-700' : 'text-red-700'}`}>
-                    {isInsideGeofence 
-                      ? "You are within the approved area to punch." 
-                      : distanceToNearest 
-                        ? `You are ${Math.round(distanceToNearest)} meters away from the nearest boundary.`
-                        : "You must be within a company location to proceed."}
-                  </p>
+          {currentLocation &&
+            isGeoFenceEnabled &&
+            action !== "punch" &&
+            isInsideGeofence !== null && (
+              <div
+                className={`p-4 rounded-2xl mb-6 border ${isInsideGeofence ? "bg-emerald-50 border-emerald-100" : "bg-red-50 border-red-100"}`}
+              >
+                <div className="flex items-start gap-3">
+                  {isInsideGeofence ? (
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                  ) : (
+                    <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+                  )}
+                  <div>
+                    <h4
+                      className={`text-sm font-bold ${isInsideGeofence ? "text-emerald-900" : "text-red-900"}`}
+                    >
+                      {isInsideGeofence
+                        ? "Inside Geofence"
+                        : "Outside Geofence"}
+                    </h4>
+                    <p
+                      className={`text-xs mt-1 ${isInsideGeofence ? "text-emerald-700" : "text-red-700"}`}
+                    >
+                      {isInsideGeofence
+                        ? "You are within the approved area to punch."
+                        : distanceToNearest
+                          ? `You are ${Math.round(distanceToNearest)} meters away from the nearest boundary.`
+                          : "You must be within a company location to proceed."}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
           {/* Warning for disabled geofence or punch action */}
-          {currentLocation && (!isGeoFenceEnabled || action === 'punch') && (
+          {currentLocation && (!isGeoFenceEnabled || action === "punch") && (
             <div className="p-4 rounded-2xl mb-6 bg-slate-50 border border-slate-100">
               <div className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 text-slate-500 shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="text-sm font-bold text-slate-700">Remote {getActionLabel()} Allowed</h4>
-                  <p className="text-xs mt-1 text-slate-500">Your location will be recorded with this {getActionLabel().toLowerCase()}.</p>
+                  <h4 className="text-sm font-bold text-slate-700">
+                    Remote {getActionLabel()} Allowed
+                  </h4>
+                  <p className="text-xs mt-1 text-slate-500">
+                    Your location will be recorded with this{" "}
+                    {getActionLabel().toLowerCase()}.
+                  </p>
                 </div>
               </div>
             </div>
@@ -335,8 +393,8 @@ const EmployeeMobileMap = () => {
             disabled={!canProceed || !currentLocation}
             className={`w-full py-4 rounded-2xl font-bold text-lg shadow-sm transition-all active:scale-[0.98] ${
               canProceed && currentLocation
-                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                ? "bg-blue-600 text-white hover:bg-blue-700"
+                : "bg-slate-100 text-slate-400 cursor-not-allowed"
             }`}
           >
             Proceed to Camera
