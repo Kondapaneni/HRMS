@@ -163,7 +163,7 @@ const Login = () => {
               <span className="text-3xl font-black tracking-tight text-[#1E1B4B]">Acme HRMS</span>
             </div>
 
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="mb-8">
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="mb-8 text-center">
               <h2 className="text-4xl font-black text-[#1E1B4B] mb-2 tracking-tight">Sign In</h2>
               <p className="text-[#4F46E5] font-black text-lg">Access your HR dashboard.</p>
             </motion.div>
@@ -252,7 +252,7 @@ const Login = () => {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.9 }} className="mt-8 text-center">
             <p className="text-[#1E1B4B] font-black">
               Don't have an account?{' '}
-              <a href="#" className="text-[#EF4444] font-black hover:text-[#DC2626] transition-colors hover:underline decoration-[3px] underline-offset-4">
+              <a href="mailto:gowthamkondapaneni2003@gmail.com" className="text-[#EF4444] font-black hover:text-[#DC2626] transition-colors hover:underline decoration-[3px] underline-offset-4">
                 Contact HR Admin
               </a>
             </p>
