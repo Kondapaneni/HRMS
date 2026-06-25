@@ -229,19 +229,7 @@ const Login = () => {
                 </div>
               </motion.div>
 
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }} className="flex items-center justify-between mt-6">
-                <div className="flex items-center">
-                  <div className="relative flex items-center justify-center">
-                    <input id="remember" type="checkbox" className="peer appearance-none w-7 h-7 border-[3px] border-[#1E1B4B] rounded bg-white checked:bg-[#10B981] cursor-pointer transition-colors shadow-[3px_3px_0px_#1E1B4B]" />
-                    <svg className="absolute w-5 h-5 text-[#1E1B4B] opacity-0 peer-checked:opacity-100 pointer-events-none" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" stroke="#1E1B4B" strokeWidth="1" />
-                    </svg>
-                  </div>
-                  <label htmlFor="remember" className="ml-3 text-base font-black text-[#1E1B4B] cursor-pointer">
-                    Remember me
-                  </label>
-                </div>
-
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }} className="flex justify-end mt-6">
                 <Link to="/forgot-password" className="text-sm font-black text-[#3B82F6] hover:text-[#2563EB] transition-colors hover:underline decoration-[3px] underline-offset-4">
                   Forgot Password?
                 </Link>
