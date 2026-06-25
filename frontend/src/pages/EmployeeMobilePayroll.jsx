@@ -20,18 +20,8 @@ const EmployeeMobilePayroll = ({ profile }) => {
   const controls = useDragControls();
 
   useEffect(() => {
-    const scrollContainer = document.querySelector('main > div.overflow-y-auto');
-    if (selectedPayslip) {
-      document.body.style.overflow = 'hidden';
-      if (scrollContainer) scrollContainer.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-      if (scrollContainer) scrollContainer.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-      if (scrollContainer) scrollContainer.style.overflow = '';
-    };
+    // Intentionally empty: Removing body.style.overflow = 'hidden' to prevent 
+    // the notorious iOS Safari safe-area inset glitch (gray status bar bug).
   }, [selectedPayslip]);
 
   const latestPayslip = payslips?.[0];
@@ -91,16 +81,29 @@ const EmployeeMobilePayroll = ({ profile }) => {
       };
       
       const blob = await pdf(<PayslipPDF payslip={formattedPayslip} />).toBlob();
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `${formattedPayslip.employeeName.replace(/[^a-zA-Z0-9 _-]/g, '')} - Payslip - ${getMonthYearString(payslip.month, payslip.year)}.pdf`);
-      link.target = '_blank';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-      toast.success('Download started', { id: 'download-toast' });
+      const fileName = `${formattedPayslip.employeeName.replace(/[^a-zA-Z0-9 _-]/g, '')} - Payslip - ${getMonthYearString(payslip.month, payslip.year)}.pdf`;
+      const file = new File([blob], fileName, { type: 'application/pdf' });
+
+      // Use native Web Share API on mobile to avoid Safari tab/bfcache bugs
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        toast.dismiss('download-toast');
+        await navigator.share({
+          files: [file],
+          title: 'Payslip',
+          text: 'Here is your payslip PDF.',
+        });
+      } else {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', fileName);
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        toast.success('Download started', { id: 'download-toast' });
+      }
     } catch (err) {
       console.error('Error generating PDF:', err);
       toast.error('Failed to generate PDF document.', { id: 'download-toast' });
