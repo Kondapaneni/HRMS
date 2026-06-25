@@ -153,13 +153,13 @@ const ResetPassword = () => {
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 0.2, type: "spring", bounce: 0.4 }}
-          className="w-full max-w-md relative z-10"
+          className="w-full max-w-md relative z-10 mb-20 sm:mb-28 lg:mb-0"
         >
           <div className="bg-white border-[3px] border-[#1E1B4B] rounded-2xl p-8 sm:p-10 relative overflow-visible">
 
             <div className="absolute -top-6 -right-6 w-16 h-16 bg-[#10B981] rounded-full border-[3px] border-[#1E1B4B] shadow-[4px_4px_0px_#1E1B4B] z-20 animate-[bounce_3s_infinite]" />
 
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="mb-8">
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="mb-8 text-center">
               <h2 className="text-4xl font-black text-[#1E1B4B] mb-2 tracking-tight">Reset Password</h2>
               <p className="text-[#F59E0B] font-black text-lg">Enter your new credentials below.</p>
             </motion.div>

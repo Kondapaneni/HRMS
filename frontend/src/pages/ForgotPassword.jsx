@@ -142,7 +142,7 @@ const ForgotPassword = () => {
               <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center p-6 bg-green-50 border-[3px] border-[#10B981] rounded-xl shadow-[4px_4px_0px_#10B981]">
                 <ShieldCheck size={48} className="mx-auto text-[#10B981] mb-4" strokeWidth={2.5} />
                 <h3 className="text-2xl font-black text-[#1E1B4B] mb-2">Check your email</h3>
-                <p className="text-slate-600 font-medium">We've sent a password reset link to <strong>{email}</strong>. Please check your inbox and spam folder.</p>
+                <p className="text-slate-600 font-medium break-words">We've sent a password reset link to <strong className="break-all">{email}</strong>. Please check your inbox and spam folder.</p>
               </motion.div>
             ) : (
               <form className="space-y-6" onSubmit={handleSubmit}>
