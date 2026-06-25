@@ -135,6 +135,7 @@ function App() {
               <Route path="holidays" element={<AdminHolidays />} />
               <Route path="holidays/archive" element={<AdminHolidaysArchive />} />
               <Route path="email-templates" element={<AdminEmailTemplates />} />
+              <Route path="chat" element={<Chat />} />
               <Route path="settings" element={<AdminSettings />} />
               <Route path="performance" element={<AdminPerformance />} />
               <Route path="recruitment" element={<AdminRecruitment />} />
