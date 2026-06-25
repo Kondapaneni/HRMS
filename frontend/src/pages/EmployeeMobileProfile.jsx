@@ -83,8 +83,8 @@ const EmployeeMobileProfile = () => {
       const filePath = `${fileName}`;
 
       // Delete old avatar if it exists
-      if (employee?.avatar) {
-        const parts = employee.avatar.split('/Avatar/');
+      if (avatar) {
+        const parts = avatar.split('/Avatar/');
         if (parts.length > 1) {
           const oldStoragePath = parts[1];
           await supabase.storage.from('avatars').remove([oldStoragePath]);
