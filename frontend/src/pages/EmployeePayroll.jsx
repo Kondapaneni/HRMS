@@ -316,15 +316,6 @@ const EmployeePayroll = () => {
                     <span className="text-2xl font-bold text-blue-700">{formatCurrency(selectedPayslip.netSalary)}</span>
                   </div>
 
-                  <div className="pt-2">
-                    <button 
-                      onClick={() => handleDownload(selectedPayslip)}
-                      className="w-full inline-flex items-center justify-center rounded-xl text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 h-11 px-4 py-2 shadow-sm transition-colors"
-                    >
-                      <Download className="mr-2 h-4 w-4" />
-                      Download PDF
-                    </button>
-                  </div>
                 </div>
 
               </div>
