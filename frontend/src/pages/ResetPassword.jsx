@@ -12,6 +12,7 @@ const ResetPassword = () => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState('');
   
   const navigate = useNavigate();
@@ -87,11 +88,7 @@ const ResetPassword = () => {
     try {
       const res = await api.post('/reset-password', { token, newPassword });
       toast.success('Password successfully reset! You can now log in.');
-      if (res.data.role === 'candidate') {
-        navigate('/candidate/login');
-      } else {
-        navigate('/');
-      }
+      setIsSubmitted(true);
     } catch (err) {
       if (err.response?.status === 429) return;
       setError(err.response?.data?.error || err.message || 'Failed to reset password');
@@ -170,7 +167,14 @@ const ResetPassword = () => {
               </div>
             )}
 
-            <form className="space-y-6" onSubmit={handleSubmit}>
+            {isSubmitted ? (
+              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center p-6 bg-green-50 border-[3px] border-[#10B981] rounded-xl shadow-[4px_4px_0px_#10B981]">
+                <ShieldCheck size={48} className="mx-auto text-[#10B981] mb-4" strokeWidth={2.5} />
+                <h3 className="text-2xl font-black text-[#1E1B4B] mb-2">Password Reset Complete</h3>
+                <p className="text-slate-600 font-medium">Your new password is now ready to use.</p>
+              </motion.div>
+            ) : (
+              <form className="space-y-6" onSubmit={handleSubmit}>
 
               <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 }} className="relative group">
                 <div className="mb-2">
@@ -270,17 +274,9 @@ const ResetPassword = () => {
                   {!isLoading && <ArrowRight size={24} strokeWidth={3} className="ml-2" />}
                 </button>
               </motion.div>
-              
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.9 }} className="mt-6 text-center">
-                <Link
-                  to="/"
-                  className="text-[#1E1B4B] font-black hover:text-[#EF4444] transition-colors hover:underline decoration-[3px] underline-offset-4"
-                >
-                  Back to Login
-                </Link>
-              </motion.div>
 
             </form>
+            )}
           </div>
         </motion.div>
       </div>
