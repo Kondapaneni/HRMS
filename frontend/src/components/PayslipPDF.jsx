@@ -1,5 +1,5 @@
 import React from 'react';
-import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
 
 // Create styles
 const styles = StyleSheet.create({
@@ -37,14 +37,22 @@ const styles = StyleSheet.create({
   logo: {
     width: 60,
     height: 60,
-    backgroundColor: '#2563eb',
-    justifyContent: 'center',
-    alignItems: 'center',
     borderRadius: 8
   },
-  logoText: {
-    color: '#ffffff',
-    fontSize: 16
+  watermarkContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: -1,
+    opacity: 0.05
+  },
+  watermarkImage: {
+    width: 350,
+    height: 350
   },
   employeeName: {
     fontSize: 16,
@@ -215,6 +223,11 @@ const PayslipPDF = ({ payslip }) => {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {/* Watermark */}
+        <View style={styles.watermarkContainer} fixed>
+          <Image src="/pwa-512x512.png" style={styles.watermarkImage} />
+        </View>
+
         {/* Header */}
         <View style={styles.header}>
           <View>
@@ -226,9 +239,7 @@ const PayslipPDF = ({ payslip }) => {
               <Text style={styles.companyAddress}>San Francisco, CA 94107</Text>
             </View>
           </View>
-          <View style={styles.logo}>
-            <Text style={styles.logoText}>Acme</Text>
-          </View>
+          <Image src="/pwa-192x192.png" style={styles.logo} />
         </View>
 
         {/* Employee Details */}
