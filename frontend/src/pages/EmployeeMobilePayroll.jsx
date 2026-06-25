@@ -60,8 +60,30 @@ const EmployeeMobilePayroll = ({ profile }) => {
     return date.toLocaleString('default', { month: 'short', year: 'numeric' });
   };
 
-  const handleDownload = async (payslip) => {
+  const numberToWords = (num) => {
+    const a = ['','One ','Two ','Three ','Four ', 'Five ','Six ','Seven ','Eight ','Nine ','Ten ','Eleven ','Twelve ','Thirteen ','Fourteen ','Fifteen ','Sixteen ','Seventeen ','Eighteen ','Nineteen '];
+    const b = ['', '', 'Twenty ','Thirty ','Forty ','Fifty ', 'Sixty ','Seventy ','Eighty ','Ninety '];
+
+    const parsedNum = Math.floor(Number(num));
+    if (isNaN(parsedNum) || parsedNum === 0) return 'Zero Rupees Only';
+    if (parsedNum.toString().length > 9) return 'Amount too large';
+
+    const n = ('000000000' + parsedNum).substr(-9).match(/^(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})$/);
+    if (!n) return '';
+    let str = '';
+    str += (n[1] != 0) ? (a[Number(n[1])] || b[n[1][0]] + a[n[1][1]]) + 'Crore ' : '';
+    str += (n[2] != 0) ? (a[Number(n[2])] || b[n[2][0]] + a[n[2][1]]) + 'Lakh ' : '';
+    str += (n[3] != 0) ? (a[Number(n[3])] || b[n[3][0]] + a[n[3][1]]) + 'Thousand ' : '';
+    str += (n[4] != 0) ? (a[Number(n[4])] || b[n[4][0]] + a[n[4][1]]) + 'Hundred ' : '';
+    str += (n[5] != 0) ? ((str != '') ? 'and ' : '') + (a[Number(n[5])] || b[n[5][0]] + a[n[5][1]]) : '';
+    return str.trim() + ' Rupees Only';
+  };
+
+  const handleDownload = async (e, payslip) => {
+    e.preventDefault();
+    e.stopPropagation();
     try {
+      toast.loading('Preparing download...', { id: 'download-toast' });
       const formattedPayslip = {
         ...payslip,
         employeeName: payslip.employeeName || `${profile?.firstName || ''} ${profile?.lastName || ''}`.trim() || 'Employee',
@@ -72,14 +94,16 @@ const EmployeeMobilePayroll = ({ profile }) => {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${formattedPayslip.employeeName.replace(/[^a-zA-Z0-9 _-]/g, '')} - Payslip - ${getMonthYearString(payslip.month, payslip.year)}.pdf`;
+      link.setAttribute('download', `${formattedPayslip.employeeName.replace(/[^a-zA-Z0-9 _-]/g, '')} - Payslip - ${getMonthYearString(payslip.month, payslip.year)}.pdf`);
+      link.target = '_blank';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toast.success('Download started', { id: 'download-toast' });
     } catch (err) {
       console.error('Error generating PDF:', err);
-      toast.error('Failed to generate PDF document.');
+      toast.error('Failed to generate PDF document.', { id: 'download-toast' });
     }
   };
 
@@ -125,8 +149,8 @@ const EmployeeMobilePayroll = ({ profile }) => {
         <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4">Latest Salary</h3>
         <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
-              <Wallet className="w-5 h-5 text-blue-500" />
+            <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200">
+              <Wallet className="w-5 h-5 text-slate-600" />
             </div>
             <div>
               <p className="text-2xl font-black text-slate-900">{latestPayslip ? formatCurrency(latestPayslip.netSalary) : '₹0'}</p>
@@ -309,13 +333,20 @@ const EmployeeMobilePayroll = ({ profile }) => {
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-5 rounded-[20px] flex justify-between items-center shadow-md">
-                  <span className="text-xs font-bold text-blue-100 uppercase tracking-widest">Net Salary</span>
-                  <span className="text-2xl font-black text-white">{formatCurrency(selectedPayslip.netSalary)}</span>
+                <div className="bg-white border border-slate-200 p-6 rounded-[20px] flex flex-col items-center justify-center shadow-sm">
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Net Salary</span>
+                  <span className="text-4xl font-black text-emerald-600 tracking-tight mb-3">
+                    {formatCurrency(selectedPayslip.netSalary)}
+                  </span>
+                  <div className="bg-slate-50 border border-slate-100 px-4 py-1.5 rounded-full">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider text-center block">
+                      {numberToWords(selectedPayslip.netSalary)}
+                    </span>
+                  </div>
                 </div>
 
                 <button 
-                  onClick={() => handleDownload(selectedPayslip)}
+                  onClick={(e) => handleDownload(e, selectedPayslip)}
                   className="w-full bg-[#84dcc6] text-slate-900 font-bold text-sm py-4 rounded-[16px] flex justify-center items-center gap-2 active:scale-[0.98] transition-all shadow-sm"
                 >
                   <Download className="w-5 h-5" />

@@ -158,7 +158,9 @@ const ResetPassword = () => {
 
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="mb-8 text-center">
               <h2 className="text-4xl font-black text-[#1E1B4B] mb-2 tracking-tight">Reset Password</h2>
-              <p className="text-[#F59E0B] font-black text-lg">Enter your new credentials below.</p>
+              {!isSubmitted && (
+                <p className="text-[#F59E0B] font-black text-lg">Enter your new credentials below.</p>
+              )}
             </motion.div>
 
             {error && (
