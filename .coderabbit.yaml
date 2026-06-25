@@ -1,8 +1,5 @@
 # yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
 
-# CodeRabbit Configuration for Acme HRMS
-# Project Stack: React, Vite, JavaScript, Supabase, Tailwind CSS, React Router
-
 # Preferred language for code review comments
 language: "en-US"
 
@@ -28,46 +25,85 @@ reviews:
   # File path filters to ignore/exclude from review (prefixed with "!")
   path_filters:
     - "!node_modules/**"
+    - "!**/node_modules/**"
     - "!dist/**"
+    - "!**/dist/**"
     - "!build/**"
+    - "!**/build/**"
     - "!coverage/**"
+    - "!**/coverage/**"
     - "!package-lock.json"
-    - "!pnpm-lock.yaml"
-    - "!yarn.lock"
+    - "!**/package-lock.json"
     - "!.git/**"
     - "!.gemini/**"
     - "!.agents/**"
 
   # Path-specific guidelines to optimize code reviews for specific components
   path_instructions:
-    # Target all frontend React JSX component files
-    - path: "frontend/src/**/*.jsx"
+    # Target all frontend React JSX and JS files
+    - path: "frontend/src/**/*.{js,jsx}"
       instructions: |
-        Please review React components for the following:
-        - React Hooks: Verify correct dependency arrays, state updates, and proper cleanup functions (e.g. stopping video streams, removing listeners).
+        Please review React, Vite, and JavaScript files specifically for:
+        - React Hooks: Verify correct dependency arrays (e.g. for useEffect, useCallback, useMemo), state updates, and proper cleanup functions (e.g. stopping video streams, removing listeners).
         - Component Structure: Ensure clean component decomposition, readability, and correct props usage.
         - State Management: Look for state leaks, redundant states, stale closures, and proper context usage.
-        - Responsive UI & Tailwind CSS: Ensure mobile-first responsive layouts, flexbox/grid alignments, and consistent design aesthetics.
-        - Accessibility (a11y): Enforce correct aria-attributes, semantic HTML5 tags, and keyboard navigation.
-        - Performance: Look for unnecessary renders and optimize heavy calculations using memoization (useMemo, useCallback).
-        - Error Handling: Ensure graceful UI fallbacks, error boundaries, and user-facing warning banners.
-
-    # Target frontend JavaScript configuration, APIs, and hooks files
-    - path: "frontend/src/**/*.{js,ts}"
-      instructions: |
-        Please review JavaScript logic files for:
-        - API Calls: Verify correct use of axios/fetch, proper request timeouts, and CORS compatibility.
-        - State & Cache: Ensure react-query (tanstack query) caches are properly configured (staleTime, gcTime).
-        - Supabase Client: Review direct Supabase client queries, subscriptions, and handle connection lifecycle.
-        - Authentication & Router: Audit authentication checks, ProtectedRoute wrappers, and React Router navigation redirects.
+        - API Calls: Verify correct use of axios/fetch, proper request timeouts, CORS compatibility, loading states, and error handling.
+        - Supabase Queries: Review direct Supabase client queries, subscriptions, and handle connection lifecycle.
+        - Authentication Logic: Audit authentication checks, session validity, ProtectedRoute wrappers, and navigation redirects.
+        - Role-based Access: Ensure proper role checks (e.g. Admin vs Employee) and view restrictions.
         - Form Validation: Verify input rules, email/password validation regex, and loading/disabled states for buttons.
+        - Security: Scan for client-side security issues, XSS vulnerabilities, insecure storage of sensitive user data, and exposed secrets/API keys.
+        - Performance: Identify unnecessary renders and optimize heavy calculations using memoization (useMemo, useCallback).
+        - Accessibility (a11y): Enforce correct aria-attributes, semantic HTML5 tags (e.g. main, section, nav, button), and keyboard navigation.
+        - Responsive UI: Ensure mobile-first responsive layouts, flexbox/grid alignments, and consistent design aesthetics using Tailwind CSS.
+        - Error Handling: Ensure robust try-catch blocks, user-facing toast warnings or error banners, and graceful UI fallbacks.
 
-    # Target backend PHP endpoints and routes
+    # Target backend PHP files
     - path: "backend/**/*.php"
       instructions: |
-        Please review backend PHP routing and controllers for:
-        - Security: Enforce authentication validation and role-based access checks (require_role) at all endpoints.
-        - Database Security: Review PostgreSQL/Supabase queries for prepared statements to prevent SQL injections.
-        - Input Sanitization & Validation: Verify all parsed request bodies are checked and sanitized (prevent XSS, empty fields).
+        Please review PHP backend files for:
+        - Security & Role-based access: Enforce session validation, authentication, and role-based access checks (require_role) at all endpoints.
+        - Database Security & Supabase queries: Review PostgreSQL/Supabase queries for prepared statements to prevent SQL injections.
+        - Input Sanitization & Validation: Verify all parsed request bodies are checked and sanitized (prevent XSS, SQL injection, empty fields).
         - Error Handling: Ensure clean try-catch blocks and correct HTTP response status codes (e.g. 200, 400, 401, 403, 404, 500) with JSON payloads.
         - Session & Auth Lifecycle: Check JWT decoding, token validations, and CORS headers.
+
+  # Enable linters and static analysis integrations
+  tools:
+    eslint:
+      enabled: true
+    reactDoctor:
+      enabled: true
+    phpstan:
+      enabled: true
+      level: "default"
+    phpmd:
+      enabled: true
+    phpcs:
+      enabled: true
+    trivy:
+      enabled: true
+    gitleaks:
+      enabled: true
+    trufflehog:
+      enabled: true
+    yamllint:
+      enabled: true
+    markdownlint:
+      enabled: true
+    hadolint:
+      enabled: true
+    shellcheck:
+      enabled: true
+
+# Chat features and interaction rules
+chat:
+  auto_reply: true
+  art: false # Keep comments clean without ASCII/emoji art
+
+# Repository knowledge base settings
+knowledge_base:
+  web_search:
+    enabled: true
+  code_guidelines:
+    enabled: true
