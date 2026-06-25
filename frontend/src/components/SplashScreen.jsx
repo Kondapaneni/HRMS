@@ -46,14 +46,14 @@ const SplashScreen = () => {
       />
 
       <motion.div 
-        className="relative z-10 flex flex-col items-center w-full max-w-sm px-6"
+        className="relative z-10 flex flex-col items-center w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-3xl px-6"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
         {/* Animated Vector Illustration */}
-        <motion.div variants={itemVariants} className="w-64 h-56 mb-6 relative flex items-end justify-center">
-          <svg viewBox="0 0 200 150" className="w-full h-full drop-shadow-sm" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <motion.div variants={itemVariants} className="w-full max-w-[20rem] sm:max-w-[24rem] md:max-w-[28rem] lg:max-w-[36rem] mb-8 lg:mb-12 relative flex items-end justify-center">
+          <svg viewBox="0 0 200 150" className="w-full h-auto drop-shadow-sm" fill="none" xmlns="http://www.w3.org/2000/svg">
             
             {/* --- Environment Elements --- */}
             
@@ -134,38 +134,42 @@ const SplashScreen = () => {
             
             {/* UI Dashboard Graphic (e.g. bar chart) */}
             <motion.rect x="125" y="86" width="6" height="12" rx="2" className="fill-indigo-400" 
-              initial={{ height: 0, y: 98 }} animate={{ height: 12, y: 86 }} transition={{ delay: 1.1 }}
+              initial={{ height: 0, y: 12 }} animate={{ height: 12, y: 0 }} transition={{ delay: 1.1 }}
             />
             <motion.rect x="135" y="78" width="6" height="20" rx="2" className="fill-blue-500" 
-              initial={{ height: 0, y: 98 }} animate={{ height: 20, y: 78 }} transition={{ delay: 1.2 }}
+              initial={{ height: 0, y: 20 }} animate={{ height: 20, y: 0 }} transition={{ delay: 1.2 }}
             />
 
             {/* --- Accessories --- */}
 
             {/* Plant */}
             <motion.g initial={{ scale: 0, y: 10 }} animate={{ scale: 1, y: 0 }} transition={{ delay: 0.6, type: "spring", stiffness: 200, damping: 15 }}>
-              <path d="M25 120 Q30 90 45 100 Q35 110 30 120 Z" className="fill-emerald-400 dark:fill-emerald-500" />
-              <path d="M30 120 Q20 100 15 105 Q20 115 25 120 Z" className="fill-emerald-500 dark:fill-emerald-600" />
-              <path d="M28 120 L28 105" className="stroke-emerald-600" strokeWidth="1.5" strokeLinecap="round" />
+              <path d="M17 105 Q22 75 37 85 Q27 95 22 105 Z" className="fill-emerald-400 dark:fill-emerald-500" />
+              <path d="M22 105 Q12 85 7 90 Q12 100 17 105 Z" className="fill-emerald-500 dark:fill-emerald-600" />
+              <path d="M20 105 L20 90" className="stroke-emerald-600" strokeWidth="1.5" strokeLinecap="round" />
+              {/* Extra Leaves */}
+              <path d="M20 92 Q16 80 20 74 Q24 80 20 92 Z" className="fill-emerald-400 dark:fill-emerald-500" />
+              <path d="M20 105 Q28 96 32 100 Q26 104 20 105 Z" className="fill-emerald-600 dark:fill-emerald-700" />
+              <path d="M19 105 Q10 95 4 100 Q10 103 19 105 Z" className="fill-emerald-300 dark:fill-emerald-400" />
             </motion.g>
             {/* Plant Pot */}
-            <motion.path d="M20 120 L36 120 L32 105 L24 105 Z" className="fill-amber-600 dark:fill-amber-700" 
+            <motion.path d="M16 120 L24 120 L28 105 L12 105 Z" className="fill-amber-600 dark:fill-amber-700" 
               initial={{ y: 5, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.5 }}
             />
             
             {/* Coffee Cup */}
-            <motion.rect x="155" y="105" width="12" height="15" rx="2" className="fill-white dark:fill-slate-300 drop-shadow-sm" 
+            <motion.rect x="165" y="105" width="12" height="15" rx="2" className="fill-white dark:fill-slate-300 drop-shadow-sm" 
               initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}
             />
-            <motion.path d="M167 110 Q172 110 172 113 Q172 116 167 116" className="stroke-white dark:stroke-slate-300" fill="none" strokeWidth="2.5" 
+            <motion.path d="M177 110 Q182 110 182 113 Q182 116 177 116" className="stroke-white dark:stroke-slate-300" fill="none" strokeWidth="2.5" 
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }}
             />
             {/* Animated Steam */}
-            <motion.path d="M158 100 Q161 95 158 90" className="stroke-slate-300 dark:stroke-slate-500" strokeWidth="1.5" strokeLinecap="round" fill="none" 
+            <motion.path d="M168 102 C165 96, 172 92, 168 86" className="stroke-slate-300 dark:stroke-slate-500" strokeWidth="1.5" strokeLinecap="round" fill="none" 
               animate={{ y: [0, -6], opacity: [0, 0.7, 0] }}
               transition={{ repeat: Infinity, duration: 2, ease: "linear", delay: 1 }}
             />
-            <motion.path d="M162 102 Q165 97 162 92" className="stroke-slate-300 dark:stroke-slate-500" strokeWidth="1.5" strokeLinecap="round" fill="none" 
+            <motion.path d="M173 104 C171 98, 176 94, 174 88" className="stroke-slate-300 dark:stroke-slate-500" strokeWidth="1.5" strokeLinecap="round" fill="none" 
               animate={{ y: [0, -6], opacity: [0, 0.7, 0] }}
               transition={{ repeat: Infinity, duration: 2.2, ease: "linear", delay: 1.5 }}
             />
@@ -174,24 +178,24 @@ const SplashScreen = () => {
 
         {/* Branding & Loading Text */}
         <motion.div variants={itemVariants} className="text-center flex flex-col items-center w-full">
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight mb-2">Acme HRMS</h1>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight mb-3 lg:mb-5">Acme HRMS</h1>
           
-          <div className="flex flex-col items-center w-full space-y-6">
-            <div className="flex items-center space-x-2">
-              <p className="text-sm sm:text-base font-medium text-slate-500 dark:text-slate-400">Loading Workspace</p>
-              <div className="flex space-x-1 mt-1">
+          <div className="flex flex-col items-center w-full space-y-6 lg:space-y-8">
+            <div className="flex items-center space-x-2 lg:space-x-3">
+              <p className="text-base sm:text-lg md:text-xl lg:text-2xl font-medium text-slate-500 dark:text-slate-400">Loading Workspace</p>
+              <div className="flex space-x-1 mt-1 lg:mt-2">
                 <motion.div 
-                  className="w-1.5 h-1.5 bg-blue-500 rounded-full"
+                  className="w-1.5 h-1.5 md:w-2 md:h-2 lg:w-2.5 lg:h-2.5 bg-blue-500 rounded-full"
                   animate={{ y: [0, -4, 0], opacity: [0.5, 1, 0.5] }}
                   transition={{ duration: 0.8, repeat: Infinity, delay: 0 }}
                 />
                 <motion.div 
-                  className="w-1.5 h-1.5 bg-blue-500 rounded-full"
+                  className="w-1.5 h-1.5 md:w-2 md:h-2 lg:w-2.5 lg:h-2.5 bg-blue-500 rounded-full"
                   animate={{ y: [0, -4, 0], opacity: [0.5, 1, 0.5] }}
                   transition={{ duration: 0.8, repeat: Infinity, delay: 0.15 }}
                 />
                 <motion.div 
-                  className="w-1.5 h-1.5 bg-blue-500 rounded-full"
+                  className="w-1.5 h-1.5 md:w-2 md:h-2 lg:w-2.5 lg:h-2.5 bg-blue-500 rounded-full"
                   animate={{ y: [0, -4, 0], opacity: [0.5, 1, 0.5] }}
                   transition={{ duration: 0.8, repeat: Infinity, delay: 0.3 }}
                 />
@@ -199,7 +203,7 @@ const SplashScreen = () => {
             </div>
             
             {/* Elegant Progress Indicator */}
-            <div className="w-48 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+            <div className="w-56 sm:w-64 md:w-80 lg:w-96 h-1.5 md:h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                <motion.div 
                  className="h-full bg-blue-600 dark:bg-blue-500 rounded-full"
                  initial={{ width: "0%" }}
