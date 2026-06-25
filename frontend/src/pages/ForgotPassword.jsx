@@ -116,7 +116,7 @@ const ForgotPassword = () => {
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 0.2, type: "spring", bounce: 0.4 }}
-          className="w-full max-w-md relative z-10"
+          className="w-full max-w-md relative z-10 mb-20 sm:mb-28 lg:mb-0"
         >
           <div className="bg-white border-[3px] border-[#1E1B4B] rounded-2xl p-8 sm:p-10 relative overflow-visible">
 
@@ -127,7 +127,7 @@ const ForgotPassword = () => {
               Back to Login
             </Link>
 
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="mb-8">
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="mb-8 text-center">
               <h2 className="text-4xl font-black text-[#1E1B4B] mb-2 tracking-tight">Forgot Password?</h2>
               <p className="text-[#4F46E5] font-black text-lg">We'll help you reset it.</p>
             </motion.div>
