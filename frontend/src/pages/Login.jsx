@@ -250,11 +250,14 @@ const Login = () => {
           </div>
 
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.9 }} className="mt-8 text-center">
-            <p className="text-[#1E1B4B] font-black">
+            <p className="text-[#1E1B4B] font-black mb-4">
               Don't have an account?{' '}
               <a href="mailto:gowthamkondapaneni2003@gmail.com" className="text-[#EF4444] font-black hover:text-[#DC2626] transition-colors hover:underline decoration-[3px] underline-offset-4">
                 Contact HR Admin
               </a>
+            </p>
+            <p className="text-slate-500 text-sm font-semibold opacity-80">
+              Designed and Developed by Gowtham Chowdary Kondapaneni
             </p>
           </motion.div>
 
