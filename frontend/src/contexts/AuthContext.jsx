@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
+import SplashScreen from '../components/SplashScreen';
 
 const AuthContext = createContext({});
 
@@ -79,14 +80,7 @@ export const AuthProvider = ({ children }) => {
   return (
     <AuthContext.Provider value={value}>
       {loading ? (
-        <div className="flex flex-col items-center justify-center min-h-[100dvh] bg-gradient-to-br from-slate-50 to-slate-100">
-          <div className="relative w-16 h-16 mb-6">
-            <div className="absolute inset-0 border-4 border-blue-100 rounded-full"></div>
-            <div className="absolute inset-0 border-4 border-blue-600 rounded-full animate-spin border-t-transparent"></div>
-          </div>
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight mb-1">Acme HRMS</h1>
-          <p className="text-sm font-medium text-slate-500 animate-pulse">Loading Workspace...</p>
-        </div>
+        <SplashScreen />
       ) : children}
     </AuthContext.Provider>
   );
