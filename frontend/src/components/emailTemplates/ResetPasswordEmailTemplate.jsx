@@ -3,7 +3,7 @@ import templateHtml from '../../../../backend/src/Templates/reset_password.html?
 
 const ResetPasswordEmailTemplate = () => {
   const htmlContent = templateHtml
-    .replace(/\{\{resetLink\}\}/g, 'http://localhost:5173/reset-password?token=preview_token')
+    .replace(/\{\{resetLink\}\}/g, '#')
     .replace(/\{\{currentYear\}\}/g, new Date().getFullYear());
 
   return <div dangerouslySetInnerHTML={{ __html: htmlContent }} />;
