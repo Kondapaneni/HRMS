@@ -43,6 +43,26 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:8081',
         changeOrigin: true
+      },
+      '/Avatar': {
+        target: 'http://localhost:8081',
+        changeOrigin: true
+      },
+      '/Holiday': {
+        target: 'http://localhost:8081',
+        changeOrigin: true
+      },
+      '/Attendance': {
+        target: 'http://localhost:8081',
+        changeOrigin: true
+      },
+      '/Chat-Attachment': {
+        target: 'http://localhost:8081',
+        changeOrigin: true
+      },
+      '/Candidate-Document': {
+        target: 'http://localhost:8081',
+        changeOrigin: true
       }
     }
   }

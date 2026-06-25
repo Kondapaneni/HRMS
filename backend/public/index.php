@@ -467,7 +467,8 @@ $app->get('/Avatar/{filename:.+}', function (Request $request, Response $respons
     $response->getBody()->write($fileContent);
     return $response
         ->withHeader('Content-Type', getMimeType($filename))
-        ->withHeader('Content-Disposition', 'inline; filename="' . $filename . '"');
+        ->withHeader('Content-Disposition', 'inline; filename="' . $filename . '"')
+        ->withHeader('Cache-Control', 'public, max-age=31536000, immutable');
 });
 
 // Holiday proxy route
@@ -483,7 +484,8 @@ $app->get('/Holiday/{filename:.+}', function (Request $request, Response $respon
     $response->getBody()->write($fileContent);
     return $response
         ->withHeader('Content-Type', getMimeType($filename))
-        ->withHeader('Content-Disposition', 'inline; filename="' . $filename . '"');
+        ->withHeader('Content-Disposition', 'inline; filename="' . $filename . '"')
+        ->withHeader('Cache-Control', 'public, max-age=31536000, immutable');
 });
 
 // Attendance proxy route
@@ -499,7 +501,8 @@ $app->get('/Attendance/{filename:.+}', function (Request $request, Response $res
     $response->getBody()->write($fileContent);
     return $response
         ->withHeader('Content-Type', getMimeType($filename))
-        ->withHeader('Content-Disposition', 'inline; filename="' . $filename . '"');
+        ->withHeader('Content-Disposition', 'inline; filename="' . $filename . '"')
+        ->withHeader('Cache-Control', 'public, max-age=31536000, immutable');
 });
 
 // Chat Attachment proxy route
@@ -521,7 +524,8 @@ $app->get('/Chat-Attachment/{filename:.+}', function (Request $request, Response
     $response->getBody()->write($fileContent);
     return $response
         ->withHeader('Content-Type', getMimeType($filename))
-        ->withHeader('Content-Disposition', 'inline; filename="' . basename($filename) . '"');
+        ->withHeader('Content-Disposition', 'inline; filename="' . basename($filename) . '"')
+        ->withHeader('Cache-Control', 'public, max-age=31536000, immutable');
 });
 
 // Candidate Document proxy route
@@ -543,7 +547,8 @@ $app->get('/Candidate-Document/{filename:.+}', function (Request $request, Respo
     $response->getBody()->write($fileContent);
     return $response
         ->withHeader('Content-Type', getMimeType($filename))
-        ->withHeader('Content-Disposition', 'inline; filename="' . basename($filename) . '"');
+        ->withHeader('Content-Disposition', 'inline; filename="' . basename($filename) . '"')
+        ->withHeader('Cache-Control', 'public, max-age=31536000, immutable');
 });
 
 // Run app
