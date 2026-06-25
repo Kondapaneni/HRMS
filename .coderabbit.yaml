@@ -1,0 +1,73 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+
+# CodeRabbit Configuration for Acme HRMS
+# Project Stack: React, Vite, JavaScript, Supabase, Tailwind CSS, React Router
+
+# Preferred language for code review comments
+language: "en-US"
+
+# Tone and persona instructions for the AI reviewer (max 250 characters)
+tone_instructions: "You are a senior full-stack engineer and security auditor. Provide clear, constructive, and concise reviews focusing on security, performance, and best practices."
+
+# Review settings
+reviews:
+  # Review profile: "assertive" for thorough reviews, "chill" for minimal reviews
+  profile: "assertive"
+  
+  # Disable AI poems in pull request summaries
+  poem: false
+  
+  # Enable high-level summary of changes
+  high_level_summary: true
+  
+  # Configure automated review triggers
+  auto_review:
+    enabled: true
+    drafts: false # Do not auto-review draft pull requests
+    
+  # File path filters to ignore/exclude from review (prefixed with "!")
+  path_filters:
+    - "!node_modules/**"
+    - "!dist/**"
+    - "!build/**"
+    - "!coverage/**"
+    - "!package-lock.json"
+    - "!pnpm-lock.yaml"
+    - "!yarn.lock"
+    - "!.git/**"
+    - "!.gemini/**"
+    - "!.agents/**"
+
+  # Path-specific guidelines to optimize code reviews for specific components
+  path_instructions:
+    # Target all frontend React JSX component files
+    - path: "frontend/src/**/*.jsx"
+      instructions: |
+        Please review React components for the following:
+        - React Hooks: Verify correct dependency arrays, state updates, and proper cleanup functions (e.g. stopping video streams, removing listeners).
+        - Component Structure: Ensure clean component decomposition, readability, and correct props usage.
+        - State Management: Look for state leaks, redundant states, stale closures, and proper context usage.
+        - Responsive UI & Tailwind CSS: Ensure mobile-first responsive layouts, flexbox/grid alignments, and consistent design aesthetics.
+        - Accessibility (a11y): Enforce correct aria-attributes, semantic HTML5 tags, and keyboard navigation.
+        - Performance: Look for unnecessary renders and optimize heavy calculations using memoization (useMemo, useCallback).
+        - Error Handling: Ensure graceful UI fallbacks, error boundaries, and user-facing warning banners.
+
+    # Target frontend JavaScript configuration, APIs, and hooks files
+    - path: "frontend/src/**/*.{js,ts}"
+      instructions: |
+        Please review JavaScript logic files for:
+        - API Calls: Verify correct use of axios/fetch, proper request timeouts, and CORS compatibility.
+        - State & Cache: Ensure react-query (tanstack query) caches are properly configured (staleTime, gcTime).
+        - Supabase Client: Review direct Supabase client queries, subscriptions, and handle connection lifecycle.
+        - Authentication & Router: Audit authentication checks, ProtectedRoute wrappers, and React Router navigation redirects.
+        - Form Validation: Verify input rules, email/password validation regex, and loading/disabled states for buttons.
+
+    # Target backend PHP endpoints and routes
+    - path: "backend/**/*.php"
+      instructions: |
+        Please review backend PHP routing and controllers for:
+        - Security: Enforce authentication validation and role-based access checks (require_role) at all endpoints.
+        - Database Security: Review PostgreSQL/Supabase queries for prepared statements to prevent SQL injections.
+        - Input Sanitization & Validation: Verify all parsed request bodies are checked and sanitized (prevent XSS, empty fields).
+        - Error Handling: Ensure clean try-catch blocks and correct HTTP response status codes (e.g. 200, 400, 401, 403, 404, 500) with JSON payloads.
+        - Session & Auth Lifecycle: Check JWT decoding, token validations, and CORS headers.
