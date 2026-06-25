@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Download, IndianRupee, TrendingDown, TrendingUp, Wallet, AlertCircle, FileText, ChevronRight, ChevronLeft } from 'lucide-react';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -16,6 +16,21 @@ const EmployeeMobilePayroll = ({ profile }) => {
   });
   const [selectedPayslip, setSelectedPayslip] = useState(null);
   const controls = useDragControls();
+
+  useEffect(() => {
+    const scrollContainer = document.querySelector('main > div.overflow-y-auto');
+    if (selectedPayslip) {
+      document.body.style.overflow = 'hidden';
+      if (scrollContainer) scrollContainer.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+      if (scrollContainer) scrollContainer.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      if (scrollContainer) scrollContainer.style.overflow = '';
+    };
+  }, [selectedPayslip]);
 
   const latestPayslip = payslips?.[0];
   

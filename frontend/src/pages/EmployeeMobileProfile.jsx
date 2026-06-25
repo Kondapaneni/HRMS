@@ -22,13 +22,17 @@ const EmployeeMobileProfile = () => {
   const controls = useDragControls();
 
   useEffect(() => {
+    const scrollContainer = document.querySelector('main > div.overflow-y-auto');
     if (activeSection) {
       document.body.style.overflow = 'hidden';
+      if (scrollContainer) scrollContainer.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
+      if (scrollContainer) scrollContainer.style.overflow = '';
     }
     return () => {
       document.body.style.overflow = '';
+      if (scrollContainer) scrollContainer.style.overflow = '';
     };
   }, [activeSection]);
 
