@@ -71,12 +71,7 @@ $app->put('/api/candidate/profile', function (Request $request, Response $respon
             ]);
         }
 
-        // Handle Avatar update separately if provided, because it's in the users table
-        if (isset($data['avatar'])) {
-            $stmtUserUpdate = $conn->prepare('UPDATE users SET avatar = ? WHERE id = ?');
-            $stmtUserUpdate->execute([$data['avatar'], $decodedToken->id]);
-        }
-        
+
         $response->getBody()->write(json_encode(['message' => 'Profile updated successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
