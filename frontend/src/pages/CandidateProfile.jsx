@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Camera, Save, FileText, UploadCloud } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
+import api from '../api/axios';
 import CandidateMobileProfile from './CandidateMobileProfile';
 
 const CandidateProfile = () => {
@@ -33,13 +34,8 @@ const CandidateProfile = () => {
   const { data: profileData, isLoading: isLoadingProfile } = useQuery({
     queryKey: ['candidate', 'profile', profile?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('candidate_profiles')
-        .select('*')
-        .eq('user_id', profile.id)
-        .maybeSingle();
-      if (error) throw error;
-      return data || null;
+      const res = await api.get('/candidate/profile');
+      return res.data.profile || null;
     },
     enabled: !!profile?.id
   });
@@ -61,20 +57,15 @@ const CandidateProfile = () => {
 
   const saveMutation = useMutation({
     mutationFn: async (updatedData) => {
-      const { error } = await supabase
-        .from('candidate_profiles')
-        .upsert({
-          user_id: profile.id,
-          phone: updatedData.phone,
-          address: updatedData.address,
-          current_title: updatedData.currentTitle,
-          experience: updatedData.experience,
-          bio: updatedData.bio,
-          resume_url: updatedData.resumes,
-          avatar_url: updatedData.avatarUrl,
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'user_id' });
-      if (error) throw error;
+      await api.put('/candidate/profile', {
+        phone: updatedData.phone,
+        address: updatedData.address,
+        currentTitle: updatedData.currentTitle,
+        experience: updatedData.experience,
+        bio: updatedData.bio,
+        resumes: updatedData.resumes,
+        avatar: updatedData.avatarUrl
+      });
     },
     onSuccess: () => {
       toast.success('Profile saved successfully!');

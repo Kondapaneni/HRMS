@@ -21,12 +21,8 @@ const AdminRecruitment = () => {
   const { data: jobs = [], isLoading: isLoadingJobs } = useQuery({
     queryKey: ['admin', 'jobs'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('jobs')
-        .select('*, applications(count)')
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      return data || [];
+      const res = await api.get('/admin/jobs');
+      return res.data.jobs || [];
     },
     onError: () => toast.error('Failed to load jobs')
   });
@@ -34,16 +30,8 @@ const AdminRecruitment = () => {
   const { data: applications = [], isLoading: isLoadingApps } = useQuery({
     queryKey: ['admin', 'applications'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('applications')
-        .select(`
-          *,
-          jobs (title, department),
-          application_timeline (status_change, notes, created_at)
-        `)
-        .order('applied_date', { ascending: false });
-      if (error) throw error;
-      return data || [];
+      const res = await api.get('/admin/applications');
+      return res.data.applications || [];
     },
     onError: () => toast.error('Failed to load applications')
   });
@@ -51,9 +39,8 @@ const AdminRecruitment = () => {
   const { data: candidateProfiles = [] } = useQuery({
     queryKey: ['admin', 'candidate_profiles'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('candidate_profiles').select('*');
-      if (error) throw error;
-      return data || [];
+      const res = await api.get('/admin/candidate-profiles');
+      return res.data.profiles || [];
     }
   });
 
@@ -68,9 +55,8 @@ const AdminRecruitment = () => {
   const { data: allCandidateDocuments = [] } = useQuery({
     queryKey: ['admin', 'all_candidate_documents'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('candidate_documents').select('*');
-      if (error) throw error;
-      return data || [];
+      const res = await api.get('/admin/candidate-documents');
+      return res.data.documents || [];
     }
   });
 
@@ -148,8 +134,7 @@ const AdminRecruitment = () => {
         delete jobDataToInsert.deadline;
       }
 
-      const { error } = await supabase.from('jobs').insert([jobDataToInsert]);
-      if (error) throw error;
+      await api.post('/admin/jobs', jobDataToInsert);
       return submitStatus;
     },
     onSuccess: (status) => {
@@ -172,15 +157,10 @@ const AdminRecruitment = () => {
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ app, userInfo, newStatus, additionalNotes = '', offerLetterUrl = null }) => {
-      const { error } = await supabase.from('applications').update({ status: newStatus }).eq('id', app.id);
-      if (error) throw error;
-      
-      // Add to timeline
-      await supabase.from('application_timeline').insert([{
-        application_id: app.id,
-        status_change: newStatus,
-        notes: additionalNotes || `Application status updated to ${newStatus}`
-      }]);
+      await api.put(`/admin/applications/${app.id}/status`, { 
+        status: newStatus, 
+        notes: additionalNotes || `Application status updated to ${newStatus}` 
+      });
       
       // Queue email notification based on status
       if (userInfo?.email) {
@@ -236,11 +216,11 @@ const AdminRecruitment = () => {
           `;
         }
         
-        await supabase.from('email_queue').insert([{
-          to_email: userInfo.email,
+        await api.post('/admin/send-email', {
+          to: userInfo.email,
           subject: subject,
           body: emailBody
-        }]);
+        });
       }
       return newStatus;
     },

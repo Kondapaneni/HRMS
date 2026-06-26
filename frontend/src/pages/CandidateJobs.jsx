@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Search, Filter, ChevronRight, FileText, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
+import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
@@ -25,12 +26,12 @@ const CandidateJobs = () => {
     queryFn: async () => {
       if (!profile?.id) return null;
       const [jobsRes, appsRes] = await Promise.all([
-        supabase.from('jobs').select('*').eq('status', 'Published').order('created_at', { ascending: false }),
-        supabase.from('applications').select('job_id, status').eq('candidate_id', profile.id)
+        api.get('/candidate/jobs'),
+        api.get('/candidate/applications')
       ]);
       return {
-        jobs: jobsRes.data || [],
-        applications: appsRes.data || []
+        jobs: jobsRes.data.jobs || [],
+        applications: appsRes.data.applications || []
       };
     },
     enabled: !!profile?.id
@@ -51,13 +52,8 @@ const CandidateJobs = () => {
   const { data: profileData, isLoading: isLoadingProfile } = useQuery({
     queryKey: ['candidate', 'profile_for_jobs', profile?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('candidate_profiles')
-        .select('*')
-        .eq('user_id', profile.id)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
+      const res = await api.get('/candidate/profile');
+      return res.data.profile;
     },
     enabled: !!profile?.id
   });
@@ -94,44 +90,10 @@ const CandidateJobs = () => {
 
   const applyMutation = useMutation({
     mutationFn: async ({ job, resumeUrl }) => {
-      // Submit Application
-      const { data: newApp, error } = await supabase
-        .from('applications')
-        .insert([{
-          job_id: job.id,
-          candidate_id: profile.id,
-          resume_url: resumeUrl,
-          status: 'Applied'
-        }])
-        .select('id')
-        .single();
-        
-      if (error) throw error;
-      
-      // Also log the timeline
-      if (newApp) {
-         await supabase.from('application_timeline').insert([{
-           application_id: newApp.id,
-           status_change: 'Applied',
-           notes: 'Application submitted successfully'
-         }]);
-
-         // Queue email notification using the new template
-         const frontendUrl = import.meta.env.VITE_APP_URL || window.location.origin;
-         const dashboardLink = frontendUrl + "/candidate/applications";
-         
-         let finalEmailBody = emailTemplateHtml
-           .replace(/{{firstName}}/g, profile.firstName || profile.first_name || 'Candidate')
-           .replace(/{{jobTitle}}/g, job.title)
-           .replace(/{{dashboardLink}}/g, dashboardLink)
-           .replace(/{{currentYear}}/g, new Date().getFullYear());
-         
-         await supabase.from('email_queue').insert([{
-           to_email: profile.email,
-           subject: `Application Received Successfully - ${job.title}`,
-           body: finalEmailBody
-         }]);
-      }
+      await api.post('/candidate/applications', {
+        job_id: job.id,
+        resume_url: resumeUrl
+      });
     },
     onSuccess: (_, variables) => {
       toast.success(`Successfully applied for the ${variables.job.title} position!`);

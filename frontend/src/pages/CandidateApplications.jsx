@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FileText, ChevronRight, X, Clock, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import CandidateMobileApplications from './CandidateMobileApplications';
@@ -13,15 +14,8 @@ const CandidateApplications = () => {
   const { data: applications = [], isLoading } = useQuery({
     queryKey: ['candidate', 'applications', profile?.id],
     queryFn: async () => {
-      const { data: appsData, error } = await supabase
-        .from('applications')
-        .select('id, status, applied_date, resume_url, job_id, jobs(title, department, location, type, deadline), application_timeline(*)')
-        .eq('candidate_id', profile.id)
-        .order('applied_date', { ascending: false });
-
-      if (error) throw error;
-
-      const apps = appsData || [];
+      const res = await api.get('/candidate/applications');
+      const apps = res.data.applications || [];
 
       return apps.map(app => {
         const timeline = Array.isArray(app.application_timeline) ? app.application_timeline.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)) : [];

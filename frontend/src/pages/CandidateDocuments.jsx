@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
+import api from '../api/axios';
 import { FileText, UploadCloud, CheckCircle2, AlertCircle, X, Eye, Loader2, Info, Lock } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'react-hot-toast';
@@ -134,13 +135,8 @@ const CandidateDocuments = () => {
     queryKey: ['candidate_documents', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return [];
-      const { data, error } = await supabase
-        .from('candidate_documents')
-        .select('*')
-        .eq('candidate_id', profile.id);
-      
-      if (error) throw error;
-      return data || [];
+      const res = await api.get('/candidate/documents');
+      return res.data.documents || [];
     },
     enabled: !!profile?.id
   });
@@ -159,13 +155,10 @@ const CandidateDocuments = () => {
 
       const proxyUrl = window.location.origin + "/Candidate-Document/" + filePath;
 
-      // Delete existing from storage and DB
-      const { data: existingDoc } = await supabase
-        .from('candidate_documents')
-        .select('*')
-        .eq('candidate_id', profile.id)
-        .eq('document_type', docTypeId)
-        .maybeSingle();
+      // Delete existing from storage
+      const res = await api.get('/candidate/documents');
+      const docs = res.data.documents || [];
+      const existingDoc = docs.find(d => d.document_type === docTypeId);
 
       if (existingDoc && existingDoc.file_path) {
         const parts = existingDoc.file_path.split('/Candidate-Document/');
@@ -175,23 +168,12 @@ const CandidateDocuments = () => {
         }
       }
 
-      await supabase.from('candidate_documents').delete().match({ candidate_id: profile.id, document_type: docTypeId });
-      
-      // Insert new
-      const { data, error: dbError } = await supabase
-        .from('candidate_documents')
-        .insert({
-           candidate_id: profile.id, 
-           document_type: docTypeId, 
-           file_path: proxyUrl, 
-           file_name: file.name,
-           status: 'pending'
-        })
-        .select()
-        .single();
-
-      if (dbError) throw dbError;
-      return data;
+      const resPost = await api.post('/candidate/documents', {
+          document_type: docTypeId,
+          file_path: proxyUrl,
+          file_name: file.name
+      });
+      return resPost.data.document;
     },
     onSuccess: () => {
       toast.success('Document uploaded successfully');

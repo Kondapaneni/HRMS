@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Briefcase, FileText, BadgeCheck, UserCheck, User, FileUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import api from '../api/axios';
 import CandidateMobileDashboard from './CandidateMobileDashboard';
 
 const CandidateDashboard = () => {
@@ -15,25 +16,15 @@ const CandidateDashboard = () => {
       if (!profile?.id) return null;
 
       const [profileRes, appsRes, jobsRes] = await Promise.all([
-        supabase.from('candidate_profiles').select('*').eq('user_id', profile.id).maybeSingle(),
-        supabase.from('applications').select('id, status, applied_date, job_id').eq('candidate_id', profile.id).order('applied_date', { ascending: false }),
-        supabase.from('jobs').select('*').eq('status', 'Published').order('created_at', { ascending: false }).limit(4)
+        api.get('/candidate/profile'),
+        api.get('/candidate/applications'),
+        api.get('/candidate/jobs')
       ]);
 
-      let appsData = appsRes.data || [];
-      if (appsData.length > 0) {
-        const jobIds = [...new Set(appsData.map(a => a.job_id))];
-        const { data: jobData } = await supabase.from('jobs').select('id, title, department, location').in('id', jobIds);
-        const jobsMap = jobData ? jobData.reduce((acc, job) => { acc[job.id] = job; return acc; }, {}) : {};
-        appsData.forEach(app => {
-          app.jobs = jobsMap[app.job_id] || null;
-        });
-      }
-
       return {
-        profileData: profileRes.data || null,
-        appsData: appsData,
-        jobsData: jobsRes.data || []
+        profileData: profileRes.data.profile || null,
+        appsData: appsRes.data.applications || [],
+        jobsData: jobsRes.data.jobs ? jobsRes.data.jobs.slice(0, 4) : []
       };
     },
     enabled: !!profile?.id,
