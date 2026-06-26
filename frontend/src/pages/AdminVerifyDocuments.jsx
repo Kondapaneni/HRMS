@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
-import { X, CheckCircle2, XCircle, Eye, Loader2, FileText, AlertCircle, Send, ArrowLeft, Check, ChevronRight, Clock } from 'lucide-react';
+import { X, CheckCircle2, XCircle, Eye, Loader2, FileText, AlertCircle, Send, ArrowLeft, Check, ChevronRight, Clock, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../api/axios';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
@@ -290,23 +290,31 @@ const AdminVerifyDocuments = () => {
                 
                 {selectedDocument && (
                   <div className="flex items-center gap-3">
-                    {selectedDocument.status !== 'verified' && (
-                      <button 
-                        onClick={() => handleUpdateStatus(selectedDocument.id, 'verified')} 
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 border border-emerald-200 rounded-lg font-medium text-sm transition-colors shadow-sm"
-                      >
-                        <Check size={16} />
-                        Approve Document
-                      </button>
-                    )}
-                    {selectedDocument.status !== 'rejected' && (
-                      <button 
-                        onClick={() => handleUpdateStatus(selectedDocument.id, 'rejected')} 
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-rose-50 text-rose-700 hover:bg-rose-100 hover:text-rose-800 border border-rose-200 rounded-lg font-medium text-sm transition-colors shadow-sm"
-                      >
-                        <X size={16} />
-                        Reject
-                      </button>
+                    {application?.status === 'Converted to Employee' ? (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-500 border border-slate-200 rounded-lg text-sm font-medium">
+                        <Lock size={14} /> Read-only (Converted)
+                      </span>
+                    ) : (
+                      <>
+                        {selectedDocument.status !== 'verified' && (
+                          <button 
+                            onClick={() => handleUpdateStatus(selectedDocument.id, 'verified')} 
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:text-emerald-800 border border-emerald-200 rounded-lg font-medium text-sm transition-colors shadow-sm"
+                          >
+                            <Check size={16} />
+                            Approve Document
+                          </button>
+                        )}
+                        {selectedDocument.status !== 'rejected' && (
+                          <button 
+                            onClick={() => handleUpdateStatus(selectedDocument.id, 'rejected')} 
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-rose-50 text-rose-700 hover:bg-rose-100 hover:text-rose-800 border border-rose-200 rounded-lg font-medium text-sm transition-colors shadow-sm"
+                          >
+                            <X size={16} />
+                            Reject
+                          </button>
+                        )}
+                      </>
                     )}
                   </div>
                 )}

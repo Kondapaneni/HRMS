@@ -658,12 +658,14 @@ const AdminRecruitment = () => {
                             </a>
                           )}
 
+                          {(isHired || isConverted) && (
                           <button 
                             onClick={() => navigate('/admin/recruitment/verify-documents/' + app.id, { state: { application: app } })}
                             className="inline-flex items-center justify-center whitespace-nowrap rounded-md border border-slate-300 bg-white hover:bg-slate-50 h-9 px-3 py-2 text-sm font-medium text-slate-700"
                           >
                             Verify Documents
                           </button>
+                          )}
 
                           {status === 'Applied' && (
                             <button disabled={updateStatusMutation.isPending} onClick={() => updateApplicationStatus(app, 'Shortlisted')} className="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white hover:bg-slate-50 h-9 px-3 py-2 text-sm font-medium text-slate-700 disabled:opacity-50">
