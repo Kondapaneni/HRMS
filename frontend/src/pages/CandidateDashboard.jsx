@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
-import { Briefcase, FileText, BadgeCheck, BellRing, UserCheck, User, FileUp } from 'lucide-react';
+import { Briefcase, FileText, BadgeCheck, UserCheck, User, FileUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
@@ -13,21 +13,26 @@ const CandidateDashboard = () => {
     queryFn: async () => {
       if (!profile?.id) return null;
 
-      const [profileRes, appsRes, jobsRes, notifsRes] = await Promise.all([
-        supabase.from('candidate_profiles').select('*').eq('user_id', profile.id).single(),
-        supabase.from('applications').select(`
-          *,
-          jobs (title, department, location)
-        `).eq('candidate_id', profile.id).order('created_at', { ascending: false }),
-        supabase.from('jobs').select('*').eq('status', 'Published').order('created_at', { ascending: false }).limit(4),
-        supabase.from('notifications').select('*', { count: 'exact', head: true }).eq('user_id', profile.id).eq('is_read', false)
+      const [profileRes, appsRes, jobsRes] = await Promise.all([
+        supabase.from('candidate_profiles').select('*').eq('user_id', profile.id).maybeSingle(),
+        supabase.from('applications').select('id, status, applied_date, job_id').eq('candidate_id', profile.id).order('applied_date', { ascending: false }),
+        supabase.from('jobs').select('*').eq('status', 'Published').order('created_at', { ascending: false }).limit(4)
       ]);
+
+      let appsData = appsRes.data || [];
+      if (appsData.length > 0) {
+        const jobIds = [...new Set(appsData.map(a => a.job_id))];
+        const { data: jobData } = await supabase.from('jobs').select('id, title, department, location').in('id', jobIds);
+        const jobsMap = jobData ? jobData.reduce((acc, job) => { acc[job.id] = job; return acc; }, {}) : {};
+        appsData.forEach(app => {
+          app.jobs = jobsMap[app.job_id] || null;
+        });
+      }
 
       return {
         profileData: profileRes.data || null,
-        appsData: appsRes.data || [],
-        jobsData: jobsRes.data || [],
-        unreadNotifications: notifsRes.count || 0
+        appsData: appsData,
+        jobsData: jobsRes.data || []
       };
     },
     enabled: !!profile?.id,
@@ -37,7 +42,6 @@ const CandidateDashboard = () => {
   const profileData = dashboardData?.profileData;
   const applications = dashboardData?.appsData || [];
   const jobs = dashboardData?.jobsData || [];
-  const unreadNotifications = dashboardData?.unreadNotifications || 0;
 
   // Calculate completion stats
   let percentage = 0;
@@ -88,7 +92,7 @@ const CandidateDashboard = () => {
       )}
 
       {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         <div className="rounded-lg border border-slate-200 bg-white shadow-sm p-6 flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-slate-500">Applications</p>
@@ -102,13 +106,6 @@ const CandidateDashboard = () => {
             <p className="text-2xl font-bold text-slate-900 mt-1">{shortlisted}</p>
           </div>
           <BadgeCheck size={32} className="text-emerald-600 opacity-80" />
-        </div>
-        <div className="rounded-lg border border-slate-200 bg-white shadow-sm p-6 flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-slate-500">Unread alerts</p>
-            <p className="text-2xl font-bold text-slate-900 mt-1">{unreadNotifications}</p>
-          </div>
-          <BellRing size={32} className="text-amber-600 opacity-80" />
         </div>
         <div className="rounded-lg border border-slate-200 bg-white shadow-sm p-6 flex items-center justify-between">
           <div>
@@ -146,7 +143,7 @@ const CandidateDashboard = () => {
                       {app.status}
                     </span>
                   </div>
-                  <p className="mt-3 text-sm text-slate-500">Applied on {new Date(app.created_at).toLocaleDateString()}</p>
+                  <p className="mt-3 text-sm text-slate-500">Applied on {new Date(app.applied_date).toLocaleDateString()}</p>
                 </div>
               ))
             )}

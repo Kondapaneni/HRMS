@@ -54,8 +54,8 @@ const CandidateJobs = () => {
         .from('candidate_profiles')
         .select('resume_url')
         .eq('user_id', profile.id)
-        .single();
-      if (error && error.code !== 'PGRST116') throw error;
+        .maybeSingle();
+      if (error) throw error;
       return Array.isArray(data?.resume_url) ? data.resume_url : [];
     },
     enabled: !!profile?.id

@@ -22,7 +22,7 @@ const CandidateLayout = () => {
         .from('candidate_profiles')
         .select('avatar_url')
         .eq('user_id', profile.id)
-        .single();
+        .maybeSingle();
       return data;
     },
     enabled: !!profile?.id

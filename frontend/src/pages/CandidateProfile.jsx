@@ -36,8 +36,8 @@ const CandidateProfile = () => {
         .from('candidate_profiles')
         .select('*')
         .eq('user_id', profile.id)
-        .single();
-      if (error && error.code !== 'PGRST116') throw error;
+        .maybeSingle();
+      if (error) throw error;
       return data || null;
     },
     enabled: !!profile?.id
