@@ -203,7 +203,7 @@ const EmployeeLayout = () => {
       <main className="flex-1 flex flex-col h-[100dvh] overflow-hidden relative z-30 bg-transparent">
 
         {/* Top Header - Minimalist */}
-        <header className="h-14 shrink-0 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 flex items-center justify-between md:justify-end sticky top-0 z-40 md:relative md:z-10">
+        <header className="h-14 shrink-0 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 flex items-center justify-between sticky top-0 z-40 md:relative md:z-10">
           <div className="flex items-center gap-4">
             {profile?.featureAccess?.canEmployees && <GlobalSearch />}
           </div>
