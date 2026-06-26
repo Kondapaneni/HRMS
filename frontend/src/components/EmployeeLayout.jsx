@@ -227,6 +227,18 @@ const EmployeeLayout = () => {
                 <p className="text-xs text-slate-500 mt-1 capitalize">{profile?.role || 'Employee'}</p>
               </div>
             </div>
+
+            <button
+              className="md:hidden relative text-slate-500 hover:text-slate-700 transition-colors ml-1"
+              onClick={() => navigate('/employee/chat/mobile')}
+            >
+              <Bell size={20} />
+              {totalUnread > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 bg-[#25d366] text-white text-[9px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-1 border-2 border-white">
+                  {totalUnread}
+                </span>
+              )}
+            </button>
           </div>
 
           <div className="flex items-center gap-5">
@@ -268,18 +280,6 @@ const EmployeeLayout = () => {
 
             {/* Mobile Right Side */}
             <div className="flex md:hidden items-center gap-4">
-              <button
-                className="relative text-slate-500 hover:text-slate-700 transition-colors"
-                onClick={() => navigate('/employee/chat/mobile')}
-              >
-                <Bell size={20} />
-                {totalUnread > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 bg-[#25d366] text-white text-[9px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-1 border-2 border-white">
-                    {totalUnread}
-                  </span>
-                )}
-              </button>
-
               <button
                 onClick={() => setShowLogoutModal(true)}
                 className="flex items-center justify-center text-rose-500 hover:text-rose-600 transition-colors bg-rose-50/50 hover:bg-rose-50 p-2.5 rounded-full"
