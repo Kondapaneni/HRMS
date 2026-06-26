@@ -17,6 +17,11 @@ $app->get('/api/candidate/profile', function (Request $request, Response $respon
         $stmt->execute([$decodedToken->id]);
         $profile = $stmt->fetch(PDO::FETCH_ASSOC);
 
+        // Decode jsonb fields so they are returned as arrays, not double-encoded strings
+        if ($profile && isset($profile['resume_url']) && is_string($profile['resume_url'])) {
+            $profile['resume_url'] = json_decode($profile['resume_url'], true);
+        }
+
         $response->getBody()->write(json_encode(['profile' => $profile ?: null]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
