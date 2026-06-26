@@ -47,21 +47,34 @@ const CandidateJobs = () => {
   const departments = [...new Set(jobs.map(job => job.department))];
   const jobTypes = ['full-time', 'part-time', 'contract', 'internship', 'temporary', 'remote'];
 
-  const { data: resumes = [], isLoading: isLoadingResumes } = useQuery({
-    queryKey: ['candidate', 'resumes', profile?.id],
+  const { data: profileData, isLoading: isLoadingProfile } = useQuery({
+    queryKey: ['candidate', 'profile_for_jobs', profile?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('candidate_profiles')
-        .select('resume_url')
+        .select('*')
         .eq('user_id', profile.id)
         .maybeSingle();
       if (error) throw error;
-      return Array.isArray(data?.resume_url) ? data.resume_url : [];
+      return data;
     },
     enabled: !!profile?.id
   });
 
-  const isLoading = isLoadingJobs || isLoadingResumes;
+  const resumes = Array.isArray(profileData?.resume_url) ? profileData.resume_url : [];
+  
+  // Calculate completion percentage
+  let isProfileComplete = false;
+  if (profileData) {
+    const fields = ['phone', 'address', 'current_title', 'experience', 'bio'];
+    let filledCount = fields.filter(f => profileData[f] && profileData[f].trim() !== '').length;
+    if (profileData.avatar_url) filledCount++;
+    if (resumes.length > 0) filledCount++;
+    const percentage = Math.round((filledCount / 7) * 100);
+    isProfileComplete = percentage === 100;
+  }
+
+  const isLoading = isLoadingJobs || isLoadingProfile;
 
   React.useEffect(() => {
     if (resumes.length > 0 && !selectedResumeUrl) {
@@ -284,10 +297,20 @@ const CandidateJobs = () => {
                         </Link>
                       ) : (
                         <button 
-                          onClick={() => setSelectedJob(job)}
-                          className="inline-flex items-center justify-center whitespace-nowrap rounded-md bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 text-sm font-medium transition-colors"
+                          onClick={() => {
+                            if (!isProfileComplete) {
+                              toast.error('Please complete your profile to 100% to apply for jobs.');
+                              return;
+                            }
+                            setSelectedJob(job);
+                          }}
+                          className={`inline-flex items-center justify-center whitespace-nowrap rounded-md h-10 px-4 py-2 text-sm font-medium transition-colors ${
+                            isProfileComplete
+                              ? 'bg-blue-600 text-white hover:bg-blue-700'
+                              : 'bg-slate-200 text-slate-500 cursor-not-allowed'
+                          }`}
                         >
-                          Apply now
+                          {isProfileComplete ? 'Apply now' : 'Complete Profile First'}
                         </button>
                       )}
                     </div>

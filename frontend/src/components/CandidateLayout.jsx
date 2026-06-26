@@ -157,9 +157,9 @@ const CandidateLayout = () => {
         <Outlet />
       </main>
 
-      {/* Mobile Bottom Navigation (Glassmorphic) */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 px-4 pb-4 pt-2 pointer-events-none">
-        <div className="bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-3xl p-2 flex justify-around items-center pointer-events-auto">
+      {/* Mobile Bottom Navigation (iOS Liquid Glass) */}
+      <div className="md:hidden fixed bottom-6 left-4 right-4 z-50 pointer-events-none touch-none select-none">
+        <div className="bg-white/50 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-full p-1.5 flex justify-around items-center pointer-events-auto">
           {navItems.map((item) => {
             const isActive = location.pathname.startsWith(item.path);
             const Icon = item.icon.type;
@@ -168,17 +168,17 @@ const CandidateLayout = () => {
               <Link 
                 key={item.path} 
                 to={item.path} 
-                className="relative flex flex-col items-center justify-center w-14 h-14 z-10 group"
+                className="relative flex flex-col items-center justify-center w-[72px] h-[58px] z-10 group"
               >
                 {isActive && (
                   <motion.div
-                    layoutId="mobileNavHighlight"
-                    className="absolute inset-0 bg-blue-50 rounded-2xl z-0"
-                    transition={{ type: "spring", bounce: 0.25, duration: 0.5 }}
+                    layoutId="mobileNavBubble"
+                    className="absolute inset-0 z-[-1] rounded-full shadow-[inset_0_1px_3px_rgba(255,255,255,0.8),0_4px_16px_rgba(0,0,0,0.06)] bg-white/40 backdrop-blur-xl border border-white/80 overflow-hidden"
+                    transition={{ type: 'spring', bounce: 0.25, duration: 0.5 }}
                   />
                 )}
-                <Icon className={`relative z-10 w-5 h-5 mb-1 transition-all duration-300 ${isActive ? 'text-blue-600 scale-110' : 'text-slate-400 group-active:scale-95'}`} strokeWidth={isActive ? 2.5 : 2} />
-                <span className={`relative z-10 text-[9px] font-bold tracking-wide transition-colors ${isActive ? 'text-blue-600' : 'text-slate-400'}`}>
+                <Icon className={`relative z-10 w-6 h-6 mb-0.5 transition-all duration-300 ${isActive ? 'text-blue-600 scale-105' : 'text-slate-500 group-hover:text-slate-600 group-active:scale-95'}`} strokeWidth={isActive ? 2.5 : 2} />
+                <span className={`relative z-10 text-[10px] font-medium tracking-wide transition-all duration-300 ${isActive ? 'text-blue-600' : 'text-slate-500'}`}>
                   {item.label}
                 </span>
               </Link>

@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Briefcase, FileText, BadgeCheck, UserCheck, User, FileUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import CandidateMobileDashboard from './CandidateMobileDashboard';
 
 const CandidateDashboard = () => {
   const { profile } = useAuth();
@@ -77,12 +78,23 @@ const CandidateDashboard = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900">Welcome back, {profile?.firstName || 'Candidate'}!</h1>
-        <p className="text-sm text-slate-500 mt-1">Track your applications, update your profile, and apply for new opportunities.</p>
+    <>
+      <div className="md:hidden">
+        <CandidateMobileDashboard
+          profileData={profileData}
+          completionStats={completionStats}
+          applications={applications}
+          jobs={jobs}
+          isLoading={isLoading}
+        />
       </div>
+
+      <div className="hidden md:block space-y-6">
+        {/* Header */}
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Welcome back, {profile?.firstName || 'Candidate'}!</h1>
+          <p className="text-sm text-slate-500 mt-1">Track your applications, update your profile, and apply for new opportunities.</p>
+        </div>
 
       {/* Completion Alert */}
       {!completionStats.isComplete && (
@@ -201,7 +213,8 @@ const CandidateDashboard = () => {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 
