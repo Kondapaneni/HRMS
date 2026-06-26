@@ -472,56 +472,7 @@ $app->get('/Avatar/{filename:.+}', function (Request $request, Response $respons
         ->withHeader('Cache-Control', 'public, max-age=31536000, immutable');
 });
 
-// Resume proxy route
-$app->get('/Resume/{filename:.+}', function (Request $request, Response $response, $args) {
-    $filename = $args['filename'];
-    $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'];
-    $supabaseUrl = $supabaseUrlBase . "/storage/v1/object/public/resumes/" . rawurlencode($filename);
-    $context = stream_context_create(["http" => ["method" => "GET", "header" => "User-Agent: PHP\r\n"]]);
-    $fileContent = @file_get_contents($supabaseUrl, false, $context);
-    
-    if ($fileContent === false) return $response->withStatus(404);
-    
-    $response->getBody()->write($fileContent);
-    return $response
-        ->withHeader('Content-Type', getMimeType($filename))
-        ->withHeader('Content-Disposition', 'inline; filename="' . $filename . '"')
-        ->withHeader('Cache-Control', 'public, max-age=31536000, immutable');
-});
-
-// Job Description proxy route
-$app->get('/Job-Description/{filename:.+}', function (Request $request, Response $response, $args) {
-    $filename = $args['filename'];
-    $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'];
-    $supabaseUrl = $supabaseUrlBase . "/storage/v1/object/public/job_descriptions/" . rawurlencode($filename);
-    $context = stream_context_create(["http" => ["method" => "GET", "header" => "User-Agent: PHP\r\n"]]);
-    $fileContent = @file_get_contents($supabaseUrl, false, $context);
-    
-    if ($fileContent === false) return $response->withStatus(404);
-    
-    $response->getBody()->write($fileContent);
-    return $response
-        ->withHeader('Content-Type', getMimeType($filename))
-        ->withHeader('Content-Disposition', 'inline; filename="' . $filename . '"')
-        ->withHeader('Cache-Control', 'public, max-age=31536000, immutable');
-});
-
-// Offer Letter proxy route
-$app->get('/Offer-Letter/{filename:.+}', function (Request $request, Response $response, $args) {
-    $filename = $args['filename'];
-    $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'];
-    $supabaseUrl = $supabaseUrlBase . "/storage/v1/object/public/offer_letters/" . rawurlencode($filename);
-    $context = stream_context_create(["http" => ["method" => "GET", "header" => "User-Agent: PHP\r\n"]]);
-    $fileContent = @file_get_contents($supabaseUrl, false, $context);
-    
-    if ($fileContent === false) return $response->withStatus(404);
-    
-    $response->getBody()->write($fileContent);
-    return $response
-        ->withHeader('Content-Type', getMimeType($filename))
-        ->withHeader('Content-Disposition', 'inline; filename="' . $filename . '"')
-        ->withHeader('Cache-Control', 'public, max-age=31536000, immutable');
-});
+// Holiday proxy route
 $app->get('/Holiday/{filename:.+}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];
     $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'];
