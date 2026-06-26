@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
+import CandidateMobileApplications from './CandidateMobileApplications';
 
 const CandidateApplications = () => {
   const { profile } = useAuth();
@@ -86,8 +87,15 @@ const CandidateApplications = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
+    <>
+      <CandidateMobileApplications 
+        applications={applications}
+        getStatusBadge={getStatusBadge}
+        setIsTimelineModalOpen={setIsTimelineModalOpen}
+        setTimelineApp={setTimelineApp}
+      />
+      <div className="space-y-6 hidden md:block">
+        {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">My Applications</h1>
@@ -227,7 +235,8 @@ const CandidateApplications = () => {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 };
 

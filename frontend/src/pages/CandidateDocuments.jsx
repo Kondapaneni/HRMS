@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import { FileText, UploadCloud, CheckCircle2, AlertCircle, X, Eye, Loader2, Info, Lock } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'react-hot-toast';
+import CandidateMobileDocuments from './CandidateMobileDocuments';
 
 const documentTypes = [
   { id: 'signed_offer_letter', label: 'Signed Offer Letter', isRequired: true, isSpecial: true, description: 'Please sign and upload your official offer letter.' },
@@ -224,11 +225,23 @@ const CandidateDocuments = () => {
   const getDoc = (id) => documents.find(d => d.document_type === id);
 
   return (
-    <div className="w-full pb-12 relative">
-      <div className="mb-8">
-        <h1 className="text-2xl md:text-3xl font-bold text-slate-800">My Documents</h1>
-        <p className="text-slate-500 mt-2">Upload your required pre-employment documents securely. Only PDF files are accepted.</p>
-      </div>
+    <>
+      <CandidateMobileDocuments 
+        documents={documents}
+        uploadingType={uploadingType}
+        handleUpload={handleUpload}
+        documentTypes={documentTypes}
+        DocumentUploadCard={DocumentUploadCard}
+        specialDoc={specialDoc}
+        requiredDocs={requiredDocs}
+        optionalDocs={optionalDocs}
+        getDoc={getDoc}
+      />
+      <div className="w-full pb-12 relative hidden md:block">
+        <div className="mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-800">My Documents</h1>
+          <p className="text-slate-500 mt-2">Upload your required pre-employment documents securely. Only PDF files are accepted.</p>
+        </div>
 
       {/* Special Offer Letter Section */}
       <div className="mb-10">
@@ -283,7 +296,8 @@ const CandidateDocuments = () => {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 

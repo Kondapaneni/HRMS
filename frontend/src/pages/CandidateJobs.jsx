@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import emailTemplateHtml from '../../../backend/src/Templates/candidate_application_success_email.html?raw';
+import CandidateMobileJobs from './CandidateMobileJobs';
 
 const CandidateJobs = () => {
   const { profile } = useAuth();
@@ -175,8 +176,27 @@ const CandidateJobs = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <>
+      {/* Mobile View */}
+      <CandidateMobileJobs 
+        jobs={jobs}
+        appliedJobs={appliedJobs}
+        departments={departments}
+        jobTypes={jobTypes}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        filterDept={filterDept}
+        setFilterDept={setFilterDept}
+        filterType={filterType}
+        setFilterType={setFilterType}
+        isProfileComplete={isProfileComplete}
+        setSelectedJob={setSelectedJob}
+        getStatusBadge={getStatusBadge}
+      />
+
+      {/* Desktop View */}
+      <div className="space-y-6 hidden md:block">
+        {/* Header */}
       <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">Available Jobs</h1>

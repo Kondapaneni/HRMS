@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Camera, Save, FileText, UploadCloud } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
+import CandidateMobileProfile from './CandidateMobileProfile';
 
 const CandidateProfile = () => {
   const { profile } = useAuth();
@@ -200,8 +201,20 @@ const CandidateProfile = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <>
+      <CandidateMobileProfile 
+        formData={formData}
+        handleInputChange={handleInputChange}
+        handleSave={handleSave}
+        handleAvatarUpload={handleAvatarUpload}
+        isUploadingAvatar={isUploadingAvatar}
+        isUploadingResume={isUploadingResume}
+        handleFileUpload={handleFileUpload}
+        handleSetPrimaryResume={handleSetPrimaryResume}
+        handleDeleteResume={handleDeleteResume}
+      />
+      <div className="space-y-6 hidden md:block">
+        {/* Header */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-slate-900">My Profile</h1>
         <p className="text-sm text-slate-500 mt-1">Manage your personal information and resume to speed up applications.</p>
@@ -416,7 +429,8 @@ const CandidateProfile = () => {
           </div>
         </div>
       </form>
-    </div>
+      </div>
+    </>
   );
 };
 
