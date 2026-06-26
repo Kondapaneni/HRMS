@@ -172,6 +172,7 @@ const CandidateApplications = () => {
           })
         )}
       </div>
+      </div>
       {/* Timeline Modal */}
       {isTimelineModalOpen && timelineApp && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 overflow-y-auto">
@@ -235,7 +236,6 @@ const CandidateApplications = () => {
           </div>
         </div>
       )}
-      </div>
     </>
   );
 };
