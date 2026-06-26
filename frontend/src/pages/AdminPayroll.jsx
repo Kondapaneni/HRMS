@@ -1,14 +1,17 @@
 import React, { useState, Fragment } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import { DollarSign, Search, ChevronLeft, ChevronRight, Download, Eye, Calculator, X } from 'lucide-react';
 import { pdf } from '@react-pdf/renderer';
 import PayslipPDF from '../components/PayslipPDF';
+import EmployeeSelect from '../components/EmployeeSelect';
 
 const AdminPayroll = () => {
   const { profile } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   
   // Pagination and search
   const [search, setSearch] = useState('');
@@ -114,14 +117,22 @@ const AdminPayroll = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900">Payroll Management</h1>
-        <p className="text-slate-500 mt-1">Manage employee payslips and generate new ones</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Payroll Management</h1>
+          <p className="text-slate-500 mt-1">Manage employee payslips and generate new ones</p>
+        </div>
+        <button 
+          onClick={() => navigate('/admin/payroll/bulk')}
+          className="flex items-center px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-900 transition-colors shadow-sm"
+        >
+          Bulk Generate Payslips
+        </button>
       </div>
 
       {/* Generate Payslip Form */}
-      <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-        <div className="p-5 border-b border-slate-200 bg-slate-50/50">
+      <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="p-5 border-b border-slate-200 bg-slate-50/50 rounded-t-xl">
           <h3 className="text-lg font-semibold text-slate-800 flex items-center">
             <Calculator className="w-5 h-5 mr-2 text-blue-600" /> Generate Payslip
           </h3>
@@ -130,17 +141,12 @@ const AdminPayroll = () => {
           <div className="grid gap-4 md:grid-cols-4 items-end">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Employee</label>
-              <select 
-                value={selectedEmployee}
-                onChange={(e) => setSelectedEmployee(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              >
-                <option value="">Select Employee...</option>
-                {employees.map(emp => (
-                  <option key={emp.id} value={emp.userId}>{emp.firstName} {emp.lastName} ({emp.employeeId})</option>
-                ))}
-              </select>
+              <EmployeeSelect 
+                employees={employees} 
+                selectedId={selectedEmployee} 
+                onChange={(id) => setSelectedEmployee(id)} 
+                valueKey="userId"
+              />
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Month</label>
@@ -149,9 +155,15 @@ const AdminPayroll = () => {
                 onChange={(e) => setSelectedMonth(e.target.value)}
                 className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                {Array.from({length: 12}, (_, i) => i + 1).map(m => (
-                  <option key={m} value={m}>{getMonthName(m)}</option>
-                ))}
+                {Array.from({length: 12}, (_, i) => i + 1).map(m => {
+                  const currentDate = new Date();
+                  const isFuture = parseInt(selectedYear) > currentDate.getFullYear() || (parseInt(selectedYear) === currentDate.getFullYear() && m > currentDate.getMonth() + 1);
+                  return (
+                    <option key={m} value={m} disabled={isFuture}>
+                      {getMonthName(m)}
+                    </option>
+                  );
+                })}
               </select>
             </div>
             <div>
@@ -161,7 +173,7 @@ const AdminPayroll = () => {
                 onChange={(e) => setSelectedYear(e.target.value)}
                 className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                {[selectedYear - 1, selectedYear, selectedYear + 1].map(y => (
+                {[(new Date()).getFullYear() - 2, (new Date()).getFullYear() - 1, (new Date()).getFullYear()].map(y => (
                   <option key={y} value={y}>{y}</option>
                 ))}
               </select>

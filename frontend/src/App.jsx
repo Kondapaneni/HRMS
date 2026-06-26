@@ -34,6 +34,7 @@ import AdminAttendanceRegularize from './pages/AdminAttendanceRegularize'
 import AdminAttendanceLocation from './pages/AdminAttendanceLocation'
 import AdminLeaves from './pages/AdminLeaves'
 import AdminPayroll from './pages/AdminPayroll'
+import AdminBulkPayroll from './pages/AdminBulkPayroll'
 import AdminFeatureAccess from './pages/AdminFeatureAccess'
 import AdminAuditLogs from './pages/AdminAuditLogs'
 import AdminAssets from './pages/AdminAssets'
@@ -129,6 +130,7 @@ function App() {
               <Route path="attendance/location" element={<AdminAttendanceLocation />} />
               <Route path="leaves" element={<AdminLeaves />} />
               <Route path="payroll" element={<AdminPayroll />} />
+              <Route path="payroll/bulk" element={<AdminBulkPayroll />} />
               <Route path="feature-access" element={<AdminFeatureAccess />} />
               <Route path="audit-logs" element={<AdminAuditLogs />} />
               <Route path="assets" element={<AdminAssets />} />

@@ -9,6 +9,7 @@ import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../api/axios';
+import GlobalSearch from './GlobalSearch';
 
 const EmployeeLayout = () => {
   const { profile, signOut } = useAuth();
@@ -202,8 +203,13 @@ const EmployeeLayout = () => {
       <main className="flex-1 flex flex-col h-[100dvh] overflow-hidden relative z-30 bg-transparent">
 
         {/* Top Header - Minimalist */}
-        <header className="h-14 shrink-0 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 flex items-center justify-between md:justify-end sticky top-0 z-40 md:relative md:z-10">
-          <div className="flex items-center gap-5 flex-row-reverse md:flex-row">
+        <header className="h-14 shrink-0 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 flex items-center justify-between sticky top-0 z-40 md:relative md:z-10">
+          <div className="flex items-center gap-4">
+            {profile?.featureAccess?.canEmployees && <GlobalSearch />}
+          </div>
+          
+          <div className="flex items-center gap-5">
+            <div className="flex items-center gap-5 flex-row-reverse md:flex-row">
             <button
               className="relative text-slate-500 hover:text-slate-700 transition-colors"
               onClick={() => navigate('/employee/chat/mobile')}
@@ -249,6 +255,7 @@ const EmployeeLayout = () => {
             <LogOut className="w-5 h-5 sm:w-4 sm:h-4" />
             <span className="hidden sm:inline">Logout</span>
           </button>
+          </div>
         </header>
 
         {/* Dynamic Page Content */}

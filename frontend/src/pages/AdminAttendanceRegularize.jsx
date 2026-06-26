@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from '../api/axios';
 import { createPortal } from 'react-dom';
+import EmployeeSelect from '../components/EmployeeSelect';
 
 const AdminAttendanceRegularize = () => {
   const navigate = useNavigate();
@@ -370,18 +371,13 @@ const AdminAttendanceRegularize = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">Select Employee</label>
-            <select 
-              value={selectedEmployeeId}
-              onChange={(e) => setSelectedEmployeeId(e.target.value)}
-              className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none cursor-pointer"
-            >
-              <option value="">-- Search and Select Employee --</option>
-              {employees.map(emp => (
-                <option key={emp.id} value={emp.userId || emp.id}>
-                  {emp.firstName} {emp.lastName} ({emp.employeeId})
-                </option>
-              ))}
-            </select>
+            <EmployeeSelect 
+              employees={employees} 
+              selectedId={selectedEmployeeId} 
+              onChange={(id) => setSelectedEmployeeId(id)} 
+              placeholder="Search and Select Employee..."
+              valueKey="userId"
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">Select Month</label>

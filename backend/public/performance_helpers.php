@@ -114,14 +114,15 @@ function buildPerformanceIntervalSummary(array $employee, string $startDate, str
         $isHoliday = isset($holidays[$date]);
         $isWeekOff = in_array($dayName, $weekOffDays);
 
-        if (!$isHoliday && !$isWeekOff) {
-            $totalDays++;
-            $record = $attendanceRecords[$date] ?? null;
-            $status = $record !== null ? normalizeStatus($record['status'] ?? 'missed', $record['checkIn'] ?? null) : 'missed';
+        $record = $attendanceRecords[$date] ?? null;
+        $status = $record !== null ? normalizeStatus($record['status'] ?? 'missed', $record['checkIn'] ?? null) : 'missed';
 
-            if ($status === 'present') {
-                $present++;
-            } elseif ($status === 'leave') {
+        if ($status === 'present') {
+            $present++;
+            $totalDays++;
+        } elseif (!$isHoliday && !$isWeekOff) {
+            $totalDays++;
+            if ($status === 'leave') {
                 $leave++;
             }
         }

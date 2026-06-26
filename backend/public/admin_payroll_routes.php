@@ -233,3 +233,181 @@ $app->post('/api/admin/payroll/generate', function (Request $request, Response $
     return $response->withHeader('Content-Type', 'application/json');
 })->add(new AuthMiddleware(['admin'], 'payroll'));
 
+// Get Pending Employees for Bulk Generate
+$app->get('/api/admin/payroll/pending-employees', function (Request $request, Response $response, $args) {
+    $db = new Database();
+    $conn = $db->getConnection();
+    $params = $request->getQueryParams();
+    
+    $month = isset($params['month']) ? (int)$params['month'] : date('n');
+    $year = isset($params['year']) ? (int)$params['year'] : date('Y');
+
+    // Get all active employees who do NOT have a payslip for the given month and year
+    $query = '
+        SELECT e."userId", e."employeeId", e."firstName", e."lastName", e.position, e.salary, b.name as branch_name 
+        FROM employee e 
+        LEFT JOIN branches b ON e.branch = b.id::text
+        WHERE e.status = \'active\' 
+        AND NOT EXISTS (
+            SELECT 1 FROM payslips p WHERE p."employeeId"::varchar = e."userId"::varchar AND p.month = ? AND p.year = ?
+        )
+        ORDER BY e."firstName" ASC
+    ';
+    
+    $stmt = $conn->prepare($query);
+    $stmt->execute([$month, $year]);
+    $pendingEmployees = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $response->getBody()->write(json_encode(['employees' => $pendingEmployees]));
+    return $response->withHeader('Content-Type', 'application/json');
+})->add(new AuthMiddleware(['admin'], 'payroll'));
+
+// Bulk Generate payslips
+$app->post('/api/admin/payroll/generate-bulk', function (Request $request, Response $response, $args) {
+    $data = $request->getParsedBody();
+    $employeeIds = $data['employeeIds'] ?? [];
+    $month = isset($data['month']) ? (int)$data['month'] : null;
+    $year = isset($data['year']) ? (int)$data['year'] : null;
+
+    if (empty($employeeIds) || !is_array($employeeIds) || !$month || !$year) {
+        $response->getBody()->write(json_encode(['error' => 'Missing required fields']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+
+    $db = new Database();
+    $conn = $db->getConnection();
+    
+    $successCount = 0;
+    $errors = [];
+
+    // Default Settings
+    $config = [
+        'basic_percentage' => 40.0,
+        'hra_percentage' => 20.0,
+        'conveyance_allowance' => 1600.00,
+        'pf_percentage' => 0.12,
+        'employee_esi_percentage' => 0.0075,
+        'employer_esi_percentage' => 0.0325,
+        'esi_threshold' => 20000.00
+    ];
+
+    $monthStart = sprintf('%04d-%02d-01', $year, $month);
+    $monthEnd = date('Y-m-t', strtotime($monthStart));
+    $totalWorkingDays = (int)date('t', strtotime($monthStart));
+
+    foreach ($employeeIds as $employeeId) {
+        try {
+            // Check duplicate
+            $stmt = $conn->prepare('SELECT id FROM payslips WHERE "employeeId"::varchar = ? AND month = ? AND year = ?');
+            $stmt->execute([$employeeId, $month, $year]);
+            if ($stmt->fetchColumn()) {
+                continue; // Skip existing
+            }
+
+            // Get employee
+            $stmtEmp = $conn->prepare('SELECT e.*, b.name as branch_name FROM employee e LEFT JOIN branches b ON e.branch = b.id::text WHERE e."userId"::varchar = ?');
+            $stmtEmp->execute([$employeeId]);
+            $employee = $stmtEmp->fetch(PDO::FETCH_ASSOC);
+
+            if (!$employee) continue;
+
+            $salary = (float)($employee['salary'] ?? 0);
+            if ($salary <= 0) {
+                $errors[] = "Employee {$employee['firstName']} has 0 salary.";
+                continue;
+            }
+
+            // Get Missing Days
+            $stmtMissing = $conn->prepare('SELECT COUNT(*) FROM attendance WHERE "employeeId" = ? AND status = \'missed\' AND date BETWEEN ? AND ?');
+            $stmtMissing->execute([$employeeId, $monthStart, $monthEnd]);
+            $missingDays = (int)$stmtMissing->fetchColumn();
+
+            // Get Unpaid Leaves
+            $stmtLeaves = $conn->prepare('SELECT SUM(days) FROM leaves WHERE "employeeId" = ? AND LOWER("leaveType") = \'unpaid\' AND status = \'approved\' AND "startDate" <= ? AND "endDate" >= ?');
+            $stmtLeaves->execute([$employeeId, $monthEnd, $monthStart]);
+            $unpaidLeaveDays = (int)$stmtLeaves->fetchColumn();
+
+            $lossOfPayDays = min($unpaidLeaveDays + $missingDays, $totalWorkingDays);
+            $payableDays = max(0, $totalWorkingDays - $lossOfPayDays);
+
+            $adjustedSalary = 0.0;
+            $conveyance = 0.0;
+
+            if ($totalWorkingDays > 0) {
+                $adjustedSalary = round($salary * ($payableDays / $totalWorkingDays), 2);
+                $conveyance = round($config['conveyance_allowance'] * ($payableDays / $totalWorkingDays), 2);
+            }
+
+            $basicSalary = floor($adjustedSalary * ($config['basic_percentage'] / 100) * 100) / 100;
+            $hra = round($adjustedSalary * ($config['hra_percentage'] / 100), 2);
+            $medical = round($adjustedSalary - ($basicSalary + $hra + $conveyance), 2);
+
+            $pfAmount = (int)round($basicSalary * $config['pf_percentage']);
+            $professionalTax = ($salary <= 20000.0) ? 150 : 200;
+
+            $employeeEsi = ($salary <= $config['esi_threshold']) ? (int)round($adjustedSalary * $config['employee_esi_percentage']) : 0;
+            $employerEsi = ($salary <= $config['esi_threshold']) ? (int)ceil($adjustedSalary * $config['employer_esi_percentage']) : 0;
+            $totalEsi = $employeeEsi + $employerEsi;
+
+            $totalDeductions = $pfAmount + $totalEsi + $professionalTax;
+            $netSalary = (int)floor(max(0, $adjustedSalary - $totalDeductions));
+
+            $earnings = [
+                ['label' => 'Basic Salary', 'value' => $basicSalary],
+                ['label' => 'HRA', 'value' => $hra],
+                ['label' => 'Conveyance', 'value' => $conveyance],
+                ['label' => 'Medical Allowance', 'value' => $medical]
+            ];
+
+            $deductions = [
+                ['label' => 'Provident Fund', 'value' => $pfAmount],
+                ['label' => 'Employee ESI', 'value' => $employeeEsi],
+                ['label' => 'Employer ESI', 'value' => $employerEsi],
+                ['label' => 'Professional Tax', 'value' => $professionalTax]
+            ];
+
+            $details = [
+                'employeeNumber' => $employee['employeeId'],
+                'dateJoined' => !empty($employee['joinDate']) ? date('d M Y', strtotime($employee['joinDate'])) : 'N/A',
+                'designation' => $employee['position'] ?? '',
+                'monthlySalary' => $salary,
+                'totalWorkingDays' => $totalWorkingDays,
+                'lossOfPayDays' => $lossOfPayDays,
+                'daysPayable' => $payableDays,
+                'dateOfBirth' => !empty($employee['dateOfBirth']) ? date('d M Y', strtotime($employee['dateOfBirth'])) : 'N/A',
+                'panNumber' => !empty($employee['panNumber']) ? $employee['panNumber'] : 'N/A',
+                'location' => !empty($employee['branch_name']) ? $employee['branch_name'] : 'N/A',
+                'paymentMode' => 'Bank Transfer'
+            ];
+
+            // Insert into DB
+            $stmtInsert = $conn->prepare('
+                INSERT INTO payslips (id, "employeeId", month, year, "earningsJson", "deductionsJson", "detailsJson", "netSalary", status)
+                VALUES (gen_random_uuid(), ?, ?, ?, ?, ?, ?, ?, \'generated\')
+            ');
+
+            $stmtInsert->execute([
+                $employeeId,
+                $month,
+                $year,
+                json_encode($earnings, JSON_UNESCAPED_UNICODE),
+                json_encode($deductions, JSON_UNESCAPED_UNICODE),
+                json_encode($details, JSON_UNESCAPED_UNICODE),
+                $netSalary
+            ]);
+            
+            $successCount++;
+
+        } catch (Exception $e) {
+            $errors[] = "Error processing {$employeeId}: " . $e->getMessage();
+        }
+    }
+
+    $response->getBody()->write(json_encode([
+        'message' => "Generated {$successCount} payslips successfully",
+        'successCount' => $successCount,
+        'errors' => $errors
+    ]));
+    return $response->withHeader('Content-Type', 'application/json');
+})->add(new AuthMiddleware(['admin'], 'payroll'));
+

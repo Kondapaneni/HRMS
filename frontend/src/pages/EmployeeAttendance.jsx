@@ -152,7 +152,7 @@ const EmployeeAttendance = () => {
     if (statusFilter !== 'all') {
       const recordStatus = resolveStatusKey(record);
       if (statusFilter === 'present') {
-        if (!recordStatus.startsWith('present')) return false;
+        if (!recordStatus.startsWith('present') && !recordStatus.includes('missing-checkout')) return false;
       } else if (statusFilter === 'missed') {
         if (!recordStatus.includes('missing')) return false;
       } else if (recordStatus !== statusFilter) {
@@ -168,7 +168,10 @@ const EmployeeAttendance = () => {
   const checkedIn = todayRecord && todayRecord.checkIn && !todayRecord.checkOut;
   const checkOutTime = todayRecord && todayRecord.checkOut;
 
-  const presentCount = history.filter(r => resolveStatusKey(r).startsWith('present')).length;
+  const presentCount = history.filter(r => {
+    const key = resolveStatusKey(r);
+    return key.startsWith('present') || key.includes('missing-checkout');
+  }).length;
   const leaveCount = history.filter(r => resolveStatusKey(r).endsWith('leave')).length;
 
   const statusPalette = {

@@ -13,6 +13,7 @@ import {
   Line
 } from 'recharts';
 import api from '../api/axios';
+import EmployeeSelect from '../components/EmployeeSelect';
 
 const StatCard = ({ title, value, subtitle, icon: Icon, colorClass, highlight }) => (
   <div className={`rounded-2xl border ${highlight ? 'border-blue-200 bg-blue-50/50' : 'border-slate-200 bg-white'} p-5 shadow-sm transition-all hover:shadow-md hover:-translate-y-1`}>
@@ -98,16 +99,11 @@ const AdminPerformance = () => {
         </div>
         <div className="w-full md:w-80">
           <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Select Employee</label>
-          <select
-            value={selectedEmpId}
-            onChange={(e) => setSelectedEmpId(e.target.value)}
-            className="w-full h-11 px-4 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all cursor-pointer"
-          >
-            <option value="">-- Choose Employee --</option>
-            {employees.map(e => (
-              <option key={e.id} value={e.id}>{e.firstName} {e.lastName} ({e.employeeId})</option>
-            ))}
-          </select>
+          <EmployeeSelect 
+            employees={employees} 
+            selectedId={selectedEmpId} 
+            onChange={(id) => setSelectedEmpId(id)} 
+          />
         </div>
       </div>
 
