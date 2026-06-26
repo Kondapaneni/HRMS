@@ -1,6 +1,67 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { FileText, AlertCircle, Info } from 'lucide-react';
+import { FileText, AlertCircle, Info, CheckCircle2, Loader2, UploadCloud, Eye } from 'lucide-react';
+
+const MobileDocumentUploadCard = ({ docType, currentDoc, onUpload, isUploading }) => {
+  const getStatusBadge = () => {
+    if (!currentDoc) {
+      return docType.isRequired ? 
+        <span className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider bg-rose-100 text-rose-600 rounded-lg">Required</span> :
+        <span className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-500 rounded-lg">Optional</span>;
+    }
+    
+    switch (currentDoc.status) {
+      case 'verified':
+        return <span className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-600 rounded-lg flex items-center gap-1"><CheckCircle2 size={12} /> Verified</span>;
+      case 'rejected':
+        return <span className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider bg-red-100 text-red-600 rounded-lg flex items-center gap-1"><AlertCircle size={12} /> Rejected</span>;
+      default:
+        return <span className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-600 rounded-lg flex items-center gap-1"><Loader2 size={12} className="animate-spin" /> Pending</span>;
+    }
+  };
+
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      onUpload(docType.id, e.target.files[0]);
+    }
+  };
+
+  return (
+    <div className={`p-4 bg-white border-b last:border-b-0 border-slate-100`}>
+       <div className="flex justify-between items-start mb-2">
+         <h3 className={`text-sm font-bold leading-tight pr-2 ${docType.isSpecial ? 'text-indigo-700' : 'text-slate-800'}`}>{docType.label}</h3>
+         <div>{getStatusBadge()}</div>
+       </div>
+       {docType.description && <p className="text-[11px] text-slate-500 mb-3">{docType.description}</p>}
+       
+       {currentDoc ? (
+          <div className="flex items-center justify-between mt-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+            <div className="flex items-center gap-2 overflow-hidden">
+               <FileText size={16} className="text-rose-500 shrink-0" />
+               <p className="text-[11px] font-medium text-slate-600 truncate">{currentDoc.file_name}</p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <a href={currentDoc.file_path} target="_blank" rel="noopener noreferrer" className="p-1.5 text-blue-600 bg-blue-100 rounded-lg">
+                <Eye size={14} />
+              </a>
+              {currentDoc.status !== 'verified' && (
+                <label className="p-1.5 text-indigo-600 bg-indigo-100 rounded-lg cursor-pointer">
+                  <UploadCloud size={14} />
+                  <input type="file" accept=".pdf" className="hidden" onChange={handleFileChange} />
+                </label>
+              )}
+            </div>
+          </div>
+       ) : (
+          <label className={`mt-2 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-dashed border-slate-300 text-xs font-semibold transition-all ${isUploading ? 'bg-slate-50 text-slate-400 cursor-not-allowed' : 'bg-slate-50 text-indigo-600 cursor-pointer active:bg-slate-100'}`}>
+             {isUploading ? <Loader2 size={14} className="animate-spin" /> : <UploadCloud size={14} />}
+             {isUploading ? 'Uploading...' : 'Tap to upload PDF'}
+             <input type="file" accept=".pdf" className="hidden" onChange={handleFileChange} disabled={isUploading} />
+          </label>
+       )}
+    </div>
+  );
+};
 
 const CandidateMobileDocuments = ({
   documents, uploadingType, handleUpload, documentTypes, DocumentUploadCard, specialDoc, requiredDocs, optionalDocs, getDoc
@@ -43,8 +104,8 @@ const CandidateMobileDocuments = ({
             <FileText className="text-indigo-600" size={20} />
             <h2 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">Offer Letter</h2>
           </div>
-          <div className="p-5 bg-slate-50">
-            <DocumentUploadCard 
+          <div className="flex flex-col bg-slate-50">
+            <MobileDocumentUploadCard 
               docType={specialDoc} 
               currentDoc={getDoc(specialDoc.id)} 
               onUpload={handleUpload}
@@ -59,9 +120,9 @@ const CandidateMobileDocuments = ({
             <AlertCircle className="text-amber-500" size={20} />
             <h2 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">Required Documents</h2>
           </div>
-          <div className="p-5 space-y-4 bg-slate-50">
+          <div className="flex flex-col bg-slate-50">
             {requiredDocs.map(doc => (
-              <DocumentUploadCard 
+              <MobileDocumentUploadCard 
                 key={doc.id}
                 docType={doc} 
                 currentDoc={getDoc(doc.id)} 
@@ -78,9 +139,9 @@ const CandidateMobileDocuments = ({
             <Info className="text-slate-400" size={20} />
             <h2 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">Optional Documents</h2>
           </div>
-          <div className="p-5 space-y-4 bg-slate-50">
+          <div className="flex flex-col bg-slate-50">
             {optionalDocs.map(doc => (
-              <DocumentUploadCard 
+              <MobileDocumentUploadCard 
                 key={doc.id}
                 docType={doc} 
                 currentDoc={getDoc(doc.id)} 
