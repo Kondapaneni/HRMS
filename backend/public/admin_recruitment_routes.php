@@ -11,7 +11,7 @@ $app->get('/api/admin/candidates', function (Request $request, Response $respons
     $conn = $db->getConnection();
     
     try {
-        $stmt = $conn->query('SELECT id, "firstName", "lastName", email FROM users WHERE role = \'candidate\'');
+        $stmt = $conn->query('SELECT id, "firstName", "lastName", email FROM users WHERE role IN (\'candidate\', \'employee\')');
         $candidates = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $response->getBody()->write(json_encode(['candidates' => $candidates]));
