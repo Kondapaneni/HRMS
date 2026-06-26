@@ -63,6 +63,18 @@ export default defineConfig({
       '/Candidate-Document': {
         target: 'http://localhost:8081',
         changeOrigin: true
+      },
+      '/Resume': {
+        target: 'http://localhost:8081',
+        changeOrigin: true
+      },
+      '/Job-Description': {
+        target: 'http://localhost:8081',
+        changeOrigin: true
+      },
+      '/Offer-Letter': {
+        target: 'http://localhost:8081',
+        changeOrigin: true
       }
     }
   }

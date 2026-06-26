@@ -108,11 +108,7 @@ const CandidateProfile = () => {
 
         if (uploadError) throw uploadError;
 
-        const { data: publicUrlData } = supabase.storage
-          .from('resumes')
-          .getPublicUrl(fileName);
-
-        const proxyUrl = publicUrlData.publicUrl;
+        const proxyUrl = window.location.origin + "/Resume/" + fileName;
 
         const newResume = {
           name: file.name,
