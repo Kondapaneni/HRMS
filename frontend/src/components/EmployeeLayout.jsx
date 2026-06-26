@@ -205,11 +205,33 @@ const EmployeeLayout = () => {
         {/* Top Header - Minimalist */}
         <header className="h-14 shrink-0 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 flex items-center justify-between sticky top-0 z-40 md:relative md:z-10">
           <div className="flex items-center gap-4">
-            {profile?.featureAccess?.canEmployees && <GlobalSearch />}
+            <div className="hidden md:block">
+              {profile?.featureAccess?.canEmployees && <GlobalSearch />}
+            </div>
+            
+            <div
+              className="md:hidden flex items-center gap-3 cursor-pointer group"
+              onClick={() => navigate('/employee/profile')}
+            >
+              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-semibold text-sm overflow-hidden border border-slate-200">
+                {profile?.avatar ? (
+                  <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  (profile?.email || 'E').charAt(0).toUpperCase()
+                )}
+              </div>
+              <div className="hidden sm:block text-left">
+                <p className="text-sm font-medium text-slate-700 leading-none group-hover:text-blue-600 transition-colors">
+                  {profile?.email?.split('@')[0] || 'Employee'}
+                </p>
+                <p className="text-xs text-slate-500 mt-1 capitalize">{profile?.role || 'Employee'}</p>
+              </div>
+            </div>
           </div>
 
           <div className="flex items-center gap-5">
-            <div className="flex items-center gap-5 flex-row-reverse md:flex-row">
+            {/* Desktop Right Side */}
+            <div className="hidden md:flex items-center gap-5">
               <button
                 className="relative text-slate-500 hover:text-slate-700 transition-colors"
                 onClick={() => navigate('/employee/chat/mobile')}
@@ -226,11 +248,7 @@ const EmployeeLayout = () => {
 
               <div
                 className="flex items-center gap-3 cursor-pointer group"
-                onClick={() => {
-                  if (window.innerWidth < 768) {
-                    navigate('/employee/profile');
-                  }
-                }}
+                onClick={() => navigate('/employee/profile')}
               >
                 <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-semibold text-sm overflow-hidden border border-slate-200">
                   {profile?.avatar ? (
@@ -248,13 +266,27 @@ const EmployeeLayout = () => {
               </div>
             </div>
 
-            <button
-              onClick={() => setShowLogoutModal(true)}
-              className="md:hidden flex items-center gap-1.5 text-rose-500 hover:text-rose-600 transition-colors text-sm font-semibold bg-rose-50/50 hover:bg-rose-50 p-2.5 sm:px-3 sm:py-1.5 rounded-full"
-            >
-              <LogOut className="w-5 h-5 sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline">Logout</span>
-            </button>
+            {/* Mobile Right Side */}
+            <div className="flex md:hidden items-center gap-4">
+              <button
+                className="relative text-slate-500 hover:text-slate-700 transition-colors"
+                onClick={() => navigate('/employee/chat/mobile')}
+              >
+                <Bell size={20} />
+                {totalUnread > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 bg-[#25d366] text-white text-[9px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-1 border-2 border-white">
+                    {totalUnread}
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={() => setShowLogoutModal(true)}
+                className="flex items-center justify-center text-rose-500 hover:text-rose-600 transition-colors bg-rose-50/50 hover:bg-rose-50 p-2.5 rounded-full"
+              >
+                <LogOut className="w-5 h-5" />
+              </button>
+            </div>
           </div>
         </header>
 
