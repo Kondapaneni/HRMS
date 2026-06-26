@@ -186,7 +186,11 @@ const CandidateProfile = () => {
 
       const proxyUrl = window.location.origin + "/Avatar/" + fileName;
 
-      setFormData(prev => ({ ...prev, avatarUrl: proxyUrl }));
+      setFormData(prev => {
+        const newData = { ...prev, avatarUrl: proxyUrl };
+        saveMutation.mutate(newData);
+        return newData;
+      });
       toast.success('Profile picture uploaded successfully!');
     } catch (error) {
       toast.error('Failed to upload profile picture');
