@@ -15,34 +15,13 @@ const CandidateApplications = () => {
     queryFn: async () => {
       const { data: appsData, error } = await supabase
         .from('applications')
-        .select('id, status, applied_date, resume_url, job_id')
+        .select('id, status, applied_date, resume_url, job_id, jobs(title, department, location, type, deadline), application_timeline(*)')
         .eq('candidate_id', profile.id)
         .order('applied_date', { ascending: false });
 
       if (error) throw error;
 
       const apps = appsData || [];
-      
-      if (apps.length > 0) {
-        const jobIds = [...new Set(apps.map(a => a.job_id))];
-        const { data: jobData } = await supabase.from('jobs').select('id, title, department, location, type, deadline').in('id', jobIds);
-        const jobsMap = jobData ? jobData.reduce((acc, job) => { acc[job.id] = job; return acc; }, {}) : {};
-        
-        const appIds = apps.map(a => a.id);
-        const { data: timelineData } = await supabase.from('application_timeline').select('*').in('application_id', appIds);
-        const timelineMap = {};
-        if (timelineData) {
-          timelineData.forEach(t => {
-            if (!timelineMap[t.application_id]) timelineMap[t.application_id] = [];
-            timelineMap[t.application_id].push(t);
-          });
-        }
-        
-        apps.forEach(app => {
-          app.jobs = jobsMap[app.job_id] || null;
-          app.application_timeline = timelineMap[app.id] || [];
-        });
-      }
 
       return apps.map(app => {
         const timeline = Array.isArray(app.application_timeline) ? app.application_timeline.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)) : [];
