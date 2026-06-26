@@ -341,6 +341,7 @@ const CandidateJobs = () => {
           })
         )}
       </div>
+      </div>
 
       {/* Application Modal */}
       {selectedJob && (
@@ -405,8 +406,6 @@ const CandidateJobs = () => {
             </div>
           </div>
         </div>
-      )}
-      </div>
     </>
   );
 };
