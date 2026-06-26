@@ -186,7 +186,7 @@ const AdminRecruitment = () => {
       if (userInfo?.email) {
         let subject = `Update on your application for ${app.jobs?.title}`;
         let emailBody = '';
-        const frontendUrl = window.location.origin;
+        const frontendUrl = import.meta.env.VITE_APP_URL || window.location.origin;
         const dashboardLink = frontendUrl + "/candidate/applications";
         
         if (newStatus === 'Shortlisted') {

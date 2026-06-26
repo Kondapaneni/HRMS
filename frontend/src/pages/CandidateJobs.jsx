@@ -117,7 +117,7 @@ const CandidateJobs = () => {
          }]);
 
          // Queue email notification using the new template
-         const frontendUrl = window.location.origin;
+         const frontendUrl = import.meta.env.VITE_APP_URL || window.location.origin;
          const dashboardLink = frontendUrl + "/candidate/applications";
          
          let finalEmailBody = emailTemplateHtml
