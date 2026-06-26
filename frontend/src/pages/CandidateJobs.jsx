@@ -406,6 +406,7 @@ const CandidateJobs = () => {
             </div>
           </div>
         </div>
+      )}
     </>
   );
 };
