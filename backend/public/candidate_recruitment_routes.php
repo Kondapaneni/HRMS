@@ -249,8 +249,8 @@ $app->post('/api/candidate/applications', function (Request $request, Response $
         $stmtTimeline = $conn->prepare('INSERT INTO application_timeline (application_id, status_change, notes) VALUES (?, \'Applied\', \'Application submitted successfully.\')');
         $stmtTimeline->execute([$newAppId]);
         
-        // Also get user details for HR email notification (optional, skipping complex HTML templating for brevity)
-        $stmtUser = $conn->prepare('SELECT "firstName", "lastName" FROM users WHERE id = ?');
+        // Get user and job details for Candidate email notification
+        $stmtUser = $conn->prepare('SELECT "firstName", email FROM users WHERE id = ?');
         $stmtUser->execute([$decodedToken->id]);
         $user = $stmtUser->fetch(PDO::FETCH_ASSOC);
         
@@ -258,12 +258,26 @@ $app->post('/api/candidate/applications', function (Request $request, Response $
         $stmtJob->execute([$jobId]);
         $job = $stmtJob->fetch(PDO::FETCH_ASSOC);
 
-        $hrEmail = 'hr@acme.com'; // Hardcoded or fetch from settings
-        $subject = 'New Job Application: ' . $job['title'];
-        $body = "Candidate {$user['firstName']} {$user['lastName']} has applied for {$job['title']}.";
+        // Load the candidate application success email template
+        $templatePath = __DIR__ . '/../src/Templates/candidate_application_success_email.html';
+        if (file_exists($templatePath)) {
+            $body = file_get_contents($templatePath);
+            $frontendUrl = $_ENV['FRONTEND_URL'] ?? 'https://hrms-qwv3.onrender.com';
+            $dashboardLink = rtrim($frontendUrl, '/') . '/candidate/applications';
+            
+            $body = str_replace(
+                ['{{firstName}}', '{{jobTitle}}', '{{dashboardLink}}', '{{currentYear}}'],
+                [$user['firstName'] ?? 'Candidate', $job['title'] ?? 'Job', $dashboardLink, date('Y')],
+                $body
+            );
+        } else {
+            $body = "Thank you for applying for the " . ($job['title'] ?? 'Job') . " position. We have received your application.";
+        }
+
+        $subject = 'Application Received Successfully - ' . ($job['title'] ?? 'Position');
         
         $stmtQueue = $conn->prepare('INSERT INTO email_queue (to_email, subject, body) VALUES (?, ?, ?)');
-        $stmtQueue->execute([$hrEmail, $subject, $body]);
+        $stmtQueue->execute([$user['email'], $subject, $body]);
 
         $conn->commit();
 
