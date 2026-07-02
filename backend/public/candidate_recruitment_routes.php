@@ -227,7 +227,6 @@ $app->post('/api/candidate/applications', function (Request $request, Response $
     
     $jobId = $data['job_id'] ?? null;
     $resumeUrl = $data['resume_url'] ?? null;
-    $coverLetter = $data['cover_letter'] ?? null;
     
     if (!$jobId) {
         $response->getBody()->write(json_encode(['error' => 'Job ID is required']));
@@ -241,10 +240,10 @@ $app->post('/api/candidate/applications', function (Request $request, Response $
         $conn->beginTransaction();
 
         $stmtInsertApp = $conn->prepare('
-            INSERT INTO applications (job_id, candidate_id, resume_url, cover_letter, status) 
-            VALUES (?, ?, ?, ?, \'Applied\') RETURNING id
+            INSERT INTO applications (job_id, candidate_id, resume_url, status) 
+            VALUES (?, ?, ?, \'Applied\') RETURNING id
         ');
-        $stmtInsertApp->execute([$jobId, $decodedToken->id, $resumeUrl, $coverLetter]);
+        $stmtInsertApp->execute([$jobId, $decodedToken->id, $resumeUrl]);
         $newAppId = $stmtInsertApp->fetchColumn();
 
         $stmtTimeline = $conn->prepare('INSERT INTO application_timeline (application_id, status_change, notes) VALUES (?, \'Applied\', \'Application submitted successfully.\')');
