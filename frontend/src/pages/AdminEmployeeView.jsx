@@ -3,18 +3,21 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Edit3, Settings, User, Mail, Phone, MapPin, Briefcase,
   CalendarDays, Building2, Shield, CreditCard, HeartHandshake, Globe,
-  Clock, Laptop, Droplets, Heart, Download
+  Clock, Laptop, Droplets, Heart, Download, Camera
 } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { pdf } from '@react-pdf/renderer';
 import PayslipPDF from '../components/PayslipPDF';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
+import { supabase } from '../lib/supabase';
 
 const AdminEmployeeView = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('personal');
+  const [isUploading, setIsUploading] = useState(false);
 
   const { data, isLoading: loading, isFetching } = useQuery({
     queryKey: ['admin', 'employee', id],
@@ -87,6 +90,48 @@ const AdminEmployeeView = () => {
       case 'inactive': return 'bg-red-100 text-red-800';
       case 'exited': case 'terminated': case 'absconded': return 'bg-slate-100 text-slate-800';
       default: return 'bg-slate-100 text-slate-800';
+    }
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${employeeId || 'avatar'}-${Math.random()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      if (avatar) {
+        const parts = avatar.split('/Avatar/');
+        if (parts.length > 1) {
+          const oldStoragePath = parts[1];
+          await supabase.storage.from('avatars').remove([oldStoragePath]);
+        }
+      }
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const avatarUrl = window.location.origin + "/Avatar/" + fileName;
+
+      await api.put(`/admin/employees/${id}`, { avatar: avatarUrl });
+      
+      queryClient.invalidateQueries(['admin', 'employee', id]);
+      toast.success('Profile picture updated successfully!');
+    } catch (error) {
+      toast.error(error.message || 'Error uploading image');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -193,8 +238,27 @@ const AdminEmployeeView = () => {
           <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
             <div className="p-6">
               <div className="flex flex-col items-center text-center space-y-4">
-                <div className="relative h-20 w-20 overflow-hidden rounded-full bg-slate-100 border border-slate-200 text-xl font-medium text-slate-600 flex items-center justify-center">
-                  {avatar ? <img src={avatar} alt="Avatar" className="h-full w-full object-cover" /> : initials}
+                <div className="relative group cursor-pointer h-20 w-20 mx-auto">
+                  <div className="h-full w-full overflow-hidden rounded-full bg-slate-100 border border-slate-200 text-xl font-medium text-slate-600 flex items-center justify-center">
+                    {avatar ? <img src={avatar} alt="Avatar" className="h-full w-full object-cover" /> : initials}
+                  </div>
+                  <label className="absolute inset-0 bg-black/50 hidden group-hover:flex flex-col items-center justify-center text-white cursor-pointer transition-all rounded-full">
+                    {isUploading ? (
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    ) : (
+                      <>
+                        <Camera className="h-5 w-5" />
+                        <span className="text-[9px] font-medium uppercase tracking-wider mt-0.5">Upload</span>
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          className="hidden" 
+                          onChange={handleImageUpload}
+                          disabled={isUploading}
+                        />
+                      </>
+                    )}
+                  </label>
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-slate-900">{fullName}</h2>
