@@ -141,14 +141,14 @@ const AdminExpenses = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         {getStatusBadge(exp.status)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                         {exp.bill_url && (
-                          <a href={exp.bill_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-900 font-semibold">View Bill</a>
+                          <a href={exp.bill_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none transition-colors">View Bill</a>
                         )}
                         {exp.status === 'Pending' && (
                           <>
-                            <button onClick={() => handleActionClick(exp, 'Approved')} className="text-green-600 hover:text-green-900 font-semibold">Approve</button>
-                            <button onClick={() => handleActionClick(exp, 'Rejected')} className="text-red-600 hover:text-red-900 font-semibold">Reject</button>
+                            <button onClick={() => handleActionClick(exp, 'Approved')} className="inline-flex items-center justify-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none transition-colors">Approve</button>
+                            <button onClick={() => handleActionClick(exp, 'Rejected')} className="inline-flex items-center justify-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none transition-colors">Reject</button>
                           </>
                         )}
                       </td>
