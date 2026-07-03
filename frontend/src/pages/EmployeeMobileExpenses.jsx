@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Upload, FileText, CheckCircle, XCircle, Clock, ArrowLeft } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { createClient } from '@supabase/supabase-js';
@@ -11,6 +12,7 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const EmployeeMobileExpenses = () => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -145,9 +147,14 @@ const EmployeeMobileExpenses = () => {
 
   return (
     <div className="pb-24">
-      <div className="bg-white px-4 py-4 border-b border-slate-200 flex items-center justify-between sticky top-0 z-10">
-        <h1 className="text-xl font-bold text-slate-800">Expenses</h1>
-        <button onClick={() => setIsFormOpen(true)} className="p-2 bg-blue-50 text-blue-600 rounded-full">
+      <div className="bg-white px-4 py-4 border-b border-slate-200 flex items-center justify-between sticky top-0 z-10 shadow-sm">
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigate('/employee')} className="p-2 -ml-2 text-slate-600 bg-slate-50 rounded-full active:bg-slate-100 transition-colors">
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <h1 className="text-xl font-bold text-slate-800">Expenses</h1>
+        </div>
+        <button onClick={() => setIsFormOpen(true)} className="p-2 bg-blue-50 text-blue-600 rounded-full active:bg-blue-100 transition-colors">
           <Plus className="w-5 h-5" />
         </button>
       </div>
