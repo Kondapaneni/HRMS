@@ -91,7 +91,7 @@ const EmployeeMobileExpenses = () => {
 
   if (isFormOpen) {
     return (
-      <div className="pb-24">
+      <div className="pb-4">
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
           <div className="bg-white px-4 py-4 border-b border-slate-200 flex items-center justify-between sticky top-0 z-10">
             <button onClick={handleCloseForm} className="p-2 -ml-2 text-slate-600 bg-slate-50 rounded-full active:bg-slate-100 transition-colors">
@@ -148,7 +148,7 @@ const EmployeeMobileExpenses = () => {
   }
 
   return (
-    <div className="pb-24">
+    <div className="pb-4">
       <div className="bg-white px-4 py-4 border-b border-slate-200 flex items-center justify-between sticky top-0 z-10 shadow-sm">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate('/employee')} className="p-2 -ml-2 text-slate-600 bg-slate-50 rounded-full active:bg-slate-100 transition-colors">
