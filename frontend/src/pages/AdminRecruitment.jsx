@@ -881,20 +881,18 @@ const AdminRecruitment = () => {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-700">Manager (Optional)</label>
-                <input 
-                  list="manager-list" 
+                <select 
                   value={convertData.managerId} 
                   onChange={e => setConvertData({...convertData, managerId: e.target.value})} 
-                  placeholder="Type to search managers..." 
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" 
-                />
-                <datalist id="manager-list">
+                  className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 bg-white" 
+                >
+                  <option value="">Select a Manager...</option>
                   {employeesList.map(emp => (
-                    <option key={emp.employeeId} value={emp.employeeId}>
-                      {emp.firstName} {emp.lastName}
+                    <option key={emp.id} value={emp.id}>
+                      {emp.firstName} {emp.lastName} ({emp.employeeId})
                     </option>
                   ))}
-                </datalist>
+                </select>
               </div>
               
               <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 mt-6">
