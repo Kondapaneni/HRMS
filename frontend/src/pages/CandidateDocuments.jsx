@@ -84,7 +84,7 @@ const DocumentUploadCard = ({ docType, currentDoc, onUpload, isUploading }) => {
           
           <div className="flex items-center gap-2">
             <a 
-              href={currentDoc.file_url || currentDoc.file_path} 
+              href={currentDoc.file_path} 
               target="_blank" 
               rel="noopener noreferrer"
               className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
@@ -160,9 +160,8 @@ const CandidateDocuments = () => {
       const docs = res.data.documents || [];
       const existingDoc = docs.find(d => d.document_type === docTypeId);
 
-      if (existingDoc && (existingDoc.file_url || existingDoc.file_path)) {
-        const urlToSplit = existingDoc.file_url || existingDoc.file_path;
-        const parts = urlToSplit.split('/Candidate-Document/');
+      if (existingDoc && existingDoc.file_path) {
+        const parts = existingDoc.file_path.split('/Candidate-Document/');
         if (parts.length > 1) {
           const oldStoragePath = parts[1];
           await supabase.storage.from('candidate_documents').remove([oldStoragePath]);
@@ -171,7 +170,7 @@ const CandidateDocuments = () => {
 
       const resPost = await api.post('/candidate/documents', {
           document_type: docTypeId,
-          file_url: proxyUrl,
+          file_path: proxyUrl,
           file_name: file.name
       });
       return resPost.data.document;

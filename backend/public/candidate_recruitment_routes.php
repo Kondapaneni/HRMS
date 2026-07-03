@@ -135,9 +135,9 @@ $app->post('/api/candidate/documents', function (Request $request, Response $res
     
     $docTypeId = $data['document_type'] ?? '';
     $fileName = $data['file_name'] ?? '';
-    $fileUrl = $data['file_url'] ?? '';
+    $filePath = $data['file_path'] ?? '';
 
-    if (!$docTypeId || !$fileName || !$fileUrl) {
+    if (!$docTypeId || !$fileName || !$filePath) {
         $response->getBody()->write(json_encode(['error' => 'Missing required fields']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
@@ -150,8 +150,8 @@ $app->post('/api/candidate/documents', function (Request $request, Response $res
         $stmtDelete = $conn->prepare('DELETE FROM candidate_documents WHERE candidate_id = ? AND document_type = ?');
         $stmtDelete->execute([$decodedToken->id, $docTypeId]);
         
-        $stmtInsert = $conn->prepare('INSERT INTO candidate_documents (candidate_id, document_type, file_name, file_url) VALUES (?, ?, ?, ?)');
-        $stmtInsert->execute([$decodedToken->id, $docTypeId, $fileName, $fileUrl]);
+        $stmtInsert = $conn->prepare('INSERT INTO candidate_documents (candidate_id, document_type, file_name, file_path) VALUES (?, ?, ?, ?)');
+        $stmtInsert->execute([$decodedToken->id, $docTypeId, $fileName, $filePath]);
 
         // Get the newly inserted record to return
         $stmtGet = $conn->prepare('SELECT * FROM candidate_documents WHERE candidate_id = ? AND document_type = ?');
