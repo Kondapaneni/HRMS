@@ -41,7 +41,7 @@ const MobileDocumentUploadCard = ({ docType, currentDoc, onUpload, isUploading }
                <p className="text-[11px] font-medium text-slate-600 truncate">{currentDoc.file_name}</p>
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <a href={currentDoc.file_path} target="_blank" rel="noopener noreferrer" className="p-1.5 text-blue-600 bg-blue-100 rounded-lg">
+              <a href={currentDoc.file_url || currentDoc.file_path} target="_blank" rel="noopener noreferrer" className="p-1.5 text-blue-600 bg-blue-100 rounded-lg">
                 <Eye size={14} />
               </a>
               {currentDoc.status !== 'verified' && (
