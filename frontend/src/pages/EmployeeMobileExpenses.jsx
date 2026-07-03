@@ -91,55 +91,57 @@ const EmployeeMobileExpenses = () => {
 
   if (isFormOpen) {
     return (
-      <div className="fixed inset-0 bg-slate-50 z-[100] flex flex-col">
-        <div className="bg-white px-4 py-4 border-b border-slate-200 flex items-center justify-between sticky top-0 z-10 shadow-sm">
-          <button onClick={handleCloseForm} className="p-2 -ml-2 text-slate-600">
-            <ArrowLeft className="w-6 h-6" />
-          </button>
-          <h1 className="text-lg font-bold text-slate-800">New Expense</h1>
-          <div className="w-10"></div>
-        </div>
-        
-        <div className="flex-1 overflow-y-auto p-4 pb-32">
-          <form id="mobileExpenseForm" onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Title</label>
-              <input type="text" required value={title} onChange={(e) => setTitle(e.target.value)} className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500" placeholder="E.g. Taxi to Airport" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Amount ($)</label>
-              <input type="number" step="0.01" min="0" required value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500" placeholder="0.00" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Category</label>
-              <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500">
-                <option>Travel</option>
-                <option>Meals</option>
-                <option>Supplies</option>
-                <option>Software</option>
-                <option>Hardware</option>
-                <option>Other</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
-              <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500" rows="3" placeholder="Optional details..."></textarea>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Bill / Receipt</label>
-              <input type="file" ref={fileInputRef} onChange={(e) => setBillFile(e.target.files[0])} className="hidden" accept="image/*,.pdf" />
-              <div onClick={() => fileInputRef.current?.click()} className="w-full p-4 border-2 border-dashed border-blue-200 bg-blue-50/50 rounded-xl text-center active:bg-blue-100 transition-colors">
-                <Upload className="w-6 h-6 text-blue-500 mx-auto mb-2" />
-                <span className="text-sm font-medium text-blue-700">{billFile ? billFile.name : 'Upload Document'}</span>
+      <div className="pb-24">
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="bg-white px-4 py-4 border-b border-slate-200 flex items-center justify-between sticky top-0 z-10">
+            <button onClick={handleCloseForm} className="p-2 -ml-2 text-slate-600 bg-slate-50 rounded-full active:bg-slate-100 transition-colors">
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <h1 className="text-lg font-bold text-slate-800">New Expense</h1>
+            <div className="w-10"></div>
+          </div>
+          
+          <div className="p-4 bg-slate-50">
+            <form id="mobileExpenseForm" onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Title</label>
+                <input type="text" required value={title} onChange={(e) => setTitle(e.target.value)} className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500" placeholder="E.g. Taxi to Airport" />
               </div>
-            </div>
-          </form>
-        </div>
-        
-        <div className="p-4 bg-white border-t border-slate-200">
-          <button type="submit" form="mobileExpenseForm" disabled={submitExpenseMutation.isPending} className="w-full py-3.5 bg-blue-600 text-white rounded-xl font-semibold shadow-sm shadow-blue-200 active:bg-blue-700 disabled:opacity-70 transition-all flex justify-center items-center">
-            {submitExpenseMutation.isPending ? 'Submitting...' : 'Submit Expense'}
-          </button>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Amount ($)</label>
+                <input type="number" step="0.01" min="0" required value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500" placeholder="0.00" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Category</label>
+                <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500">
+                  <option>Travel</option>
+                  <option>Meals</option>
+                  <option>Supplies</option>
+                  <option>Software</option>
+                  <option>Hardware</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
+                <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500" rows="3" placeholder="Optional details..."></textarea>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Bill / Receipt</label>
+                <input type="file" ref={fileInputRef} onChange={(e) => setBillFile(e.target.files[0])} className="hidden" accept="image/*,.pdf" />
+                <div onClick={() => fileInputRef.current?.click()} className="w-full p-4 border-2 border-dashed border-blue-200 bg-blue-50/50 rounded-xl text-center active:bg-blue-100 transition-colors">
+                  <Upload className="w-6 h-6 text-blue-500 mx-auto mb-2" />
+                  <span className="text-sm font-medium text-blue-700">{billFile ? billFile.name : 'Upload Document'}</span>
+                </div>
+              </div>
+            </form>
+          </div>
+          
+          <div className="p-4 bg-white border-t border-slate-200">
+            <button type="submit" form="mobileExpenseForm" disabled={submitExpenseMutation.isPending} className="w-full py-3.5 bg-blue-600 text-white rounded-xl font-semibold shadow-sm shadow-blue-200 active:bg-blue-700 disabled:opacity-70 transition-all flex justify-center items-center">
+              {submitExpenseMutation.isPending ? 'Submitting...' : 'Submit Expense'}
+            </button>
+          </div>
         </div>
       </div>
     );
