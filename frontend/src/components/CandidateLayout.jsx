@@ -7,6 +7,7 @@ import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
+import api from '../api/axios';
 
 const CandidateLayout = () => {
   const { profile, signOut } = useAuth();
@@ -20,7 +21,7 @@ const CandidateLayout = () => {
     queryFn: async () => {
       const { data } = await supabase
         .from('candidate_profiles')
-        .select('avatar_url')
+        .select('avatar_url, documents_tab_seen_at')
         .eq('user_id', profile.id)
         .maybeSingle();
       return data;
@@ -54,15 +55,13 @@ const CandidateLayout = () => {
   const [showDocumentsNewBadge, setShowDocumentsNewBadge] = useState(false);
 
   useEffect(() => {
-    if (isHired && profile?.id) {
-      const storageKey = `doc_tab_seen_${profile.id}`;
-      const seenAt = localStorage.getItem(storageKey);
-      
-      if (!seenAt) {
-        localStorage.setItem(storageKey, Date.now().toString());
+    if (isHired && profile?.id && profileData !== undefined) {
+      if (!profileData?.documents_tab_seen_at) {
+        // First time seeing it, trigger backend endpoint to save timestamp
+        api.put('/candidate/profile/documents-seen').catch(console.error);
         setShowDocumentsNewBadge(true);
       } else {
-        const timePassed = Date.now() - parseInt(seenAt, 10);
+        const timePassed = Date.now() - new Date(profileData.documents_tab_seen_at).getTime();
         if (timePassed < 24 * 60 * 60 * 1000) {
           setShowDocumentsNewBadge(true);
         } else {
@@ -70,7 +69,7 @@ const CandidateLayout = () => {
         }
       }
     }
-  }, [isHired, profile?.id]);
+  }, [isHired, profile?.id, profileData]);
 
   const navItems = [
     { label: 'Dashboard', icon: <Home size={18} />, path: '/candidate/dashboard' },

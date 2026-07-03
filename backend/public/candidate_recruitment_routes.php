@@ -85,6 +85,29 @@ $app->put('/api/candidate/profile', function (Request $request, Response $respon
     }
 })->add(new AuthMiddleware(['candidate', 'employee']));
 
+// Mark Documents Tab as Seen
+$app->put('/api/candidate/profile/documents-seen', function (Request $request, Response $response, $args) {
+    $decodedToken = $request->getAttribute('user');
+    
+    $db = new Database();
+    $conn = $db->getConnection();
+    
+    try {
+        $stmtUpdate = $conn->prepare('
+            UPDATE candidate_profiles 
+            SET documents_tab_seen_at = CURRENT_TIMESTAMP
+            WHERE user_id = ? AND documents_tab_seen_at IS NULL
+        ');
+        $stmtUpdate->execute([$decodedToken->id]);
+
+        $response->getBody()->write(json_encode(['message' => 'Documents tab seen timestamp updated']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+    } catch (Exception $e) {
+        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    }
+})->add(new AuthMiddleware(['candidate', 'employee']));
+
 // Get Candidate Documents
 $app->get('/api/candidate/documents', function (Request $request, Response $response, $args) {
     $decodedToken = $request->getAttribute('user');
