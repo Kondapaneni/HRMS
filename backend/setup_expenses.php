@@ -29,6 +29,47 @@ try {
     $pdo->exec($sqlBucket);
     echo "Expenses bucket created.\n";
 
+    // Create RLS policies for storage
+    $sqlPolicy = "
+    DO $$
+    BEGIN
+        IF NOT EXISTS (
+            SELECT 1 FROM pg_policies WHERE tablename = 'objects' AND schemaname = 'storage' AND policyname = 'Allow public uploads to expenses bucket'
+        ) THEN
+            CREATE POLICY \"Allow public uploads to expenses bucket\" 
+            ON storage.objects FOR INSERT 
+            WITH CHECK (bucket_id = 'expenses');
+        END IF;
+
+        IF NOT EXISTS (
+            SELECT 1 FROM pg_policies WHERE tablename = 'objects' AND schemaname = 'storage' AND policyname = 'Allow public updates to expenses bucket'
+        ) THEN
+            CREATE POLICY \"Allow public updates to expenses bucket\" 
+            ON storage.objects FOR UPDATE 
+            USING (bucket_id = 'expenses');
+        END IF;
+
+        IF NOT EXISTS (
+            SELECT 1 FROM pg_policies WHERE tablename = 'objects' AND schemaname = 'storage' AND policyname = 'Allow public deletes from expenses bucket'
+        ) THEN
+            CREATE POLICY \"Allow public deletes from expenses bucket\" 
+            ON storage.objects FOR DELETE 
+            USING (bucket_id = 'expenses');
+        END IF;
+
+        IF NOT EXISTS (
+            SELECT 1 FROM pg_policies WHERE tablename = 'objects' AND schemaname = 'storage' AND policyname = 'Allow public reads from expenses bucket'
+        ) THEN
+            CREATE POLICY \"Allow public reads from expenses bucket\" 
+            ON storage.objects FOR SELECT 
+            USING (bucket_id = 'expenses');
+        END IF;
+    END
+    $$;
+    ";
+    $pdo->exec($sqlPolicy);
+    echo "Expenses bucket RLS policies created.\n";
+
 } catch (PDOException $e) {
     echo "Error: " . $e->getMessage() . "\n";
 }

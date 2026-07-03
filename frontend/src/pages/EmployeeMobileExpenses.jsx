@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, Upload, FileText, CheckCircle, XCircle, Clock, ArrowLeft } from 'lucide-react';
+import { Plus, Upload, FileText, CheckCircle, XCircle, Clock, ArrowLeft, Receipt } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { createClient } from '@supabase/supabase-js';
@@ -92,8 +93,8 @@ const EmployeeMobileExpenses = () => {
   if (isFormOpen) {
     return (
       <div className="pb-4">
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="bg-white px-4 py-4 border-b border-slate-200 flex items-center justify-between sticky top-0 z-10">
+        <div className="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden mx-2 mt-4 relative z-20">
+          <div className="bg-white px-5 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 z-10">
             <button onClick={handleCloseForm} className="p-2 -ml-2 text-slate-600 bg-slate-50 rounded-full active:bg-slate-100 transition-colors">
               <ArrowLeft className="w-5 h-5" />
             </button>
@@ -137,8 +138,8 @@ const EmployeeMobileExpenses = () => {
             </form>
           </div>
           
-          <div className="p-4 bg-white border-t border-slate-200">
-            <button type="submit" form="mobileExpenseForm" disabled={submitExpenseMutation.isPending} className="w-full py-3.5 bg-blue-600 text-white rounded-xl font-semibold shadow-sm shadow-blue-200 active:bg-blue-700 disabled:opacity-70 transition-all flex justify-center items-center">
+          <div className="p-5 bg-white border-t border-slate-100">
+            <button type="submit" form="mobileExpenseForm" disabled={submitExpenseMutation.isPending} className="w-full py-3.5 bg-[#000] text-white rounded-xl font-semibold active:bg-slate-800 disabled:opacity-70 transition-all flex justify-center items-center shadow-lg shadow-black/20">
               {submitExpenseMutation.isPending ? 'Submitting...' : 'Submit Expense'}
             </button>
           </div>
@@ -148,72 +149,117 @@ const EmployeeMobileExpenses = () => {
   }
 
   return (
-    <div className="pb-4">
-      <div className="bg-white px-4 py-4 border-b border-slate-200 flex items-center justify-between sticky top-0 z-10 shadow-sm">
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate('/employee')} className="p-2 -ml-2 text-slate-600 bg-slate-50 rounded-full active:bg-slate-100 transition-colors">
-            <ArrowLeft className="w-5 h-5" />
+    <div className="relative pb-6">
+      {/* Top Header Section with Animated Motion Graphics */}
+      <div className="-mx-4 -mt-4 px-4 pt-8 pb-20 relative overflow-hidden bg-slate-900">
+        {/* Animated Liquid Orbs */}
+        <motion.div
+          animate={{
+            scale: [1, 1.2, 1],
+            x: [0, 50, 0],
+            y: [0, 30, 0],
+          }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -top-20 -left-10 w-72 h-72 bg-[#ff928b] rounded-full mix-blend-screen filter blur-[40px] opacity-60"
+        />
+        <motion.div
+          animate={{
+            scale: [1, 1.4, 1],
+            x: [0, -40, 0],
+            y: [0, 50, 0],
+          }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute -top-10 -right-10 w-64 h-64 bg-[#7bdff2] rounded-full mix-blend-screen filter blur-[40px] opacity-60"
+        />
+        <motion.div
+          animate={{
+            scale: [1, 1.3, 1],
+            x: [0, 30, 0],
+            y: [0, -40, 0],
+          }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          className="absolute bottom-0 left-20 w-80 h-80 bg-[#84dcc6] rounded-full mix-blend-screen filter blur-[50px] opacity-50"
+        />
+
+        {/* Subtle Glass Overlay */}
+        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
+
+        <div className="relative z-10 px-2 flex justify-between items-start">
+          <div>
+            <div className="flex items-center gap-2 mb-1.5">
+              <button onClick={() => navigate('/employee')} className="text-white/80 active:text-white transition-colors p-1 -ml-1">
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+              <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest drop-shadow-md">My Finances</p>
+            </div>
+            <h1 className="text-3xl font-black text-white tracking-tight drop-shadow-sm mb-0.5">Expenses</h1>
+          </div>
+          <button
+            onClick={() => setIsFormOpen(true)}
+            className="flex items-center justify-center w-10 h-10 bg-white/20 hover:bg-white/30 text-white rounded-full backdrop-blur-md transition-colors shadow-md active:scale-95"
+          >
+            <Plus className="w-6 h-6" />
           </button>
-          <h1 className="text-xl font-bold text-slate-800">Expenses</h1>
         </div>
-        <button onClick={() => setIsFormOpen(true)} className="p-2 bg-blue-50 text-blue-600 rounded-full active:bg-blue-100 transition-colors">
-          <Plus className="w-5 h-5" />
-        </button>
       </div>
 
-      <div className="p-4 space-y-4">
-        {isLoading ? (
-          <div className="animate-pulse space-y-4">
-            {[1,2,3].map(i => <div key={i} className="h-24 bg-slate-200 rounded-xl"></div>)}
-          </div>
-        ) : expensesData.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
-              <FileText className="w-8 h-8 text-slate-400" />
+      {/* Main Content Card overlapping header */}
+      <div className="bg-white rounded-[24px] shadow-lg p-5 -mt-12 relative z-20 mx-1 border border-slate-100/50 min-h-[300px]">
+        <div className="space-y-4">
+          {isLoading ? (
+            <div className="animate-pulse space-y-4">
+              {[1, 2, 3].map(i => <div key={i} className="h-24 bg-slate-100 rounded-2xl"></div>)}
             </div>
-            <p className="text-slate-500 font-medium">No expenses yet</p>
-          </div>
-        ) : (
-          expensesData.map((exp) => (
-            <div key={exp.id} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-              <div className="flex justify-between items-start mb-2">
-                <div className="flex items-center space-x-2">
-                  <div className="p-2 bg-slate-50 rounded-lg">
-                    {getStatusIcon(exp.status)}
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-slate-800">{exp.title}</h3>
-                    <p className="text-xs text-slate-500">{new Date(exp.created_at).toLocaleDateString()}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <span className="font-bold text-slate-900">${parseFloat(exp.amount).toFixed(2)}</span>
-                  <p className="text-xs text-slate-500">{exp.category}</p>
-                </div>
+          ) : expensesData.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100">
+                <Receipt className="w-8 h-8 text-slate-300" />
               </div>
-              
-              <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
-                <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                  exp.status === 'Approved' ? 'bg-green-100 text-green-700' :
-                  exp.status === 'Rejected' ? 'bg-red-100 text-red-700' :
-                  'bg-yellow-100 text-yellow-700'
-                }`}>
-                  {exp.status}
-                </span>
-                {exp.bill_url && (
-                  <a href={exp.bill_url} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 font-medium active:text-blue-800">
-                    View Bill
-                  </a>
+              <p className="text-slate-500 font-medium">No expenses submitted yet</p>
+            </div>
+          ) : (
+            expensesData.map((exp) => (
+              <div key={exp.id} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm active:bg-slate-50 transition-colors">
+                <div className="flex justify-between items-start mb-3">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                      {getStatusIcon(exp.status)}
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-slate-900 leading-tight">{exp.title}</h3>
+                      <p className="text-[11px] font-medium text-slate-500 mt-0.5">{new Date(exp.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-black text-slate-900 text-lg">${parseFloat(exp.amount).toFixed(2)}</span>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{exp.category}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-50">
+                  <span className={`text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-md ${
+                    exp.status === 'Approved' ? 'bg-[#25d366]/10 text-[#25d366]' :
+                    exp.status === 'Rejected' ? 'bg-[#ff2d55]/10 text-[#ff2d55]' :
+                    'bg-[#ff9500]/10 text-[#ff9500]'
+                  }`}>
+                    {exp.status}
+                  </span>
+                  {exp.bill_url && (
+                    <a href={exp.bill_url} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-blue-600 hover:text-blue-700 active:text-blue-800 transition-colors flex items-center gap-1 bg-blue-50 px-2 py-1 rounded-md">
+                      <FileText className="w-3.5 h-3.5" />
+                      View Bill
+                    </a>
+                  )}
+                </div>
+                {exp.remarks && (
+                  <div className="mt-3 bg-rose-50/50 p-3 rounded-xl border border-rose-100 text-[11px] text-rose-700 font-medium leading-relaxed">
+                    <span className="font-bold uppercase tracking-wider mr-1">Note:</span> {exp.remarks}
+                  </div>
                 )}
               </div>
-              {exp.remarks && (
-                <div className="mt-2 bg-slate-50 p-2 rounded text-xs text-slate-600">
-                  <span className="font-semibold">Note:</span> {exp.remarks}
-                </div>
-              )}
-            </div>
-          ))
-        )}
+            ))
+          )}
+        </div>
       </div>
     </div>
   );
