@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LogIn, LogOut, Clock, Calendar, Bell, Shield, ChevronRight } from 'lucide-react';
+import { LogIn, LogOut, Clock, Calendar, Bell, Shield, ChevronRight, Receipt } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -368,6 +368,30 @@ const EmployeeMobileDashboard = () => {
           </div>
           <Link to="/employee/payroll" className="flex items-center justify-center w-full rounded-xl border-2 border-slate-200 bg-white text-slate-700 font-semibold text-sm py-3 hover:bg-slate-50 active:scale-[0.98] transition-all">
             View payroll
+          </Link>
+        </div>
+      </section>
+
+      {/* Expenses Overview */}
+      <section className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
+        <div className="px-6 pt-6 pb-4 border-b border-slate-100 flex justify-between items-start">
+          <div>
+            <h2 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">My Expenses</h2>
+            <p className="text-[11px] font-medium text-slate-500 mt-1 uppercase tracking-wider">Track your claims</p>
+          </div>
+        </div>
+        <div className="p-6">
+          <Link to="/employee/expenses" className="flex items-center justify-between w-full rounded-xl bg-orange-50 text-orange-600 font-semibold text-sm px-6 py-4 hover:bg-orange-100 active:scale-[0.98] transition-all border border-orange-100">
+            <div className="flex items-center gap-3">
+              <div className="bg-white p-2 rounded-lg shadow-sm">
+                <Receipt className="w-5 h-5 text-orange-500" />
+              </div>
+              <div className="text-left">
+                <div className="text-base text-slate-800">Manage Expenses</div>
+                <div className="text-xs text-slate-500 font-normal mt-0.5">Submit new bills or track statuses</div>
+              </div>
+            </div>
+            <ChevronRight className="w-5 h-5 text-slate-400" />
           </Link>
         </div>
       </section>

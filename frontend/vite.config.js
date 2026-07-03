@@ -48,6 +48,10 @@ export default defineConfig({
         target: 'http://localhost:8081',
         changeOrigin: true
       },
+      '/Bills': {
+        target: 'http://localhost:8081',
+        changeOrigin: true
+      },
       '/Holiday': {
         target: 'http://localhost:8081',
         changeOrigin: true

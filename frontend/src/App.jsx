@@ -18,6 +18,7 @@ import EmployeeApplyLeavePage from './pages/EmployeeApplyLeavePage'
 import EmployeePayroll from './pages/EmployeePayroll'
 import EmployeeProfile from './pages/EmployeeProfile'
 import EmployeePerformance from './pages/EmployeePerformance'
+import EmployeeExpenses from './pages/EmployeeExpenses'
 import EditProfilePage from './pages/EditProfilePage'
 import EmployeeMobileMap from './pages/EmployeeMobileMap'
 import EmployeeMobileCamera from './pages/EmployeeMobileCamera'
@@ -44,6 +45,7 @@ import AdminVerifyDocuments from './pages/AdminVerifyDocuments'
 import AdminSettings from './pages/AdminSettings'
 import AdminEmailTemplates from './pages/AdminEmailTemplates'
 import AdminPerformance from './pages/AdminPerformance'
+import AdminExpenses from './pages/AdminExpenses'
 import Chat from './pages/Chat'
 import AdminRecruitment from './pages/AdminRecruitment'
 import ComingSoon from './pages/ComingSoon'
@@ -134,6 +136,7 @@ function App() {
               <Route path="feature-access" element={<AdminFeatureAccess />} />
               <Route path="audit-logs" element={<AdminAuditLogs />} />
               <Route path="assets" element={<AdminAssets />} />
+              <Route path="expenses" element={<AdminExpenses />} />
               <Route path="holidays" element={<AdminHolidays />} />
               <Route path="holidays/archive" element={<AdminHolidaysArchive />} />
               <Route path="email-templates" element={<AdminEmailTemplates />} />
@@ -155,6 +158,7 @@ function App() {
               <Route path="attendance" element={<EmployeeAttendance />} />
               <Route path="leaves" element={<EmployeeLeaves />} />
               <Route path="leaves/apply" element={<EmployeeApplyLeavePage />} />
+              <Route path="expenses" element={<EmployeeExpenses />} />
               <Route path="payroll" element={<EmployeePayroll />} />
               <Route path="performance" element={<EmployeePerformance />} />
               <Route path="chat" element={<Chat />} />

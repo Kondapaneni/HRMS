@@ -223,9 +223,11 @@ require __DIR__ . '/employee_leave_routes.php';
 require __DIR__ . '/employee_payroll_routes.php';
 require __DIR__ . '/employee_profile_routes.php';
 require __DIR__ . '/employee_performance_routes.php';
+require __DIR__ . '/employee_expenses_routes.php';
 
 require __DIR__ . '/admin_dashboard_routes.php';
 require __DIR__ . '/admin_employees_routes.php';
+require __DIR__ . '/admin_expenses_routes.php';
 require __DIR__ . '/admin_attendance_routes.php';
 require __DIR__ . '/admin_holidays_routes.php';
 require __DIR__ . '/admin_leave_routes.php';
@@ -540,6 +542,29 @@ $app->get('/Candidate-Document/{filename:.+}', function (Request $request, Respo
     $encodedFilename = implode('/', $encodedSegments);
     
     $supabaseUrl = $supabaseUrlBase . "/storage/v1/object/public/candidate_documents/" . $encodedFilename;
+    $context = stream_context_create(["http" => ["method" => "GET", "header" => "User-Agent: PHP\r\n"]]);
+    $fileContent = @file_get_contents($supabaseUrl, false, $context);
+    
+    if ($fileContent === false) return $response->withStatus(404);
+    
+    $response->getBody()->write($fileContent);
+    return $response
+        ->withHeader('Content-Type', getMimeType($filename))
+        ->withHeader('Content-Disposition', 'inline; filename="' . basename($filename) . '"')
+        ->withHeader('Cache-Control', 'public, max-age=31536000, immutable');
+});
+
+// Bills proxy route
+$app->get('/Bills/{filename:.+}', function (Request $request, Response $response, $args) {
+    $filename = $args['filename'];
+    $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'];
+    
+    // Properly encode filename parts if it contains subdirectories
+    $segments = explode('/', $filename);
+    $encodedSegments = array_map('rawurlencode', $segments);
+    $encodedFilename = implode('/', $encodedSegments);
+    
+    $supabaseUrl = $supabaseUrlBase . "/storage/v1/object/public/expenses/" . $encodedFilename;
     $context = stream_context_create(["http" => ["method" => "GET", "header" => "User-Agent: PHP\r\n"]]);
     $fileContent = @file_get_contents($supabaseUrl, false, $context);
     

@@ -65,6 +65,7 @@ const EmployeeLayout = () => {
     { icon: <Clock size={18} />, label: 'Attendance', path: '/employee/attendance' },
     { icon: <Calendar size={18} />, label: 'Leaves', path: '/employee/leaves' },
     { icon: <Wallet size={18} />, label: 'Payroll', path: '/employee/payroll' },
+    { icon: <DollarSign size={18} />, label: 'Expenses', path: '/employee/expenses' },
     { icon: <MessageSquare size={18} />, label: 'Secure Chat', path: '/employee/chat' },
     { icon: <BarChart2 size={18} />, label: 'Performance', path: '/employee/performance' },
   ];

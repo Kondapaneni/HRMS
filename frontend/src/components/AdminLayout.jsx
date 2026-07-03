@@ -41,6 +41,7 @@ const AdminLayout = () => {
     { icon: <Calendar size={18} />, label: 'Leave', path: '/admin/leaves' },
     { icon: <BarChart2 size={18} />, label: 'Performance', path: '/admin/performance' },
     { icon: <DollarSign size={18} />, label: 'Payroll', path: '/admin/payroll' },
+    { icon: <FileText size={18} />, label: 'Expenses', path: '/admin/expenses' },
     { icon: <Monitor size={18} />, label: 'Assets', path: '/admin/assets' },
     { icon: <Briefcase size={18} />, label: 'Recruitment', path: '/admin/recruitment' },
     { icon: <Mail size={18} />, label: 'Email Templates', path: '/admin/email-templates' },
