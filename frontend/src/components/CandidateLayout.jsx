@@ -51,12 +51,32 @@ const CandidateLayout = () => {
   });
 
   const isHired = applications.some(app => app.status === 'Hired' || app.status === 'Selected');
+  const [showDocumentsNewBadge, setShowDocumentsNewBadge] = useState(false);
+
+  useEffect(() => {
+    if (isHired && profile?.id) {
+      const storageKey = `doc_tab_seen_${profile.id}`;
+      const seenAt = localStorage.getItem(storageKey);
+      
+      if (!seenAt) {
+        localStorage.setItem(storageKey, Date.now().toString());
+        setShowDocumentsNewBadge(true);
+      } else {
+        const timePassed = Date.now() - parseInt(seenAt, 10);
+        if (timePassed < 24 * 60 * 60 * 1000) {
+          setShowDocumentsNewBadge(true);
+        } else {
+          setShowDocumentsNewBadge(false);
+        }
+      }
+    }
+  }, [isHired, profile?.id]);
 
   const navItems = [
     { label: 'Dashboard', icon: <Home size={18} />, path: '/candidate/dashboard' },
     { label: 'Jobs', icon: <Briefcase size={18} />, path: '/candidate/jobs' },
     { label: 'Applications', icon: <FileText size={18} />, path: '/candidate/applications' },
-    ...(isHired ? [{ label: 'Documents', icon: <Folder size={18} />, path: '/candidate/documents' }] : []),
+    ...(isHired ? [{ label: 'Documents', icon: <Folder size={18} />, path: '/candidate/documents', isNew: showDocumentsNewBadge }] : []),
     { label: 'Profile', icon: <User size={18} />, path: '/candidate/profile' }
   ];
 
@@ -118,6 +138,11 @@ const CandidateLayout = () => {
                       transition={{ type: 'spring', bounce: 0.25, duration: 0.5 }}
                     />
                   )}
+                  {item.isNew && (
+                    <span className="absolute top-1 right-1.5 bg-rose-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full z-20 shadow-sm animate-pulse">
+                      NEW
+                    </span>
+                  )}
                   <Icon className={`relative z-10 w-6 h-6 mb-1 transition-all duration-300 ${isActive ? 'text-blue-600 scale-110' : 'text-slate-500 group-hover:text-slate-600 group-active:scale-95'}`} strokeWidth={isActive ? 2.5 : 2} />
                   <span className={`relative z-10 text-[11px] font-semibold tracking-wide transition-all duration-300 ${isActive ? 'text-blue-600' : 'text-slate-500'}`}>
                     {item.label}
@@ -176,6 +201,11 @@ const CandidateLayout = () => {
                     className="absolute inset-0 z-[-1] rounded-full shadow-[inset_0_1px_3px_rgba(255,255,255,0.8),0_4px_16px_rgba(0,0,0,0.06)] bg-white/40 backdrop-blur-xl border border-white/80 overflow-hidden"
                     transition={{ type: 'spring', bounce: 0.25, duration: 0.5 }}
                   />
+                )}
+                {item.isNew && (
+                  <span className="absolute top-0.5 right-1.5 bg-rose-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full z-20 shadow-sm animate-pulse">
+                    NEW
+                  </span>
                 )}
                 <Icon className={`relative z-10 w-6 h-6 mb-0.5 transition-all duration-300 ${isActive ? 'text-blue-600 scale-105' : 'text-slate-500 group-hover:text-slate-600 group-active:scale-95'}`} strokeWidth={isActive ? 2.5 : 2} />
                 <span className={`relative z-10 text-[10px] font-medium tracking-wide transition-all duration-300 ${isActive ? 'text-blue-600' : 'text-slate-500'}`}>
