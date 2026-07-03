@@ -122,7 +122,7 @@ const EmployeeExpenses = () => {
         <EmployeeMobileExpenses />
       </div>
 
-      <div className="hidden md:flex min-h-screen bg-slate-50">
+      <div className="hidden md:flex min-h-screen bg-transparent relative z-10">
         <div className="flex-1 p-8">
           <div className="max-w-7xl mx-auto space-y-6">
             <div className="flex justify-between items-center">
