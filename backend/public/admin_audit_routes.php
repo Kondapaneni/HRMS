@@ -5,6 +5,7 @@ use App\Middleware\AuthMiddleware;
 use App\Config\Database;
 
 // GET /api/admin/audit-logs
+/** @var \Slim\App $app */
 $app->get('/api/admin/audit-logs', function (Request $request, Response $response, $args) {
     $db = new Database();
     $conn = $db->getConnection();

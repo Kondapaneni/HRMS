@@ -224,6 +224,7 @@ function adjustApprovedLeaveRecordForDate($conn, $employeeId, $date, $adminId) {
 
 
 // GET /api/admin/attendance
+/** @var \Slim\App $app */
 $app->get('/api/admin/attendance', function (Request $request, Response $response, $args) {
     $queryParams = $request->getQueryParams();
     $date = $queryParams['date'] ?? date('Y-m-d');

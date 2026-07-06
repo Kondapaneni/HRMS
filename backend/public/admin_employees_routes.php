@@ -6,6 +6,7 @@ use App\Middleware\AuthMiddleware;
 use App\Config\Database;
 
 // Get all employees for admin
+/** @var \Slim\App $app */
 $app->get('/api/admin/employees', function (Request $request, Response $response, $args) {
     $db = new Database();
     $conn = $db->getConnection();

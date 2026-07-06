@@ -7,6 +7,7 @@ use App\Config\Database;
 
 require_once __DIR__ . '/performance_helpers.php';
 
+/** @var \Slim\App $app */
 $app->get('/api/admin/performance', function (Request $request, Response $response, $args) {
     $db = new Database();
     $conn = $db->getConnection();

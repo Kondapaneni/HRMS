@@ -6,6 +6,7 @@ use App\Middleware\AuthMiddleware;
 use App\Config\Database;
 
 // GET /api/admin/holidays - Get all holidays or filter by month
+/** @var \Slim\App $app */
 $app->get('/api/admin/holidays', function (Request $request, Response $response, $args) {
     $db = new Database();
     $conn = $db->getConnection();

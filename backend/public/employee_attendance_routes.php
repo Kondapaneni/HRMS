@@ -6,6 +6,7 @@ use App\Config\Database;
 use App\Utils\RateLimiter;
 
 // Get Employee Attendance History
+/** @var \Slim\App $app */
 $app->get('/api/employee/attendance', function (Request $request, Response $response, $args) {
     $decodedToken = $request->getAttribute('user');
     

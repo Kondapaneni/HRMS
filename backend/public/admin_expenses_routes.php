@@ -5,6 +5,7 @@ use App\Middleware\AuthMiddleware;
 use App\Config\Database;
 
 // Get All Expenses for Admin
+/** @var \Slim\App $app */
 $app->get('/api/admin/expenses', function (Request $request, Response $response, $args) {
     $db = new Database();
     $conn = $db->getConnection();

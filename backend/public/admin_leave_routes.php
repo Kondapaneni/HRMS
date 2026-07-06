@@ -132,6 +132,7 @@ function applySandwichPolicy($conn, $employeeId, $startDate, $endDate, $adminId)
     }
 }
 
+/** @var \Slim\App $app */
 $app->get('/api/admin/leaves', function (Request $request, Response $response, $args) {
     $db = new Database();
     $conn = $db->getConnection();

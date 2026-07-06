@@ -8,6 +8,7 @@ use Firebase\JWT\JWT;
 use Dotenv\Dotenv;
 
 // Registration Route
+/** @var \Slim\App $app */
 $app->post('/api/candidate/register', function (Request $request, Response $response) {
     $data = json_decode($request->getBody()->getContents(), true);
     $firstName = trim($data['firstName'] ?? '');

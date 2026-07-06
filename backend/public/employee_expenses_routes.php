@@ -5,6 +5,7 @@ use App\Middleware\AuthMiddleware;
 use App\Config\Database;
 
 // Get Employee Expenses
+/** @var \Slim\App $app */
 $app->get('/api/employee/expenses', function (Request $request, Response $response, $args) {
     $decodedToken = $request->getAttribute('user');
     $db = new Database();

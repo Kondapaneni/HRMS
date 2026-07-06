@@ -5,6 +5,7 @@ use App\Middleware\AuthMiddleware;
 use App\Config\Database;
 
 // GET /api/admin/feature-access
+/** @var \Slim\App $app */
 $app->get('/api/admin/feature-access', function (Request $request, Response $response, $args) {
     $db = new Database();
     $conn = $db->getConnection();

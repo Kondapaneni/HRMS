@@ -7,6 +7,7 @@ use App\Config\Database;
 use App\Utils\ChatEncryption;
 
 // GET /api/chat/users - Get all active users for chat
+/** @var \Slim\App $app */
 $app->get('/api/chat/users', function (Request $request, Response $response) {
     $db = new Database();
     $conn = $db->getConnection();

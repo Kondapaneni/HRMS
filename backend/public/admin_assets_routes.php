@@ -6,6 +6,7 @@ use App\Config\Database;
 
 // GET /api/admin/assets
 // Fetches all assets with their assigned employee details
+/** @var \Slim\App $app */
 $app->get('/api/admin/assets', function (Request $request, Response $response, $args) {
     $db = new Database();
     $conn = $db->getConnection();
