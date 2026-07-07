@@ -92,12 +92,12 @@ const CANDIDATE_DASHBOARD_ROLES = ['candidate']
 function App() {
   return (
     <PersistQueryClientProvider client={queryClient} persistOptions={{ persister }}>
-      <AuthProvider>
-        <UpdateOverlay />
-        <OfflinePage />
-        <SnowflakeCursor />
-        <Toaster position="top-right" />
-        <Router>
+      <Router>
+        <AuthProvider>
+          <UpdateOverlay />
+          <OfflinePage />
+          <SnowflakeCursor />
+          <Toaster position="top-right" />
           <Routes>
             <Route path="/" element={<Login />} />
             <Route path="/candidate/login" element={<CandidateLogin />} />
@@ -210,8 +210,8 @@ function App() {
             {/* Catch-all 404 Route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </Router>
-      </AuthProvider>
+        </AuthProvider>
+      </Router>
     </PersistQueryClientProvider>
   )
 }

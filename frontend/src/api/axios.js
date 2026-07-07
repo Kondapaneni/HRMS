@@ -46,7 +46,11 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    if (error.response && error.response.status === 403) {
+    if (error.response && error.response.status === 401) {
+      // 401s are expected authentication states. We pass the rejection down 
+      // so AuthContext can handle it silently without generic error logging.
+      return Promise.reject(error);
+    } else if (error.response && error.response.status === 403) {
       if (error.response.data?.error === 'Your account has been deactivated. Please contact your administrator.') {
         if (window.location.pathname !== '/') {
           toast.error(error.response.data.error, { duration: 5000 });
@@ -57,6 +61,9 @@ api.interceptors.response.use(
       }
     } else if (error.response && error.response.status === 429) {
       // 429 errors are now handled directly by the components to show inline countdowns
+    } else {
+      // Log unexpected errors (500s, network failures, etc.)
+      console.error('API Error:', error);
     }
     return Promise.reject(error);
   }

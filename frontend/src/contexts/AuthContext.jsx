@@ -1,18 +1,33 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import SplashScreen from '../components/SplashScreen';
 
 const AuthContext = createContext({});
 
+const PUBLIC_ROUTES = [
+  '/',
+  '/candidate/login',
+  '/candidate/activate',
+  '/forgot-password',
+  '/reset-password',
+];
+
 export const AuthProvider = ({ children }) => {
   const queryClient = useQueryClient();
+  const location = useLocation();
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const fetchInProgress = useRef(false);
 
   const fetchProfile = useCallback(async () => {
+    if (fetchInProgress.current) return;
+    
+    fetchInProgress.current = true;
     setProfileLoading(true);
     try {
       const response = await api.get('/me');
@@ -23,32 +38,52 @@ export const AuthProvider = ({ children }) => {
         // User is simply not logged in or session expired
         setProfile(null);
         setUser(null);
-        return;
+      } else {
+        console.error('Failed to fetch profile:', error);
       }
-      
-      console.error('Failed to fetch profile:', error);
     } finally {
       setProfileLoading(false);
+      fetchInProgress.current = false;
     }
   }, []);
 
   useEffect(() => {
-    // Initial load - Ensure splash screen shows for at least 2.5 seconds for animation
-    Promise.all([
-      fetchProfile(),
-      new Promise(resolve => setTimeout(resolve, 2500))
-    ]).then(() => {
+    if (isInitialized) return;
+
+    // Check if the current route is exactly a public route
+    const isPublicRoute = PUBLIC_ROUTES.includes(location.pathname);
+
+    if (isPublicRoute) {
+      // Don't fetch on public routes, finish initialization immediately
       setLoading(false);
-    });
-  }, [fetchProfile]);
+      setIsInitialized(true);
+      return;
+    }
+
+    // On protected routes, fetch profile with minimum 1200ms splash delay
+    const initializeAuth = async () => {
+      const startTime = Date.now();
+      
+      await fetchProfile();
+      
+      const elapsed = Date.now() - startTime;
+      const minDelay = 1200;
+      
+      if (elapsed < minDelay) {
+        await new Promise(resolve => setTimeout(resolve, minDelay - elapsed));
+      }
+      
+      setLoading(false);
+      setIsInitialized(true);
+    };
+
+    initializeAuth();
+  }, [fetchProfile, isInitialized, location.pathname]);
 
   const signIn = async (email, password) => {
     const response = await api.post('/login', { email, password });
     const { user: userData } = response.data;
-
-    // Fetch the full profile (which includes the avatar from the employees table)
     await fetchProfile();
-
     return userData;
   };
 
@@ -68,6 +103,7 @@ export const AuthProvider = ({ children }) => {
     profile,
     loading,
     profileLoading,
+    isInitialized,
     signIn,
     signOut,
     fetchProfile,
@@ -75,9 +111,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={value}>
-      {loading ? (
-        <SplashScreen />
-      ) : children}
+      {loading ? <SplashScreen /> : children}
     </AuthContext.Provider>
   );
 };
