@@ -10,17 +10,33 @@ $app->get('/api/admin/expenses', function (Request $request, Response $response,
     $db = new Database();
     $conn = $db->getConnection();
 
+    $params = $request->getQueryParams();
+    $page = max(1, (int)($params['page'] ?? 1));
+    $limit = max(1, min(100, (int)($params['limit'] ?? 10)));
+    $offset = ($page - 1) * $limit;
+
     try {
+        $countQuery = "SELECT COUNT(*) FROM expenses";
+        $totalCount = (int)$conn->query($countQuery)->fetchColumn();
         $stmt = $conn->prepare('
             SELECT ex.*, e."firstName", e."lastName", e."employeeId" as employee_ref
             FROM expenses ex
             LEFT JOIN employee e ON ex.user_id = e."userId"
             ORDER BY ex.created_at DESC
+            LIMIT ? OFFSET ?
         ');
-        $stmt->execute();
+        $stmt->execute([$limit, $offset]);
         $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $response->getBody()->write(json_encode(['expenses' => $expenses]));
+        $response->getBody()->write(json_encode([
+            'expenses' => $expenses,
+            'pagination' => [
+                'total' => $totalCount,
+                'page' => $page,
+                'limit' => $limit,
+                'totalPages' => ceil($totalCount / $limit)
+            ]
+        ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));

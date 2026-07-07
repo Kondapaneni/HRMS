@@ -11,7 +11,15 @@ $app->get('/api/admin/assets', function (Request $request, Response $response, $
     $db = new Database();
     $conn = $db->getConnection();
 
+    $params = $request->getQueryParams();
+    $page = max(1, (int)($params['page'] ?? 1));
+    $limit = max(1, min(100, (int)($params['limit'] ?? 10)));
+    $offset = ($page - 1) * $limit;
+
     try {
+        $countQuery = "SELECT COUNT(*) FROM assets";
+        $totalCount = (int)$conn->query($countQuery)->fetchColumn();
+
         $query = "
             SELECT 
                 a.id, a.name, a.category, a.serial_number, a.status, a.assigned_to, a.created_at,
@@ -19,12 +27,22 @@ $app->get('/api/admin/assets', function (Request $request, Response $response, $
             FROM assets a
             LEFT JOIN employee e ON a.assigned_to = e.id
             ORDER BY a.created_at DESC
+            LIMIT ? OFFSET ?
         ";
         
-        $stmt = $conn->query($query);
+        $stmt = $conn->prepare($query);
+        $stmt->execute([$limit, $offset]);
         $assets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $response->getBody()->write(json_encode(['data' => $assets]));
+        $response->getBody()->write(json_encode([
+            'data' => $assets,
+            'pagination' => [
+                'total' => $totalCount,
+                'page' => $page,
+                'limit' => $limit,
+                'totalPages' => ceil($totalCount / $limit)
+            ]
+        ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (\Exception $e) {
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));

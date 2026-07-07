@@ -11,12 +11,29 @@ $app->get('/api/employee/expenses', function (Request $request, Response $respon
     $db = new Database();
     $conn = $db->getConnection();
 
+    $params = $request->getQueryParams();
+    $page = max(1, (int)($params['page'] ?? 1));
+    $limit = max(1, min(100, (int)($params['limit'] ?? 10)));
+    $offset = ($page - 1) * $limit;
+
     try {
-        $stmt = $conn->prepare('SELECT * FROM expenses WHERE user_id = ? ORDER BY created_at DESC');
-        $stmt->execute([$decodedToken->id]);
+        $countQuery = "SELECT COUNT(*) FROM expenses WHERE user_id = ?";
+        $stmtCount = $conn->prepare($countQuery);
+        $stmtCount->execute([$decodedToken->id]);
+        $totalCount = (int)$stmtCount->fetchColumn();
+        $stmt = $conn->prepare('SELECT * FROM expenses WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?');
+        $stmt->execute([$decodedToken->id, $limit, $offset]);
         $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $response->getBody()->write(json_encode(['expenses' => $expenses]));
+        $response->getBody()->write(json_encode([
+            'expenses' => $expenses,
+            'pagination' => [
+                'total' => $totalCount,
+                'page' => $page,
+                'limit' => $limit,
+                'totalPages' => ceil($totalCount / $limit)
+            ]
+        ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));

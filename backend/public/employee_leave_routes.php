@@ -11,7 +11,16 @@ $app->get('/api/employee/leaves', function (Request $request, Response $response
     $db = new Database();
     $conn = $db->getConnection();
 
+    $params = $request->getQueryParams();
+    $page = max(1, (int)($params['page'] ?? 1));
+    $limit = max(1, min(100, (int)($params['limit'] ?? 10)));
+    $offset = ($page - 1) * $limit;
+
     try {
+        $countQuery = "SELECT COUNT(*) FROM leaves WHERE \"employeeId\" = ?";
+        $stmtCount = $conn->prepare($countQuery);
+        $stmtCount->execute([$decodedToken->id]);
+        $totalCount = (int)$stmtCount->fetchColumn();
         // Fetch Balance
         $stmtBalance = $conn->prepare('SELECT * FROM leave_balances WHERE "employeeId" = ? LIMIT 1');
         $stmtBalance->execute([$decodedToken->id]);
@@ -23,17 +32,14 @@ $app->get('/api/employee/leaves', function (Request $request, Response $response
         }
 
         // Fetch Leave History
-        $stmtLeaves = $conn->prepare('SELECT * FROM leaves WHERE "employeeId" = ? ORDER BY "startDate" DESC');
-        $stmtLeaves->execute([$decodedToken->id]);
+        $stmtLeaves = $conn->prepare('SELECT * FROM leaves WHERE "employeeId" = ? ORDER BY "startDate" DESC LIMIT ? OFFSET ?');
+        $stmtLeaves->execute([$decodedToken->id, $limit, $offset]);
         $history = $stmtLeaves->fetchAll();
 
-        // Calculate total approved
-        $totalApproved = 0;
-        foreach ($history as $leave) {
-            if ($leave['status'] === 'approved') {
-                $totalApproved += (int)$leave['days'];
-            }
-        }
+        // Calculate total approved from DB
+        $stmtApproved = $conn->prepare('SELECT SUM(days) FROM leaves WHERE "employeeId" = ? AND status = \'approved\'');
+        $stmtApproved->execute([$decodedToken->id]);
+        $totalApproved = (int)$stmtApproved->fetchColumn();
 
         $resData = [
             'balance' => [
@@ -42,7 +48,13 @@ $app->get('/api/employee/leaves', function (Request $request, Response $response
                 'unpaidUsed' => (int)$balance['unpaidUsed'],
                 'totalApproved' => $totalApproved
             ],
-            'history' => $history
+            'history' => $history,
+            'pagination' => [
+                'total' => $totalCount,
+                'page' => $page,
+                'limit' => $limit,
+                'totalPages' => ceil($totalCount / $limit)
+            ]
         ];
 
         $response->getBody()->write(json_encode($resData));

@@ -4,6 +4,7 @@ use Slim\Factory\AppFactory;
 use App\Middleware\AuditMiddleware;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\PerformanceLoggingMiddleware;
+use App\Middleware\GzipMiddleware;
 use App\Config\Database;
 use Dotenv\Dotenv;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -33,6 +34,9 @@ $app->add(new AuditMiddleware());
 
 // Add performance logging middleware
 $app->add(new \App\Middleware\PerformanceLoggingMiddleware());
+
+// Add GZIP compression middleware
+$app->add(new \App\Middleware\GzipMiddleware());
 
 // Security & CORS Middleware
 $app->add(function (Request $request, $handler) {
