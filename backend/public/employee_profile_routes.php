@@ -15,7 +15,7 @@ $app->get('/api/employee/profile', function (Request $request, Response $respons
         $stmt = $conn->prepare('
             SELECT e.*, b.name as branch_name 
             FROM employee e 
-            LEFT JOIN branches b ON e.branch = b.id::text 
+            LEFT JOIN branches b ON e.branch = b.id 
             WHERE e."userId" = ? LIMIT 1
         ');
         $stmt->execute([$decodedToken->id]);

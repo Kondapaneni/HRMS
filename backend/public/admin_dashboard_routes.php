@@ -29,7 +29,7 @@ $app->get('/api/admin/dashboard/stats', function (Request $request, Response $re
         $presentStmt = $conn->query("
             SELECT COUNT(DISTINCT a.id) 
             FROM attendance a
-            JOIN employee e ON a.\"employeeId\"::varchar = e.\"userId\"::varchar
+            JOIN employee e ON a.\"employeeId\" = e.\"userId\"
             WHERE a.date = CURRENT_DATE 
               AND LOWER(TRIM(a.status)) IN ('present', 'present (late)', 'present (early)', 'present (late+early)', 'present-full-shift')
               AND e.status = 'active'
@@ -40,7 +40,7 @@ $app->get('/api/admin/dashboard/stats', function (Request $request, Response $re
         $leaveStmt = $conn->query("
             SELECT COUNT(DISTINCT a.id) 
             FROM attendance a
-            JOIN employee e ON a.\"employeeId\"::varchar = e.\"userId\"::varchar
+            JOIN employee e ON a.\"employeeId\" = e.\"userId\"
             WHERE a.date = CURRENT_DATE 
               AND LOWER(TRIM(a.status)) IN ('leave', 'paid leave', 'unpaid leave', 'sandwich leave')
               AND e.status = 'active'
@@ -55,7 +55,7 @@ $app->get('/api/admin/dashboard/stats', function (Request $request, Response $re
                 SUM(CASE WHEN LOWER(TRIM(a.status)) IN ('present', 'present (late)', 'present (early)', 'present (late+early)', 'present-full-shift') THEN 1 ELSE 0 END) as present,
                 SUM(CASE WHEN LOWER(TRIM(a.status)) IN ('leave', 'paid leave', 'unpaid leave', 'sandwich leave') THEN 1 ELSE 0 END) as leave
             FROM attendance a
-            JOIN employee e ON a.\"employeeId\"::varchar = e.\"userId\"::varchar
+            JOIN employee e ON a.\"employeeId\" = e.\"userId\"
             WHERE a.date >= CURRENT_DATE - INTERVAL '6 months'
               AND e.status = 'active'
             GROUP BY TO_CHAR(a.date, 'Mon'), EXTRACT(MONTH FROM a.date)

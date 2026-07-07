@@ -177,7 +177,7 @@ $app->get('/api/admin/assets/{id}/history', function (Request $request, Response
                 e.\"firstName\",
                 e.\"lastName\"
             FROM audit_logs al
-            LEFT JOIN employee e ON e.id::varchar = al.new_values->>'assigned_to'
+            LEFT JOIN employee e ON e.id = (al.new_values->>'assigned_to')::uuid
             WHERE al.entity_type = 'assets' AND al.entity_id = ?
             ORDER BY al.timestamp DESC
         ";

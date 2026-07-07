@@ -25,6 +25,16 @@ function getShiftTimesMap($conn) {
     return $shiftTimesMap;
 }
 
+function getActiveHolidaysMap($conn) {
+    static $map = null;
+    if ($map !== null) return $map;
+    
+    $stmt = $conn->query('SELECT "holidayDate" FROM company_holidays WHERE "isActive" = 1');
+    $holidays = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    $map = array_flip($holidays);
+    return $map;
+}
+
 function getNextLeaveWorkingDate($conn, $employeeId, $dateStr) {
     $current = strtotime('+1 day', strtotime($dateStr));
     
@@ -44,9 +54,8 @@ function getNextLeaveWorkingDate($conn, $employeeId, $dateStr) {
             continue;
         }
         
-        $stmtHol = $conn->prepare('SELECT COUNT(*) FROM company_holidays WHERE "holidayDate" = ? AND "isActive" = 1');
-        $stmtHol->execute([$date]);
-        $isHoliday = $stmtHol->fetchColumn() > 0;
+        $holidaysMap = getActiveHolidaysMap($conn);
+        $isHoliday = isset($holidaysMap[$date]);
         if ($isHoliday) {
             $current = strtotime('+1 day', $current);
             continue;
@@ -75,9 +84,8 @@ function getPreviousLeaveWorkingDate($conn, $employeeId, $dateStr) {
             continue;
         }
         
-        $stmtHol = $conn->prepare('SELECT COUNT(*) FROM company_holidays WHERE "holidayDate" = ? AND "isActive" = 1');
-        $stmtHol->execute([$date]);
-        $isHoliday = $stmtHol->fetchColumn() > 0;
+        $holidaysMap = getActiveHolidaysMap($conn);
+        $isHoliday = isset($holidaysMap[$date]);
         if ($isHoliday) {
             $current = strtotime('-1 day', $current);
             continue;
@@ -105,9 +113,8 @@ function calculateWorkingDaysBetween($conn, $employeeId, $startDate, $endDate) {
         
         $isWeekend = in_array($dayName, $weekOffDays);
         
-        $stmtHol = $conn->prepare('SELECT COUNT(*) FROM company_holidays WHERE "holidayDate" = ? AND "isActive" = 1');
-        $stmtHol->execute([$date]);
-        $isHoliday = $stmtHol->fetchColumn() > 0;
+        $holidaysMap = getActiveHolidaysMap($conn);
+        $isHoliday = isset($holidaysMap[$date]);
         
         if (!$isWeekend && !$isHoliday) {
             $days++;
@@ -130,9 +137,8 @@ function adjustApprovedLeaveRecordForDate($conn, $employeeId, $date, $adminId) {
     $dayName = strtolower(date('l', strtotime($date)));
     if (in_array($dayName, $weekOffDays)) return true;
     
-    $stmtHol = $conn->prepare('SELECT COUNT(*) FROM company_holidays WHERE "holidayDate" = ? AND "isActive" = 1');
-    $stmtHol->execute([$date]);
-    if ($stmtHol->fetchColumn() > 0) return true;
+    $holidaysMap = getActiveHolidaysMap($conn);
+    if (isset($holidaysMap[$date])) return true;
 
     $stmtFindLeave = $conn->prepare('SELECT * FROM leaves WHERE "employeeId" = ? AND CAST("startDate" AS DATE) <= ? AND CAST("endDate" AS DATE) >= ? AND status ILIKE \'approved\'');
     $stmtFindLeave->execute([$employeeId, $date, $date]);

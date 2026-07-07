@@ -29,7 +29,7 @@ $app->get('/api/admin/payroll', function (Request $request, Response $response, 
         SELECT p.*, 
                e."firstName" as "empFirstName", e."lastName" as "empLastName", e."employeeId" as "empCode"
         FROM payslips p
-        LEFT JOIN employee e ON p."employeeId"::varchar = e."userId"::varchar
+        LEFT JOIN employee e ON p."employeeId" = e."userId"
         ' . $whereClause . '
         ORDER BY p.year DESC, p.month DESC
         LIMIT ? OFFSET ?
@@ -47,7 +47,7 @@ $app->get('/api/admin/payroll', function (Request $request, Response $response, 
     $stmt->execute();
     $payslips = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    $countQuery = 'SELECT COUNT(*) FROM payslips p LEFT JOIN employee e ON p."employeeId"::varchar = e."userId"::varchar ' . $whereClause;
+    $countQuery = 'SELECT COUNT(*) FROM payslips p LEFT JOIN employee e ON p."employeeId" = e."userId" ' . $whereClause;
     $stmtCount = $conn->prepare($countQuery);
     $paramIndex = 1;
     foreach ($sqlParams as $param) {
@@ -121,7 +121,7 @@ $app->post('/api/admin/payroll/generate', function (Request $request, Response $
     }
 
     // Get employee
-    $stmtEmp = $conn->prepare('SELECT e.*, b.name as branch_name FROM employee e LEFT JOIN branches b ON e.branch = b.id::text WHERE e."userId"::varchar = ?');
+    $stmtEmp = $conn->prepare('SELECT e.*, b.name as branch_name FROM employee e LEFT JOIN branches b ON e.branch = b.id WHERE e."userId" = ?');
     $stmtEmp->execute([$employeeId]);
     $employee = $stmtEmp->fetch(PDO::FETCH_ASSOC);
 
@@ -247,10 +247,10 @@ $app->get('/api/admin/payroll/pending-employees', function (Request $request, Re
     $query = '
         SELECT e."userId", e."employeeId", e."firstName", e."lastName", e.position, e.salary, b.name as branch_name 
         FROM employee e 
-        LEFT JOIN branches b ON e.branch = b.id::text
+        LEFT JOIN branches b ON e.branch = b.id
         WHERE e.status = \'active\' 
         AND NOT EXISTS (
-            SELECT 1 FROM payslips p WHERE p."employeeId"::varchar = e."userId"::varchar AND p.month = ? AND p.year = ?
+            SELECT 1 FROM payslips p WHERE p."employeeId" = e."userId" AND p.month = ? AND p.year = ?
         )
         ORDER BY e."firstName" ASC
     ';
@@ -296,20 +296,48 @@ $app->post('/api/admin/payroll/generate-bulk', function (Request $request, Respo
     $monthEnd = date('Y-m-t', strtotime($monthStart));
     $totalWorkingDays = (int)date('t', strtotime($monthStart));
 
+    $placeholders = implode(',', array_fill(0, count($employeeIds), '?'));
+    
+    // 1. Existing Payslips
+    $stmtExist = $conn->prepare("SELECT \"employeeId\" FROM payslips WHERE month = ? AND year = ? AND \"employeeId\" IN ($placeholders)");
+    $stmtExist->execute(array_merge([$month, $year], $employeeIds));
+    $existingPayslips = array_flip($stmtExist->fetchAll(PDO::FETCH_COLUMN));
+
+    // 2. Employees
+    $stmtEmp = $conn->prepare("SELECT e.*, b.name as branch_name FROM employee e LEFT JOIN branches b ON e.branch = b.id WHERE e.\"userId\" IN ($placeholders)");
+    $stmtEmp->execute($employeeIds);
+    $employeesMap = [];
+    foreach ($stmtEmp->fetchAll(PDO::FETCH_ASSOC) as $emp) $employeesMap[$emp['userId']] = $emp;
+
+    // 3. Missing Days
+    $stmtMissing = $conn->prepare("
+        SELECT \"employeeId\", COUNT(*) as count 
+        FROM attendance 
+        WHERE status = 'missed' AND date BETWEEN ? AND ? AND \"employeeId\" IN ($placeholders)
+        GROUP BY \"employeeId\"
+    ");
+    $stmtMissing->execute(array_merge([$monthStart, $monthEnd], $employeeIds));
+    $missingMap = [];
+    foreach ($stmtMissing->fetchAll(PDO::FETCH_ASSOC) as $m) $missingMap[$m['employeeId']] = (int)$m['count'];
+
+    // 4. Unpaid Leaves
+    $stmtLeaves = $conn->prepare("
+        SELECT \"employeeId\", SUM(days) as days 
+        FROM leaves 
+        WHERE LOWER(\"leaveType\") = 'unpaid' AND status = 'approved' AND \"startDate\" <= ? AND \"endDate\" >= ? AND \"employeeId\" IN ($placeholders)
+        GROUP BY \"employeeId\"
+    ");
+    $stmtLeaves->execute(array_merge([$monthEnd, $monthStart], $employeeIds));
+    $leaveMap = [];
+    foreach ($stmtLeaves->fetchAll(PDO::FETCH_ASSOC) as $l) $leaveMap[$l['employeeId']] = (int)$l['days'];
+
     foreach ($employeeIds as $employeeId) {
         try {
-            // Check duplicate
-            $stmt = $conn->prepare('SELECT id FROM payslips WHERE "employeeId"::varchar = ? AND month = ? AND year = ?');
-            $stmt->execute([$employeeId, $month, $year]);
-            if ($stmt->fetchColumn()) {
+            if (isset($existingPayslips[$employeeId])) {
                 continue; // Skip existing
             }
 
-            // Get employee
-            $stmtEmp = $conn->prepare('SELECT e.*, b.name as branch_name FROM employee e LEFT JOIN branches b ON e.branch = b.id::text WHERE e."userId"::varchar = ?');
-            $stmtEmp->execute([$employeeId]);
-            $employee = $stmtEmp->fetch(PDO::FETCH_ASSOC);
-
+            $employee = $employeesMap[$employeeId] ?? null;
             if (!$employee) continue;
 
             $salary = (float)($employee['salary'] ?? 0);
@@ -318,15 +346,8 @@ $app->post('/api/admin/payroll/generate-bulk', function (Request $request, Respo
                 continue;
             }
 
-            // Get Missing Days
-            $stmtMissing = $conn->prepare('SELECT COUNT(*) FROM attendance WHERE "employeeId" = ? AND status = \'missed\' AND date BETWEEN ? AND ?');
-            $stmtMissing->execute([$employeeId, $monthStart, $monthEnd]);
-            $missingDays = (int)$stmtMissing->fetchColumn();
-
-            // Get Unpaid Leaves
-            $stmtLeaves = $conn->prepare('SELECT SUM(days) FROM leaves WHERE "employeeId" = ? AND LOWER("leaveType") = \'unpaid\' AND status = \'approved\' AND "startDate" <= ? AND "endDate" >= ?');
-            $stmtLeaves->execute([$employeeId, $monthEnd, $monthStart]);
-            $unpaidLeaveDays = (int)$stmtLeaves->fetchColumn();
+            $missingDays = $missingMap[$employeeId] ?? 0;
+            $unpaidLeaveDays = $leaveMap[$employeeId] ?? 0;
 
             $lossOfPayDays = min($unpaidLeaveDays + $missingDays, $totalWorkingDays);
             $payableDays = max(0, $totalWorkingDays - $lossOfPayDays);

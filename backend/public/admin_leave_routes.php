@@ -157,8 +157,8 @@ $app->get('/api/admin/leaves', function (Request $request, Response $response, $
                e."firstName" as "empFirstName", e."lastName" as "empLastName", e."employeeId" as "empCode",
                u."firstName" as "appFirstName", u."lastName" as "appLastName"
         FROM leaves l
-        LEFT JOIN employee e ON l."employeeId"::varchar = e."userId"::varchar
-        LEFT JOIN users u ON l."approvedBy"::varchar = u.id::varchar
+        LEFT JOIN employee e ON l."employeeId" = e."userId"
+        LEFT JOIN users u ON l."approvedBy" = u.id
         ' . $whereClause . '
         ORDER BY l."startDate" DESC
         LIMIT ? OFFSET ?
@@ -177,7 +177,7 @@ $app->get('/api/admin/leaves', function (Request $request, Response $response, $
     $leaves = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Get total count for pagination
-    $countQuery = 'SELECT COUNT(*) FROM leaves l LEFT JOIN employee e ON l."employeeId"::varchar = e."userId"::varchar ' . $whereClause;
+    $countQuery = 'SELECT COUNT(*) FROM leaves l LEFT JOIN employee e ON l."employeeId" = e."userId" ' . $whereClause;
     $stmtCount = $conn->prepare($countQuery);
     $paramIndex = 1;
     foreach ($sqlParams as $param) {

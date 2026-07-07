@@ -14,7 +14,7 @@ $app->get('/api/admin/employees', function (Request $request, Response $response
     $params = $request->getQueryParams();
     $search = $params['search'] ?? '';
 
-    $sql = 'SELECT e.id, e."userId", e."employeeId", e."firstName", e."lastName", e.email, e.department, e.position, e.branch, e."joinDate", e.salary, e.status, e.avatar, e."managerId", b.name as branch_name FROM employee e LEFT JOIN branches b ON e.branch = b.id::text';
+    $sql = 'SELECT e.id, e."userId", e."employeeId", e."firstName", e."lastName", e.email, e.department, e.position, e.branch, e."joinDate", e.salary, e.status, e.avatar, e."managerId", b.name as branch_name FROM employee e LEFT JOIN branches b ON e.branch = b.id';
     $queryParams = [];
 
     if (!empty($search)) {
@@ -64,7 +64,7 @@ $app->get('/api/admin/employees/{id}', function (Request $request, Response $res
         $stmt = $conn->prepare('
             SELECT e.*, b.name as branch_name, u."isActive", u."mfaEnabled" 
             FROM employee e 
-            LEFT JOIN branches b ON e.branch = b.id::text 
+            LEFT JOIN branches b ON e.branch = b.id
             LEFT JOIN users u ON e."userId" = u.id
             WHERE e.id = ?
         ');
