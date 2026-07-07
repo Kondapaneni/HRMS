@@ -3,13 +3,9 @@ import { Plus, Loader2, Upload, FileText, CheckCircle, XCircle, Clock } from 'lu
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '../lib/supabase';
 
 import EmployeeMobileExpenses from './EmployeeMobileExpenses';
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const EmployeeExpenses = () => {
   const queryClient = useQueryClient();
