@@ -3,6 +3,7 @@ import toast from 'react-hot-toast';
 
 const api = axios.create({
   baseURL: '/api', // Always use /api relative path since frontend and backend are hosted together
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -39,20 +40,6 @@ const convertDates = (obj) => {
   return obj;
 };
 
-// Add a request interceptor to automatically inject the JWT token
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
 api.interceptors.response.use(
   (response) => {
     convertDates(response.data);
@@ -61,7 +48,6 @@ api.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 403) {
       if (error.response.data?.error === 'Your account has been deactivated. Please contact your administrator.') {
-        localStorage.removeItem('token');
         if (window.location.pathname !== '/') {
           toast.error(error.response.data.error, { duration: 5000 });
           setTimeout(() => {

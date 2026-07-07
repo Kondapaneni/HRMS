@@ -30,16 +30,29 @@ $app->addErrorMiddleware(true, true, true);
 // Add custom audit middleware
 $app->add(new AuditMiddleware());
 
-// CORS Middleware
+// Security & CORS Middleware
 $app->add(function (Request $request, $handler) {
     $response = $handler->handle($request);
     
-    $allowedOrigin = $_ENV['FRONTEND_URL'] ?? 'http://localhost:5173';
+    // Ensure origin matches configured FRONTEND_URL strictly
+    $allowedOrigin = rtrim($_ENV['FRONTEND_URL'] ?? 'http://localhost:5173', '/');
+    $origin = $request->getHeaderLine('Origin');
+    
+    if (!empty($origin) && $origin !== $allowedOrigin) {
+        $allowedOrigin = 'null'; // Invalidate mismatching origins
+    }
     
     return $response
         ->withHeader('Access-Control-Allow-Origin', $allowedOrigin)
+        ->withHeader('Access-Control-Allow-Credentials', 'true')
         ->withHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept, Origin, Authorization')
-        ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+        ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
+        ->withHeader('X-Frame-Options', 'DENY')
+        ->withHeader('X-XSS-Protection', '1; mode=block')
+        ->withHeader('X-Content-Type-Options', 'nosniff')
+        ->withHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
+        ->withHeader('Content-Security-Policy', "default-src 'self';")
+        ->withHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
 });
 
 // Handle preflight OPTIONS requests for CORS
@@ -128,20 +141,45 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
             ];
         }
 
+        $isSecure = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') || 
+                    (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https');
+        $maxAge = ($sessionTimeout === 'never') ? (60 * 60 * 24 * 365 * 10) : ((int)$sessionTimeout * 60);
+        $cookieValue = "token=" . urlencode($jwt) . "; Path=/; HttpOnly; SameSite=Strict; Max-Age=" . $maxAge;
+        if ($isSecure) {
+            $cookieValue .= "; Secure";
+        }
+
         $response->getBody()->write(json_encode([
-            'token' => $jwt,
             'user' => $user
         ]));
         
         RateLimiter::clearAttempts($conn, $ip, $action);
         
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+        return $response
+            ->withHeader('Set-Cookie', $cookieValue)
+            ->withHeader('Content-Type', 'application/json')
+            ->withStatus(200);
     }
 
     RateLimiter::recordAttempt($conn, $ip, $action);
 
     $response->getBody()->write(json_encode(['error' => 'Invalid email or password']));
     return $response->withHeader('Content-Type', 'application/json')->withStatus(401);
+});
+
+$app->post('/api/logout', function (Request $request, Response $response, $args) {
+    $isSecure = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') || 
+                (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https');
+    $cookieValue = "token=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0";
+    if ($isSecure) {
+        $cookieValue .= "; Secure";
+    }
+    
+    $response->getBody()->write(json_encode(['message' => 'Logged out']));
+    return $response
+        ->withHeader('Set-Cookie', $cookieValue)
+        ->withHeader('Content-Type', 'application/json')
+        ->withStatus(200);
 });
 
 // Get current user profile endpoint (Protected)
@@ -241,6 +279,7 @@ require __DIR__ . '/admin_recruitment_routes.php';
 require __DIR__ . '/chat_routes.php';
 require __DIR__ . '/candidate_auth_routes.php';
 require __DIR__ . '/candidate_recruitment_routes.php';
+require __DIR__ . '/admin_loadtest_routes.php';
 
 // Request Password Reset
 $app->post('/api/forgot-password', function (Request $request, Response $response) {

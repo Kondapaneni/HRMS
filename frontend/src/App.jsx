@@ -48,6 +48,7 @@ import AdminPerformance from './pages/AdminPerformance'
 import AdminExpenses from './pages/AdminExpenses'
 import Chat from './pages/Chat'
 import AdminRecruitment from './pages/AdminRecruitment'
+import AdminLoadTester from './pages/AdminLoadTester'
 import ComingSoon from './pages/ComingSoon'
 import CandidateLogin from './pages/CandidateLogin'
 import CandidateActivate from './pages/CandidateActivate'
@@ -145,6 +146,7 @@ function App() {
               <Route path="performance" element={<AdminPerformance />} />
               <Route path="recruitment" element={<AdminRecruitment />} />
               <Route path="recruitment/verify-documents/:id" element={<AdminVerifyDocuments />} />
+              <Route path="load-tester" element={<AdminLoadTester />} />
             </Route>
             <Route
               path="/employee"

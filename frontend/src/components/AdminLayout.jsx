@@ -46,6 +46,7 @@ const AdminLayout = () => {
     { icon: <Briefcase size={18} />, label: 'Recruitment', path: '/admin/recruitment' },
     { icon: <Mail size={18} />, label: 'Email Templates', path: '/admin/email-templates' },
     { icon: <MessageSquare size={18} />, label: 'Secure Chat', path: '/admin/chat' },
+    { icon: <Activity size={18} />, label: 'Load Tester', path: '/admin/load-tester' },
     { icon: <FileText size={18} />, label: 'Audit Logs', path: '/admin/audit-logs' },
     { icon: <Shield size={18} />, label: 'Feature Access', path: '/admin/feature-access' },
     { icon: <Settings size={18} />, label: 'Settings', path: '/admin/settings' },

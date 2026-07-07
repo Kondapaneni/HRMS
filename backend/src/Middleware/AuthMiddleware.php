@@ -24,13 +24,20 @@ class AuthMiddleware
 
     public function __invoke(Request $request, RequestHandler $handler): Response
     {
-        $authHeader = $request->getHeader('Authorization');
+        $cookies = $request->getCookieParams();
+        $token = $cookies['token'] ?? null;
         
-        if (empty($authHeader)) {
-            return $this->unauthorizedResponse("Missing Authorization Header");
+        if (empty($token)) {
+            $authHeader = $request->getHeader('Authorization');
+            if (!empty($authHeader)) {
+                $token = str_replace('Bearer ', '', $authHeader[0]);
+            }
         }
 
-        $token = str_replace('Bearer ', '', $authHeader[0]);
+        if (empty($token)) {
+            return $this->unauthorizedResponse("Missing Authorization Token");
+        }
+
         $secret = $_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '';
 
         try {

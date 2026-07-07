@@ -18,6 +18,11 @@ class RateLimiter
      */
     public static function checkLimit(PDO $conn, string $ip, string $action, int $maxAttempts, int $windowMinutes): bool
     {
+        // Load Testing Bypass
+        if (isset($_SERVER['HTTP_X_LOAD_TEST']) && $_SERVER['HTTP_X_LOAD_TEST'] === 'acme_loadtest_secret_2026') {
+            return true;
+        }
+
         $stmt = $conn->prepare("
             SELECT COUNT(*) 
             FROM rate_limits 
@@ -74,6 +79,11 @@ class RateLimiter
      */
     public static function recordAttempt(PDO $conn, string $ip, string $action): void
     {
+        // Load Testing Bypass
+        if (isset($_SERVER['HTTP_X_LOAD_TEST']) && $_SERVER['HTTP_X_LOAD_TEST'] === 'acme_loadtest_secret_2026') {
+            return;
+        }
+
         $stmt = $conn->prepare("
             INSERT INTO rate_limits (ip_address, action) 
             VALUES (:ip, :action)
