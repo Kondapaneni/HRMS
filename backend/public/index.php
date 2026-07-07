@@ -3,6 +3,7 @@
 use Slim\Factory\AppFactory;
 use App\Middleware\AuditMiddleware;
 use App\Middleware\AuthMiddleware;
+use App\Middleware\PerformanceLoggingMiddleware;
 use App\Config\Database;
 use Dotenv\Dotenv;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -29,6 +30,9 @@ $app->addErrorMiddleware(true, true, true);
 
 // Add custom audit middleware
 $app->add(new AuditMiddleware());
+
+// Add performance logging middleware
+$app->add(new \App\Middleware\PerformanceLoggingMiddleware());
 
 // Security & CORS Middleware
 $app->add(function (Request $request, $handler) {

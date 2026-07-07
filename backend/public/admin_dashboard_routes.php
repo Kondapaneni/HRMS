@@ -8,6 +8,15 @@ use App\Config\Database;
 // GET /api/admin/dashboard/stats
 /** @var \Slim\App $app */
 $app->get('/api/admin/dashboard/stats', function (Request $request, Response $response, $args) {
+    require_once __DIR__ . '/../src/Utils/Cache.php';
+    $cacheKey = 'dashboard_stats';
+    $cachedData = \App\Utils\Cache::get($cacheKey);
+    
+    if ($cachedData !== false) {
+        $response->getBody()->write($cachedData);
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+    }
+
     $db = new Database();
     $conn = $db->getConnection();
 
@@ -124,11 +133,11 @@ $app->get('/api/admin/dashboard/stats', function (Request $request, Response $re
             $formattedActivities[] = [
                 'user' => $actor,
                 'action' => $actionText,
-                'time' => $act['timestamp'] // Frontend will format using date-fns
+                'time' => $act['timestamp']
             ];
         }
 
-        $response->getBody()->write(json_encode([
+        $responseData = json_encode([
             'totalEmployees' => $totalEmployees,
             'presentToday' => $presentToday,
             'onLeaveToday' => $onLeaveToday,
@@ -136,8 +145,11 @@ $app->get('/api/admin/dashboard/stats', function (Request $request, Response $re
             'attendanceData' => $attendanceData,
             'salaryData' => empty($salaryData) ? [['range' => 'No Data', 'count' => 1]] : $salaryData,
             'activities' => $formattedActivities
-        ]));
-        
+        ]);
+
+        \App\Utils\Cache::set($cacheKey, $responseData, 60);
+
+        $response->getBody()->write($responseData);
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
 
     } catch (\Exception $e) {
