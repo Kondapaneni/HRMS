@@ -19,14 +19,14 @@ export const AuthProvider = ({ children }) => {
       setProfile(response.data);
       setUser({ email: response.data.email, id: response.data.id });
     } catch (error) {
-      if (!error.response || error.response.status !== 401) {
-        console.error('Failed to fetch profile:', error);
-      }
-      // Only log the user out if the server responded with an authentication error (401/403)
       if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+        // User is simply not logged in or session expired
         setProfile(null);
         setUser(null);
+        return;
       }
+      
+      console.error('Failed to fetch profile:', error);
     } finally {
       setProfileLoading(false);
     }
