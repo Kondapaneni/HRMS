@@ -282,7 +282,6 @@ const EmployeeExpenses = () => {
             </div>
           </div>
         )}
-      </div>
     </>
   );
 };
