@@ -118,22 +118,20 @@ const EmployeeExpenses = () => {
         <EmployeeMobileExpenses />
       </div>
 
-      <div className="hidden md:flex min-h-screen bg-transparent relative z-10">
-        <div className="flex-1 p-8">
-          <div className="max-w-7xl mx-auto space-y-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-2xl font-bold text-slate-900">My Expenses</h1>
-                <p className="text-sm text-slate-500 mt-1">Submit and track your expense claims.</p>
-              </div>
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-              >
-                <Plus className="w-5 h-5" />
-                <span>Submit Expense</span>
-              </button>
-            </div>
+      <div className="hidden md:block space-y-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900">My Expenses</h1>
+            <p className="text-sm text-slate-500 mt-1">Submit and track your expense claims.</p>
+          </div>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 transition-colors"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Submit Expense
+          </button>
+        </div>
 
             {isLoading ? (
               <div className="flex justify-center p-12">
@@ -211,10 +209,9 @@ const EmployeeExpenses = () => {
             </div>
           </div>
             )}
-          </div>
-        </div>
+      </div>
 
-        {/* Modal */}
+      {/* Modal */}
         {isModalOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={handleCloseModal}></div>
