@@ -187,15 +187,15 @@ const AdminLeaves = () => {
                         <div className="flex items-center justify-end gap-2">
                           <button 
                             onClick={() => handleAction(leave.id, 'approve')}
-                            className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-green-600 text-white hover:bg-green-700 h-10 px-4 py-2 transition-colors cursor-pointer shadow-sm"
+                            className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-9 px-3 transition-colors cursor-pointer hover:!text-green-700 hover:!border-green-200 hover:!bg-green-50"
                           >
-                            <CheckCircle2 className="w-4 h-4 mr-2" /> Approve
+                            <CheckCircle2 className="w-4 h-4 mr-2 text-slate-400" /> Approve
                           </button>
                           <button 
                             onClick={() => handleAction(leave.id, 'reject')}
-                            className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-red-600 text-white hover:bg-red-700 h-10 px-4 py-2 transition-colors cursor-pointer shadow-sm"
+                            className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-9 px-3 transition-colors cursor-pointer hover:!text-red-700 hover:!border-red-200 hover:!bg-red-50"
                           >
-                            <XCircle className="w-4 h-4 mr-2" /> Reject
+                            <XCircle className="w-4 h-4 mr-2 text-slate-400" /> Reject
                           </button>
                         </div>
                       ) : (

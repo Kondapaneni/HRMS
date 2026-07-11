@@ -149,8 +149,12 @@ const AdminExpenses = () => {
                         )}
                         {exp.status === 'Pending' && (
                           <>
-                            <button onClick={() => handleActionClick(exp, 'Approved')} className="inline-flex items-center justify-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none transition-colors">Approve</button>
-                            <button onClick={() => handleActionClick(exp, 'Rejected')} className="inline-flex items-center justify-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none transition-colors">Reject</button>
+                            <button onClick={() => handleActionClick(exp, 'Approved')} className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-9 px-3 transition-colors cursor-pointer hover:!text-green-700 hover:!border-green-200 hover:!bg-green-50">
+                              <CheckCircle className="w-4 h-4 mr-2 text-slate-400" /> Approve
+                            </button>
+                            <button onClick={() => handleActionClick(exp, 'Rejected')} className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-9 px-3 transition-colors cursor-pointer hover:!text-red-700 hover:!border-red-200 hover:!bg-red-50">
+                              <XCircle className="w-4 h-4 mr-2 text-slate-400" /> Reject
+                            </button>
                           </>
                         )}
                       </td>
