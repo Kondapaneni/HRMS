@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, MoreVertical, Eye, Edit, Settings, Loader2 } from 'lucide-react';
+import { Search, Plus, MoreVertical, Eye, Edit, Settings, Loader2, Users } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
@@ -71,9 +71,11 @@ const AdminEmployees = () => {
         </button>
       </div>
 
-      <div className="rounded-lg border border-slate-200 bg-white shadow-sm flex flex-col">
-        <div className="p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-100 bg-slate-50/50">
-          <h3 className="text-lg font-semibold text-slate-900">Employee List</h3>
+      <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden flex flex-col">
+        <div className="p-5 border-b border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <h3 className="text-lg font-semibold text-slate-800 flex items-center">
+             <Users className="w-5 h-5 mr-2 text-blue-600" /> Employee List
+          </h3>
           <form onSubmit={handleSearchSubmit} className="relative w-full sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input 
@@ -81,7 +83,7 @@ const AdminEmployees = () => {
               placeholder="Search employees..." 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm pl-9 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+              className="w-full pl-9 pr-4 py-2 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
             />
           </form>
         </div>
@@ -93,16 +95,16 @@ const AdminEmployees = () => {
             </div>
           ) : (
             <table className="w-full text-sm text-left">
-              <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-500">
+              <thead className="bg-slate-50 border-b border-slate-200 text-slate-500">
                 <tr>
-                  <th className="h-12 px-4 font-medium">Employee</th>
-                  <th className="h-12 px-4 font-medium">Employee ID</th>
-                  <th className="h-12 px-4 font-medium">Department</th>
-                  <th className="h-12 px-4 font-medium">Position</th>
-                  <th className="h-12 px-4 font-medium">Join Date</th>
-                  <th className="h-12 px-4 font-medium">Salary</th>
-                  <th className="h-12 px-4 font-medium">Status</th>
-                  <th className="h-12 px-4 font-medium text-right">Actions</th>
+                  <th className="px-6 py-4 font-medium">Employee</th>
+                  <th className="px-6 py-4 font-medium">Employee ID</th>
+                  <th className="px-6 py-4 font-medium">Department</th>
+                  <th className="px-6 py-4 font-medium">Position</th>
+                  <th className="px-6 py-4 font-medium">Join Date</th>
+                  <th className="px-6 py-4 font-medium">Salary</th>
+                  <th className="px-6 py-4 font-medium">Status</th>
+                  <th className="px-6 py-4 font-medium text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -115,7 +117,7 @@ const AdminEmployees = () => {
                 ) : (
                   employees.map((emp) => (
                     <tr key={emp.id} className="hover:bg-slate-50/50 transition-colors group">
-                      <td className="p-4 align-middle">
+                      <td className="px-6 py-4 align-middle">
                         <div className="flex items-center space-x-3">
                           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700 font-semibold text-sm border border-blue-200 overflow-hidden">
                             {emp.avatar ? (
@@ -130,17 +132,17 @@ const AdminEmployees = () => {
                           </div>
                         </div>
                       </td>
-                      <td className="p-4 align-middle text-slate-700">{emp.employeeId}</td>
-                      <td className="p-4 align-middle text-slate-700">{emp.department || '-'}</td>
-                      <td className="p-4 align-middle text-slate-700">{emp.position || '-'}</td>
-                      <td className="p-4 align-middle text-slate-700">{formatDate(emp.joinDate)}</td>
-                      <td className="p-4 align-middle text-slate-700">{formatCurrency(emp.salary)}</td>
-                      <td className="p-4 align-middle">
+                      <td className="px-6 py-4 align-middle text-slate-700">{emp.employeeId}</td>
+                      <td className="px-6 py-4 align-middle text-slate-700">{emp.department || '-'}</td>
+                      <td className="px-6 py-4 align-middle text-slate-700">{emp.position || '-'}</td>
+                      <td className="px-6 py-4 align-middle text-slate-700">{formatDate(emp.joinDate)}</td>
+                      <td className="px-6 py-4 align-middle text-slate-700">{formatCurrency(emp.salary)}</td>
+                      <td className="px-6 py-4 align-middle">
                         <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${getStatusBadge(emp.status)}`}>
                           {emp.status || 'Active'}
                         </span>
                       </td>
-                      <td className="p-4 align-middle text-right relative group/dropdown">
+                      <td className="px-6 py-4 align-middle text-right relative group/dropdown">
                         <button 
                           className="inline-flex items-center justify-center rounded-md w-8 h-8 text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
                         >
