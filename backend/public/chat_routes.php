@@ -33,35 +33,49 @@ $app->get('/api/chat', function (Request $request, Response $response) {
     $conn = $db->getConnection();
     
     $sql = '
-        SELECT c.id, c.type, c.name, c."createdAt", c."group_avatar", c."permissions", c."admin_ids", c."pending_participants",
-            (SELECT json_agg(json_build_object(\'id\', u.id, \'firstName\', u."firstName", \'lastName\', u."lastName", \'email\', u.email, \'avatar\', e.avatar))
-             FROM chat_participants cp2 
-             JOIN users u ON u.id = cp2."userId"
-             LEFT JOIN employee e ON u.id = e."userId"
-             WHERE cp2."chatId" = c.id) as participants,
-            (SELECT row_to_json(m.*) 
-             FROM chat_messages m 
-             WHERE m."chatId" = c.id 
-             AND m."createdAt" >= cp."joinedAt"
-             ORDER BY m."createdAt" DESC LIMIT 1) as last_message,
-            (SELECT COUNT(*) 
-             FROM chat_messages m2 
-             WHERE m2."chatId" = c.id 
-             AND m2."senderId" != ?
-             AND m2."createdAt" >= cp."joinedAt"
-             AND NOT (m2."readBy" @> to_jsonb(?::text))
-            ) as unread_count
-        FROM chats c
-        JOIN chat_participants cp ON c.id = cp."chatId"
-        WHERE cp."userId" = ?
-        ORDER BY (
-            SELECT COALESCE(MAX(m."createdAt"), c."createdAt") 
-            FROM chat_messages m WHERE m."chatId" = c.id
-        ) DESC
+        WITH user_chats AS (
+            SELECT c.id, c.type, c.name, c."createdAt", c."group_avatar", c."permissions", c."admin_ids", c."pending_participants", cp."joinedAt"
+            FROM chats c
+            JOIN chat_participants cp ON c.id = cp."chatId"
+            WHERE cp."userId" = ?
+        ),
+        chat_parts AS (
+            SELECT cp2."chatId", json_agg(json_build_object(\'id\', u.id, \'firstName\', u."firstName", \'lastName\', u."lastName", \'email\', u.email, \'avatar\', e.avatar)) as participants
+            FROM chat_participants cp2
+            JOIN users u ON u.id = cp2."userId"
+            LEFT JOIN employee e ON u.id = e."userId"
+            WHERE cp2."chatId" IN (SELECT id FROM user_chats)
+            GROUP BY cp2."chatId"
+        ),
+        chat_msgs AS (
+            SELECT m."chatId",
+                   COUNT(*) FILTER (WHERE m."senderId" != ? AND NOT (m."readBy" @> ?::jsonb)) as unread_count,
+                   MAX(m."createdAt") as max_created_at
+            FROM chat_messages m
+            JOIN user_chats uc ON m."chatId" = uc.id
+            WHERE m."createdAt" >= uc."joinedAt"
+            GROUP BY m."chatId"
+        ),
+        last_msg AS (
+            SELECT DISTINCT ON (m."chatId") m."chatId", row_to_json(m.*) as last_message
+            FROM chat_messages m
+            JOIN user_chats uc ON m."chatId" = uc.id
+            WHERE m."createdAt" >= uc."joinedAt"
+            ORDER BY m."chatId", m."createdAt" DESC
+        )
+        SELECT uc.id, uc.type, uc.name, uc."createdAt", uc."group_avatar", uc."permissions", uc."admin_ids", uc."pending_participants",
+               cp.participants,
+               lm.last_message,
+               COALESCE(cm.unread_count, 0) as unread_count
+        FROM user_chats uc
+        LEFT JOIN chat_parts cp ON uc.id = cp."chatId"
+        LEFT JOIN chat_msgs cm ON uc.id = cm."chatId"
+        LEFT JOIN last_msg lm ON uc.id = lm."chatId"
+        ORDER BY COALESCE(cm.max_created_at, uc."createdAt") DESC
     ';
     
     $stmt = $conn->prepare($sql);
-    $stmt->execute([$userId, $userId, $userId]);
+    $stmt->execute([$userId, $userId, json_encode([$userId])]);
     $chats = $stmt->fetchAll();
     
     foreach ($chats as &$chat) {
@@ -170,7 +184,7 @@ $app->get('/api/chat/{id}/messages', function (Request $request, Response $respo
         return $response->withStatus(403);
     }
     
-    $stmt = $conn->prepare('SELECT * FROM chat_messages WHERE "chatId" = ? AND "createdAt" >= ? ORDER BY "createdAt" ASC');
+    $stmt = $conn->prepare('SELECT id, "chatId", "senderId", content, "attachmentUrl", "attachmentType", "attachmentName", "attachmentSize", "deliveredTo", "readBy", "isSystemMessage", "replyTo", "createdAt" FROM chat_messages WHERE "chatId" = ? AND "createdAt" >= ? ORDER BY "createdAt" ASC');
     $stmt->execute([$chatId, $joinedAt]);
     $messages = $stmt->fetchAll();
     

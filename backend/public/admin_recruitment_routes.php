@@ -153,7 +153,7 @@ $app->get('/api/admin/applications', function (Request $request, Response $respo
         $applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($applications as &$app) {
-            $stmtTimeline = $conn->prepare('SELECT * FROM application_timeline WHERE application_id = ? ORDER BY created_at DESC');
+            $stmtTimeline = $conn->prepare('SELECT id, application_id, status_change, notes, created_at FROM application_timeline WHERE application_id = ? ORDER BY created_at DESC');
             $stmtTimeline->execute([$app['id']]);
             $app['application_timeline'] = $stmtTimeline->fetchAll(PDO::FETCH_ASSOC);
             
@@ -214,7 +214,7 @@ $app->get('/api/admin/candidate-profiles', function (Request $request, Response 
     $conn = $db->getConnection();
     
     try {
-        $stmt = $conn->query('SELECT * FROM candidate_profiles');
+        $stmt = $conn->query('SELECT id, user_id, phone, address, current_title, experience, bio, resume_url, avatar_url, created_at, updated_at FROM candidate_profiles');
         $profiles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $response->getBody()->write(json_encode(['profiles' => $profiles]));
@@ -231,7 +231,7 @@ $app->get('/api/admin/candidate-documents', function (Request $request, Response
     $conn = $db->getConnection();
     
     try {
-        $stmt = $conn->query('SELECT * FROM candidate_documents');
+        $stmt = $conn->query('SELECT id, candidate_id, document_type, file_name, file_path, uploaded_at FROM candidate_documents');
         $documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $response->getBody()->write(json_encode(['documents' => $documents]));

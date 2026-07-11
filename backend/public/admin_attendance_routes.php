@@ -16,7 +16,7 @@ function applyShiftStatusModifiers($baseStatus, $checkIn, $checkOut, $shiftLabel
 }
 
 function getShiftTimesMap($conn) {
-    $stmtShifts = $conn->query('SELECT * FROM shift_times');
+    $stmtShifts = $conn->query('SELECT id, "shiftLabel", "startTime", "endTime" FROM shift_times');
     $shifts = $stmtShifts->fetchAll(PDO::FETCH_ASSOC);
     $shiftTimesMap = [];
     foreach ($shifts as $s) {
@@ -140,7 +140,7 @@ function adjustApprovedLeaveRecordForDate($conn, $employeeId, $date, $adminId) {
     $holidaysMap = getActiveHolidaysMap($conn);
     if (isset($holidaysMap[$date])) return true;
 
-    $stmtFindLeave = $conn->prepare('SELECT * FROM leaves WHERE "employeeId" = ? AND CAST("startDate" AS DATE) <= ? AND CAST("endDate" AS DATE) >= ? AND status ILIKE \'approved\'');
+    $stmtFindLeave = $conn->prepare('SELECT id, "employeeId", "leaveType", "startDate", "endDate", days, reason, status, "appliedDate", "approvedBy" FROM leaves WHERE "employeeId" = ? AND CAST("startDate" AS DATE) <= ? AND CAST("endDate" AS DATE) >= ? AND status ILIKE \'approved\'');
     $stmtFindLeave->execute([$employeeId, $date, $date]);
     $leave = $stmtFindLeave->fetch(PDO::FETCH_ASSOC);
 
@@ -210,7 +210,7 @@ function adjustApprovedLeaveRecordForDate($conn, $employeeId, $date, $adminId) {
             $stmt = $conn->prepare("INSERT INTO leaves (id, \"employeeId\", \"leaveType\", \"startDate\", \"endDate\", days, reason, status, \"appliedDate\", \"approvedBy\") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([$newId, $employeeId, $leave['leaveType'], $secondStart, $oldEnd, $secondDays, $leave['reason'], $leave['status'], $leave['appliedDate'] ?? date('Y-m-d'), $leave['approvedBy']]);
             
-            $stmtNewLeave = $conn->prepare('SELECT * FROM leaves WHERE id = ?');
+            $stmtNewLeave = $conn->prepare('SELECT id, "employeeId", "leaveType", "startDate", "endDate", days, reason, status, "appliedDate", "approvedBy" FROM leaves WHERE id = ?');
             $stmtNewLeave->execute([$newId]);
             $newLeave2 = $stmtNewLeave->fetch(PDO::FETCH_ASSOC);
             logAttendanceAudit($conn, $adminId, 'create', 'leave', $newId, null, $newLeave2, 'Split multi-day leave (part 2).');
@@ -313,7 +313,7 @@ $app->get('/api/admin/attendance', function (Request $request, Response $respons
         }
 
         // Fetch holiday for the date
-        $stmtHols = $conn->prepare('SELECT * FROM company_holidays WHERE "holidayDate" = ? AND "isActive" = 1');
+        $stmtHols = $conn->prepare('SELECT id, "holidayDate", "holidayName", "holidayImage", "isActive" FROM company_holidays WHERE "holidayDate" = ? AND "isActive" = 1');
         $stmtHols->execute([$date]);
         $holiday = $stmtHols->fetch(PDO::FETCH_ASSOC);
 
@@ -455,7 +455,7 @@ $app->get('/api/admin/geolocations', function (Request $request, Response $respo
     $db = new Database();
     $conn = $db->getConnection();
     try {
-        $stmt = $conn->query('SELECT * FROM geofences ORDER BY id ASC');
+        $stmt = $conn->query('SELECT id, name, latitude, longitude, radius FROM geofences ORDER BY id ASC');
         $geo = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $response->getBody()->write(json_encode($geo));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
@@ -541,7 +541,7 @@ $app->get('/api/admin/shifttimes', function (Request $request, Response $respons
     $db = new Database();
     $conn = $db->getConnection();
     try {
-        $stmt = $conn->query('SELECT * FROM shift_times ORDER BY id ASC');
+        $stmt = $conn->query('SELECT id, "shiftLabel", "startTime", "endTime" FROM shift_times ORDER BY id ASC');
         $shifts = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $response->getBody()->write(json_encode($shifts));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
@@ -698,7 +698,7 @@ $app->post('/api/admin/attendance/regularize', function (Request $request, Respo
     try {
         $conn->beginTransaction();
 
-        $stmtOldAtt = $conn->prepare('SELECT * FROM attendance WHERE "employeeId" = ? AND date = ?');
+        $stmtOldAtt = $conn->prepare('SELECT id, "employeeId", date, status, "checkIn", "checkOut", hours, "isRegularized", "checkInImage", "checkOutImage", "checkInCoords", "checkOutCoords" FROM attendance WHERE "employeeId" = ? AND date = ?');
         $stmtOldAtt->execute([$employeeId, $date]);
         $oldAtt = $stmtOldAtt->fetch(PDO::FETCH_ASSOC);
 
@@ -709,7 +709,7 @@ $app->post('/api/admin/attendance/regularize', function (Request $request, Respo
                 $stmtUpdate = $conn->prepare('UPDATE attendance SET status = ?, "checkIn" = ?, "checkOut" = ?, hours = ?, "isRegularized" = ? WHERE id = ?');
                 $stmtUpdate->execute([$status, $checkIn, $checkOut, $hours, 'true', $oldAtt['id']]);
                 
-                $stmtNewAtt = $conn->prepare('SELECT * FROM attendance WHERE id = ?');
+                $stmtNewAtt = $conn->prepare('SELECT id, "employeeId", date, status, "checkIn", "checkOut", hours, "isRegularized", "checkInImage", "checkOutImage", "checkInCoords", "checkOutCoords" FROM attendance WHERE id = ?');
                 $stmtNewAtt->execute([$oldAtt['id']]);
                 $newAtt = $stmtNewAtt->fetch(PDO::FETCH_ASSOC);
                 
@@ -719,7 +719,7 @@ $app->post('/api/admin/attendance/regularize', function (Request $request, Respo
                 $stmtInsert->execute([$employeeId, $date, $status, $checkIn, $checkOut, $hours, 'true']);
                 $newId = $stmtInsert->fetchColumn();
                 
-                $stmtNewAtt = $conn->prepare('SELECT * FROM attendance WHERE id = ?');
+                $stmtNewAtt = $conn->prepare('SELECT id, "employeeId", date, status, "checkIn", "checkOut", hours, "isRegularized", "checkInImage", "checkOutImage", "checkInCoords", "checkOutCoords" FROM attendance WHERE id = ?');
                 $stmtNewAtt->execute([$newId]);
                 $newAtt = $stmtNewAtt->fetch(PDO::FETCH_ASSOC);
                 
@@ -767,7 +767,7 @@ $app->post('/api/admin/attendance/regularize', function (Request $request, Respo
                     $conn->prepare('UPDATE leave_balances SET "unpaidUsed" = "unpaidUsed" + 1 WHERE "employeeId" = ?')->execute([$employeeId]);
                 }
                 
-                $stmtNewLeave = $conn->prepare('SELECT * FROM leaves WHERE id = ?');
+                $stmtNewLeave = $conn->prepare('SELECT id, "employeeId", "leaveType", "startDate", "endDate", days, reason, status, "appliedDate", "approvedBy" FROM leaves WHERE id = ?');
                 $stmtNewLeave->execute([$newLeaveId]);
                 $newLeave = $stmtNewLeave->fetch(PDO::FETCH_ASSOC);
                 
@@ -850,7 +850,7 @@ $app->get('/api/admin/attendance/employee/{id}', function (Request $request, Res
         }
 
         // Fetch company holidays for the month
-        $stmtHols = $conn->prepare('SELECT * FROM company_holidays WHERE "holidayDate" >= ? AND "holidayDate" <= ? AND "isActive" = 1');
+        $stmtHols = $conn->prepare('SELECT id, "holidayDate", "holidayName", "holidayImage", "isActive" FROM company_holidays WHERE "holidayDate" >= ? AND "holidayDate" <= ? AND "isActive" = 1');
         $stmtHols->execute([$startDate, $endDate]);
         $holidays = $stmtHols->fetchAll(PDO::FETCH_ASSOC);
 
@@ -1018,7 +1018,7 @@ $app->get('/api/admin/attendance/location/{id}', function (Request $request, Res
     }
     
     try {
-        $stmt = $conn->prepare('SELECT * FROM attendance WHERE id = ?');
+        $stmt = $conn->prepare('SELECT id, "employeeId", date, status, "checkIn", "checkOut", hours, "isRegularized", "checkInImage", "checkOutImage", "checkInCoords", "checkOutCoords" FROM attendance WHERE id = ?');
         $stmt->execute([$id]);
         $record = $stmt->fetch(PDO::FETCH_ASSOC);
         
@@ -1031,7 +1031,7 @@ $app->get('/api/admin/attendance/location/{id}', function (Request $request, Res
         $stmt->execute([$record['employeeId'], $record['employeeId']]);
         $employee = $stmt->fetch(PDO::FETCH_ASSOC);
         
-        $stmt = $conn->prepare('SELECT * FROM attendance_punches WHERE "attendanceId" = ? ORDER BY "punchTime" ASC');
+        $stmt = $conn->prepare('SELECT id, "attendanceId", "employeeId", "punchTime", latitude, longitude, address, photo FROM attendance_punches WHERE "attendanceId" = ? ORDER BY "punchTime" ASC');
         $stmt->execute([$id]);
         $punches = $stmt->fetchAll(PDO::FETCH_ASSOC);
         

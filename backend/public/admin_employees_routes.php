@@ -44,7 +44,7 @@ $app->get('/api/branches', function (Request $request, Response $response, $args
     $conn = $db->getConnection();
     
     try {
-        $stmt = $conn->query('SELECT * FROM branches ORDER BY id ASC');
+        $stmt = $conn->query('SELECT id, name, address, city, state, "pinCode" FROM branches ORDER BY id ASC');
         $branches = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $response->getBody()->write(json_encode(['branches' => $branches]));
@@ -93,7 +93,7 @@ $app->get('/api/admin/employees/{id}', function (Request $request, Response $res
         $leaveBalance['paidTotal'] = $balRow ? $balRow['paidTotal'] : 12;
 
         // Get recent payslips
-        $stmtPayslips = $conn->prepare('SELECT * FROM payslips WHERE "employeeId" = ? ORDER BY year DESC, month DESC LIMIT 5');
+        $stmtPayslips = $conn->prepare('SELECT id, "employeeId", year, month, "basicSalary", "netSalary", "totalEarnings", "totalDeductions", "detailsJson", "earningsJson", "deductionsJson", "createdAt" FROM payslips WHERE "employeeId" = ? ORDER BY year DESC, month DESC LIMIT 5');
         $stmtPayslips->execute([$employee['userId']]);
         $rawPayslips = $stmtPayslips->fetchAll(PDO::FETCH_ASSOC);
 
@@ -257,6 +257,7 @@ $app->put('/api/admin/employees/{id}', function (Request $request, Response $res
         }
         
         $conn->commit();
+        \App\Utils\Cache::delete('dashboard_stats');
         $response->getBody()->write(json_encode(['message' => 'Employee updated successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
@@ -354,6 +355,7 @@ $app->put('/api/admin/employees/{id}/settings', function (Request $request, Resp
         }
         
         $conn->commit();
+        \App\Utils\Cache::delete('dashboard_stats');
         $response->getBody()->write(json_encode(['message' => 'Settings updated successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
@@ -415,6 +417,7 @@ $app->post('/api/admin/employees/convert', function (Request $request, Response 
         $stmtUser->execute(['employee', $firstName, $lastName, $department, $position, $userId]);
 
         $conn->commit();
+        \App\Utils\Cache::delete('dashboard_stats');
 
         $response->getBody()->write(json_encode([
             'message' => 'Candidate converted to employee successfully',
@@ -449,6 +452,11 @@ $app->post('/api/employees', function (Request $request, Response $response, $ar
 
     if (empty($email) || empty($password)) {
         $response->getBody()->write(json_encode(['error' => 'Email and password are required']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+
+    if (!\App\Utils\PasswordValidator::validate($password)) {
+        $response->getBody()->write(json_encode(['error' => \App\Utils\PasswordValidator::getPolicyMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
 
@@ -507,6 +515,8 @@ $app->post('/api/employees', function (Request $request, Response $response, $ar
         $stmtQueue->execute([$email, $subject, $body]);
 
         $conn->commit();
+
+        \App\Utils\Cache::delete('dashboard_stats');
 
         $response->getBody()->write(json_encode([
             'message' => 'Employee created successfully',

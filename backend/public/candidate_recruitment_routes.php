@@ -14,7 +14,7 @@ $app->get('/api/candidate/profile', function (Request $request, Response $respon
     $conn = $db->getConnection();
     
     try {
-        $stmt = $conn->prepare('SELECT * FROM candidate_profiles WHERE user_id = ?');
+        $stmt = $conn->prepare('SELECT id, user_id, phone, address, current_title, experience, bio, resume_url, avatar_url, created_at, updated_at FROM candidate_profiles WHERE user_id = ?');
         $stmt->execute([$decodedToken->id]);
         $profile = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -117,7 +117,7 @@ $app->get('/api/candidate/documents', function (Request $request, Response $resp
     $conn = $db->getConnection();
     
     try {
-        $stmt = $conn->prepare('SELECT * FROM candidate_documents WHERE candidate_id = ? ORDER BY uploaded_at DESC');
+        $stmt = $conn->prepare('SELECT id, candidate_id, document_type, file_name, file_path, uploaded_at FROM candidate_documents WHERE candidate_id = ? ORDER BY uploaded_at DESC');
         $stmt->execute([$decodedToken->id]);
         $documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -155,7 +155,7 @@ $app->post('/api/candidate/documents', function (Request $request, Response $res
         $stmtInsert->execute([$decodedToken->id, $docTypeId, $fileName, $filePath]);
 
         // Get the newly inserted record to return
-        $stmtGet = $conn->prepare('SELECT * FROM candidate_documents WHERE candidate_id = ? AND document_type = ?');
+        $stmtGet = $conn->prepare('SELECT id, candidate_id, document_type, file_name, file_path, uploaded_at FROM candidate_documents WHERE candidate_id = ? AND document_type = ?');
         $stmtGet->execute([$decodedToken->id, $docTypeId]);
         $newDoc = $stmtGet->fetch(PDO::FETCH_ASSOC);
 
@@ -193,7 +193,7 @@ $app->get('/api/candidate/jobs', function (Request $request, Response $response,
     $conn = $db->getConnection();
     
     try {
-        $stmt = $conn->query('SELECT * FROM jobs WHERE status = \'Published\' ORDER BY created_at DESC');
+        $stmt = $conn->query('SELECT id, title, department, location, type, status, description, requirements, salary_range, created_at, updated_at FROM jobs WHERE status = \'Published\' ORDER BY created_at DESC');
         $jobs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $response->getBody()->write(json_encode(['jobs' => $jobs]));
@@ -224,7 +224,7 @@ $app->get('/api/candidate/applications', function (Request $request, Response $r
         $applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($applications as &$app) {
-            $stmtTimeline = $conn->prepare('SELECT * FROM application_timeline WHERE application_id = ? ORDER BY created_at DESC');
+            $stmtTimeline = $conn->prepare('SELECT id, application_id, status_change, notes, created_at FROM application_timeline WHERE application_id = ? ORDER BY created_at DESC');
             $stmtTimeline->execute([$app['id']]);
             $app['application_timeline'] = $stmtTimeline->fetchAll(PDO::FETCH_ASSOC);
             
@@ -306,7 +306,7 @@ $app->post('/api/candidate/applications', function (Request $request, Response $
         $conn->commit();
 
         // Get the inserted app
-        $stmtGet = $conn->prepare('SELECT * FROM applications WHERE id = ?');
+        $stmtGet = $conn->prepare('SELECT id, job_id, candidate_id, resume_url, status, applied_at, updated_at FROM applications WHERE id = ?');
         $stmtGet->execute([$newAppId]);
         $newApp = $stmtGet->fetch(PDO::FETCH_ASSOC);
 

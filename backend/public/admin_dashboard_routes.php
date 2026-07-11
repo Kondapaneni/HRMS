@@ -50,7 +50,7 @@ $app->get('/api/admin/dashboard/stats', function (Request $request, Response $re
         // 4. Monthly Attendance Trend (Last 6 months)
         $trendStmt = $conn->query("
             SELECT 
-                TO_CHAR(a.date, 'Mon') as month,
+                DATE_TRUNC('month', a.date) as month_start,
                 EXTRACT(MONTH FROM a.date) as month_num,
                 SUM(CASE WHEN LOWER(TRIM(a.status)) IN ('present', 'present (late)', 'present (early)', 'present (late+early)', 'present-full-shift') THEN 1 ELSE 0 END) as present,
                 SUM(CASE WHEN LOWER(TRIM(a.status)) IN ('leave', 'paid leave', 'unpaid leave', 'sandwich leave') THEN 1 ELSE 0 END) as leave
@@ -58,10 +58,14 @@ $app->get('/api/admin/dashboard/stats', function (Request $request, Response $re
             JOIN employee e ON a.\"employeeId\" = e.\"userId\"
             WHERE a.date >= CURRENT_DATE - INTERVAL '6 months'
               AND e.status = 'active'
-            GROUP BY TO_CHAR(a.date, 'Mon'), EXTRACT(MONTH FROM a.date)
+            GROUP BY DATE_TRUNC('month', a.date), EXTRACT(MONTH FROM a.date)
             ORDER BY month_num ASC
         ");
         $attendanceData = $trendStmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($attendanceData as &$row) {
+            $row['month'] = date('M', strtotime($row['month_start']));
+            unset($row['month_start']);
+        }
 
         // 5. Salary Distribution (Active employees only)
         $salaryStmt = $conn->query("

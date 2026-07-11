@@ -18,8 +18,11 @@ $app->get('/api/admin/holidays', function (Request $request, Response $response,
         $bindings = [];
 
         if ($month) {
-            $sql .= ' AND TO_CHAR("holidayDate", \'YYYY-MM\') = ?';
-            $bindings[] = $month;
+            $startDate = $month . '-01';
+            $endDate = date('Y-m-d', strtotime($startDate . ' +1 month'));
+            $sql .= ' AND "holidayDate" >= ? AND "holidayDate" < ?';
+            $bindings[] = $startDate;
+            $bindings[] = $endDate;
         }
 
         $sql .= ' ORDER BY "holidayDate" ASC';
@@ -78,6 +81,7 @@ $app->post('/api/admin/holidays', function (Request $request, Response $response
             $insertStmt->execute([$date, $name, $image]);
         }
 
+        \App\Config\Cache::delete('dashboard_stats');
         $response->getBody()->write(json_encode(['message' => 'Holiday saved successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (\Exception $e) {
@@ -96,6 +100,7 @@ $app->delete('/api/admin/holidays/{date}', function (Request $request, Response 
         $stmt = $conn->prepare('UPDATE company_holidays SET "isActive" = 0 WHERE "holidayDate" = ?');
         $stmt->execute([$date]);
 
+        \App\Config\Cache::delete('dashboard_stats');
         $response->getBody()->write(json_encode(['message' => 'Holiday removed successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (\Exception $e) {
@@ -132,6 +137,7 @@ $app->put('/api/admin/holidays/{date}/restore', function (Request $request, Resp
         $stmt = $conn->prepare('UPDATE company_holidays SET "isActive" = 1 WHERE "holidayDate" = ?');
         $stmt->execute([$date]);
 
+        \App\Config\Cache::delete('dashboard_stats');
         $response->getBody()->write(json_encode(['message' => 'Holiday restored successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (\Exception $e) {

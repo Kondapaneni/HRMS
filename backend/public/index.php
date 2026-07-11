@@ -109,7 +109,7 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
         return $response->withHeader('Content-Type', 'application/json')->withStatus(429);
     }
 
-    $stmt = $conn->prepare('SELECT * FROM users WHERE email = ?');
+    $stmt = $conn->prepare('SELECT id, email, password, "firstName", "lastName", role, department, position, "isActive", "forcePasswordChange" FROM users WHERE email = ?');
     $stmt->execute([$email]);
     $user = $stmt->fetch();
 
@@ -237,6 +237,11 @@ $app->put('/api/change-password', function (Request $request, Response $response
 
     if (empty($newPassword)) {
         $response->getBody()->write(json_encode(['error' => 'New password is required']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+
+    if (!\App\Utils\PasswordValidator::validate($newPassword)) {
+        $response->getBody()->write(json_encode(['error' => \App\Utils\PasswordValidator::getPolicyMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
 
@@ -393,6 +398,11 @@ $app->post('/api/reset-password', function (Request $request, Response $response
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
 
+    if (!\App\Utils\PasswordValidator::validate($newPassword)) {
+        $response->getBody()->write(json_encode(['error' => \App\Utils\PasswordValidator::getPolicyMessage()]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+
     // Hash new password
     $passwordHash = password_hash($newPassword, PASSWORD_DEFAULT);
 
@@ -413,82 +423,22 @@ $app->post('/api/reset-password', function (Request $request, Response $response
 // Resume proxy route for clean URLs
 $app->get('/Resume/{filename:.+}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];
-    
-    $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'];
-    $supabaseUrl = $supabaseUrlBase . "/storage/v1/object/public/resumes/" . rawurlencode($filename);
-    
-    $context = stream_context_create([
-        "http" => [
-            "method" => "GET",
-            "header" => "User-Agent: PHP\r\n"
-        ]
-    ]);
-    
-    $fileContent = @file_get_contents($supabaseUrl, false, $context);
-    
-    if ($fileContent === false) {
-        $response->getBody()->write("Resume not found.");
-        return $response->withStatus(404);
-    }
-    
-    $response->getBody()->write($fileContent);
-    return $response
-        ->withHeader('Content-Type', 'application/pdf')
-        ->withHeader('Content-Disposition', 'inline; filename="' . $filename . '"');
+    $supabaseUrl = $_ENV['VITE_SUPABASE_URL'] . "/storage/v1/object/public/resumes/" . rawurlencode($filename);
+    return streamSupabaseFile($supabaseUrl, $response, $filename, 'inline');
 });
 
 // Job Description proxy route for clean URLs
 $app->get('/Job-Description/{filename:.+}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];
-    
-    $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'];
-    $supabaseUrl = $supabaseUrlBase . "/storage/v1/object/public/job_descriptions/" . rawurlencode($filename);
-    
-    $context = stream_context_create([
-        "http" => [
-            "method" => "GET",
-            "header" => "User-Agent: PHP\r\n"
-        ]
-    ]);
-    
-    $fileContent = @file_get_contents($supabaseUrl, false, $context);
-    
-    if ($fileContent === false) {
-        $response->getBody()->write("Job description not found.");
-        return $response->withStatus(404);
-    }
-    
-    $response->getBody()->write($fileContent);
-    return $response
-        ->withHeader('Content-Type', 'application/pdf')
-        ->withHeader('Content-Disposition', 'attachment; filename="' . $filename . '"');
+    $supabaseUrl = $_ENV['VITE_SUPABASE_URL'] . "/storage/v1/object/public/job_descriptions/" . rawurlencode($filename);
+    return streamSupabaseFile($supabaseUrl, $response, $filename, 'attachment');
 });
 
 // Offer Letter proxy route for clean URLs
 $app->get('/Offer-Letter/{filename:.+}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];
-    
-    $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'];
-    $supabaseUrl = $supabaseUrlBase . "/storage/v1/object/public/offer_letters/" . rawurlencode($filename);
-    
-    $context = stream_context_create([
-        "http" => [
-            "method" => "GET",
-            "header" => "User-Agent: PHP\r\n"
-        ]
-    ]);
-    
-    $fileContent = @file_get_contents($supabaseUrl, false, $context);
-    
-    if ($fileContent === false) {
-        $response->getBody()->write("Offer letter not found.");
-        return $response->withStatus(404);
-    }
-    
-    $response->getBody()->write($fileContent);
-    return $response
-        ->withHeader('Content-Type', 'application/pdf')
-        ->withHeader('Content-Disposition', 'attachment; filename="' . $filename . '"');
+    $supabaseUrl = $_ENV['VITE_SUPABASE_URL'] . "/storage/v1/object/public/offer_letters/" . rawurlencode($filename);
+    return streamSupabaseFile($supabaseUrl, $response, $filename, 'attachment');
 });
 
 function getMimeType($filename) {
@@ -503,124 +453,67 @@ function getMimeType($filename) {
     }
 }
 
+function streamSupabaseFile($supabaseUrl, Response $response, $filename, $disposition = 'inline') {
+    $context = stream_context_create(["http" => ["method" => "GET", "header" => "User-Agent: PHP\r\n"]]);
+    $stream = @fopen($supabaseUrl, 'rb', false, $context);
+    
+    if (!$stream) {
+        $response->getBody()->write("File not found.");
+        return $response->withStatus(404);
+    }
+    
+    $slimStream = new \Slim\Psr7\Stream($stream);
+    
+    return $response
+        ->withBody($slimStream)
+        ->withHeader('Content-Type', getMimeType($filename))
+        ->withHeader('Content-Disposition', $disposition . '; filename="' . basename($filename) . '"')
+        ->withHeader('Cache-Control', 'public, max-age=31536000, immutable');
+}
+
 // Avatar proxy route
 $app->get('/Avatar/{filename:.+}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];
-    $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'];
-    $supabaseUrl = $supabaseUrlBase . "/storage/v1/object/public/avatars/" . rawurlencode($filename);
-    $context = stream_context_create(["http" => ["method" => "GET", "header" => "User-Agent: PHP\r\n"]]);
-    $fileContent = @file_get_contents($supabaseUrl, false, $context);
-    
-    if ($fileContent === false) return $response->withStatus(404);
-    
-    $response->getBody()->write($fileContent);
-    return $response
-        ->withHeader('Content-Type', getMimeType($filename))
-        ->withHeader('Content-Disposition', 'inline; filename="' . $filename . '"')
-        ->withHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    $supabaseUrl = $_ENV['VITE_SUPABASE_URL'] . "/storage/v1/object/public/avatars/" . rawurlencode($filename);
+    return streamSupabaseFile($supabaseUrl, $response, $filename, 'inline');
 });
 
 // Holiday proxy route
 $app->get('/Holiday/{filename:.+}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];
-    $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'];
-    $supabaseUrl = $supabaseUrlBase . "/storage/v1/object/public/holidays/" . rawurlencode($filename);
-    $context = stream_context_create(["http" => ["method" => "GET", "header" => "User-Agent: PHP\r\n"]]);
-    $fileContent = @file_get_contents($supabaseUrl, false, $context);
-    
-    if ($fileContent === false) return $response->withStatus(404);
-    
-    $response->getBody()->write($fileContent);
-    return $response
-        ->withHeader('Content-Type', getMimeType($filename))
-        ->withHeader('Content-Disposition', 'inline; filename="' . $filename . '"')
-        ->withHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    $supabaseUrl = $_ENV['VITE_SUPABASE_URL'] . "/storage/v1/object/public/holidays/" . rawurlencode($filename);
+    return streamSupabaseFile($supabaseUrl, $response, $filename, 'inline');
 });
 
 // Attendance proxy route
 $app->get('/Attendance/{filename:.+}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];
-    $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'];
-    $supabaseUrl = $supabaseUrlBase . "/storage/v1/object/public/attendance/" . rawurlencode($filename);
-    $context = stream_context_create(["http" => ["method" => "GET", "header" => "User-Agent: PHP\r\n"]]);
-    $fileContent = @file_get_contents($supabaseUrl, false, $context);
-    
-    if ($fileContent === false) return $response->withStatus(404);
-    
-    $response->getBody()->write($fileContent);
-    return $response
-        ->withHeader('Content-Type', getMimeType($filename))
-        ->withHeader('Content-Disposition', 'inline; filename="' . $filename . '"')
-        ->withHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    $supabaseUrl = $_ENV['VITE_SUPABASE_URL'] . "/storage/v1/object/public/attendance/" . rawurlencode($filename);
+    return streamSupabaseFile($supabaseUrl, $response, $filename, 'inline');
 });
 
 // Chat Attachment proxy route
 $app->get('/Chat-Attachment/{filename:.+}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];
-    $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'];
-    
-    // Properly encode filename parts if it contains subdirectories
-    $segments = explode('/', $filename);
-    $encodedSegments = array_map('rawurlencode', $segments);
-    $encodedFilename = implode('/', $encodedSegments);
-    
-    $supabaseUrl = $supabaseUrlBase . "/storage/v1/object/public/chat_attachments/" . $encodedFilename;
-    $context = stream_context_create(["http" => ["method" => "GET", "header" => "User-Agent: PHP\r\n"]]);
-    $fileContent = @file_get_contents($supabaseUrl, false, $context);
-    
-    if ($fileContent === false) return $response->withStatus(404);
-    
-    $response->getBody()->write($fileContent);
-    return $response
-        ->withHeader('Content-Type', getMimeType($filename))
-        ->withHeader('Content-Disposition', 'inline; filename="' . basename($filename) . '"')
-        ->withHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    $encodedFilename = implode('/', array_map('rawurlencode', explode('/', $filename)));
+    $supabaseUrl = $_ENV['VITE_SUPABASE_URL'] . "/storage/v1/object/public/chat_attachments/" . $encodedFilename;
+    return streamSupabaseFile($supabaseUrl, $response, $filename, 'inline');
 });
 
 // Candidate Document proxy route
 $app->get('/Candidate-Document/{filename:.+}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];
-    $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'];
-    
-    // Properly encode filename parts if it contains subdirectories
-    $segments = explode('/', $filename);
-    $encodedSegments = array_map('rawurlencode', $segments);
-    $encodedFilename = implode('/', $encodedSegments);
-    
-    $supabaseUrl = $supabaseUrlBase . "/storage/v1/object/public/candidate_documents/" . $encodedFilename;
-    $context = stream_context_create(["http" => ["method" => "GET", "header" => "User-Agent: PHP\r\n"]]);
-    $fileContent = @file_get_contents($supabaseUrl, false, $context);
-    
-    if ($fileContent === false) return $response->withStatus(404);
-    
-    $response->getBody()->write($fileContent);
-    return $response
-        ->withHeader('Content-Type', getMimeType($filename))
-        ->withHeader('Content-Disposition', 'inline; filename="' . basename($filename) . '"')
-        ->withHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    $encodedFilename = implode('/', array_map('rawurlencode', explode('/', $filename)));
+    $supabaseUrl = $_ENV['VITE_SUPABASE_URL'] . "/storage/v1/object/public/candidate_documents/" . $encodedFilename;
+    return streamSupabaseFile($supabaseUrl, $response, $filename, 'inline');
 });
 
 // Bills proxy route
 $app->get('/Bills/{filename:.+}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];
-    $supabaseUrlBase = $_ENV['VITE_SUPABASE_URL'];
-    
-    // Properly encode filename parts if it contains subdirectories
-    $segments = explode('/', $filename);
-    $encodedSegments = array_map('rawurlencode', $segments);
-    $encodedFilename = implode('/', $encodedSegments);
-    
-    $supabaseUrl = $supabaseUrlBase . "/storage/v1/object/public/expenses/" . $encodedFilename;
-    $context = stream_context_create(["http" => ["method" => "GET", "header" => "User-Agent: PHP\r\n"]]);
-    $fileContent = @file_get_contents($supabaseUrl, false, $context);
-    
-    if ($fileContent === false) return $response->withStatus(404);
-    
-    $response->getBody()->write($fileContent);
-    return $response
-        ->withHeader('Content-Type', getMimeType($filename))
-        ->withHeader('Content-Disposition', 'inline; filename="' . basename($filename) . '"')
-        ->withHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    $encodedFilename = implode('/', array_map('rawurlencode', explode('/', $filename)));
+    $supabaseUrl = $_ENV['VITE_SUPABASE_URL'] . "/storage/v1/object/public/expenses/" . $encodedFilename;
+    return streamSupabaseFile($supabaseUrl, $response, $filename, 'inline');
 });
 
 // Run app

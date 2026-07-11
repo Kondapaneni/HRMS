@@ -42,6 +42,11 @@ $app->post('/api/candidate/register', function (Request $request, Response $resp
         return $response->withHeader('Content-Type', 'application/json')->withStatus(429);
     }
 
+    if (!\App\Utils\PasswordValidator::validate($password)) {
+        $response->getBody()->write(json_encode(['error' => \App\Utils\PasswordValidator::getPolicyMessage()]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+
     // Check if email already exists
     $stmt = $conn->prepare('SELECT id FROM users WHERE email = :email');
     $stmt->execute(['email' => $email]);
@@ -153,7 +158,7 @@ $app->post('/api/candidate/login', function (Request $request, Response $respons
         return $response->withHeader('Content-Type', 'application/json')->withStatus(429);
     }
 
-    $stmt = $conn->prepare('SELECT * FROM users WHERE email = ? AND role = \'candidate\'');
+    $stmt = $conn->prepare('SELECT id, email, password, "firstName", "lastName", role, department, position, "isActive", "forcePasswordChange" FROM users WHERE email = ? AND role = \'candidate\'');
     $stmt->execute([$email]);
     $user = $stmt->fetch();
 

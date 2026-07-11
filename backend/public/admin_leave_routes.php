@@ -243,7 +243,7 @@ $app->post('/api/admin/leaves/{id}/approve', function (Request $request, Respons
     $conn->beginTransaction();
     try {
         // Fetch the leave first to check its details
-        $stmtLeave = $conn->prepare('SELECT * FROM leaves WHERE id = ?');
+        $stmtLeave = $conn->prepare('SELECT id, "employeeId", "leaveType", "startDate", "endDate", days, reason, status, "appliedDate", "approvedBy" FROM leaves WHERE id = ?');
         $stmtLeave->execute([$id]);
         $leaveToApprove = $stmtLeave->fetch(PDO::FETCH_ASSOC);
 
@@ -427,6 +427,7 @@ $app->post('/api/admin/leaves/{id}/approve', function (Request $request, Respons
         );
 
         $conn->commit();
+        \App\Utils\Cache::delete('dashboard_stats');
         $response->getBody()->write(json_encode(['message' => 'Leave approved successfully']));
         return $response->withHeader('Content-Type', 'application/json');
     } catch (\Exception $e) {
@@ -462,6 +463,8 @@ $app->post('/api/admin/leaves/{id}/reject', function (Request $request, Response
             'rejected'
         );
     }
+
+    \App\Utils\Cache::delete('dashboard_stats');
 
     $response->getBody()->write(json_encode(['message' => 'Leave rejected successfully']));
     return $response->withHeader('Content-Type', 'application/json');

@@ -12,7 +12,7 @@ $app->get('/api/employee/payroll', function (Request $request, Response $respons
     $conn = $db->getConnection();
 
     try {
-        $stmt = $conn->prepare('SELECT * FROM payslips WHERE "employeeId" = ? ORDER BY year DESC, month DESC');
+        $stmt = $conn->prepare('SELECT id, "employeeId", year, month, "basicSalary", "netSalary", "totalEarnings", "totalDeductions", "detailsJson", "earningsJson", "deductionsJson", "createdAt" FROM payslips WHERE "employeeId" = ? ORDER BY year DESC, month DESC');
         $stmt->execute([$decodedToken->id]);
         $payslips = $stmt->fetchAll(PDO::FETCH_ASSOC);
 

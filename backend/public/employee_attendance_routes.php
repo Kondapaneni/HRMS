@@ -67,7 +67,7 @@ $app->post('/api/employee/attendance/punch', function (Request $request, Respons
         $shiftStartTime = $empShift && !empty($empShift['startTime']) ? $empShift['startTime'] : null;
         $shiftEndTime = $empShift && !empty($empShift['endTime']) ? $empShift['endTime'] : null;
 
-        $stmt = $conn->prepare('SELECT * FROM attendance WHERE "employeeId" = ? AND date = ? LIMIT 1');
+        $stmt = $conn->prepare('SELECT id, "employeeId", date, status, "checkIn", "checkOut", hours, "isRegularized", "checkInImage", "checkOutImage", "checkInCoords", "checkOutCoords" FROM attendance WHERE "employeeId" = ? AND date = ? LIMIT 1');
         $stmt->execute([$decodedToken->id, $today]);
         $record = $stmt->fetch();
 
@@ -216,7 +216,7 @@ $app->get('/api/employee/geofences', function (Request $request, Response $respo
         
         RateLimiter::recordAttempt($conn, $ip, $action);
 
-        $stmt = $conn->query('SELECT * FROM geofences ORDER BY id ASC');
+        $stmt = $conn->query('SELECT id, name, latitude, longitude, radius FROM geofences ORDER BY id ASC');
         $geofences = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         $apiKey = $_ENV['GOOGLE_GEOCODING_API_KEY'] ?? '';

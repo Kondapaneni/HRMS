@@ -7,9 +7,9 @@ use PDOException;
 
 class Database
 {
-    private static ?PDO $conn = null;
+    private static ?LoggingPDO $conn = null;
 
-    public function getConnection(): ?PDO
+    public function getConnection(): ?LoggingPDO
     {
         if (self::$conn === null) {
             $host = $_ENV['DB_HOST'] ?? 'localhost';
@@ -20,10 +20,11 @@ class Database
 
             try {
                 $dsn = "pgsql:host={$host};port={$port};dbname={$db_name}";
-                self::$conn = new PDO($dsn, $username, $password);
+                self::$conn = new LoggingPDO($dsn, $username, $password);
                 self::$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
                 self::$conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
                 self::$conn->setAttribute(PDO::ATTR_EMULATE_PREPARES, true);
+                self::$conn->setAttribute(PDO::ATTR_STATEMENT_CLASS, [LoggingPDOStatement::class, []]);
             } catch (PDOException $exception) {
                 // In a production environment, log this instead of echoing it directly.
                 echo "Connection error: " . $exception->getMessage();

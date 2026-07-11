@@ -13,7 +13,12 @@ $app->get('/api/employee/profile', function (Request $request, Response $respons
 
     try {
         $stmt = $conn->prepare('
-            SELECT e.*, b.name as branch_name 
+            SELECT e.id, e."employeeId", e."userId", e."firstName", e."lastName", e.email, e.phone, e.address,
+                   e.gender, e."maritalStatus", e.nationality, e."dateOfBirth", e."bloodGroup", e."workEmail",
+                   e."panNumber", e.department, e.position, e.branch, e.salary, e."employmentType",
+                   e."noticePeriod", e."shiftTime", e."workMode", e."weekOff", e."joinDate", e."managerId",
+                   e.avatar, e.status, e.timeline, e."geoFenceEnabled", e."webAttendanceEnabled",
+                   b.name as branch_name
             FROM employee e 
             LEFT JOIN branches b ON e.branch = b.id 
             WHERE e."userId" = ? LIMIT 1
@@ -34,19 +39,19 @@ $app->get('/api/employee/profile', function (Request $request, Response $respons
         ];
 
         if ($employee['managerId']) {
-             $stmtMgr = $conn->prepare('SELECT id, "employeeId", "firstName", "lastName", position, department, email, avatar FROM employee WHERE "employeeId" = ? OR id::text = ? LIMIT 1');
-             $stmtMgr->execute([$employee['managerId'], $employee['managerId']]);
+             $stmtMgr = $conn->prepare('SELECT id, "employeeId", "firstName", "lastName", position, department, email, avatar FROM employee WHERE id = ? LIMIT 1');
+             $stmtMgr->execute([$employee['managerId']]);
              $team['manager'] = $stmtMgr->fetch(PDO::FETCH_ASSOC) ?: null;
 
              if ($team['manager']) {
-                 $stmtPeers = $conn->prepare('SELECT id, "employeeId", "firstName", "lastName", position, department, email, avatar FROM employee WHERE ("managerId" = ? OR "managerId" = ?) AND id != ?');
-                 $stmtPeers->execute([$team['manager']['employeeId'], $team['manager']['id'], $employee['id']]);
+                 $stmtPeers = $conn->prepare('SELECT id, "employeeId", "firstName", "lastName", position, department, email, avatar FROM employee WHERE "managerId" = ? AND id != ?');
+                 $stmtPeers->execute([$team['manager']['id'], $employee['id']]);
                  $team['peers'] = $stmtPeers->fetchAll(PDO::FETCH_ASSOC) ?: [];
              }
         }
 
-        $stmtSubs = $conn->prepare('SELECT id, "employeeId", "firstName", "lastName", position, department, email, avatar FROM employee WHERE "managerId" = ? OR "managerId" = ?');
-        $stmtSubs->execute([$employee['employeeId'], (string)$employee['id']]);
+        $stmtSubs = $conn->prepare('SELECT id, "employeeId", "firstName", "lastName", position, department, email, avatar FROM employee WHERE "managerId" = ?');
+        $stmtSubs->execute([$employee['id']]);
         $team['subordinates'] = $stmtSubs->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
         $stmtAssets = $conn->prepare('SELECT id, name, category, serial_number, status, created_at FROM assets WHERE assigned_to = ? ORDER BY created_at DESC');

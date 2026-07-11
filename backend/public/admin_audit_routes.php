@@ -50,11 +50,18 @@ $app->get('/api/admin/audit-logs', function (Request $request, Response $respons
     }
 
     if ($search) {
-        $where[] = '((actor_name ILIKE ?) OR (target_employee_name ILIKE ?) OR (actor_user_id::text ILIKE ?))';
-        $searchTerm = '%' . $search . '%';
-        $queryArgs[] = $searchTerm;
-        $queryArgs[] = $searchTerm;
-        $queryArgs[] = $searchTerm;
+        if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $search)) {
+            $where[] = '((actor_name ILIKE ?) OR (target_employee_name ILIKE ?) OR (actor_user_id = ?))';
+            $searchTerm = '%' . $search . '%';
+            $queryArgs[] = $searchTerm;
+            $queryArgs[] = $searchTerm;
+            $queryArgs[] = $search; // Exact UUID
+        } else {
+            $where[] = '((actor_name ILIKE ?) OR (target_employee_name ILIKE ?))';
+            $searchTerm = '%' . $search . '%';
+            $queryArgs[] = $searchTerm;
+            $queryArgs[] = $searchTerm;
+        }
     }
 
     $whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';

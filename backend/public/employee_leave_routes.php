@@ -22,7 +22,7 @@ $app->get('/api/employee/leaves', function (Request $request, Response $response
         $stmtCount->execute([$decodedToken->id]);
         $totalCount = (int)$stmtCount->fetchColumn();
         // Fetch Balance
-        $stmtBalance = $conn->prepare('SELECT * FROM leave_balances WHERE "employeeId" = ? LIMIT 1');
+        $stmtBalance = $conn->prepare('SELECT id, "employeeId", "paidTotal", "paidUsed", "unpaidUsed" FROM leave_balances WHERE "employeeId" = ? LIMIT 1');
         $stmtBalance->execute([$decodedToken->id]);
         $balance = $stmtBalance->fetch();
 
@@ -32,7 +32,7 @@ $app->get('/api/employee/leaves', function (Request $request, Response $response
         }
 
         // Fetch Leave History
-        $stmtLeaves = $conn->prepare('SELECT * FROM leaves WHERE "employeeId" = ? ORDER BY "startDate" DESC LIMIT ? OFFSET ?');
+        $stmtLeaves = $conn->prepare('SELECT id, "employeeId", "leaveType", "startDate", "endDate", days, reason, status, "appliedDate", "approvedBy" FROM leaves WHERE "employeeId" = ? ORDER BY "startDate" DESC LIMIT ? OFFSET ?');
         $stmtLeaves->execute([$decodedToken->id, $limit, $offset]);
         $history = $stmtLeaves->fetchAll();
 

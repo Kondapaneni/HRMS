@@ -18,6 +18,9 @@ class PerformanceLoggingMiddleware
         $startTime = microtime(true);
         $startMemory = memory_get_usage();
 
+        \App\Config\LoggingPDO::$queryCount = 0;
+        \App\Config\LoggingPDO::$queryTimeMs = 0.0;
+
         // Pass control to the next middleware/route
         $response = $handler->handle($request);
 
@@ -30,18 +33,18 @@ class PerformanceLoggingMiddleware
         $method = $request->getMethod();
         $uri = (string) $request->getUri();
         
-        // Very basic query count estimation if we can't easily hook into PDO
-        // This is a placeholder since PDO doesn't natively track query count without a wrapper.
-        $queryCount = 'N/A (Requires PDO wrapper)';
+        $queryCount = \App\Config\LoggingPDO::$queryCount;
+        $queryTimeMs = round(\App\Config\LoggingPDO::$queryTimeMs, 2);
         
         $logMessage = sprintf(
-            "[%s] %s %s - Time: %sms | Memory: %sKB | Queries: %s\n",
+            "[%s] %s %s - Time: %sms | DB Queries: %s (%sms) | Memory: %sKB\n",
             date('Y-m-d H:i:s'),
             $method,
             $uri,
             $executionTimeMs,
-            $memoryUsedKb,
-            $queryCount
+            $queryCount,
+            $queryTimeMs,
+            $memoryUsedKb
         );
 
         $logFile = __DIR__ . '/../../logs/performance.log';
