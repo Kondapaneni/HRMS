@@ -76,41 +76,42 @@ const AdminExpenses = () => {
     <div className="flex-1 p-8 bg-transparent min-h-screen relative z-10">
       <div className="max-w-7xl mx-auto space-y-6">
         
-        <div className="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">Manage Expenses</h1>
-            <p className="text-sm text-slate-500 mt-1">Review and approve employee expense claims.</p>
+        <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden flex flex-col">
+          <div className="p-5 border-b border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <h3 className="text-lg font-semibold text-slate-800 flex items-center">
+              <FileText className="w-5 h-5 mr-2 text-blue-600" /> Expense Claims
+            </h3>
+            
+            <div className="flex items-center space-x-2 w-full sm:w-auto">
+              <Filter className="w-4 h-4 text-slate-400" />
+              <select
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                className="bg-white border border-slate-300 text-slate-700 text-sm rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent block px-3 py-2 transition-shadow"
+              >
+                <option value="All">All Expenses</option>
+                <option value="Pending">Pending</option>
+                <option value="Approved">Approved</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+            </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <Filter className="w-5 h-5 text-slate-400" />
-            <select
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              className="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block px-3 py-2"
-            >
-              <option value="All">All Expenses</option>
-              <option value="Pending">Pending</option>
-              <option value="Approved">Approved</option>
-              <option value="Rejected">Rejected</option>
-            </select>
-          </div>
-        </div>
 
-        {isLoading ? (
-          <div className="flex justify-center p-12">
-            <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-          </div>
-        ) : (
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <table className="min-w-full divide-y divide-slate-200">
-              <thead className="bg-slate-50">
+          {isLoading ? (
+            <div className="flex justify-center p-12">
+              <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left">
+              <thead className="bg-slate-50 border-b border-slate-200 text-slate-500">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Employee</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Details</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Category</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Amount</th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-4 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                  <th className="px-6 py-4 font-medium">Employee</th>
+                  <th className="px-6 py-4 font-medium">Details</th>
+                  <th className="px-6 py-4 font-medium">Category</th>
+                  <th className="px-6 py-4 font-medium">Amount</th>
+                  <th className="px-6 py-4 font-medium">Status</th>
+                  <th className="px-6 py-4 font-medium text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-slate-200">
@@ -164,8 +165,9 @@ const AdminExpenses = () => {
               </tbody>
             </table>
           </div>
-        )}
-
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Approve/Reject Modal */}

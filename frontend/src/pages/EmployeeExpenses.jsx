@@ -140,18 +140,27 @@ const EmployeeExpenses = () => {
                 <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
               </div>
             ) : (
-              <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <table className="min-w-full divide-y divide-slate-200">
-                  <thead className="bg-slate-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Date</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Title</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Category</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Amount</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
-                    </tr>
-                  </thead>
+              <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
+                <div className="p-6">
+                  <h3 className="text-lg font-semibold flex items-center gap-2 text-slate-900">
+                    <FileText className="h-5 w-5 text-slate-500" />
+                    Expense History
+                  </h3>
+                  <p className="text-sm text-slate-500 mt-1">Your expense claims and their status</p>
+                </div>
+                <div className="p-6 pt-0">
+                  <div className="rounded-md border border-slate-200 overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                      <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-medium">
+                        <tr>
+                          <th className="p-3">Date</th>
+                          <th className="p-3">Title</th>
+                          <th className="p-3">Category</th>
+                          <th className="p-3">Amount</th>
+                          <th className="p-3">Status</th>
+                          <th className="p-3 text-right">Actions</th>
+                        </tr>
+                      </thead>
                   <tbody className="bg-white divide-y divide-slate-200">
                     {expensesData.length === 0 ? (
                       <tr>
@@ -162,24 +171,24 @@ const EmployeeExpenses = () => {
                       </tr>
                     ) : (
                       expensesData.map((exp) => (
-                        <tr key={exp.id} className="hover:bg-slate-50">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
+                        <tr key={exp.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
+                          <td className="p-3 text-slate-700">
                             {new Date(exp.created_at).toLocaleDateString()}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-slate-900">{exp.title}</div>
+                          <td className="p-3">
+                            <div className="font-medium text-slate-900">{exp.title}</div>
                             {exp.remarks && <div className="text-xs text-slate-500 mt-1">Admin: {exp.remarks}</div>}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
+                          <td className="p-3 text-slate-700">
                             {exp.category}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
+                          <td className="p-3 text-slate-700 font-medium">
                             ${parseFloat(exp.amount).toFixed(2)}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="p-3">
                             {getStatusBadge(exp.status)}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <td className="p-3 text-right">
                             <div className="flex justify-end gap-2">
                               {exp.bill_url && (
                                 <a href={exp.bill_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-9 px-3 transition-colors cursor-pointer">
@@ -199,6 +208,8 @@ const EmployeeExpenses = () => {
                   </tbody>
                 </table>
               </div>
+            </div>
+          </div>
             )}
           </div>
         </div>
