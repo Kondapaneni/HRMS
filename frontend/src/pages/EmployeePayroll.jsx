@@ -190,17 +190,15 @@ const EmployeePayroll = () => {
                           <div className="flex gap-2">
                             <button 
                               onClick={() => setSelectedPayslip(ps)}
-                              className="inline-flex items-center justify-center rounded-md h-8 w-8 text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                              title="View Breakdown"
+                              className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-9 px-3 transition-colors cursor-pointer"
                             >
-                              <Eye className="h-4 w-4" />
+                              <Eye className="w-4 h-4 mr-2 text-slate-500" /> View
                             </button>
                             <button 
                               onClick={() => handleDownload(ps)}
-                              className="inline-flex items-center justify-center rounded-md h-8 w-8 text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
-                              title="Download PDF"
+                              className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-9 px-3 transition-colors cursor-pointer"
                             >
-                              <Download className="h-4 w-4" />
+                              <Download className="w-4 h-4 mr-2 text-slate-500" /> Download
                             </button>
                           </div>
                         </td>

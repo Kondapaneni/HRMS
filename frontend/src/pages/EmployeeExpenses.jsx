@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, Loader2, Upload, FileText, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Plus, Loader2, Upload, FileText, CheckCircle, XCircle, Clock, Eye, Trash2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
@@ -179,13 +179,19 @@ const EmployeeExpenses = () => {
                           <td className="px-6 py-4 whitespace-nowrap">
                             {getStatusBadge(exp.status)}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
-                            {exp.bill_url && (
-                              <a href={exp.bill_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-900">View Bill</a>
-                            )}
-                            {exp.status === 'Pending' && (
-                              <button onClick={() => deleteExpenseMutation.mutate(exp.id)} className="text-red-600 hover:text-red-900">Delete</button>
-                            )}
+                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <div className="flex justify-end gap-2">
+                              {exp.bill_url && (
+                                <a href={exp.bill_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-9 px-3 transition-colors cursor-pointer">
+                                  <Eye className="w-4 h-4 mr-2 text-slate-500" /> View Bill
+                                </a>
+                              )}
+                              {exp.status === 'Pending' && (
+                                <button onClick={() => deleteExpenseMutation.mutate(exp.id)} className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-9 px-3 transition-colors cursor-pointer hover:!text-red-600 hover:!border-red-200 hover:!bg-red-50">
+                                  <Trash2 className="w-4 h-4 mr-2 text-slate-400" /> Delete
+                                </button>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))

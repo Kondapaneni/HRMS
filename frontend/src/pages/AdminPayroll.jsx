@@ -290,15 +290,15 @@ const AdminPayroll = () => {
                       <div className="flex items-center justify-end gap-2">
                         <button 
                           onClick={() => openModal(payslip)}
-                          className="inline-flex items-center justify-center rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 hover:text-blue-600 transition-colors"
+                          className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-9 px-3 transition-colors cursor-pointer"
                         >
-                          <Eye className="w-3.5 h-3.5 mr-1" /> View
+                          <Eye className="w-4 h-4 mr-2 text-slate-500" /> View
                         </button>
                         <button 
                           onClick={() => handleDownload(payslip)}
-                          className="inline-flex items-center justify-center rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm hover:bg-slate-50 hover:text-blue-600 transition-colors"
+                          className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-9 px-3 transition-colors cursor-pointer"
                         >
-                          <Download className="w-3.5 h-3.5 mr-1" /> Download
+                          <Download className="w-4 h-4 mr-2 text-slate-500" /> Download
                         </button>
                       </div>
                     </td>

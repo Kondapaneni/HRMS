@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Loader2, FileText, CheckCircle, XCircle, Clock, Filter, X } from 'lucide-react';
+import { Loader2, FileText, CheckCircle, XCircle, Clock, Filter, X, Eye } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
@@ -143,7 +143,9 @@ const AdminExpenses = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                         {exp.bill_url && (
-                          <a href={exp.bill_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none transition-colors">View Bill</a>
+                          <a href={exp.bill_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-9 px-3 transition-colors cursor-pointer">
+                            <Eye className="w-4 h-4 mr-2 text-slate-500" /> View Bill
+                          </a>
                         )}
                         {exp.status === 'Pending' && (
                           <>
