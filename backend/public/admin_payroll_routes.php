@@ -121,7 +121,7 @@ $app->post('/api/admin/payroll/generate', function (Request $request, Response $
     }
 
     // Get employee
-    $stmtEmp = $conn->prepare('SELECT e.*, b.name as branch_name FROM employee e LEFT JOIN branches b ON e.branch = b.id WHERE e."userId" = ?');
+    $stmtEmp = $conn->prepare('SELECT e.*, b.name as branch_name FROM employee e LEFT JOIN branches b ON e.branch::uuid = b.id WHERE e."userId" = ?');
     $stmtEmp->execute([$employeeId]);
     $employee = $stmtEmp->fetch(PDO::FETCH_ASSOC);
 
@@ -247,7 +247,7 @@ $app->get('/api/admin/payroll/pending-employees', function (Request $request, Re
     $query = '
         SELECT e."userId", e."employeeId", e."firstName", e."lastName", e.position, e.salary, b.name as branch_name 
         FROM employee e 
-        LEFT JOIN branches b ON e.branch = b.id
+        LEFT JOIN branches b ON e.branch::uuid = b.id
         WHERE e.status = \'active\' 
         AND NOT EXISTS (
             SELECT 1 FROM payslips p WHERE p."employeeId" = e."userId" AND p.month = ? AND p.year = ?
@@ -304,7 +304,7 @@ $app->post('/api/admin/payroll/generate-bulk', function (Request $request, Respo
     $existingPayslips = array_flip($stmtExist->fetchAll(PDO::FETCH_COLUMN));
 
     // 2. Employees
-    $stmtEmp = $conn->prepare("SELECT e.*, b.name as branch_name FROM employee e LEFT JOIN branches b ON e.branch = b.id WHERE e.\"userId\" IN ($placeholders)");
+    $stmtEmp = $conn->prepare("SELECT e.*, b.name as branch_name FROM employee e LEFT JOIN branches b ON e.branch::uuid = b.id WHERE e.\"userId\" IN ($placeholders)");
     $stmtEmp->execute($employeeIds);
     $employeesMap = [];
     foreach ($stmtEmp->fetchAll(PDO::FETCH_ASSOC) as $emp) $employeesMap[$emp['userId']] = $emp;

@@ -20,7 +20,7 @@ $app->get('/api/employee/profile', function (Request $request, Response $respons
                    e.avatar, e.status, e.timeline, e."geoFenceEnabled", e."webAttendanceEnabled",
                    b.name as branch_name
             FROM employee e 
-            LEFT JOIN branches b ON e.branch = b.id 
+            LEFT JOIN branches b ON e.branch::uuid = b.id 
             WHERE e."userId" = ? LIMIT 1
         ');
         $stmt->execute([$decodedToken->id]);
