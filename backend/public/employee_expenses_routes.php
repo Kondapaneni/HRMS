@@ -21,7 +21,7 @@ $app->get('/api/employee/expenses', function (Request $request, Response $respon
         $stmtCount = $conn->prepare($countQuery);
         $stmtCount->execute([$decodedToken->id]);
         $totalCount = (int)$stmtCount->fetchColumn();
-        $stmt = $conn->prepare('SELECT id, user_id, title, description, amount, category, bill_url, status, admin_comment, created_at FROM expenses WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?');
+        $stmt = $conn->prepare('SELECT id, user_id, title, description, amount, category, bill_url, status, remarks, created_at FROM expenses WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?');
         $stmt->execute([$decodedToken->id, $limit, $offset]);
         $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
