@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Globe, Clock, Edit2, Trash2, AlertTriangle, ChevronLeft } from 'lucide-react';
+import { Globe, Clock, Edit2, Trash2, AlertTriangle, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
@@ -119,9 +119,9 @@ const AdminAttendanceConfig = () => {
           </button>
           <button 
             onClick={() => navigate('/admin/attendance')}
-            className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-10 px-4 py-2 transition-colors cursor-pointer"
+            className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-9 px-3 transition-colors cursor-pointer"
           >
-            Back to Attendance
+            <ArrowLeft className="w-4 h-4 mr-1.5" /> Back to Attendance
           </button>
         </div>
       </div>
