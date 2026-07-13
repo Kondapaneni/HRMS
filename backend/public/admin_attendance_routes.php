@@ -698,7 +698,7 @@ $app->post('/api/admin/attendance/regularize', function (Request $request, Respo
     try {
         $conn->beginTransaction();
 
-        $stmtOldAtt = $conn->prepare('SELECT id, "employeeId", date, status, "checkIn", "checkOut", hours, "isRegularized", "checkInImage", "checkOutImage", "checkInCoords", "checkOutCoords" FROM attendance WHERE "employeeId" = ? AND date = ?');
+        $stmtOldAtt = $conn->prepare('SELECT id, "employeeId", date, status, "checkIn", "checkOut", hours, "isRegularized", "checkInPhoto", "checkOutPhoto", "checkInLat", "checkInLng", "checkInAddress", "checkOutLat", "checkOutLng", "checkOutAddress" FROM attendance WHERE "employeeId" = ? AND date = ?');
         $stmtOldAtt->execute([$employeeId, $date]);
         $oldAtt = $stmtOldAtt->fetch(PDO::FETCH_ASSOC);
 
@@ -709,7 +709,7 @@ $app->post('/api/admin/attendance/regularize', function (Request $request, Respo
                 $stmtUpdate = $conn->prepare('UPDATE attendance SET status = ?, "checkIn" = ?, "checkOut" = ?, hours = ?, "isRegularized" = ? WHERE id = ?');
                 $stmtUpdate->execute([$status, $checkIn, $checkOut, $hours, 'true', $oldAtt['id']]);
                 
-                $stmtNewAtt = $conn->prepare('SELECT id, "employeeId", date, status, "checkIn", "checkOut", hours, "isRegularized", "checkInImage", "checkOutImage", "checkInCoords", "checkOutCoords" FROM attendance WHERE id = ?');
+                $stmtNewAtt = $conn->prepare('SELECT id, "employeeId", date, status, "checkIn", "checkOut", hours, "isRegularized", "checkInPhoto", "checkOutPhoto", "checkInLat", "checkInLng", "checkInAddress", "checkOutLat", "checkOutLng", "checkOutAddress" FROM attendance WHERE id = ?');
                 $stmtNewAtt->execute([$oldAtt['id']]);
                 $newAtt = $stmtNewAtt->fetch(PDO::FETCH_ASSOC);
                 
@@ -719,7 +719,7 @@ $app->post('/api/admin/attendance/regularize', function (Request $request, Respo
                 $stmtInsert->execute([$employeeId, $date, $status, $checkIn, $checkOut, $hours, 'true']);
                 $newId = $stmtInsert->fetchColumn();
                 
-                $stmtNewAtt = $conn->prepare('SELECT id, "employeeId", date, status, "checkIn", "checkOut", hours, "isRegularized", "checkInImage", "checkOutImage", "checkInCoords", "checkOutCoords" FROM attendance WHERE id = ?');
+                $stmtNewAtt = $conn->prepare('SELECT id, "employeeId", date, status, "checkIn", "checkOut", hours, "isRegularized", "checkInPhoto", "checkOutPhoto", "checkInLat", "checkInLng", "checkInAddress", "checkOutLat", "checkOutLng", "checkOutAddress" FROM attendance WHERE id = ?');
                 $stmtNewAtt->execute([$newId]);
                 $newAtt = $stmtNewAtt->fetch(PDO::FETCH_ASSOC);
                 
@@ -1018,7 +1018,7 @@ $app->get('/api/admin/attendance/location/{id}', function (Request $request, Res
     }
     
     try {
-        $stmt = $conn->prepare('SELECT id, "employeeId", date, status, "checkIn", "checkOut", hours, "isRegularized", "checkInImage", "checkOutImage", "checkInCoords", "checkOutCoords" FROM attendance WHERE id = ?');
+        $stmt = $conn->prepare('SELECT id, "employeeId", date, status, "checkIn", "checkOut", hours, "isRegularized", "checkInPhoto", "checkOutPhoto", "checkInLat", "checkInLng", "checkInAddress", "checkOutLat", "checkOutLng", "checkOutAddress" FROM attendance WHERE id = ?');
         $stmt->execute([$id]);
         $record = $stmt->fetch(PDO::FETCH_ASSOC);
         

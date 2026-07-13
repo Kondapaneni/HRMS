@@ -67,7 +67,7 @@ $app->post('/api/employee/attendance/punch', function (Request $request, Respons
         $shiftStartTime = $empShift && !empty($empShift['startTime']) ? $empShift['startTime'] : null;
         $shiftEndTime = $empShift && !empty($empShift['endTime']) ? $empShift['endTime'] : null;
 
-        $stmt = $conn->prepare('SELECT id, "employeeId", date, status, "checkIn", "checkOut", hours, "isRegularized", "checkInImage", "checkOutImage", "checkInCoords", "checkOutCoords" FROM attendance WHERE "employeeId" = ? AND date = ? LIMIT 1');
+        $stmt = $conn->prepare('SELECT id, "employeeId", date, status, "checkIn", "checkOut", hours, "isRegularized", "checkInPhoto", "checkOutPhoto", "checkInLat", "checkInLng", "checkInAddress", "checkOutLat", "checkOutLng", "checkOutAddress" FROM attendance WHERE "employeeId" = ? AND date = ? LIMIT 1');
         $stmt->execute([$decodedToken->id, $today]);
         $record = $stmt->fetch();
 
