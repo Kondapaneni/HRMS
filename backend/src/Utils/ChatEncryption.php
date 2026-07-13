@@ -6,7 +6,7 @@ class ChatEncryption
 {
     private static function getKey(): string
     {
-        $hexKey = $_ENV['APP_CHAT_KEY'] ?? '';
+        $hexKey = $_ENV['APP_CHAT_KEY'] ?? getenv('APP_CHAT_KEY') ?? $_SERVER['APP_CHAT_KEY'] ?? '';
         if (empty($hexKey) || strlen($hexKey) !== 64) {
             // Fallback or throw error. We'll throw an error for missing key
             throw new \Exception('APP_CHAT_KEY environment variable is not set correctly (must be 64 hex chars).');

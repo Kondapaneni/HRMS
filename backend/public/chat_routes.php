@@ -170,32 +170,40 @@ $app->post('/api/chat', function (Request $request, Response $response) {
 
 // GET /api/chat/{id}/messages
 $app->get('/api/chat/{id}/messages', function (Request $request, Response $response, $args) {
-    $userId = $request->getAttribute('user')->id;
-    $chatId = $args['id'];
-    
-    $db = new Database();
-    $conn = $db->getConnection();
-    
-    // Check if user is participant
-    $stmt = $conn->prepare('SELECT "joinedAt" FROM chat_participants WHERE "chatId" = ? AND "userId" = ?');
-    $stmt->execute([$chatId, $userId]);
-    $joinedAt = $stmt->fetchColumn();
-    if (!$joinedAt) {
-        return $response->withStatus(403);
+    try {
+        $userId = $request->getAttribute('user')->id;
+        $chatId = $args['id'];
+        
+        $db = new Database();
+        $conn = $db->getConnection();
+        
+        // Check if user is participant
+        $stmt = $conn->prepare('SELECT "joinedAt" FROM chat_participants WHERE "chatId" = ? AND "userId" = ?');
+        $stmt->execute([$chatId, $userId]);
+        $joinedAt = $stmt->fetchColumn();
+        if (!$joinedAt) {
+            return $response->withStatus(403);
+        }
+        
+        $stmt = $conn->prepare('SELECT id, "chatId", "senderId", content, "attachmentUrl", "attachmentType", "attachmentName", "attachmentSize", "deliveredTo", "readBy", "isSystemMessage", "createdAt" FROM chat_messages WHERE "chatId" = ? AND "createdAt" >= ? ORDER BY "createdAt" ASC');
+        $stmt->execute([$chatId, $joinedAt]);
+        $messages = $stmt->fetchAll();
+        
+        foreach ($messages as &$msg) {
+            $msg['content'] = ChatEncryption::decrypt($msg['content']);
+            $msg['deliveredTo'] = is_string($msg['deliveredTo']) ? json_decode($msg['deliveredTo'], true) : $msg['deliveredTo'];
+            $msg['readBy'] = is_string($msg['readBy']) ? json_decode($msg['readBy'], true) : $msg['readBy'];
+        }
+        
+        $response->getBody()->write(json_encode($messages));
+        return $response->withHeader('Content-Type', 'application/json');
+    } catch (\PDOException $e) {
+        $response->getBody()->write(json_encode(['error' => 'Database error: ' . $e->getMessage()]));
+        return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
+    } catch (\Exception $e) {
+        $response->getBody()->write(json_encode(['error' => 'An error occurred: ' . $e->getMessage()]));
+        return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
     }
-    
-    $stmt = $conn->prepare('SELECT id, "chatId", "senderId", content, "attachmentUrl", "attachmentType", "attachmentName", "attachmentSize", "deliveredTo", "readBy", "isSystemMessage", "replyTo", "createdAt" FROM chat_messages WHERE "chatId" = ? AND "createdAt" >= ? ORDER BY "createdAt" ASC');
-    $stmt->execute([$chatId, $joinedAt]);
-    $messages = $stmt->fetchAll();
-    
-    foreach ($messages as &$msg) {
-        $msg['content'] = ChatEncryption::decrypt($msg['content']);
-        $msg['deliveredTo'] = is_string($msg['deliveredTo']) ? json_decode($msg['deliveredTo'], true) : $msg['deliveredTo'];
-        $msg['readBy'] = is_string($msg['readBy']) ? json_decode($msg['readBy'], true) : $msg['readBy'];
-    }
-    
-    $response->getBody()->write(json_encode($messages));
-    return $response->withHeader('Content-Type', 'application/json');
 })->add(new AuthMiddleware(['admin', 'employee', 'hr', 'manager']));
 
 // POST /api/chat/{id}/messages
