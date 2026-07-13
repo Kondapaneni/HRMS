@@ -101,19 +101,23 @@ const AdminAttendance = () => {
     
     const isToday = new Date(rec.date).toDateString() === new Date().toDateString();
     
+    if (!status.includes('present')) {
+        return status;
+    }
+
+    if (isToday && rec.checkIn && !rec.checkOut) {
+        return status === 'present' ? 'present-full-shift' : status;
+    }
+
+    if (rec.checkIn && !rec.checkOut) {
+        return status.includes('late') ? 'late-missing-checkout' : 'missing-checkout';
+    }
+
     if (status !== 'present') {
         return status;
     }
 
-    if (isToday && rec.checkIn && !rec.checkOut) return 'present-full-shift';
-
     const shiftWindow = parseShiftWindow(rec.shiftTime);
-    
-    if (rec.checkIn && !rec.checkOut) {
-      const checkInValue = new Date(rec.checkIn).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
-      if (checkInValue > shiftWindow.start) return 'late-missing-checkout';
-      return 'missing-checkout';
-    }
 
     if (!rec.checkIn || !rec.checkOut) return 'present-full-shift';
 
