@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Plus, Upload, FileText, CheckCircle, XCircle, Clock, ArrowLeft, Receipt } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -87,8 +88,8 @@ const EmployeeMobileExpenses = () => {
   };
 
   if (isFormOpen) {
-    return (
-      <div className="fixed inset-0 z-[100] bg-white flex flex-col h-[100dvh] overflow-hidden">
+    return createPortal(
+      <div className="fixed inset-0 z-[9999] bg-white flex flex-col h-[100dvh] overflow-hidden">
         <div className="bg-white px-5 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
           <button onClick={handleCloseForm} className="p-2 -ml-2 text-slate-600 bg-slate-50 rounded-full active:bg-slate-100 transition-colors">
             <ArrowLeft className="w-5 h-5" />
@@ -97,7 +98,7 @@ const EmployeeMobileExpenses = () => {
           <div className="w-10"></div>
         </div>
         
-        <div className="p-5 bg-white flex-1 overflow-y-auto">
+        <div className="p-5 bg-white flex-1 overflow-y-auto overscroll-contain">
           <form id="mobileExpenseForm" onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1.5">Title</label>
@@ -138,7 +139,8 @@ const EmployeeMobileExpenses = () => {
             {submitExpenseMutation.isPending ? 'Submitting...' : 'Submit Expense'}
           </button>
         </div>
-      </div>
+      </div>,
+      document.body
     );
   }
 
