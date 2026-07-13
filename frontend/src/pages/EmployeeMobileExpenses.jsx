@@ -88,57 +88,55 @@ const EmployeeMobileExpenses = () => {
 
   if (isFormOpen) {
     return (
-      <div className="pb-4">
-        <div className="bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden mx-2 mt-4 relative z-20">
-          <div className="bg-white px-5 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 z-10">
-            <button onClick={handleCloseForm} className="p-2 -ml-2 text-slate-600 bg-slate-50 rounded-full active:bg-slate-100 transition-colors">
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <h1 className="text-lg font-bold text-slate-800">New Expense</h1>
-            <div className="w-10"></div>
-          </div>
-          
-          <div className="p-4 bg-slate-50">
-            <form id="mobileExpenseForm" onSubmit={handleSubmit} className="space-y-5">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Title</label>
-                <input type="text" required value={title} onChange={(e) => setTitle(e.target.value)} className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500" placeholder="E.g. Taxi to Airport" />
+      <div className="fixed inset-0 z-[100] bg-white flex flex-col h-[100dvh] overflow-hidden">
+        <div className="bg-white px-5 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
+          <button onClick={handleCloseForm} className="p-2 -ml-2 text-slate-600 bg-slate-50 rounded-full active:bg-slate-100 transition-colors">
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <h1 className="text-lg font-bold text-slate-800">New Expense</h1>
+          <div className="w-10"></div>
+        </div>
+        
+        <div className="p-5 bg-white flex-1 overflow-y-auto">
+          <form id="mobileExpenseForm" onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Title</label>
+              <input type="text" required value={title} onChange={(e) => setTitle(e.target.value)} className="w-full px-4 py-3.5 bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all outline-none" placeholder="E.g. Taxi to Airport" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Amount ($)</label>
+              <input type="number" step="0.01" min="0" required value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full px-4 py-3.5 bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all outline-none" placeholder="0.00" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Category</label>
+              <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full px-4 py-3.5 bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all outline-none appearance-none">
+                <option>Travel</option>
+                <option>Meals</option>
+                <option>Supplies</option>
+                <option>Software</option>
+                <option>Hardware</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Description</label>
+              <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="w-full px-4 py-3.5 bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all outline-none" rows="3" placeholder="Optional details..."></textarea>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Bill / Receipt</label>
+              <input type="file" ref={fileInputRef} onChange={(e) => setBillFile(e.target.files[0])} className="hidden" accept="image/*,.pdf" />
+              <div onClick={() => fileInputRef.current?.click()} className="w-full p-5 border-2 border-dashed border-blue-200 bg-blue-50/50 rounded-xl text-center active:bg-blue-100 transition-colors">
+                <Upload className="w-7 h-7 text-blue-500 mx-auto mb-3" />
+                <span className="text-sm font-medium text-blue-700">{billFile ? billFile.name : 'Upload Document'}</span>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Amount ($)</label>
-                <input type="number" step="0.01" min="0" required value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500" placeholder="0.00" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Category</label>
-                <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500">
-                  <option>Travel</option>
-                  <option>Meals</option>
-                  <option>Supplies</option>
-                  <option>Software</option>
-                  <option>Hardware</option>
-                  <option>Other</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
-                <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500" rows="3" placeholder="Optional details..."></textarea>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Bill / Receipt</label>
-                <input type="file" ref={fileInputRef} onChange={(e) => setBillFile(e.target.files[0])} className="hidden" accept="image/*,.pdf" />
-                <div onClick={() => fileInputRef.current?.click()} className="w-full p-4 border-2 border-dashed border-blue-200 bg-blue-50/50 rounded-xl text-center active:bg-blue-100 transition-colors">
-                  <Upload className="w-6 h-6 text-blue-500 mx-auto mb-2" />
-                  <span className="text-sm font-medium text-blue-700">{billFile ? billFile.name : 'Upload Document'}</span>
-                </div>
-              </div>
-            </form>
-          </div>
-          
-          <div className="p-5 bg-white border-t border-slate-100">
-            <button type="submit" form="mobileExpenseForm" disabled={submitExpenseMutation.isPending} className="w-full py-3.5 bg-[#000] text-white rounded-xl font-semibold active:bg-slate-800 disabled:opacity-70 transition-all flex justify-center items-center shadow-lg shadow-black/20">
-              {submitExpenseMutation.isPending ? 'Submitting...' : 'Submit Expense'}
-            </button>
-          </div>
+            </div>
+          </form>
+        </div>
+        
+        <div className="p-5 bg-white border-t border-slate-100 shrink-0 pb-safe">
+          <button type="submit" form="mobileExpenseForm" disabled={submitExpenseMutation.isPending} className="w-full py-4 bg-[#000] text-white rounded-xl font-bold active:bg-slate-800 disabled:opacity-70 transition-all flex justify-center items-center shadow-lg shadow-black/20 text-[15px]">
+            {submitExpenseMutation.isPending ? 'Submitting...' : 'Submit Expense'}
+          </button>
         </div>
       </div>
     );
