@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Lock, ArrowRight, Briefcase, Eye, EyeOff, User, CheckCircle2 } from 'lucide-react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, Navigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../api/axios';
+import { useAuth } from '../contexts/AuthContext';
 
 const CandidateLogin = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -57,6 +58,14 @@ const CandidateLogin = () => {
   const isPasswordValid = strengthScore === passwordRequirements.length;
 
   const navigate = useNavigate();
+  const { user, profile, profileLoading } = useAuth();
+
+  // If already authenticated, redirect immediately
+  if (user && profile) {
+    if (profile.role === 'candidate') {
+      return <Navigate to="/candidate/dashboard" replace />;
+    }
+  }
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });

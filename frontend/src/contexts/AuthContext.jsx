@@ -56,17 +56,18 @@ export const AuthProvider = ({ children }) => {
 
     // Check if the current route is exactly a public route
     const isPublicRoute = PUBLIC_ROUTES.includes(location.pathname);
+    const hasToken = !!localStorage.getItem('token');
 
-    if (isPublicRoute) {
-      // Don't fetch on public routes, finish initialization immediately
+    if (isPublicRoute && !hasToken) {
+      // Don't fetch on public routes if no token exists, finish initialization immediately
       setLoading(false);
       setIsInitialized(true);
       return;
     }
 
-    // On protected routes, fetch profile with minimum 1200ms splash delay
+    // On protected routes or if returning with a token, fetch profile with minimum 1200ms splash delay
     const initializeAuth = async () => {
-      if (!localStorage.getItem('token')) {
+      if (!hasToken) {
         setLoading(false);
         setIsInitialized(true);
         return;
