@@ -30,12 +30,16 @@ export const AuthProvider = ({ children }) => {
     fetchInProgress.current = true;
     setProfileLoading(true);
     try {
+      if (!localStorage.getItem('token')) {
+        throw new Error('No token found');
+      }
       const response = await api.get('/me');
       setProfile(response.data);
       setUser({ email: response.data.email, id: response.data.id });
     } catch (error) {
-      if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+      if (error.message === 'No token found' || (error.response && (error.response.status === 401 || error.response.status === 403))) {
         // User is simply not logged in or session expired
+        localStorage.removeItem('token');
         setProfile(null);
         setUser(null);
       } else {
@@ -62,6 +66,12 @@ export const AuthProvider = ({ children }) => {
 
     // On protected routes, fetch profile with minimum 1200ms splash delay
     const initializeAuth = async () => {
+      if (!localStorage.getItem('token')) {
+        setLoading(false);
+        setIsInitialized(true);
+        return;
+      }
+
       const startTime = Date.now();
       
       await fetchProfile();
@@ -82,7 +92,10 @@ export const AuthProvider = ({ children }) => {
 
   const signIn = async (email, password) => {
     const response = await api.post('/login', { email, password });
-    const { user: userData } = response.data;
+    const { token, user: userData } = response.data;
+    if (token) {
+      localStorage.setItem('token', token);
+    }
     await fetchProfile();
     return userData;
   };
@@ -93,6 +106,7 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       console.error('Logout error', err);
     }
+    localStorage.removeItem('token');
     setProfile(null);
     setUser(null);
     queryClient.clear();

@@ -74,6 +74,10 @@ const CandidateLogin = () => {
           password: formData.password
         });
 
+        if (res.data.token) {
+          localStorage.setItem('token', res.data.token);
+        }
+
         toast.success('Welcome back!');
         window.location.href = '/candidate/dashboard';
 

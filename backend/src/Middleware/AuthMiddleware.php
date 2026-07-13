@@ -24,14 +24,10 @@ class AuthMiddleware
 
     public function __invoke(Request $request, RequestHandler $handler): Response
     {
-        $cookies = $request->getCookieParams();
-        $token = $cookies['token'] ?? null;
-        
-        if (empty($token)) {
-            $authHeader = $request->getHeader('Authorization');
-            if (!empty($authHeader)) {
-                $token = str_replace('Bearer ', '', $authHeader[0]);
-            }
+        $authHeader = $request->getHeader('Authorization');
+        $token = null;
+        if (!empty($authHeader)) {
+            $token = str_replace('Bearer ', '', $authHeader[0]);
         }
 
         if (empty($token)) {

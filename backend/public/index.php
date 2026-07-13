@@ -149,22 +149,14 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
             ];
         }
 
-        $isSecure = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') || 
-                    (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https');
-        $maxAge = ($sessionTimeout === 'never') ? (60 * 60 * 24 * 365 * 10) : ((int)$sessionTimeout * 60);
-        $cookieValue = "token=" . urlencode($jwt) . "; Path=/; HttpOnly; SameSite=Strict; Max-Age=" . $maxAge;
-        if ($isSecure) {
-            $cookieValue .= "; Secure";
-        }
-
         $response->getBody()->write(json_encode([
+            'token' => $jwt,
             'user' => $user
         ]));
         
         RateLimiter::clearAttempts($conn, $ip, $action);
         
         return $response
-            ->withHeader('Set-Cookie', $cookieValue)
             ->withHeader('Content-Type', 'application/json')
             ->withStatus(200);
     }
@@ -176,16 +168,8 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
 });
 
 $app->post('/api/logout', function (Request $request, Response $response, $args) {
-    $isSecure = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') || 
-                (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https');
-    $cookieValue = "token=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0";
-    if ($isSecure) {
-        $cookieValue .= "; Secure";
-    }
-    
     $response->getBody()->write(json_encode(['message' => 'Logged out']));
     return $response
-        ->withHeader('Set-Cookie', $cookieValue)
         ->withHeader('Content-Type', 'application/json')
         ->withStatus(200);
 });
