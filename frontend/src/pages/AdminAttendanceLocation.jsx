@@ -300,7 +300,10 @@ const AdminAttendanceLocation = () => {
   const checkOutCoordsStr = (record.checkOutLat && record.checkOutLng) ? `${parseFloat(record.checkOutLat).toFixed(6)}, ${parseFloat(record.checkOutLng).toFixed(6)}` : 'No location';
 
   return (
-    <div className="flex h-[calc(100vh-2rem)] flex-col gap-4 overflow-hidden">
+    <div 
+      className="flex flex-col gap-4 overflow-hidden -mx-4 sm:-mx-6 -mt-4 sm:-mt-6 px-4 sm:px-6 pt-4 sm:pt-6 -mb-4 sm:-mb-6" 
+      style={{ height: 'calc(100vh - 61px)' }}
+    >
       <style>{`
         .gm-ui-hover-effect {
           display: none !important;
