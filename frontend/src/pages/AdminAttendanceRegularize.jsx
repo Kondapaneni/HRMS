@@ -352,18 +352,18 @@ const AdminAttendanceRegularize = () => {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between mb-2">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900 mb-1">Attendance Regularization</h1>
+          <p className="text-sm text-slate-500">Regularize employee attendance for a full month</p>
+        </div>
+        <div>
           <button 
             onClick={() => navigate('/admin/attendance')}
-            className="p-2 bg-white border border-slate-200 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-colors cursor-pointer"
+            className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-10 px-4 py-2 transition-colors cursor-pointer"
           >
-            <ArrowLeft className="w-5 h-5" />
+            Back to Attendance
           </button>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">Attendance Regularization</h1>
-            <p className="text-sm text-slate-500">Regularize employee attendance for a full month</p>
-          </div>
         </div>
       </div>
 

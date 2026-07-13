@@ -100,15 +100,9 @@ const AdminAttendanceConfig = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <button 
-              onClick={() => navigate('/admin/attendance')}
-              className="p-1 hover:bg-slate-100 rounded-md transition-colors text-slate-500 cursor-pointer"
-            >
-              <ChevronLeft size={20} />
-            </button>
             <h1 className="text-3xl font-bold tracking-tight text-slate-900">Locations & Shifts</h1>
           </div>
-          <p className="text-sm text-slate-500 ml-8">Configure geo-fences and valid shift timings for attendance tracking</p>
+          <p className="text-sm text-slate-500">Configure geo-fences and valid shift timings for attendance tracking</p>
         </div>
         <div className="flex gap-3">
           <button 
@@ -122,6 +116,12 @@ const AdminAttendanceConfig = () => {
             className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-10 px-4 py-2 transition-colors cursor-pointer"
           >
             <Clock className="w-4 h-4 mr-2 text-slate-500" /> Add Shift Time
+          </button>
+          <button 
+            onClick={() => navigate('/admin/attendance')}
+            className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-10 px-4 py-2 transition-colors cursor-pointer"
+          >
+            Back to Attendance
           </button>
         </div>
       </div>
