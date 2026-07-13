@@ -653,44 +653,54 @@ $app->post('/api/admin/attendance/regularize', function (Request $request, Respo
     $hours = null;
 
     if ($status === 'present') {
-        if (!$checkInTime || (!$checkOutTime && $status === 'present' && $checkOutTime === false)) { // Adjust to logic if checkout is missing
-            // Wait, previous code checked: if (!$checkInTime || !$checkOutTime) { error }
-        }
-        if (!$checkInTime || !$checkOutTime) {
-            $response->getBody()->write(json_encode(['error' => 'Check-in and check-out times are required for Present status.']));
+        if (!$checkInTime) {
+            $response->getBody()->write(json_encode(['error' => 'Check-in time is required for Present status.']));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
         }
+
         $checkIn = $date . ' ' . $checkInTime . ':00';
-        $checkOut = $date . ' ' . $checkOutTime . ':00';
         
-        if (strtotime($checkOut) <= strtotime($checkIn)) {
-            $response->getBody()->write(json_encode(['error' => 'Check-out must be after check-in.']));
-            return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+        if ($checkOutTime) {
+            $checkOut = $date . ' ' . $checkOutTime . ':00';
+            if (strtotime($checkOut) <= strtotime($checkIn)) {
+                $response->getBody()->write(json_encode(['error' => 'Check-out must be after check-in.']));
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+            }
+            $hours = round((strtotime($checkOut) - strtotime($checkIn)) / 3600, 2);
+        } else {
+            $hours = 0;
         }
         
-        $hours = round((strtotime($checkOut) - strtotime($checkIn)) / 3600, 2);
         if ($hoursInput !== '') {
             $hours = max(0, round((float)$hoursInput, 2));
         }
 
-        // Calculate late/early based on shift
+        // Calculate late/early/missing based on shift
         $stmtEmpShift = $conn->prepare('SELECT e."shiftTime", s."startTime", s."endTime" FROM employee e LEFT JOIN shift_times s ON e."shiftTime" = s."shiftLabel" WHERE e."userId" = ?');
         $stmtEmpShift->execute([$employeeId]);
         $empShift = $stmtEmpShift->fetch(PDO::FETCH_ASSOC);
         
         if ($empShift && !empty($empShift['startTime']) && !empty($empShift['endTime'])) {
             $checkInTimeStr = date('H:i:s', strtotime($checkIn));
-            $checkOutTimeStr = date('H:i:s', strtotime($checkOut));
-            
             $isLate = ($checkInTimeStr > $empShift['startTime']);
-            $isEarly = ($checkOutTimeStr < $empShift['endTime']);
-            
-            if ($isLate && $isEarly) {
-                $status = 'present (late+early)';
-            } elseif ($isLate) {
-                $status = 'present (late)';
-            } elseif ($isEarly) {
-                $status = 'present (early)';
+
+            if (!$checkOutTime) {
+                $status = $isLate ? 'present (late+checkout missing)' : 'present (checkout missing)';
+            } else {
+                $checkOutTimeStr = date('H:i:s', strtotime($checkOut));
+                $isEarly = ($checkOutTimeStr < $empShift['endTime']);
+                
+                if ($isLate && $isEarly) {
+                    $status = 'present (early+late)';
+                } elseif ($isLate) {
+                    $status = 'present (late)';
+                } elseif ($isEarly) {
+                    $status = 'present (early)';
+                }
+            }
+        } else {
+            if (!$checkOutTime) {
+                $status = 'present (checkout missing)';
             }
         }
     }
