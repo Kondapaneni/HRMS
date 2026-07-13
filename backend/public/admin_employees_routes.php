@@ -93,7 +93,7 @@ $app->get('/api/admin/employees/{id}', function (Request $request, Response $res
         $leaveBalance['paidTotal'] = $balRow ? $balRow['paidTotal'] : 12;
 
         // Get recent payslips
-        $stmtPayslips = $conn->prepare('SELECT id, "employeeId", year, month, "basicSalary", "netSalary", "totalEarnings", "totalDeductions", "status", "detailsJson", "earningsJson", "deductionsJson", "createdAt" FROM payslips WHERE "employeeId" = ? ORDER BY year DESC, month DESC LIMIT 5');
+        $stmtPayslips = $conn->prepare('SELECT id, "employeeId", year, month, "netSalary", "status", "detailsJson", "earningsJson", "deductionsJson", "createdAt" FROM payslips WHERE "employeeId" = ? ORDER BY year DESC, month DESC LIMIT 5');
         $stmtPayslips->execute([$employee['userId']]);
         $rawPayslips = $stmtPayslips->fetchAll(PDO::FETCH_ASSOC);
 
