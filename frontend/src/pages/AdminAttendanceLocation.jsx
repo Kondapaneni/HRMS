@@ -301,6 +301,14 @@ const AdminAttendanceLocation = () => {
 
   return (
     <div className="flex h-[calc(100vh-8rem)] flex-col gap-4 overflow-hidden">
+      <style>{`
+        .gm-ui-hover-effect {
+          display: none !important;
+        }
+        .gm-style-iw-c button[title="Close"] {
+          display: none !important;
+        }
+      `}</style>
       <div className="flex items-center justify-between mb-2">
         <button
           onClick={() => navigate(`/admin/attendance?date=${date || record.date}`)}
