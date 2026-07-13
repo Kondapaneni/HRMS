@@ -122,7 +122,7 @@ $app->post('/api/employee/attendance/punch', function (Request $request, Respons
                 
                 if ($isEarly) {
                     if (strpos($currentStatus, '(late)') !== false) {
-                        $newStatus = 'present (late+early)';
+                        $newStatus = 'present (early+late)';
                     } else if ($currentStatus === 'present') {
                         $newStatus = 'present (early)';
                     }

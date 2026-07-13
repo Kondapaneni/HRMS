@@ -118,11 +118,6 @@ const EmployeeAttendance = () => {
     if (!record || !record.status) return 'missing';
     const l = record.status.toLowerCase();
     
-    const isToday = new Date(record.date).toDateString() === new Date().toDateString();
-    if (!isToday && record.checkIn && !record.checkOut && l.includes('present')) {
-      return l.includes('late') ? 'late-missing-checkout' : 'missing-checkout';
-    }
-
     if (l.includes('present')) return l;
     if (l === 'weekend') return 'week-off';
     if (l === 'holiday') return 'holiday';
@@ -178,9 +173,9 @@ const EmployeeAttendance = () => {
     'present': { label: 'Present', classes: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
     'present (late)': { label: 'Present (Late)', classes: 'bg-yellow-100 text-yellow-700 border-yellow-200' },
     'present (early)': { label: 'Present (Early)', classes: 'bg-orange-100 text-orange-700 border-orange-200' },
-    'present (late+early)': { label: 'Present (Late+Early)', classes: 'bg-orange-100 text-orange-700 border-orange-200' },
-    'missing-checkout': { label: 'Checkout Missing', classes: 'bg-yellow-100 text-yellow-700 border-yellow-200' },
-    'late-missing-checkout': { label: 'Late + Checkout Missing', classes: 'bg-yellow-100 text-yellow-700 border-yellow-200' },
+    'present (early+late)': { label: 'Present (Early+Late)', classes: 'bg-orange-100 text-orange-700 border-orange-200' },
+    'present (checkout missing)': { label: 'Checkout Missing', classes: 'bg-yellow-100 text-yellow-700 border-yellow-200' },
+    'present (late+checkout missing)': { label: 'Late + Checkout Missing', classes: 'bg-yellow-100 text-yellow-700 border-yellow-200' },
     'paid leave': { label: 'Paid Leave', classes: 'bg-blue-100 text-blue-700 border-blue-200' },
     'unpaid leave': { label: 'Unpaid Leave', classes: 'bg-blue-100 text-blue-700 border-blue-200' },
     'sandwich leave': { label: 'Sandwich Leave', classes: 'bg-blue-100 text-blue-700 border-blue-200' },

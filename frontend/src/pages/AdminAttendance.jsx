@@ -78,16 +78,16 @@ const AdminAttendance = () => {
   const parseShiftWindow = (shiftTime) => {
     const defaultShift = { start: '09:45', end: '18:30' };
     if (!shiftTime) return defaultShift;
-    
+
     const regex = /(\d{1,2}:\d{2}\s*[AP]M)\s*(?:to|-|–)\s*(\d{1,2}:\d{2}\s*[AP]M)/i;
     const match = shiftTime.match(regex);
     if (!match) return defaultShift;
-    
+
     const parseTime = (timeStr) => {
       const d = new Date(`1970-01-01 ${timeStr}`);
       return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
     };
-    
+
     return {
       start: parseTime(match[1]),
       end: parseTime(match[2])
@@ -96,64 +96,23 @@ const AdminAttendance = () => {
 
   const getComputedStatus = (rec) => {
     const status = (rec.status || 'missing').toLowerCase();
-    if (['paid leave', 'unpaid leave', 'sandwich leave', 'holiday', 'weekend', 'future', 'not-joined', 'missing', 'not-marked'].includes(status)) return status;
     if (rec.isRegularized === true || rec.isRegularized === 'true' || rec.isRegularized === 'yes') return 'regularized';
-    
-    const isToday = new Date(rec.date).toDateString() === new Date().toDateString();
-    
-    if (!status.includes('present')) {
-        return status;
-    }
-
-    if (isToday && rec.checkIn && !rec.checkOut) {
-        return status === 'present' ? 'present-full-shift' : status;
-    }
-
-    if (rec.checkIn && !rec.checkOut) {
-        return status.includes('late') ? 'late-missing-checkout' : 'missing-checkout';
-    }
-
-    if (status !== 'present') {
-        return status;
-    }
-
-    const shiftWindow = parseShiftWindow(rec.shiftTime);
-
-    if (!rec.checkIn || !rec.checkOut) return 'present-full-shift';
-
-    const checkInValue = new Date(rec.checkIn).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
-    const checkOutValue = new Date(rec.checkOut).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
-
-    const isLateCheckIn = checkInValue > shiftWindow.start;
-    const isEarlyCheckout = checkOutValue < shiftWindow.end;
-
-    if (isLateCheckIn && isEarlyCheckout) return 'late-and-early';
-    if (isLateCheckIn) return 'late-checkin';
-    if (isEarlyCheckout) return 'early-checkout';
-
-    return 'present-full-shift';
+    return status;
   };
 
   const getStatusPalette = (computedStatus) => {
     switch (computedStatus) {
-      case 'present-full-shift':
       case 'present':
         return { badge: 'bg-emerald-100 text-emerald-700 border-emerald-200', label: 'Present' };
-      case 'Present (Late)':
       case 'present (late)':
-      case 'late-checkin':
         return { badge: 'bg-yellow-100 text-yellow-700 border-yellow-200', label: 'Present (Late)' };
-      case 'Present (Early)':
       case 'present (early)':
-      case 'early-checkout':
         return { badge: 'bg-orange-100 text-orange-700 border-orange-200', label: 'Present (Early)' };
-      case 'Present (Late+Early)':
-      case 'present (late+early)':
-      case 'late-and-early':
-        return { badge: 'bg-orange-100 text-orange-700 border-orange-200', label: 'Present (Late+Early)' };
-      case 'missing-checkout':
+      case 'present (early+late)':
+        return { badge: 'bg-orange-100 text-orange-700 border-orange-200', label: 'Present (Early+Late)' };
+      case 'present (checkout missing)':
         return { badge: 'bg-yellow-100 text-yellow-700 border-yellow-200', label: 'Checkout Missing' };
-      case 'late-missing-checkout':
+      case 'present (late+checkout missing)':
         return { badge: 'bg-yellow-100 text-yellow-700 border-yellow-200', label: 'Late + Checkout Missing' };
       case 'regularized':
         return { badge: 'bg-teal-100 text-teal-700 border-teal-200', label: 'Regularized' };
@@ -287,7 +246,7 @@ const AdminAttendance = () => {
                   const computedStatus = getComputedStatus(row);
                   const palette = getStatusPalette(computedStatus);
                   const displayLabel = row.status === 'holiday' && row.holidayName ? `Holiday: ${row.holidayName}` : palette.label;
-                  
+
                   return (
                     <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="px-4 py-3 font-medium text-slate-900">{row.employeeName}</td>
