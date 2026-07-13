@@ -312,15 +312,7 @@ const AdminAttendanceLocation = () => {
           display: none !important;
         }
       `}</style>
-      <div className="flex items-center justify-between mb-2">
-        <button
-          onClick={() => navigate(`/admin/attendance?date=${date || record.date}`)}
-          className="inline-flex items-center text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors cursor-pointer"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Attendance
-        </button>
-      </div>
+
       
       <div className="grid gap-4 md:grid-cols-[320px_1fr] lg:grid-cols-[360px_1fr] min-h-0 flex-1">
         <aside className="flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden h-full">
