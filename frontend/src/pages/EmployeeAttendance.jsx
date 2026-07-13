@@ -119,8 +119,8 @@ const EmployeeAttendance = () => {
     const l = record.status.toLowerCase();
     
     const isToday = new Date(record.date).toDateString() === new Date().toDateString();
-    if (!isToday && record.checkIn && !record.checkOut && l === 'present') {
-      return 'missing-checkout';
+    if (!isToday && record.checkIn && !record.checkOut && l.includes('present')) {
+      return l.includes('late') ? 'late-missing-checkout' : 'missing-checkout';
     }
 
     if (l.includes('present')) return l;
