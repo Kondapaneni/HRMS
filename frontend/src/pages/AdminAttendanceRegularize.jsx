@@ -351,11 +351,11 @@ const AdminAttendanceRegularize = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      <div className="flex items-center justify-between mb-2">
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 mb-1">Attendance Regularization</h1>
-          <p className="text-sm text-slate-500">Regularize employee attendance for a full month</p>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Attendance Regularization</h1>
+          <p className="text-sm text-slate-500 mt-1">Regularize employee attendance for a full month</p>
         </div>
         <div>
           <button 

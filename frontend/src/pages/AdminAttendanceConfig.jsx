@@ -99,10 +99,8 @@ const AdminAttendanceConfig = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900">Locations & Shifts</h1>
-          </div>
-          <p className="text-sm text-slate-500">Configure geo-fences and valid shift timings for attendance tracking</p>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Locations & Shifts</h1>
+          <p className="text-sm text-slate-500 mt-1">Configure geo-fences and valid shift timings for attendance tracking</p>
         </div>
         <div className="flex gap-3">
           <button 
