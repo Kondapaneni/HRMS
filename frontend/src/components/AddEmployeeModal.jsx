@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, Camera } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
+import { supabase } from '../lib/supabase';
 
 const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
   const navigate = useNavigate();
@@ -11,6 +12,8 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(null);
 
   const initialFormState = {
     firstName: '',
@@ -60,6 +63,8 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
       // Optional: clear form when closed
       setFormData(initialFormState);
       setError(null);
+      setAvatarFile(null);
+      setAvatarPreview(null);
     }
   }, [isOpen]);
 
@@ -79,15 +84,43 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setAvatarFile(file);
+      setAvatarPreview(URL.createObjectURL(file));
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
+      let avatarUrl = null;
+      if (avatarFile) {
+        const fileExt = avatarFile.name.split('.').pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `avatars/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(filePath, avatarFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: publicUrlData } = supabase.storage
+          .from('avatars')
+          .getPublicUrl(filePath);
+
+        avatarUrl = publicUrlData.publicUrl;
+      }
+
       const res = await api.post('/employees', {
         ...formData,
-        salary: parseFloat(formData.salary)
+        salary: parseFloat(formData.salary),
+        ...(avatarUrl && { avatar: avatarUrl })
       });
       setLoading(false);
       toast.success('Employee created successfully!');
@@ -109,8 +142,8 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/50 backdrop-blur-sm">
+      <div className="bg-white shadow-2xl w-full max-w-lg h-[100dvh] flex flex-col overflow-hidden transform transition-transform duration-300">
         
         <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
           <h2 className="text-lg font-semibold text-slate-800">Add New Employee</h2>
@@ -122,6 +155,21 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
         <div className="p-6 overflow-y-auto flex-1">
           <form id="add-employee-form" onSubmit={handleSubmit} className="space-y-4">
             
+            <div className="flex flex-col items-center mb-6">
+              <div className="relative w-24 h-24 rounded-full border-2 border-dashed border-slate-300 flex items-center justify-center bg-slate-50 overflow-hidden group">
+                {avatarPreview ? (
+                  <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover" />
+                ) : (
+                  <Camera className="text-slate-400" size={28} />
+                )}
+                <label className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                  <span className="text-white text-xs font-medium">Upload</span>
+                  <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
+                </label>
+              </div>
+              <p className="text-xs text-slate-500 mt-2">Profile Picture (Optional)</p>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">First Name *</label>

@@ -101,15 +101,12 @@ const AdminEmailTemplates = () => {
   const currentTemplate = templates.find(t => t.id === activeTemplate);
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6 relative z-10">
+    <div className="space-y-6 relative z-10">
 
       {/* Page Header */}
       <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-            <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg text-white shadow-sm">
-              <Mail size={20} />
-            </div>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">
             Email Templates
           </h1>
           <p className="text-sm text-slate-500 mt-1">

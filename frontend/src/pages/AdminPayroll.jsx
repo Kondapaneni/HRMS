@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
-import { DollarSign, Search, ChevronLeft, ChevronRight, Download, Eye, Calculator, X } from 'lucide-react';
+import { DollarSign, Search, ChevronLeft, ChevronRight, Download, Eye, Calculator, X, Layers } from 'lucide-react';
 import { pdf } from '@react-pdf/renderer';
 import PayslipPDF from '../components/PayslipPDF';
 import EmployeeSelect from '../components/EmployeeSelect';
@@ -124,8 +124,9 @@ const AdminPayroll = () => {
         </div>
         <button 
           onClick={() => navigate('/admin/payroll/bulk')}
-          className="flex items-center px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-900 transition-colors shadow-sm"
+          className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors shadow-sm"
         >
+          <Layers size={18} />
           Bulk Generate Payslips
         </button>
       </div>
