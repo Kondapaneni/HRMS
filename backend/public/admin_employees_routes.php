@@ -490,13 +490,14 @@ $app->post('/api/employees', function (Request $request, Response $response, $ar
             INSERT INTO employee (
                 "employeeId", "userId", "firstName", "lastName", email, phone, 
                 branch, department, position, "joinDate", salary, status, "managerId"
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id
         ');
         
         $stmtEmp->execute([
             $employeeId, $userId, $firstName, $lastName, $email, $phone,
             $branch, $department, $position, $joinDate, $salary, $status, $managerId
         ]);
+        $empPkId = $stmtEmp->fetchColumn();
 
         // 3. Queue Welcome Email
         $loginLink = $_ENV['FRONTEND_URL'] ?? 'https://hrms-qwv3.onrender.com';
@@ -520,6 +521,7 @@ $app->post('/api/employees', function (Request $request, Response $response, $ar
 
         $response->getBody()->write(json_encode([
             'message' => 'Employee created successfully',
+            'id' => $empPkId,
             'employeeId' => $employeeId,
             'userId' => $userId
         ]));

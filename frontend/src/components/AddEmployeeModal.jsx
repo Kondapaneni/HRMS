@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 
 const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
+  const navigate = useNavigate();
   const { session } = useAuth();
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -83,13 +85,18 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
     setError(null);
 
     try {
-      await api.post('/employees', {
+      const res = await api.post('/employees', {
         ...formData,
         salary: parseFloat(formData.salary)
       });
       setLoading(false);
       toast.success('Employee created successfully!');
       onSuccess();
+      
+      // Navigate to the edit page for the newly created employee
+      if (res.data && res.data.id) {
+        navigate(`/admin/employees/${res.data.id}/edit`);
+      }
     } catch (err) {
       console.error(err);
       const errMessage = err.response?.data?.error || err.message || "Failed to create employee.";
