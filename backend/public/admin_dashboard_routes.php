@@ -31,7 +31,7 @@ $app->get('/api/admin/dashboard/stats', function (Request $request, Response $re
             FROM attendance a
             JOIN employee e ON a.\"employeeId\" = e.\"userId\"
             WHERE a.date = CURRENT_DATE 
-              AND LOWER(TRIM(a.status)) IN ('present', 'present (late)', 'present (early)', 'present (late+early)', 'present-full-shift')
+              AND LOWER(TRIM(a.status)) LIKE 'present%'
               AND e.status = 'active'
         ");
         $presentToday = (int) $presentStmt->fetchColumn();
@@ -42,7 +42,7 @@ $app->get('/api/admin/dashboard/stats', function (Request $request, Response $re
             FROM attendance a
             JOIN employee e ON a.\"employeeId\" = e.\"userId\"
             WHERE a.date = CURRENT_DATE 
-              AND LOWER(TRIM(a.status)) IN ('leave', 'paid leave', 'unpaid leave', 'sandwich leave')
+              AND LOWER(TRIM(a.status)) LIKE '%leave%'
               AND e.status = 'active'
         ");
         $onLeaveToday = (int) $leaveStmt->fetchColumn();
@@ -52,8 +52,8 @@ $app->get('/api/admin/dashboard/stats', function (Request $request, Response $re
             SELECT 
                 DATE_TRUNC('month', a.date) as month_start,
                 EXTRACT(MONTH FROM a.date) as month_num,
-                SUM(CASE WHEN LOWER(TRIM(a.status)) IN ('present', 'present (late)', 'present (early)', 'present (late+early)', 'present-full-shift') THEN 1 ELSE 0 END) as present,
-                SUM(CASE WHEN LOWER(TRIM(a.status)) IN ('leave', 'paid leave', 'unpaid leave', 'sandwich leave') THEN 1 ELSE 0 END) as leave
+                SUM(CASE WHEN LOWER(TRIM(a.status)) LIKE 'present%' THEN 1 ELSE 0 END) as present,
+                SUM(CASE WHEN LOWER(TRIM(a.status)) LIKE '%leave%' THEN 1 ELSE 0 END) as leave
             FROM attendance a
             JOIN employee e ON a.\"employeeId\" = e.\"userId\"
             WHERE a.date >= CURRENT_DATE - INTERVAL '6 months'
@@ -64,6 +64,8 @@ $app->get('/api/admin/dashboard/stats', function (Request $request, Response $re
         $attendanceData = $trendStmt->fetchAll(PDO::FETCH_ASSOC);
         foreach ($attendanceData as &$row) {
             $row['month'] = date('M', strtotime($row['month_start']));
+            $row['present'] = (int)$row['present'];
+            $row['leave'] = (int)$row['leave'];
             unset($row['month_start']);
         }
 
@@ -71,9 +73,9 @@ $app->get('/api/admin/dashboard/stats', function (Request $request, Response $re
         $salaryStmt = $conn->query("
             SELECT 
                 CASE 
-                    WHEN salary < 50000 THEN '0-50k'
-                    WHEN salary >= 50000 AND salary < 100000 THEN '50k-100k'
-                    WHEN salary >= 100000 AND salary < 150000 THEN '100k-150k'
+                    WHEN COALESCE(NULLIF(salary::TEXT, ''), '0')::NUMERIC < 50000 THEN '0-50k'
+                    WHEN COALESCE(NULLIF(salary::TEXT, ''), '0')::NUMERIC >= 50000 AND COALESCE(NULLIF(salary::TEXT, ''), '0')::NUMERIC < 100000 THEN '50k-100k'
+                    WHEN COALESCE(NULLIF(salary::TEXT, ''), '0')::NUMERIC >= 100000 AND COALESCE(NULLIF(salary::TEXT, ''), '0')::NUMERIC < 150000 THEN '100k-150k'
                     ELSE '150k+' 
                 END as range,
                 COUNT(*) as count
@@ -82,6 +84,9 @@ $app->get('/api/admin/dashboard/stats', function (Request $request, Response $re
             GROUP BY range
         ");
         $salaryData = $salaryStmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($salaryData as &$row) {
+            $row['count'] = (int)$row['count'];
+        }
 
         // 6. Recent Activities
         $activityStmt = $conn->query("
