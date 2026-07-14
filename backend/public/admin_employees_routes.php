@@ -44,7 +44,7 @@ $app->get('/api/branches', function (Request $request, Response $response, $args
     $conn = $db->getConnection();
     
     try {
-        $stmt = $conn->query('SELECT id, name, address, city, state, "pinCode" FROM branches ORDER BY id ASC');
+        $stmt = $conn->query('SELECT id, name FROM branches ORDER BY id ASC');
         $branches = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $response->getBody()->write(json_encode(['branches' => $branches]));
