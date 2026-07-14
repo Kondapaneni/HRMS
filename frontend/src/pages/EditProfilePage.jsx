@@ -134,15 +134,15 @@ const EditProfilePage = () => {
           <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">First Name <span className="text-red-500">*</span></label>
-              <input type="text" name="firstName" required value={formData.firstName} onChange={handleChange} className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors" />
+              <input type="text" name="firstName" required value={formData.firstName} onChange={handleChange} disabled className="flex h-10 w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-500 cursor-not-allowed transition-colors" title="Contact your administrator to change your name" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Last Name <span className="text-red-500">*</span></label>
-              <input type="text" name="lastName" required value={formData.lastName} onChange={handleChange} className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors" />
+              <input type="text" name="lastName" required value={formData.lastName} onChange={handleChange} disabled className="flex h-10 w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-500 cursor-not-allowed transition-colors" title="Contact your administrator to change your name" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Email <span className="text-red-500">*</span></label>
-              <input type="email" name="email" required value={formData.email} onChange={handleChange} className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors" />
+              <input type="email" name="email" required value={formData.email} onChange={handleChange} disabled className="flex h-10 w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-500 cursor-not-allowed transition-colors" title="Contact your administrator to change your email" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Phone</label>
