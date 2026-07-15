@@ -230,12 +230,12 @@ $app->post('/api/login/face', function (Request $request, Response $response, $a
         return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
     }
 
-    // Verify distance using pgvector. <= 0.4 is a common threshold for cosine distance.
-    $distStmt = $conn->prepare('SELECT (face_descriptor <=> ?::vector) as distance FROM user_biometrics WHERE user_id = ?');
+    // Verify distance using pgvector. <= 0.5 is a strict threshold for Euclidean distance (face-api.js standard).
+    $distStmt = $conn->prepare('SELECT (face_descriptor <-> ?::vector) as distance FROM user_biometrics WHERE user_id = ?');
     $distStmt->execute([$faceDescriptor, $user['id']]);
     $distRow = $distStmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($distRow && (float)$distRow['distance'] <= 0.45) {
+    if ($distRow && (float)$distRow['distance'] <= 0.5) {
         // Successful login
         $isActive = ($user['isActive'] === true || $user['isActive'] === 'true' || $user['isActive'] === 't' || $user['isActive'] == 1);
         if (!$isActive) {
