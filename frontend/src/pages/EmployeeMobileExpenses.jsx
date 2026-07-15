@@ -17,7 +17,7 @@ const EmployeeMobileExpenses = () => {
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('Travel');
   const [billFile, setBillFile] = useState(null);
-  
+
   const fileInputRef = useRef(null);
 
   const { data: expensesData = [], isLoading } = useQuery({
@@ -37,11 +37,11 @@ const EmployeeMobileExpenses = () => {
         const { error: uploadError } = await supabase.storage
           .from('expenses')
           .upload(fileName, billFile);
-          
+
         if (uploadError) throw new Error('Failed to upload bill');
         bill_url = window.location.origin + "/Bills/" + fileName;
       }
-      
+
       const res = await api.post('/employee/expenses', {
         title,
         description,
@@ -97,7 +97,7 @@ const EmployeeMobileExpenses = () => {
           <h1 className="text-lg font-bold text-slate-800">New Expense</h1>
           <div className="w-10"></div>
         </div>
-        
+
         <div className="p-5 bg-white flex-1 overflow-y-auto overscroll-contain">
           <form id="mobileExpenseForm" onSubmit={handleSubmit} className="space-y-6">
             <div>
@@ -133,7 +133,7 @@ const EmployeeMobileExpenses = () => {
             </div>
           </form>
         </div>
-        
+
         <div className="p-5 bg-white border-t border-slate-100 shrink-0 pb-safe">
           <button type="submit" form="mobileExpenseForm" disabled={submitExpenseMutation.isPending} className="w-full py-4 bg-[#000] text-white rounded-xl font-bold active:bg-slate-800 disabled:opacity-70 transition-all flex justify-center items-center shadow-lg shadow-black/20 text-[15px]">
             {submitExpenseMutation.isPending ? 'Submitting...' : 'Submit Expense'}
@@ -182,6 +182,12 @@ const EmployeeMobileExpenses = () => {
 
         <div className="relative z-10 px-2 flex justify-between items-start">
           <div>
+            <div className="flex items-center gap-2 mb-1.5">
+              <button onClick={() => navigate('/employee')} className="text-white/80 active:text-white transition-colors p-1 -ml-1">
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+              <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest drop-shadow-md">My Finances</p>
+            </div>
 
             <h1 className="text-3xl font-black text-white tracking-tight drop-shadow-sm mb-0.5">Expenses</h1>
           </div>
@@ -226,13 +232,12 @@ const EmployeeMobileExpenses = () => {
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{exp.category}</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-50">
-                  <span className={`text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-md ${
-                    exp.status === 'Approved' ? 'bg-[#25d366]/10 text-[#25d366]' :
-                    exp.status === 'Rejected' ? 'bg-[#ff2d55]/10 text-[#ff2d55]' :
-                    'bg-[#ff9500]/10 text-[#ff9500]'
-                  }`}>
+                  <span className={`text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-md ${exp.status === 'Approved' ? 'bg-[#25d366]/10 text-[#25d366]' :
+                      exp.status === 'Rejected' ? 'bg-[#ff2d55]/10 text-[#ff2d55]' :
+                        'bg-[#ff9500]/10 text-[#ff9500]'
+                    }`}>
                     {exp.status}
                   </span>
                   {exp.bill_url && (
