@@ -192,6 +192,22 @@ function App() {
               }
             />
             <Route
+              path="/employee/mobile/holidays"
+              element={
+                <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
+                  <EmployeeMobileHolidays />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/employee/mobile/birthdays"
+              element={
+                <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
+                  <EmployeeMobileBirthdays />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/employee/chat/mobile"
               element={
                 <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>

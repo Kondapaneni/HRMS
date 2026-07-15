@@ -321,55 +321,87 @@ const EmployeeMobileDashboard = () => {
         </div>
       </section>
 
-      {/* Leave Balance */}
+      {/* Upcoming Holidays */}
       <section className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
-        <div className="px-6 pt-6 pb-4 border-b border-slate-100">
-          <h2 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">Leave balance</h2>
-          <p className="text-[11px] font-medium text-slate-500 mt-1 uppercase tracking-wider">Paid leave remaining</p>
-        </div>
-        <div className="p-6">
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="bg-slate-50 rounded-[1.5rem] p-5 flex flex-col items-center justify-center border border-slate-100">
-              <span className="text-3xl font-black text-slate-800 tracking-tight">{leaveRemaining}</span>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Remaining</span>
+        <Link to="/employee/mobile/holidays" className="px-6 pt-6 pb-4 border-b border-slate-100 flex justify-between items-center active:bg-slate-50 transition-colors">
+          <div className="flex items-center gap-3">
+            <div className="bg-emerald-50 p-2 rounded-lg">
+              <Calendar className="w-5 h-5 text-emerald-500" />
             </div>
-            <div className="bg-slate-50 rounded-[1.5rem] p-5 flex flex-col items-center justify-center border border-slate-100">
-              <span className="text-3xl font-black text-slate-800 tracking-tight">{unpaidUsed}</span>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Unpaid Used</span>
+            <div>
+              <h2 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">Upcoming Holidays</h2>
+              <p className="text-[11px] font-medium text-slate-500 mt-1 uppercase tracking-wider">Company calendar</p>
             </div>
           </div>
-          <Link to="/employee/leaves/apply" className="flex items-center justify-center w-full rounded-xl bg-[#84dcc6] text-slate-900 font-semibold text-sm py-3 hover:bg-[#7bcab4] active:scale-[0.98] transition-all">
-            Apply leave
-          </Link>
+          <ChevronRight className="w-5 h-5 text-slate-400" />
+        </Link>
+        <div className="p-4 space-y-3">
+          {/* Static mockup data for now, can be wired to API later */}
+          <div className="flex items-center p-3 rounded-xl hover:bg-slate-50 border border-slate-100 transition-colors">
+            <div className="w-12 h-12 bg-emerald-100/50 rounded-xl flex items-center justify-center text-emerald-600 font-bold text-sm shrink-0">
+              Aug 15
+            </div>
+            <div className="ml-4">
+              <h4 className="font-bold text-slate-800 text-sm">Independence Day</h4>
+              <p className="text-xs text-slate-500">Thursday</p>
+            </div>
+          </div>
+          <div className="flex items-center p-3 rounded-xl hover:bg-slate-50 border border-slate-100 transition-colors">
+            <div className="w-12 h-12 bg-emerald-100/50 rounded-xl flex items-center justify-center text-emerald-600 font-bold text-sm shrink-0">
+              Oct 02
+            </div>
+            <div className="ml-4">
+              <h4 className="font-bold text-slate-800 text-sm">Gandhi Jayanti</h4>
+              <p className="text-xs text-slate-500">Wednesday</p>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Salary Overview */}
+      {/* Upcoming Birthdays */}
       <section className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
-        <div className="px-6 pt-6 pb-4 border-b border-slate-100 flex justify-between items-start">
-          <div>
-            <h2 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">Salary overview</h2>
-            <p className="text-[11px] font-medium text-slate-500 mt-1 uppercase tracking-wider">Latest payslip snapshot</p>
+        <Link to="/employee/mobile/birthdays" className="px-6 pt-6 pb-4 border-b border-slate-100 flex justify-between items-center active:bg-slate-50 transition-colors">
+          <div className="flex items-center gap-3">
+            <div className="bg-purple-50 p-2 rounded-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-500"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">Upcoming Birthdays</h2>
+              <p className="text-[11px] font-medium text-slate-500 mt-1 uppercase tracking-wider">Celebrate with team</p>
+            </div>
           </div>
-          {latestPayslip && (
-            <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${latestPayslip.status === 'paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-              }`}>
-              {latestPayslip.status}
-            </span>
-          )}
-        </div>
-        <div className="p-6">
-          <div className="flex flex-col mb-6">
-            <span className="text-3xl font-black text-slate-800 tracking-tight">
-              {latestPayslip ? formatCurrency(latestPayslip.netSalary) : '₹0'}
-            </span>
-            <span className="text-xs font-bold text-slate-400 mt-1">
-              {latestPayslip ? `${new Date(latestPayslip.year, latestPayslip.month - 1).toLocaleString('default', { month: 'long' })} ${latestPayslip.year}` : 'No payslip available'}
-            </span>
+          <ChevronRight className="w-5 h-5 text-slate-400" />
+        </Link>
+        <div className="p-4 space-y-3">
+          {/* Static mockup data for now */}
+          <div className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 border border-slate-100 transition-colors">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold shadow-sm">
+                JS
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-800 text-sm">Jane Smith</h4>
+                <p className="text-[10px] uppercase font-bold text-slate-400">Marketing</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-sm font-bold text-slate-700">Aug 20</p>
+            </div>
           </div>
-          <Link to="/employee/payroll" className="flex items-center justify-center w-full rounded-xl border-2 border-slate-200 bg-white text-slate-700 font-semibold text-sm py-3 hover:bg-slate-50 active:scale-[0.98] transition-all">
-            View payroll
-          </Link>
+          <div className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 border border-slate-100 transition-colors">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold shadow-sm">
+                MJ
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-800 text-sm">Mike Johnson</h4>
+                <p className="text-[10px] uppercase font-bold text-slate-400">Engineering</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-sm font-bold text-slate-700">Sep 05</p>
+            </div>
+          </div>
         </div>
       </section>
 
