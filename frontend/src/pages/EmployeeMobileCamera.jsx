@@ -13,7 +13,7 @@ const EmployeeMobileCamera = () => {
   const queryClient = useQueryClient();
   const { profile } = useAuth();
 
-  const { action, latitude, longitude, address, faceDescriptor } = location.state || {};
+  const { action, latitude, longitude, address } = location.state || {};
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -136,9 +136,7 @@ const EmployeeMobileCamera = () => {
         action,
         latitude,
         longitude,
-        address,
-        photo: publicUrl,
-        faceDescriptor
+        address
       });
 
       toast.success(`Successfully ${action.replace('-', ' ')}ed!`);

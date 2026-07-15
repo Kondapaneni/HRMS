@@ -56,25 +56,7 @@ $app->post('/api/employee/attendance/punch', function (Request $request, Respons
     $db = new Database();
     $conn = $db->getConnection();
     
-    // VERIFY FACE DESCRIPTOR
-    $faceDescStr = $data['faceDescriptor'] ?? '';
-    if (empty($faceDescStr) || $faceDescStr === '[]') {
-        $response->getBody()->write(json_encode(['error' => 'Face recognition is required for attendance.']));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
-    }
-    
-    $distStmt = $conn->prepare('
-        SELECT (b.face_descriptor <=> ?::vector) as distance 
-        FROM user_biometrics b 
-        WHERE b.user_id = ?
-    ');
-    $distStmt->execute([$faceDescStr, $decodedToken->id]);
-    $distRow = $distStmt->fetch(PDO::FETCH_ASSOC);
-
-    if (!$distRow || (float)$distRow['distance'] > 0.45) {
-        $response->getBody()->write(json_encode(['error' => 'Face verification failed. Please try again.']));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
-    }
+    // Face verification removed for attendance punch
 
     try {
         $conn->beginTransaction();
