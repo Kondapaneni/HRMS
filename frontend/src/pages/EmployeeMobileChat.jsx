@@ -1508,18 +1508,20 @@ export default function EmployeeMobileChat() {
             </button>
             <div className="flex-1 overflow-y-auto pb-safe">
               <h3 className="px-5 py-3 text-slate-500 text-xs font-bold uppercase tracking-wider bg-slate-50">Contacts</h3>
-              <div className="px-2 pt-2">
-                {users.filter(u => u.id !== profile?.id).map(u => (
-                  <button key={u.id} onClick={() => handleCreatePersonalChat(u.id)} className="flex items-center gap-4 w-full p-3 hover:bg-slate-50 rounded-2xl text-left transition-colors">
-                    <div className="w-12 h-12 rounded-full bg-slate-200 overflow-hidden shrink-0 border border-slate-100 shadow-sm">
-                      {u.avatar ? <img src={u.avatar} className="w-full h-full object-cover" /> : <User className="w-full h-full p-2.5 text-slate-400 bg-slate-100" />}
-                    </div>
-                    <div className="flex-1 pb-1">
-                      <div className="font-bold text-slate-800 text-base">{u.firstName} {u.lastName}</div>
-                      <div className="text-sm text-slate-500">{u.designation || 'Employee'}</div>
-                    </div>
-                  </button>
-                ))}
+              <div className="px-2 pt-3 pb-6">
+                <div className="bg-white rounded-[24px] shadow-sm border border-slate-100/50 overflow-hidden divide-y divide-slate-50">
+                  {users.filter(u => u.id !== profile?.id).map(u => (
+                    <button key={u.id} onClick={() => handleCreatePersonalChat(u.id)} className="flex items-center gap-4 w-full p-3 hover:bg-slate-50 text-left transition-colors">
+                      <div className="w-12 h-12 rounded-full bg-slate-200 overflow-hidden shrink-0 border border-slate-100 shadow-sm">
+                        {u.avatar ? <img src={u.avatar} className="w-full h-full object-cover" /> : <User className="w-full h-full p-2.5 text-slate-400 bg-slate-100" />}
+                      </div>
+                      <div className="flex-1 pb-1">
+                        <div className="font-bold text-slate-800 text-base">{u.firstName} {u.lastName}</div>
+                        <div className="text-sm text-slate-500">{u.designation || 'Employee'}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -1567,7 +1569,7 @@ export default function EmployeeMobileChat() {
             </button>
           </div>
         ) : (
-          <div className="divide-y divide-slate-100">
+          <div className="bg-white rounded-[24px] mx-3 mt-3 mb-6 shadow-sm border border-slate-100/50 overflow-hidden divide-y divide-slate-100">
             {chats.map(chat => (
               <div
                 key={chat.id}

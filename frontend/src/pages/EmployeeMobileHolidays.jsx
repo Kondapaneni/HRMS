@@ -6,14 +6,6 @@ import { motion } from 'framer-motion';
 const EmployeeMobileHolidays = () => {
   const navigate = useNavigate();
 
-  // Mockup data for holidays
-  const holidays = [
-    { id: 1, date: 'Aug 15', name: 'Independence Day', day: 'Thursday', color: 'bg-emerald-100/50', textColor: 'text-emerald-600' },
-    { id: 2, date: 'Oct 02', name: 'Gandhi Jayanti', day: 'Wednesday', color: 'bg-emerald-100/50', textColor: 'text-emerald-600' },
-    { id: 3, date: 'Oct 31', name: 'Diwali', day: 'Thursday', color: 'bg-orange-100/50', textColor: 'text-orange-600' },
-    { id: 4, date: 'Dec 25', name: 'Christmas', day: 'Wednesday', color: 'bg-red-100/50', textColor: 'text-red-600' }
-  ];
-
   return (
     <div className="min-h-screen bg-slate-50 md:hidden pb-safe">
       {/* Header */}
@@ -53,17 +45,9 @@ const EmployeeMobileHolidays = () => {
           <h2 className="text-lg font-bold text-slate-900 tracking-tight mb-2">Upcoming Holidays</h2>
 
           <div className="space-y-3">
-            {holidays.map(holiday => (
-              <div key={holiday.id} className="flex items-center p-4 rounded-xl hover:bg-slate-50 border border-slate-100 transition-colors shadow-sm">
-                <div className={`w-14 h-14 ${holiday.color} rounded-xl flex items-center justify-center ${holiday.textColor} font-bold text-base shrink-0 shadow-sm border border-white`}>
-                  {holiday.date}
-                </div>
-                <div className="ml-4">
-                  <h4 className="font-bold text-slate-800 text-base">{holiday.name}</h4>
-                  <p className="text-sm font-medium text-slate-500">{holiday.day}</p>
-                </div>
-              </div>
-            ))}
+            <div className="text-center text-slate-500 text-sm py-8 font-medium">
+              No upcoming holidays to show.
+            </div>
           </div>
         </div>
       </div>

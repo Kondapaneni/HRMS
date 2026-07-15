@@ -192,7 +192,7 @@ const EmployeeMobileDashboard = () => {
       </section>
 
       {/* Attendance Tracker */}
-      <section className="bg-white rounded-[24px] shadow-lg border border-slate-100/50 overflow-hidden relative z-20 -mt-12 mx-4">
+      <section className="bg-white rounded-[24px] shadow-lg border border-slate-100/50 overflow-hidden relative z-20 -mt-12">
         <div className="px-6 pt-6 pb-4 border-b border-slate-100 flex justify-between items-start">
           <div>
             <h2 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">Attendance Tracker</h2>
@@ -300,7 +300,7 @@ const EmployeeMobileDashboard = () => {
       </section>
 
       {/* Team Chat Entry */}
-      <section className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden mx-4">
+      <section className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
         <div className="px-6 pt-6 pb-4 border-b border-slate-100">
           <h2 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">Communications</h2>
           <p className="text-[11px] font-medium text-slate-500 mt-1 uppercase tracking-wider">Secure Team Chat</p>
@@ -322,7 +322,7 @@ const EmployeeMobileDashboard = () => {
       </section>
 
       {/* Expenses Overview */}
-      <section className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden mx-4">
+      <section className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
         <Link to="/employee/expenses" className="px-6 pt-6 pb-4 border-b border-slate-100 flex justify-between items-center active:bg-slate-50 transition-colors">
           <div className="flex items-center gap-3">
             <div className="bg-orange-50 p-2 rounded-lg">
@@ -336,40 +336,14 @@ const EmployeeMobileDashboard = () => {
           <ChevronRight className="w-5 h-5 text-slate-400" />
         </Link>
         <div className="p-4 space-y-3">
-          {/* Static mockup data for now */}
-          <div className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 border border-slate-100 transition-colors">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 shadow-sm border border-white">
-                <Receipt className="w-4 h-4" />
-              </div>
-              <div>
-                <h4 className="font-bold text-slate-800 text-sm">Travel to Client</h4>
-                <p className="text-[10px] font-bold text-slate-400">Approved</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-sm font-bold text-slate-700">₹4,500</p>
-            </div>
-          </div>
-          <div className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 border border-slate-100 transition-colors">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 shadow-sm border border-white">
-                <Receipt className="w-4 h-4" />
-              </div>
-              <div>
-                <h4 className="font-bold text-slate-800 text-sm">Office Supplies</h4>
-                <p className="text-[10px] font-bold text-amber-500">Pending</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-sm font-bold text-slate-700">₹1,200</p>
-            </div>
+          <div className="text-center text-slate-500 text-sm py-4 font-medium">
+            No recent expenses to show.
           </div>
         </div>
       </section>
 
       {/* Upcoming Holidays */}
-      <section className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden mx-4">
+      <section className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
         <Link to="/employee/mobile/holidays" className="px-6 pt-6 pb-4 border-b border-slate-100 flex justify-between items-center active:bg-slate-50 transition-colors">
           <div className="flex items-center gap-3">
             <div className="bg-emerald-50 p-2 rounded-lg">
@@ -383,30 +357,14 @@ const EmployeeMobileDashboard = () => {
           <ChevronRight className="w-5 h-5 text-slate-400" />
         </Link>
         <div className="p-4 space-y-3">
-          {/* Static mockup data for now, can be wired to API later */}
-          <div className="flex items-center p-3 rounded-xl hover:bg-slate-50 border border-slate-100 transition-colors">
-            <div className="w-12 h-12 bg-emerald-100/50 rounded-xl flex items-center justify-center text-emerald-600 font-bold text-sm shrink-0">
-              Aug 15
-            </div>
-            <div className="ml-4">
-              <h4 className="font-bold text-slate-800 text-sm">Independence Day</h4>
-              <p className="text-xs text-slate-500">Thursday</p>
-            </div>
-          </div>
-          <div className="flex items-center p-3 rounded-xl hover:bg-slate-50 border border-slate-100 transition-colors">
-            <div className="w-12 h-12 bg-emerald-100/50 rounded-xl flex items-center justify-center text-emerald-600 font-bold text-sm shrink-0">
-              Oct 02
-            </div>
-            <div className="ml-4">
-              <h4 className="font-bold text-slate-800 text-sm">Gandhi Jayanti</h4>
-              <p className="text-xs text-slate-500">Wednesday</p>
-            </div>
+          <div className="text-center text-slate-500 text-sm py-4 font-medium">
+            No upcoming holidays.
           </div>
         </div>
       </section>
 
       {/* Upcoming Birthdays */}
-      <section className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden mx-4">
+      <section className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
         <Link to="/employee/mobile/birthdays" className="px-6 pt-6 pb-4 border-b border-slate-100 flex justify-between items-center active:bg-slate-50 transition-colors">
           <div className="flex items-center gap-3">
             <div className="bg-purple-50 p-2 rounded-lg">
@@ -420,34 +378,8 @@ const EmployeeMobileDashboard = () => {
           <ChevronRight className="w-5 h-5 text-slate-400" />
         </Link>
         <div className="p-4 space-y-3">
-          {/* Static mockup data for now */}
-          <div className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 border border-slate-100 transition-colors">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold shadow-sm">
-                JS
-              </div>
-              <div>
-                <h4 className="font-bold text-slate-800 text-sm">Jane Smith</h4>
-                <p className="text-[10px] uppercase font-bold text-slate-400">Marketing</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-sm font-bold text-slate-700">Aug 20</p>
-            </div>
-          </div>
-          <div className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 border border-slate-100 transition-colors">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold shadow-sm">
-                MJ
-              </div>
-              <div>
-                <h4 className="font-bold text-slate-800 text-sm">Mike Johnson</h4>
-                <p className="text-[10px] uppercase font-bold text-slate-400">Engineering</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-sm font-bold text-slate-700">Sep 05</p>
-            </div>
+          <div className="text-center text-slate-500 text-sm py-4 font-medium">
+            No upcoming birthdays.
           </div>
         </div>
       </section>

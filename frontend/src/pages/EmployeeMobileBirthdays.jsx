@@ -6,14 +6,6 @@ import { motion } from 'framer-motion';
 const EmployeeMobileBirthdays = () => {
   const navigate = useNavigate();
 
-  // Mockup data for birthdays
-  const birthdays = [
-    { id: 1, name: 'Jane Smith', date: 'Aug 20', initials: 'JS', dept: 'Marketing', color: 'bg-purple-100', textColor: 'text-purple-600' },
-    { id: 2, name: 'Mike Johnson', date: 'Sep 05', initials: 'MJ', dept: 'Engineering', color: 'bg-blue-100', textColor: 'text-blue-600' },
-    { id: 3, name: 'Alice Williams', date: 'Oct 12', initials: 'AW', dept: 'Design', color: 'bg-rose-100', textColor: 'text-rose-600' },
-    { id: 4, name: 'Robert Chen', date: 'Nov 01', initials: 'RC', dept: 'Sales', color: 'bg-amber-100', textColor: 'text-amber-600' }
-  ];
-
   return (
     <div className="min-h-screen bg-slate-50 md:hidden pb-safe">
       {/* Header */}
@@ -53,22 +45,9 @@ const EmployeeMobileBirthdays = () => {
           <h2 className="text-lg font-bold text-slate-900 tracking-tight mb-2">Upcoming Birthdays</h2>
 
           <div className="space-y-3">
-            {birthdays.map(birthday => (
-              <div key={birthday.id} className="flex items-center justify-between p-4 rounded-xl hover:bg-slate-50 border border-slate-100 transition-colors shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className={`w-12 h-12 rounded-full ${birthday.color} flex items-center justify-center ${birthday.textColor} font-bold shadow-sm border border-white`}>
-                    {birthday.initials}
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-slate-800 text-base">{birthday.name}</h4>
-                    <p className="text-[10px] uppercase font-bold text-slate-400">{birthday.dept}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-bold text-slate-700">{birthday.date}</p>
-                </div>
-              </div>
-            ))}
+            <div className="text-center text-slate-500 text-sm py-8 font-medium">
+              No upcoming birthdays this month.
+            </div>
           </div>
         </div>
       </div>
