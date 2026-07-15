@@ -43,7 +43,7 @@ const AdminAttendanceLocation = () => {
         existingScript.addEventListener('load', initMap);
         return;
       }
-      
+
       const script = document.createElement('script');
       script.id = 'google-maps-script';
       script.src = `https://maps.googleapis.com/maps/api/js?key=${data.googleMapsApiKey}&callback=initGoogleMap`;
@@ -55,10 +55,10 @@ const AdminAttendanceLocation = () => {
 
     const initMap = () => {
       const { record, punches } = data;
-      
+
       const checkInCoords = record.checkInLat && record.checkInLng;
       const checkOutCoords = record.checkOutLat && record.checkOutLng;
-      
+
       let defaultCenter = { lat: 0, lng: 0 };
       if (checkInCoords) {
         defaultCenter = { lat: parseFloat(record.checkInLat), lng: parseFloat(record.checkInLng) };
@@ -80,8 +80,9 @@ const AdminAttendanceLocation = () => {
       });
 
       const infoWindow = new window.google.maps.InfoWindow({
-        maxWidth: 260,
-        pixelOffset: new window.google.maps.Size(0, -10),
+        maxWidth: 400,
+        // Shift right and further down to align with the pointer
+        pixelOffset: new window.google.maps.Size(210, 90),
         disableAutoPan: true,
       });
       infoWindowRef.current = infoWindow;
@@ -182,9 +183,9 @@ const AdminAttendanceLocation = () => {
         if (hasMarkers) {
           map.fitBounds(bounds);
           // Limit zoom so it doesn't zoom in too close if there's only 1 marker
-          const listener = window.google.maps.event.addListener(map, "idle", function() { 
-            if (map.getZoom() > 16) map.setZoom(16); 
-            window.google.maps.event.removeListener(listener); 
+          const listener = window.google.maps.event.addListener(map, "idle", function () {
+            if (map.getZoom() > 16) map.setZoom(16);
+            window.google.maps.event.removeListener(listener);
           });
         }
       };
@@ -224,18 +225,20 @@ const AdminAttendanceLocation = () => {
         title = `Punch In #${index + 1}`;
       }
 
-      let content = `<div style="max-width:280px;font-family:Arial, sans-serif;color:#111;">
-        <div style="font-weight:700;margin-bottom:8px;">${title}</div>`;
-      
+      let content = `<div style="max-width:350px;font-family:Arial, sans-serif;color:#111;">
+        <div style="font-weight:700;margin-bottom:8px;">${title}</div>
+        <div style="display:flex;gap:12px;align-items:flex-start;">`;
+
       if (photoUrl) {
-        content += `<div style="margin-bottom:8px;"><img src="${photoUrl}" alt="${title}" style="width:100%;height:auto;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.15);" /></div>`;
+        content += `<div style="flex-shrink:0;width:120px;"><img src="${photoUrl}" alt="${title}" style="width:100%;height:auto;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.15);" /></div>`;
       } else {
-        content += `<div style="margin-bottom:8px;padding:10px;background:#f8fafc;border-radius:12px;color:#475569;">No photo available</div>`;
+        content += `<div style="flex-shrink:0;width:120px;padding:10px;background:#f8fafc;border-radius:12px;color:#475569;font-size:12px;text-align:center;box-sizing:border-box;">No photo</div>`;
       }
-      
-      content += `<div style="font-size:13px;line-height:1.5;color:#334155;">
+
+      content += `<div style="font-size:13px;line-height:1.5;color:#334155;flex-grow:1;">
         <div><strong>Location:</strong> ${lat && lng ? `${lat}, ${lng}` : 'Not available'}</div>
         <div style="margin-top:6px;"><strong>Address:</strong> ${address || 'Not available'}</div>
+      </div>
       </div></div>`;
 
       infoWindow.setContent(content);
@@ -292,16 +295,16 @@ const AdminAttendanceLocation = () => {
   const { record, employee, punches } = data;
   const displayDate = new Date(record.date).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
   const employeeName = `${employee.firstName} ${employee.lastName}`;
-  
+
   const checkInTime = record.checkIn ? new Date(record.checkIn).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'No record';
   const checkInCoordsStr = (record.checkInLat && record.checkInLng) ? `${parseFloat(record.checkInLat).toFixed(6)}, ${parseFloat(record.checkInLng).toFixed(6)}` : 'No location';
-  
+
   const checkOutTime = record.checkOut ? new Date(record.checkOut).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'Missing';
   const checkOutCoordsStr = (record.checkOutLat && record.checkOutLng) ? `${parseFloat(record.checkOutLat).toFixed(6)}, ${parseFloat(record.checkOutLng).toFixed(6)}` : 'No location';
 
   return (
-    <div 
-      className="flex flex-col gap-4 overflow-hidden -mx-4 sm:-mx-6 -mt-4 sm:-mt-6 px-4 sm:px-6 pt-4 sm:pt-6 -mb-4 sm:-mb-6" 
+    <div
+      className="flex flex-col gap-4 overflow-hidden -mx-4 sm:-mx-6 -mt-4 sm:-mt-6 px-4 sm:px-6 pt-4 sm:pt-6 -mb-4 sm:-mb-6"
       style={{ height: 'calc(100vh - 61px)' }}
     >
       <style>{`
@@ -311,9 +314,13 @@ const AdminAttendanceLocation = () => {
         .gm-style-iw-c button[title="Close"] {
           display: none !important;
         }
+        /* Hide the default downward-pointing tail of the InfoWindow */
+        .gm-style-iw-tc {
+          display: none !important;
+        }
       `}</style>
 
-      
+
       <div className="grid gap-4 md:grid-cols-[320px_1fr] lg:grid-cols-[360px_1fr] min-h-0 flex-1">
         <aside className="flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden h-full">
           <div className="flex items-start justify-between gap-3 border-b border-slate-200 p-4 bg-slate-50/50">
@@ -324,7 +331,7 @@ const AdminAttendanceLocation = () => {
               </h2>
             </div>
           </div>
-          
+
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
               <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">Remote clock in / clock out</p>
