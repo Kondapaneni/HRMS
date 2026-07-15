@@ -28,7 +28,7 @@ const EmployeeMobileBirthdays = () => {
           transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
           className="absolute bottom-0 left-20 w-80 h-80 bg-[#84dcc6] rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
         />
-        
+
         <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
 
         <div className="relative z-10 px-2 flex justify-between items-start">
@@ -37,9 +37,9 @@ const EmployeeMobileBirthdays = () => {
               <button onClick={() => navigate('/employee')} className="text-white/80 active:text-white transition-colors p-1 -ml-1">
                 <ArrowLeft className="w-5 h-5" />
               </button>
+              <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">Team Celebrations</p>
             </div>
             <h1 className="text-3xl font-black text-white tracking-tight drop-shadow-sm mb-0.5">Birthdays</h1>
-            <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">Team celebrations</p>
           </div>
           <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center border border-white/30 backdrop-blur-md shadow-sm">
             <Gift className="w-6 h-6 text-white" />
@@ -51,7 +51,7 @@ const EmployeeMobileBirthdays = () => {
       <div className="bg-white rounded-[24px] shadow-lg p-5 -mt-12 relative z-20 mx-4 border border-slate-100/50 min-h-[300px]">
         <div className="space-y-4">
           <h2 className="text-lg font-bold text-slate-900 tracking-tight mb-2">Upcoming Birthdays</h2>
-          
+
           <div className="space-y-3">
             {birthdays.map(birthday => (
               <div key={birthday.id} className="flex items-center justify-between p-4 rounded-xl hover:bg-slate-50 border border-slate-100 transition-colors shadow-sm">
