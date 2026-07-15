@@ -366,32 +366,14 @@ const Login = () => {
         </motion.div>
       </div>
 
-      {/* Face Scanner Modal */}
+      {/* Face Scanner Fullscreen */}
       {isScanning && loginMethod === 'face' && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white border-[3px] border-[#1E1B4B] shadow-[12px_12px_0px_#1E1B4B] rounded-2xl overflow-hidden max-w-md w-full relative"
-          >
-            <div className="p-4 bg-[#1E1B4B] text-white flex justify-between items-center">
-              <h3 className="font-black text-xl flex items-center gap-2"><User size={24} /> Face Login</h3>
-              <button 
-                onClick={() => setIsScanning(false)}
-                className="text-white hover:text-red-400 transition-colors"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="p-6">
-              <FastFaceScanner 
-                isScanning={isScanning}
-                onFaceDetected={handleFaceDetected}
-                onCancel={() => setIsScanning(false)}
-              />
-            </div>
-          </motion.div>
-        </div>
+        <FastFaceScanner 
+          isScanning={isScanning}
+          onFaceDetected={handleFaceDetected}
+          onCancel={() => setIsScanning(false)}
+          mode="verify"
+        />
       )}
     </div>
   );

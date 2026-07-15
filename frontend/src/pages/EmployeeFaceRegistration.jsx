@@ -102,18 +102,14 @@ const EmployeeFaceRegistration = () => {
                   <Camera size={24} strokeWidth={3} className="ml-1" />
                 </button>
               ) : (
-                <div className="w-full">
-                  <div className="border-[3px] border-[#1E1B4B] rounded-xl overflow-hidden shadow-[8px_8px_0px_#1E1B4B] bg-black relative">
-                    <FastFaceScanner 
-                      isScanning={isScanning} 
-                      onFaceDetected={handleFaceDetected}
-                      onCancel={() => setIsScanning(false)}
-                    />
-                  </div>
-                  <p className="text-center text-slate-500 font-bold text-sm mt-6">
-                    Look directly at the camera.
-                  </p>
-                </div>
+                <>
+                  <FastFaceScanner 
+                    isScanning={isScanning} 
+                    onFaceDetected={handleFaceDetected}
+                    onCancel={() => setIsScanning(false)}
+                    mode="register"
+                  />
+                </>
               )}
             </div>
           )}
