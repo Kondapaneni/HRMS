@@ -27,7 +27,7 @@ const EmployeeFaceRegistration = () => {
       setStatus('success');
       toast.success('Face registered successfully!');
       
-      setTimeout(() => navigate('/employee/profile'), 2000);
+      setTimeout(() => navigate('/employee'), 2000);
       
     } catch (err) {
       console.error(err);

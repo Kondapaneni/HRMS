@@ -109,9 +109,15 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
         return $response->withHeader('Content-Type', 'application/json')->withStatus(429);
     }
 
-    $stmt = $conn->prepare('SELECT id, email, password, "firstName", "lastName", role, department, position, "isActive", "forcePasswordChange" FROM users WHERE email = ?');
+    $stmt = $conn->prepare('
+        SELECT u.id, u.email, u.password, u."firstName", u."lastName", u.role, u.department, u.position, u."isActive", u."forcePasswordChange",
+               CASE WHEN b.face_descriptor IS NOT NULL THEN true ELSE false END as "isFaceRegistered"
+        FROM users u
+        LEFT JOIN user_biometrics b ON u.id = b.user_id
+        WHERE u.email = ?
+    ');
     $stmt->execute([$email]);
-    $user = $stmt->fetch();
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($user && password_verify($password, $user['password'])) {
         $isActive = ($user['isActive'] === true || $user['isActive'] === 'true' || $user['isActive'] === 't' || $user['isActive'] == 1);
@@ -121,13 +127,16 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
         }
         
         $secret = $_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '';
+        $user['isFaceRegistered'] = ($user['isFaceRegistered'] === true || $user['isFaceRegistered'] === 'true' || $user['isFaceRegistered'] === 't' || $user['isFaceRegistered'] == 1);
+        
         $payload = [
             'iss' => 'acme_hrms',
             'iat' => time(),
             'exp' => ($sessionTimeout === 'never') ? time() + (60 * 60 * 24 * 365 * 10) : time() + ((int)$sessionTimeout * 60), // Dynamic expiration
             'id' => $user['id'],
             'email' => $user['email'],
-            'role' => $user['role']
+            'role' => $user['role'],
+            'isFaceRegistered' => $user['isFaceRegistered']
         ];
         
         $jwt = JWT::encode($payload, $secret, 'HS256');
@@ -217,7 +226,7 @@ $app->post('/api/login/face', function (Request $request, Response $response, $a
     }
 
     if (empty($user['face_descriptor'])) {
-        $response->getBody()->write(json_encode(['error' => 'Face login is not registered for this account.']));
+        $response->getBody()->write(json_encode(['error' => 'Face is not Registered']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
     }
 
@@ -235,13 +244,16 @@ $app->post('/api/login/face', function (Request $request, Response $response, $a
         }
 
         $secret = $_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '';
+        $user['isFaceRegistered'] = true;
+        
         $payload = [
             'iss' => 'acme_hrms',
             'iat' => time(),
             'exp' => ($sessionTimeout === 'never') ? time() + (60 * 60 * 24 * 365 * 10) : time() + ((int)$sessionTimeout * 60),
             'id' => $user['id'],
             'email' => $user['email'],
-            'role' => $user['role']
+            'role' => $user['role'],
+            'isFaceRegistered' => true
         ];
         
         $jwt = JWT::encode($payload, $secret, 'HS256');
@@ -296,10 +308,12 @@ $app->get('/api/me', function (Request $request, Response $response, $args) {
     
     $stmt = $conn->prepare('
         SELECT u.id, u.email, u."firstName", u."lastName", u.role, u.department, u.position, u."isActive", u."forcePasswordChange", e.avatar, e."employeeId", e."geoFenceEnabled", e."webAttendanceEnabled",
-               fa."canAttendance", fa."canLeave", fa."canPayroll", fa."canEmployees", fa."canRecruitment", fa."canAssets"
+               fa."canAttendance", fa."canLeave", fa."canPayroll", fa."canEmployees", fa."canRecruitment", fa."canAssets",
+               CASE WHEN b.face_descriptor IS NOT NULL THEN true ELSE false END as "isFaceRegistered"
         FROM users u 
         LEFT JOIN employee e ON u.id = e."userId" 
         LEFT JOIN user_feature_access fa ON u.id = fa."userId"
+        LEFT JOIN user_biometrics b ON u.id = b.user_id
         WHERE u.id = ?
     ');
     $stmt->execute([$decodedToken->id]);
@@ -316,6 +330,7 @@ $app->get('/api/me', function (Request $request, Response $response, $args) {
                 'canAssets' => (bool)$user['canAssets'],
             ];
         }
+        $user['isFaceRegistered'] = ($user['isFaceRegistered'] === true || $user['isFaceRegistered'] === 'true' || $user['isFaceRegistered'] === 't' || $user['isFaceRegistered'] == 1);
         unset($user['canAttendance'], $user['canLeave'], $user['canPayroll'], $user['canEmployees'], $user['canRecruitment'], $user['canAssets']);
         
         $response->getBody()->write(json_encode($user));

@@ -79,7 +79,11 @@ const Login = () => {
       } else if (ADMIN_ROLES.includes(userData.role)) {
         navigate('/admin');
       } else if (userData.role === 'employee') {
-        navigate('/employee');
+        if (!userData.isFaceRegistered) {
+          navigate('/employee/face-registration');
+        } else {
+          navigate('/employee');
+        }
       } else if (userData.role === 'candidate') {
         if (signOut) await signOut();
         throw new Error('Please use the Candidate Portal to sign in.');
@@ -129,6 +133,11 @@ const Login = () => {
           setLockoutSeconds(err.response.data.secondsRemaining);
         }
         setError(err.response.data?.error || 'Too Many Requests. Please Try Again Later.');
+        return;
+      }
+      if (err.response?.data?.error === 'Face is not Registered') {
+        setError('Face is not Registered. Please login with your password to register your face.');
+        setLoginMethod('password');
         return;
       }
       setError(err.response?.data?.error || err.message || 'Face matching failed or credentials incorrect.');
@@ -322,25 +331,15 @@ const Login = () => {
 
               {loginMethod === 'face' && (
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mt-6">
-                  {isScanning ? (
-                    <div className="w-full">
-                      <FastFaceScanner 
-                        isScanning={isScanning}
-                        onFaceDetected={handleFaceDetected}
-                        onCancel={() => setIsScanning(false)}
-                      />
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      disabled={isLoading || lockoutSeconds > 0 || !email}
-                      onClick={() => setIsScanning(true)}
-                      className="w-full bg-[#10B981] text-white py-4 rounded-xl font-black text-xl flex items-center justify-center gap-2 border-[3px] border-[#1E1B4B] shadow-[8px_8px_0px_#1E1B4B] active:shadow-[0px_0px_0px_#1E1B4B] active:translate-x-[8px] active:translate-y-[8px] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isLoading ? 'Processing...' : lockoutSeconds > 0 ? `Locked out (${Math.floor(lockoutSeconds / 60)}:${(lockoutSeconds % 60).toString().padStart(2, '0')})` : 'Scan Face'}
-                      {!isLoading && lockoutSeconds === 0 && <User size={24} strokeWidth={3} className="ml-2" />}
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    disabled={isLoading || lockoutSeconds > 0 || !email}
+                    onClick={() => setIsScanning(true)}
+                    className="w-full bg-[#10B981] text-white py-4 rounded-xl font-black text-xl flex items-center justify-center gap-2 border-[3px] border-[#1E1B4B] shadow-[8px_8px_0px_#1E1B4B] active:shadow-[0px_0px_0px_#1E1B4B] active:translate-x-[8px] active:translate-y-[8px] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isLoading ? 'Processing...' : lockoutSeconds > 0 ? `Locked out (${Math.floor(lockoutSeconds / 60)}:${(lockoutSeconds % 60).toString().padStart(2, '0')})` : 'Scan Face'}
+                    {!isLoading && lockoutSeconds === 0 && <User size={24} strokeWidth={3} className="ml-2" />}
+                  </button>
                   {!email && (
                     <p className="text-sm text-red-500 font-bold mt-2 text-center">Please enter your email first.</p>
                   )}
@@ -363,6 +362,34 @@ const Login = () => {
 
         </motion.div>
       </div>
+
+      {/* Face Scanner Modal */}
+      {isScanning && loginMethod === 'face' && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white border-[3px] border-[#1E1B4B] shadow-[12px_12px_0px_#1E1B4B] rounded-2xl overflow-hidden max-w-md w-full relative"
+          >
+            <div className="p-4 bg-[#1E1B4B] text-white flex justify-between items-center">
+              <h3 className="font-black text-xl flex items-center gap-2"><User size={24} /> Face Login</h3>
+              <button 
+                onClick={() => setIsScanning(false)}
+                className="text-white hover:text-red-400 transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-6">
+              <FastFaceScanner 
+                isScanning={isScanning}
+                onFaceDetected={handleFaceDetected}
+                onCancel={() => setIsScanning(false)}
+              />
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };
