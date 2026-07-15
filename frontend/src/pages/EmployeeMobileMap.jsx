@@ -10,6 +10,7 @@ const EmployeeMobileMap = () => {
   const navigate = useNavigate();
   const locationState = useLocation().state;
   const action = locationState?.action;
+  const faceDescriptor = locationState?.faceDescriptor;
   
   const { profile } = useAuth();
   
@@ -205,7 +206,8 @@ const EmployeeMobileMap = () => {
         action,
         latitude: currentLocation.lat,
         longitude: currentLocation.lng,
-        address
+        address,
+        faceDescriptor
       }
     });
   };

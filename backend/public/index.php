@@ -167,6 +167,119 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
     return $response->withHeader('Content-Type', 'application/json')->withStatus(401);
 });
 
+// Face Login endpoint
+$app->post('/api/login/face', function (Request $request, Response $response, $args) {
+    $data = $request->getParsedBody();
+    $email = $data['email'] ?? '';
+    $faceDescriptor = $data['faceDescriptor'] ?? ''; // "[1.2, 0.5, ...]"
+
+    if (!$email || !$faceDescriptor) {
+        $response->getBody()->write(json_encode(['error' => 'Email and face descriptor required']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+
+    $db = new Database();
+    $conn = $db->getConnection();
+
+    $ip = RateLimiter::getClientIp();
+    $action = 'login';
+    
+    // Check rate limit
+    $stmt = $conn->query('SELECT login_rate_limit_attempts, login_rate_limit_window, session_timeout FROM global_settings ORDER BY id ASC LIMIT 1');
+    $settings = $stmt->fetch(PDO::FETCH_ASSOC);
+    $maxAttempts = $settings['login_rate_limit_attempts'] ?? 5;
+    $windowMinutes = $settings['login_rate_limit_window'] ?? 15;
+    $sessionTimeout = $settings['session_timeout'] ?? '30';
+
+    if (!RateLimiter::checkLimit($conn, $ip, $action, $maxAttempts, $windowMinutes)) {
+        $secondsRemaining = RateLimiter::getLockoutRemainingTime($conn, $ip, $action, $maxAttempts, $windowMinutes);
+        $response->getBody()->write(json_encode([
+            'error' => "Too Many Login Attempts. Please Try Again Later.",
+            'secondsRemaining' => $secondsRemaining
+        ]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(429);
+    }
+
+    // Fetch user and biometric data
+    $stmt = $conn->prepare('
+        SELECT u.id, u.email, u."firstName", u."lastName", u.role, u.department, u.position, u."isActive", u."forcePasswordChange", b.face_descriptor
+        FROM users u
+        LEFT JOIN user_biometrics b ON u.id = b.user_id
+        WHERE u.email = ?
+    ');
+    $stmt->execute([$email]);
+    $user = $stmt->fetch();
+
+    if (!$user) {
+        RateLimiter::recordAttempt($conn, $ip, $action);
+        $response->getBody()->write(json_encode(['error' => 'Invalid email or face match failed.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(401);
+    }
+
+    if (empty($user['face_descriptor'])) {
+        $response->getBody()->write(json_encode(['error' => 'Face login is not registered for this account.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+    }
+
+    // Verify distance using pgvector. <= 0.4 is a common threshold for cosine distance.
+    $distStmt = $conn->prepare('SELECT (face_descriptor <=> ?::vector) as distance FROM user_biometrics WHERE user_id = ?');
+    $distStmt->execute([$faceDescriptor, $user['id']]);
+    $distRow = $distStmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($distRow && (float)$distRow['distance'] <= 0.45) {
+        // Successful login
+        $isActive = ($user['isActive'] === true || $user['isActive'] === 'true' || $user['isActive'] === 't' || $user['isActive'] == 1);
+        if (!$isActive) {
+            $response->getBody()->write(json_encode(['error' => 'Your account has been deactivated. Please contact your administrator.']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+        }
+
+        $secret = $_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '';
+        $payload = [
+            'iss' => 'acme_hrms',
+            'iat' => time(),
+            'exp' => ($sessionTimeout === 'never') ? time() + (60 * 60 * 24 * 365 * 10) : time() + ((int)$sessionTimeout * 60),
+            'id' => $user['id'],
+            'email' => $user['email'],
+            'role' => $user['role']
+        ];
+        
+        $jwt = JWT::encode($payload, $secret, 'HS256');
+
+        $faStmt = $conn->prepare('SELECT "canAttendance", "canLeave", "canPayroll", "canEmployees", "canRecruitment", "canAssets" FROM user_feature_access WHERE "userId" = ?');
+        $faStmt->execute([$user['id']]);
+        $fa = $faStmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($fa) {
+            $user['featureAccess'] = [
+                'canAttendance' => (bool)$fa['canAttendance'],
+                'canLeave' => (bool)$fa['canLeave'],
+                'canPayroll' => (bool)$fa['canPayroll'],
+                'canEmployees' => (bool)$fa['canEmployees'],
+                'canRecruitment' => (bool)$fa['canRecruitment'],
+                'canAssets' => (bool)$fa['canAssets'],
+            ];
+        }
+
+        unset($user['face_descriptor']); // don't return vector
+
+        $response->getBody()->write(json_encode([
+            'token' => $jwt,
+            'user' => $user
+        ]));
+        
+        RateLimiter::clearAttempts($conn, $ip, $action);
+        
+        return $response
+            ->withHeader('Content-Type', 'application/json')
+            ->withStatus(200);
+    }
+
+    RateLimiter::recordAttempt($conn, $ip, $action);
+    $response->getBody()->write(json_encode(['error' => 'Face match failed. Unrecognized face.']));
+    return $response->withHeader('Content-Type', 'application/json')->withStatus(401);
+});
+
 $app->post('/api/logout', function (Request $request, Response $response, $args) {
     $response->getBody()->write(json_encode(['message' => 'Logged out']));
     return $response

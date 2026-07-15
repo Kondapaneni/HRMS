@@ -163,3 +163,36 @@ $app->post('/api/employee/profile/avatar', function (Request $request, Response 
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['employee']));
+
+// Update Employee Biometrics
+$app->post('/api/employee/biometrics/face', function (Request $request, Response $response, $args) {
+    $decodedToken = $request->getAttribute('user');
+    $data = $request->getParsedBody();
+    
+    $faceDescriptorStr = trim($data['faceDescriptor'] ?? '');
+
+    if (empty($faceDescriptorStr) || $faceDescriptorStr === '[]') {
+        $response->getBody()->write(json_encode(['error' => 'Face descriptor is required']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+
+    $db = new Database();
+    $conn = $db->getConnection();
+
+    try {
+        $stmt = $conn->prepare('
+            INSERT INTO user_biometrics (user_id, face_descriptor) 
+            VALUES (?, ?::vector) 
+            ON CONFLICT (user_id) 
+            DO UPDATE SET face_descriptor = EXCLUDED.face_descriptor, updated_at = CURRENT_TIMESTAMP
+        ');
+        $stmt->execute([$decodedToken->id, $faceDescriptorStr]);
+        
+        $response->getBody()->write(json_encode(['message' => 'Biometrics updated successfully']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+    } catch (Exception $e) {
+        file_put_contents('biometric_error.log', $e->getMessage() . "\n", FILE_APPEND);
+        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    }
+})->add(new AuthMiddleware(['employee']));

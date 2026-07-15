@@ -6,6 +6,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
+import FastFaceScanner from '../components/FastFaceScanner';
 
 const EmployeeMobileDashboard = () => {
   const { profile } = useAuth();
@@ -13,6 +14,9 @@ const EmployeeMobileDashboard = () => {
   const navigate = useNavigate();
   const [punchingAction, setPunchingAction] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date());
+  
+  const [showScanner, setShowScanner] = useState(false);
+  const [pendingPunchAction, setPendingPunchAction] = useState(null);
   const [lockoutSeconds, setLockoutSeconds] = useState(null);
 
   useEffect(() => {
@@ -92,8 +96,18 @@ const EmployeeMobileDashboard = () => {
     return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
   };
 
-  const handlePunch = async (action) => {
-    navigate('/employee/attendance/map', { state: { action } });
+  const handlePunchClick = (action) => {
+    setPendingPunchAction(action);
+    setShowScanner(true);
+  };
+
+  const handleFaceScanSuccess = (descriptor) => {
+    setShowScanner(false);
+    handlePunch(pendingPunchAction, descriptor);
+  };
+
+  const handlePunch = async (action, faceDescriptor = null) => {
+    navigate('/employee/attendance/map', { state: { action, faceDescriptor: JSON.stringify(Array.from(faceDescriptor || [])) } });
   };
   const [liveSeconds, setLiveSeconds] = useState(0);
 
@@ -262,7 +276,7 @@ const EmployeeMobileDashboard = () => {
               </div>
             ) : !checkedIn && !checkOutTime ? (
               <button
-                onClick={() => handlePunch('check-in')}
+                onClick={() => handlePunchClick('check-in')}
                 disabled={punchingAction || isLocked}
                 className="w-full rounded-xl bg-blue-600 text-white font-semibold py-3 flex items-center justify-center gap-2 text-sm hover:bg-blue-700 active:scale-[0.98] transition-all disabled:opacity-50"
               >
@@ -272,7 +286,7 @@ const EmployeeMobileDashboard = () => {
             ) : checkedIn && !checkOutTime ? (
               <div className="grid grid-cols-2 gap-3 w-full">
                 <button
-                  onClick={() => handlePunch('punch')}
+                  onClick={() => handlePunchClick('punch')}
                   disabled={punchingAction || isLocked}
                   className="rounded-xl border-2 border-slate-200 bg-white text-slate-700 font-semibold py-2.5 flex items-center justify-center gap-2 text-sm hover:bg-slate-50 active:scale-[0.98] transition-all disabled:opacity-50"
                 >
@@ -280,7 +294,7 @@ const EmployeeMobileDashboard = () => {
                   {isLocked ? formatLockoutTimer(lockoutSeconds) : 'Punch'}
                 </button>
                 <button
-                  onClick={() => handlePunch('check-out')}
+                  onClick={() => handlePunchClick('check-out')}
                   disabled={punchingAction || isLocked}
                   className="rounded-xl bg-slate-900 text-white font-semibold py-2.5 flex items-center justify-center gap-2 text-sm hover:bg-slate-800 active:scale-[0.98] transition-all disabled:opacity-50"
                 >
@@ -395,6 +409,26 @@ const EmployeeMobileDashboard = () => {
           </Link>
         </div>
       </section>
+
+      {/* Face Scanner Modal */}
+      {showScanner && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col">
+            <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+              <h3 className="font-semibold text-slate-800">Face Recognition Check-in</h3>
+              <button 
+                onClick={() => { setShowScanner(false); setPendingPunchAction(null); }}
+                className="text-slate-500 hover:text-slate-800"
+              >
+                Cancel
+              </button>
+            </div>
+            <div className="p-4 flex-1">
+              <FastFaceScanner onScanSuccess={handleFaceScanSuccess} mode="match" />
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

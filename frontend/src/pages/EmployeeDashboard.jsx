@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import EmployeeMobileDashboard from './EmployeeMobileDashboard';
+import FastFaceScanner from '../components/FastFaceScanner';
 
 const EmployeeDashboard = () => {
   const { profile } = useAuth();
@@ -13,6 +14,9 @@ const EmployeeDashboard = () => {
   const [punchingAction, setPunchingAction] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [lockoutSeconds, setLockoutSeconds] = useState(null);
+  
+  const [showScanner, setShowScanner] = useState(false);
+  const [pendingPunchAction, setPendingPunchAction] = useState(null);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -87,7 +91,17 @@ const EmployeeDashboard = () => {
     return R * c;
   };
 
-  const handlePunch = async (action) => {
+  const handlePunchClick = (action) => {
+    setPendingPunchAction(action);
+    setShowScanner(true);
+  };
+
+  const handleFaceScanSuccess = (descriptor) => {
+    setShowScanner(false);
+    handlePunch(pendingPunchAction, descriptor);
+  };
+
+  const handlePunch = async (action, faceDescriptor = null) => {
     if (!navigator.geolocation) {
       toast.error('Geolocation is not supported by your browser.');
       return;
@@ -137,7 +151,8 @@ const EmployeeDashboard = () => {
             action,
             latitude: lat,
             longitude: lng,
-            address: addr
+            address: addr,
+            faceDescriptor: JSON.stringify(Array.from(faceDescriptor || []))
           });
           toast.success(`Successfully ${action.replace('-', ' ')}ed!`);
           queryClient.invalidateQueries({ queryKey: ['employee', 'dashboard'] });
@@ -245,7 +260,7 @@ const EmployeeDashboard = () => {
                 ) : (
                   <>
                     <button
-                      onClick={() => handlePunch('check-in')}
+                      onClick={() => handlePunchClick('check-in')}
                       disabled={punchingAction || checkedIn || checkOutTime || isLocked}
                       className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-11 px-6 min-w-[140px] disabled:opacity-50 transition-all hover:shadow-md"
                     >
@@ -254,7 +269,7 @@ const EmployeeDashboard = () => {
                     </button>
 
                     <button
-                      onClick={() => handlePunch('punch')}
+                      onClick={() => handlePunchClick('punch')}
                       disabled={punchingAction || !checkedIn || checkOutTime || isLocked}
                       className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-11 px-6 min-w-[140px] disabled:opacity-50 transition-all hover:shadow-md"
                     >
@@ -263,7 +278,7 @@ const EmployeeDashboard = () => {
                     </button>
 
                     <button
-                      onClick={() => handlePunch('check-out')}
+                      onClick={() => handlePunchClick('check-out')}
                       disabled={punchingAction || !checkedIn || checkOutTime || isLocked}
                       className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-11 px-6 min-w-[140px] disabled:opacity-50 transition-all hover:shadow-md"
                     >
@@ -406,6 +421,26 @@ const EmployeeDashboard = () => {
 
         </div>
       </div>
+
+      {/* Face Scanner Modal */}
+      {showScanner && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col">
+            <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+              <h3 className="font-semibold text-slate-800">Face Recognition Check-in</h3>
+              <button 
+                onClick={() => { setShowScanner(false); setPendingPunchAction(null); }}
+                className="text-slate-500 hover:text-slate-800"
+              >
+                Cancel
+              </button>
+            </div>
+            <div className="p-4 flex-1">
+              <FastFaceScanner onScanSuccess={handleFaceScanSuccess} mode="match" />
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

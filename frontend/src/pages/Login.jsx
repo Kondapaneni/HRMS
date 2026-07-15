@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { Mail, Lock, ArrowRight, Briefcase, Eye, EyeOff } from 'lucide-react';
 import { useNavigate, Navigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import FastFaceScanner from '../components/FastFaceScanner';
+import { User } from 'lucide-react';
 
 const Login = () => {
   const [isFocused, setIsFocused] = useState(null);
@@ -11,6 +13,8 @@ const Login = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [loginMethod, setLoginMethod] = useState('password'); // 'password' or 'face'
+  const [isScanning, setIsScanning] = useState(false);
   const [lockoutSeconds, setLockoutSeconds] = useState(0);
   const navigate = useNavigate();
 
@@ -24,7 +28,7 @@ const Login = () => {
     return () => clearInterval(timer);
   }, [lockoutSeconds]);
 
-  const { user, profile, profileLoading, signIn, signOut } = useAuth();
+  const { user, profile, profileLoading, signIn, signInWithFace, signOut } = useAuth();
 
   const ADMIN_ROLES = ['admin'];
 
@@ -61,8 +65,13 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      // Authenticate via our custom PHP backend
-      const userData = await signIn(email, password);
+      let userData;
+      if (loginMethod === 'password') {
+        userData = await signIn(email, password);
+      } else {
+        // Handled by FaceScanner callback
+        return; 
+      }
 
       // Redirect based on role
       if (userData.forcePasswordChange) {
@@ -87,6 +96,42 @@ const Login = () => {
         return;
       }
       setError(err.response?.data?.error || err.message || 'Failed to sign in. Please check your credentials.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleFaceDetected = async (descriptor) => {
+    setIsScanning(false);
+    setError('');
+    setIsLoading(true);
+
+    try {
+      const userData = await signInWithFace(email, descriptor);
+      
+      // Redirect based on role
+      if (userData.forcePasswordChange) {
+        navigate('/change-password');
+      } else if (ADMIN_ROLES.includes(userData.role)) {
+        navigate('/admin');
+      } else if (userData.role === 'employee') {
+        navigate('/employee');
+      } else if (userData.role === 'candidate') {
+        if (signOut) await signOut();
+        throw new Error('Please use the Candidate Portal to sign in.');
+      } else {
+        throw new Error(`Unrecognised account role '${userData.role}'. Contact your administrator.`);
+      }
+
+    } catch (err) {
+      if (err.response?.status === 429) {
+        if (err.response.data?.secondsRemaining) {
+          setLockoutSeconds(err.response.data.secondsRemaining);
+        }
+        setError(err.response.data?.error || 'Too Many Requests. Please Try Again Later.');
+        return;
+      }
+      setError(err.response?.data?.error || err.message || 'Face matching failed or credentials incorrect.');
     } finally {
       setIsLoading(false);
     }
@@ -174,6 +219,31 @@ const Login = () => {
               </div>
             )}
 
+            <div className="flex gap-4 mb-6">
+              <button
+                type="button"
+                onClick={() => { setLoginMethod('password'); setIsScanning(false); }}
+                className={`flex-1 py-3 rounded-xl font-bold text-sm border-[3px] transition-all ${
+                  loginMethod === 'password'
+                    ? 'bg-[#1E1B4B] text-white border-[#1E1B4B] shadow-[4px_4px_0px_#F59E0B]'
+                    : 'bg-white text-[#1E1B4B] border-[#1E1B4B] shadow-[2px_2px_0px_#1E1B4B]'
+                }`}
+              >
+                Password Login
+              </button>
+              <button
+                type="button"
+                onClick={() => { setLoginMethod('face'); setIsScanning(false); }}
+                className={`flex-1 py-3 rounded-xl font-bold text-sm border-[3px] transition-all flex items-center justify-center gap-2 ${
+                  loginMethod === 'face'
+                    ? 'bg-[#1E1B4B] text-white border-[#1E1B4B] shadow-[4px_4px_0px_#10B981]'
+                    : 'bg-white text-[#1E1B4B] border-[#1E1B4B] shadow-[2px_2px_0px_#1E1B4B]'
+                }`}
+              >
+                <User size={18} /> Face Login
+              </button>
+            </div>
+
             <form className="space-y-6" onSubmit={handleLogin}>
 
               <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 }} className="relative group">
@@ -198,54 +268,84 @@ const Login = () => {
                 </div>
               </motion.div>
 
-              <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6 }} className="relative group">
-                <div className="mb-2">
-                  <label className="block text-sm font-black text-[#1E1B4B] uppercase tracking-wide">
-                    Password
-                  </label>
-                </div>
-                <div className={`relative flex items-center transition-all duration-200 rounded-xl overflow-hidden border-[3px] border-[#1E1B4B] bg-white ${isFocused === 'password' ? 'shadow-[6px_6px_0px_#F59E0B] -translate-y-1 -translate-x-1' : 'shadow-[4px_4px_0px_#E5E7EB]'
-                  }`}>
-                  <div className={`pl-4 transition-colors ${isFocused === 'password' ? 'text-[#F59E0B]' : 'text-[#1E1B4B]'}`}>
-                    <Lock size={22} strokeWidth={2.5} />
-                  </div>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    onFocus={() => setIsFocused('password')}
-                    onBlur={() => setIsFocused(null)}
-                    className="w-full py-4 px-4 bg-transparent outline-none text-[#1E1B4B] font-bold placeholder:font-bold placeholder:text-[#9CA3AF]"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className={`pr-4 transition-colors hover:text-[#F59E0B] ${isFocused === 'password' ? 'text-[#F59E0B]' : 'text-[#9CA3AF]'}`}
-                  >
-                    {showPassword ? <EyeOff size={22} strokeWidth={2.5} /> : <Eye size={22} strokeWidth={2.5} />}
-                  </button>
-                </div>
-              </motion.div>
+              {loginMethod === 'password' && (
+                <>
+                  <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6 }} className="relative group">
+                    <div className="mb-2">
+                      <label className="block text-sm font-black text-[#1E1B4B] uppercase tracking-wide">
+                        Password
+                      </label>
+                    </div>
+                    <div className={`relative flex items-center transition-all duration-200 rounded-xl overflow-hidden border-[3px] border-[#1E1B4B] bg-white ${isFocused === 'password' ? 'shadow-[6px_6px_0px_#F59E0B] -translate-y-1 -translate-x-1' : 'shadow-[4px_4px_0px_#E5E7EB]'
+                      }`}>
+                      <div className={`pl-4 transition-colors ${isFocused === 'password' ? 'text-[#F59E0B]' : 'text-[#1E1B4B]'}`}>
+                        <Lock size={22} strokeWidth={2.5} />
+                      </div>
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="••••••••"
+                        onFocus={() => setIsFocused('password')}
+                        onBlur={() => setIsFocused(null)}
+                        className="w-full py-4 px-4 bg-transparent outline-none text-[#1E1B4B] font-bold placeholder:font-bold placeholder:text-[#9CA3AF]"
+                        required={loginMethod === 'password'}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className={`pr-4 transition-colors hover:text-[#F59E0B] ${isFocused === 'password' ? 'text-[#F59E0B]' : 'text-[#9CA3AF]'}`}
+                      >
+                        {showPassword ? <EyeOff size={22} strokeWidth={2.5} /> : <Eye size={22} strokeWidth={2.5} />}
+                      </button>
+                    </div>
+                  </motion.div>
 
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }} className="flex justify-end mt-6">
-                <Link to="/forgot-password" className="text-sm font-black text-[#3B82F6] hover:text-[#2563EB] transition-colors hover:underline decoration-[3px] underline-offset-4">
-                  Forgot Password?
-                </Link>
-              </motion.div>
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }} className="flex justify-end mt-6">
+                    <Link to="/forgot-password" className="text-sm font-black text-[#3B82F6] hover:text-[#2563EB] transition-colors hover:underline decoration-[3px] underline-offset-4">
+                      Forgot Password?
+                    </Link>
+                  </motion.div>
 
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}>
-                <button
-                  type="submit"
-                  disabled={isLoading || lockoutSeconds > 0}
-                  className="w-full mt-6 bg-[#EF4444] text-white py-4 rounded-xl font-black text-xl flex items-center justify-center gap-2 border-[3px] border-[#1E1B4B] shadow-[8px_8px_0px_#1E1B4B] active:shadow-[0px_0px_0px_#1E1B4B] active:translate-x-[8px] active:translate-y-[8px] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isLoading ? 'Signing in...' : lockoutSeconds > 0 ? `Locked out (${Math.floor(lockoutSeconds / 60)}:${(lockoutSeconds % 60).toString().padStart(2, '0')})` : 'Sign in'}
-                  {!isLoading && lockoutSeconds === 0 && <ArrowRight size={24} strokeWidth={3} className="ml-2" />}
-                </button>
-              </motion.div>
+                  <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}>
+                    <button
+                      type="submit"
+                      disabled={isLoading || lockoutSeconds > 0}
+                      className="w-full mt-6 bg-[#EF4444] text-white py-4 rounded-xl font-black text-xl flex items-center justify-center gap-2 border-[3px] border-[#1E1B4B] shadow-[8px_8px_0px_#1E1B4B] active:shadow-[0px_0px_0px_#1E1B4B] active:translate-x-[8px] active:translate-y-[8px] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isLoading ? 'Signing in...' : lockoutSeconds > 0 ? `Locked out (${Math.floor(lockoutSeconds / 60)}:${(lockoutSeconds % 60).toString().padStart(2, '0')})` : 'Sign in'}
+                      {!isLoading && lockoutSeconds === 0 && <ArrowRight size={24} strokeWidth={3} className="ml-2" />}
+                    </button>
+                  </motion.div>
+                </>
+              )}
 
+              {loginMethod === 'face' && (
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mt-6">
+                  {isScanning ? (
+                    <div className="w-full">
+                      <FastFaceScanner 
+                        isScanning={isScanning}
+                        onFaceDetected={handleFaceDetected}
+                        onCancel={() => setIsScanning(false)}
+                      />
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={isLoading || lockoutSeconds > 0 || !email}
+                      onClick={() => setIsScanning(true)}
+                      className="w-full bg-[#10B981] text-white py-4 rounded-xl font-black text-xl flex items-center justify-center gap-2 border-[3px] border-[#1E1B4B] shadow-[8px_8px_0px_#1E1B4B] active:shadow-[0px_0px_0px_#1E1B4B] active:translate-x-[8px] active:translate-y-[8px] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isLoading ? 'Processing...' : lockoutSeconds > 0 ? `Locked out (${Math.floor(lockoutSeconds / 60)}:${(lockoutSeconds % 60).toString().padStart(2, '0')})` : 'Scan Face'}
+                      {!isLoading && lockoutSeconds === 0 && <User size={24} strokeWidth={3} className="ml-2" />}
+                    </button>
+                  )}
+                  {!email && (
+                    <p className="text-sm text-red-500 font-bold mt-2 text-center">Please enter your email first.</p>
+                  )}
+                </motion.div>
+              )}
             </form>
           </div>
 

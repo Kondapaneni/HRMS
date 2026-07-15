@@ -101,6 +101,18 @@ export const AuthProvider = ({ children }) => {
     return userData;
   };
 
+  const signInWithFace = async (email, faceDescriptor) => {
+    // Convert descriptor array to string for pgvector format `[1, 2, ...]`
+    const vectorString = `[${faceDescriptor.join(',')}]`;
+    const response = await api.post('/login/face', { email, faceDescriptor: vectorString });
+    const { token, user: userData } = response.data;
+    if (token) {
+      localStorage.setItem('token', token);
+    }
+    await fetchProfile();
+    return userData;
+  };
+
   const signOut = async () => {
     try {
       await api.post('/logout');
@@ -120,6 +132,7 @@ export const AuthProvider = ({ children }) => {
     profileLoading,
     isInitialized,
     signIn,
+    signInWithFace,
     signOut,
     fetchProfile,
   };

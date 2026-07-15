@@ -20,6 +20,7 @@ import EmployeeProfile from './pages/EmployeeProfile'
 import EmployeePerformance from './pages/EmployeePerformance'
 import EmployeeExpenses from './pages/EmployeeExpenses'
 import EditProfilePage from './pages/EditProfilePage'
+import EmployeeFaceRegistration from './pages/EmployeeFaceRegistration'
 import EmployeeMobileMap from './pages/EmployeeMobileMap'
 import EmployeeMobileCamera from './pages/EmployeeMobileCamera'
 import EmployeeMobileChat from './pages/EmployeeMobileChat'
@@ -164,6 +165,7 @@ function App() {
               <Route path="chat" element={<Chat />} />
               <Route path="profile" element={<EmployeeProfile />} />
               <Route path="profile/edit" element={<EditProfilePage />} />
+              <Route path="profile/face-registration" element={<EmployeeFaceRegistration />} />
             </Route>
 
             <Route
