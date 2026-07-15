@@ -58,9 +58,6 @@ const EmployeeMobileLeaves = () => {
               <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">Balance & History</h2>
               <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">Manage your time off</p>
             </div>
-            <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center border border-white/30 backdrop-blur-md shadow-sm">
-              <FileText className="w-6 h-6 text-white" />
-            </div>
           </div>
 
           <Link 

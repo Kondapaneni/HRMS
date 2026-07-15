@@ -3,7 +3,7 @@ import {
   User, Mail, Phone, MapPin, Briefcase, CalendarDays, Building2,
   Shield, CreditCard, Heart, HeartHandshake, Globe, Clock3, Laptop,
   Calendar, Clock, UserCheck, Users, Camera, ChevronRight, FileText, ChevronLeft,
-  Loader2, X, Save
+  Loader2, X, Save, Edit2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
@@ -374,9 +374,10 @@ const EmployeeMobileProfile = () => {
           </div>
           <button
             onClick={handleEditClick}
-            className="text-xs font-bold bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-xl backdrop-blur-md transition-colors shadow-md"
+            className="flex items-center gap-1.5 text-xs font-black bg-white/20 hover:bg-white/30 text-white px-4 py-2.5 rounded-xl backdrop-blur-md transition-all shadow-[0_4px_12px_rgba(0,0,0,0.1)] active:scale-95 border border-white/20"
           >
-            Edit
+            <Edit2 size={14} strokeWidth={3} />
+            Edit Profile
           </button>
         </div>
       </div>

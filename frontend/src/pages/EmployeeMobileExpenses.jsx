@@ -182,12 +182,7 @@ const EmployeeMobileExpenses = () => {
 
         <div className="relative z-10 px-2 flex justify-between items-start">
           <div>
-            <div className="flex items-center gap-2 mb-1.5">
-              <button onClick={() => navigate('/employee')} className="text-white/80 active:text-white transition-colors p-1 -ml-1">
-                <ArrowLeft className="w-5 h-5" />
-              </button>
-              <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest drop-shadow-md">My Finances</p>
-            </div>
+
             <h1 className="text-3xl font-black text-white tracking-tight drop-shadow-sm mb-0.5">Expenses</h1>
           </div>
           <button
