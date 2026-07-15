@@ -3,6 +3,7 @@ import { loadModels, getFaceDescriptor } from '../utils/faceApiHelper';
 
 const FastFaceScanner = ({ onFaceDetected, isScanning, onCancel }) => {
   const videoRef = useRef(null);
+  const streamRef = useRef(null);
   const [status, setStatus] = useState('Loading models...');
   const [stream, setStream] = useState(null);
 
@@ -24,6 +25,7 @@ const FastFaceScanner = ({ onFaceDetected, isScanning, onCancel }) => {
           return;
         }
 
+        streamRef.current = mediaStream;
         setStream(mediaStream);
         if (videoRef.current) {
           videoRef.current.srcObject = mediaStream;
@@ -38,8 +40,8 @@ const FastFaceScanner = ({ onFaceDetected, isScanning, onCancel }) => {
 
     return () => {
       active = false;
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
       }
     };
   }, []);

@@ -362,13 +362,6 @@ const EmployeeProfile = () => {
         </div>
         <div className="flex items-center gap-3">
           <button 
-            onClick={() => navigate('/employee/profile/face-registration')}
-            className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 h-10 px-4 py-2 transition-colors shadow-sm"
-          >
-            <Camera className="w-4 h-4 mr-2" />
-            Face Registration
-          </button>
-          <button 
             onClick={() => navigate('/employee/profile/edit')}
             className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-10 px-4 py-2 transition-colors shadow-sm"
           >

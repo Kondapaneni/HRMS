@@ -165,7 +165,6 @@ function App() {
               <Route path="chat" element={<Chat />} />
               <Route path="profile" element={<EmployeeProfile />} />
               <Route path="profile/edit" element={<EditProfilePage />} />
-              <Route path="profile/face-registration" element={<EmployeeFaceRegistration />} />
             </Route>
 
             <Route
@@ -173,6 +172,14 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
                   <EmployeeMobileMap />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/employee/face-registration"
+              element={
+                <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
+                  <EmployeeFaceRegistration />
                 </ProtectedRoute>
               }
             />

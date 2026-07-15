@@ -43,6 +43,9 @@ const Login = () => {
     if (profile.role === 'candidate') {
       return <Navigate to="/candidate/dashboard" replace />;
     }
+    if (profile.role === 'employee' && !profile.isFaceRegistered) {
+      return <Navigate to="/employee/face-registration" replace />;
+    }
     return <Navigate to={ADMIN_ROLES.includes(profile.role) ? '/admin' : '/employee'} replace />;
   }
 

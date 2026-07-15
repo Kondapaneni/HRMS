@@ -12,7 +12,6 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
-  // Pass all requests to the network directly
-  // This satisfies the PWA fetch handler requirement without actually caching anything
-  event.respondWith(fetch(event.request));
+  // Empty fetch handler to satisfy PWA installability requirements
+  // without intercepting or breaking SPA client-side routing.
 });
