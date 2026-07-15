@@ -192,7 +192,7 @@ const EmployeeMobileDashboard = () => {
       </section>
 
       {/* Attendance Tracker */}
-      <section className="bg-white rounded-[24px] shadow-lg border border-slate-100/50 overflow-hidden relative z-20 -mt-12 mx-1">
+      <section className="bg-white rounded-[24px] shadow-lg border border-slate-100/50 overflow-hidden relative z-20 -mt-12 mx-4">
         <div className="px-6 pt-6 pb-4 border-b border-slate-100 flex justify-between items-start">
           <div>
             <h2 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">Attendance Tracker</h2>
@@ -300,7 +300,7 @@ const EmployeeMobileDashboard = () => {
       </section>
 
       {/* Team Chat Entry */}
-      <section className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
+      <section className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden mx-4">
         <div className="px-6 pt-6 pb-4 border-b border-slate-100">
           <h2 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">Communications</h2>
           <p className="text-[11px] font-medium text-slate-500 mt-1 uppercase tracking-wider">Secure Team Chat</p>
@@ -321,8 +321,32 @@ const EmployeeMobileDashboard = () => {
         </div>
       </section>
 
+      {/* Expenses Overview */}
+      <section className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden mx-4">
+        <div className="px-6 pt-6 pb-4 border-b border-slate-100 flex justify-between items-start">
+          <div>
+            <h2 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">My Expenses</h2>
+            <p className="text-[11px] font-medium text-slate-500 mt-1 uppercase tracking-wider">Track your claims</p>
+          </div>
+        </div>
+        <div className="p-6">
+          <Link to="/employee/expenses" className="flex items-center justify-between w-full rounded-xl bg-orange-50 text-orange-600 font-semibold text-sm px-6 py-4 hover:bg-orange-100 active:scale-[0.98] transition-all border border-orange-100">
+            <div className="flex items-center gap-3">
+              <div className="bg-white p-2 rounded-lg shadow-sm">
+                <Receipt className="w-5 h-5 text-orange-500" />
+              </div>
+              <div className="text-left">
+                <div className="text-base text-slate-800">Manage Expenses</div>
+                <div className="text-xs text-slate-500 font-normal mt-0.5">Submit new bills or track statuses</div>
+              </div>
+            </div>
+            <ChevronRight className="w-5 h-5 text-slate-400" />
+          </Link>
+        </div>
+      </section>
+
       {/* Upcoming Holidays */}
-      <section className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
+      <section className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden mx-4">
         <Link to="/employee/mobile/holidays" className="px-6 pt-6 pb-4 border-b border-slate-100 flex justify-between items-center active:bg-slate-50 transition-colors">
           <div className="flex items-center gap-3">
             <div className="bg-emerald-50 p-2 rounded-lg">
@@ -359,7 +383,7 @@ const EmployeeMobileDashboard = () => {
       </section>
 
       {/* Upcoming Birthdays */}
-      <section className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
+      <section className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden mx-4">
         <Link to="/employee/mobile/birthdays" className="px-6 pt-6 pb-4 border-b border-slate-100 flex justify-between items-center active:bg-slate-50 transition-colors">
           <div className="flex items-center gap-3">
             <div className="bg-purple-50 p-2 rounded-lg">
@@ -405,29 +429,6 @@ const EmployeeMobileDashboard = () => {
         </div>
       </section>
 
-      {/* Expenses Overview */}
-      <section className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
-        <div className="px-6 pt-6 pb-4 border-b border-slate-100 flex justify-between items-start">
-          <div>
-            <h2 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">My Expenses</h2>
-            <p className="text-[11px] font-medium text-slate-500 mt-1 uppercase tracking-wider">Track your claims</p>
-          </div>
-        </div>
-        <div className="p-6">
-          <Link to="/employee/expenses" className="flex items-center justify-between w-full rounded-xl bg-orange-50 text-orange-600 font-semibold text-sm px-6 py-4 hover:bg-orange-100 active:scale-[0.98] transition-all border border-orange-100">
-            <div className="flex items-center gap-3">
-              <div className="bg-white p-2 rounded-lg shadow-sm">
-                <Receipt className="w-5 h-5 text-orange-500" />
-              </div>
-              <div className="text-left">
-                <div className="text-base text-slate-800">Manage Expenses</div>
-                <div className="text-xs text-slate-500 font-normal mt-0.5">Submit new bills or track statuses</div>
-              </div>
-            </div>
-            <ChevronRight className="w-5 h-5 text-slate-400" />
-          </Link>
-        </div>
-      </section>
 
     </div>
   );

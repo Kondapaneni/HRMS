@@ -48,7 +48,7 @@ const EmployeeMobileBirthdays = () => {
       </div>
 
       {/* Main Content Card overlapping header */}
-      <div className="bg-white rounded-[24px] shadow-lg p-5 -mt-12 relative z-20 mx-1 border border-slate-100/50 min-h-[300px]">
+      <div className="bg-white rounded-[24px] shadow-lg p-5 -mt-12 relative z-20 mx-4 border border-slate-100/50 min-h-[300px]">
         <div className="space-y-4">
           <h2 className="text-lg font-bold text-slate-900 tracking-tight mb-2">Upcoming Birthdays</h2>
           
