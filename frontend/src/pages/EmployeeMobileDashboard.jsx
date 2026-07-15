@@ -323,25 +323,48 @@ const EmployeeMobileDashboard = () => {
 
       {/* Expenses Overview */}
       <section className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden mx-4">
-        <div className="px-6 pt-6 pb-4 border-b border-slate-100 flex justify-between items-start">
-          <div>
-            <h2 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">My Expenses</h2>
-            <p className="text-[11px] font-medium text-slate-500 mt-1 uppercase tracking-wider">Track your claims</p>
+        <Link to="/employee/expenses" className="px-6 pt-6 pb-4 border-b border-slate-100 flex justify-between items-center active:bg-slate-50 transition-colors">
+          <div className="flex items-center gap-3">
+            <div className="bg-orange-50 p-2 rounded-lg">
+              <Receipt className="w-5 h-5 text-orange-500" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">My Expenses</h2>
+              <p className="text-[11px] font-medium text-slate-500 mt-1 uppercase tracking-wider">Track your claims</p>
+            </div>
           </div>
-        </div>
-        <div className="p-6">
-          <Link to="/employee/expenses" className="flex items-center justify-between w-full rounded-xl bg-orange-50 text-orange-600 font-semibold text-sm px-6 py-4 hover:bg-orange-100 active:scale-[0.98] transition-all border border-orange-100">
+          <ChevronRight className="w-5 h-5 text-slate-400" />
+        </Link>
+        <div className="p-4 space-y-3">
+          {/* Static mockup data for now */}
+          <div className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 border border-slate-100 transition-colors">
             <div className="flex items-center gap-3">
-              <div className="bg-white p-2 rounded-lg shadow-sm">
-                <Receipt className="w-5 h-5 text-orange-500" />
+              <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 shadow-sm border border-white">
+                <Receipt className="w-4 h-4" />
               </div>
-              <div className="text-left">
-                <div className="text-base text-slate-800">Manage Expenses</div>
-                <div className="text-xs text-slate-500 font-normal mt-0.5">Submit new bills or track statuses</div>
+              <div>
+                <h4 className="font-bold text-slate-800 text-sm">Travel to Client</h4>
+                <p className="text-[10px] font-bold text-slate-400">Approved</p>
               </div>
             </div>
-            <ChevronRight className="w-5 h-5 text-slate-400" />
-          </Link>
+            <div className="text-right">
+              <p className="text-sm font-bold text-slate-700">₹4,500</p>
+            </div>
+          </div>
+          <div className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 border border-slate-100 transition-colors">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 shadow-sm border border-white">
+                <Receipt className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-800 text-sm">Office Supplies</h4>
+                <p className="text-[10px] font-bold text-amber-500">Pending</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-sm font-bold text-slate-700">₹1,200</p>
+            </div>
+          </div>
         </div>
       </section>
 
