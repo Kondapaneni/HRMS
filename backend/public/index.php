@@ -143,7 +143,7 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
 
         unset($user['password']); // Don't return password hash
 
-        $faStmt = $conn->prepare('SELECT "canAttendance", "canLeave", "canPayroll", "canEmployees", "canRecruitment", "canAssets" FROM user_feature_access WHERE "userId" = ?');
+        $faStmt = $conn->prepare('SELECT "canAttendance", "canLeave", "canPayroll", "canEmployees", "canRecruitment", "canAssets", "canChat", "canLoanOrigination" FROM user_feature_access WHERE "userId" = ?');
         $faStmt->execute([$user['id']]);
         $fa = $faStmt->fetch(PDO::FETCH_ASSOC);
         
@@ -155,6 +155,8 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
                 'canEmployees' => (bool)$fa['canEmployees'],
                 'canRecruitment' => (bool)$fa['canRecruitment'],
                 'canAssets' => (bool)$fa['canAssets'],
+                'canChat' => (bool)$fa['canChat'],
+                'canLoanOrigination' => (bool)$fa['canLoanOrigination'],
             ];
         }
 
@@ -258,7 +260,7 @@ $app->post('/api/login/face', function (Request $request, Response $response, $a
         
         $jwt = JWT::encode($payload, $secret, 'HS256');
 
-        $faStmt = $conn->prepare('SELECT "canAttendance", "canLeave", "canPayroll", "canEmployees", "canRecruitment", "canAssets" FROM user_feature_access WHERE "userId" = ?');
+        $faStmt = $conn->prepare('SELECT "canAttendance", "canLeave", "canPayroll", "canEmployees", "canRecruitment", "canAssets", "canChat", "canLoanOrigination" FROM user_feature_access WHERE "userId" = ?');
         $faStmt->execute([$user['id']]);
         $fa = $faStmt->fetch(PDO::FETCH_ASSOC);
         
@@ -270,6 +272,8 @@ $app->post('/api/login/face', function (Request $request, Response $response, $a
                 'canEmployees' => (bool)$fa['canEmployees'],
                 'canRecruitment' => (bool)$fa['canRecruitment'],
                 'canAssets' => (bool)$fa['canAssets'],
+                'canChat' => (bool)$fa['canChat'],
+                'canLoanOrigination' => (bool)$fa['canLoanOrigination'],
             ];
         }
 
@@ -308,7 +312,7 @@ $app->get('/api/me', function (Request $request, Response $response, $args) {
     
     $stmt = $conn->prepare('
         SELECT u.id, u.email, u."firstName", u."lastName", u.role, u.department, u.position, u."isActive", u."forcePasswordChange", e.avatar, e."employeeId", e."geoFenceEnabled", e."webAttendanceEnabled",
-               fa."canAttendance", fa."canLeave", fa."canPayroll", fa."canEmployees", fa."canRecruitment", fa."canAssets",
+               fa."canAttendance", fa."canLeave", fa."canPayroll", fa."canEmployees", fa."canRecruitment", fa."canAssets", fa."canChat", fa."canLoanOrigination",
                CASE WHEN b.face_descriptor IS NOT NULL THEN true ELSE false END as "isFaceRegistered"
         FROM users u 
         LEFT JOIN employee e ON u.id = e."userId" 
@@ -328,10 +332,12 @@ $app->get('/api/me', function (Request $request, Response $response, $args) {
                 'canEmployees' => (bool)$user['canEmployees'],
                 'canRecruitment' => (bool)$user['canRecruitment'],
                 'canAssets' => (bool)$user['canAssets'],
+                'canChat' => (bool)$user['canChat'],
+                'canLoanOrigination' => (bool)$user['canLoanOrigination'],
             ];
         }
         $user['isFaceRegistered'] = ($user['isFaceRegistered'] === true || $user['isFaceRegistered'] === 'true' || $user['isFaceRegistered'] === 't' || $user['isFaceRegistered'] == 1);
-        unset($user['canAttendance'], $user['canLeave'], $user['canPayroll'], $user['canEmployees'], $user['canRecruitment'], $user['canAssets']);
+        unset($user['canAttendance'], $user['canLeave'], $user['canPayroll'], $user['canEmployees'], $user['canRecruitment'], $user['canAssets'], $user['canChat'], $user['canLoanOrigination']);
         
         $response->getBody()->write(json_encode($user));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);

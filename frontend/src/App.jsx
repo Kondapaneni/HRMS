@@ -26,6 +26,8 @@ import EmployeeMobileCamera from './pages/EmployeeMobileCamera'
 import EmployeeMobileChat from './pages/EmployeeMobileChat'
 import EmployeeMobileHolidays from './pages/EmployeeMobileHolidays'
 import EmployeeMobileBirthdays from './pages/EmployeeMobileBirthdays'
+import LoansLayout from './components/LoansLayout'
+import LoanOrigination from './pages/LoanOrigination'
 import AdminLayout from './components/AdminLayout'
 import AdminEmployees from './pages/AdminEmployees'
 import AdminDirectory from './pages/AdminDirectory'
@@ -167,6 +169,18 @@ function App() {
               <Route path="chat" element={<Chat />} />
               <Route path="profile" element={<EmployeeProfile />} />
               <Route path="profile/edit" element={<EditProfilePage />} />
+            </Route>
+
+            {/* Acme Loans Workspace (Employee Only) */}
+            <Route
+              path="/employee/loans"
+              element={
+                <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
+                  <LoansLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route path="origination" element={<LoanOrigination />} />
             </Route>
 
             <Route

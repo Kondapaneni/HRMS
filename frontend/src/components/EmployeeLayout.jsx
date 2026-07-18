@@ -66,8 +66,12 @@ const EmployeeLayout = () => {
     { icon: <Calendar size={18} />, label: 'Leaves', path: '/employee/leaves' },
     { icon: <Wallet size={18} />, label: 'Payroll', path: '/employee/payroll' },
     { icon: <DollarSign size={18} />, label: 'Expenses', path: '/employee/expenses' },
-    { icon: <MessageSquare size={18} />, label: 'Secure Chat', path: '/employee/chat' },
     { icon: <BarChart2 size={18} />, label: 'Performance', path: '/employee/performance' },
+  ];
+
+  const businessApps = [
+    { icon: <MessageSquare size={18} />, label: 'Secure Chat', path: '/employee/chat', feature: 'canChat' },
+    { icon: <Briefcase size={18} />, label: 'Acme Loans', path: '/employee/loans/origination', feature: 'canLoanOrigination' },
   ];
 
   // Fetch chat list (shared cache with Chat.jsx) to keep unread badges perfectly synced
@@ -141,7 +145,7 @@ const EmployeeLayout = () => {
         <div className="p-4 overflow-y-auto flex-1">
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 px-2">Employee Portal</p>
           <nav className="space-y-1">
-            {navItems.map((item, idx) => {
+            {navItems.filter(item => !item.feature || profile?.featureAccess?.[item.feature]).map((item, idx) => {
               const isActive = location.pathname === item.path;
               return (
                 <Link
@@ -163,6 +167,35 @@ const EmployeeLayout = () => {
               );
             })}
           </nav>
+
+          {businessApps.filter(item => !item.feature || profile?.featureAccess?.[item.feature]).length > 0 && (
+            <div className="pt-4 mt-4 border-t border-slate-200">
+              <p className="px-2 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">Business Apps</p>
+              <nav className="space-y-1">
+                {businessApps.filter(item => !item.feature || profile?.featureAccess?.[item.feature]).map((item, idx) => {
+                  const isActive = location.pathname === item.path;
+                  return (
+                    <Link
+                      key={idx}
+                      to={item.path}
+                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive
+                        ? 'bg-blue-50 text-blue-700'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                        }`}
+                    >
+                      <span className={isActive ? 'text-blue-600' : 'text-slate-400'}>{item.icon}</span>
+                      <span className="flex-1">{item.label}</span>
+                      {item.label === 'Secure Chat' && totalUnread > 0 && (
+                        <span className="bg-[#25d366] text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                          {totalUnread}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </nav>
+            </div>
+          )}
 
           {visibleAdminFeatures.length > 0 && (
             <div className="pt-4 mt-4 border-t border-slate-200">
@@ -229,24 +262,9 @@ const EmployeeLayout = () => {
               </div>
             </div>
 
-            <button
-              className="md:hidden relative text-slate-500 hover:text-slate-700 transition-colors ml-1"
-              onClick={() => navigate('/employee/chat/mobile')}
-            >
-              <Bell size={20} />
-              {totalUnread > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 bg-[#25d366] text-white text-[9px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-1 border-2 border-white">
-                  {totalUnread}
-                </span>
-              )}
-            </button>
-          </div>
-
-          <div className="flex items-center gap-5">
-            {/* Desktop Right Side */}
-            <div className="hidden md:flex items-center gap-5">
+            {profile?.featureAccess?.canChat && (
               <button
-                className="relative text-slate-500 hover:text-slate-700 transition-colors"
+                className="md:hidden relative text-slate-500 hover:text-slate-700 transition-colors ml-1"
                 onClick={() => navigate('/employee/chat/mobile')}
               >
                 <Bell size={20} />
@@ -256,6 +274,25 @@ const EmployeeLayout = () => {
                   </span>
                 )}
               </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-5">
+            {/* Desktop Right Side */}
+            <div className="hidden md:flex items-center gap-5">
+              {profile?.featureAccess?.canChat && (
+                <button
+                  className="relative text-slate-500 hover:text-slate-700 transition-colors"
+                  onClick={() => navigate('/employee/chat')}
+                >
+                  <Bell size={20} />
+                  {totalUnread > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 bg-[#25d366] text-white text-[9px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-1 border-2 border-white">
+                      {totalUnread}
+                    </span>
+                  )}
+                </button>
+              )}
 
               <div className="h-6 w-px bg-slate-200"></div>
 
