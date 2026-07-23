@@ -18,6 +18,7 @@ $app->get('/api/employee/profile', function (Request $request, Response $respons
                    e."panNumber", e.department, e.position, e.branch, e.salary, e."employmentType",
                    e."noticePeriod", e."shiftTime", e."workMode", e."weekOff", e."joinDate", e."managerId",
                    e.avatar, e.status, e.timeline, e."geoFenceEnabled", e."webAttendanceEnabled",
+                   e."emergencyContact", e."emergencyPhone",
                    b.name as branch_name
             FROM employee e 
             LEFT JOIN branches b ON e.branch::uuid = b.id 
