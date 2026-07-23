@@ -1,21 +1,20 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RefreshCw, Check } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 
 const PULL_THRESHOLD = 65; // pixels needed to trigger refresh
 const MAX_PULL = 110;       // max visual pull distance
 
 /**
- * Native Mobile-Style PullToRefresh Component
- * Replaces text badges with a sleek, native circular glass pull indicator.
+ * Mobile PullToRefresh Component
+ * Clean top indicator without layout shifting or tick icons.
  */
 const PullToRefresh = ({ children, onRefresh }) => {
   const queryClient = useQueryClient();
   const [pullDistance, setPullDistance] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
 
   const startYRef = useRef(0);
   const startXRef = useRef(0);
@@ -54,11 +53,9 @@ const PullToRefresh = ({ children, onRefresh }) => {
 
     // Only activate if dragging downward and mostly vertical
     if (deltaY > 5 && Math.abs(deltaY) > Math.abs(deltaX) * 1.1) {
-      // Damped elastic formula
       const damp = Math.min(MAX_PULL, Math.pow(deltaY, 0.83));
       currentPullRef.current = damp;
       setPullDistance(damp);
-      setIsDragging(true);
 
       // Light tactile vibration on reaching refresh point
       if (damp >= PULL_THRESHOLD && !hasVibratedRef.current) {
@@ -70,7 +67,7 @@ const PullToRefresh = ({ children, onRefresh }) => {
         hasVibratedRef.current = false;
       }
 
-      // Prevent native browser scroll artifacts while pulling
+      // Prevent native browser scroll rubberbanding
       if (e.cancelable && deltaY > 10) {
         e.preventDefault();
       }
@@ -79,11 +76,10 @@ const PullToRefresh = ({ children, onRefresh }) => {
 
   const handleTouchEnd = useCallback(async () => {
     if (isRefreshing) return;
-    setIsDragging(false);
 
     if (currentPullRef.current >= PULL_THRESHOLD) {
       setIsRefreshing(true);
-      setPullDistance(52); // Lock position during refresh animation
+      setPullDistance(50); // Lock position during refresh animation
 
       try {
         if (onRefresh) {
@@ -100,7 +96,7 @@ const PullToRefresh = ({ children, onRefresh }) => {
           setIsSuccess(false);
           setPullDistance(0);
           currentPullRef.current = 0;
-        }, 500);
+        }, 600);
       }
     } else {
       setPullDistance(0);
@@ -127,55 +123,52 @@ const PullToRefresh = ({ children, onRefresh }) => {
       onTouchEnd={handleTouchEnd}
       onTouchCancel={handleTouchEnd}
     >
-      {/* Sleek Native Floating Pull Indicator */}
+      {/* Top Floating Glass Pull Badge (Text-based, No Tick Icon) */}
       <AnimatePresence>
-        {(pullDistance > 0 || isRefreshing) && (
+        {(pullDistance > 0 || isRefreshing || isSuccess) && (
           <motion.div
-            initial={{ opacity: 0, y: -20, scale: 0.5 }}
+            initial={{ opacity: 0, y: -40, scale: 0.8 }}
             animate={{
-              opacity: Math.min(1, pullRatio * 1.3),
-              y: Math.min(pullDistance, 52),
-              scale: isRefreshing ? 1 : 0.4 + pullRatio * 0.6,
+              opacity: Math.min(1, pullRatio * 1.5),
+              y: Math.min(pullDistance, 50),
+              scale: 1,
             }}
-            exit={{ opacity: 0, y: -10, scale: 0.3 }}
-            transition={{ type: 'spring', stiffness: 350, damping: 26 }}
-            className="fixed top-2 left-1/2 -translate-x-1/2 z-[9999] pointer-events-none"
+            exit={{ opacity: 0, y: -40, scale: 0.8 }}
+            transition={{ type: 'spring', stiffness: 350, damping: 28 }}
+            className="fixed top-2 left-1/2 -translate-x-1/2 z-[99999] pointer-events-none"
           >
-            <div className={`w-10 h-10 rounded-full shadow-lg border backdrop-blur-xl flex items-center justify-center transition-colors duration-200 ${
+            <div className={`px-4 py-2 rounded-full shadow-lg border backdrop-blur-xl flex items-center gap-2 transition-all duration-200 ${
               isSuccess 
-                ? 'bg-emerald-500 text-white border-emerald-400 shadow-emerald-500/20'
+                ? 'bg-emerald-600/95 text-white border-emerald-400/50 shadow-emerald-600/25'
                 : pullDistance >= PULL_THRESHOLD || isRefreshing
-                ? 'bg-blue-600 text-white border-blue-500 shadow-blue-500/25'
-                : 'bg-white/95 text-blue-600 border-slate-200/90 shadow-slate-900/10'
+                ? 'bg-blue-600/95 text-white border-blue-400/50 shadow-blue-500/25'
+                : 'bg-white/95 text-slate-700 border-slate-200/90 shadow-slate-900/10'
             }`}>
-              {isSuccess ? (
-                <Check className="w-5 h-5 text-white animate-bounce" />
-              ) : isRefreshing ? (
-                <RefreshCw className="w-5 h-5 animate-spin text-white" />
-              ) : (
-                <div 
-                  className="transition-transform duration-75 flex items-center justify-center"
-                  style={{ transform: `rotate(${pullRatio * 360}deg)` }}
-                >
-                  <RefreshCw 
-                    className={`w-5 h-5 transition-colors ${
-                      pullDistance >= PULL_THRESHOLD ? 'text-white' : 'text-blue-600'
-                    }`} 
-                  />
-                </div>
-              )}
+              <RefreshCw 
+                className={`w-4 h-4 ${
+                  isRefreshing ? 'animate-spin text-white' : isSuccess ? 'text-white' : ''
+                }`}
+                style={{
+                  transform: !isRefreshing && !isSuccess ? `rotate(${pullRatio * 360}deg)` : undefined
+                }}
+              />
+
+              <span className="text-xs font-semibold tracking-wide select-none">
+                {isSuccess
+                  ? 'Updated'
+                  : isRefreshing
+                  ? 'Refreshing...'
+                  : pullDistance >= PULL_THRESHOLD
+                  ? 'Release to refresh'
+                  : 'Pull down to refresh'}
+              </span>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Main Content View with Elastic Displacement */}
-      <div 
-        className="w-full h-full transition-transform duration-75 ease-out"
-        style={{
-          transform: pullDistance > 0 ? `translate3d(0, ${pullDistance * 0.38}px, 0)` : 'none'
-        }}
-      >
+      {/* Main Content (No CSS transform wrapper so fixed bottom nav stays rock solid) */}
+      <div className="w-full h-full min-h-screen">
         {children}
       </div>
     </div>
