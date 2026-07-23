@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import PageLoader from '../components/PageLoader';
 import { createPortal } from 'react-dom';
 import { Plus, Upload, FileText, CheckCircle, XCircle, Clock, ArrowLeft, Receipt } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -86,6 +87,8 @@ const EmployeeMobileExpenses = () => {
       default: return <Clock className="w-5 h-5 text-yellow-500" />;
     }
   };
+
+  if (isLoading) return <PageLoader message="Loading Expenses..." />;
 
   if (isFormOpen) {
     return createPortal(

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PageLoader from '../components/PageLoader';
 import {
   User, Mail, Phone, MapPin, Briefcase, CalendarDays, Building2,
   Shield, CreditCard, Heart, HeartHandshake, Globe, Clock3, Laptop,
@@ -330,6 +331,8 @@ const EmployeeMobileProfile = () => {
       default: return null;
     }
   };
+
+  if (loading) return <PageLoader message="Loading Profile..." />;
 
   return (
     <div className="relative pb-6">

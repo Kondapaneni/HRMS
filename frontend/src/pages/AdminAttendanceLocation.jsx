@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import PageLoader from '../components/PageLoader';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import axios from '../api/axios';
@@ -301,6 +302,8 @@ const AdminAttendanceLocation = () => {
 
   const checkOutTime = record.checkOut ? new Date(record.checkOut).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'Missing';
   const checkOutCoordsStr = (record.checkOutLat && record.checkOutLng) ? `${parseFloat(record.checkOutLat).toFixed(6)}, ${parseFloat(record.checkOutLng).toFixed(6)}` : 'No location';
+
+  if (loading) return <PageLoader message="Loading Location Data..." />;
 
   return (
     <div

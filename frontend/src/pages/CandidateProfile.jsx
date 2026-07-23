@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PageLoader from '../components/PageLoader';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Camera, Save, FileText, UploadCloud } from 'lucide-react';
@@ -192,7 +193,7 @@ const CandidateProfile = () => {
   };
 
   if (isLoadingProfile) {
-    return <div className="p-6 text-slate-500">Loading profile...</div>;
+    return <PageLoader message="Loading Profile..." />;
   }
 
   return (

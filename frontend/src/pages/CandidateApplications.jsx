@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PageLoader from '../components/PageLoader';
 import { FileText, ChevronRight, X, Clock, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
@@ -56,7 +57,7 @@ const CandidateApplications = () => {
   };
 
   if (isLoading) {
-    return <div className="p-6 text-slate-500">Loading applications...</div>;
+    return <PageLoader message="Loading Applications..." />;
   }
 
   return (

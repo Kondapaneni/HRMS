@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PageLoader from '../components/PageLoader';
 import { Shield, Edit2, Search, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../api/axios';
@@ -6,34 +7,34 @@ import toast from 'react-hot-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const featuresList = [
-  { 
-    key: 'canAssets', 
-    title: 'Asset Manager', 
+  {
+    key: 'canAssets',
+    title: 'Asset Manager',
     description: 'An asset manager has all the permissions to manage the assets in the organization.'
   },
-  { 
-    key: 'canAttendance', 
-    title: 'Attendance Manager', 
+  {
+    key: 'canAttendance',
+    title: 'Attendance Manager',
     description: 'An attendance manager has all permissions to manage attendance records and regularization.'
   },
-  { 
-    key: 'canEmployees', 
-    title: 'Employee Manager', 
+  {
+    key: 'canEmployees',
+    title: 'Employee Manager',
     description: 'An employee manager has all permissions to manage employee profiles and documents.'
   },
-  { 
-    key: 'canLeave', 
-    title: 'Leave Manager', 
+  {
+    key: 'canLeave',
+    title: 'Leave Manager',
     description: 'A leave manager has all permissions to manage leave policies and requests.'
   },
-  { 
-    key: 'canPayroll', 
-    title: 'Payroll Manager', 
+  {
+    key: 'canPayroll',
+    title: 'Payroll Manager',
     description: 'A payroll manager has all permissions to manage payroll and expenses of all employees.'
   },
-  { 
-    key: 'canRecruitment', 
-    title: 'Recruitment Manager', 
+  {
+    key: 'canRecruitment',
+    title: 'Recruitment Manager',
     description: 'A recruitment manager has all permissions to manage job postings and candidates.'
   },
   {
@@ -132,15 +133,15 @@ const AdminFeatureAccess = () => {
   const handleSaveModal = async () => {
     setSaving(true);
     const featureKey = selectedFeature.key;
-    
+
     // Determine which users changed
     const currentlyAssigned = new Set(users.filter(u => u[featureKey]).map(u => u.id));
-    
+
     const changes = [];
     users.forEach(u => {
       const isCurrentlyAssigned = currentlyAssigned.has(u.id);
       const isNowAssigned = tempSelection.has(u.id);
-      
+
       if (isCurrentlyAssigned !== isNowAssigned) {
         changes.push({ userId: u.id, feature: featureKey, value: isNowAssigned });
       }
@@ -171,6 +172,8 @@ const AdminFeatureAccess = () => {
     return fullName.includes(modalSearch.toLowerCase()) || (u.email && u.email.toLowerCase().includes(modalSearch.toLowerCase()));
   });
 
+  if (loading) return <PageLoader message="Loading Feature Access..." />;
+
   return (
     <div className="space-y-6">
       <div>
@@ -200,7 +203,7 @@ const AdminFeatureAccess = () => {
                     <td className="py-6 px-6 align-top">
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="font-semibold text-slate-900 text-base">{feature.title}</h3>
-                        <button 
+                        <button
                           onClick={() => openManageModal(feature)}
                           className="text-slate-400 hover:text-blue-600 transition-colors"
                         >
@@ -213,7 +216,7 @@ const AdminFeatureAccess = () => {
                     </td>
                     <td className="py-6 px-6 align-top">
                       <div className="text-sm font-medium text-slate-700 mb-4">Across all employees</div>
-                      
+
                       <div className="flex flex-wrap gap-3 mb-4">
                         {assignedUsers.length === 0 ? (
                           <span className="text-slate-400 italic text-sm">No users assigned</span>
@@ -230,8 +233,8 @@ const AdminFeatureAccess = () => {
                           ))
                         )}
                       </div>
-                      
-                      <button 
+
+                      <button
                         onClick={() => openManageModal(feature)}
                         className="text-indigo-600 font-medium hover:text-indigo-800 transition-colors text-sm"
                       >
@@ -256,7 +259,7 @@ const AdminFeatureAccess = () => {
                 <h2 className="text-lg font-bold text-slate-900">Manage {selectedFeature.title}s</h2>
                 <p className="text-sm text-slate-500">Select users who should have this role.</p>
               </div>
-              <button 
+              <button
                 onClick={() => setSelectedFeature(null)}
                 className="text-slate-400 hover:text-slate-600 bg-slate-200/50 hover:bg-slate-200 p-2 rounded-full transition-colors"
               >
@@ -268,9 +271,9 @@ const AdminFeatureAccess = () => {
             <div className="p-6 flex-1 overflow-hidden flex flex-col">
               <div className="relative mb-4 shrink-0">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                <input 
-                  type="text" 
-                  placeholder="Search by name or email..." 
+                <input
+                  type="text"
+                  placeholder="Search by name or email..."
                   value={modalSearch}
                   onChange={(e) => setModalSearch(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -284,8 +287,8 @@ const AdminFeatureAccess = () => {
                   <div className="divide-y divide-slate-100">
                     {filteredUsersForModal.map(u => (
                       <label key={u.id} className="flex items-center gap-4 p-4 hover:bg-slate-50 cursor-pointer transition-colors">
-                        <input 
-                          type="checkbox" 
+                        <input
+                          type="checkbox"
                           checked={tempSelection.has(u.id)}
                           onChange={() => handleToggleUser(u.id)}
                           className="w-5 h-5 text-blue-600 rounded border-slate-300 focus:ring-blue-500"
@@ -308,14 +311,14 @@ const AdminFeatureAccess = () => {
 
             {/* Footer */}
             <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-end gap-3">
-              <button 
+              <button
                 onClick={() => setSelectedFeature(null)}
                 className="px-4 py-2 text-slate-600 font-medium hover:bg-slate-200 bg-slate-100 rounded-lg transition-colors"
                 disabled={saving}
               >
                 Cancel
               </button>
-              <button 
+              <button
                 onClick={handleSaveModal}
                 disabled={saving}
                 className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"

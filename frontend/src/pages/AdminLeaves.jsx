@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PageLoader from '../components/PageLoader';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
@@ -71,6 +72,8 @@ const AdminLeaves = () => {
   };
 
   const totalPages = Math.ceil(totalCount / limit);
+
+  if (loading) return <PageLoader message="Loading Leave Requests..." />;
 
   return (
     <div className="space-y-6">

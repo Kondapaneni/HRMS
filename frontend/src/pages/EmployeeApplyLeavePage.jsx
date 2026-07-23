@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import PageLoader from '../components/PageLoader';
 import { ArrowLeft, Loader2, Calendar as CalendarIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -165,6 +166,8 @@ const EmployeeApplyLeavePage = () => {
   };
 
   const submitting = applyMutation.isPending;
+
+  if (loading) return <PageLoader message="Loading Leave Form..." />;
 
   return (
     <div className="relative pb-6">

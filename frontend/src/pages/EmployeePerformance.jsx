@@ -1,4 +1,5 @@
 import React from 'react';
+import PageLoader from '../components/PageLoader';
 import { useQuery } from '@tanstack/react-query';
 import { Loader2, Activity, Users, CalendarDays, Coffee, Building2, User } from 'lucide-react';
 import {
@@ -79,11 +80,7 @@ const EmployeePerformance = () => {
   });
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[50vh]">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-      </div>
-    );
+    return <PageLoader message="Loading Performance..." />;
   }
 
   if (!perfData) {

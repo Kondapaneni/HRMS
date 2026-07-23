@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PageLoader from '../components/PageLoader';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Loader2, X, Trash2, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, getDay, getDate } from 'date-fns';
@@ -121,6 +122,8 @@ const AdminHolidays = () => {
   const todayStr = format(new Date(), 'yyyy-MM-dd');
   const upcomingHolidays = holidays.filter(h => h.holidayDate >= todayStr);
 
+  if (loading) return <PageLoader message="Loading Holidays..." />;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -203,11 +206,10 @@ const AdminHolidays = () => {
                 <button
                   key={day}
                   onClick={() => openModal(dateStr)}
-                  className={`min-h-[130px] flex flex-col rounded-xl border p-3 text-left transition-all overflow-hidden ${
-                    holiday
+                  className={`min-h-[130px] flex flex-col rounded-xl border p-3 text-left transition-all overflow-hidden ${holiday
                       ? 'border-green-300 bg-green-50 hover:bg-green-100'
                       : 'border-slate-200 bg-white hover:border-blue-300 hover:shadow-md'
-                  }`}
+                    }`}
                 >
                   <p className="text-sm font-semibold text-slate-900">{day}</p>
                   {holiday ? (
@@ -240,7 +242,7 @@ const AdminHolidays = () => {
           <h2 className="text-lg font-semibold text-slate-900">Upcoming Holidays</h2>
           <p className="text-sm text-slate-500">These upcoming dates are treated as a holiday in attendance regularization.</p>
         </div>
-        
+
         <div className="p-6 space-y-3">
           {loading ? (
             <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-blue-500" /></div>
@@ -292,7 +294,7 @@ const AdminHolidays = () => {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
+
             <form onSubmit={handleSaveHoliday} className="p-6 overflow-y-auto space-y-5">
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-slate-700">Date</label>
@@ -303,7 +305,7 @@ const AdminHolidays = () => {
                   className="flex h-10 w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-500"
                 />
               </div>
-              
+
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-slate-700">Holiday Name <span className="text-red-500">*</span></label>
                 <input
@@ -315,7 +317,7 @@ const AdminHolidays = () => {
                   className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-              
+
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-slate-700">Holiday Image {(!existingImage) && <span className="text-red-500">*</span>}</label>
                 <input

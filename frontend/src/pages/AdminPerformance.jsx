@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import PageLoader from '../components/PageLoader';
 import { useQuery } from '@tanstack/react-query';
 import { Loader2, TrendingUp, TrendingDown, Activity, Users, CalendarDays, Coffee, AlertCircle, Building2, User } from 'lucide-react';
 import {
@@ -71,7 +72,7 @@ const EmployeeRow = ({ item, type = 'peer' }) => {
 const AdminPerformance = () => {
   const [selectedEmpId, setSelectedEmpId] = useState('');
 
-  const { data: employees = [] } = useQuery({
+  const { data: employees = [], isLoading: isLoadingEmployees } = useQuery({
     queryKey: ['admin', 'employees'],
     queryFn: async () => {
       const res = await api.get('/admin/employees?limit=1000');
@@ -88,6 +89,8 @@ const AdminPerformance = () => {
     },
     enabled: !!selectedEmpId,
   });
+
+  if (isLoadingEmployees) return <PageLoader message="Loading Performance Data..." />;
 
   return (
     <div className="space-y-6">

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PageLoader from '../components/PageLoader';
 import { useAuth } from '../contexts/AuthContext';
 import { User, Building, Calendar, Mail, Briefcase, LogIn, LogOut, Clock, CalendarDays, BarChart3, AlertCircle, Loader2, Coffee } from 'lucide-react';
 import api from '../api/axios';
@@ -180,6 +181,8 @@ const EmployeeDashboard = () => {
       }
     })
   };
+
+  if (loading) return <PageLoader message="Loading Dashboard..." />;
 
   return (
     <>

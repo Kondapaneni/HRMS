@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PageLoader from '../components/PageLoader';
 import { Search, Filter, ChevronRight, FileText, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
@@ -136,6 +137,8 @@ const CandidateJobs = () => {
   if (isLoading) {
     return <div className="p-6 text-slate-500">Loading jobs...</div>;
   }
+
+  if (isLoadingJobs) return <PageLoader message="Loading Jobs..." />;
 
   return (
     <>

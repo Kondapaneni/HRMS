@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import PageLoader from '../components/PageLoader';
 import { Plus, Loader2, Upload, FileText, CheckCircle, XCircle, Clock, Eye, Trash2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
@@ -111,6 +112,8 @@ const EmployeeExpenses = () => {
         return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"><Clock className="w-3 h-3 mr-1"/> Pending</span>;
     }
   };
+
+  if (isLoading) return <PageLoader message="Loading Expenses..." />;
 
   return (
     <>

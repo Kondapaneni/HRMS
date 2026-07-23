@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PageLoader from '../components/PageLoader';
 import { Download, IndianRupee, TrendingDown, TrendingUp, Wallet, AlertCircle, FileText, ChevronRight, ChevronLeft } from 'lucide-react';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -109,6 +110,8 @@ const EmployeeMobilePayroll = ({ profile }) => {
       toast.error('Failed to generate PDF document.', { id: 'download-toast' });
     }
   };
+
+  if (loading) return <PageLoader message="Loading Payroll..." />;
 
   return (
     <div className="space-y-6 pb-2">

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PageLoader from '../components/PageLoader';
 import { createPortal } from 'react-dom';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Shield, Clock, Power } from 'lucide-react';
@@ -101,11 +102,11 @@ const AdminEmployeeSettings = () => {
       setPendingStatus(newStatus);
       setShowExitModal(true);
     } else {
-      updateSetting('employmentStatus', 'Active', { 
+      updateSetting('employmentStatus', 'Active', {
         status: 'active',
         isActive: true,
-        employmentStatusDate: null, 
-        employmentStatusReason: null 
+        employmentStatusDate: null,
+        employmentStatusReason: null
       });
     }
   };
@@ -115,14 +116,14 @@ const AdminEmployeeSettings = () => {
     const fd = new FormData(e.target);
     const date = fd.get('date');
     const reason = fd.get('reason');
-    
+
     updateSetting('employmentStatus', pendingStatus, {
       status: 'inactive',
       isActive: false,
       employmentStatusDate: date,
       employmentStatusReason: reason
     });
-    
+
     setShowExitModal(false);
   };
 
@@ -132,6 +133,8 @@ const AdminEmployeeSettings = () => {
 
   const isExit = ['Exited', 'Terminated', 'Absconded'].includes(settings.employmentStatus);
 
+  if (loading) return <PageLoader message="Loading Settings..." />;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -139,7 +142,7 @@ const AdminEmployeeSettings = () => {
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">Employee Settings</h1>
           <p className="text-sm text-slate-500 mt-1">Configure attendance and security settings for {empName}</p>
         </div>
-        <button 
+        <button
           onClick={() => navigate(`/admin/employees/${id}`)}
           className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-10 px-4 py-2 transition-colors cursor-pointer"
         >
@@ -160,15 +163,15 @@ const AdminEmployeeSettings = () => {
                 <p className="font-medium text-slate-900">Show check-in/check-out on web</p>
                 <p className="text-sm text-slate-500 mt-1">When disabled, the web attendance page will hide the buttons. Mobile is unaffected.</p>
               </div>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => handleToggle('webAttendanceEnabled')}
                 className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${settings.webAttendanceEnabled ? 'bg-blue-600' : 'bg-slate-200'}`}
               >
                 <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${settings.webAttendanceEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
               </button>
             </div>
-            
+
             <div className="h-px bg-slate-100"></div>
 
             <div className="flex items-center justify-between">
@@ -176,8 +179,8 @@ const AdminEmployeeSettings = () => {
                 <p className="font-medium text-slate-900">Enable Geo-Fence Validation</p>
                 <p className="text-sm text-slate-500 mt-1">When enabled, check-in/check-out will only be allowed from within configured geo-fence locations.</p>
               </div>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => handleToggle('geoFenceEnabled')}
                 className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${settings.geoFenceEnabled ? 'bg-blue-600' : 'bg-slate-200'}`}
               >
@@ -198,7 +201,7 @@ const AdminEmployeeSettings = () => {
               <div className="flex-1">
                 <p className="font-medium text-slate-900">Current Employment Status</p>
                 <p className="text-sm text-slate-500 mt-1">Setting status to Exited, Terminated, or Absconded will automatically disable account access.</p>
-                
+
                 {isExit && (
                   <div className="mt-4 p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-2">
                     <p className="text-sm"><span className="text-slate-500">Date:</span> <span className="font-medium text-slate-900">{settings.employmentStatusDate}</span></p>
@@ -206,7 +209,7 @@ const AdminEmployeeSettings = () => {
                   </div>
                 )}
               </div>
-              <select 
+              <select
                 value={settings.employmentStatus}
                 onChange={handleEmploymentStatusChange}
                 className="w-full sm:w-48 rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none bg-white cursor-pointer"
@@ -235,15 +238,15 @@ const AdminEmployeeSettings = () => {
                   Current status: {settings.isActive ? 'Active' : 'Inactive'}
                 </span>
               </div>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={handleStatusToggle}
                 className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${settings.isActive ? 'bg-blue-600' : 'bg-slate-200'}`}
               >
                 <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${settings.isActive ? 'translate-x-5' : 'translate-x-0'}`} />
               </button>
             </div>
-            
+
             <div className="h-px bg-slate-100"></div>
 
             <div className="flex items-center justify-between">
@@ -251,8 +254,8 @@ const AdminEmployeeSettings = () => {
                 <p className="font-medium text-slate-900">Allow MFA for this employee</p>
                 <p className="text-sm text-slate-500 mt-1">When enabled, the employee can set up MFA from their settings page.</p>
               </div>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => handleToggle('mfaEnabled')}
                 className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${settings.mfaEnabled ? 'bg-blue-600' : 'bg-slate-200'}`}
               >

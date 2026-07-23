@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PageLoader from '../components/PageLoader';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { X, CheckCircle2, XCircle, Eye, Loader2, FileText, AlertCircle, Send, ArrowLeft, Check, ChevronRight, Clock, Lock } from 'lucide-react';
@@ -160,6 +161,8 @@ const AdminVerifyDocuments = () => {
 
   const hasNotified = Array.isArray(application?.application_timeline) && 
     application.application_timeline.some(t => t.status_change === 'Documents Verified');
+
+  if (isAppLoading) return <PageLoader message="Loading Documents..." />;
 
   return (
     <div className="max-w-[1600px] mx-auto h-[calc(100dvh-8rem)] flex flex-col space-y-4">

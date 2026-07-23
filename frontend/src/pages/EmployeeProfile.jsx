@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PageLoader from '../components/PageLoader';
 import { 
   User, Mail, Phone, MapPin, Briefcase, CalendarDays, Building2,
   Shield, CreditCard, Heart, HeartHandshake, Globe, Clock3, Laptop,
@@ -348,6 +349,8 @@ const EmployeeProfile = () => {
       />
     );
   };
+
+  if (loading) return <PageLoader message="Loading Profile..." />;
 
   return (
     <>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PageLoader from '../components/PageLoader';
 import { ArrowLeft, Search, Calendar, MapPin, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -52,16 +53,16 @@ const AdminAttendanceRegularize = () => {
   const parseShiftWindow = (shiftTime) => {
     const defaultShift = { start: '09:45', end: '18:30' };
     if (!shiftTime) return defaultShift;
-    
+
     const regex = /(\d{1,2}:\d{2}\s*[AP]M)\s*(?:to|-|–)\s*(\d{1,2}:\d{2}\s*[AP]M)/i;
     const match = shiftTime.match(regex);
     if (!match) return defaultShift;
-    
+
     const parseTime = (timeStr) => {
       const d = new Date(`1970-01-01 ${timeStr}`);
       return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
     };
-    
+
     return {
       start: parseTime(match[1]),
       end: parseTime(match[2])
@@ -72,17 +73,17 @@ const AdminAttendanceRegularize = () => {
     const status = (rec.status || 'missing').toLowerCase();
     if (['paid leave', 'unpaid leave', 'sandwich leave', 'holiday', 'weekend', 'future', 'not-joined', 'missing', 'not-marked'].includes(status)) return status;
     if (rec.isRegularized === true || rec.isRegularized === 'true' || rec.isRegularized === 'yes') return 'regularized';
-    
+
     const isToday = new Date(rec.date).toDateString() === new Date().toDateString();
-    
+
     if (status !== 'present') {
-        return status;
+      return status;
     }
 
     if (isToday && rec.checkIn && !rec.checkOut) return 'present-full-shift';
 
     const shiftWindow = parseShiftWindow(employeeDetails?.shiftTime);
-    
+
     if (rec.checkIn && !rec.checkOut) {
       const checkInValue = new Date(rec.checkIn).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
       if (checkInValue > shiftWindow.start) return 'late-missing-checkout';
@@ -175,7 +176,7 @@ const AdminAttendanceRegularize = () => {
       else if (['leave', 'absent'].includes(lower)) initStatus = lower;
     }
     setModalStatus(initStatus);
-    
+
     let inTime = '';
     let outTime = '';
     if (record.checkIn) {
@@ -186,7 +187,7 @@ const AdminAttendanceRegularize = () => {
       const d = new Date(record.checkOut);
       outTime = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
     }
-    
+
     setModalCheckIn(inTime);
     setModalCheckOut(outTime);
     setModalHours(record.hours || '');
@@ -225,7 +226,7 @@ const AdminAttendanceRegularize = () => {
     }
 
     setModalLoading(true);
-    
+
     try {
       const payload = {
         employeeId: selectedRecord.employeeId,
@@ -236,7 +237,7 @@ const AdminAttendanceRegularize = () => {
         hours: modalHours,
         attendanceId: selectedRecord.attendanceRecordId
       };
-      
+
       await axios.post('/admin/attendance/regularize', payload);
       setIsModalOpen(false);
       queryClient.invalidateQueries({ queryKey: ['admin', 'attendance-regularize'] });
@@ -278,14 +279,14 @@ const AdminAttendanceRegularize = () => {
                 {palette.label}
               </span>
             </div>
-            
+
             {rec.status === 'holiday' && (
               <div className="mt-2 text-center text-xs font-semibold text-amber-700">
                 {rec.holidayImage && <img src={rec.holidayImage} alt={rec.holidayName} className="w-10 h-10 object-contain mx-auto mb-1 rounded-full shadow-sm bg-white" />}
                 {rec.holidayName}
               </div>
             )}
-            
+
             <div className="mt-2 space-y-1 text-sm">
               {rec.checkIn && (
                 <div className="flex items-center text-slate-600">
@@ -306,7 +307,7 @@ const AdminAttendanceRegularize = () => {
               )}
             </div>
           </div>
-          
+
           <div className="mt-3 flex gap-2">
             {rec.status !== 'future' && (
               <button
@@ -350,6 +351,8 @@ const AdminAttendanceRegularize = () => {
     );
   };
 
+  if (loading) return <PageLoader message="Loading Attendance Records..." />;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -358,7 +361,7 @@ const AdminAttendanceRegularize = () => {
           <p className="text-sm text-slate-500 mt-1">Regularize employee attendance for a full month</p>
         </div>
         <div>
-          <button 
+          <button
             onClick={() => navigate('/admin/attendance')}
             className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-9 px-3 transition-colors cursor-pointer"
           >
@@ -371,10 +374,10 @@ const AdminAttendanceRegularize = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">Select Employee</label>
-            <EmployeeSelect 
-              employees={employees} 
-              selectedId={selectedEmployeeId} 
-              onChange={(id) => setSelectedEmployeeId(id)} 
+            <EmployeeSelect
+              employees={employees}
+              selectedId={selectedEmployeeId}
+              onChange={(id) => setSelectedEmployeeId(id)}
               placeholder="Search and Select Employee..."
               valueKey="userId"
             />
@@ -383,8 +386,8 @@ const AdminAttendanceRegularize = () => {
             <label className="block text-sm font-medium text-slate-700 mb-1.5">Select Month</label>
             <div className="relative">
               <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input 
-                type="month" 
+              <input
+                type="month"
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(e.target.value)}
                 className="w-full border border-slate-300 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none cursor-pointer"
@@ -403,7 +406,7 @@ const AdminAttendanceRegularize = () => {
 
       {error && (
         <div className="bg-red-50 text-red-600 p-4 rounded-lg border border-red-100 flex items-center">
-        <AlertCircle className="w-5 h-5 mr-2" /> {error?.message || 'Failed to fetch attendance data.'}
+          <AlertCircle className="w-5 h-5 mr-2" /> {error?.message || 'Failed to fetch attendance data.'}
         </div>
       )}
 
@@ -420,7 +423,7 @@ const AdminAttendanceRegularize = () => {
           <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
               <h3 className="text-lg font-bold text-slate-800">Regularize Attendance</h3>
-              <button 
+              <button
                 onClick={() => setIsModalOpen(false)}
                 className="text-slate-400 hover:text-slate-600 transition-colors p-1 cursor-pointer"
                 disabled={modalLoading}
@@ -428,7 +431,7 @@ const AdminAttendanceRegularize = () => {
                 ✕
               </button>
             </div>
-            
+
             <form onSubmit={handleSubmitRegularize} className="p-6">
               {modalError && (
                 <div className="mb-4 p-3 bg-red-50 border border-red-100 text-red-600 text-sm rounded-lg flex items-start">
@@ -440,11 +443,11 @@ const AdminAttendanceRegularize = () => {
               <div className="mb-5 bg-slate-50 p-3 rounded-lg border border-slate-100">
                 <p className="text-sm font-medium text-slate-700">Date: <span className="font-bold">{selectedRecord?.date}</span></p>
               </div>
-              
+
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
-                  <select 
+                  <select
                     value={modalStatus}
                     onChange={(e) => setModalStatus(e.target.value)}
                     className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none cursor-pointer"
@@ -456,14 +459,14 @@ const AdminAttendanceRegularize = () => {
                     <option value="not-marked">Not Marked (Clear)</option>
                   </select>
                 </div>
-                
+
                 {modalStatus === 'present' && (
                   <>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">Check In Time</label>
-                        <input 
-                          type="time" 
+                        <input
+                          type="time"
                           value={modalCheckIn}
                           onChange={(e) => handleTimeChange('in', e.target.value)}
                           className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none cursor-pointer"
@@ -473,8 +476,8 @@ const AdminAttendanceRegularize = () => {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1">Check Out Time</label>
-                        <input 
-                          type="time" 
+                        <input
+                          type="time"
                           value={modalCheckOut}
                           onChange={(e) => handleTimeChange('out', e.target.value)}
                           className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none cursor-pointer"
@@ -484,8 +487,8 @@ const AdminAttendanceRegularize = () => {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1">Working Hours</label>
-                      <input 
-                        type="number" 
+                      <input
+                        type="number"
                         step="0.01"
                         value={modalHours}
                         readOnly
@@ -496,18 +499,18 @@ const AdminAttendanceRegularize = () => {
                   </>
                 )}
               </div>
-              
+
               <div className="mt-8 flex justify-end gap-3">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => setIsModalOpen(false)}
                   className="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
                   disabled={modalLoading}
                 >
                   Cancel
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer flex items-center"
                   disabled={modalLoading}
                 >

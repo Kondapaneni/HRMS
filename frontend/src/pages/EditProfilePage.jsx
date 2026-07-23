@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import PageLoader from '../components/PageLoader';
 import { ArrowLeft, Loader2, Save, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -96,6 +97,8 @@ const EditProfilePage = () => {
       </div>
     );
   }
+
+  if (loading) return <PageLoader message="Loading Profile..." />;
 
   return (
     <>

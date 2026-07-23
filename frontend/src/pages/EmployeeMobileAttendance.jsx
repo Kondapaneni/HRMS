@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PageLoader from '../components/PageLoader';
 import { Search, Calendar as CalendarIcon, Clock, Shield, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
@@ -87,6 +88,8 @@ const EmployeeMobileAttendance = () => {
         return record.status || 'Not Marked';
     }
   };
+
+  if (loading) return <PageLoader message="Loading Attendance..." />;
 
   return (
     <div className="space-y-6 pb-2">

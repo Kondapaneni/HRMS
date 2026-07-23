@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
+import PageLoader from '../components/PageLoader';
 import { motion } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
-import { 
-  LogOut, Users, Settings, Activity, Briefcase, 
-  Search, Bell, Menu, Home, Calendar, Clock, 
+import {
+  LogOut, Users, Settings, Activity, Briefcase,
+  Search, Bell, Menu, Home, Calendar, Clock,
   BarChart2, ChevronDown, Plus
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -61,6 +62,8 @@ const AdminDashboard = () => {
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
+  if (loading) return <PageLoader message="Loading Dashboard..." />;
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -69,7 +72,7 @@ const AdminDashboard = () => {
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">Dashboard</h1>
           <p className="text-sm text-slate-500 mt-1">Overview of your organization's key metrics.</p>
         </div>
-        <button 
+        <button
           onClick={() => setIsModalOpen(true)}
           className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors shadow-sm"
         >
@@ -208,7 +211,7 @@ const AdminDashboard = () => {
                 { label: 'View Payslip', path: '/admin/payroll' },
                 { label: 'Add Employee', action: () => setIsModalOpen(true) },
               ].map((action, idx) => (
-                <button 
+                <button
                   key={idx}
                   onClick={() => action.action ? action.action() : navigate(action.path)}
                   className="p-4 text-center border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors flex items-center justify-center min-h-[80px]"
@@ -221,9 +224,9 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      <AddEmployeeModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+      <AddEmployeeModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
         onSuccess={() => {
           setIsModalOpen(false);
         }}

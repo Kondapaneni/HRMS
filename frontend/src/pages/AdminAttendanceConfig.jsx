@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PageLoader from '../components/PageLoader';
 import { createPortal } from 'react-dom';
 import { Globe, Clock, Edit2, Trash2, AlertTriangle, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -17,7 +18,7 @@ const AdminAttendanceConfig = () => {
   const [itemToDelete, setItemToDelete] = useState(null);
 
   // Extras query (geo locations + shift times)
-  const { data: extrasData } = useQuery({
+  const { data: extrasData, isLoading } = useQuery({
     queryKey: ['admin', 'attendance-extras'],
     queryFn: async () => {
       const [geoRes, shiftRes] = await Promise.all([
@@ -95,6 +96,8 @@ const AdminAttendanceConfig = () => {
     }
   };
 
+  if (isLoading) return <PageLoader message="Loading Attendance Config..." />;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -103,19 +106,19 @@ const AdminAttendanceConfig = () => {
           <p className="text-sm text-slate-500 mt-1">Configure geo-fences and valid shift timings for attendance tracking</p>
         </div>
         <div className="flex gap-3">
-          <button 
-            onClick={() => { setEditingGeo(null); setShowGeoModal(true); }} 
+          <button
+            onClick={() => { setEditingGeo(null); setShowGeoModal(true); }}
             className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 h-10 px-4 py-2 transition-colors cursor-pointer"
           >
             <Globe className="w-4 h-4 mr-2 text-blue-500" /> Add Location
           </button>
-          <button 
-            onClick={() => { setEditingShift(null); setShowShiftModal(true); }} 
+          <button
+            onClick={() => { setEditingShift(null); setShowShiftModal(true); }}
             className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-10 px-4 py-2 transition-colors cursor-pointer"
           >
             <Clock className="w-4 h-4 mr-2 text-slate-500" /> Add Shift Time
           </button>
-          <button 
+          <button
             onClick={() => navigate('/admin/attendance')}
             className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-9 px-3 transition-colors cursor-pointer"
           >
@@ -302,16 +305,16 @@ const AdminAttendanceConfig = () => {
               </p>
             </div>
             <div className="p-4 bg-slate-50 flex justify-end gap-3 border-t border-slate-100">
-              <button 
-                type="button" 
-                onClick={() => setItemToDelete(null)} 
+              <button
+                type="button"
+                onClick={() => setItemToDelete(null)}
                 className="px-4 py-2 text-sm font-medium border border-slate-300 rounded-md text-slate-700 bg-white hover:bg-slate-50 transition-colors cursor-pointer"
               >
                 Cancel
               </button>
-              <button 
-                type="button" 
-                onClick={confirmDelete} 
+              <button
+                type="button"
+                onClick={confirmDelete}
                 className="px-4 py-2 text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 transition-colors cursor-pointer"
               >
                 Delete

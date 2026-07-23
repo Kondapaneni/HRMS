@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PageLoader from '../components/PageLoader';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
@@ -433,6 +434,8 @@ const AdminRecruitment = () => {
   const inInterview = applications.filter(a => (a.status || '').includes('Interview')).length;
   const hiredCount = applications.filter(a => ['Hired', 'Selected', 'Converted to Employee'].includes(a.status)).length;
 
+
+  if (isLoadingJobs) return <PageLoader message="Loading Recruitment Data..." />;
 
   return (
     <div className="space-y-6">

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PageLoader from '../components/PageLoader';
 import { Shield, Edit2, Search, X, Monitor, Plus, Trash2, History, ArrowRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
@@ -60,11 +61,11 @@ const AdminAssets = () => {
   };
 
   const openEditModal = (asset) => {
-    setFormData({ 
-      name: asset.name, 
-      category: asset.category, 
-      serial_number: asset.serial_number || '', 
-      status: asset.status 
+    setFormData({
+      name: asset.name,
+      category: asset.category,
+      serial_number: asset.serial_number || '',
+      status: asset.status
     });
     setModalMode('edit');
     setSelectedAsset(asset);
@@ -154,6 +155,8 @@ const AdminAssets = () => {
     return holderName.includes(search) || assetName.includes(search);
   });
 
+  if (loading) return <PageLoader message="Loading Assets..." />;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -161,7 +164,7 @@ const AdminAssets = () => {
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">Asset Management</h1>
           <p className="text-slate-500 mt-1">Track and manage company equipment and assignments.</p>
         </div>
-        <button 
+        <button
           onClick={openAddModal}
           className="inline-flex items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 transition-all h-10"
         >
@@ -176,8 +179,8 @@ const AdminAssets = () => {
           </h3>
           <div className="relative w-full sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input 
-              type="search" 
+            <input
+              type="search"
               placeholder="Search assets..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -210,31 +213,30 @@ const AdminAssets = () => {
                     <td className="py-6 px-6 align-top">
                       <div className="flex items-center gap-3 mb-1">
                         <h3 className="font-semibold text-slate-900 text-base">{asset.name}</h3>
-                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${
-                          asset.status === 'Available' ? 'bg-green-100 text-green-700' :
-                          asset.status === 'Assigned' ? 'bg-blue-100 text-blue-700' :
-                          asset.status === 'Missing' ? 'bg-orange-100 text-orange-700' :
-                          asset.status === 'Damaged' ? 'bg-red-100 text-red-700' :
-                          'bg-yellow-100 text-yellow-700'
-                        }`}>
+                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${asset.status === 'Available' ? 'bg-green-100 text-green-700' :
+                            asset.status === 'Assigned' ? 'bg-blue-100 text-blue-700' :
+                              asset.status === 'Missing' ? 'bg-orange-100 text-orange-700' :
+                                asset.status === 'Damaged' ? 'bg-red-100 text-red-700' :
+                                  'bg-yellow-100 text-yellow-700'
+                          }`}>
                           {asset.status}
                         </span>
                         <div className="flex gap-1">
-                          <button 
+                          <button
                             onClick={() => openHistoryModal(asset)}
                             className="text-slate-400 hover:text-indigo-600 transition-colors p-1"
                             title="View Track/History"
                           >
                             <History size={14} />
                           </button>
-                          <button 
+                          <button
                             onClick={() => openEditModal(asset)}
                             className="text-slate-400 hover:text-blue-600 transition-colors p-1"
                             title="Edit Asset"
                           >
                             <Edit2 size={14} />
                           </button>
-                          <button 
+                          <button
                             onClick={() => handleDeleteAsset(asset.id)}
                             className="text-slate-400 hover:text-red-600 transition-colors p-1"
                             title="Delete Asset"
@@ -250,7 +252,7 @@ const AdminAssets = () => {
                     </td>
                     <td className="py-6 px-6 align-top">
                       <div className="text-sm font-medium text-slate-700 mb-4">Current Holder</div>
-                      
+
                       <div className="flex flex-wrap gap-3 mb-4">
                         {!asset.employee_id ? (
                           <span className="text-slate-400 italic text-sm">Unassigned</span>
@@ -265,8 +267,8 @@ const AdminAssets = () => {
                           </div>
                         )}
                       </div>
-                      
-                      <button 
+
+                      <button
                         onClick={() => openAssignModal(asset)}
                         className="text-indigo-600 font-medium hover:text-indigo-800 transition-colors text-sm"
                       >
@@ -289,16 +291,16 @@ const AdminAssets = () => {
             <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
               <div>
                 <h2 className="text-lg font-bold text-slate-900">
-                  {modalMode === 'assign' ? `Assign ${selectedAsset.name}` : 
-                   modalMode === 'add' ? 'Add New Asset' : 
-                   modalMode === 'history' ? `Track History: ${selectedAsset.name}` : 'Edit Asset'}
+                  {modalMode === 'assign' ? `Assign ${selectedAsset.name}` :
+                    modalMode === 'add' ? 'Add New Asset' :
+                      modalMode === 'history' ? `Track History: ${selectedAsset.name}` : 'Edit Asset'}
                 </h2>
                 <p className="text-sm text-slate-500">
-                  {modalMode === 'assign' ? 'Select an employee to assign this asset to.' : 
-                   modalMode === 'history' ? 'View the assignment and status history.' : 'Enter the details of the asset.'}
+                  {modalMode === 'assign' ? 'Select an employee to assign this asset to.' :
+                    modalMode === 'history' ? 'View the assignment and status history.' : 'Enter the details of the asset.'}
                 </p>
               </div>
-              <button 
+              <button
                 onClick={closeModal}
                 className="text-slate-400 hover:text-slate-600 bg-slate-200/50 hover:bg-slate-200 p-2 rounded-full transition-colors"
               >
@@ -312,9 +314,9 @@ const AdminAssets = () => {
                 <>
                   <div className="relative mb-4 shrink-0">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                    <input 
-                      type="text" 
-                      placeholder="Search by name or email..." 
+                    <input
+                      type="text"
+                      placeholder="Search by name or email..."
                       value={modalSearch}
                       onChange={(e) => setModalSearch(e.target.value)}
                       className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -324,7 +326,7 @@ const AdminAssets = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-2">
                       {/* Unassign Option */}
                       {selectedAsset.employee_id && (
-                        <div 
+                        <div
                           onClick={() => handleAssignUser(null)}
                           className="flex items-center gap-3 p-3 rounded-xl border-2 border-red-200 bg-red-50 hover:bg-red-100 cursor-pointer transition-all"
                         >
@@ -334,18 +336,17 @@ const AdminAssets = () => {
                           </div>
                         </div>
                       )}
-                      
+
                       {filteredUsersForModal.map(u => {
                         const isCurrent = selectedAsset.employee_id === u.userId;
                         return (
-                          <div 
+                          <div
                             key={u.userId}
                             onClick={() => !isCurrent && handleAssignUser(u.userId)}
-                            className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${
-                              isCurrent
-                                ? 'border-blue-500 bg-blue-50 cursor-default' 
+                            className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${isCurrent
+                                ? 'border-blue-500 bg-blue-50 cursor-default'
                                 : 'border-slate-100 hover:border-blue-300 hover:bg-slate-50 cursor-pointer'
-                            }`}
+                              }`}
                           >
                             <div className="w-10 h-10 rounded-full bg-slate-200 text-slate-700 font-bold text-sm flex items-center justify-center shrink-0">
                               {getInitials(u.firstName, u.lastName)}
@@ -379,8 +380,8 @@ const AdminAssets = () => {
                       {assetHistory.map((log, index) => {
                         const isCreation = log.action_type === 'INSERT';
                         return (
-                          <motion.div 
-                            key={index} 
+                          <motion.div
+                            key={index}
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.4, delay: index * 0.15, ease: "easeOut" }}
@@ -392,13 +393,12 @@ const AdminAssets = () => {
                                 <span className="text-xs font-semibold text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200">
                                   {format(new Date(log.timestamp), 'MMM d, yyyy h:mm a')}
                                 </span>
-                                <span className={`text-xs font-bold px-2 py-0.5 rounded ${
-                                  log.status === 'Available' ? 'text-green-700 bg-green-100' : 
-                                  log.status === 'Assigned' ? 'text-blue-700 bg-blue-100' : 
-                                  log.status === 'Missing' ? 'text-orange-700 bg-orange-100' :
-                                  log.status === 'Damaged' ? 'text-red-700 bg-red-100' :
-                                  'text-yellow-700 bg-yellow-100'
-                                }`}>
+                                <span className={`text-xs font-bold px-2 py-0.5 rounded ${log.status === 'Available' ? 'text-green-700 bg-green-100' :
+                                    log.status === 'Assigned' ? 'text-blue-700 bg-blue-100' :
+                                      log.status === 'Missing' ? 'text-orange-700 bg-orange-100' :
+                                        log.status === 'Damaged' ? 'text-red-700 bg-red-100' :
+                                          'text-yellow-700 bg-yellow-100'
+                                  }`}>
                                   {log.status}
                                 </span>
                               </div>
@@ -429,20 +429,20 @@ const AdminAssets = () => {
                 <form id="asset-form" onSubmit={handleSaveAsset} className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Asset Name</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       required
                       value={formData.name}
-                      onChange={e => setFormData({...formData, name: e.target.value})}
+                      onChange={e => setFormData({ ...formData, name: e.target.value })}
                       className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="e.g. MacBook Pro M2"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Category</label>
-                    <select 
+                    <select
                       value={formData.category}
-                      onChange={e => setFormData({...formData, category: e.target.value})}
+                      onChange={e => setFormData({ ...formData, category: e.target.value })}
                       className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       {categories.map(c => <option key={c} value={c}>{c}</option>)}
@@ -450,19 +450,19 @@ const AdminAssets = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Serial Number</label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       value={formData.serial_number}
-                      onChange={e => setFormData({...formData, serial_number: e.target.value})}
+                      onChange={e => setFormData({ ...formData, serial_number: e.target.value })}
                       className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="e.g. C02X1234ABCD"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
-                    <select 
+                    <select
                       value={formData.status}
-                      onChange={e => setFormData({...formData, status: e.target.value})}
+                      onChange={e => setFormData({ ...formData, status: e.target.value })}
                       className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="Available">Available</option>
@@ -478,13 +478,13 @@ const AdminAssets = () => {
             {/* Footer */}
             {(modalMode === 'add' || modalMode === 'edit') && (
               <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3 shrink-0">
-                <button 
+                <button
                   onClick={closeModal}
                   className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   form="asset-form"
                   disabled={saving}
                   className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"

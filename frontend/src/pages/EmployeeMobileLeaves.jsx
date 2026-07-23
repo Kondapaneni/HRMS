@@ -1,4 +1,5 @@
 import React from 'react';
+import PageLoader from '../components/PageLoader';
 import { Calendar as CalendarIcon, Plus, Clock, CheckCircle, XCircle, AlertCircle, FileText } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
@@ -26,6 +27,8 @@ const EmployeeMobileLeaves = () => {
     if (s === 'rejected') return { color: 'bg-red-100 text-red-700 border-red-200', icon: <XCircle className="w-4 h-4 text-red-500" /> };
     return { color: 'bg-amber-100 text-amber-700 border-amber-200', icon: <Clock className="w-4 h-4 text-amber-500" /> };
   };
+
+  if (loading) return <PageLoader message="Loading Leaves..." />;
 
   return (
     <div className="space-y-6 pb-2">

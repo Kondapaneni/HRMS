@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import PageLoader from '../components/PageLoader';
 import { useNavigate } from 'react-router-dom';
 import axios from '../api/axios';
 import { Users, Search, Calculator, ArrowLeft, Loader2, Check, AlertCircle } from 'lucide-react';
@@ -14,11 +15,11 @@ const AdminBulkPayroll = () => {
   const currentDate = new Date();
   const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
-  
+
   const [employees, setEmployees] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  
+
   const [selectedIds, setSelectedIds] = useState([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [message, setMessage] = useState(null);
@@ -58,8 +59,8 @@ const AdminBulkPayroll = () => {
   };
 
   const handleSelectOne = (userId) => {
-    setSelectedIds(prev => 
-      prev.includes(userId) 
+    setSelectedIds(prev =>
+      prev.includes(userId)
         ? prev.filter(id => id !== userId)
         : [...prev, userId]
     );
@@ -67,7 +68,7 @@ const AdminBulkPayroll = () => {
 
   const handleGenerateBulk = async () => {
     if (selectedIds.length === 0) return;
-    
+
     try {
       setIsGenerating(true);
       setMessage(null);
@@ -76,15 +77,15 @@ const AdminBulkPayroll = () => {
         month: parseInt(selectedMonth),
         year: parseInt(selectedYear)
       });
-      
+
       setMessage({ type: 'success', text: res.data.message });
       // Refresh the list
       fetchPendingEmployees();
     } catch (error) {
       console.error("Error generating bulk payslips:", error);
-      setMessage({ 
-        type: 'error', 
-        text: error.response?.data?.error || 'Failed to generate bulk payslips' 
+      setMessage({
+        type: 'error',
+        text: error.response?.data?.error || 'Failed to generate bulk payslips'
       });
     } finally {
       setIsGenerating(false);
@@ -93,10 +94,12 @@ const AdminBulkPayroll = () => {
 
   const isAllSelected = filteredEmployees.length > 0 && selectedIds.length === filteredEmployees.length;
 
+  if (isLoading && employees.length === 0) return <PageLoader message="Loading Payroll Data..." />;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <button 
+        <button
           onClick={() => navigate('/admin/payroll')}
           className="p-2 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
         >
@@ -112,12 +115,12 @@ const AdminBulkPayroll = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">Month</label>
-            <select 
+            <select
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
               className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
             >
-              {Array.from({length: 12}, (_, i) => i + 1).map(m => {
+              {Array.from({ length: 12 }, (_, i) => i + 1).map(m => {
                 const isFuture = parseInt(selectedYear) > currentDate.getFullYear() || (parseInt(selectedYear) === currentDate.getFullYear() && m > currentDate.getMonth() + 1);
                 return (
                   <option key={m} value={m} disabled={isFuture}>
@@ -129,7 +132,7 @@ const AdminBulkPayroll = () => {
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">Year</label>
-            <select 
+            <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
               className="w-full border border-slate-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
@@ -156,9 +159,8 @@ const AdminBulkPayroll = () => {
       </div>
 
       {message && (
-        <div className={`p-4 rounded-xl border flex items-start gap-3 ${
-          message.type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'
-        }`}>
+        <div className={`p-4 rounded-xl border flex items-start gap-3 ${message.type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'
+          }`}>
           {message.type === 'success' ? <Check className="w-5 h-5 shrink-0 mt-0.5" /> : <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />}
           <div>
             <h4 className="font-medium">{message.type === 'success' ? 'Success' : 'Error'}</h4>
@@ -201,8 +203,8 @@ const AdminBulkPayroll = () => {
               <thead className="bg-white sticky top-0 z-10 shadow-sm">
                 <tr>
                   <th className="py-3 px-4 border-b border-slate-200 w-12 text-center">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       checked={isAllSelected}
                       onChange={handleSelectAll}
                       className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500 cursor-pointer"
@@ -218,8 +220,8 @@ const AdminBulkPayroll = () => {
                 {filteredEmployees.map(emp => (
                   <tr key={emp.userId} className="hover:bg-slate-50 transition-colors">
                     <td className="py-3 px-4 text-center">
-                      <input 
-                        type="checkbox" 
+                      <input
+                        type="checkbox"
                         checked={selectedIds.includes(emp.userId)}
                         onChange={() => handleSelectOne(emp.userId)}
                         className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500 cursor-pointer"

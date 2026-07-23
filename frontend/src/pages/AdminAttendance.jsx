@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PageLoader from '../components/PageLoader';
 import { Search, ChevronLeft, ChevronRight, Calendar, MapPin, Loader2, Plus, Clock, Globe, ChevronUp, ChevronDown, CalendarCheck, CalendarDays } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -153,6 +154,8 @@ const AdminAttendance = () => {
     const container = document.getElementById('main-scroll-container');
     if (container) container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
   };
+
+  if (loading) return <PageLoader message="Loading Attendance..." />;
 
   return (
     <div className="space-y-6">

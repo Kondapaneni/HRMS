@@ -1,4 +1,5 @@
 import React, { useState, Fragment } from 'react';
+import PageLoader from '../components/PageLoader';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -114,6 +115,8 @@ const AdminPayroll = () => {
   };
 
   const totalPages = Math.ceil(totalCount / limit);
+
+  if (loading) return <PageLoader message="Loading Payroll..." />;
 
   return (
     <div className="space-y-6">

@@ -193,11 +193,7 @@ const CandidateDocuments = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <Loader2 className="animate-spin text-blue-500 w-8 h-8" />
-      </div>
-    );
+    return <PageLoader message="Loading Documents..." />;
   }
 
   const specialDoc = documentTypes.find(d => d.isSpecial);

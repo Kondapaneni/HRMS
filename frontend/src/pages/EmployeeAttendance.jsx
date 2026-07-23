@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import PageLoader from '../components/PageLoader';
 import { Calendar, Clock, LogIn, LogOut, Search, AlertCircle } from 'lucide-react';
 import api from '../api/axios';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -187,6 +188,8 @@ const EmployeeAttendance = () => {
   };
 
   const displayError = error || (queryError ? 'Failed to load attendance history.' : null);
+
+  if (loading) return <PageLoader message="Loading Attendance..." />;
 
   return (
     <>

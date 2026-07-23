@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PageLoader from '../components/PageLoader';
 import { ArrowLeft, Loader2, Save, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -88,6 +89,8 @@ const EditMobileProfilePage = () => {
       </div>
     );
   }
+
+  if (loading) return <PageLoader message="Loading Profile..." />;
 
   return (
     <div className="relative pb-6">

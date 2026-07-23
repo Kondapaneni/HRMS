@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PageLoader from '../components/PageLoader';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Edit3, Settings, User, Mail, Phone, MapPin, Briefcase,
@@ -125,7 +126,7 @@ const AdminEmployeeView = () => {
       const avatarUrl = window.location.origin + "/Avatar/" + fileName;
 
       await api.put(`/admin/employees/${id}`, { avatar: avatarUrl });
-      
+
       queryClient.invalidateQueries(['admin', 'employee', id]);
       toast.success('Profile picture updated successfully!');
     } catch (error) {
@@ -135,7 +136,7 @@ const AdminEmployeeView = () => {
     }
   };
 
-    const renderTimeline = () => {
+  const renderTimeline = () => {
     let history = [];
     if (timeline) {
       try { history = JSON.parse(timeline); } catch (e) { history = []; }
@@ -157,35 +158,35 @@ const AdminEmployeeView = () => {
       // If inactive, we could theoretically stop at an exit date, but here we'll just stop at the current date 
       // or realistically not add new anniversaries after they become inactive. 
       // Assuming 'now' is the cap. If they are inactive, we'd cap at their last modified date, but let's just cap at today.
-      
+
       let yearsCompleted = 0;
       while (true) {
         yearsCompleted++;
         const anniversaryDate = new Date(join);
         anniversaryDate.setFullYear(join.getFullYear() + yearsCompleted);
-        
+
         if (anniversaryDate > now) {
-           break; // Stop if the anniversary is in the future
+          break; // Stop if the anniversary is in the future
         }
-        
+
         // Check if employee is inactive and anniversary is after they likely left (this is a basic heuristic)
         if (status?.toLowerCase() !== 'active' && employee.employmentStatusDate) {
-           const exitDate = new Date(employee.employmentStatusDate);
-           if (anniversaryDate > exitDate) {
-               break;
-           }
+          const exitDate = new Date(employee.employmentStatusDate);
+          if (anniversaryDate > exitDate) {
+            break;
+          }
         }
-        
+
         // Check if this anniversary is already manually stored to avoid duplicates
         const title = `${yearsCompleted}${yearsCompleted === 1 ? 'st' : yearsCompleted === 2 ? 'nd' : yearsCompleted === 3 ? 'rd' : 'th'} Work Anniversary`;
         const exists = history.some(e => e.title === title);
-        
+
         if (!exists) {
-           history.push({
-             date: anniversaryDate.toISOString().split('T')[0],
-             title: title,
-             description: `Completed ${yearsCompleted} year${yearsCompleted > 1 ? 's' : ''} at Acme Corp!`
-           });
+          history.push({
+            date: anniversaryDate.toISOString().split('T')[0],
+            title: title,
+            description: `Completed ${yearsCompleted} year${yearsCompleted > 1 ? 's' : ''} at Acme Corp!`
+          });
         }
       }
     }
@@ -211,6 +212,8 @@ const AdminEmployeeView = () => {
       </div>
     );
   };
+
+  if (loading) return <PageLoader message="Loading Employee Details..." />;
 
   return (
     <div className="space-y-6">
@@ -249,10 +252,10 @@ const AdminEmployeeView = () => {
                       <>
                         <Camera className="h-5 w-5" />
                         <span className="text-[9px] font-medium uppercase tracking-wider mt-0.5">Upload</span>
-                        <input 
-                          type="file" 
-                          accept="image/*" 
-                          className="hidden" 
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
                           onChange={handleImageUpload}
                           disabled={isUploading}
                         />
@@ -301,7 +304,7 @@ const AdminEmployeeView = () => {
                       <span className="text-slate-600">{new Date(ps.year, ps.month - 1).toLocaleString('default', { month: 'short', year: 'numeric' })}</span>
                       <div className="flex items-center gap-3">
                         <span className="font-medium text-slate-900">₹{ps.netSalary}</span>
-                        <button 
+                        <button
                           onClick={() => handleDownload(ps)}
                           className="text-blue-600 hover:text-blue-800 p-1 rounded hover:bg-blue-50 transition-colors cursor-pointer"
                           title="Download Payslip"

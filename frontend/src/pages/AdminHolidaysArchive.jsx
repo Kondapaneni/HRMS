@@ -1,4 +1,5 @@
 import React from 'react';
+import PageLoader from '../components/PageLoader';
 import { ArrowLeft, Calendar as CalendarIcon, Loader2, RotateCcw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -42,6 +43,8 @@ const AdminHolidaysArchive = () => {
   const handleRestoreHoliday = async (dateStr) => {
     await restoreHolidayMutation.mutateAsync(dateStr);
   };
+
+  if (loading) return <PageLoader message="Loading Archived Holidays..." />;
 
   return (
     <div className="space-y-6">

@@ -1,4 +1,5 @@
 import React from 'react';
+import PageLoader from '../components/PageLoader';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { Briefcase, FileText, BadgeCheck, UserCheck, User, FileUp } from 'lucide-react';
@@ -65,7 +66,7 @@ const CandidateDashboard = () => {
   };
 
   if (isLoading) {
-    return <div className="p-6 text-slate-500">Loading dashboard...</div>;
+    return <PageLoader message="Loading Dashboard..." />;
   }
 
   return (

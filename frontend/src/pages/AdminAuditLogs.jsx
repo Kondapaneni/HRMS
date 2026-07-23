@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PageLoader from '../components/PageLoader';
 import {
   FileText, Search, Filter, ChevronLeft, ChevronRight,
   X, Eye, ArrowRight, ShieldAlert, Activity, User, Monitor
@@ -154,6 +155,8 @@ const AdminAuditLogs = () => {
     return <div className="text-sm text-slate-500 italic">No detailed changes available.</div>;
   };
 
+  if (loading) return <PageLoader message="Loading Audit Logs..." />;
+
   return (
     <div className="space-y-6">
       <div>
@@ -179,7 +182,7 @@ const AdminAuditLogs = () => {
                 />
               </div>
             </div>
-            
+
             <div className="w-48">
               <label className="block text-xs font-medium text-slate-500 mb-1.5 uppercase tracking-wider">Module</label>
               <select
@@ -236,93 +239,93 @@ const AdminAuditLogs = () => {
                 <th className="px-6 py-4 font-medium text-center">Details</th>
               </tr>
             </thead>
-              <tbody className="divide-y divide-slate-100">
-                {loading ? (
-                  <tr>
-                    <td colSpan="5" className="px-6 py-12 text-center text-slate-500">
-                      <div className="flex items-center justify-center gap-3">
-                        <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                        Loading logs...
+            <tbody className="divide-y divide-slate-100">
+              {loading ? (
+                <tr>
+                  <td colSpan="5" className="px-6 py-12 text-center text-slate-500">
+                    <div className="flex items-center justify-center gap-3">
+                      <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                      Loading logs...
+                    </div>
+                  </td>
+                </tr>
+              ) : logs.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="px-6 py-12 text-center text-slate-500">
+                    <ShieldAlert className="mx-auto h-8 w-8 text-slate-300 mb-3" />
+                    <p className="text-base font-medium text-slate-600">No audit logs found</p>
+                    <p className="text-sm mt-1">Try adjusting your search filters</p>
+                  </td>
+                </tr>
+              ) : (
+                logs.map((log) => (
+                  <tr key={log.audit_id} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-slate-900">
+                        {format(new Date(log.timestamp), 'MMM d, yyyy')}
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        {format(new Date(log.timestamp), 'h:mm:ss a')}
                       </div>
                     </td>
-                  </tr>
-                ) : logs.length === 0 ? (
-                  <tr>
-                    <td colSpan="5" className="px-6 py-12 text-center text-slate-500">
-                      <ShieldAlert className="mx-auto h-8 w-8 text-slate-300 mb-3" />
-                      <p className="text-base font-medium text-slate-600">No audit logs found</p>
-                      <p className="text-sm mt-1">Try adjusting your search filters</p>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        {getActionBadge(log.action_type)}
+                        <span className="text-sm font-medium text-slate-700">{log.module_name}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-medium text-slate-900">{log.actor_name || 'System'}</div>
+                      <div className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
+                        <User size={12} /> {log.actor_role}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      {log.target_employee_name ? (
+                        <div className="text-sm text-slate-700">{log.target_employee_name}</div>
+                      ) : (
+                        <span className="text-sm text-slate-400 italic">N/A</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <button
+                        onClick={() => setSelectedLog(log)}
+                        className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors inline-flex"
+                        title="View Details"
+                      >
+                        <Eye size={18} />
+                      </button>
                     </td>
                   </tr>
-                ) : (
-                  logs.map((log) => (
-                    <tr key={log.audit_id} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-slate-900">
-                          {format(new Date(log.timestamp), 'MMM d, yyyy')}
-                        </div>
-                        <div className="text-xs text-slate-500">
-                          {format(new Date(log.timestamp), 'h:mm:ss a')}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          {getActionBadge(log.action_type)}
-                          <span className="text-sm font-medium text-slate-700">{log.module_name}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm font-medium text-slate-900">{log.actor_name || 'System'}</div>
-                        <div className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
-                          <User size={12} /> {log.actor_role}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        {log.target_employee_name ? (
-                          <div className="text-sm text-slate-700">{log.target_employee_name}</div>
-                        ) : (
-                          <span className="text-sm text-slate-400 italic">N/A</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <button
-                          onClick={() => setSelectedLog(log)}
-                          className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors inline-flex"
-                          title="View Details"
-                        >
-                          <Eye size={18} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
 
-          {/* Pagination */}
-          <div className="border-t border-slate-200 px-6 py-4 bg-white flex items-center justify-between shrink-0">
-            <p className="text-sm text-slate-600">
-              Showing <span className="font-semibold text-slate-900">{logs.length > 0 ? ((pagination.page - 1) * pagination.limit) + 1 : 0}</span> to <span className="font-semibold text-slate-900">{((pagination.page - 1) * pagination.limit) + logs.length}</span> of <span className="font-semibold text-slate-900">{pagination.total}</span> entries
-            </p>
-            <div className="flex gap-2">
-              <button
-                disabled={pagination.page <= 1}
-                onClick={() => setPage(p => p - 1)}
-                className="px-3 py-1 rounded border border-slate-300 bg-white hover:bg-slate-50 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
-              >
-                Previous
-              </button>
-              <button
-                disabled={pagination.page >= pagination.totalPages}
-                onClick={() => setPage(p => p + 1)}
-                className="px-3 py-1 rounded border border-slate-300 bg-white hover:bg-slate-50 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
-              >
-                Next
-              </button>
-            </div>
+        {/* Pagination */}
+        <div className="border-t border-slate-200 px-6 py-4 bg-white flex items-center justify-between shrink-0">
+          <p className="text-sm text-slate-600">
+            Showing <span className="font-semibold text-slate-900">{logs.length > 0 ? ((pagination.page - 1) * pagination.limit) + 1 : 0}</span> to <span className="font-semibold text-slate-900">{((pagination.page - 1) * pagination.limit) + logs.length}</span> of <span className="font-semibold text-slate-900">{pagination.total}</span> entries
+          </p>
+          <div className="flex gap-2">
+            <button
+              disabled={pagination.page <= 1}
+              onClick={() => setPage(p => p - 1)}
+              className="px-3 py-1 rounded border border-slate-300 bg-white hover:bg-slate-50 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+            <button
+              disabled={pagination.page >= pagination.totalPages}
+              onClick={() => setPage(p => p + 1)}
+              className="px-3 py-1 rounded border border-slate-300 bg-white hover:bg-slate-50 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
           </div>
         </div>
+      </div>
 
       {/* Details Modal */}
       {selectedLog && (

@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
+import PageLoader from '../components/PageLoader';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axios';
 import { Tree, TreeNode } from 'react-organizational-chart';
@@ -42,7 +43,7 @@ const AdminDirectory = () => {
     employees.forEach(emp => {
       empMap.set(emp.employeeId, { ...emp, children: [] });
       // Also map by UUID in case managerId is stored as UUID
-      empMap.set(emp.id, empMap.get(emp.employeeId)); 
+      empMap.set(emp.id, empMap.get(emp.employeeId));
     });
 
     const roots = [];
@@ -56,10 +57,10 @@ const AdminDirectory = () => {
         if (managerNode.employeeId !== node.employeeId) {
           managerNode.children.push(node);
         } else {
-           if (!uniqueRoots.has(node.employeeId)) {
-             uniqueRoots.add(node.employeeId);
-             roots.push(node);
-           }
+          if (!uniqueRoots.has(node.employeeId)) {
+            uniqueRoots.add(node.employeeId);
+            roots.push(node);
+          }
         }
       } else {
         if (!uniqueRoots.has(node.employeeId)) {
@@ -81,7 +82,7 @@ const AdminDirectory = () => {
 
     return (
       <div id={`node-${employee.id}`} className={`relative mt-6 mb-2 flex flex-col items-center rounded-xl border border-slate-200 ${isHighlighted ? 'bg-blue-50 ring-2 ring-blue-300 scale-105 highlighted-node' : 'bg-white'} shadow-sm min-w-[200px] max-w-[240px] transition-all duration-300 hover:shadow-md hover:-translate-y-1 z-10 mx-auto group pb-4`}>
-        
+
         {/* Floating Avatar */}
         <div className="absolute -top-6 w-12 h-12 rounded-full bg-white flex items-center justify-center p-0.5 border border-slate-200 shadow-sm z-20 transition-transform group-hover:scale-110">
           <div className="w-full h-full rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-sm overflow-hidden">
@@ -92,7 +93,7 @@ const AdminDirectory = () => {
             )}
           </div>
         </div>
-        
+
         {/* Card Content */}
         <div className="pt-8 px-4 w-full text-center">
           <div className="text-sm font-bold text-slate-800 truncate group-hover:text-blue-700 transition-colors">
@@ -106,7 +107,7 @@ const AdminDirectory = () => {
         {/* Expand/Collapse Pill */}
         {hasChildren && (
           <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 z-30">
-            <button 
+            <button
               onClick={toggleExpand}
               className="flex items-center justify-center gap-1 bg-white border border-slate-200 text-[10px] font-semibold text-slate-600 px-3 py-1 rounded-full shadow-sm hover:bg-slate-50 hover:text-blue-600 transition-colors cursor-pointer w-max"
             >
@@ -130,7 +131,7 @@ const AdminDirectory = () => {
           <Building2 className="w-5 h-5 text-blue-600 group-hover:text-blue-500 transition-colors" />
         </div>
       </div>
-      
+
       <div className="font-bold text-sm tracking-widest text-slate-800 group-hover:text-blue-700 transition-colors truncate w-full">ACME CORP</div>
       <div className="text-[10px] text-slate-500 uppercase tracking-wider mt-1 truncate w-full">Root Organization</div>
     </div>
@@ -154,7 +155,7 @@ const AdminDirectory = () => {
   const OrgTreeNode = ({ node }) => {
     const isHighlighted = doesMatchSearch(node, search);
     const hasMatchInSubtree = hasMatchingDescendant(node, search);
-    
+
     const [isExpanded, setIsExpanded] = useState(isHighlighted || false);
     const hasChildren = node.children && node.children.length > 0;
 
@@ -165,10 +166,10 @@ const AdminDirectory = () => {
     }, [search, hasMatchInSubtree]);
 
     const labelContent = (
-      <EmployeeNode 
-        employee={node} 
-        isExpanded={isExpanded} 
-        toggleExpand={() => setIsExpanded(!isExpanded)} 
+      <EmployeeNode
+        employee={node}
+        isExpanded={isExpanded}
+        toggleExpand={() => setIsExpanded(!isExpanded)}
         hasChildren={hasChildren}
       />
     );
@@ -187,6 +188,8 @@ const AdminDirectory = () => {
     return <TreeNode label={labelContent} />;
   };
 
+  if (isLoading) return <PageLoader message="Loading Directory..." />;
+
   return (
     <div className="space-y-6 h-[calc(100vh-8rem)] flex flex-col">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
@@ -196,9 +199,9 @@ const AdminDirectory = () => {
         </div>
         <div className="relative w-full sm:w-80">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <input 
-            type="search" 
-            placeholder="Search by name, role, or dept..." 
+          <input
+            type="search"
+            placeholder="Search by name, role, or dept..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm pl-9 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow shadow-sm"

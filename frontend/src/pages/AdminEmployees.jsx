@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PageLoader from '../components/PageLoader';
 import { Search, Plus, MoreVertical, Eye, Edit, Settings, Loader2, Users } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
@@ -55,6 +56,8 @@ const AdminEmployees = () => {
     return 'bg-slate-100 text-slate-700 border-slate-200';
   };
 
+  if (loading) return <PageLoader message="Loading Employees..." />;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -62,7 +65,7 @@ const AdminEmployees = () => {
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">Employees</h1>
           <p className="text-sm text-slate-500 mt-1">Manage your workforce</p>
         </div>
-        <button 
+        <button
           onClick={() => setIsModalOpen(true)}
           className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 transition-colors shadow-sm cursor-pointer"
         >
@@ -74,13 +77,13 @@ const AdminEmployees = () => {
       <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden flex flex-col">
         <div className="p-5 border-b border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <h3 className="text-lg font-semibold text-slate-800 flex items-center">
-             <Users className="w-5 h-5 mr-2 text-blue-600" /> Employee List
+            <Users className="w-5 h-5 mr-2 text-blue-600" /> Employee List
           </h3>
           <form onSubmit={handleSearchSubmit} className="relative w-full sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input 
-              type="search" 
-              placeholder="Search employees..." 
+            <input
+              type="search"
+              placeholder="Search employees..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-9 pr-4 py-2 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
@@ -143,12 +146,12 @@ const AdminEmployees = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 align-middle text-right relative group/dropdown">
-                        <button 
+                        <button
                           className="inline-flex items-center justify-center rounded-md w-8 h-8 text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
                         >
                           <MoreVertical className="w-4 h-4" />
                         </button>
-                        
+
                         <div className="absolute right-8 top-8 pt-2 w-48 z-50 text-left hidden group-hover/dropdown:block">
                           <div className="rounded-md border border-slate-200 bg-white p-1 shadow-lg">
                             <button onClick={() => navigate(`/admin/employees/${emp.id}`)} className="w-full flex items-center px-2 py-2 text-sm text-slate-700 rounded-sm hover:bg-slate-100 transition-colors cursor-pointer">
@@ -172,9 +175,9 @@ const AdminEmployees = () => {
         </div>
       </div>
 
-      <AddEmployeeModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+      <AddEmployeeModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
         onSuccess={() => {
           setIsModalOpen(false);
           queryClient.invalidateQueries({ queryKey: ['admin', 'employees'] });

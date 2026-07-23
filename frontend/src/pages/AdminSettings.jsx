@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PageLoader from '../components/PageLoader';
 import { Save, Shield, Info, BookOpen, ExternalLink, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../api/axios';
@@ -73,6 +74,8 @@ const AdminSettings = () => {
       maps_rate_limit_window: settings.mapsRateLimitWindow
     });
   };
+
+  if (loading) return <PageLoader message="Loading Settings..." />;
 
   return (
     <div className="flex flex-col lg:flex-row gap-8 max-w-7xl">

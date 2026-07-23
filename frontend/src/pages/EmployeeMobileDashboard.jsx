@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PageLoader from '../components/PageLoader';
 import { LogIn, LogOut, Clock, Calendar, Bell, Shield, ChevronRight, Receipt } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -146,6 +147,8 @@ const EmployeeMobileDashboard = () => {
   const unpaidUsed = leaves?.balance?.unpaidUsed || 0;
 
   const heroSubtitle = [fullProfile?.position, fullProfile?.department].filter(Boolean).join(' · ') || 'Employee';
+
+  if (loading) return <PageLoader message="Loading Dashboard..." />;
 
   return (
     <div className="space-y-6 pb-2">

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import PageLoader from '../components/PageLoader';
 import { Loader2, FileText, CheckCircle, XCircle, Clock, Filter, X, Eye } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
@@ -7,7 +8,7 @@ import toast from 'react-hot-toast';
 const AdminExpenses = () => {
   const queryClient = useQueryClient();
   const [filter, setFilter] = useState('All');
-  
+
   // Modal for Approve/Reject with remarks
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState(null);
@@ -66,11 +67,13 @@ const AdminExpenses = () => {
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case 'Approved': return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1"/> Approved</span>;
-      case 'Rejected': return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"><XCircle className="w-3 h-3 mr-1"/> Rejected</span>;
-      default: return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"><Clock className="w-3 h-3 mr-1"/> Pending</span>;
+      case 'Approved': return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" /> Approved</span>;
+      case 'Rejected': return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"><XCircle className="w-3 h-3 mr-1" /> Rejected</span>;
+      default: return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"><Clock className="w-3 h-3 mr-1" /> Pending</span>;
     }
   };
+
+  if (isLoading) return <PageLoader message="Loading Expenses..." />;
 
   return (
     <div className="space-y-6">
@@ -80,30 +83,30 @@ const AdminExpenses = () => {
           <p className="text-slate-500 mt-1">Review and approve employee expense claims</p>
         </div>
       </div>
-      
+
       <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden flex flex-col">
         <div className="p-5 border-b border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center space-x-2 w-full sm:w-auto">
-              <Filter className="w-4 h-4 text-slate-400" />
-              <select
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-                className="bg-white border border-slate-300 text-slate-700 text-sm rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent block px-3 py-2 transition-shadow"
-              >
-                <option value="All">All Expenses</option>
-                <option value="Pending">Pending</option>
-                <option value="Approved">Approved</option>
-                <option value="Rejected">Rejected</option>
-              </select>
-            </div>
+          <div className="flex items-center space-x-2 w-full sm:w-auto">
+            <Filter className="w-4 h-4 text-slate-400" />
+            <select
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              className="bg-white border border-slate-300 text-slate-700 text-sm rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent block px-3 py-2 transition-shadow"
+            >
+              <option value="All">All Expenses</option>
+              <option value="Pending">Pending</option>
+              <option value="Approved">Approved</option>
+              <option value="Rejected">Rejected</option>
+            </select>
           </div>
+        </div>
 
-          {isLoading ? (
-            <div className="flex justify-center p-12">
-              <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
+        {isLoading ? (
+          <div className="flex justify-center p-12">
+            <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
               <thead className="bg-slate-50 border-b border-slate-200 text-slate-500">
                 <tr>
@@ -166,8 +169,8 @@ const AdminExpenses = () => {
               </tbody>
             </table>
           </div>
-          )}
-        </div>
+        )}
+      </div>
 
       {/* Approve/Reject Modal */}
       {isModalOpen && (
@@ -182,7 +185,7 @@ const AdminExpenses = () => {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
+
             <div className="p-6">
               <p className="text-sm text-slate-600 mb-4">
                 You are about to {actionType.toLowerCase()} an expense of <strong>${parseFloat(selectedExpense?.amount).toFixed(2)}</strong> from <strong>{selectedExpense?.firstName} {selectedExpense?.lastName}</strong>.

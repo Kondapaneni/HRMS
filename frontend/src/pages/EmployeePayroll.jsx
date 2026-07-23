@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PageLoader from '../components/PageLoader';
 import { Download, Eye, IndianRupee, TrendingDown, TrendingUp, Wallet, X } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axios';
@@ -68,6 +69,8 @@ const EmployeePayroll = () => {
       toast.error('Failed to generate PDF document.');
     }
   };
+
+  if (loading) return <PageLoader message="Loading Payroll..." />;
 
   return (
     <>

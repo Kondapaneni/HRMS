@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import PageLoader from '../components/PageLoader';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Save } from 'lucide-react';
 import api from '../api/axios';
@@ -50,14 +51,14 @@ const AdminEmployeeEdit = () => {
     if (!employeeQuery.data || !employeeQuery.data.employee) return;
 
     const emp = employeeQuery.data.employee;
-    
+
     // Clean up nulls
     const cleanData = {};
     Object.keys(emp).forEach(k => cleanData[k] = emp[k] || '');
     // Format dates for input type="date"
     if (cleanData.dateOfBirth) cleanData.dateOfBirth = cleanData.dateOfBirth.split('T')[0];
     if (cleanData.joinDate) cleanData.joinDate = cleanData.joinDate.split('T')[0];
-    
+
     setFormData(cleanData);
   }, [employeeQuery.data]);
 
@@ -102,7 +103,7 @@ const AdminEmployeeEdit = () => {
   };
 
   if (loading) {
-    return <div className="flex justify-center items-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>;
+    return <PageLoader message="Loading Employee Data..." />;
   }
 
   return (
@@ -112,7 +113,7 @@ const AdminEmployeeEdit = () => {
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">Edit Employee</h1>
           <p className="text-sm text-slate-500 mt-1">{originalName} &mdash; {formData.employeeId}</p>
         </div>
-        <button 
+        <button
           onClick={() => navigate(`/admin/employees/${id}`)}
           className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-10 px-4 py-2 transition-colors cursor-pointer"
         >

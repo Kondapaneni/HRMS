@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import PageLoader from '../components/PageLoader';
 import { Calendar as CalendarIcon, FileText, Plus, X, Loader2 } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
@@ -201,6 +202,8 @@ const EmployeeLeaves = () => {
   };
 
   const displayError = error || (error ? 'Failed to load leaves.' : null);
+
+  if (loading) return <PageLoader message="Loading Leaves..." />;
 
   return (
     <>
