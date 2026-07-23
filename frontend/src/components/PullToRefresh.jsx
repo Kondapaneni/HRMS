@@ -1,15 +1,14 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RefreshCw, ArrowDown, Check } from 'lucide-react';
-
+import { RefreshCw, Check } from 'lucide-react';
 
 const PULL_THRESHOLD = 65; // pixels needed to trigger refresh
 const MAX_PULL = 110;       // max visual pull distance
 
 /**
- * PullToRefresh Wrapper Component
- * Enables a smooth swipe-down-from-top gesture to refresh app data in PWA mode.
+ * Native Mobile-Style PullToRefresh Component
+ * Replaces text badges with a sleek, native circular glass pull indicator.
  */
 const PullToRefresh = ({ children, onRefresh }) => {
   const queryClient = useQueryClient();
@@ -55,23 +54,23 @@ const PullToRefresh = ({ children, onRefresh }) => {
 
     // Only activate if dragging downward and mostly vertical
     if (deltaY > 5 && Math.abs(deltaY) > Math.abs(deltaX) * 1.1) {
-      // Apply elastic damping formula
+      // Damped elastic formula
       const damp = Math.min(MAX_PULL, Math.pow(deltaY, 0.83));
       currentPullRef.current = damp;
       setPullDistance(damp);
       setIsDragging(true);
 
-      // Trigger light haptic feedback when passing threshold for native PWA feel
+      // Light tactile vibration on reaching refresh point
       if (damp >= PULL_THRESHOLD && !hasVibratedRef.current) {
         if (navigator.vibrate) {
-          navigator.vibrate(35);
+          navigator.vibrate(30);
         }
         hasVibratedRef.current = true;
       } else if (damp < PULL_THRESHOLD) {
         hasVibratedRef.current = false;
       }
 
-      // Prevent native browser scroll/rubberband when pulling down
+      // Prevent native browser scroll artifacts while pulling
       if (e.cancelable && deltaY > 10) {
         e.preventDefault();
       }
@@ -84,13 +83,12 @@ const PullToRefresh = ({ children, onRefresh }) => {
 
     if (currentPullRef.current >= PULL_THRESHOLD) {
       setIsRefreshing(true);
-      setPullDistance(55); // Lock header position during refresh animation
+      setPullDistance(52); // Lock position during refresh animation
 
       try {
         if (onRefresh) {
           await onRefresh();
         } else {
-          // Default: refetch all active TanStack Query queries
           await queryClient.refetchQueries();
         }
         setIsSuccess(true);
@@ -102,7 +100,7 @@ const PullToRefresh = ({ children, onRefresh }) => {
           setIsSuccess(false);
           setPullDistance(0);
           currentPullRef.current = 0;
-        }, 600);
+        }, 500);
       }
     } else {
       setPullDistance(0);
@@ -110,10 +108,8 @@ const PullToRefresh = ({ children, onRefresh }) => {
     }
   }, [isRefreshing, onRefresh, queryClient]);
 
-  // Global listeners for non-passive touchmove to prevent browser drag artifacts
   useEffect(() => {
     const options = { passive: false };
-    
     const onMove = (e) => handleTouchMove(e);
     window.addEventListener('touchmove', onMove, options);
     
@@ -131,62 +127,53 @@ const PullToRefresh = ({ children, onRefresh }) => {
       onTouchEnd={handleTouchEnd}
       onTouchCancel={handleTouchEnd}
     >
-      {/* Top Floating Pull-to-Refresh Indicator */}
+      {/* Sleek Native Floating Pull Indicator */}
       <AnimatePresence>
         {(pullDistance > 0 || isRefreshing) && (
           <motion.div
-            initial={{ opacity: 0, y: -40, scale: 0.8 }}
+            initial={{ opacity: 0, y: -20, scale: 0.5 }}
             animate={{
-              opacity: 1,
-              y: Math.min(pullDistance, 55),
-              scale: 1,
+              opacity: Math.min(1, pullRatio * 1.3),
+              y: Math.min(pullDistance, 52),
+              scale: isRefreshing ? 1 : 0.4 + pullRatio * 0.6,
             }}
-            exit={{ opacity: 0, y: -40, scale: 0.8 }}
-            transition={{ type: 'spring', stiffness: 320, damping: 25 }}
+            exit={{ opacity: 0, y: -10, scale: 0.3 }}
+            transition={{ type: 'spring', stiffness: 350, damping: 26 }}
             className="fixed top-2 left-1/2 -translate-x-1/2 z-[9999] pointer-events-none"
           >
-            <div className={`px-4 py-2 rounded-full shadow-lg border backdrop-blur-xl flex items-center gap-2.5 transition-colors duration-200 ${
+            <div className={`w-10 h-10 rounded-full shadow-lg border backdrop-blur-xl flex items-center justify-center transition-colors duration-200 ${
               isSuccess 
-                ? 'bg-emerald-500/90 text-white border-emerald-400/50 shadow-emerald-500/20'
+                ? 'bg-emerald-500 text-white border-emerald-400 shadow-emerald-500/20'
                 : pullDistance >= PULL_THRESHOLD || isRefreshing
-                ? 'bg-blue-600/90 text-white border-blue-400/50 shadow-blue-500/25'
-                : 'bg-white/90 text-slate-700 border-slate-200/80 shadow-slate-900/10'
+                ? 'bg-blue-600 text-white border-blue-500 shadow-blue-500/25'
+                : 'bg-white/95 text-blue-600 border-slate-200/90 shadow-slate-900/10'
             }`}>
               {isSuccess ? (
-                <Check className="w-4 h-4 text-white animate-bounce" />
+                <Check className="w-5 h-5 text-white animate-bounce" />
               ) : isRefreshing ? (
-                <RefreshCw className="w-4 h-4 animate-spin text-white" />
-              ) : pullDistance >= PULL_THRESHOLD ? (
-                <RefreshCw 
-                  className="w-4 h-4 text-white transition-transform duration-200" 
-                  style={{ transform: `rotate(${pullRatio * 360}deg)` }}
-                />
+                <RefreshCw className="w-5 h-5 animate-spin text-white" />
               ) : (
-                <ArrowDown 
-                  className="w-4 h-4 text-blue-600 transition-transform duration-200" 
-                  style={{ transform: `rotate(${pullRatio * 180}deg)` }}
-                />
+                <div 
+                  className="transition-transform duration-75 flex items-center justify-center"
+                  style={{ transform: `rotate(${pullRatio * 360}deg)` }}
+                >
+                  <RefreshCw 
+                    className={`w-5 h-5 transition-colors ${
+                      pullDistance >= PULL_THRESHOLD ? 'text-white' : 'text-blue-600'
+                    }`} 
+                  />
+                </div>
               )}
-
-              <span className="text-xs font-semibold tracking-wide select-none">
-                {isSuccess
-                  ? 'Updated!'
-                  : isRefreshing
-                  ? 'Updating HRMS...'
-                  : pullDistance >= PULL_THRESHOLD
-                  ? 'Release to refresh'
-                  : 'Pull to refresh'}
-              </span>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Main Content */}
+      {/* Main Content View with Elastic Displacement */}
       <div 
         className="w-full h-full transition-transform duration-75 ease-out"
         style={{
-          transform: pullDistance > 0 ? `translate3d(0, ${pullDistance * 0.35}px, 0)` : 'none'
+          transform: pullDistance > 0 ? `translate3d(0, ${pullDistance * 0.38}px, 0)` : 'none'
         }}
       >
         {children}
