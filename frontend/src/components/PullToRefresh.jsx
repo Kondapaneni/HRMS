@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RefreshCw, ArrowDown, Check } from 'lucide-react';
-import toast from 'react-hot-toast';
+
 
 const PULL_THRESHOLD = 65; // pixels needed to trigger refresh
 const MAX_PULL = 110;       // max visual pull distance
@@ -94,10 +94,8 @@ const PullToRefresh = ({ children, onRefresh }) => {
           await queryClient.refetchQueries();
         }
         setIsSuccess(true);
-        toast.success('App data refreshed', { id: 'pwa-pull-refresh', duration: 2000 });
       } catch (err) {
         console.error('Pull-to-refresh error:', err);
-        toast.error('Failed to refresh data', { id: 'pwa-pull-refresh' });
       } finally {
         setTimeout(() => {
           setIsRefreshing(false);
