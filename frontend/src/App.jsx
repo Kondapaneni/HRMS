@@ -67,6 +67,8 @@ import { Toaster } from 'react-hot-toast'
 import SnowflakeCursor from './components/CustomCursor'
 import OfflinePage from './pages/OfflinePage'
 import UpdateOverlay from './components/UpdateOverlay'
+import PullToRefresh from './components/PullToRefresh'
+
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -99,158 +101,160 @@ function App() {
     <PersistQueryClientProvider client={queryClient} persistOptions={{ persister }}>
       <Router>
         <AuthProvider>
-          <UpdateOverlay />
-          <OfflinePage />
-          <SnowflakeCursor />
-          <Toaster position="top-right" />
-          <Routes>
-            <Route path="/" element={<Login />} />
-            <Route path="/candidate/login" element={<CandidateLogin />} />
-            <Route path="/candidate/activate" element={<CandidateActivate />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route 
-              path="/change-password" 
-              element={
-                <ProtectedRoute allowedRoles={['admin', 'employee', 'hr', 'manager']}>
-                  <ChangePassword />
-                </ProtectedRoute>
-              } 
-            />
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute allowedRoles={ADMIN_DASHBOARD_ROLES}>
-                  <AdminLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<AdminDashboard />} />
-              <Route path="employees" element={<AdminEmployees />} />
-              <Route path="directory" element={<AdminDirectory />} />
-              <Route path="employees/:id" element={<AdminEmployeeView />} />
-              <Route path="employees/:id/edit" element={<AdminEmployeeEdit />} />
-              <Route path="employees/:id/settings" element={<AdminEmployeeSettings />} />
-              <Route path="attendance" element={<AdminAttendance />} />
-              <Route path="attendance/config" element={<AdminAttendanceConfig />} />
-              <Route path="attendance/regularize" element={<AdminAttendanceRegularize />} />
-              <Route path="attendance/location" element={<AdminAttendanceLocation />} />
-              <Route path="leaves" element={<AdminLeaves />} />
-              <Route path="payroll" element={<AdminPayroll />} />
-              <Route path="payroll/bulk" element={<AdminBulkPayroll />} />
-              <Route path="feature-access" element={<AdminFeatureAccess />} />
-              <Route path="audit-logs" element={<AdminAuditLogs />} />
-              <Route path="assets" element={<AdminAssets />} />
-              <Route path="expenses" element={<AdminExpenses />} />
-              <Route path="holidays" element={<AdminHolidays />} />
-              <Route path="holidays/archive" element={<AdminHolidaysArchive />} />
-              <Route path="email-templates" element={<AdminEmailTemplates />} />
-              <Route path="chat" element={<Chat />} />
-              <Route path="settings" element={<AdminSettings />} />
-              <Route path="performance" element={<AdminPerformance />} />
-              <Route path="recruitment" element={<AdminRecruitment />} />
-              <Route path="recruitment/verify-documents/:id" element={<AdminVerifyDocuments />} />
-            </Route>
-            <Route
-              path="/employee"
-              element={
-                <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
-                  <EmployeeLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<EmployeeDashboard />} />
-              <Route path="attendance" element={<EmployeeAttendance />} />
-              <Route path="leaves" element={<EmployeeLeaves />} />
-              <Route path="leaves/apply" element={<EmployeeApplyLeavePage />} />
-              <Route path="expenses" element={<EmployeeExpenses />} />
-              <Route path="payroll" element={<EmployeePayroll />} />
-              <Route path="performance" element={<EmployeePerformance />} />
-              <Route path="chat" element={<Chat />} />
-              <Route path="profile" element={<EmployeeProfile />} />
-              <Route path="profile/edit" element={<EditProfilePage />} />
-            </Route>
+          <PullToRefresh>
+            <UpdateOverlay />
+            <OfflinePage />
+            <SnowflakeCursor />
+            <Toaster position="top-right" />
+            <Routes>
+              <Route path="/" element={<Login />} />
+              <Route path="/candidate/login" element={<CandidateLogin />} />
+              <Route path="/candidate/activate" element={<CandidateActivate />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route 
+                path="/change-password" 
+                element={
+                  <ProtectedRoute allowedRoles={['admin', 'employee', 'hr', 'manager']}>
+                    <ChangePassword />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute allowedRoles={ADMIN_DASHBOARD_ROLES}>
+                    <AdminLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<AdminDashboard />} />
+                <Route path="employees" element={<AdminEmployees />} />
+                <Route path="directory" element={<AdminDirectory />} />
+                <Route path="employees/:id" element={<AdminEmployeeView />} />
+                <Route path="employees/:id/edit" element={<AdminEmployeeEdit />} />
+                <Route path="employees/:id/settings" element={<AdminEmployeeSettings />} />
+                <Route path="attendance" element={<AdminAttendance />} />
+                <Route path="attendance/config" element={<AdminAttendanceConfig />} />
+                <Route path="attendance/regularize" element={<AdminAttendanceRegularize />} />
+                <Route path="attendance/location" element={<AdminAttendanceLocation />} />
+                <Route path="leaves" element={<AdminLeaves />} />
+                <Route path="payroll" element={<AdminPayroll />} />
+                <Route path="payroll/bulk" element={<AdminBulkPayroll />} />
+                <Route path="feature-access" element={<AdminFeatureAccess />} />
+                <Route path="audit-logs" element={<AdminAuditLogs />} />
+                <Route path="assets" element={<AdminAssets />} />
+                <Route path="expenses" element={<AdminExpenses />} />
+                <Route path="holidays" element={<AdminHolidays />} />
+                <Route path="holidays/archive" element={<AdminHolidaysArchive />} />
+                <Route path="email-templates" element={<AdminEmailTemplates />} />
+                <Route path="chat" element={<Chat />} />
+                <Route path="settings" element={<AdminSettings />} />
+                <Route path="performance" element={<AdminPerformance />} />
+                <Route path="recruitment" element={<AdminRecruitment />} />
+                <Route path="recruitment/verify-documents/:id" element={<AdminVerifyDocuments />} />
+              </Route>
+              <Route
+                path="/employee"
+                element={
+                  <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
+                    <EmployeeLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<EmployeeDashboard />} />
+                <Route path="attendance" element={<EmployeeAttendance />} />
+                <Route path="leaves" element={<EmployeeLeaves />} />
+                <Route path="leaves/apply" element={<EmployeeApplyLeavePage />} />
+                <Route path="expenses" element={<EmployeeExpenses />} />
+                <Route path="payroll" element={<EmployeePayroll />} />
+                <Route path="performance" element={<EmployeePerformance />} />
+                <Route path="chat" element={<Chat />} />
+                <Route path="profile" element={<EmployeeProfile />} />
+                <Route path="profile/edit" element={<EditProfilePage />} />
+              </Route>
 
-            {/* Acme Loans Workspace (Employee Only) */}
-            <Route
-              path="/employee/loans"
-              element={
-                <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
-                  <LoansLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route path="origination" element={<LoanOrigination />} />
-            </Route>
+              {/* Acme Loans Workspace (Employee Only) */}
+              <Route
+                path="/employee/loans"
+                element={
+                  <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
+                    <LoansLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route path="origination" element={<LoanOrigination />} />
+              </Route>
 
-            <Route
-              path="/employee/attendance/map"
-              element={
-                <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
-                  <EmployeeMobileMap />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/employee/face-registration"
-              element={
-                <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
-                  <EmployeeFaceRegistration />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/employee/attendance/camera"
-              element={
-                <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
-                  <EmployeeMobileCamera />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/employee/mobile/holidays"
-              element={
-                <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
-                  <EmployeeMobileHolidays />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/employee/mobile/birthdays"
-              element={
-                <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
-                  <EmployeeMobileBirthdays />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/employee/chat/mobile"
-              element={
-                <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
-                  <EmployeeMobileChat />
-                </ProtectedRoute>
-              }
-            />
+              <Route
+                path="/employee/attendance/map"
+                element={
+                  <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
+                    <EmployeeMobileMap />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/employee/face-registration"
+                element={
+                  <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
+                    <EmployeeFaceRegistration />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/employee/attendance/camera"
+                element={
+                  <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
+                    <EmployeeMobileCamera />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/employee/mobile/holidays"
+                element={
+                  <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
+                    <EmployeeMobileHolidays />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/employee/mobile/birthdays"
+                element={
+                  <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
+                    <EmployeeMobileBirthdays />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/employee/chat/mobile"
+                element={
+                  <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
+                    <EmployeeMobileChat />
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Candidate Portal Routes */}
-            <Route
-              path="/candidate"
-              element={
-                <ProtectedRoute allowedRoles={CANDIDATE_DASHBOARD_ROLES}>
-                  <CandidateLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route path="dashboard" element={<CandidateDashboard />} />
-              <Route path="jobs" element={<CandidateJobs />} />
-              <Route path="applications" element={<CandidateApplications />} />
-              <Route path="documents" element={<CandidateDocuments />} />
-              <Route path="profile" element={<CandidateProfile />} />
-            </Route>
+              {/* Candidate Portal Routes */}
+              <Route
+                path="/candidate"
+                element={
+                  <ProtectedRoute allowedRoles={CANDIDATE_DASHBOARD_ROLES}>
+                    <CandidateLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route path="dashboard" element={<CandidateDashboard />} />
+                <Route path="jobs" element={<CandidateJobs />} />
+                <Route path="applications" element={<CandidateApplications />} />
+                <Route path="documents" element={<CandidateDocuments />} />
+                <Route path="profile" element={<CandidateProfile />} />
+              </Route>
 
-            {/* Catch-all 404 Route */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+              {/* Catch-all 404 Route */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </PullToRefresh>
         </AuthProvider>
       </Router>
     </PersistQueryClientProvider>
