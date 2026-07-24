@@ -67,7 +67,6 @@ import { Toaster } from 'react-hot-toast'
 import SnowflakeCursor from './components/CustomCursor'
 import OfflinePage from './pages/OfflinePage'
 import UpdateOverlay from './components/UpdateOverlay'
-import PullToRefresh from './components/PullToRefresh'
 
 
 const queryClient = new QueryClient({
@@ -101,7 +100,6 @@ function App() {
     <PersistQueryClientProvider client={queryClient} persistOptions={{ persister }}>
       <Router>
         <AuthProvider>
-          <PullToRefresh>
             <UpdateOverlay />
             <OfflinePage />
             <SnowflakeCursor />
@@ -254,7 +252,6 @@ function App() {
               {/* Catch-all 404 Route */}
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </PullToRefresh>
         </AuthProvider>
       </Router>
     </PersistQueryClientProvider>
