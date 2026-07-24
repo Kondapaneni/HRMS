@@ -73,8 +73,9 @@ function normalizeStatus(string $status, ?string $checkIn): string {
         'present',
         'present (late)',
         'present (early)',
-        'present (late+early)',
-        'present-full-shift'
+        'present (early+late)',
+        'present (checkout missing)',
+        'present (late+checkout missing)'
     ], true)) {
         return 'present';
     }
