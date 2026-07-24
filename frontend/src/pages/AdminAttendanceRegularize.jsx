@@ -107,24 +107,17 @@ const AdminAttendanceRegularize = () => {
 
   const getStatusPalette = (computedStatus) => {
     switch (computedStatus) {
-      case 'present-full-shift':
       case 'present':
         return { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', badge: 'bg-emerald-100 text-emerald-700', label: 'Present' };
-      case 'Present (Late)':
       case 'present (late)':
-      case 'late-checkin':
         return { bg: 'bg-yellow-50', border: 'border-yellow-200', text: 'text-yellow-700', badge: 'bg-yellow-100 text-yellow-700', label: 'Late' };
-      case 'Present (Early)':
       case 'present (early)':
-      case 'early-checkout':
         return { bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-700', badge: 'bg-orange-100 text-orange-700', label: 'Early' };
-      case 'Present (Late+Early)':
-      case 'present (late+early)':
-      case 'late-and-early':
+      case 'present (early+late)':
         return { bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-700', badge: 'bg-orange-100 text-orange-700', label: 'Late+Early' };
-      case 'missing-checkout':
+      case 'present (checkout missing)':
         return { bg: 'bg-yellow-50', border: 'border-yellow-200', text: 'text-yellow-700', badge: 'bg-yellow-100 text-yellow-700', label: 'Checkout Missing' };
-      case 'late-missing-checkout':
+      case 'present (late+checkout missing)':
         return { bg: 'bg-yellow-50', border: 'border-yellow-200', text: 'text-yellow-700', badge: 'bg-yellow-100 text-yellow-700', label: 'Late + Checkout Missing' };
       case 'regularized':
         return { bg: 'bg-teal-50', border: 'border-teal-200', text: 'text-teal-700', badge: 'bg-teal-100 text-teal-700', label: 'Regularized' };
