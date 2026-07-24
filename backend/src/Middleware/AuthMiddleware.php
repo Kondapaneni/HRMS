@@ -16,7 +16,11 @@ class AuthMiddleware
     private $requiredRoles;
     private $requiredFeature;
 
-    public function __construct(array $requiredRoles = [], ?string $requiredFeature = null)
+    /**
+     * @param array $requiredRoles
+     * @param string|array|null $requiredFeature
+     */
+    public function __construct(array $requiredRoles = [], $requiredFeature = null)
     {
         $this->requiredRoles = $requiredRoles;
         $this->requiredFeature = $requiredFeature;
@@ -53,13 +57,17 @@ class AuthMiddleware
                 $db = new Database();
                 $conn = $db->getConnection();
                 if ($conn) {
-                    $featureCol = 'can' . ucfirst($this->requiredFeature);
-                    // Check if column exists to prevent SQL errors, but we know the schema.
-                    $stmtCheck = $conn->prepare("SELECT \"$featureCol\" FROM user_feature_access WHERE \"userId\" = :uid");
-                    $stmtCheck->execute([':uid' => $decoded->id]);
-                    $fa = $stmtCheck->fetch();
-                    if ($fa && $fa[$featureCol]) {
-                        $roleAllowed = true;
+                    $features = is_array($this->requiredFeature) ? $this->requiredFeature : [$this->requiredFeature];
+                    foreach ($features as $feature) {
+                        $featureCol = 'can' . ucfirst($feature);
+                        // Check if column exists to prevent SQL errors, but we know the schema.
+                        $stmtCheck = $conn->prepare("SELECT \"$featureCol\" FROM user_feature_access WHERE \"userId\" = :uid");
+                        $stmtCheck->execute([':uid' => $decoded->id]);
+                        $fa = $stmtCheck->fetch();
+                        if ($fa && $fa[$featureCol]) {
+                            $roleAllowed = true;
+                            break;
+                        }
                     }
                 }
             } catch (Exception $e) {
@@ -68,7 +76,8 @@ class AuthMiddleware
         }
 
         if (!$roleAllowed) {
-            return $this->forbiddenResponse("Insufficient permissions. Required roles: " . implode(', ', $this->requiredRoles) . ($this->requiredFeature ? " or feature access: {$this->requiredFeature}" : ""));
+            $featureStr = is_array($this->requiredFeature) ? implode(' or ', $this->requiredFeature) : $this->requiredFeature;
+            return $this->forbiddenResponse("Insufficient permissions. Required roles: " . implode(', ', $this->requiredRoles) . ($this->requiredFeature ? " or feature access: {$featureStr}" : ""));
         }
 
         // Append decoded token to request attributes
