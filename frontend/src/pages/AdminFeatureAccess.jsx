@@ -46,6 +46,16 @@ const featuresList = [
     key: 'canLoanOrigination',
     title: 'Loan Origination Access',
     description: 'Grant access to the Loan Origination module in Acme Loans.'
+  },
+  {
+    key: 'canAdminAssessments',
+    title: 'Admin Exam & Assessment Manager',
+    description: 'Grants administrative access to build MCQ question banks, configure exams, and assign them.'
+  },
+  {
+    key: 'canEmployeeAssessments',
+    title: 'Employee Assessment Access',
+    description: 'Grants access to the Employee Assessment portal to view and attempt assigned exams.'
   }
 ];
 

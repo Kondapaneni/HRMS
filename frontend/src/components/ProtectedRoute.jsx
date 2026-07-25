@@ -80,6 +80,7 @@ export const ProtectedRoute = ({ children, allowedRoles }) => {
         else if ((path === '/admin/employees' || path.startsWith('/admin/employees/') || path.startsWith('/admin/directory')) && fa.canEmployees) hasAccess = true;
         else if (path.startsWith('/admin/recruitment') && fa.canRecruitment) hasAccess = true;
         else if (path.startsWith('/admin/assets') && fa.canAssets) hasAccess = true;
+        else if (path.startsWith('/admin/assessments') && fa.canAdminAssessments) hasAccess = true;
 
         if (hasAccess) {
           return children;
@@ -97,6 +98,9 @@ export const ProtectedRoute = ({ children, allowedRoles }) => {
         return <Navigate to={getRoleHomePath(profile.role)} replace />;
       }
       if (path.startsWith('/employee/loans/origination') && !profile.featureAccess.canLoanOrigination) {
+        return <Navigate to={getRoleHomePath(profile.role)} replace />;
+      }
+      if (path.startsWith('/employee/assessments') && !profile.featureAccess.canEmployeeAssessments && profile.role !== 'admin') {
         return <Navigate to={getRoleHomePath(profile.role)} replace />;
       }
     }

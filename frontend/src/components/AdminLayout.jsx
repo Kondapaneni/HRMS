@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { 
   LogOut, Users, Settings, Activity, Briefcase, 
   Search, Bell, Menu, Home, Calendar, Clock, 
-  BarChart2, ChevronDown, DollarSign, Monitor, FileText, Shield, Network, Mail, MessageSquare
+  BarChart2, ChevronDown, DollarSign, Monitor, FileText, Shield, Network, Mail, MessageSquare, Award
 } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -44,6 +44,7 @@ const AdminLayout = () => {
     { icon: <FileText size={18} />, label: 'Expenses', path: '/admin/expenses' },
     { icon: <Monitor size={18} />, label: 'Assets', path: '/admin/assets' },
     { icon: <Briefcase size={18} />, label: 'Recruitment', path: '/admin/recruitment' },
+    { icon: <Award size={18} />, label: 'Exams & Assessments', path: '/admin/assessments' },
     { icon: <Mail size={18} />, label: 'Email Templates', path: '/admin/email-templates' },
     { icon: <MessageSquare size={18} />, label: 'Secure Chat', path: '/admin/chat' },
     { icon: <FileText size={18} />, label: 'Audit Logs', path: '/admin/audit-logs' },

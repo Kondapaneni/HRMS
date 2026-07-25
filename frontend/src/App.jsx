@@ -53,6 +53,9 @@ import AdminPerformance from './pages/AdminPerformance'
 import AdminExpenses from './pages/AdminExpenses'
 import Chat from './pages/Chat'
 import AdminRecruitment from './pages/AdminRecruitment'
+import AdminAssessments from './pages/AdminAssessments'
+import EmployeeAssessments from './pages/EmployeeAssessments'
+import EmployeeAssessmentSession from './pages/EmployeeAssessmentSession'
 import ComingSoon from './pages/ComingSoon'
 import CandidateLogin from './pages/CandidateLogin'
 import CandidateActivate from './pages/CandidateActivate'
@@ -150,6 +153,7 @@ function App() {
                 <Route path="settings" element={<AdminSettings />} />
                 <Route path="performance" element={<AdminPerformance />} />
                 <Route path="recruitment" element={<AdminRecruitment />} />
+                <Route path="assessments" element={<AdminAssessments />} />
                 <Route path="recruitment/verify-documents/:id" element={<AdminVerifyDocuments />} />
               </Route>
               <Route
@@ -167,6 +171,8 @@ function App() {
                 <Route path="expenses" element={<EmployeeExpenses />} />
                 <Route path="payroll" element={<EmployeePayroll />} />
                 <Route path="performance" element={<EmployeePerformance />} />
+                <Route path="assessments" element={<EmployeeAssessments />} />
+                <Route path="assessments/session" element={<EmployeeAssessmentSession />} />
                 <Route path="chat" element={<Chat />} />
                 <Route path="profile" element={<EmployeeProfile />} />
                 <Route path="profile/edit" element={<EditProfilePage />} />

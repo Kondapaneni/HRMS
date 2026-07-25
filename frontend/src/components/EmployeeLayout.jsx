@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import {
   LogOut, User, Calendar, Users, Briefcase, Monitor,
   Home, Clock, BarChart2, DollarSign, Activity, Bell, Search, Menu, Wallet, MessageSquare,
-  Smartphone
+  Smartphone, Award
 } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -72,6 +72,7 @@ const EmployeeLayout = () => {
   const businessApps = [
     { icon: <MessageSquare size={18} />, label: 'Secure Chat', path: '/employee/chat', feature: 'canChat' },
     { icon: <Briefcase size={18} />, label: 'Acme Loans', path: '/employee/loans/origination', feature: 'canLoanOrigination' },
+    { icon: <Award size={18} />, label: 'Exams & Assessments', path: '/employee/assessments', feature: 'canEmployeeAssessments' },
   ];
 
   // Fetch chat list (shared cache with Chat.jsx) to keep unread badges perfectly synced
@@ -95,6 +96,7 @@ const EmployeeLayout = () => {
     { icon: <Wallet size={18} />, label: 'Payroll', path: '/admin/payroll', feature: 'canPayroll', activePaths: ['/admin/payroll'] },
     { icon: <Monitor size={18} />, label: 'Assets', path: '/admin/assets', feature: 'canAssets', activePaths: ['/admin/assets'] },
     { icon: <Briefcase size={18} />, label: 'Recruitment', path: '/admin/recruitment', feature: 'canRecruitment', activePaths: ['/admin/recruitment'] },
+    { icon: <Award size={18} />, label: 'Exams & Assessments', path: '/admin/assessments', feature: 'canAdminAssessments', activePaths: ['/admin/assessments'] },
   ];
 
   const visibleAdminFeatures = profile?.featureAccess ? adminFeatures.filter(f => profile.featureAccess[f.feature]) : [];
