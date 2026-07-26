@@ -116,7 +116,7 @@ const AssessmentCreatePage = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminAssessments'] });
       toast.success(isEditing ? 'Assessment updated successfully!' : 'Assessment created with unique rules & questions!');
-      navigate('/admin/assessments/rules');
+      navigate('/admin/assessments/management');
     },
     onError: (err) => {
       toast.error(err.response?.data?.error || 'Failed to save assessment');
@@ -192,7 +192,7 @@ const AssessmentCreatePage = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => navigate('/admin/assessments/rules')}
+            onClick={() => navigate('/admin/assessments/management')}
             className="p-2 text-slate-400 hover:text-slate-700 rounded-md hover:bg-slate-100 transition cursor-pointer"
             title="Back to Assessments"
           >
@@ -723,7 +723,7 @@ const AssessmentCreatePage = () => {
           <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
             <button
               type="button"
-              onClick={() => navigate('/admin/assessments/rules')}
+              onClick={() => navigate('/admin/assessments/management')}
               className="px-6 py-3 text-sm font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition cursor-pointer"
             >
               Cancel

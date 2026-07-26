@@ -19,7 +19,7 @@ const AssessmentWorkspaceLayout = () => {
 
   const navItems = [
     { icon: <HelpCircle size={18} />, label: 'Department Question Bank', path: '/admin/assessments/questions' },
-    { icon: <Settings size={18} />, label: 'Assessments & Rules', path: '/admin/assessments/rules' },
+    { icon: <Settings size={18} />, label: 'Assessment Management', path: '/admin/assessments/management' },
   ];
 
   return (
@@ -40,7 +40,7 @@ const AssessmentWorkspaceLayout = () => {
             {navItems.map((item, idx) => {
               const isActive = location.pathname === item.path || 
                                location.pathname.startsWith(`${item.path}/`) ||
-                               (item.path === '/admin/assessments/rules' && (location.pathname.startsWith('/admin/assessments/create') || location.pathname.startsWith('/admin/assessments/edit')));
+                               (item.path === '/admin/assessments/management' && (location.pathname.startsWith('/admin/assessments/create') || location.pathname.startsWith('/admin/assessments/edit') || location.pathname.startsWith('/admin/assessments/rules')));
               return (
                 <Link
                   key={idx}
