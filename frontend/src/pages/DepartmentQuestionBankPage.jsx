@@ -45,18 +45,33 @@ const DepartmentQuestionBankPage = () => {
   });
 
   const saveMutation = useMutation({
-    mutationFn: async (formData) => {
+    mutationFn: async ({ formData }) => {
       if (editingId) {
         return await api.put(`/admin/questions/${editingId}`, formData);
       } else {
         return await api.post('/admin/questions', formData);
       }
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['adminQuestions'] });
-      toast.success(editingId ? 'Question updated successfully!' : 'Question added to department bank!');
-      setShowModal(false);
-      resetForm();
+      toast.success(editingId ? 'Question updated successfully!' : 'Question added to bank!');
+      if (variables?.closeAfterSave) {
+        setShowModal(false);
+        resetForm();
+      } else {
+        // Keep modal open and reset fields for the next question
+        const currentDept = form.department;
+        const currentType = form.question_type;
+        setEditingId(null);
+        setForm({
+          department: currentDept,
+          question_type: currentType,
+          question_text: '',
+          options: ['', '', '', ''],
+          correct_options: [0]
+        });
+        setShowModal(true);
+      }
     },
     onError: (err) => {
       toast.error(err.response?.data?.error || 'Failed to save question');
@@ -522,7 +537,7 @@ const DepartmentQuestionBankPage = () => {
             </div>
 
             {/* Footer */}
-            <div className="px-8 py-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
+            <div className="px-8 py-4 bg-slate-50 border-t border-slate-200 flex justify-end items-center gap-3">
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
@@ -532,7 +547,20 @@ const DepartmentQuestionBankPage = () => {
               </button>
               <button
                 type="button"
-                onClick={() => saveMutation.mutate(form)}
+                onClick={() => saveMutation.mutate({ formData: form, closeAfterSave: true })}
+                disabled={
+                  saveMutation.isPending ||
+                  !form.question_text.trim() ||
+                  form.options.some(o => !o.trim()) ||
+                  form.correct_options.length === 0
+                }
+                className="px-5 py-2.5 text-sm font-bold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition cursor-pointer disabled:opacity-50"
+              >
+                Save & Close
+              </button>
+              <button
+                type="button"
+                onClick={() => saveMutation.mutate({ formData: form, closeAfterSave: false })}
                 disabled={
                   saveMutation.isPending ||
                   !form.question_text.trim() ||
@@ -542,7 +570,7 @@ const DepartmentQuestionBankPage = () => {
                 className="px-6 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition cursor-pointer disabled:opacity-50 flex items-center gap-2 shadow-sm"
               >
                 {saveMutation.isPending && <RefreshCw size={16} className="animate-spin" />}
-                <span>{editingId ? 'Update Question' : 'Save Question'}</span>
+                <span>{editingId ? 'Update & Add Another' : 'Save & Add Next Question'}</span>
               </button>
             </div>
           </div>
