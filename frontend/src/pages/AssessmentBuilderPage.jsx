@@ -109,35 +109,18 @@ const AssessmentBuilderPage = () => {
     <div className="space-y-6 p-6">
       {/* 1. Flat Zoho HRMS Page Header (Clean, Not inside a box) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => navigate('/admin/assessments/exams')}
-            className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
-            title="Back to Exams List"
-          >
-            <ArrowLeft size={20} />
-          </button>
-          <div>
-            <div className="flex items-center gap-2.5">
-              <span className="p-1.5 bg-blue-600 text-white rounded-lg shadow-2xs">
-                <Award size={20} />
-              </span>
-              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-                {id ? 'Edit Assessment Configuration' : 'Create New Assessment'}
-              </h1>
-              <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                aForm.status === 'published' 
-                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' 
-                  : 'bg-amber-100 text-amber-800 border border-amber-200'
-              }`}>
-                {aForm.status === 'published' ? '● Published' : '○ Draft'}
-              </span>
-            </div>
-            <p className="text-xs text-slate-500 mt-1 pl-1">
-              Configure exam rules in the Basic Information tab and select questions in the MCQ Question Paper Studio.
-            </p>
+        <div>
+          <div className="flex items-center gap-2.5">
+            <span className="p-1.5 bg-blue-600 text-white rounded-lg shadow-2xs">
+              <Award size={20} />
+            </span>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+              {id ? 'Edit Assessment Configuration' : 'Create New Assessment'}
+            </h1>
           </div>
+          <p className="text-xs text-slate-500 mt-1 pl-1">
+            Configure exam rules in the Basic Information tab and select questions in the MCQ Question Paper Studio.
+          </p>
         </div>
 
         {/* Action Buttons right in header row */}
