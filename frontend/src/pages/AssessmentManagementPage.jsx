@@ -244,7 +244,7 @@ const AssessmentManagementPage = () => {
               {/* Section 3: Security Controls */}
               <div className="pt-6 space-y-2">
                 <span className="text-xs font-bold text-slate-400 uppercase">Security & Display Controls</span>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 gap-3">
                   <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs flex items-center justify-between">
                     <span className="font-semibold text-slate-700">Shuffle Questions</span>
                     <span className="font-bold">{selectedAssessmentForRules.randomize_questions ? '✅ Yes' : '❌ No'}</span>
@@ -256,6 +256,10 @@ const AssessmentManagementPage = () => {
                   <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs flex items-center justify-between">
                     <span className="font-semibold text-slate-700">Prevent Tab Switch</span>
                     <span className="font-bold">{selectedAssessmentForRules.prevent_tab_switch ? '✅ Yes' : '❌ No'}</span>
+                  </div>
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs flex items-center justify-between">
+                    <span className="font-semibold text-slate-700">Proctored Fullscreen</span>
+                    <span className="font-bold">{selectedAssessmentForRules.proctored_mode ? '✅ Yes' : '❌ No'}</span>
                   </div>
                 </div>
               </div>
