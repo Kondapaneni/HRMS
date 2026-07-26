@@ -110,15 +110,10 @@ const AssessmentBuilderPage = () => {
       {/* 1. Flat Zoho HRMS Page Header (Clean, Not inside a box) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
-          <div className="flex items-center gap-2.5">
-            <span className="p-1.5 bg-blue-600 text-white rounded-lg shadow-2xs">
-              <Award size={20} />
-            </span>
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-              {id ? 'Edit Assessment Configuration' : 'Create New Assessment'}
-            </h1>
-          </div>
-          <p className="text-xs text-slate-500 mt-1 pl-1">
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+            {id ? 'Edit Assessment Configuration' : 'Create New Assessment'}
+          </h1>
+          <p className="text-xs text-slate-500 mt-1">
             Configure exam rules in the Basic Information tab and select questions in the MCQ Question Paper Studio.
           </p>
         </div>
