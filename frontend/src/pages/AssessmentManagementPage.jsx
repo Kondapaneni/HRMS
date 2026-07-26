@@ -5,7 +5,7 @@ import api from '../api/axios';
 import toast from 'react-hot-toast';
 import {
   Plus, Edit, Trash2, Eye, Shield, Clock, Award, Building2,
-  CheckCircle2, FileText, AlertCircle, HelpCircle, Users, Disc, CheckSquare, Sparkles
+  CheckCircle2, FileText, AlertCircle, HelpCircle, Disc, CheckSquare, Sparkles, X
 } from 'lucide-react';
 import PageLoader from '../components/PageLoader';
 
@@ -91,7 +91,6 @@ const AssessmentManagementPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {assessments.map((item) => {
             const qs = Array.isArray(item.selected_questions) ? item.selected_questions : [];
-            const roles = Array.isArray(item.target_roles) ? item.target_roles : [];
             const totalMarks = qs.length * (parseInt(item.marks_per_question) || 1);
 
             return (
@@ -117,9 +116,6 @@ const AssessmentManagementPage = () => {
                     <h3 className="text-lg font-bold text-slate-900 line-clamp-1" title={item.title}>
                       {item.title}
                     </h3>
-                    <p className="text-xs text-slate-500 line-clamp-2 mt-1 min-h-[32px]">
-                      {item.description || 'No description provided.'}
-                    </p>
                   </div>
 
                   {/* Key Stats Bar */}
@@ -138,16 +134,9 @@ const AssessmentManagementPage = () => {
                     </div>
                   </div>
 
-                  {/* Target Roles & Security Preview */}
+                  {/* Security Preview */}
                   <div className="space-y-2">
-                    <div className="flex items-center gap-1.5 text-xs text-slate-600">
-                      <Users size={14} className="text-slate-400 shrink-0" />
-                      <span className="font-semibold truncate">
-                        {roles.length > 0 ? roles.join(', ') : 'All Staff'}
-                      </span>
-                    </div>
-
-                    <div className="flex flex-wrap gap-1.5 pt-1">
+                    <div className="flex flex-wrap gap-1.5">
                       {item.randomize_questions && (
                         <span className="px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold rounded">
                           Shuffle Qs
@@ -201,30 +190,31 @@ const AssessmentManagementPage = () => {
       )}
 
       {/* ========================================================= */}
-      {/* MODAL: VIEW UNIQUE BASIC INFORMATION & RULES FOR ASSESSMENT */}
+      {/* SIDE MODAL: VIEW UNIQUE BASIC INFORMATION & RULES */}
       {/* ========================================================= */}
       {selectedAssessmentForRules && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden">
-            {/* Modal Header */}
-            <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
+        <div className="fixed inset-0 z-50 overflow-hidden bg-slate-900/50 backdrop-blur-sm flex justify-end">
+          <div className="bg-white shadow-2xl w-full max-w-2xl h-[100dvh] flex flex-col overflow-hidden transform transition-transform duration-300 animate-in slide-in-from-right">
+            {/* Header */}
+            <div className="px-8 py-5 border-b border-slate-200 flex justify-between items-center bg-slate-50 shrink-0">
               <div className="flex items-center gap-3">
                 <span className="p-2 bg-blue-600 text-white rounded-xl"><FileText size={20} /></span>
                 <div>
-                  <h3 className="text-base font-bold">{selectedAssessmentForRules.title}</h3>
-                  <p className="text-xs text-slate-300">Unique Assessment Rules & Linked Questions</p>
+                  <h3 className="text-lg font-bold text-slate-800">{selectedAssessmentForRules.title}</h3>
+                  <p className="text-xs text-slate-500">Unique Assessment Rules & Linked Questions</p>
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => setSelectedAssessmentForRules(null)}
-                className="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-800 transition cursor-pointer"
+                className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer p-1"
               >
-                ✕
+                <X size={22} />
               </button>
             </div>
 
-            {/* Modal Body */}
-            <div className="p-6 overflow-y-auto space-y-6 text-sm text-slate-700 divide-y divide-slate-100">
+            {/* Body */}
+            <div className="p-8 overflow-y-auto flex-1 space-y-6 text-sm text-slate-700 divide-y divide-slate-100">
               {/* Section 1: Basic Info */}
               <div className="pt-2">
                 <span className="text-xs font-bold text-slate-400 uppercase">Department</span>
@@ -251,15 +241,7 @@ const AssessmentManagementPage = () => {
                 </div>
               </div>
 
-              {/* Section 3: Candidate Instructions */}
-              <div className="pt-6 space-y-2">
-                <span className="text-xs font-bold text-slate-400 uppercase">Candidate Instructions</span>
-                <div className="p-4 bg-amber-50/60 border border-amber-200/80 rounded-xl font-mono text-xs text-amber-950 whitespace-pre-wrap">
-                  {selectedAssessmentForRules.instructions || 'No special instructions.'}
-                </div>
-              </div>
-
-              {/* Section 4: Security Controls */}
+              {/* Section 3: Security Controls */}
               <div className="pt-6 space-y-2">
                 <span className="text-xs font-bold text-slate-400 uppercase">Security & Display Controls</span>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -278,7 +260,7 @@ const AssessmentManagementPage = () => {
                 </div>
               </div>
 
-              {/* Section 5: Linked Questions Preview */}
+              {/* Section 4: Linked Questions Preview */}
               <div className="pt-6 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-slate-400 uppercase">
@@ -288,7 +270,7 @@ const AssessmentManagementPage = () => {
                     Total: {(Array.isArray(selectedAssessmentForRules.selected_questions) ? selectedAssessmentForRules.selected_questions.length : 0) * (selectedAssessmentForRules.marks_per_question || 1)} Marks
                   </span>
                 </div>
-                <div className="max-h-48 overflow-y-auto border border-slate-200 rounded-xl divide-y divide-slate-100 bg-slate-50/50">
+                <div className="max-h-60 overflow-y-auto border border-slate-200 rounded-xl divide-y divide-slate-100 bg-slate-50/50">
                   {Array.isArray(selectedAssessmentForRules.selected_questions) && selectedAssessmentForRules.selected_questions.length > 0 ? (
                     selectedAssessmentForRules.selected_questions.map((q, idx) => {
                       const qText = typeof q === 'object' ? q.question_text : `Question ID: ${q}`;
@@ -310,22 +292,22 @@ const AssessmentManagementPage = () => {
               </div>
             </div>
 
-            {/* Modal Footer */}
-            <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3 shrink-0">
+            {/* Footer */}
+            <div className="px-8 py-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3 shrink-0">
               <button
                 onClick={() => {
                   const targetId = selectedAssessmentForRules.id;
                   setSelectedAssessmentForRules(null);
                   navigate(`/admin/assessments/edit/${targetId}`);
                 }}
-                className="px-5 py-2 bg-blue-600 text-white font-bold text-xs rounded-xl hover:bg-blue-700 transition cursor-pointer flex items-center gap-1.5"
+                className="px-5 py-2.5 bg-blue-600 text-white font-bold text-xs rounded-xl hover:bg-blue-700 transition cursor-pointer flex items-center gap-1.5 shadow-sm"
               >
                 <Edit size={14} />
                 <span>Edit This Assessment & Rules</span>
               </button>
               <button
                 onClick={() => setSelectedAssessmentForRules(null)}
-                className="px-5 py-2 bg-white border border-slate-300 text-slate-700 font-bold text-xs rounded-xl hover:bg-slate-50 transition cursor-pointer"
+                className="px-5 py-2.5 bg-white border border-slate-300 text-slate-700 font-bold text-xs rounded-xl hover:bg-slate-50 transition cursor-pointer shadow-2xs"
               >
                 Close
               </button>
