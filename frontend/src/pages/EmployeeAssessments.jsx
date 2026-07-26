@@ -140,7 +140,7 @@ const EmployeeAssessments = () => {
                     </button>
                   ) : (
                     <button
-                      onClick={() => navigate(`/employee/assessments/${assessment.id}/instructions`)}
+                      onClick={() => navigate('/employee/assessments/instructions', { state: { assessmentId: assessment.id } })}
                       className={`w-full py-2.5 rounded-lg font-bold text-sm transition flex items-center justify-center gap-2 ${
                         inProgressId 
                           ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-sm'

@@ -58,6 +58,9 @@ import AdminExpenses from './pages/AdminExpenses'
 import Chat from './pages/Chat'
 import AdminRecruitment from './pages/AdminRecruitment'
 import EmployeeAssessments from './pages/EmployeeAssessments'
+import EmployeeAssessmentInstructions from './pages/EmployeeAssessmentInstructions'
+import EmployeeAssessmentEngine from './pages/EmployeeAssessmentEngine'
+import EmployeeAssessmentResult from './pages/EmployeeAssessmentResult'
 import ComingSoon from './pages/ComingSoon'
 import CandidateLogin from './pages/CandidateLogin'
 import CandidateActivate from './pages/CandidateActivate'
@@ -190,6 +193,9 @@ function App() {
                 <Route path="payroll" element={<EmployeePayroll />} />
                 <Route path="performance" element={<EmployeePerformance />} />
                 <Route path="assessments" element={<EmployeeAssessments />} />
+                <Route path="assessments/instructions" element={<EmployeeAssessmentInstructions />} />
+                <Route path="assessments/session" element={<EmployeeAssessmentEngine />} />
+                <Route path="assessments/result" element={<EmployeeAssessmentResult />} />
                 <Route path="chat" element={<Chat />} />
                 <Route path="profile" element={<EmployeeProfile />} />
                 <Route path="profile/edit" element={<EditProfilePage />} />

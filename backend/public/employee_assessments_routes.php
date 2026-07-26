@@ -113,17 +113,34 @@ $app->post('/api/employee/assessments/{id}/start', function (Request $request, R
         }
 
         // Fetch questions for this assessment
-        $qStmt = $conn->prepare('
-            SELECT q.id, q.title, q.question_type, q.options, aq.order_num, aq.marks
-            FROM assessment_questions aq
-            JOIN assessment_question_bank q ON aq.question_id = q.id
-            WHERE aq.assessment_id = ?
-            ORDER BY aq.order_num ASC
-        ');
-        $qStmt->execute([$id]);
-        $questions = $qStmt->fetchAll(PDO::FETCH_ASSOC);
+        $selectedQs = json_decode($assessment['selected_questions'], true) ?: [];
+        $questions = [];
+        
+        if (!empty($selectedQs)) {
+            $placeholders = implode(',', array_fill(0, count($selectedQs), '?'));
+            $qStmt = $conn->prepare("
+                SELECT id, question_text as title, question_type, options
+                FROM department_question_bank
+                WHERE id IN ($placeholders)
+            ");
+            $qStmt->execute($selectedQs);
+            $fetchedQuestions = $qStmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Process questions (hide correct answers, shuffle if configured)
+            // Reorder to match the selected_questions array
+            $qMap = [];
+            foreach ($fetchedQuestions as $q) {
+                $qMap[$q['id']] = $q;
+            }
+            $orderNum = 1;
+            foreach ($selectedQs as $qId) {
+                if (isset($qMap[$qId])) {
+                    $q = $qMap[$qId];
+                    $q['order_num'] = $orderNum++;
+                    $q['marks'] = (int)$assessment['marks_per_question'];
+                    $questions[] = $q;
+                }
+            }
+        }
         foreach ($questions as &$q) {
             $options = json_decode($q['options'], true) ?: [];
             if ($assessment['randomize_options'] === true || $assessment['randomize_options'] === 'true' || $assessment['randomize_options'] == 1 || $assessment['randomize_options'] === 't') {
@@ -193,6 +210,8 @@ $app->post('/api/employee/assessments/attempts/{attemptId}/submit', function (Re
     $attemptId = $args['attemptId'];
     $data = json_decode($request->getBody()->getContents(), true);
     $incomingAnswers = $data['answers'] ?? null;
+    $proctoringVideoUrl = $data['proctoring_video_url'] ?? null;
+    $submitReason = $data['submit_reason'] ?? 'manual';
 
     $db = new Database();
     $conn = $db->getConnection();
@@ -201,7 +220,7 @@ $app->post('/api/employee/assessments/attempts/{attemptId}/submit', function (Re
     try {
         // Fetch attempt and assessment
         $attStmt = $conn->prepare('
-            SELECT att.*, a.passing_percentage, a.result_visibility, a.id as assessment_id
+            SELECT att.*, a.passing_percentage, a.result_visibility, a.id as assessment_id, a.selected_questions, a.marks_per_question
             FROM assessment_attempts att
             JOIN assessments a ON att.assessment_id = a.id
             WHERE att.id = ? AND att.employee_id = ? AND att.status = \'in_progress\'
@@ -216,15 +235,18 @@ $app->post('/api/employee/assessments/attempts/{attemptId}/submit', function (Re
 
         $answers = $incomingAnswers !== null ? $incomingAnswers : (json_decode($attempt['answers_data'], true) ?: []);
 
-        // Fetch all correct answers and marks for this assessment
-        $qStmt = $conn->prepare('
-            SELECT q.id, q.correct_answers, aq.marks, q.title, q.options
-            FROM assessment_questions aq
-            JOIN assessment_question_bank q ON aq.question_id = q.id
-            WHERE aq.assessment_id = ?
-        ');
-        $qStmt->execute([$attempt['assessment_id']]);
-        $questions = $qStmt->fetchAll(PDO::FETCH_ASSOC);
+        $selectedQs = json_decode($attempt['selected_questions'], true) ?: [];
+        $questions = [];
+        if (!empty($selectedQs)) {
+            $placeholders = implode(',', array_fill(0, count($selectedQs), '?'));
+            $qStmt = $conn->prepare("
+                SELECT id, correct_options as correct_answers, question_text as title, options
+                FROM department_question_bank
+                WHERE id IN ($placeholders)
+            ");
+            $qStmt->execute($selectedQs);
+            $questions = $qStmt->fetchAll(PDO::FETCH_ASSOC);
+        }
 
         $totalScore = 0.0;
         $maxScore = 0.0;
@@ -233,7 +255,7 @@ $app->post('/api/employee/assessments/attempts/{attemptId}/submit', function (Re
         foreach ($questions as $q) {
             $qId = $q['id'];
             $correctAns = json_decode($q['correct_answers'], true) ?: [];
-            $marks = (float)$q['marks'];
+            $marks = (float)$attempt['marks_per_question'];
             $maxScore += $marks;
 
             $userAnsObj = $answers[$qId] ?? [];
@@ -269,10 +291,10 @@ $app->post('/api/employee/assessments/attempts/{attemptId}/submit', function (Re
         // Update attempt record to completed/graded
         $upStmt = $conn->prepare('
             UPDATE assessment_attempts 
-            SET status = \'graded\', end_time = CURRENT_TIMESTAMP, total_score = ?, max_score = ?, percentage = ?, passed = ?, answers_data = ?::jsonb, updated_at = CURRENT_TIMESTAMP
+            SET status = \'graded\', end_time = CURRENT_TIMESTAMP, score = ?, total_marks = ?, percentage = ?, passed = ?, answers_data = ?::jsonb, proctoring_video_url = ?, updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
         ');
-        $upStmt->execute([$totalScore, $maxScore, $percentage, $passed ? 'true' : 'false', json_encode($evaluatedBreakdown), $attemptId]);
+        $upStmt->execute([(int)$totalScore, (int)$maxScore, $percentage, $passed ? 'true' : 'false', json_encode($evaluatedBreakdown), $proctoringVideoUrl, $attemptId]);
 
         // If passed, update assignment status
         if ($passed) {
@@ -281,18 +303,28 @@ $app->post('/api/employee/assessments/attempts/{attemptId}/submit', function (Re
 
         $conn->commit();
 
+        // Build flat breakdown for frontend
+        $breakdownArr = [];
+        foreach ($evaluatedBreakdown as $qId => $item) {
+            $breakdownArr[] = [
+                'title' => $item['title'],
+                'correct' => $item['is_correct'],
+                'marks_earned' => $item['marks_awarded'],
+                'marks_possible' => $item['max_marks']
+            ];
+        }
+
         $response->getBody()->write(json_encode([
             'message' => 'Assessment submitted and evaluated successfully!',
             'attempt_id' => $attemptId,
-            'result' => [
-                'total_score' => $totalScore,
-                'max_score' => $maxScore,
-                'percentage' => $percentage,
-                'passed' => $passed,
-                'passing_percentage' => (int)$attempt['passing_percentage'],
-                'result_visibility' => $attempt['result_visibility'],
-                'breakdown' => $attempt['result_visibility'] !== 'hidden' ? $evaluatedBreakdown : null
-            ]
+            'score' => (int)$totalScore,
+            'total_marks' => (int)$maxScore,
+            'percentage' => $percentage,
+            'passed' => $passed,
+            'passing_percentage' => (int)$attempt['passing_percentage'],
+            'result_visibility' => $attempt['result_visibility'],
+            'submit_reason' => $submitReason,
+            'breakdown' => $attempt['result_visibility'] === 'immediate' ? $breakdownArr : []
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (\Exception $e) {

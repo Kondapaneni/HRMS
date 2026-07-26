@@ -640,5 +640,13 @@ $app->get('/Bills/{filename:.+}', function (Request $request, Response $response
     return streamSupabaseFile($supabaseUrl, $response, $filename, 'inline');
 });
 
+// Proctoring Video proxy route
+$app->get('/Proctoring-Video/{filename:.+}', function (Request $request, Response $response, $args) {
+    $filename = $args['filename'];
+    $encodedFilename = implode('/', array_map('rawurlencode', explode('/', $filename)));
+    $supabaseUrl = $_ENV['VITE_SUPABASE_URL'] . "/storage/v1/object/public/proctoring_videos/" . $encodedFilename;
+    return streamSupabaseFile($supabaseUrl, $response, $filename, 'inline');
+});
+
 // Run app
 $app->run();

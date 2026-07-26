@@ -78,8 +78,6 @@ $app->post('/api/admin/assessments', function (Request $request, Response $respo
     $randomizeQ = !empty($data['randomize_questions']) ? 'true' : 'false';
     $randomizeO = !empty($data['randomize_options']) ? 'true' : 'false';
     $visibility = $data['result_visibility'] ?? 'immediate';
-    $preventTab = !empty($data['prevent_tab_switch']) ? 'true' : 'false';
-    $proctored = !empty($data['proctored_mode']) ? 'true' : 'false';
     $assessmentDate = !empty($data['assessment_date']) ? trim($data['assessment_date']) : null;
     $selectedQs = json_encode($data['selected_questions'] ?? []);
     $status = trim($data['status'] ?? 'Active');
@@ -93,9 +91,9 @@ $app->post('/api/admin/assessments', function (Request $request, Response $respo
     $conn = $db->getConnection();
 
     try {
-        $sql = 'INSERT INTO assessments (title, department, duration_minutes, passing_percentage, max_attempts, marks_per_question, randomize_questions, randomize_options, result_visibility, prevent_tab_switch, proctored_mode, assessment_date, selected_questions, status, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id';
+        $sql = 'INSERT INTO assessments (title, department, duration_minutes, passing_percentage, max_attempts, marks_per_question, randomize_questions, randomize_options, result_visibility, assessment_date, selected_questions, status, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
         $stmt = $conn->prepare($sql);
-        $stmt->execute([$title, $department, $duration, $passing, $maxAttempts, $marksPerQ, $randomizeQ, $randomizeO, $visibility, $preventTab, $proctored, $assessmentDate, $selectedQs, $status, $user->id]);
+        $stmt->execute([$title, $department, $duration, $passing, $maxAttempts, $marksPerQ, $randomizeQ, $randomizeO, $visibility, $assessmentDate, $selectedQs, $status, $user->id]);
         $assessmentId = $stmt->fetchColumn();
 
         $response->getBody()->write(json_encode(['message' => 'Assessment created successfully', 'id' => $assessmentId]));
@@ -119,8 +117,6 @@ $app->put('/api/admin/assessments/{id}', function (Request $request, Response $r
     $marksPerQ = (int)($data['marks_per_question'] ?? 1);
     $randomizeQ = !empty($data['randomize_questions']) ? 'true' : 'false';
     $randomizeO = !empty($data['randomize_options']) ? 'true' : 'false';
-    $preventTab = !empty($data['prevent_tab_switch']) ? 'true' : 'false';
-    $proctored = !empty($data['proctored_mode']) ? 'true' : 'false';
     $assessmentDate = !empty($data['assessment_date']) ? trim($data['assessment_date']) : null;
     $selectedQs = json_encode($data['selected_questions'] ?? []);
     $status = trim($data['status'] ?? 'Active');
@@ -129,9 +125,9 @@ $app->put('/api/admin/assessments/{id}', function (Request $request, Response $r
     $conn = $db->getConnection();
 
     try {
-        $sql = 'UPDATE assessments SET title = ?, department = ?, duration_minutes = ?, passing_percentage = ?, max_attempts = ?, marks_per_question = ?, randomize_questions = ?, randomize_options = ?, result_visibility = ?, prevent_tab_switch = ?, proctored_mode = ?, assessment_date = ?, selected_questions = ?, status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?';
+        $sql = 'UPDATE assessments SET title = ?, department = ?, duration_minutes = ?, passing_percentage = ?, max_attempts = ?, marks_per_question = ?, randomize_questions = ?, randomize_options = ?, result_visibility = ?, assessment_date = ?, selected_questions = ?, status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?';
         $stmt = $conn->prepare($sql);
-        $stmt->execute([$title, $department, $duration, $passing, $maxAttempts, $marksPerQ, $randomizeQ, $randomizeO, $visibility, $preventTab, $proctored, $assessmentDate, $selectedQs, $status, $id]);
+        $stmt->execute([$title, $department, $duration, $passing, $maxAttempts, $marksPerQ, $randomizeQ, $randomizeO, $visibility, $assessmentDate, $selectedQs, $status, $id]);
 
         $response->getBody()->write(json_encode(['message' => 'Assessment updated successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);

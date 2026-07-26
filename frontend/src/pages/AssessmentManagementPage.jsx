@@ -154,16 +154,6 @@ const AssessmentManagementPage = () => {
                           Shuffle Qs
                         </span>
                       )}
-                      {item.prevent_tab_switch && (
-                        <span className="px-2 py-0.5 bg-amber-50 text-amber-700 text-[10px] font-bold rounded">
-                          No Tab Switch
-                        </span>
-                      )}
-                      {item.proctored_mode && (
-                        <span className="px-2 py-0.5 bg-rose-50 text-rose-700 text-[10px] font-bold rounded">
-                          Proctored
-                        </span>
-                      )}
                       {item.assessment_date && (
                         <span className="px-2 py-0.5 bg-indigo-50 text-indigo-700 text-[10px] font-bold rounded flex items-center gap-1">
                           <Calendar size={10} />
@@ -286,14 +276,7 @@ const AssessmentManagementPage = () => {
                     <span className="font-semibold text-slate-700">Shuffle Options</span>
                     {renderBooleanBadge(selectedAssessmentForRules.randomize_options)}
                   </div>
-                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs flex items-center justify-between">
-                    <span className="font-semibold text-slate-700">Prevent Tab Switch</span>
-                    {renderBooleanBadge(selectedAssessmentForRules.prevent_tab_switch)}
-                  </div>
-                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs flex items-center justify-between">
-                    <span className="font-semibold text-slate-700">Proctored Fullscreen</span>
-                    {renderBooleanBadge(selectedAssessmentForRules.proctored_mode)}
-                  </div>
+
                 </div>
               </div>
 

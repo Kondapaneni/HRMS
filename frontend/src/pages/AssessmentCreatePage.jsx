@@ -46,8 +46,6 @@ const AssessmentCreatePage = () => {
     randomize_questions: true,
     randomize_options: true,
     result_visibility: 'immediate',
-    prevent_tab_switch: true,
-    proctored_mode: false,
     assessment_date: '',
     status: 'Active'
   });
@@ -86,8 +84,6 @@ const AssessmentCreatePage = () => {
         randomize_questions: existingAssessment.randomize_questions === true || existingAssessment.randomize_questions === 'true' || existingAssessment.randomize_questions === 1,
         randomize_options: existingAssessment.randomize_options === true || existingAssessment.randomize_options === 'true' || existingAssessment.randomize_options === 1,
         result_visibility: existingAssessment.result_visibility || 'immediate',
-        prevent_tab_switch: existingAssessment.prevent_tab_switch === true || existingAssessment.prevent_tab_switch === 'true' || existingAssessment.prevent_tab_switch === 1,
-        proctored_mode: existingAssessment.proctored_mode === true || existingAssessment.proctored_mode === 'true' || existingAssessment.proctored_mode === 1,
         assessment_date: existingAssessment.assessment_date || '',
         status: existingAssessment.status || 'Active'
       });
@@ -549,32 +545,6 @@ const AssessmentCreatePage = () => {
                       type="checkbox"
                       checked={form.randomize_options}
                       onChange={e => setForm({ ...form, randomize_options: e.target.checked })}
-                      className="w-5 h-5 rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
-                    />
-                  </label>
-
-                  <label className="flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:bg-slate-50 transition cursor-pointer">
-                    <div>
-                      <div className="text-sm font-bold text-slate-900">Prevent Tab Switching</div>
-                      <div className="text-[11px] text-slate-500">Warn or auto-submit if leaving exam tab</div>
-                    </div>
-                    <input
-                      type="checkbox"
-                      checked={form.prevent_tab_switch}
-                      onChange={e => setForm({ ...form, prevent_tab_switch: e.target.checked })}
-                      className="w-5 h-5 rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
-                    />
-                  </label>
-
-                  <label className="flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:bg-slate-50 transition cursor-pointer">
-                    <div>
-                      <div className="text-sm font-bold text-slate-900">Proctored Fullscreen</div>
-                      <div className="text-[11px] text-slate-500">Enforce full screen mode during test</div>
-                    </div>
-                    <input
-                      type="checkbox"
-                      checked={form.proctored_mode}
-                      onChange={e => setForm({ ...form, proctored_mode: e.target.checked })}
                       className="w-5 h-5 rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
                     />
                   </label>
