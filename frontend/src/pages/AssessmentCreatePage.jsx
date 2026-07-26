@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import {
   HelpCircle, ArrowLeft, ArrowRight, CheckCircle2, Shield, Clock, Award,
   Building2, CheckSquare, Disc, Filter, Layers, Check, Sparkles, RefreshCw,
-  AlertCircle, Eye, Lock, FileText, Users
+  AlertCircle, Eye, Lock, FileText
 } from 'lucide-react';
 import PageLoader from '../components/PageLoader';
 
@@ -39,8 +39,6 @@ const AssessmentCreatePage = () => {
   const [form, setForm] = useState({
     title: '',
     department: 'IT',
-    target_roles: ['All Staff'],
-    description: '',
     instructions: '1. Ensure you have a stable internet connection before starting.\n2. Once started, the timer cannot be paused.\n3. Do not switch browser tabs or leave full-screen mode.',
     duration_minutes: 30,
     passing_percentage: 70,
@@ -53,8 +51,6 @@ const AssessmentCreatePage = () => {
     proctored_mode: false,
     status: 'Active'
   });
-
-  const [roleInput, setRoleInput] = useState('');
 
   // Fetch question bank
   const { data: questionBank = [], isLoading: loadingQuestions } = useQuery({
@@ -83,8 +79,6 @@ const AssessmentCreatePage = () => {
       setForm({
         title: existingAssessment.title || '',
         department: existingAssessment.department || 'IT',
-        target_roles: Array.isArray(existingAssessment.target_roles) ? existingAssessment.target_roles : ['All Staff'],
-        description: existingAssessment.description || '',
         instructions: existingAssessment.instructions || '',
         duration_minutes: parseInt(existingAssessment.duration_minutes) || 30,
         passing_percentage: parseInt(existingAssessment.passing_percentage) || 70,
@@ -140,18 +134,6 @@ const AssessmentCreatePage = () => {
       const merged = Array.from(new Set([...selectedIds, ...allFilteredIds]));
       setSelectedIds(merged);
     }
-  };
-
-  const handleAddRole = (e) => {
-    e.preventDefault();
-    if (roleInput.trim() && !form.target_roles.includes(roleInput.trim())) {
-      setForm({ ...form, target_roles: [...form.target_roles, roleInput.trim()] });
-      setRoleInput('');
-    }
-  };
-
-  const handleRemoveRole = (role) => {
-    setForm({ ...form, target_roles: form.target_roles.filter(r => r !== role) });
   };
 
   const handleSubmit = (e) => {
@@ -488,56 +470,6 @@ const AssessmentCreatePage = () => {
                         <option value="Archived">Archived</option>
                       </select>
                     </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                      Target Roles / Designations
-                    </label>
-                    <div className="flex gap-2 mb-2">
-                      <input
-                        type="text"
-                        value={roleInput}
-                        onChange={e => setRoleInput(e.target.value)}
-                        onKeyDown={e => e.key === 'Enter' && handleAddRole(e)}
-                        placeholder="Type role name and press Add (e.g. Software Engineer)"
-                        className="flex-1 p-2.5 border border-slate-200 rounded-xl text-sm bg-slate-50/50 focus:bg-white focus:outline-none"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleAddRole}
-                        className="px-4 py-2 bg-slate-900 text-white font-bold text-xs rounded-xl hover:bg-slate-800 transition cursor-pointer"
-                      >
-                        Add Role
-                      </button>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {form.target_roles.map((r, i) => (
-                        <span key={i} className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 border border-blue-200/60 rounded-lg text-xs font-bold">
-                          <Users size={12} /> {r}
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveRole(r)}
-                            className="text-blue-400 hover:text-rose-600 ml-1 cursor-pointer"
-                          >
-                            ×
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                      Description & Overview
-                    </label>
-                    <textarea
-                      rows={3}
-                      value={form.description}
-                      onChange={e => setForm({ ...form, description: e.target.value })}
-                      placeholder="Provide a brief overview of what this assessment covers..."
-                      className="w-full p-3 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 bg-slate-50/50 focus:bg-white focus:outline-none transition"
-                    />
                   </div>
                 </div>
               </div>

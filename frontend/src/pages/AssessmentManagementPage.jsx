@@ -226,25 +226,9 @@ const AssessmentManagementPage = () => {
             {/* Modal Body */}
             <div className="p-6 overflow-y-auto space-y-6 text-sm text-slate-700 divide-y divide-slate-100">
               {/* Section 1: Basic Info */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                <div>
-                  <span className="text-xs font-bold text-slate-400 uppercase">Department</span>
-                  <p className="font-bold text-slate-900 text-base mt-0.5">{selectedAssessmentForRules.department || 'General'}</p>
-                </div>
-                <div>
-                  <span className="text-xs font-bold text-slate-400 uppercase">Target Roles</span>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {(Array.isArray(selectedAssessmentForRules.target_roles) ? selectedAssessmentForRules.target_roles : ['All Staff']).map((r, i) => (
-                      <span key={i} className="px-2 py-0.5 bg-blue-50 text-blue-700 font-bold text-xs rounded border border-blue-200">
-                        {r}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                <div className="sm:col-span-2">
-                  <span className="text-xs font-bold text-slate-400 uppercase">Description</span>
-                  <p className="mt-1 text-slate-700">{selectedAssessmentForRules.description || 'No description provided.'}</p>
-                </div>
+              <div className="pt-2">
+                <span className="text-xs font-bold text-slate-400 uppercase">Department</span>
+                <p className="font-bold text-slate-900 text-base mt-0.5">{selectedAssessmentForRules.department || 'General'}</p>
               </div>
 
               {/* Section 2: Timing & Grading */}
