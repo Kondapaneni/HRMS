@@ -29,8 +29,7 @@ import EmployeeMobileBirthdays from './pages/EmployeeMobileBirthdays'
 import LoansLayout from './components/LoansLayout'
 import LoanOrigination from './pages/LoanOrigination'
 import AssessmentWorkspaceLayout from './components/AssessmentWorkspaceLayout'
-import AssessmentExamsPage from './pages/AssessmentExamsPage'
-import AssessmentBuilderPage from './pages/AssessmentBuilderPage'
+import BasicInformationRulesPage from './pages/BasicInformationRulesPage'
 import AdminLayout from './components/AdminLayout'
 import AdminEmployees from './pages/AdminEmployees'
 import AdminDirectory from './pages/AdminDirectory'
@@ -166,10 +165,11 @@ function App() {
                   </ProtectedRoute>
                 }
               >
-                <Route index element={<Navigate to="exams" replace />} />
-                <Route path="exams" element={<AssessmentExamsPage />} />
-                <Route path="create" element={<AssessmentBuilderPage />} />
-                <Route path="edit/:id" element={<AssessmentBuilderPage />} />
+                <Route index element={<Navigate to="rules" replace />} />
+                <Route path="rules" element={<BasicInformationRulesPage />} />
+                <Route path="exams" element={<Navigate to="rules" replace />} />
+                <Route path="create" element={<Navigate to="rules" replace />} />
+                <Route path="edit/:id" element={<Navigate to="rules" replace />} />
               </Route>
               <Route
                 path="/employee"

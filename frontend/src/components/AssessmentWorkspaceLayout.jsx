@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Award, HelpCircle, Users, BarChart2, ArrowLeft, Home, LogOut } from 'lucide-react';
+import { Award, HelpCircle, Users, BarChart2, ArrowLeft, Home, LogOut, Settings } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 
 const AssessmentWorkspaceLayout = () => {
@@ -18,7 +18,7 @@ const AssessmentWorkspaceLayout = () => {
   };
 
   const navItems = [
-    { icon: <Award size={18} />, label: 'Exams & Assessments', path: '/admin/assessments/exams' },
+    { icon: <Settings size={18} />, label: 'Basic Information & Rules', path: '/admin/assessments/rules' },
   ];
 
   return (
