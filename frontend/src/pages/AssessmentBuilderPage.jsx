@@ -4,9 +4,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { 
-  Award, ArrowLeft, Plus, Trash2, Clock, CheckCircle, RefreshCw, 
+  Award, ArrowLeft, Trash2, Clock, RefreshCw, 
   Search, HelpCircle, ShieldAlert, Sliders, Check, BookOpen, 
-  Settings, FileText, ChevronRight, AlertCircle, Filter, Sparkles 
+  FileText, CheckCircle2, AlertCircle
 } from 'lucide-react';
 import PageLoader from '../components/PageLoader';
 
@@ -14,7 +14,6 @@ const AssessmentBuilderPage = () => {
   const navigate = useNavigate();
   const { id } = useParams(); // present if editing
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState('rules'); // 'rules' | 'questions'
   const [searchTerm, setSearchTerm] = useState('');
   const [difficultyFilter, setDifficultyFilter] = useState('ALL');
 
@@ -107,334 +106,272 @@ const AssessmentBuilderPage = () => {
 
   return (
     <div className="space-y-6 p-6">
-      {/* 1. Zoho HRMS Style Horizontal Header Banner */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="flex items-start gap-4">
-            <button
-              type="button"
-              onClick={() => navigate('/admin/assessments/exams')}
-              className="p-2.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer border border-slate-200 shadow-2xs mt-0.5"
-              title="Back to Exams List"
-            >
-              <ArrowLeft size={18} />
-            </button>
-            <div>
-              <div className="flex items-center gap-3 flex-wrap">
-                <span className="p-2 bg-blue-50 text-blue-600 rounded-xl border border-blue-100 shadow-2xs">
-                  <Award size={22} />
-                </span>
-                <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
-                  {id ? 'Edit Assessment Configuration' : 'Create New Assessment'}
-                </h1>
-                <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                  aForm.status === 'published' 
-                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' 
-                    : 'bg-amber-100 text-amber-800 border border-amber-200'
-                }`}>
-                  {aForm.status === 'published' ? '● Published' : '○ Draft Mode'}
-                </span>
-              </div>
-              <p className="text-sm text-slate-500 mt-1">
-                Design comprehensive evaluation rules, set timing constraints, and assemble MCQ questions from your repository.
-              </p>
-            </div>
-          </div>
-
-          {/* KPI Mini-Summary & Actions right in header */}
-          <div className="flex flex-wrap items-center gap-4 lg:self-center">
-            <div className="flex items-center gap-4 bg-slate-50 px-4 py-2 rounded-xl border border-slate-200/80">
-              <div className="text-right border-r border-slate-200 pr-4">
-                <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Questions</div>
-                <div className="text-base font-black text-slate-800">{aForm.question_ids.length}</div>
-              </div>
-              <div>
-                <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Score</div>
-                <div className="text-base font-black text-blue-600">{totalMarks} <span className="text-xs font-normal text-slate-500">pts</span></div>
-              </div>
-            </div>
-
+      {/* 1. Zoho HRMS Clean Page Header (Flat, Transparent, No Boxed Container) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-200">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => navigate('/admin/assessments/exams')}
+            className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+            title="Back to Exams List"
+          >
+            <ArrowLeft size={20} />
+          </button>
+          <div>
             <div className="flex items-center gap-2.5">
-              <button
-                type="button"
-                onClick={() => navigate('/admin/assessments/exams')}
-                className="px-4 py-2.5 text-sm font-semibold text-slate-600 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer shadow-2xs"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setAForm({ ...aForm, status: 'draft' });
-                  saveMutation.mutate({ ...aForm, status: 'draft' });
-                }}
-                disabled={saveMutation.isPending || !aForm.title.trim() || aForm.question_ids.length === 0}
-                className="px-4 py-2.5 text-sm font-bold text-slate-700 bg-slate-100 border border-slate-300 rounded-xl hover:bg-slate-200 transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed shadow-2xs"
-              >
-                Save as Draft
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setAForm({ ...aForm, status: 'published' });
-                  saveMutation.mutate({ ...aForm, status: 'published' });
-                }}
-                disabled={saveMutation.isPending || !aForm.title.trim() || aForm.question_ids.length === 0}
-                className="px-6 py-2.5 text-sm font-extrabold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed flex items-center gap-2 shadow-md shadow-blue-500/20 hover:shadow-lg hover:shadow-blue-500/30"
-              >
-                {saveMutation.isPending && <RefreshCw size={16} className="animate-spin" />}
-                <span>{id ? 'Update & Publish' : 'Publish Assessment'}</span>
-              </button>
+              <span className="p-1.5 bg-blue-600 text-white rounded-lg shadow-2xs">
+                <Award size={20} />
+              </span>
+              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+                {id ? 'Edit Assessment Configuration' : 'Create New Assessment'}
+              </h1>
+              <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                aForm.status === 'published' 
+                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' 
+                  : 'bg-amber-100 text-amber-800 border border-amber-200'
+              }`}>
+                {aForm.status === 'published' ? '● Published' : '○ Draft'}
+              </span>
             </div>
+            <p className="text-xs text-slate-500 mt-1 pl-1">
+              Configure evaluation parameters on the left and assemble your question paper from the repository on the right.
+            </p>
           </div>
         </div>
 
-        {/* 2. Sleek Zoho Style Tab Navigation */}
-        <div className="flex items-center gap-2 mt-6 pt-5 border-t border-slate-100">
+        {/* Action Buttons right in header row */}
+        <div className="flex items-center gap-3 self-start sm:self-auto">
           <button
             type="button"
-            onClick={() => setActiveTab('rules')}
-            className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer ${
-              activeTab === 'rules'
-                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200/80 hover:text-slate-900'
-            }`}
+            onClick={() => navigate('/admin/assessments/exams')}
+            className="px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer shadow-2xs"
           >
-            <Settings size={18} />
-            <span>1. General & Grading Rules</span>
+            Cancel
           </button>
-
           <button
             type="button"
-            onClick={() => setActiveTab('questions')}
-            className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer ${
-              activeTab === 'questions'
-                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200/80 hover:text-slate-900'
-            }`}
+            onClick={() => {
+              setAForm({ ...aForm, status: 'draft' });
+              saveMutation.mutate({ ...aForm, status: 'draft' });
+            }}
+            disabled={saveMutation.isPending || !aForm.title.trim() || aForm.question_ids.length === 0}
+            className="px-4 py-2 text-sm font-bold text-slate-700 bg-slate-100 border border-slate-300 rounded-lg hover:bg-slate-200 transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed shadow-2xs"
           >
-            <BookOpen size={18} />
-            <span>2. Question Paper Builder</span>
-            <span className={`px-2 py-0.5 rounded-full text-xs font-black ml-1 ${
-              activeTab === 'questions' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-800'
-            }`}>
-              {aForm.question_ids.length}
-            </span>
+            Save as Draft
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setAForm({ ...aForm, status: 'published' });
+              saveMutation.mutate({ ...aForm, status: 'published' });
+            }}
+            disabled={saveMutation.isPending || !aForm.title.trim() || aForm.question_ids.length === 0}
+            className="px-6 py-2 text-sm font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed flex items-center gap-2 shadow-sm shadow-blue-500/20"
+          >
+            {saveMutation.isPending && <RefreshCw size={16} className="animate-spin" />}
+            <span>{id ? 'Update & Publish' : 'Publish Assessment'}</span>
           </button>
         </div>
       </div>
 
-      {/* 3. Tab Content Area */}
-      {activeTab === 'rules' ? (
-        /* TAB 1: GENERAL & GRADING RULES (Zoho 3-Card Grid Layout) */
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-            
-            {/* Card 1: Basic Information */}
-            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 space-y-5">
-              <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100 text-slate-900 font-bold text-base">
-                <span className="p-1.5 bg-blue-50 text-blue-600 rounded-lg"><FileText size={18} /></span>
-                <span>Basic Information</span>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                  Assessment Title <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={aForm.title}
-                  onChange={e => setAForm({ ...aForm, title: e.target.value })}
-                  placeholder="e.g. Annual Information Security Exam"
-                  className="w-full p-3.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-white font-semibold text-slate-900 placeholder-slate-400 transition shadow-2xs"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                  Description / Instructions
-                </label>
-                <textarea
-                  rows={5}
-                  value={aForm.description}
-                  onChange={e => setAForm({ ...aForm, description: e.target.value })}
-                  placeholder="Provide detailed guidelines, exam structure, or instructions for employees taking this exam..."
-                  className="w-full p-3.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-white text-slate-800 placeholder-slate-400 transition shadow-2xs"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                  Publication Status
-                </label>
-                <select
-                  value={aForm.status}
-                  onChange={e => setAForm({ ...aForm, status: e.target.value })}
-                  className="w-full p-3.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:outline-none focus:bg-white font-bold text-slate-800 transition cursor-pointer shadow-2xs"
-                >
-                  <option value="published">Published (Visible to Assigned Employees)</option>
-                  <option value="draft">Draft (Hidden in Employee Portal)</option>
-                </select>
-              </div>
+      {/* 2. Main Zoho HRMS 3-Pane / 2-Column Workspace */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        {/* LEFT COLUMN (4 Cols - Width 33%): Exam Rules & Parameters */}
+        <div className="lg:col-span-4 space-y-5">
+          
+          {/* Card 1: Basic Details */}
+          <div className="bg-white rounded-xl border border-slate-200/80 shadow-2xs p-5 space-y-4">
+            <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100 text-slate-800 font-bold text-sm">
+              <FileText size={16} className="text-blue-600" />
+              <span>1. Basic Information</span>
             </div>
 
-            {/* Card 2: Timing & Grading Rules */}
-            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 space-y-5">
-              <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100 text-slate-900 font-bold text-base">
-                <span className="p-1.5 bg-amber-50 text-amber-600 rounded-lg"><Clock size={18} /></span>
-                <span>Time & Grading Parameters</span>
-              </div>
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
+                Assessment Title <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={aForm.title}
+                onChange={e => setAForm({ ...aForm, title: e.target.value })}
+                placeholder="e.g. Annual Information Security Exam"
+                className="w-full p-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-white font-semibold text-slate-900 placeholder-slate-400 transition"
+              />
+            </div>
 
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                  Exam Duration (Minutes) <span className="text-rose-500">*</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    min="1"
-                    value={aForm.duration_minutes}
-                    onChange={e => setAForm({ ...aForm, duration_minutes: parseInt(e.target.value) || 10 })}
-                    className="w-full p-3.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-white font-extrabold text-slate-900 transition shadow-2xs"
-                  />
-                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">MINS</span>
-                </div>
-                <span className="text-[11px] text-slate-400 mt-1 block">Timer starts automatically when employee opens the paper</span>
-              </div>
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
+                Description / Instructions
+              </label>
+              <textarea
+                rows={3}
+                value={aForm.description}
+                onChange={e => setAForm({ ...aForm, description: e.target.value })}
+                placeholder="Instructions for candidates taking this test..."
+                className="w-full p-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-white text-slate-800 placeholder-slate-400 transition"
+              />
+            </div>
 
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                  Passing Criteria (%) <span className="text-rose-500">*</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    min="1"
-                    max="100"
-                    value={aForm.passing_percentage}
-                    onChange={e => setAForm({ ...aForm, passing_percentage: parseInt(e.target.value) || 60 })}
-                    className="w-full p-3.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-white font-extrabold text-slate-900 transition shadow-2xs"
-                  />
-                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">%</span>
-                </div>
-                <span className="text-[11px] text-slate-400 mt-1 block">Minimum score required to earn a passing badge</span>
-              </div>
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
+                Publication Status
+              </label>
+              <select
+                value={aForm.status}
+                onChange={e => setAForm({ ...aForm, status: e.target.value })}
+                className="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:outline-none focus:bg-white font-semibold text-slate-800 transition cursor-pointer"
+              >
+                <option value="published">Published (Visible to Employees)</option>
+                <option value="draft">Draft (Hidden in Portal)</option>
+              </select>
+            </div>
+          </div>
 
+          {/* Card 2: Timing & Grading Rules */}
+          <div className="bg-white rounded-xl border border-slate-200/80 shadow-2xs p-5 space-y-4">
+            <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100 text-slate-800 font-bold text-sm">
+              <Clock size={16} className="text-amber-600" />
+              <span>2. Timing & Grading Rules</span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                  Max Attempts Allowed
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
+                  Duration (Mins)
                 </label>
                 <input
                   type="number"
-                  min="0"
-                  value={aForm.max_attempts}
-                  onChange={e => setAForm({ ...aForm, max_attempts: parseInt(e.target.value) || 1 })}
-                  className="w-full p-3.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-white font-extrabold text-slate-900 transition shadow-2xs"
+                  min="1"
+                  value={aForm.duration_minutes}
+                  onChange={e => setAForm({ ...aForm, duration_minutes: parseInt(e.target.value) || 10 })}
+                  className="w-full p-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-white font-bold text-slate-900 transition"
                 />
-                <span className="text-[11px] font-semibold text-blue-600 mt-1 block">Enter 0 to allow Unlimited attempts</span>
+              </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
+                  Passing (%)
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="100"
+                  value={aForm.passing_percentage}
+                  onChange={e => setAForm({ ...aForm, passing_percentage: parseInt(e.target.value) || 60 })}
+                  className="w-full p-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-white font-bold text-slate-900 transition"
+                />
               </div>
             </div>
 
-            {/* Card 3: Security & Display Settings */}
-            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 space-y-5">
-              <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100 text-slate-900 font-bold text-base">
-                <span className="p-1.5 bg-purple-50 text-purple-600 rounded-lg"><ShieldAlert size={18} /></span>
-                <span>Security & Display Controls</span>
-              </div>
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
+                Max Attempts Allowed
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={aForm.max_attempts}
+                onChange={e => setAForm({ ...aForm, max_attempts: parseInt(e.target.value) || 1 })}
+                className="w-full p-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-white font-bold text-slate-900 transition"
+              />
+              <span className="text-[11px] text-slate-400 mt-0.5 block">0 for unlimited attempts</span>
+            </div>
+          </div>
 
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                  Result & Answer Key Visibility
-                </label>
-                <select
-                  value={aForm.result_visibility}
-                  onChange={e => setAForm({ ...aForm, result_visibility: e.target.value })}
-                  className="w-full p-3.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:outline-none focus:bg-white font-bold text-slate-800 transition cursor-pointer shadow-2xs"
-                >
-                  <option value="immediate">Immediate (Show Score & Correct Answer Key)</option>
-                  <option value="score_only">Score Only (Hide Correct Answer Key)</option>
-                  <option value="hidden">Completely Hidden (No Results Shown)</option>
-                </select>
-                <span className="text-[11px] text-slate-400 mt-1 block">Controls what employees see immediately after submission</span>
-              </div>
+          {/* Card 3: Display & Security */}
+          <div className="bg-white rounded-xl border border-slate-200/80 shadow-2xs p-5 space-y-4">
+            <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100 text-slate-800 font-bold text-sm">
+              <ShieldAlert size={16} className="text-purple-600" />
+              <span>3. Display & Security Settings</span>
+            </div>
 
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
+                Result Visibility
+              </label>
+              <select
+                value={aForm.result_visibility}
+                onChange={e => setAForm({ ...aForm, result_visibility: e.target.value })}
+                className="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:outline-none focus:bg-white font-medium text-slate-800 transition cursor-pointer"
+              >
+                <option value="immediate">Immediate (Show Score & Breakdown)</option>
+                <option value="score_only">Score Only (Hide Answer Key)</option>
+                <option value="hidden">Completely Hidden</option>
+              </select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                  Randomize Question Sequence
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
+                  Shuffle Questions
                 </label>
                 <select
                   value={aForm.randomize_questions ? 'yes' : 'no'}
                   onChange={e => setAForm({ ...aForm, randomize_questions: e.target.value === 'yes' })}
-                  className="w-full p-3.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:outline-none focus:bg-white font-bold text-slate-800 transition cursor-pointer shadow-2xs"
+                  className="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:outline-none focus:bg-white font-medium text-slate-800 transition cursor-pointer"
                 >
-                  <option value="no">No (Fixed Sequence as Arranged)</option>
-                  <option value="yes">Yes (Shuffle Order for Every Candidate)</option>
+                  <option value="no">No (Fixed)</option>
+                  <option value="yes">Yes (Random)</option>
                 </select>
               </div>
-
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                  Randomize MCQ Option Order
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
+                  Shuffle Options
                 </label>
                 <select
                   value={aForm.randomize_options ? 'yes' : 'no'}
                   onChange={e => setAForm({ ...aForm, randomize_options: e.target.value === 'yes' })}
-                  className="w-full p-3.5 border border-slate-200 rounded-xl text-sm bg-slate-50 focus:outline-none focus:bg-white font-bold text-slate-800 transition cursor-pointer shadow-2xs"
+                  className="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:outline-none focus:bg-white font-medium text-slate-800 transition cursor-pointer"
                 >
-                  <option value="no">No (Keep Options A, B, C, D Fixed)</option>
-                  <option value="yes">Yes (Shuffle Option Choices for Each Question)</option>
+                  <option value="no">No (Fixed)</option>
+                  <option value="yes">Yes (Random)</option>
                 </select>
               </div>
             </div>
-
           </div>
 
-          {/* Stepper Navigation Footer */}
-          <div className="bg-blue-50/50 rounded-2xl border border-blue-200/80 p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold">
-                ✓
+        </div>
+
+        {/* RIGHT COLUMN (8 Cols - Width 67%): Interactive Question Paper Studio */}
+        <div className="lg:col-span-8 bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col">
+          
+          {/* Studio Header with KPI Summary */}
+          <div className="px-6 py-4 bg-slate-50/80 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 className="font-bold text-slate-900 text-base flex items-center gap-2">
+                <BookOpen size={18} className="text-blue-600" />
+                <span>MCQ Question Paper Studio</span>
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">Click questions from the left repository to assemble your exam paper on the right.</p>
+            </div>
+
+            {/* Sleek KPI Pill */}
+            <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-2xs self-start sm:self-auto">
+              <div className="flex items-center gap-1.5 border-r border-slate-200 pr-3">
+                <span className="text-xs font-bold text-slate-500">Selected:</span>
+                <span className="text-sm font-black text-slate-900">{aForm.question_ids.length}</span>
               </div>
-              <div>
-                <div className="font-bold text-slate-900 text-base">Ready to assemble questions?</div>
-                <div className="text-xs text-slate-600">Proceed to Tab 2 to select MCQs from your repository and assign custom marks.</div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs font-bold text-slate-500">Total Marks:</span>
+                <span className="text-sm font-black text-blue-600">{totalMarks} <span className="text-xs font-normal">pts</span></span>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setActiveTab('questions')}
-              className="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-all shadow-md flex items-center gap-2 cursor-pointer"
-            >
-              <span>Next: Question Paper Builder</span>
-              <ChevronRight size={18} />
-            </button>
           </div>
-        </div>
-      ) : (
-        /* TAB 2: QUESTION PAPER BUILDER (Spacious 2-Card Split Layout) */
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
-          {/* Left/Top Area (6 Cols): Available Question Bank Repository */}
-          <div className="lg:col-span-6 bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 space-y-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
-              <div>
-                <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
-                  <HelpCircle size={18} className="text-blue-600" />
-                  <span>Available Question Bank Repository</span>
-                </h3>
-                <p className="text-xs text-slate-500 mt-0.5">Filter and click any card to append to your exam paper</p>
-              </div>
 
-              {/* Filters */}
-              <div className="flex items-center gap-2">
-                <div className="relative">
+          {/* Dual-Pane Studio Body (Split 50/50 inside the 8-col container) */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 divide-y xl:divide-y-0 xl:divide-x divide-slate-200 min-h-[580px]">
+            
+            {/* SUB-PANE 1 (Left Half): Available Question Bank Repository */}
+            <div className="flex flex-col h-full bg-slate-50/30">
+              <div className="p-3.5 bg-white border-b border-slate-200 flex items-center justify-between gap-2">
+                <div className="relative flex-1">
                   <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
                     type="text"
-                    placeholder="Search title..."
+                    placeholder="Search repository..."
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
-                    className="pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:bg-white w-40 font-medium"
+                    className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:bg-white font-medium"
                   />
                 </div>
                 <select
@@ -448,158 +385,133 @@ const AssessmentBuilderPage = () => {
                   <option value="Hard">Hard</option>
                 </select>
               </div>
-            </div>
 
-            {/* Questions List */}
-            <div className="border border-slate-200 rounded-2xl p-3 bg-slate-50/60 max-h-[550px] overflow-y-auto space-y-2.5">
-              {filteredQuestions.map(q => {
-                const isAdded = aForm.question_ids.some(item => item.id === q.id);
-                return (
-                  <div
-                    key={q.id}
-                    onClick={() => {
-                      if (!isAdded) {
-                        setAForm({
-                          ...aForm,
-                          question_ids: [...aForm.question_ids, { id: q.id, title: q.title, marks: q.marks || 1 }]
-                        });
-                      }
-                    }}
-                    className={`p-4 rounded-xl border flex items-center justify-between gap-4 transition ${
-                      isAdded
-                        ? 'bg-blue-50/70 border-blue-200/80 opacity-75 cursor-default shadow-2xs'
-                        : 'bg-white border-slate-200/90 shadow-2xs hover:border-blue-400 hover:shadow-md cursor-pointer'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3.5 min-w-0 flex-1">
-                      <span className={`w-3 h-3 rounded-full flex-shrink-0 ${
-                        q.difficulty === 'Easy' ? 'bg-emerald-500' : q.difficulty === 'Medium' ? 'bg-amber-500' : 'bg-rose-500'
-                      }`} />
-                      <div>
-                        <div className="font-bold text-slate-800 text-sm truncate">{q.title}</div>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-[11px] font-semibold text-slate-500">Diff: {q.difficulty || 'Medium'}</span>
-                          <span className="text-slate-300">•</span>
-                          <span className="text-[11px] font-semibold text-slate-500">Category: {q.category || 'General'}</span>
+              <div className="p-3.5 space-y-2 max-h-[520px] overflow-y-auto flex-1">
+                {filteredQuestions.map(q => {
+                  const isAdded = aForm.question_ids.some(item => item.id === q.id);
+                  return (
+                    <div
+                      key={q.id}
+                      onClick={() => {
+                        if (!isAdded) {
+                          setAForm({
+                            ...aForm,
+                            question_ids: [...aForm.question_ids, { id: q.id, title: q.title, marks: q.marks || 1 }]
+                          });
+                        }
+                      }}
+                      className={`p-3 rounded-xl border flex items-center justify-between gap-3 transition ${
+                        isAdded
+                          ? 'bg-blue-50/70 border-blue-200/80 opacity-70 cursor-default shadow-2xs'
+                          : 'bg-white border-slate-200/90 shadow-2xs hover:border-blue-400 hover:shadow cursor-pointer'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                        <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
+                          q.difficulty === 'Easy' ? 'bg-emerald-500' : q.difficulty === 'Medium' ? 'bg-amber-500' : 'bg-rose-500'
+                        }`} />
+                        <div className="min-w-0">
+                          <div className="font-semibold text-slate-800 text-xs truncate">{q.title}</div>
+                          <div className="text-[10px] text-slate-400 mt-0.5">Diff: {q.difficulty || 'Medium'} • {q.marks || 1} pts</div>
                         </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-3 flex-shrink-0">
-                      <span className="px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-black">
-                        {q.marks || 1} pts
-                      </span>
-                      {isAdded ? (
-                        <span className="text-xs font-extrabold text-blue-700 bg-blue-100 px-3 py-1 rounded-lg border border-blue-200 flex items-center gap-1">
-                          <Check size={14} /> Added
-                        </span>
-                      ) : (
-                        <span className="text-xs font-bold text-blue-600 bg-white px-3.5 py-1 rounded-lg border border-blue-200 hover:bg-blue-600 hover:text-white transition shadow-2xs">
-                          + Add
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-              {filteredQuestions.length === 0 && (
-                <div className="p-12 text-center text-sm text-slate-400 bg-white rounded-xl border border-dashed border-slate-200">
-                  {questions.length === 0 ? 'Question bank is currently empty. Create questions in the MCQ Question Bank page first.' : 'No questions match your current search and difficulty filters.'}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Right/Bottom Area (6 Cols): Configured Exam Paper List */}
-          <div className="lg:col-span-6 bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 space-y-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
-              <div>
-                <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
-                  <Award size={18} className="text-blue-600" />
-                  <span>Configured Exam Paper ({aForm.question_ids.length})</span>
-                </h3>
-                <p className="text-xs text-slate-500 mt-0.5">Review question sequence and customize individual points</p>
-              </div>
-              
-              <div className="flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-xl border border-blue-200 shadow-2xs">
-                <span className="text-xs font-extrabold text-blue-900 uppercase tracking-wider">Total Score:</span>
-                <span className="text-lg font-black text-blue-600">{totalMarks} <span className="text-xs font-normal">pts</span></span>
-              </div>
-            </div>
-
-            <div className="border border-blue-100 bg-blue-50/20 rounded-2xl p-3 min-h-[250px] max-h-[550px] overflow-y-auto space-y-3">
-              {aForm.question_ids.length === 0 ? (
-                <div className="h-full min-h-[220px] flex flex-col items-center justify-center text-center p-8 text-slate-400 text-sm">
-                  <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-3 shadow-2xs">
-                    <BookOpen size={28} />
-                  </div>
-                  <p className="font-bold text-slate-700 text-base">Exam Paper is Empty</p>
-                  <p className="text-xs mt-1 text-slate-500 max-w-xs">Click questions from the repository on the left to add them to this exam paper.</p>
-                </div>
-              ) : (
-                aForm.question_ids.map((qItem, idx) => (
-                  <div key={idx} className="flex items-center justify-between bg-white p-4 rounded-xl shadow-2xs border border-slate-200/90 gap-4 hover:border-blue-300 transition">
-                    <div className="flex items-center gap-3.5 flex-1 min-w-0">
-                      <span className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center font-black text-xs flex-shrink-0 shadow-2xs">
-                        {idx + 1}
-                      </span>
-                      <span className="font-bold text-slate-800 text-sm truncate">{qItem.title}</span>
-                    </div>
-                    <div className="flex items-center gap-3 flex-shrink-0">
-                      <div className="flex items-center gap-2 bg-slate-50 px-3 py-1 rounded-xl border border-slate-200">
-                        <span className="text-xs text-slate-500 font-bold">Points:</span>
-                        <input
-                          type="number"
-                          min="1"
-                          value={qItem.marks}
-                          onChange={e => {
-                            const next = [...aForm.question_ids];
-                            next[idx].marks = parseInt(e.target.value) || 1;
-                            setAForm({ ...aForm, question_ids: next });
-                          }}
-                          className="w-14 p-1.5 bg-white border border-slate-300 rounded-lg text-center text-xs font-black focus:outline-none focus:border-blue-500 shadow-2xs"
-                          title="Custom points for this exam question"
-                        />
+                      <div className="flex-shrink-0">
+                        {isAdded ? (
+                          <span className="text-[11px] font-extrabold text-blue-700 bg-blue-100 px-2 py-1 rounded-md border border-blue-200 flex items-center gap-1">
+                            <Check size={12} /> Added
+                          </span>
+                        ) : (
+                          <span className="text-[11px] font-bold text-blue-600 bg-white px-2.5 py-1 rounded-md border border-blue-200 hover:bg-blue-600 hover:text-white transition shadow-2xs">
+                            + Add
+                          </span>
+                        )}
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => setAForm({ ...aForm, question_ids: aForm.question_ids.filter((_, i) => i !== idx) })}
-                        className="text-slate-400 hover:text-rose-600 p-2 rounded-lg hover:bg-rose-50 transition cursor-pointer"
-                        title="Remove question from exam"
-                      >
-                        <Trash2 size={18} />
-                      </button>
                     </div>
+                  );
+                })}
+                {filteredQuestions.length === 0 && (
+                  <div className="p-8 text-center text-xs text-slate-400 bg-white rounded-xl border border-dashed border-slate-200 my-4">
+                    {questions.length === 0 ? 'Question bank is empty. Create MCQs first.' : 'No questions match filter.'}
                   </div>
-                ))
-              )}
+                )}
+              </div>
             </div>
 
-            <div className="flex items-center justify-between pt-2">
-              <button
-                type="button"
-                onClick={() => setActiveTab('rules')}
-                className="text-xs font-bold text-slate-500 hover:text-slate-800 flex items-center gap-1 transition cursor-pointer"
-              >
-                <ArrowLeft size={14} /> Back to General Rules
-              </button>
-              {aForm.question_ids.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (confirm('Clear all configured questions from this paper?')) {
-                      setAForm({ ...aForm, question_ids: [] });
-                    }
-                  }}
-                  className="text-xs font-bold text-rose-500 hover:text-rose-700 transition cursor-pointer"
-                >
-                  Clear All Questions
-                </button>
-              )}
+            {/* SUB-PANE 2 (Right Half): Configured Exam Paper List */}
+            <div className="flex flex-col h-full bg-white">
+              <div className="p-3.5 bg-blue-50/40 border-b border-slate-200 flex items-center justify-between gap-2">
+                <span className="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                  <CheckCircle2 size={15} className="text-blue-600" />
+                  <span>Configured Paper ({aForm.question_ids.length})</span>
+                </span>
+                {aForm.question_ids.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (confirm('Remove all selected questions from this paper?')) {
+                        setAForm({ ...aForm, question_ids: [] });
+                      }
+                    }}
+                    className="text-[11px] font-bold text-rose-500 hover:text-rose-700 transition cursor-pointer"
+                  >
+                    Clear All
+                  </button>
+                )}
+              </div>
+
+              <div className="p-3.5 space-y-2.5 max-h-[520px] overflow-y-auto flex-1 bg-slate-50/20">
+                {aForm.question_ids.length === 0 ? (
+                  <div className="h-full min-h-[260px] flex flex-col items-center justify-center text-center p-6 text-slate-400">
+                    <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-2.5 shadow-2xs">
+                      <BookOpen size={22} />
+                    </div>
+                    <p className="font-bold text-slate-700 text-sm">Exam Paper is Empty</p>
+                    <p className="text-xs mt-1 text-slate-400 max-w-[200px]">Click questions from the left repository to build your exam sequence.</p>
+                  </div>
+                ) : (
+                  aForm.question_ids.map((qItem, idx) => (
+                    <div key={idx} className="flex items-center justify-between bg-white p-3 rounded-xl shadow-2xs border border-slate-200/90 gap-3 hover:border-blue-300 transition">
+                      <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                        <span className="w-6 h-6 rounded-md bg-blue-600 text-white flex items-center justify-center font-black text-xs flex-shrink-0 shadow-2xs">
+                          {idx + 1}
+                        </span>
+                        <span className="font-bold text-slate-800 text-xs truncate">{qItem.title}</span>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <div className="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-lg border border-slate-200">
+                          <span className="text-[10px] text-slate-500 font-bold">Pts:</span>
+                          <input
+                            type="number"
+                            min="1"
+                            value={qItem.marks}
+                            onChange={e => {
+                              const next = [...aForm.question_ids];
+                              next[idx].marks = parseInt(e.target.value) || 1;
+                              setAForm({ ...aForm, question_ids: next });
+                            }}
+                            className="w-11 p-0.5 bg-white border border-slate-300 rounded text-center text-xs font-black focus:outline-none focus:border-blue-500"
+                            title="Custom points for this exam question"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setAForm({ ...aForm, question_ids: aForm.question_ids.filter((_, i) => i !== idx) })}
+                          className="text-slate-400 hover:text-rose-600 p-1 rounded hover:bg-rose-50 transition cursor-pointer"
+                          title="Remove question"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
+
           </div>
-
         </div>
-      )}
+
+      </div>
     </div>
   );
 };
