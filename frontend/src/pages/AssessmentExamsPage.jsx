@@ -36,7 +36,7 @@ const AssessmentExamsPage = () => {
         <div>
           <h1 className="text-2xl font-bold text-slate-900 mb-1">Exams & Assessments</h1>
           <p className="text-sm text-slate-500">
-            Build and manage comprehensive MCQ assessments with configurable rules and question banks.
+            Build and manage assessments with configurable timing and grading rules.
           </p>
         </div>
         <button
@@ -55,8 +55,6 @@ const AssessmentExamsPage = () => {
             <thead className="bg-slate-50 border-b border-slate-200 text-slate-500">
               <tr>
                 <th className="px-6 py-4 font-medium">Assessment Title</th>
-                <th className="px-6 py-4 font-medium">Status</th>
-                <th className="px-6 py-4 font-medium">Questions</th>
                 <th className="px-6 py-4 font-medium">Duration</th>
                 <th className="px-6 py-4 font-medium">Pass Criteria</th>
                 <th className="px-6 py-4 font-medium">Attempts</th>
@@ -68,17 +66,6 @@ const AssessmentExamsPage = () => {
                 <tr key={a.id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-6 py-4 font-medium text-slate-900">
                     <div>{a.title}</div>
-                    {a.description && <div className="text-xs text-slate-500 font-normal truncate max-w-xs mt-0.5">{a.description}</div>}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      a.status === 'published' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-                    }`}>
-                      {a.status || 'Draft'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-slate-600">
-                    {a.questions?.length || 0} MCQs
                   </td>
                   <td className="px-6 py-4 text-slate-600">
                     <span className="flex items-center gap-1"><Clock size={15} className="text-slate-400" /> {a.duration_minutes || 30} mins</span>
@@ -113,7 +100,7 @@ const AssessmentExamsPage = () => {
               ))}
               {assessments.length === 0 && (
                 <tr>
-                  <td colSpan="7" className="px-6 py-12 text-center text-slate-500">
+                  <td colSpan="5" className="px-6 py-12 text-center text-slate-500">
                     <div className="flex flex-col items-center justify-center">
                       <Award size={40} className="text-slate-300 mb-2" />
                       <p className="font-semibold text-slate-600">No assessments created yet</p>

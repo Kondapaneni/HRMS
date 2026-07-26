@@ -30,14 +30,12 @@ $queries = [
     'CREATE TABLE IF NOT EXISTS assessments (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         title VARCHAR(255) NOT NULL,
-        description TEXT,
         duration_minutes INTEGER NOT NULL DEFAULT 30,
         passing_percentage INTEGER NOT NULL DEFAULT 70,
         max_attempts INTEGER NOT NULL DEFAULT 1,
         randomize_questions BOOLEAN DEFAULT false,
         randomize_options BOOLEAN DEFAULT false,
         result_visibility VARCHAR(50) DEFAULT \'immediate\',
-        status VARCHAR(50) DEFAULT \'published\',
         created_by UUID,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -45,6 +43,8 @@ $queries = [
 
     'ALTER TABLE assessment_question_bank DROP COLUMN IF EXISTS category;',
     'ALTER TABLE assessments DROP COLUMN IF EXISTS category;',
+    'ALTER TABLE assessments DROP COLUMN IF EXISTS description;',
+    'ALTER TABLE assessments DROP COLUMN IF EXISTS status;',
 
     'CREATE TABLE IF NOT EXISTS assessment_questions (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

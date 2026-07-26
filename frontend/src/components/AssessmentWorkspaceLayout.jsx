@@ -19,9 +19,6 @@ const AssessmentWorkspaceLayout = () => {
 
   const navItems = [
     { icon: <Award size={18} />, label: 'Exams & Assessments', path: '/admin/assessments/exams' },
-    { icon: <HelpCircle size={18} />, label: 'MCQ Question Bank', path: '/admin/assessments/questions' },
-    { icon: <Users size={18} />, label: 'Assign & Schedule', path: '/admin/assessments/assign' },
-    { icon: <BarChart2 size={18} />, label: 'Reports & Analytics', path: '/admin/assessments/analytics' },
   ];
 
   return (

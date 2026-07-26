@@ -146,7 +146,6 @@ $app->post('/api/employee/assessments/{id}/start', function (Request $request, R
             'assessment' => [
                 'id' => $assessment['id'],
                 'title' => $assessment['title'],
-                'description' => $assessment['description'],
                 'duration_minutes' => $durationMins,
                 'passing_percentage' => (int)$assessment['passing_percentage'],
                 'result_visibility' => $assessment['result_visibility']

@@ -30,9 +30,6 @@ import LoansLayout from './components/LoansLayout'
 import LoanOrigination from './pages/LoanOrigination'
 import AssessmentWorkspaceLayout from './components/AssessmentWorkspaceLayout'
 import AssessmentExamsPage from './pages/AssessmentExamsPage'
-import AssessmentQuestionsPage from './pages/AssessmentQuestionsPage'
-import AssessmentAssignPage from './pages/AssessmentAssignPage'
-import AssessmentAnalyticsPage from './pages/AssessmentAnalyticsPage'
 import AssessmentBuilderPage from './pages/AssessmentBuilderPage'
 import AdminLayout from './components/AdminLayout'
 import AdminEmployees from './pages/AdminEmployees'
@@ -60,7 +57,6 @@ import AdminExpenses from './pages/AdminExpenses'
 import Chat from './pages/Chat'
 import AdminRecruitment from './pages/AdminRecruitment'
 import EmployeeAssessments from './pages/EmployeeAssessments'
-import EmployeeAssessmentSession from './pages/EmployeeAssessmentSession'
 import ComingSoon from './pages/ComingSoon'
 import CandidateLogin from './pages/CandidateLogin'
 import CandidateActivate from './pages/CandidateActivate'
@@ -174,9 +170,6 @@ function App() {
                 <Route path="exams" element={<AssessmentExamsPage />} />
                 <Route path="create" element={<AssessmentBuilderPage />} />
                 <Route path="edit/:id" element={<AssessmentBuilderPage />} />
-                <Route path="questions" element={<AssessmentQuestionsPage />} />
-                <Route path="assign" element={<AssessmentAssignPage />} />
-                <Route path="analytics" element={<AssessmentAnalyticsPage />} />
               </Route>
               <Route
                 path="/employee"
@@ -194,7 +187,6 @@ function App() {
                 <Route path="payroll" element={<EmployeePayroll />} />
                 <Route path="performance" element={<EmployeePerformance />} />
                 <Route path="assessments" element={<EmployeeAssessments />} />
-                <Route path="assessments/session" element={<EmployeeAssessmentSession />} />
                 <Route path="chat" element={<Chat />} />
                 <Route path="profile" element={<EmployeeProfile />} />
                 <Route path="profile/edit" element={<EditProfilePage />} />
