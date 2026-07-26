@@ -373,147 +373,143 @@ const AssessmentCreatePage = () => {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left 2 Columns: Basic Info & Instructions */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Card 1: Basic Information */}
-              <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-6 space-y-5">
-                <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100 text-slate-900 font-bold text-base">
-                  <span className="p-2 bg-blue-50 text-blue-600 rounded-xl"><FileText size={18} /></span>
-                  <span>Basic Information</span>
+          {/* Top Full Width: Basic Information */}
+          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-6 space-y-5">
+            <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100 text-slate-900 font-bold text-base">
+              <span className="p-2 bg-blue-50 text-blue-600 rounded-xl"><FileText size={18} /></span>
+              <span>Basic Information</span>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+                  Assessment Title / Name <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={form.title}
+                  onChange={e => setForm({ ...form, title: e.target.value })}
+                  placeholder="e.g. Q3 IT Infrastructure & Cybersecurity Evaluation"
+                  className="w-full p-3 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+                    Department Category
+                  </label>
+                  <select
+                    value={form.department}
+                    onChange={e => setForm({ ...form, department: e.target.value })}
+                    className="w-full p-3 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 bg-slate-50/50 focus:bg-white focus:outline-none transition cursor-pointer"
+                  >
+                    {DEPARTMENTS.map(d => (
+                      <option key={d} value={d}>{d}</option>
+                    ))}
+                  </select>
                 </div>
 
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                      Assessment Title / Name <span className="text-rose-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={form.title}
-                      onChange={e => setForm({ ...form, title: e.target.value })}
-                      placeholder="e.g. Q3 IT Infrastructure & Cybersecurity Evaluation"
-                      className="w-full p-3 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+                    Assessment Status
+                  </label>
+                  <select
+                    value={form.status}
+                    onChange={e => setForm({ ...form, status: e.target.value })}
+                    className="w-full p-3 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 bg-slate-50/50 focus:bg-white focus:outline-none transition cursor-pointer"
+                  >
+                    <option value="Active">Active & Ready</option>
+                    <option value="Draft">Draft (Hidden)</option>
+                    <option value="Archived">Archived</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                        Department Category
-                      </label>
-                      <select
-                        value={form.department}
-                        onChange={e => setForm({ ...form, department: e.target.value })}
-                        className="w-full p-3 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 bg-slate-50/50 focus:bg-white focus:outline-none transition cursor-pointer"
-                      >
-                        {DEPARTMENTS.map(d => (
-                          <option key={d} value={d}>{d}</option>
-                        ))}
-                      </select>
-                    </div>
+          {/* Bottom 2 Columns: Timing & Grading + Security Controls */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+            {/* Left Column: Timing & Grading Parameters */}
+            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-6 space-y-5">
+              <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100 text-slate-900 font-bold text-base">
+                <span className="p-2 bg-purple-50 text-purple-600 rounded-xl"><Clock size={18} /></span>
+                <span>Timing & Grading</span>
+              </div>
 
-                    <div>
-                      <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                        Assessment Status
-                      </label>
-                      <select
-                        value={form.status}
-                        onChange={e => setForm({ ...form, status: e.target.value })}
-                        className="w-full p-3 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 bg-slate-50/50 focus:bg-white focus:outline-none transition cursor-pointer"
-                      >
-                        <option value="Active">Active & Ready</option>
-                        <option value="Draft">Draft (Hidden)</option>
-                        <option value="Archived">Archived</option>
-                      </select>
-                    </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
+                    Total Duration (Minutes) <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    required
+                    value={form.duration_minutes}
+                    onChange={e => setForm({ ...form, duration_minutes: e.target.value })}
+                    className="w-full p-3 border border-slate-200 rounded-xl text-base font-bold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
+                    Passing Percentage (%) <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="100"
+                    required
+                    value={form.passing_percentage}
+                    onChange={e => setForm({ ...form, passing_percentage: e.target.value })}
+                    className="w-full p-3 border border-slate-200 rounded-xl text-base font-bold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
+                    Marks Per Question <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    required
+                    value={form.marks_per_question}
+                    onChange={e => setForm({ ...form, marks_per_question: e.target.value })}
+                    className="w-full p-3 border border-slate-200 rounded-xl text-base font-bold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none"
+                  />
+                  <div className="mt-2 p-3 bg-blue-50/80 rounded-xl border border-blue-200/60 flex items-center justify-between text-xs text-blue-900 font-bold">
+                    <span>Total Assessment Marks:</span>
+                    <span className="text-sm text-blue-600 bg-white px-2.5 py-0.5 rounded-lg shadow-2xs border border-blue-200">
+                      {totalMarks} pts
+                    </span>
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
+                    Maximum Attempts Allowed <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    required
+                    value={form.max_attempts}
+                    onChange={e => setForm({ ...form, max_attempts: e.target.value })}
+                    className="w-full p-3 border border-slate-200 rounded-xl text-base font-bold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none"
+                  />
                 </div>
               </div>
             </div>
 
-            {/* Right 1 Column: Timing, Grading & Security Controls */}
-            <div className="space-y-6">
-              {/* Card 3: Timing & Grading Parameters */}
-              <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-6 space-y-5">
-                <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100 text-slate-900 font-bold text-base">
-                  <span className="p-2 bg-purple-50 text-purple-600 rounded-xl"><Clock size={18} /></span>
-                  <span>Timing & Grading</span>
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
-                      Total Duration (Minutes) <span className="text-rose-500">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      required
-                      value={form.duration_minutes}
-                      onChange={e => setForm({ ...form, duration_minutes: e.target.value })}
-                      className="w-full p-3 border border-slate-200 rounded-xl text-base font-bold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
-                      Passing Percentage (%) <span className="text-rose-500">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="100"
-                      required
-                      value={form.passing_percentage}
-                      onChange={e => setForm({ ...form, passing_percentage: e.target.value })}
-                      className="w-full p-3 border border-slate-200 rounded-xl text-base font-bold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
-                      Marks Per Question <span className="text-rose-500">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      required
-                      value={form.marks_per_question}
-                      onChange={e => setForm({ ...form, marks_per_question: e.target.value })}
-                      className="w-full p-3 border border-slate-200 rounded-xl text-base font-bold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none"
-                    />
-                    <div className="mt-2 p-3 bg-blue-50/80 rounded-xl border border-blue-200/60 flex items-center justify-between text-xs text-blue-900 font-bold">
-                      <span>Total Assessment Marks:</span>
-                      <span className="text-sm text-blue-600 bg-white px-2.5 py-0.5 rounded-lg shadow-2xs border border-blue-200">
-                        {totalMarks} pts
-                      </span>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
-                      Maximum Attempts Allowed <span className="text-rose-500">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      required
-                      value={form.max_attempts}
-                      onChange={e => setForm({ ...form, max_attempts: e.target.value })}
-                      className="w-full p-3 border border-slate-200 rounded-xl text-base font-bold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none"
-                    />
-                  </div>
-                </div>
+            {/* Right Column: Display & Security Controls */}
+            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-6 space-y-5">
+              <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100 text-slate-900 font-bold text-base">
+                <span className="p-2 bg-rose-50 text-rose-600 rounded-xl"><Shield size={18} /></span>
+                <span>Security Controls</span>
               </div>
-
-              {/* Card 4: Display & Security Controls */}
-              <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-6 space-y-5">
-                <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100 text-slate-900 font-bold text-base">
-                  <span className="p-2 bg-rose-50 text-rose-600 rounded-xl"><Shield size={18} /></span>
-                  <span>Security Controls</span>
-                </div>
 
                 <div className="space-y-4">
                   <label className="flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:bg-slate-50 transition cursor-pointer">
@@ -585,7 +581,6 @@ const AssessmentCreatePage = () => {
                 </div>
               </div>
             </div>
-          </div>
 
           {/* Submit Footer */}
           <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
