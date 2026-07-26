@@ -31,7 +31,6 @@ $queries = [
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         title VARCHAR(255) NOT NULL,
         department VARCHAR(150) DEFAULT \'General\',
-        instructions TEXT DEFAULT \'\',
         duration_minutes INTEGER NOT NULL DEFAULT 30,
         passing_percentage INTEGER NOT NULL DEFAULT 70,
         max_attempts INTEGER NOT NULL DEFAULT 1,
@@ -48,7 +47,6 @@ $queries = [
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     );',
     'ALTER TABLE assessments ADD COLUMN IF NOT EXISTS department VARCHAR(150) DEFAULT \'General\';',
-    'ALTER TABLE assessments ADD COLUMN IF NOT EXISTS instructions TEXT DEFAULT \'\';',
     'ALTER TABLE assessments ADD COLUMN IF NOT EXISTS marks_per_question INTEGER DEFAULT 1;',
     'ALTER TABLE assessments ADD COLUMN IF NOT EXISTS prevent_tab_switch BOOLEAN DEFAULT false;',
     'ALTER TABLE assessments ADD COLUMN IF NOT EXISTS proctored_mode BOOLEAN DEFAULT false;',

@@ -4,6 +4,7 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Middleware\AuthMiddleware;
 use App\Config\Database;
+use App\Utils\AssessmentConstants;
 
 /** @var \Slim\App $app */
 
@@ -37,6 +38,7 @@ $app->get('/api/employee/assessments', function (Request $request, Response $res
         $assessments = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($assessments as &$item) {
+            $item['instructions'] = AssessmentConstants::DEFAULT_INSTRUCTIONS;
             $item['questions_count'] = (int)$item['questions_count'];
             $item['total_marks'] = (int)$item['total_marks'];
             $item['attempts_used'] = (int)$item['attempts_used'];
@@ -148,7 +150,8 @@ $app->post('/api/employee/assessments/{id}/start', function (Request $request, R
                 'title' => $assessment['title'],
                 'duration_minutes' => $durationMins,
                 'passing_percentage' => (int)$assessment['passing_percentage'],
-                'result_visibility' => $assessment['result_visibility']
+                'result_visibility' => $assessment['result_visibility'],
+                'instructions' => AssessmentConstants::DEFAULT_INSTRUCTIONS
             ],
             'deadline_timestamp' => $deadlineEpoch,
             'server_time' => time(),
