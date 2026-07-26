@@ -31,6 +31,7 @@ import LoanOrigination from './pages/LoanOrigination'
 import AssessmentWorkspaceLayout from './components/AssessmentWorkspaceLayout'
 import BasicInformationRulesPage from './pages/BasicInformationRulesPage'
 import DepartmentQuestionBankPage from './pages/DepartmentQuestionBankPage'
+import AssessmentCreatePage from './pages/AssessmentCreatePage'
 import AdminLayout from './components/AdminLayout'
 import AdminEmployees from './pages/AdminEmployees'
 import AdminDirectory from './pages/AdminDirectory'
@@ -170,8 +171,8 @@ function App() {
                 <Route path="questions" element={<DepartmentQuestionBankPage />} />
                 <Route path="rules" element={<BasicInformationRulesPage />} />
                 <Route path="exams" element={<Navigate to="questions" replace />} />
-                <Route path="create" element={<Navigate to="questions" replace />} />
-                <Route path="edit/:id" element={<Navigate to="questions" replace />} />
+                <Route path="create" element={<AssessmentCreatePage />} />
+                <Route path="edit/:id" element={<AssessmentCreatePage />} />
               </Route>
               <Route
                 path="/employee"

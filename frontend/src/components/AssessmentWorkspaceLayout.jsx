@@ -19,7 +19,7 @@ const AssessmentWorkspaceLayout = () => {
 
   const navItems = [
     { icon: <HelpCircle size={18} />, label: 'Department Question Bank', path: '/admin/assessments/questions' },
-    { icon: <Settings size={18} />, label: 'Basic Information & Rules', path: '/admin/assessments/rules' },
+    { icon: <Settings size={18} />, label: 'Assessments & Rules', path: '/admin/assessments/rules' },
   ];
 
   return (
@@ -38,7 +38,9 @@ const AssessmentWorkspaceLayout = () => {
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 px-2">Assessment Modules</p>
           <nav className="space-y-1">
             {navItems.map((item, idx) => {
-              const isActive = location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
+              const isActive = location.pathname === item.path || 
+                               location.pathname.startsWith(`${item.path}/`) ||
+                               (item.path === '/admin/assessments/rules' && (location.pathname.startsWith('/admin/assessments/create') || location.pathname.startsWith('/admin/assessments/edit')));
               return (
                 <Link
                   key={idx}

@@ -17,6 +17,17 @@ $app->get('/api/admin/assessments', function (Request $request, Response $respon
         $stmt = $conn->query($sql);
         $assessments = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+        foreach ($assessments as &$a) {
+            if (!empty($a['target_roles']) && is_string($a['target_roles'])) {
+                $decoded = json_decode($a['target_roles'], true);
+                if (is_array($decoded)) $a['target_roles'] = $decoded;
+            }
+            if (!empty($a['selected_questions']) && is_string($a['selected_questions'])) {
+                $decoded = json_decode($a['selected_questions'], true);
+                if (is_array($decoded)) $a['selected_questions'] = $decoded;
+            }
+        }
+
         $response->getBody()->write(json_encode($assessments));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (\Exception $e) {
@@ -41,6 +52,15 @@ $app->get('/api/admin/assessments/{id}', function (Request $request, Response $r
             return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
         }
 
+        if (!empty($assessment['target_roles']) && is_string($assessment['target_roles'])) {
+            $decoded = json_decode($assessment['target_roles'], true);
+            if (is_array($decoded)) $assessment['target_roles'] = $decoded;
+        }
+        if (!empty($assessment['selected_questions']) && is_string($assessment['selected_questions'])) {
+            $decoded = json_decode($assessment['selected_questions'], true);
+            if (is_array($decoded)) $assessment['selected_questions'] = $decoded;
+        }
+
         $response->getBody()->write(json_encode($assessment));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (\Exception $e) {
@@ -55,12 +75,21 @@ $app->post('/api/admin/assessments', function (Request $request, Response $respo
     $data = json_decode($request->getBody()->getContents(), true);
 
     $title = trim($data['title'] ?? '');
+    $department = trim($data['department'] ?? 'General');
+    $targetRoles = json_encode($data['target_roles'] ?? []);
+    $description = trim($data['description'] ?? '');
+    $instructions = trim($data['instructions'] ?? '');
     $duration = (int)($data['duration_minutes'] ?? 30);
     $passing = (int)($data['passing_percentage'] ?? 70);
     $maxAttempts = (int)($data['max_attempts'] ?? 1);
+    $marksPerQ = (int)($data['marks_per_question'] ?? 1);
     $randomizeQ = !empty($data['randomize_questions']) ? 'true' : 'false';
     $randomizeO = !empty($data['randomize_options']) ? 'true' : 'false';
     $visibility = $data['result_visibility'] ?? 'immediate';
+    $preventTab = !empty($data['prevent_tab_switch']) ? 'true' : 'false';
+    $proctored = !empty($data['proctored_mode']) ? 'true' : 'false';
+    $selectedQs = json_encode($data['selected_questions'] ?? []);
+    $status = trim($data['status'] ?? 'Active');
 
     if (empty($title)) {
         $response->getBody()->write(json_encode(['error' => 'Title is required']));
@@ -71,8 +100,9 @@ $app->post('/api/admin/assessments', function (Request $request, Response $respo
     $conn = $db->getConnection();
 
     try {
-        $stmt = $conn->prepare('INSERT INTO assessments (title, duration_minutes, passing_percentage, max_attempts, randomize_questions, randomize_options, result_visibility, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id');
-        $stmt->execute([$title, $duration, $passing, $maxAttempts, $randomizeQ, $randomizeO, $visibility, $user->id]);
+        $sql = 'INSERT INTO assessments (title, department, target_roles, description, instructions, duration_minutes, passing_percentage, max_attempts, marks_per_question, randomize_questions, randomize_options, result_visibility, prevent_tab_switch, proctored_mode, selected_questions, status, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id';
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([$title, $department, $targetRoles, $description, $instructions, $duration, $passing, $maxAttempts, $marksPerQ, $randomizeQ, $randomizeO, $visibility, $preventTab, $proctored, $selectedQs, $status, $user->id]);
         $assessmentId = $stmt->fetchColumn();
 
         $response->getBody()->write(json_encode(['message' => 'Assessment created successfully', 'id' => $assessmentId]));
@@ -89,19 +119,29 @@ $app->put('/api/admin/assessments/{id}', function (Request $request, Response $r
     $data = json_decode($request->getBody()->getContents(), true);
 
     $title = trim($data['title'] ?? '');
+    $department = trim($data['department'] ?? 'General');
+    $targetRoles = json_encode($data['target_roles'] ?? []);
+    $description = trim($data['description'] ?? '');
+    $instructions = trim($data['instructions'] ?? '');
     $duration = (int)($data['duration_minutes'] ?? 30);
     $passing = (int)($data['passing_percentage'] ?? 70);
     $maxAttempts = (int)($data['max_attempts'] ?? 1);
+    $marksPerQ = (int)($data['marks_per_question'] ?? 1);
     $randomizeQ = !empty($data['randomize_questions']) ? 'true' : 'false';
     $randomizeO = !empty($data['randomize_options']) ? 'true' : 'false';
     $visibility = $data['result_visibility'] ?? 'immediate';
+    $preventTab = !empty($data['prevent_tab_switch']) ? 'true' : 'false';
+    $proctored = !empty($data['proctored_mode']) ? 'true' : 'false';
+    $selectedQs = json_encode($data['selected_questions'] ?? []);
+    $status = trim($data['status'] ?? 'Active');
 
     $db = new Database();
     $conn = $db->getConnection();
 
     try {
-        $stmt = $conn->prepare('UPDATE assessments SET title = ?, duration_minutes = ?, passing_percentage = ?, max_attempts = ?, randomize_questions = ?, randomize_options = ?, result_visibility = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?');
-        $stmt->execute([$title, $duration, $passing, $maxAttempts, $randomizeQ, $randomizeO, $visibility, $id]);
+        $sql = 'UPDATE assessments SET title = ?, department = ?, target_roles = ?, description = ?, instructions = ?, duration_minutes = ?, passing_percentage = ?, max_attempts = ?, marks_per_question = ?, randomize_questions = ?, randomize_options = ?, result_visibility = ?, prevent_tab_switch = ?, proctored_mode = ?, selected_questions = ?, status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?';
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([$title, $department, $targetRoles, $description, $instructions, $duration, $passing, $maxAttempts, $marksPerQ, $randomizeQ, $randomizeO, $visibility, $preventTab, $proctored, $selectedQs, $status, $id]);
 
         $response->getBody()->write(json_encode(['message' => 'Assessment updated successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);

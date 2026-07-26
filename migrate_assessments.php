@@ -30,20 +30,34 @@ $queries = [
     'CREATE TABLE IF NOT EXISTS assessments (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         title VARCHAR(255) NOT NULL,
+        department VARCHAR(150) DEFAULT \'General\',
+        target_roles JSONB DEFAULT \'[]\'::jsonb,
+        description TEXT DEFAULT \'\',
+        instructions TEXT DEFAULT \'\',
         duration_minutes INTEGER NOT NULL DEFAULT 30,
         passing_percentage INTEGER NOT NULL DEFAULT 70,
         max_attempts INTEGER NOT NULL DEFAULT 1,
+        marks_per_question INTEGER NOT NULL DEFAULT 1,
         randomize_questions BOOLEAN DEFAULT false,
         randomize_options BOOLEAN DEFAULT false,
         result_visibility VARCHAR(50) DEFAULT \'immediate\',
+        prevent_tab_switch BOOLEAN DEFAULT false,
+        proctored_mode BOOLEAN DEFAULT false,
+        selected_questions JSONB DEFAULT \'[]\'::jsonb,
+        status VARCHAR(50) DEFAULT \'Active\',
         created_by UUID,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     );',
-
-    'ALTER TABLE assessments DROP COLUMN IF EXISTS category;',
-    'ALTER TABLE assessments DROP COLUMN IF EXISTS description;',
-    'ALTER TABLE assessments DROP COLUMN IF EXISTS status;'
+    'ALTER TABLE assessments ADD COLUMN IF NOT EXISTS department VARCHAR(150) DEFAULT \'General\';',
+    'ALTER TABLE assessments ADD COLUMN IF NOT EXISTS target_roles JSONB DEFAULT \'[]\'::jsonb;',
+    'ALTER TABLE assessments ADD COLUMN IF NOT EXISTS description TEXT DEFAULT \'\';',
+    'ALTER TABLE assessments ADD COLUMN IF NOT EXISTS instructions TEXT DEFAULT \'\';',
+    'ALTER TABLE assessments ADD COLUMN IF NOT EXISTS marks_per_question INTEGER DEFAULT 1;',
+    'ALTER TABLE assessments ADD COLUMN IF NOT EXISTS prevent_tab_switch BOOLEAN DEFAULT false;',
+    'ALTER TABLE assessments ADD COLUMN IF NOT EXISTS proctored_mode BOOLEAN DEFAULT false;',
+    'ALTER TABLE assessments ADD COLUMN IF NOT EXISTS selected_questions JSONB DEFAULT \'[]\'::jsonb;',
+    'ALTER TABLE assessments ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT \'Active\';'
 ];
 
 foreach ($queries as $index => $sql) {
