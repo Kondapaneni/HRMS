@@ -366,7 +366,7 @@ const AssessmentCreatePage = () => {
             <button
               type="button"
               onClick={() => setStep(1)}
-              className="px-4 py-2 bg-white text-emerald-800 border border-emerald-300 font-bold text-xs rounded-md hover:bg-emerald-100 transition cursor-pointer shrink-0 self-start sm:self-auto flex items-center gap-1.5 shadow-2xs"
+              className="px-5 py-2.5 bg-white text-emerald-800 border border-emerald-300 font-bold text-xs rounded-md hover:bg-emerald-100 transition cursor-pointer shrink-0 shadow-sm flex items-center justify-center gap-2 self-start sm:self-auto"
             >
               <ArrowLeft size={14} />
               <span>Change Selected Questions ({selectedIds.length})</span>
