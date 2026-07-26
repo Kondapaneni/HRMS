@@ -180,11 +180,6 @@ const AssessmentBuilderPage = () => {
           >
             <BookOpen className="w-4 h-4" />
             <span>2. MCQ Question Paper Studio</span>
-            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ml-1.5 ${
-              activeTab === 'studio' ? 'bg-blue-100 text-blue-800' : 'bg-slate-100 text-slate-600'
-            }`}>
-              {aForm.question_ids.length} MCQs • {totalMarks} pts
-            </span>
           </button>
         </div>
 
