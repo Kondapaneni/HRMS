@@ -10,7 +10,7 @@ DirectoryIndex index.html index.php
 # If the request starts with api/, Offer-Letter/, Job-Description/, Resume/, Avatar/, Holiday/, Attendance/, Chat-Attachment/, Candidate-Document/, or Bills/ route it to index.php
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(api|Offer-Letter|Job-Description|Resume|Avatar|Holiday|Attendance|Chat-Attachment|Candidate-Document|Bills)/ index.php [QSA,L]
+RewriteRule ^(api|Offer-Letter|Job-Description|Resume|Avatar|Holiday|Attendance|Chat-Attachment|Candidate-Document|Bills|Proctoring-Video)/ index.php [QSA,L]
 
 # For all other non-file requests, route to index.html (React SPA)
 RewriteCond %{REQUEST_FILENAME} !-f

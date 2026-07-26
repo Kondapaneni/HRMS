@@ -79,7 +79,12 @@ export default defineConfig({
       '/Offer-Letter': {
         target: 'http://localhost:8081',
         changeOrigin: true
+      },
+      '/Proctoring-Video': {
+        target: 'http://localhost:8081',
+        changeOrigin: true
       }
-    }
+    },
+    historyApiFallback: true
   }
 })
