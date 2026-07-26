@@ -1,5 +1,5 @@
 import React from 'react'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient } from '@tanstack/react-query'
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client'
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister'
@@ -28,6 +28,11 @@ import EmployeeMobileHolidays from './pages/EmployeeMobileHolidays'
 import EmployeeMobileBirthdays from './pages/EmployeeMobileBirthdays'
 import LoansLayout from './components/LoansLayout'
 import LoanOrigination from './pages/LoanOrigination'
+import AssessmentWorkspaceLayout from './components/AssessmentWorkspaceLayout'
+import AssessmentExamsPage from './pages/AssessmentExamsPage'
+import AssessmentQuestionsPage from './pages/AssessmentQuestionsPage'
+import AssessmentAssignPage from './pages/AssessmentAssignPage'
+import AssessmentAnalyticsPage from './pages/AssessmentAnalyticsPage'
 import AdminLayout from './components/AdminLayout'
 import AdminEmployees from './pages/AdminEmployees'
 import AdminDirectory from './pages/AdminDirectory'
@@ -53,7 +58,6 @@ import AdminPerformance from './pages/AdminPerformance'
 import AdminExpenses from './pages/AdminExpenses'
 import Chat from './pages/Chat'
 import AdminRecruitment from './pages/AdminRecruitment'
-import AdminAssessments from './pages/AdminAssessments'
 import EmployeeAssessments from './pages/EmployeeAssessments'
 import EmployeeAssessmentSession from './pages/EmployeeAssessmentSession'
 import ComingSoon from './pages/ComingSoon'
@@ -153,8 +157,23 @@ function App() {
                 <Route path="settings" element={<AdminSettings />} />
                 <Route path="performance" element={<AdminPerformance />} />
                 <Route path="recruitment" element={<AdminRecruitment />} />
-                <Route path="assessments" element={<AdminAssessments />} />
                 <Route path="recruitment/verify-documents/:id" element={<AdminVerifyDocuments />} />
+              </Route>
+
+              {/* Acme Assessment Hub Workspace (Admin Only) */}
+              <Route
+                path="/admin/assessments"
+                element={
+                  <ProtectedRoute allowedRoles={ADMIN_DASHBOARD_ROLES}>
+                    <AssessmentWorkspaceLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<Navigate to="exams" replace />} />
+                <Route path="exams" element={<AssessmentExamsPage />} />
+                <Route path="questions" element={<AssessmentQuestionsPage />} />
+                <Route path="assign" element={<AssessmentAssignPage />} />
+                <Route path="analytics" element={<AssessmentAnalyticsPage />} />
               </Route>
               <Route
                 path="/employee"
