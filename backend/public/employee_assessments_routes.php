@@ -18,20 +18,16 @@ $app->get('/api/employee/assessments', function (Request $request, Response $res
         $sql = '
             SELECT 
                 a.*,
-                aa.due_date,
-                aa.assigned_at,
-                aa.status as assignment_status,
-                (SELECT COUNT(*) FROM assessment_questions aq WHERE aq.assessment_id = a.id) as questions_count,
-                (SELECT COALESCE(SUM(aq.marks), 0) FROM assessment_questions aq WHERE aq.assessment_id = a.id) as total_marks,
+                jsonb_array_length(a.selected_questions) as questions_count,
+                (jsonb_array_length(a.selected_questions) * a.marks_per_question) as total_marks,
                 (SELECT COUNT(*) FROM assessment_attempts att WHERE att.assessment_id = a.id AND att.employee_id = :uid AND att.status != \'in_progress\') as attempts_used,
                 (SELECT att.id FROM assessment_attempts att WHERE att.assessment_id = a.id AND att.employee_id = :uid AND att.status = \'in_progress\' LIMIT 1) as in_progress_attempt_id,
                 (SELECT att.percentage FROM assessment_attempts att WHERE att.assessment_id = a.id AND att.employee_id = :uid AND att.status != \'in_progress\' ORDER BY att.percentage DESC LIMIT 1) as highest_score,
                 (SELECT att.passed FROM assessment_attempts att WHERE att.assessment_id = a.id AND att.employee_id = :uid AND att.status != \'in_progress\' ORDER BY att.percentage DESC LIMIT 1) as has_passed,
                 (SELECT att.id FROM assessment_attempts att WHERE att.assessment_id = a.id AND att.employee_id = :uid AND att.status != \'in_progress\' ORDER BY att.end_time DESC LIMIT 1) as latest_attempt_id
-            FROM assessment_assignments aa
-            JOIN assessments a ON aa.assessment_id = a.id
-            WHERE aa.employee_id = :uid AND a.status = \'published\'
-            ORDER BY aa.assigned_at DESC
+            FROM assessments a
+            WHERE a.status = \'Active\'
+            ORDER BY a.created_at DESC
         ';
         $stmt = $conn->prepare($sql);
         $stmt->execute(['uid' => $user->id]);
@@ -64,13 +60,8 @@ $app->post('/api/employee/assessments/{id}/start', function (Request $request, R
 
     try {
         // Verify assignment and get assessment rules
-        $stmt = $conn->prepare('
-            SELECT a.*, aa.due_date 
-            FROM assessments a
-            JOIN assessment_assignments aa ON a.id = aa.assessment_id
-            WHERE a.id = ? AND aa.employee_id = ? AND a.status = \'published\'
-        ');
-        $stmt->execute([$id, $user->id]);
+        $stmt = $conn->prepare('SELECT * FROM assessments WHERE id = ? AND status = \'Active\'');
+        $stmt->execute([$id]);
         $assessment = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$assessment) {
