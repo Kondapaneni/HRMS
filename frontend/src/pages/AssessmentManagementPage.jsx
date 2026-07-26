@@ -5,8 +5,20 @@ import api from '../api/axios';
 import toast from 'react-hot-toast';
 import {
   Plus, Edit, Trash2, Eye, Shield, Clock, Award, Building2,
-  CheckCircle2, FileText, AlertCircle, HelpCircle, Disc, CheckSquare, Sparkles, X
+  CheckCircle2, FileText, AlertCircle, HelpCircle, Disc, CheckSquare, Sparkles, X, XCircle
 } from 'lucide-react';
+
+const renderBooleanBadge = (val) => val ? (
+  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/60 shadow-2xs">
+    <CheckCircle2 size={13} className="text-emerald-600 shrink-0" />
+    <span>Yes</span>
+  </span>
+) : (
+  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200/60 shadow-2xs">
+    <XCircle size={13} className="text-rose-500 shrink-0" />
+    <span>No</span>
+  </span>
+);
 import PageLoader from '../components/PageLoader';
 
 const AssessmentManagementPage = () => {
@@ -247,19 +259,19 @@ const AssessmentManagementPage = () => {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs flex items-center justify-between">
                     <span className="font-semibold text-slate-700">Shuffle Questions</span>
-                    <span className="font-bold">{selectedAssessmentForRules.randomize_questions ? '✅ Yes' : '❌ No'}</span>
+                    {renderBooleanBadge(selectedAssessmentForRules.randomize_questions)}
                   </div>
                   <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs flex items-center justify-between">
                     <span className="font-semibold text-slate-700">Shuffle Options</span>
-                    <span className="font-bold">{selectedAssessmentForRules.randomize_options ? '✅ Yes' : '❌ No'}</span>
+                    {renderBooleanBadge(selectedAssessmentForRules.randomize_options)}
                   </div>
                   <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs flex items-center justify-between">
                     <span className="font-semibold text-slate-700">Prevent Tab Switch</span>
-                    <span className="font-bold">{selectedAssessmentForRules.prevent_tab_switch ? '✅ Yes' : '❌ No'}</span>
+                    {renderBooleanBadge(selectedAssessmentForRules.prevent_tab_switch)}
                   </div>
                   <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs flex items-center justify-between">
                     <span className="font-semibold text-slate-700">Proctored Fullscreen</span>
-                    <span className="font-bold">{selectedAssessmentForRules.proctored_mode ? '✅ Yes' : '❌ No'}</span>
+                    {renderBooleanBadge(selectedAssessmentForRules.proctored_mode)}
                   </div>
                 </div>
               </div>
