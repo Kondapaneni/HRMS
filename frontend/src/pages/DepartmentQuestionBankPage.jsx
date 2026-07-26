@@ -1,0 +1,426 @@
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import api from '../api/axios';
+import toast from 'react-hot-toast';
+import {
+  HelpCircle, Plus, Edit2, Trash2, RefreshCw, X, Building2, CheckCircle2, Filter
+} from 'lucide-react';
+import PageLoader from '../components/PageLoader';
+
+const DEPARTMENTS = [
+  'Engineering',
+  'Human Resources',
+  'Sales',
+  'Marketing',
+  'Finance',
+  'Customer Support',
+  'Operations',
+  'IT',
+  'General / All'
+];
+
+const DepartmentQuestionBankPage = () => {
+  const queryClient = useQueryClient();
+  const [selectedDeptFilter, setSelectedDeptFilter] = useState('All');
+  const [showModal, setShowModal] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+
+  const [form, setForm] = useState({
+    department: 'Engineering',
+    question_text: '',
+    options: ['', '', '', ''],
+    correct_option: 0
+  });
+
+  const { data: questions = [], isLoading } = useQuery({
+    queryKey: ['adminQuestions', selectedDeptFilter],
+    queryFn: async () => {
+      const url = selectedDeptFilter === 'All' 
+        ? '/admin/questions' 
+        : `/admin/questions?department=${encodeURIComponent(selectedDeptFilter)}`;
+      const res = await api.get(url);
+      return res.data?.data || res.data || [];
+    }
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: async (formData) => {
+      if (editingId) {
+        return await api.put(`/admin/questions/${editingId}`, formData);
+      } else {
+        return await api.post('/admin/questions', formData);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminQuestions'] });
+      toast.success(editingId ? 'Question updated successfully!' : 'Question added to department bank!');
+      setShowModal(false);
+      resetForm();
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.error || 'Failed to save question');
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id) => await api.delete(`/admin/questions/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['adminQuestions'] });
+      toast.success('Question deleted successfully!');
+    },
+    onError: () => toast.error('Failed to delete question')
+  });
+
+  const resetForm = () => {
+    setEditingId(null);
+    setForm({
+      department: selectedDeptFilter !== 'All' ? selectedDeptFilter : 'Engineering',
+      question_text: '',
+      options: ['', '', '', ''],
+      correct_option: 0
+    });
+  };
+
+  const handleOpenCreate = () => {
+    resetForm();
+    setShowModal(true);
+  };
+
+  const handleOpenEdit = (item) => {
+    setEditingId(item.id);
+    let opts = item.options || ['', '', '', ''];
+    if (typeof opts === 'string') {
+      try { opts = JSON.parse(opts); } catch (e) { opts = ['', '', '', '']; }
+    }
+    while (opts.length < 4) opts.push('');
+
+    setForm({
+      department: item.department || 'Engineering',
+      question_text: item.question_text || '',
+      options: opts.slice(0, 4),
+      correct_option: parseInt(item.correct_option) || 0
+    });
+    setShowModal(true);
+  };
+
+  const handleOptionChange = (index, value) => {
+    const newOpts = [...form.options];
+    newOpts[index] = value;
+    setForm({ ...form, options: newOpts });
+  };
+
+  if (isLoading) return <PageLoader />;
+
+  return (
+    <div className="space-y-6 p-6">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 mb-1">Department Question Bank</h1>
+          <p className="text-sm text-slate-500">
+            Create and manage department-specific objective questions. Questions are linked directly to their department without assigned marks.
+          </p>
+        </div>
+        <button
+          onClick={handleOpenCreate}
+          className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 transition-colors shadow-sm cursor-pointer self-start sm:self-auto"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Add Department Question
+        </button>
+      </div>
+
+      {/* Department Filter Bar */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-slate-200">
+        <span className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1 mr-2 shrink-0">
+          <Filter size={13} /> Filter Dept:
+        </span>
+        <button
+          onClick={() => setSelectedDeptFilter('All')}
+          className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer ${
+            selectedDeptFilter === 'All'
+              ? 'bg-slate-900 text-white shadow-sm'
+              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+          }`}
+        >
+          All Departments ({selectedDeptFilter === 'All' ? questions.length : 'All'})
+        </button>
+        {DEPARTMENTS.map((dept) => (
+          <button
+            key={dept}
+            onClick={() => setSelectedDeptFilter(dept)}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer ${
+              selectedDeptFilter === dept
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`}
+          >
+            {dept}
+          </button>
+        ))}
+      </div>
+
+      {/* Questions Table */}
+      <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden flex flex-col">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-slate-50 border-b border-slate-200 text-slate-500">
+              <tr>
+                <th className="px-6 py-4 font-medium w-48">Department</th>
+                <th className="px-6 py-4 font-medium">Question</th>
+                <th className="px-6 py-4 font-medium">Options & Answer</th>
+                <th className="px-6 py-4 font-medium text-right w-28">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 text-sm">
+              {questions.map((item, idx) => {
+                let opts = item.options || [];
+                if (typeof opts === 'string') {
+                  try { opts = JSON.parse(opts); } catch (e) { opts = []; }
+                }
+                const correctIdx = parseInt(item.correct_option) || 0;
+
+                return (
+                  <tr key={item.id} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-6 py-4 font-medium text-slate-900 align-top">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200/60">
+                        <Building2 size={13} className="shrink-0" />
+                        {item.department}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-slate-900 font-semibold align-top max-w-md">
+                      <div className="flex items-start gap-2">
+                        <span className="text-slate-400 font-mono text-xs mt-0.5">Q{idx + 1}.</span>
+                        <span className="whitespace-pre-wrap">{item.question_text}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 align-top">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-lg">
+                        {opts.map((optText, oIdx) => {
+                          const isCorrect = oIdx === correctIdx;
+                          return (
+                            <div
+                              key={oIdx}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-medium border flex items-center justify-between gap-2 ${
+                                isCorrect
+                                  ? 'bg-emerald-50 border-emerald-300 text-emerald-900 font-bold shadow-2xs'
+                                  : 'bg-slate-50/70 border-slate-200 text-slate-700'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2 truncate">
+                                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+                                  isCorrect ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-700'
+                                }`}>
+                                  {String.fromCharCode(65 + oIdx)}
+                                </span>
+                                <span className="truncate" title={optText}>{optText || <span className="italic text-slate-400">Empty option</span>}</span>
+                              </div>
+                              {isCorrect && <CheckCircle2 size={14} className="text-emerald-600 shrink-0" />}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-right align-top space-x-2 whitespace-nowrap">
+                      <button
+                        onClick={() => handleOpenEdit(item)}
+                        className="p-1.5 text-slate-400 hover:text-blue-600 rounded hover:bg-slate-100 transition-colors cursor-pointer"
+                        title="Edit Question"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (confirm('Are you sure you want to delete this question?')) {
+                            deleteMutation.mutate(item.id);
+                          }
+                        }}
+                        className="p-1.5 text-slate-400 hover:text-rose-600 rounded hover:bg-slate-100 transition-colors cursor-pointer"
+                        title="Delete Question"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+              {questions.length === 0 && (
+                <tr>
+                  <td colSpan="4" className="px-6 py-14 text-center text-slate-500">
+                    <div className="flex flex-col items-center justify-center">
+                      <HelpCircle size={44} className="text-slate-300 mb-2" />
+                      <p className="font-semibold text-slate-700 text-base">No questions found for {selectedDeptFilter === 'All' ? 'any department' : selectedDeptFilter}</p>
+                      <p className="text-xs text-slate-400 mt-1 max-w-sm">
+                        Click "+ Add Department Question" above to create department-specific questions without predefined marks.
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Slide-over Drawer Modal for Create / Edit Question */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 overflow-hidden bg-slate-900/50 backdrop-blur-sm flex justify-end">
+          <div className="bg-white shadow-2xl w-full max-w-2xl h-[100dvh] flex flex-col overflow-hidden transform transition-transform duration-300 animate-in slide-in-from-right">
+            {/* Header */}
+            <div className="px-8 py-5 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+              <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2.5">
+                <HelpCircle className="text-blue-600" size={22} />
+                <span>{editingId ? 'Edit Department Question' : 'Add Question to Department'}</span>
+              </h2>
+              <button
+                type="button"
+                onClick={() => setShowModal(false)}
+                className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer p-1"
+              >
+                <X size={22} />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-8 overflow-y-auto flex-1 space-y-6">
+              {/* Card 1: Department Linking */}
+              <div className="bg-white rounded-xl border border-slate-200/80 shadow-2xs p-5 space-y-4">
+                <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100 text-slate-900 font-bold text-sm">
+                  <span className="p-1.5 bg-blue-50 text-blue-600 rounded-lg"><Building2 size={16} /></span>
+                  <span>Select Department</span>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
+                    Link Question to Department <span className="text-rose-500">*</span>
+                  </label>
+                  <select
+                    value={form.department}
+                    onChange={e => setForm({ ...form, department: e.target.value })}
+                    className="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:outline-none focus:bg-white font-bold text-slate-900 transition cursor-pointer"
+                  >
+                    {DEPARTMENTS.map(d => (
+                      <option key={d} value={d}>{d}</option>
+                    ))}
+                  </select>
+                  <p className="text-[11px] text-slate-500 mt-1.5">
+                    This question will be exclusively linked to <span className="font-bold text-blue-600">{form.department}</span>.
+                  </p>
+                </div>
+              </div>
+
+              {/* Card 2: Question Text */}
+              <div className="bg-white rounded-xl border border-slate-200/80 shadow-2xs p-5 space-y-4">
+                <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100 text-slate-900 font-bold text-sm">
+                  <span className="p-1.5 bg-amber-50 text-amber-600 rounded-lg"><HelpCircle size={16} /></span>
+                  <span>Question Text</span>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
+                    Question Statement <span className="text-rose-500">*</span>
+                  </label>
+                  <textarea
+                    rows={4}
+                    value={form.question_text}
+                    onChange={e => setForm({ ...form, question_text: e.target.value })}
+                    placeholder="Enter the objective question statement here..."
+                    className="w-full p-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-white font-medium text-slate-900 placeholder-slate-400 transition"
+                  />
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    No marks or weights are assigned here. Scoring is configured when building exams.
+                  </p>
+                </div>
+              </div>
+
+              {/* Card 3: 4 Options & Correct Answer */}
+              <div className="bg-white rounded-xl border border-slate-200/80 shadow-2xs p-5 space-y-4">
+                <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
+                  <div className="flex items-center gap-2 text-slate-900 font-bold text-sm">
+                    <span className="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg"><CheckCircle2 size={16} /></span>
+                    <span>Answer Options</span>
+                  </div>
+                  <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">
+                    Select Radio Button for Correct Answer
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  {form.options.map((opt, idx) => {
+                    const isCorrect = form.correct_option === idx;
+                    const letter = String.fromCharCode(65 + idx);
+                    return (
+                      <div
+                        key={idx}
+                        onClick={() => setForm({ ...form, correct_option: idx })}
+                        className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
+                          isCorrect
+                            ? 'bg-emerald-50/70 border-emerald-400 shadow-2xs'
+                            : 'bg-white border-slate-200 hover:border-slate-300'
+                        }`}
+                      >
+                        <div className="flex items-center justify-center">
+                          <input
+                            type="radio"
+                            name="correct_option"
+                            checked={isCorrect}
+                            onChange={() => setForm({ ...form, correct_option: idx })}
+                            className="w-4 h-4 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                          />
+                        </div>
+                        <span className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${
+                          isCorrect ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700'
+                        }`}>
+                          {letter}
+                        </span>
+                        <input
+                          type="text"
+                          value={opt}
+                          onClick={(e) => e.stopPropagation()}
+                          onChange={(e) => handleOptionChange(idx, e.target.value)}
+                          placeholder={`Option ${letter}`}
+                          className="flex-1 p-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-medium text-slate-900 placeholder-slate-400"
+                        />
+                        {isCorrect && (
+                          <span className="text-[11px] font-bold text-emerald-700 bg-emerald-100/80 px-2 py-1 rounded shrink-0">
+                            Correct
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-8 py-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setShowModal(false)}
+                className="px-5 py-2.5 text-sm font-bold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => saveMutation.mutate(form)}
+                disabled={
+                  saveMutation.isPending ||
+                  !form.question_text.trim() ||
+                  form.options.some(o => !o.trim())
+                }
+                className="px-6 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition cursor-pointer disabled:opacity-50 flex items-center gap-2 shadow-sm"
+              >
+                {saveMutation.isPending && <RefreshCw size={16} className="animate-spin" />}
+                <span>{editingId ? 'Update Question' : 'Save Question'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default DepartmentQuestionBankPage;

@@ -129,4 +129,126 @@ $app->delete('/api/admin/assessments/{id}', function (Request $request, Response
     }
 })->add(new AuthMiddleware(['admin'], 'adminAssessments'));
 
+// ==========================================
+// DEPARTMENT QUESTION BANK ROUTES (NO MARKS)
+// ==========================================
+
+// GET /api/admin/questions - List questions (optionally filter by department)
+$app->get('/api/admin/questions', function (Request $request, Response $response, $args) {
+    $queryParams = $request->getQueryParams();
+    $department = trim($queryParams['department'] ?? '');
+
+    $db = new Database();
+    $conn = $db->getConnection();
+
+    try {
+        if (!empty($department) && $department !== 'All') {
+            $stmt = $conn->prepare('SELECT * FROM department_question_bank WHERE department = ? ORDER BY created_at DESC');
+            $stmt->execute([$department]);
+        } else {
+            $stmt = $conn->query('SELECT * FROM department_question_bank ORDER BY created_at DESC');
+        }
+        $questions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Decode options json
+        foreach ($questions as &$q) {
+            if (!empty($q['options']) && is_string($q['options'])) {
+                $decoded = json_decode($q['options'], true);
+                if (is_array($decoded)) {
+                    $q['options'] = $decoded;
+                }
+            }
+        }
+
+        $response->getBody()->write(json_encode($questions));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+    } catch (\Exception $e) {
+        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    }
+})->add(new AuthMiddleware(['admin'], 'adminAssessments'));
+
+// POST /api/admin/questions - Create new question for a department (NO MARKS)
+$app->post('/api/admin/questions', function (Request $request, Response $response, $args) {
+    $user = $request->getAttribute('user');
+    $data = json_decode($request->getBody()->getContents(), true);
+
+    $department = trim($data['department'] ?? '');
+    $questionText = trim($data['question_text'] ?? '');
+    $options = $data['options'] ?? [];
+    $correctOption = (int)($data['correct_option'] ?? 0);
+
+    if (empty($department) || empty($questionText) || empty($options) || !is_array($options)) {
+        $response->getBody()->write(json_encode(['error' => 'Department, question text, and valid options are required']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+
+    $optionsJson = json_encode(array_values($options));
+
+    $db = new Database();
+    $conn = $db->getConnection();
+
+    try {
+        $stmt = $conn->prepare('INSERT INTO department_question_bank (department, question_text, options, correct_option, created_by) VALUES (?, ?, ?, ?, ?) RETURNING id');
+        $stmt->execute([$department, $questionText, $optionsJson, $correctOption, $user->id]);
+        $questionId = $stmt->fetchColumn();
+
+        $response->getBody()->write(json_encode(['message' => 'Question created successfully', 'id' => $questionId]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
+    } catch (\Exception $e) {
+        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    }
+})->add(new AuthMiddleware(['admin'], 'adminAssessments'));
+
+// PUT /api/admin/questions/{id} - Update question (NO MARKS)
+$app->put('/api/admin/questions/{id}', function (Request $request, Response $response, $args) {
+    $id = $args['id'];
+    $data = json_decode($request->getBody()->getContents(), true);
+
+    $department = trim($data['department'] ?? '');
+    $questionText = trim($data['question_text'] ?? '');
+    $options = $data['options'] ?? [];
+    $correctOption = (int)($data['correct_option'] ?? 0);
+
+    if (empty($department) || empty($questionText) || empty($options) || !is_array($options)) {
+        $response->getBody()->write(json_encode(['error' => 'Department, question text, and valid options are required']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+
+    $optionsJson = json_encode(array_values($options));
+
+    $db = new Database();
+    $conn = $db->getConnection();
+
+    try {
+        $stmt = $conn->prepare('UPDATE department_question_bank SET department = ?, question_text = ?, options = ?, correct_option = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?');
+        $stmt->execute([$department, $questionText, $optionsJson, $correctOption, $id]);
+
+        $response->getBody()->write(json_encode(['message' => 'Question updated successfully']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+    } catch (\Exception $e) {
+        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    }
+})->add(new AuthMiddleware(['admin'], 'adminAssessments'));
+
+// DELETE /api/admin/questions/{id} - Delete question
+$app->delete('/api/admin/questions/{id}', function (Request $request, Response $response, $args) {
+    $id = $args['id'];
+    $db = new Database();
+    $conn = $db->getConnection();
+
+    try {
+        $stmt = $conn->prepare('DELETE FROM department_question_bank WHERE id = ?');
+        $stmt->execute([$id]);
+
+        $response->getBody()->write(json_encode(['message' => 'Question deleted successfully']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+    } catch (\Exception $e) {
+        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    }
+})->add(new AuthMiddleware(['admin'], 'adminAssessments'));
+
 ?>

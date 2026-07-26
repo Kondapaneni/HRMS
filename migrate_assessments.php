@@ -14,14 +14,12 @@ $queries = [
     'ALTER TABLE user_feature_access ADD COLUMN IF NOT EXISTS "canAdminAssessments" BOOLEAN DEFAULT false;',
     'ALTER TABLE user_feature_access ADD COLUMN IF NOT EXISTS "canEmployeeAssessments" BOOLEAN DEFAULT false;',
 
-    'CREATE TABLE IF NOT EXISTS assessment_question_bank (
+    'CREATE TABLE IF NOT EXISTS department_question_bank (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        title TEXT NOT NULL,
-        question_type VARCHAR(50) NOT NULL DEFAULT \'mcq_single\',
-        difficulty VARCHAR(50) NOT NULL DEFAULT \'Medium\',
+        department VARCHAR(150) NOT NULL,
+        question_text TEXT NOT NULL,
         options JSONB NOT NULL DEFAULT \'[]\'::jsonb,
-        correct_answers JSONB NOT NULL DEFAULT \'[]\'::jsonb,
-        marks INTEGER NOT NULL DEFAULT 5,
+        correct_option INTEGER NOT NULL DEFAULT 0,
         created_by UUID,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -41,47 +39,9 @@ $queries = [
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     );',
 
-    'ALTER TABLE assessment_question_bank DROP COLUMN IF EXISTS category;',
     'ALTER TABLE assessments DROP COLUMN IF EXISTS category;',
     'ALTER TABLE assessments DROP COLUMN IF EXISTS description;',
-    'ALTER TABLE assessments DROP COLUMN IF EXISTS status;',
-
-    'CREATE TABLE IF NOT EXISTS assessment_questions (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        assessment_id UUID NOT NULL REFERENCES assessments(id) ON DELETE CASCADE,
-        question_id UUID NOT NULL REFERENCES assessment_question_bank(id) ON DELETE CASCADE,
-        order_num INTEGER NOT NULL DEFAULT 1,
-        marks INTEGER NOT NULL DEFAULT 5,
-        UNIQUE(assessment_id, question_id)
-    );',
-
-    'CREATE TABLE IF NOT EXISTS assessment_assignments (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        assessment_id UUID NOT NULL REFERENCES assessments(id) ON DELETE CASCADE,
-        employee_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-        assigned_by UUID,
-        assigned_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-        due_date TIMESTAMP WITH TIME ZONE,
-        status VARCHAR(50) DEFAULT \'assigned\',
-        UNIQUE(assessment_id, employee_id)
-    );',
-
-    'CREATE TABLE IF NOT EXISTS assessment_attempts (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        assessment_id UUID NOT NULL REFERENCES assessments(id) ON DELETE CASCADE,
-        employee_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-        attempt_number INTEGER NOT NULL DEFAULT 1,
-        start_time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-        end_time TIMESTAMP WITH TIME ZONE,
-        status VARCHAR(50) DEFAULT \'in_progress\',
-        total_score NUMERIC(10,2) DEFAULT 0,
-        max_score NUMERIC(10,2) DEFAULT 0,
-        percentage NUMERIC(5,2) DEFAULT 0,
-        passed BOOLEAN DEFAULT false,
-        answers_data JSONB DEFAULT \'{}\'::jsonb,
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-    );'
+    'ALTER TABLE assessments DROP COLUMN IF EXISTS status;'
 ];
 
 foreach ($queries as $index => $sql) {

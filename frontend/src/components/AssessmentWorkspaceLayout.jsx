@@ -18,6 +18,7 @@ const AssessmentWorkspaceLayout = () => {
   };
 
   const navItems = [
+    { icon: <HelpCircle size={18} />, label: 'Department Question Bank', path: '/admin/assessments/questions' },
     { icon: <Settings size={18} />, label: 'Basic Information & Rules', path: '/admin/assessments/rules' },
   ];
 

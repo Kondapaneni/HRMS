@@ -30,6 +30,7 @@ import LoansLayout from './components/LoansLayout'
 import LoanOrigination from './pages/LoanOrigination'
 import AssessmentWorkspaceLayout from './components/AssessmentWorkspaceLayout'
 import BasicInformationRulesPage from './pages/BasicInformationRulesPage'
+import DepartmentQuestionBankPage from './pages/DepartmentQuestionBankPage'
 import AdminLayout from './components/AdminLayout'
 import AdminEmployees from './pages/AdminEmployees'
 import AdminDirectory from './pages/AdminDirectory'
@@ -165,11 +166,12 @@ function App() {
                   </ProtectedRoute>
                 }
               >
-                <Route index element={<Navigate to="rules" replace />} />
+                <Route index element={<Navigate to="questions" replace />} />
+                <Route path="questions" element={<DepartmentQuestionBankPage />} />
                 <Route path="rules" element={<BasicInformationRulesPage />} />
-                <Route path="exams" element={<Navigate to="rules" replace />} />
-                <Route path="create" element={<Navigate to="rules" replace />} />
-                <Route path="edit/:id" element={<Navigate to="rules" replace />} />
+                <Route path="exams" element={<Navigate to="questions" replace />} />
+                <Route path="create" element={<Navigate to="questions" replace />} />
+                <Route path="edit/:id" element={<Navigate to="questions" replace />} />
               </Route>
               <Route
                 path="/employee"
