@@ -175,42 +175,43 @@ const AssessmentBuilderPage = () => {
         </div>
       </div>
 
-      {/* 2. Flat Tab Bar Navigation */}
-      <div className="flex items-center gap-3 pb-2 border-b border-slate-200">
-        <button
-          type="button"
-          onClick={() => setActiveTab('info')}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer ${
-            activeTab === 'info'
-              ? 'bg-blue-600 text-white shadow-sm shadow-blue-600/20'
-              : 'bg-slate-100 text-slate-600 hover:bg-slate-200/80 hover:text-slate-900'
-          }`}
-        >
-          <FileText size={18} />
-          <span>1. Basic Information & Rules</span>
-        </button>
+      {/* 2. Main Tabbed Workspace Card (AdminEmployeeView style) */}
+      <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
+        <div className="flex overflow-x-auto hide-scrollbar space-x-1 border-b border-slate-200 px-2 pt-2">
+          <button
+            type="button"
+            onClick={() => setActiveTab('info')}
+            className={`whitespace-nowrap px-4 py-2.5 text-sm font-medium transition-colors cursor-pointer flex items-center gap-2 ${
+              activeTab === 'info'
+                ? 'border-b-2 border-blue-600 text-blue-600'
+                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+            }`}
+          >
+            <FileText className="w-4 h-4" />
+            <span>1. Basic Information & Rules</span>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => setActiveTab('studio')}
-          className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer ${
-            activeTab === 'studio'
-              ? 'bg-blue-600 text-white shadow-sm shadow-blue-600/20'
-              : 'bg-slate-100 text-slate-600 hover:bg-slate-200/80 hover:text-slate-900'
-          }`}
-        >
-          <BookOpen size={18} />
-          <span>2. MCQ Question Paper Studio</span>
-          <span className={`px-2 py-0.5 rounded-full text-xs font-black ml-1 ${
-            activeTab === 'studio' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-800'
-          }`}>
-            {aForm.question_ids.length} MCQs • {totalMarks} pts
-          </span>
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={() => setActiveTab('studio')}
+            className={`whitespace-nowrap px-4 py-2.5 text-sm font-medium transition-colors cursor-pointer flex items-center gap-2 ${
+              activeTab === 'studio'
+                ? 'border-b-2 border-blue-600 text-blue-600'
+                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+            }`}
+          >
+            <BookOpen className="w-4 h-4" />
+            <span>2. MCQ Question Paper Studio</span>
+            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ml-1.5 ${
+              activeTab === 'studio' ? 'bg-blue-100 text-blue-800' : 'bg-slate-100 text-slate-600'
+            }`}>
+              {aForm.question_ids.length} MCQs • {totalMarks} pts
+            </span>
+          </button>
+        </div>
 
-      {/* 3. Tab Content Workspace */}
-      {activeTab === 'info' ? (
+        <div className="p-6">
+          {activeTab === 'info' ? (
         /* TAB 1: BASIC INFORMATION & RULES (Full Width 3-Card Grid) */
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
@@ -578,7 +579,9 @@ const AssessmentBuilderPage = () => {
 
           </div>
         </div>
-      )}
+        )}
+        </div>
+      </div>
     </div>
   );
 };
