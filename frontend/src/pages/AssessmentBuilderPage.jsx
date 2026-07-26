@@ -14,7 +14,7 @@ const AssessmentBuilderPage = () => {
   const navigate = useNavigate();
   const { id } = useParams(); // present if editing
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState('info'); // 'info' | 'studio'
+  const [activeTab, setActiveTab] = useState('studio'); // 'studio' | 'info'
   const [searchTerm, setSearchTerm] = useState('');
   const [difficultyFilter, setDifficultyFilter] = useState('ALL');
 
@@ -122,13 +122,6 @@ const AssessmentBuilderPage = () => {
         <div className="flex items-center gap-3 self-start sm:self-auto">
           <button
             type="button"
-            onClick={() => navigate('/admin/assessments/exams')}
-            className="px-4 py-2 text-sm font-semibold text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer shadow-2xs"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
             onClick={() => {
               setAForm({ ...aForm, status: 'draft' });
               saveMutation.mutate({ ...aForm, status: 'draft' });
@@ -158,19 +151,6 @@ const AssessmentBuilderPage = () => {
         <div className="flex overflow-x-auto hide-scrollbar space-x-1 border-b border-slate-200 px-2 pt-2">
           <button
             type="button"
-            onClick={() => setActiveTab('info')}
-            className={`whitespace-nowrap px-4 py-2.5 text-sm font-medium transition-colors cursor-pointer flex items-center gap-2 ${
-              activeTab === 'info'
-                ? 'border-b-2 border-blue-600 text-blue-600'
-                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
-            }`}
-          >
-            <FileText className="w-4 h-4" />
-            <span>1. Basic Information & Rules</span>
-          </button>
-
-          <button
-            type="button"
             onClick={() => setActiveTab('studio')}
             className={`whitespace-nowrap px-4 py-2.5 text-sm font-medium transition-colors cursor-pointer flex items-center gap-2 ${
               activeTab === 'studio'
@@ -179,7 +159,20 @@ const AssessmentBuilderPage = () => {
             }`}
           >
             <BookOpen className="w-4 h-4" />
-            <span>2. MCQ Question Paper Studio</span>
+            <span>1. MCQ Question Paper Studio</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('info')}
+            className={`whitespace-nowrap px-4 py-2.5 text-sm font-medium transition-colors cursor-pointer flex items-center gap-2 ${
+              activeTab === 'info'
+                ? 'border-b-2 border-blue-600 text-blue-600'
+                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+            }`}
+          >
+            <FileText className="w-4 h-4" />
+            <span>2. Basic Information & Rules</span>
           </button>
         </div>
 
@@ -344,23 +337,23 @@ const AssessmentBuilderPage = () => {
           </div>
 
           {/* Stepper Navigation Footer */}
-          <div className="bg-blue-50/60 rounded-xl border border-blue-200/80 p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="bg-emerald-50/60 rounded-xl border border-emerald-200/80 p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold">
+              <div className="w-9 h-9 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold">
                 ✓
               </div>
               <div>
-                <div className="font-bold text-slate-900 text-sm">Rules Configured?</div>
-                <div className="text-xs text-slate-600">Switch to the MCQ Question Paper Studio tab to select questions from your repository.</div>
+                <div className="font-bold text-slate-900 text-sm">Ready to Finalize?</div>
+                <div className="text-xs text-slate-600">Review your rules and use the buttons in the header to Save as Draft or Publish your assessment.</div>
               </div>
             </div>
             <button
               type="button"
               onClick={() => setActiveTab('studio')}
-              className="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-all shadow-sm flex items-center gap-2 cursor-pointer"
+              className="px-5 py-2.5 bg-white border border-slate-300 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-50 transition-all shadow-sm flex items-center gap-2 cursor-pointer"
             >
-              <span>Next: MCQ Question Paper Studio</span>
-              <ChevronRight size={18} />
+              <ArrowLeft size={18} />
+              <span>Back: MCQ Question Paper Studio</span>
             </button>
           </div>
         </div>
@@ -550,6 +543,27 @@ const AssessmentBuilderPage = () => {
               </div>
             </div>
 
+          </div>
+
+          {/* Stepper Navigation Footer for Studio */}
+          <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold">
+                ✓
+              </div>
+              <div>
+                <div className="font-bold text-slate-900 text-sm">Questions Selected?</div>
+                <div className="text-xs text-slate-600">Switch to the Basic Information & Rules tab to configure time limits, passing scores, and exam settings.</div>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setActiveTab('info')}
+              className="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-all shadow-sm flex items-center gap-2 cursor-pointer"
+            >
+              <span>Next: Basic Information & Rules</span>
+              <ChevronRight size={18} />
+            </button>
           </div>
         </div>
         )}
