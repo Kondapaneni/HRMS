@@ -78,6 +78,15 @@ $app->post('/api/employee/assessments/{id}/start', function (Request $request, R
             return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
         }
 
+        // Enforce Assessment Date if specified
+        if (!empty($assessment['assessment_date'])) {
+            $today = date('Y-m-d');
+            if ($today !== $assessment['assessment_date']) {
+                $response->getBody()->write(json_encode(['error' => 'This assessment is scheduled for ' . $assessment['assessment_date'] . '. You can only attempt it on that date. Today is ' . $today . '.']));
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+            }
+        }
+
         // Check if there is an in-progress attempt
         $attStmt = $conn->prepare('SELECT * FROM assessment_attempts WHERE assessment_id = ? AND employee_id = ? AND status = \'in_progress\' LIMIT 1');
         $attStmt->execute([$id, $user->id]);

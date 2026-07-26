@@ -48,6 +48,7 @@ const AssessmentCreatePage = () => {
     result_visibility: 'immediate',
     prevent_tab_switch: true,
     proctored_mode: false,
+    assessment_date: '',
     status: 'Active'
   });
 
@@ -87,6 +88,7 @@ const AssessmentCreatePage = () => {
         result_visibility: existingAssessment.result_visibility || 'immediate',
         prevent_tab_switch: existingAssessment.prevent_tab_switch === true || existingAssessment.prevent_tab_switch === 'true' || existingAssessment.prevent_tab_switch === 1,
         proctored_mode: existingAssessment.proctored_mode === true || existingAssessment.proctored_mode === 'true' || existingAssessment.proctored_mode === 1,
+        assessment_date: existingAssessment.assessment_date || '',
         status: existingAssessment.status || 'Active'
       });
 
@@ -395,7 +397,7 @@ const AssessmentCreatePage = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
                     Department Category
@@ -409,6 +411,19 @@ const AssessmentCreatePage = () => {
                       <option key={d} value={d}>{d}</option>
                     ))}
                   </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+                    Assessment Date (Optional)
+                  </label>
+                  <input
+                    type="date"
+                    value={form.assessment_date || ''}
+                    onChange={e => setForm({ ...form, assessment_date: e.target.value })}
+                    className="w-full p-3 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition cursor-pointer"
+                  />
+                  <p className="text-[11px] text-slate-400 mt-1">Leave empty for anytime access</p>
                 </div>
 
                 <div>

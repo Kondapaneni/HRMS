@@ -40,6 +40,7 @@ $queries = [
         result_visibility VARCHAR(50) DEFAULT \'immediate\',
         prevent_tab_switch BOOLEAN DEFAULT false,
         proctored_mode BOOLEAN DEFAULT false,
+        assessment_date VARCHAR(50) DEFAULT NULL,
         selected_questions JSONB DEFAULT \'[]\'::jsonb,
         status VARCHAR(50) DEFAULT \'Active\',
         created_by UUID,
@@ -50,6 +51,7 @@ $queries = [
     'ALTER TABLE assessments ADD COLUMN IF NOT EXISTS marks_per_question INTEGER DEFAULT 1;',
     'ALTER TABLE assessments ADD COLUMN IF NOT EXISTS prevent_tab_switch BOOLEAN DEFAULT false;',
     'ALTER TABLE assessments ADD COLUMN IF NOT EXISTS proctored_mode BOOLEAN DEFAULT false;',
+    'ALTER TABLE assessments ADD COLUMN IF NOT EXISTS assessment_date VARCHAR(50) DEFAULT NULL;',
     'ALTER TABLE assessments ADD COLUMN IF NOT EXISTS selected_questions JSONB DEFAULT \'[]\'::jsonb;',
     'ALTER TABLE assessments ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT \'Active\';'
 ];

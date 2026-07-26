@@ -5,7 +5,7 @@ import api from '../api/axios';
 import toast from 'react-hot-toast';
 import {
   Plus, Edit, Trash2, Eye, Shield, Clock, Award, Building2,
-  CheckCircle2, FileText, AlertCircle, HelpCircle, Disc, CheckSquare, Sparkles, X, XCircle
+  CheckCircle2, FileText, AlertCircle, HelpCircle, Disc, CheckSquare, Sparkles, X, XCircle, Calendar
 } from 'lucide-react';
 
 const renderBooleanBadge = (val) => val ? (
@@ -164,6 +164,12 @@ const AssessmentManagementPage = () => {
                           Proctored
                         </span>
                       )}
+                      {item.assessment_date && (
+                        <span className="px-2 py-0.5 bg-indigo-50 text-indigo-700 text-[10px] font-bold rounded flex items-center gap-1">
+                          <Calendar size={10} />
+                          <span>Date: {item.assessment_date}</span>
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -228,9 +234,24 @@ const AssessmentManagementPage = () => {
             {/* Body */}
             <div className="p-8 overflow-y-auto flex-1 space-y-6 text-sm text-slate-700 divide-y divide-slate-100">
               {/* Section 1: Basic Info */}
-              <div className="pt-2">
-                <span className="text-xs font-bold text-slate-400 uppercase">Department</span>
-                <p className="font-bold text-slate-900 text-base mt-0.5">{selectedAssessmentForRules.department || 'General'}</p>
+              <div className="pt-2 grid grid-cols-2 gap-4">
+                <div>
+                  <span className="text-xs font-bold text-slate-400 uppercase">Department</span>
+                  <p className="font-bold text-slate-900 text-base mt-0.5">{selectedAssessmentForRules.department || 'General'}</p>
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-slate-400 uppercase">Assessment Date</span>
+                  <p className="font-bold text-slate-900 text-base mt-0.5 flex items-center gap-1.5">
+                    {selectedAssessmentForRules.assessment_date ? (
+                      <>
+                        <Calendar size={15} className="text-indigo-600" />
+                        <span className="text-indigo-700">{selectedAssessmentForRules.assessment_date}</span>
+                      </>
+                    ) : (
+                      <span className="text-slate-500 font-normal">Anytime Access</span>
+                    )}
+                  </p>
+                </div>
               </div>
 
               {/* Section 2: Timing & Grading */}
