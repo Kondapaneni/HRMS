@@ -17,9 +17,11 @@ $queries = [
     'CREATE TABLE IF NOT EXISTS department_question_bank (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         department VARCHAR(150) NOT NULL,
+        question_type VARCHAR(50) NOT NULL DEFAULT \'mcq_single\',
         question_text TEXT NOT NULL,
         options JSONB NOT NULL DEFAULT \'[]\'::jsonb,
         correct_option INTEGER NOT NULL DEFAULT 0,
+        correct_options JSONB NOT NULL DEFAULT \'[]\'::jsonb,
         created_by UUID,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP

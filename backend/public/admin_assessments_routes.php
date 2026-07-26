@@ -150,13 +150,25 @@ $app->get('/api/admin/questions', function (Request $request, Response $response
         }
         $questions = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Decode options json
+        // Decode options and correct_options json
         foreach ($questions as &$q) {
             if (!empty($q['options']) && is_string($q['options'])) {
                 $decoded = json_decode($q['options'], true);
                 if (is_array($decoded)) {
                     $q['options'] = $decoded;
                 }
+            }
+            if (!empty($q['correct_options']) && is_string($q['correct_options'])) {
+                $decoded = json_decode($q['correct_options'], true);
+                if (is_array($decoded)) {
+                    $q['correct_options'] = $decoded;
+                }
+            }
+            if (empty($q['correct_options']) || !is_array($q['correct_options'])) {
+                $q['correct_options'] = [(int)($q['correct_option'] ?? 0)];
+            }
+            if (empty($q['question_type'])) {
+                $q['question_type'] = 'mcq_single';
             }
         }
 
@@ -174,9 +186,16 @@ $app->post('/api/admin/questions', function (Request $request, Response $respons
     $data = json_decode($request->getBody()->getContents(), true);
 
     $department = trim($data['department'] ?? '');
+    $questionType = $data['question_type'] ?? 'mcq_single';
     $questionText = trim($data['question_text'] ?? '');
     $options = $data['options'] ?? [];
-    $correctOption = (int)($data['correct_option'] ?? 0);
+    
+    $correctOptions = $data['correct_options'] ?? [];
+    if (!is_array($correctOptions) || empty($correctOptions)) {
+        $correctOptions = [ (int)($data['correct_option'] ?? 0) ];
+    }
+    $correctOptions = array_map('intval', array_values($correctOptions));
+    $primaryCorrect = $correctOptions[0] ?? 0;
 
     if (empty($department) || empty($questionText) || empty($options) || !is_array($options)) {
         $response->getBody()->write(json_encode(['error' => 'Department, question text, and valid options are required']));
@@ -184,13 +203,14 @@ $app->post('/api/admin/questions', function (Request $request, Response $respons
     }
 
     $optionsJson = json_encode(array_values($options));
+    $correctOptionsJson = json_encode($correctOptions);
 
     $db = new Database();
     $conn = $db->getConnection();
 
     try {
-        $stmt = $conn->prepare('INSERT INTO department_question_bank (department, question_text, options, correct_option, created_by) VALUES (?, ?, ?, ?, ?) RETURNING id');
-        $stmt->execute([$department, $questionText, $optionsJson, $correctOption, $user->id]);
+        $stmt = $conn->prepare('INSERT INTO department_question_bank (department, question_type, question_text, options, correct_option, correct_options, created_by) VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id');
+        $stmt->execute([$department, $questionType, $questionText, $optionsJson, $primaryCorrect, $correctOptionsJson, $user->id]);
         $questionId = $stmt->fetchColumn();
 
         $response->getBody()->write(json_encode(['message' => 'Question created successfully', 'id' => $questionId]));
@@ -207,9 +227,16 @@ $app->put('/api/admin/questions/{id}', function (Request $request, Response $res
     $data = json_decode($request->getBody()->getContents(), true);
 
     $department = trim($data['department'] ?? '');
+    $questionType = $data['question_type'] ?? 'mcq_single';
     $questionText = trim($data['question_text'] ?? '');
     $options = $data['options'] ?? [];
-    $correctOption = (int)($data['correct_option'] ?? 0);
+    
+    $correctOptions = $data['correct_options'] ?? [];
+    if (!is_array($correctOptions) || empty($correctOptions)) {
+        $correctOptions = [ (int)($data['correct_option'] ?? 0) ];
+    }
+    $correctOptions = array_map('intval', array_values($correctOptions));
+    $primaryCorrect = $correctOptions[0] ?? 0;
 
     if (empty($department) || empty($questionText) || empty($options) || !is_array($options)) {
         $response->getBody()->write(json_encode(['error' => 'Department, question text, and valid options are required']));
@@ -217,13 +244,14 @@ $app->put('/api/admin/questions/{id}', function (Request $request, Response $res
     }
 
     $optionsJson = json_encode(array_values($options));
+    $correctOptionsJson = json_encode($correctOptions);
 
     $db = new Database();
     $conn = $db->getConnection();
 
     try {
-        $stmt = $conn->prepare('UPDATE department_question_bank SET department = ?, question_text = ?, options = ?, correct_option = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?');
-        $stmt->execute([$department, $questionText, $optionsJson, $correctOption, $id]);
+        $stmt = $conn->prepare('UPDATE department_question_bank SET department = ?, question_type = ?, question_text = ?, options = ?, correct_option = ?, correct_options = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?');
+        $stmt->execute([$department, $questionType, $questionText, $optionsJson, $primaryCorrect, $correctOptionsJson, $id]);
 
         $response->getBody()->write(json_encode(['message' => 'Question updated successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
