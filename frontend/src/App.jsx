@@ -33,6 +33,7 @@ import AssessmentExamsPage from './pages/AssessmentExamsPage'
 import AssessmentQuestionsPage from './pages/AssessmentQuestionsPage'
 import AssessmentAssignPage from './pages/AssessmentAssignPage'
 import AssessmentAnalyticsPage from './pages/AssessmentAnalyticsPage'
+import AssessmentBuilderPage from './pages/AssessmentBuilderPage'
 import AdminLayout from './components/AdminLayout'
 import AdminEmployees from './pages/AdminEmployees'
 import AdminDirectory from './pages/AdminDirectory'
@@ -171,6 +172,8 @@ function App() {
               >
                 <Route index element={<Navigate to="exams" replace />} />
                 <Route path="exams" element={<AssessmentExamsPage />} />
+                <Route path="create" element={<AssessmentBuilderPage />} />
+                <Route path="edit/:id" element={<AssessmentBuilderPage />} />
                 <Route path="questions" element={<AssessmentQuestionsPage />} />
                 <Route path="assign" element={<AssessmentAssignPage />} />
                 <Route path="analytics" element={<AssessmentAnalyticsPage />} />
