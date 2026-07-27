@@ -158,13 +158,11 @@ const EmployeeAssessmentEngine = () => {
     if (!examData) return;
 
     // Request fullscreen
-    const requestFullscreen = async () => {
-      try {
-        if (document.documentElement.requestFullscreen) {
-          await document.documentElement.requestFullscreen();
-        }
-      } catch (e) {
-        console.warn('Fullscreen request failed:', e);
+    const requestFullscreen = () => {
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {
+          // Fullscreen requires user interaction or browser permission
+        });
       }
     };
     requestFullscreen();
@@ -339,8 +337,8 @@ const EmployeeAssessmentEngine = () => {
     const handleFullscreenChange = () => {
       if (!document.fullscreenElement && !submittedRef.current) {
         setTimeout(() => {
-          if (!submittedRef.current) {
-            try { document.documentElement.requestFullscreen(); } catch (e) { /* ignore */ }
+          if (!submittedRef.current && document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().catch(() => {});
           }
         }, 300);
       }

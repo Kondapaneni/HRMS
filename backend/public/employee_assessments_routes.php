@@ -310,8 +310,8 @@ $app->post('/api/employee/assessments/attempts/{attemptId}/submit', function (Re
             }
 
             // Clean strings for comparison
-            $cleanCorrect = array_map('trim', array_map('val', $correctAns));
-            $cleanUser = array_map('trim', array_map('val', $userAnsList));
+            $cleanCorrect = array_map('trim', array_map('strval', $correctAns));
+            $cleanUser = array_map('trim', array_map('strval', $userAnsList));
             sort($cleanCorrect);
             sort($cleanUser);
 
