@@ -24,12 +24,15 @@ const EmployeeAssessmentEngine = () => {
   const [submitting, setSubmitting] = useState(false);
   const [autoSaving, setAutoSaving] = useState(false);
 
+  // Modals state
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [showTabWarning, setShowTabWarning] = useState(false);
+
   // Timer
   const [timeLeft, setTimeLeft] = useState(null);
 
   // Tab switch tracking
   const tabSwitchCount = useRef(0);
-  const [showTabWarning, setShowTabWarning] = useState(false);
 
   // Webcam recording
   const mediaRecorderRef = useRef(null);
@@ -349,9 +352,10 @@ const EmployeeAssessmentEngine = () => {
 
   // ===================== ANSWER HANDLER =====================
   const handleAnswer = (questionId, value, questionType) => {
+    const isMulti = ['mcq_multi', 'mcq_multiple', 'multiple'].includes(questionType);
     setAnswers(prev => {
       const newAnswers = { ...prev };
-      if (questionType === 'mcq_multi') {
+      if (isMulti) {
         const current = newAnswers[questionId]?.answer || [];
         if (current.includes(value)) {
           newAnswers[questionId] = { answer: current.filter(v => v !== value) };
@@ -388,6 +392,7 @@ const EmployeeAssessmentEngine = () => {
           <h3 className="text-lg font-bold text-slate-900 mb-2">Cannot Start Assessment</h3>
           <p className="text-sm text-slate-500 mb-6">{error}</p>
           <button
+            type="button"
             onClick={() => navigate('/employee/assessments')}
             className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl transition cursor-pointer inline-flex items-center gap-2"
           >
@@ -414,6 +419,7 @@ const EmployeeAssessmentEngine = () => {
   const isUrgent = timeLeft !== null && timeLeft < 300;
   const isCritical = timeLeft !== null && timeLeft < 60;
   const answeredCount = Object.values(answers).filter(a => a?.answer?.length > 0).length;
+  const isMCQMulti = ['mcq_multi', 'mcq_multiple', 'multiple'].includes(currentQ?.question_type);
 
   return (
     <motion.div 
@@ -423,6 +429,58 @@ const EmployeeAssessmentEngine = () => {
       className="fixed inset-0 flex flex-col bg-slate-50 select-none" 
       style={{ userSelect: 'none' }}
     >
+      {/* Custom Submit Confirmation Modal */}
+      <AnimatePresence>
+        {showSubmitModal && (
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4"
+          >
+            <motion.div 
+              initial={{ scale: 0.95, y: 20 }} 
+              animate={{ scale: 1, y: 0 }} 
+              exit={{ scale: 0.95, y: 20 }}
+              className="bg-white rounded-2xl shadow-2xl p-7 max-w-md w-full text-center border border-slate-200"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center mx-auto mb-5 shadow-sm">
+                <Send size={30} className="text-blue-600 ml-1" />
+              </div>
+              <h3 className="text-xl font-extrabold text-slate-900 mb-2">Submit Your Assessment?</h3>
+              <p className="text-sm text-slate-600 mb-6 leading-relaxed">
+                You have answered <strong className="text-emerald-600 font-bold">{answeredCount}</strong> of <strong className="text-slate-900 font-bold">{questions.length}</strong> questions.
+                {questions.length - answeredCount > 0 && (
+                  <span className="block mt-1.5 text-amber-600 font-semibold">
+                    ⚠️ You still have {questions.length - answeredCount} unanswered question{(questions.length - answeredCount) > 1 ? 's' : ''}.
+                  </span>
+                )}
+                Once submitted, you cannot change your answers.
+              </p>
+              <div className="flex items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowSubmitModal(false)}
+                  className="flex-1 py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl transition cursor-pointer"
+                >
+                  Continue Reviewing
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowSubmitModal(false);
+                    submitExam('manual');
+                  }}
+                  className="flex-1 py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl transition cursor-pointer shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2"
+                >
+                  <Send size={16} /> Yes, Submit Now
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Tab Switch Warning Modal */}
       <AnimatePresence>
         {showTabWarning && (
@@ -447,6 +505,7 @@ const EmployeeAssessmentEngine = () => {
                 If you switch tabs again, your exam will be <strong className="text-rose-600">automatically submitted</strong>.
               </p>
               <button
+                type="button"
                 onClick={() => setShowTabWarning(false)}
                 className="px-8 py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl transition cursor-pointer"
               >
@@ -538,10 +597,15 @@ const EmployeeAssessmentEngine = () => {
                 const isCurrent = idx === currentQuestion;
                 return (
                   <motion.button
+                    type="button"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     key={q.id}
-                    onClick={() => setCurrentQuestion(idx)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setCurrentQuestion(idx);
+                    }}
                     className={`w-full aspect-square rounded-xl text-xs font-bold transition cursor-pointer flex items-center justify-center ${
                       isCurrent
                         ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30 ring-2 ring-blue-300'
@@ -556,7 +620,7 @@ const EmployeeAssessmentEngine = () => {
               })}
             </div>
 
-            {/* Legend - Updated with larger text & larger boxes */}
+            {/* Legend */}
             <div className="mt-6 space-y-3 pt-4 border-t border-slate-200">
               <div className="flex items-center gap-3 text-xs font-semibold text-slate-700">
                 <div className="w-4 h-4 rounded-md bg-blue-600 shadow-sm shrink-0"></div>
@@ -624,14 +688,18 @@ const EmployeeAssessmentEngine = () => {
                       const optionText = typeof option === 'object' ? option.text : option;
                       const optionValue = typeof option === 'object' ? (option.text || option.value) : option;
                       const isSelected = answers[currentQ.id]?.answer?.includes(optionValue);
-                      const isMCQMulti = currentQ.question_type === 'mcq_multi';
 
                       return (
                         <motion.button
+                          type="button"
                           whileHover={{ scale: 1.003, x: 2 }}
                           whileTap={{ scale: 0.995 }}
                           key={optIdx}
-                          onClick={() => handleAnswer(currentQ.id, optionValue, currentQ.question_type)}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleAnswer(currentQ.id, optionValue, currentQ.question_type);
+                          }}
                           className={`w-full text-left p-4.5 rounded-2xl border-2 transition flex items-center gap-4 cursor-pointer group shadow-sm ${
                             isSelected
                               ? 'border-blue-600 bg-blue-50/80 ring-1 ring-blue-600 shadow-blue-500/5'
@@ -666,9 +734,13 @@ const EmployeeAssessmentEngine = () => {
           {/* Navigation Footer */}
           <div className="bg-white border-t border-slate-200 px-8 py-4 flex items-center justify-between shrink-0 shadow-sm">
             <motion.button
+              type="button"
               whileHover={currentQuestion !== 0 ? { scale: 1.02 } : {}}
               whileTap={currentQuestion !== 0 ? { scale: 0.98 } : {}}
-              onClick={() => setCurrentQuestion(prev => Math.max(0, prev - 1))}
+              onClick={(e) => {
+                e.preventDefault();
+                setCurrentQuestion(prev => Math.max(0, prev - 1));
+              }}
               disabled={currentQuestion === 0}
               className={`px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition ${
                 currentQuestion === 0
@@ -683,9 +755,13 @@ const EmployeeAssessmentEngine = () => {
             <div className="flex items-center gap-3">
               {currentQuestion < questions.length - 1 ? (
                 <motion.button
+                  type="button"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => setCurrentQuestion(prev => Math.min(questions.length - 1, prev + 1))}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setCurrentQuestion(prev => Math.min(questions.length - 1, prev + 1));
+                  }}
                   className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm flex items-center gap-2 transition cursor-pointer shadow-md shadow-blue-500/20"
                 >
                   Next
@@ -693,12 +769,12 @@ const EmployeeAssessmentEngine = () => {
                 </motion.button>
               ) : (
                 <motion.button
+                  type="button"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => {
-                    if (window.confirm('Are you sure you want to submit your exam? This action cannot be undone.')) {
-                      submitExam('manual');
-                    }
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setShowSubmitModal(true);
                   }}
                   className="px-7 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm flex items-center gap-2 transition cursor-pointer shadow-lg shadow-emerald-500/20"
                 >
