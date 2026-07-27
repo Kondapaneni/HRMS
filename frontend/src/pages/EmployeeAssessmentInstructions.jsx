@@ -76,142 +76,171 @@ const EmployeeAssessmentInstructions = () => {
   const totalMarks = questionsCount * (assessment?.marks_per_question || 1);
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-6">
+    <div className="w-full space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 rounded-2xl p-8 text-white shadow-xl">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
+      <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
+        <div className="flex items-center gap-4 mb-6">
+          <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700">
             <BookOpen size={24} />
           </div>
           <div>
-            <h1 className="text-2xl font-black">{assessment.title}</h1>
-            <p className="text-blue-200 text-sm font-medium mt-0.5">
-              {assessment.department || 'General'} Department
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900">{assessment.title}</h1>
+            <p className="text-slate-500 text-sm font-medium mt-1">
+              {assessment.department || 'General'} Department Assessment
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-          <div className="bg-white/10 backdrop-blur rounded-xl p-4 text-center">
-            <Clock size={20} className="mx-auto mb-1 text-blue-200" />
-            <p className="text-2xl font-black">{assessment.duration_minutes}</p>
-            <p className="text-[11px] font-bold text-blue-200 uppercase">Minutes</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-6 border-t border-slate-100">
+          <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 text-center">
+            <Clock size={20} className="mx-auto mb-1 text-slate-500" />
+            <p className="text-2xl font-bold text-slate-900">{assessment.duration_minutes}</p>
+            <p className="text-[11px] font-bold text-slate-500 uppercase">Minutes</p>
           </div>
-          <div className="bg-white/10 backdrop-blur rounded-xl p-4 text-center">
-            <BookOpen size={20} className="mx-auto mb-1 text-blue-200" />
-            <p className="text-2xl font-black">{questionsCount}</p>
-            <p className="text-[11px] font-bold text-blue-200 uppercase">Questions</p>
+          <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 text-center">
+            <BookOpen size={20} className="mx-auto mb-1 text-slate-500" />
+            <p className="text-2xl font-bold text-slate-900">{questionsCount}</p>
+            <p className="text-[11px] font-bold text-slate-500 uppercase">Questions</p>
           </div>
-          <div className="bg-white/10 backdrop-blur rounded-xl p-4 text-center">
-            <Target size={20} className="mx-auto mb-1 text-blue-200" />
-            <p className="text-2xl font-black">{totalMarks}</p>
-            <p className="text-[11px] font-bold text-blue-200 uppercase">Total Marks</p>
+          <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 text-center">
+            <Target size={20} className="mx-auto mb-1 text-slate-500" />
+            <p className="text-2xl font-bold text-slate-900">{totalMarks}</p>
+            <p className="text-[11px] font-bold text-slate-500 uppercase">Total Marks</p>
           </div>
-          <div className="bg-white/10 backdrop-blur rounded-xl p-4 text-center">
-            <Award size={20} className="mx-auto mb-1 text-blue-200" />
-            <p className="text-2xl font-black">{assessment.passing_percentage}%</p>
-            <p className="text-[11px] font-bold text-blue-200 uppercase">Pass %</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Strict Rules Card */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-5 border-b border-slate-100 bg-amber-50">
-          <div className="flex items-center gap-2">
-            <AlertTriangle size={20} className="text-amber-600" />
-            <h2 className="text-lg font-black text-slate-900">Exam Rules & Security</h2>
-          </div>
-        </div>
-
-        <div className="p-6 space-y-4">
-          <div className="flex items-start gap-3 p-3 bg-rose-50 border border-rose-200 rounded-xl">
-            <Monitor size={18} className="text-rose-600 mt-0.5 shrink-0" />
-            <div>
-              <p className="font-bold text-sm text-rose-800">Tab Switching is Strictly Monitored</p>
-              <p className="text-xs text-rose-600 mt-0.5">
-                Switching to another tab or window during the exam will trigger a warning. 
-                On the <strong>second offense</strong>, the exam will be <strong>automatically submitted</strong>.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3 p-3 bg-rose-50 border border-rose-200 rounded-xl">
-            <ShieldAlert size={18} className="text-rose-600 mt-0.5 shrink-0" />
-            <div>
-              <p className="font-bold text-sm text-rose-800">No Page Refresh Allowed</p>
-              <p className="text-xs text-rose-600 mt-0.5">
-                Refreshing the page or closing the tab will <strong>automatically submit your exam</strong>. 
-                Make sure your internet connection is stable.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3 p-3 bg-indigo-50 border border-indigo-200 rounded-xl">
-            <Camera size={18} className="text-indigo-600 mt-0.5 shrink-0" />
-            <div>
-              <p className="font-bold text-sm text-indigo-800">Webcam Proctoring is Active</p>
-              <p className="text-xs text-indigo-600 mt-0.5">
-                Your webcam and microphone will be <strong>recording throughout the exam</strong>. 
-                The recording will be submitted to the admin for review.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3 p-3 bg-blue-50 border border-blue-200 rounded-xl">
-            <Clock size={18} className="text-blue-600 mt-0.5 shrink-0" />
-            <div>
-              <p className="font-bold text-sm text-blue-800">Timer is Strictly Enforced</p>
-              <p className="text-xs text-blue-600 mt-0.5">
-                Once you begin, the countdown timer starts. When the time expires, the exam is 
-                <strong> automatically submitted</strong> with whatever answers you have completed.
-              </p>
-            </div>
+          <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 text-center">
+            <Award size={20} className="mx-auto mb-1 text-slate-500" />
+            <p className="text-2xl font-bold text-slate-900">{assessment.passing_percentage}%</p>
+            <p className="text-[11px] font-bold text-slate-500 uppercase">Pass %</p>
           </div>
         </div>
       </div>
 
-      {/* Camera Check */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-        <h3 className="font-bold text-slate-900 mb-3 flex items-center gap-2">
-          <Video size={18} className="text-indigo-600" />
-          Pre-Exam Camera Check
-        </h3>
-        <p className="text-sm text-slate-500 mb-4">
-          Before you can begin, please verify that your camera and microphone are working.
-        </p>
-
-        {cameraPermission === null && (
-          <button
-            onClick={handleCheckCamera}
-            className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl transition flex items-center gap-2 cursor-pointer"
-          >
-            <Camera size={16} />
-            Check Camera & Microphone
-          </button>
-        )}
-
-        {cameraPermission === 'granted' && (
-          <div className="flex items-center gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
-            <CheckCircle2 size={18} className="text-emerald-600" />
-            <span className="text-sm font-bold text-emerald-700">Camera and Microphone access granted. You're good to go!</span>
-          </div>
-        )}
-
-        {cameraPermission === 'denied' && (
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 p-3 bg-rose-50 border border-rose-200 rounded-xl">
-              <XCircle size={18} className="text-rose-600" />
-              <span className="text-sm font-bold text-rose-700">Camera or Microphone access was denied. Please allow access in your browser settings and try again.</span>
+      {/* Side-by-Side Grid: Rules & Camera Check */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+        {/* Strict Rules Card */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+          <div className="p-5 border-b border-slate-100 bg-amber-50">
+            <div className="flex items-center gap-2">
+              <AlertTriangle size={20} className="text-amber-600" />
+              <h2 className="text-lg font-bold text-slate-900">Exam Rules & Security</h2>
             </div>
-            <button
-              onClick={handleCheckCamera}
-              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-lg transition cursor-pointer"
-            >
-              Retry
-            </button>
           </div>
-        )}
+
+          <div className="p-6 space-y-4 flex-1">
+            <div className="flex items-start gap-3 p-3 bg-rose-50 border border-rose-200 rounded-xl">
+              <Monitor size={18} className="text-rose-600 mt-0.5 shrink-0" />
+              <div>
+                <p className="font-bold text-sm text-rose-800">Tab Switching is Strictly Monitored</p>
+                <p className="text-xs text-rose-600 mt-0.5">
+                  Switching to another tab or window during the exam will trigger a warning. 
+                  On the <strong>second offense</strong>, the exam will be <strong>automatically submitted</strong>.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3 p-3 bg-rose-50 border border-rose-200 rounded-xl">
+              <ShieldAlert size={18} className="text-rose-600 mt-0.5 shrink-0" />
+              <div>
+                <p className="font-bold text-sm text-rose-800">No Page Refresh Allowed</p>
+                <p className="text-xs text-rose-600 mt-0.5">
+                  Refreshing the page or closing the tab will <strong>automatically submit your exam</strong>. 
+                  Make sure your internet connection is stable.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3 p-3 bg-indigo-50 border border-indigo-200 rounded-xl">
+              <Camera size={18} className="text-indigo-600 mt-0.5 shrink-0" />
+              <div>
+                <p className="font-bold text-sm text-indigo-800">Webcam Proctoring is Active</p>
+                <p className="text-xs text-indigo-600 mt-0.5">
+                  Your webcam and microphone will be <strong>recording throughout the exam</strong>. 
+                  The recording will be submitted to the admin for review.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3 p-3 bg-blue-50 border border-blue-200 rounded-xl">
+              <Clock size={18} className="text-blue-600 mt-0.5 shrink-0" />
+              <div>
+                <p className="font-bold text-sm text-blue-800">Timer is Strictly Enforced</p>
+                <p className="text-xs text-blue-600 mt-0.5">
+                  Once you begin, the countdown timer starts. When the time expires, the exam is 
+                  <strong> automatically submitted</strong> with whatever answers you have completed.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Camera Check Card */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col justify-between">
+          <div>
+            <h3 className="font-bold text-slate-900 mb-3 flex items-center gap-2 text-lg">
+              <Video size={20} className="text-indigo-600" />
+              Pre-Exam Camera Check
+            </h3>
+            <p className="text-sm text-slate-500 mb-6">
+              Before you can begin, please verify that your camera and microphone are working properly. 
+              Live recording is mandatory for this assessment.
+            </p>
+
+            {cameraPermission === null && (
+              <div className="p-8 border-2 border-dashed border-slate-200 rounded-2xl text-center bg-slate-50/50 mb-6">
+                <Camera size={40} className="mx-auto text-slate-400 mb-3" />
+                <p className="font-semibold text-slate-700 text-sm mb-1">Camera Permission Required</p>
+                <p className="text-xs text-slate-500 max-w-sm mx-auto mb-6">
+                  Click below to grant your browser permission to access your webcam and microphone.
+                </p>
+                <button
+                  onClick={handleCheckCamera}
+                  className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl transition inline-flex items-center gap-2 shadow-sm cursor-pointer"
+                >
+                  <Camera size={16} />
+                  Check Camera & Microphone
+                </button>
+              </div>
+            )}
+
+            {cameraPermission === 'granted' && (
+              <div className="p-8 border-2 border-emerald-200 rounded-2xl text-center bg-emerald-50/50 mb-6">
+                <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-3">
+                  <CheckCircle2 size={24} className="text-emerald-600" />
+                </div>
+                <p className="font-bold text-emerald-800 text-base mb-1">Camera & Microphone Active</p>
+                <p className="text-xs text-emerald-600 max-w-sm mx-auto">
+                  Access granted successfully. Your hardware is working and ready to record your session.
+                </p>
+              </div>
+            )}
+
+            {cameraPermission === 'denied' && (
+              <div className="p-8 border-2 border-rose-200 rounded-2xl text-center bg-rose-50/50 mb-6 space-y-4">
+                <div className="w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center mx-auto mb-1">
+                  <XCircle size={24} className="text-rose-600" />
+                </div>
+                <div>
+                  <p className="font-bold text-rose-800 text-base">Access Denied</p>
+                  <p className="text-xs text-rose-600 max-w-sm mx-auto mt-1">
+                    Camera or Microphone access was denied. Please allow access in your browser site settings and try again.
+                  </p>
+                </div>
+                <button
+                  onClick={handleCheckCamera}
+                  className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl transition inline-flex items-center gap-1.5 cursor-pointer shadow-sm"
+                >
+                  Retry Access
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
+            <p className="text-xs text-slate-500">
+              <span className="font-semibold text-slate-700">Note:</span> Your video feed will begin streaming locally as soon as you click <strong>Begin Exam</strong>.
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Agreement & Start */}
