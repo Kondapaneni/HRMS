@@ -149,11 +149,11 @@ const EmployeeAssessmentInstructions = () => {
               </div>
             </div>
 
-            <div className="flex items-start gap-3 p-3 bg-indigo-50 border border-indigo-200 rounded-xl">
-              <Camera size={18} className="text-indigo-600 mt-0.5 shrink-0" />
+            <div className="flex items-start gap-3 p-3 bg-purple-50 border border-purple-200 rounded-xl">
+              <Video size={18} className="text-purple-600 mt-0.5 shrink-0" />
               <div>
-                <p className="font-bold text-sm text-indigo-800">Webcam Proctoring is Active</p>
-                <p className="text-xs text-indigo-600 mt-0.5">
+                <p className="font-bold text-sm text-purple-900">Webcam Proctoring is Active</p>
+                <p className="text-xs text-purple-700 mt-0.5">
                   Your webcam and microphone will be <strong>recording throughout the exam</strong>. 
                   The recording will be submitted to the admin for review.
                 </p>
@@ -177,7 +177,7 @@ const EmployeeAssessmentInstructions = () => {
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col justify-between">
           <div>
             <h3 className="font-bold text-slate-900 mb-3 flex items-center gap-2 text-lg">
-              <Video size={20} className="text-indigo-600" />
+              <Video size={20} className="text-blue-600" />
               Pre-Exam Camera Check
             </h3>
             <p className="text-sm text-slate-500 mb-6">
@@ -187,16 +187,17 @@ const EmployeeAssessmentInstructions = () => {
 
             {cameraPermission === null && (
               <div className="p-8 border-2 border-dashed border-slate-200 rounded-2xl text-center bg-slate-50/50 mb-6">
-                <Camera size={40} className="mx-auto text-slate-400 mb-3" />
+                <Video size={40} className="mx-auto text-slate-400 mb-3" />
                 <p className="font-semibold text-slate-700 text-sm mb-1">Camera Permission Required</p>
                 <p className="text-xs text-slate-500 max-w-sm mx-auto mb-6">
                   Click below to grant your browser permission to access your webcam and microphone.
                 </p>
                 <button
+                  type="button"
                   onClick={handleCheckCamera}
-                  className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl transition inline-flex items-center gap-2 shadow-sm cursor-pointer"
+                  className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl transition inline-flex items-center gap-2 shadow-sm cursor-pointer"
                 >
-                  <Camera size={16} />
+                  <Video size={16} />
                   Check Camera & Microphone
                 </button>
               </div>
