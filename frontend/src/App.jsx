@@ -194,12 +194,28 @@ function App() {
                 <Route path="performance" element={<EmployeePerformance />} />
                 <Route path="assessments" element={<EmployeeAssessments />} />
                 <Route path="assessments/instructions" element={<EmployeeAssessmentInstructions />} />
-                <Route path="assessments/session" element={<EmployeeAssessmentEngine />} />
-                <Route path="assessments/result" element={<EmployeeAssessmentResult />} />
                 <Route path="chat" element={<Chat />} />
                 <Route path="profile" element={<EmployeeProfile />} />
                 <Route path="profile/edit" element={<EditProfilePage />} />
               </Route>
+
+              {/* Fullscreen Exam Routes (no sidebar/header) */}
+              <Route
+                path="/employee/assessments/session"
+                element={
+                  <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
+                    <EmployeeAssessmentEngine />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/employee/assessments/result"
+                element={
+                  <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
+                    <EmployeeAssessmentResult />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* Acme Loans Workspace (Employee Only) */}
               <Route
