@@ -377,11 +377,6 @@ $app->post('/api/employee/assessments/attempts/{attemptId}/submit', function (Re
         ');
         $upStmt->execute([(int)$totalScore, (int)$maxScore, $percentage, $passed ? 'true' : 'false', json_encode($evaluatedBreakdown), $proctoringVideoUrl, $attemptId]);
 
-        // If passed, update assignment status
-        if ($passed) {
-            $conn->prepare('UPDATE assessment_assignments SET status = \'completed\' WHERE assessment_id = ? AND employee_id = ?')->execute([$attempt['assessment_id'], $user->id]);
-        }
-
         $conn->commit();
 
         // Build flat breakdown for frontend
