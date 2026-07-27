@@ -60,7 +60,7 @@ const EmployeeAssessmentInstructions = () => {
 
   if (error) {
     return (
-      <div className="p-6 w-full max-w-3xl mx-auto">
+      <div className="w-full max-w-3xl mx-auto">
         <div className="bg-rose-50 text-rose-700 p-6 rounded-2xl border border-rose-200 flex items-center gap-3">
           <ShieldAlert size={24} />
           <div>
@@ -76,7 +76,7 @@ const EmployeeAssessmentInstructions = () => {
   const totalMarks = questionsCount * (assessment?.marks_per_question || 1);
 
   return (
-    <div className="p-6 w-full max-w-4xl mx-auto space-y-6">
+    <div className="w-full max-w-4xl mx-auto space-y-6">
       {/* Header */}
       <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 rounded-2xl p-8 text-white shadow-xl">
         <div className="flex items-center gap-3 mb-4">

@@ -12,7 +12,7 @@ const EmployeeAssessmentResult = () => {
 
   if (!result) {
     return (
-      <div className="p-6 w-full max-w-3xl mx-auto">
+      <div className="w-full max-w-3xl mx-auto">
         <div className="bg-rose-50 text-rose-700 p-6 rounded-2xl border border-rose-200 flex items-center gap-3">
           <ShieldAlert size={24} />
           <div>
@@ -35,7 +35,7 @@ const EmployeeAssessmentResult = () => {
   // If result_visibility is "never" - show nothing
   if (visibility === 'never') {
     return (
-      <div className="p-6 w-full max-w-2xl mx-auto space-y-6">
+      <div className="w-full max-w-2xl mx-auto space-y-6">
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-12 text-center">
           <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-6">
             <EyeOff size={36} className="text-slate-400" />
@@ -65,7 +65,7 @@ const EmployeeAssessmentResult = () => {
   // If result_visibility is "after_review" - show pending
   if (visibility === 'after_review') {
     return (
-      <div className="p-6 w-full max-w-2xl mx-auto space-y-6">
+      <div className="w-full max-w-2xl mx-auto space-y-6">
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-12 text-center">
           <div className="w-20 h-20 rounded-full bg-amber-50 flex items-center justify-center mx-auto mb-6">
             <Eye size={36} className="text-amber-500" />
@@ -107,7 +107,7 @@ const EmployeeAssessmentResult = () => {
   const reasonLabel = getSubmitReasonLabel(submit_reason);
 
   return (
-    <div className="p-6 w-full max-w-2xl mx-auto space-y-6">
+    <div className="w-full max-w-2xl mx-auto space-y-6">
       {/* Title */}
       <div className="text-center">
         <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Assessment Result</h2>

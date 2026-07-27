@@ -296,7 +296,7 @@ const EmployeeAssessmentEngine = () => {
 
   if (error) {
     return (
-      <div className="p-6 w-full max-w-3xl mx-auto">
+      <div className="w-full max-w-3xl mx-auto">
         <div className="bg-rose-50 text-rose-700 p-6 rounded-2xl border border-rose-200 flex items-center gap-3">
           <ShieldAlert size={24} />
           <div>
