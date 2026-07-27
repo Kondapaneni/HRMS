@@ -27,7 +27,7 @@ const EmployeeAssessmentInstructions = () => {
     const fetchAssessment = async () => {
       try {
         // Use admin get endpoint to fetch rules (we can also create an employee-specific one)
-        const res = await api.get(`/admin/assessments/${assessmentId}`);
+        const res = await api.get(`/employee/assessments/${assessmentId}`);
         setAssessment(res.data);
       } catch (err) {
         setError(err.response?.data?.error || 'Failed to load assessment details');

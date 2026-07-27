@@ -51,6 +51,35 @@ $app->get('/api/employee/assessments', function (Request $request, Response $res
     }
 })->add(new AuthMiddleware([], 'employeeAssessments'));
 
+// GET /api/employee/assessments/{id} - Get assessment details for instructions page
+$app->get('/api/employee/assessments/{id}', function (Request $request, Response $response, $args) {
+    $id = $args['id'];
+    $db = new Database();
+    $conn = $db->getConnection();
+
+    try {
+        $stmt = $conn->prepare('SELECT id, title, department, duration_minutes, passing_percentage, max_attempts, marks_per_question, randomize_questions, randomize_options, result_visibility, assessment_date, selected_questions, status FROM assessments WHERE id = ? AND status = \'Active\'');
+        $stmt->execute([$id]);
+        $assessment = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$assessment) {
+            $response->getBody()->write(json_encode(['error' => 'Assessment not found or inactive']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+        }
+
+        if (!empty($assessment['selected_questions']) && is_string($assessment['selected_questions'])) {
+            $decoded = json_decode($assessment['selected_questions'], true);
+            if (is_array($decoded)) $assessment['selected_questions'] = $decoded;
+        }
+
+        $response->getBody()->write(json_encode($assessment));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+    } catch (\Exception $e) {
+        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    }
+})->add(new AuthMiddleware([], 'employeeAssessments'));
+
 // POST /api/employee/assessments/{id}/start - Start or resume an exam session
 $app->post('/api/employee/assessments/{id}/start', function (Request $request, Response $response, $args) {
     $user = $request->getAttribute('user');
