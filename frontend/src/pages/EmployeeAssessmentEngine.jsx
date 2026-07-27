@@ -5,9 +5,10 @@ import { supabase } from '../lib/supabase';
 import {
   Clock, ChevronLeft, ChevronRight, Send, AlertTriangle,
   Circle, CheckCircle2, Save, ShieldAlert, Loader2, ArrowLeft,
-  Lock, BookOpen
+  Lock, BookOpen, ShieldCheck, Monitor
 } from 'lucide-react';
 import PageLoader from '../components/PageLoader';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const EmployeeAssessmentEngine = () => {
   const navigate = useNavigate();
@@ -415,53 +416,71 @@ const EmployeeAssessmentEngine = () => {
   const answeredCount = Object.values(answers).filter(a => a?.answer?.length > 0).length;
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-slate-50 select-none" style={{ userSelect: 'none' }}>
+    <motion.div 
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }} 
+      transition={{ duration: 0.3 }}
+      className="fixed inset-0 flex flex-col bg-slate-50 select-none" 
+      style={{ userSelect: 'none' }}
+    >
       {/* Tab Switch Warning Modal */}
-      {showTabWarning && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100]">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md mx-4 text-center border border-slate-200">
-            <div className="w-16 h-16 rounded-full bg-rose-100 flex items-center justify-center mx-auto mb-4">
-              <AlertTriangle size={32} className="text-rose-600" />
-            </div>
-            <h3 className="text-xl font-black text-slate-900 mb-2">⚠️ Tab Switch Detected!</h3>
-            <p className="text-sm text-slate-600 mb-6">
-              You left the exam tab. This is your <strong className="text-rose-600">first and only warning</strong>. 
-              If you switch tabs again, your exam will be <strong className="text-rose-600">automatically submitted</strong>.
-            </p>
-            <button
-              onClick={() => setShowTabWarning(false)}
-              className="px-8 py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl transition cursor-pointer"
+      <AnimatePresence>
+        {showTabWarning && (
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100]"
+          >
+            <motion.div 
+              initial={{ scale: 0.95, y: 20 }} 
+              animate={{ scale: 1, y: 0 }} 
+              exit={{ scale: 0.95, y: 20 }}
+              className="bg-white rounded-2xl shadow-2xl p-8 max-w-md mx-4 text-center border border-slate-200"
             >
-              I Understand, Continue Exam
-            </button>
-          </div>
-        </div>
-      )}
+              <div className="w-16 h-16 rounded-full bg-rose-100 flex items-center justify-center mx-auto mb-4">
+                <AlertTriangle size={32} className="text-rose-600" />
+              </div>
+              <h3 className="text-xl font-black text-slate-900 mb-2">⚠️ Tab Switch Detected!</h3>
+              <p className="text-sm text-slate-600 mb-6">
+                You left the exam tab. This is your <strong className="text-rose-600">first and only warning</strong>. 
+                If you switch tabs again, your exam will be <strong className="text-rose-600">automatically submitted</strong>.
+              </p>
+              <button
+                onClick={() => setShowTabWarning(false)}
+                className="px-8 py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl transition cursor-pointer"
+              >
+                I Understand, Continue Exam
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ===== TOP BAR ===== */}
-      <div className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-5 shrink-0 shadow-sm">
+      <div className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0 shadow-sm">
         {/* Left - Title */}
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
-            <Lock size={14} className="text-white" />
+          <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center shadow-sm shadow-blue-500/20">
+            <Lock size={16} className="text-white" />
           </div>
           <div>
-            <h1 className="text-sm font-bold text-slate-900 leading-tight truncate max-w-xs">
+            <h1 className="text-base font-bold text-slate-900 leading-tight truncate max-w-sm">
               {examData?.assessment?.title || 'Assessment'}
             </h1>
-            <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Secure Exam Mode</p>
+            <p className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider mt-0.5">Secure Exam Mode</p>
           </div>
         </div>
 
         {/* Center - Timer */}
-        <div className={`flex items-center gap-2.5 px-5 py-1.5 rounded-xl border ${
+        <div className={`flex items-center gap-3 px-6 py-2 rounded-xl border shadow-sm ${
           isCritical
-            ? 'bg-rose-50 border-rose-200'
+            ? 'bg-rose-50 border-rose-300'
             : isUrgent
-              ? 'bg-amber-50 border-amber-200'
+              ? 'bg-amber-50 border-amber-300'
               : 'bg-slate-50 border-slate-200'
         }`}>
-          <Clock size={16} className={isCritical ? 'text-rose-500' : isUrgent ? 'text-amber-500' : 'text-slate-500'} />
+          <Clock size={18} className={isCritical ? 'text-rose-500 animate-bounce' : isUrgent ? 'text-amber-500' : 'text-slate-500'} />
           <span className={`text-xl font-mono font-black tracking-wider ${
             isCritical ? 'text-rose-600 animate-pulse' : isUrgent ? 'text-amber-600' : 'text-slate-900'
           }`}>
@@ -469,21 +488,23 @@ const EmployeeAssessmentEngine = () => {
           </span>
         </div>
 
-        {/* Right - Recording + Camera + Auto-save */}
-        <div className="flex items-center gap-3">
-          {autoSaving && (
-            <span className="flex items-center gap-1 text-[10px] font-bold text-blue-600">
-              <Save size={12} className="animate-pulse" /> Saving...
+        {/* Right - Auto-save indicator & Progress */}
+        <div className="flex items-center gap-4">
+          {autoSaving ? (
+            <span className="flex items-center gap-1.5 text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100">
+              <Save size={14} className="animate-pulse" /> Saving...
+            </span>
+          ) : (
+            <span className="text-xs font-semibold text-slate-400 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200/60">
+              Auto-saved
             </span>
           )}
 
-          <div className="flex items-center gap-1.5 bg-rose-50 border border-rose-200 px-2.5 py-1 rounded-lg">
-            <Circle size={6} className="text-rose-500 fill-rose-500 animate-pulse" />
-            <span className="text-[10px] font-bold text-rose-600 uppercase">REC</span>
-          </div>
+          <div className="h-4 w-px bg-slate-200" />
 
-          <div className="w-10 h-10 rounded-lg overflow-hidden bg-slate-200 border-2 border-slate-300">
-            <video ref={videoPreviewRef} autoPlay muted playsInline className="w-full h-full object-cover" />
+          <div className="text-right">
+            <span className="text-xs font-bold text-slate-900">{answeredCount}</span>
+            <span className="text-xs text-slate-400 font-medium"> / {questions.length} Answered</span>
           </div>
         </div>
       </div>
@@ -491,178 +512,240 @@ const EmployeeAssessmentEngine = () => {
       {/* ===== MAIN CONTENT ===== */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Sidebar - Question Navigator */}
-        <div className="w-60 bg-white border-r border-slate-200 flex flex-col shrink-0">
+        <div className="w-64 bg-white border-r border-slate-200 flex flex-col shrink-0">
           {/* Progress Summary */}
-          <div className="p-4 border-b border-slate-100">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Progress</span>
-              <span className="text-[11px] font-bold text-slate-600">{answeredCount}/{questions.length}</span>
+          <div className="p-5 border-b border-slate-100">
+            <div className="flex items-center justify-between mb-2.5">
+              <span className="text-xs font-bold uppercase text-slate-500 tracking-wider">Progress</span>
+              <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">{Math.round(questions.length > 0 ? (answeredCount / questions.length) * 100 : 0)}%</span>
             </div>
-            <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-blue-500 rounded-full transition-all duration-500"
-                style={{ width: `${questions.length > 0 ? (answeredCount / questions.length) * 100 : 0}%` }}
+            <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+              <motion.div
+                className="h-full bg-blue-600 rounded-full"
+                initial={{ width: 0 }}
+                animate={{ width: `${questions.length > 0 ? (answeredCount / questions.length) * 100 : 0}%` }}
+                transition={{ duration: 0.4 }}
               />
             </div>
           </div>
 
           {/* Question Grid */}
-          <div className="flex-1 overflow-y-auto p-3">
-            <div className="grid grid-cols-5 gap-1.5">
+          <div className="flex-1 overflow-y-auto p-4">
+            <p className="text-xs font-bold uppercase text-slate-400 mb-3 tracking-wider">Questions</p>
+            <div className="grid grid-cols-5 gap-2">
               {questions.map((q, idx) => {
                 const isAnswered = answers[q.id]?.answer?.length > 0;
                 const isCurrent = idx === currentQuestion;
                 return (
-                  <button
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                     key={q.id}
                     onClick={() => setCurrentQuestion(idx)}
-                    className={`w-full aspect-square rounded-lg text-xs font-bold transition cursor-pointer flex items-center justify-center ${
+                    className={`w-full aspect-square rounded-xl text-xs font-bold transition cursor-pointer flex items-center justify-center ${
                       isCurrent
-                        ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
+                        ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30 ring-2 ring-blue-300'
                         : isAnswered
-                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                          : 'bg-slate-50 text-slate-500 border border-slate-200 hover:bg-slate-100'
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-300 font-extrabold'
+                          : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100 hover:border-slate-300'
                     }`}
                   >
                     {idx + 1}
-                  </button>
+                  </motion.button>
                 );
               })}
             </div>
 
-            {/* Legend */}
-            <div className="mt-4 space-y-1.5 pt-3 border-t border-slate-100">
-              <div className="flex items-center gap-2 text-[10px] text-slate-500">
-                <div className="w-2.5 h-2.5 rounded bg-blue-600"></div>
+            {/* Legend - Updated with larger text & larger boxes */}
+            <div className="mt-6 space-y-3 pt-4 border-t border-slate-200">
+              <div className="flex items-center gap-3 text-xs font-semibold text-slate-700">
+                <div className="w-4 h-4 rounded-md bg-blue-600 shadow-sm shrink-0"></div>
                 <span>Current</span>
               </div>
-              <div className="flex items-center gap-2 text-[10px] text-slate-500">
-                <div className="w-2.5 h-2.5 rounded bg-emerald-50 border border-emerald-200"></div>
+              <div className="flex items-center gap-3 text-xs font-semibold text-slate-700">
+                <div className="w-4 h-4 rounded-md bg-emerald-50 border border-emerald-300 shrink-0"></div>
                 <span>Answered</span>
               </div>
-              <div className="flex items-center gap-2 text-[10px] text-slate-500">
-                <div className="w-2.5 h-2.5 rounded bg-slate-50 border border-slate-200"></div>
+              <div className="flex items-center gap-3 text-xs font-semibold text-slate-700">
+                <div className="w-4 h-4 rounded-md bg-slate-50 border border-slate-200 shrink-0"></div>
                 <span>Unanswered</span>
               </div>
             </div>
           </div>
 
-          {/* Auto-save indicator */}
-          <div className="p-3 border-t border-slate-100 text-center">
-            <span className="text-[10px] font-semibold text-slate-400">Auto-save every 30s</span>
+          {/* Bottom Security Info */}
+          <div className="p-4 border-t border-slate-100 bg-slate-50/50 flex items-center gap-2 text-xs font-medium text-slate-500">
+            <ShieldCheck size={16} className="text-emerald-500 shrink-0" />
+            <span>Browser Locked</span>
           </div>
         </div>
 
-        {/* Question Content Area */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Center - Question Content Area */}
+        <div className="flex-1 flex flex-col overflow-hidden bg-slate-50">
           {/* Question Header */}
-          <div className="bg-white border-b border-slate-200 px-8 py-3 flex items-center justify-between shrink-0">
+          <div className="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between shrink-0 shadow-sm">
             <div className="flex items-center gap-3">
-              <span className="text-xs font-bold text-blue-600 uppercase">
+              <span className="text-sm font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-lg border border-blue-100">
                 Question {currentQuestion + 1} of {questions.length}
               </span>
-              <span className="text-xs text-slate-400">
+              <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md">
                 {currentQ?.marks || 1} mark{(currentQ?.marks || 1) > 1 ? 's' : ''}
               </span>
             </div>
             {answers[currentQ?.id]?.answer?.length > 0 && (
-              <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
-                <CheckCircle2 size={12} /> Answered
-              </span>
+              <motion.span 
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-200 shadow-sm"
+              >
+                <CheckCircle2 size={14} className="text-emerald-600" /> Answered
+              </motion.span>
             )}
           </div>
 
           {/* Question Body */}
-          <div className="flex-1 overflow-y-auto px-8 py-6">
-            {currentQ && (
-              <div className="max-w-3xl">
-                <h2 className="text-lg font-bold text-slate-900 mb-6 leading-relaxed">
-                  {currentQ.title}
-                </h2>
+          <div className="flex-1 overflow-y-auto px-8 py-8">
+            <AnimatePresence mode="wait">
+              {currentQ && (
+                <motion.div
+                  key={currentQuestion}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.2 }}
+                  className="max-w-3xl"
+                >
+                  <h2 className="text-xl font-bold text-slate-900 mb-8 leading-relaxed">
+                    {currentQ.title}
+                  </h2>
 
-                <div className="space-y-3">
-                  {(currentQ.options || []).map((option, optIdx) => {
-                    const optionText = typeof option === 'object' ? option.text : option;
-                    const optionValue = typeof option === 'object' ? (option.text || option.value) : option;
-                    const isSelected = answers[currentQ.id]?.answer?.includes(optionValue);
-                    const isMCQMulti = currentQ.question_type === 'mcq_multi';
+                  <div className="space-y-3.5">
+                    {(currentQ.options || []).map((option, optIdx) => {
+                      const optionText = typeof option === 'object' ? option.text : option;
+                      const optionValue = typeof option === 'object' ? (option.text || option.value) : option;
+                      const isSelected = answers[currentQ.id]?.answer?.includes(optionValue);
+                      const isMCQMulti = currentQ.question_type === 'mcq_multi';
 
-                    return (
-                      <button
-                        key={optIdx}
-                        onClick={() => handleAnswer(currentQ.id, optionValue, currentQ.question_type)}
-                        className={`w-full text-left p-4 rounded-xl border-2 transition flex items-center gap-4 cursor-pointer group ${
-                          isSelected
-                            ? 'border-blue-500 bg-blue-50 shadow-sm'
-                            : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/30'
-                        }`}
-                      >
-                        <div className={`w-8 h-8 shrink-0 ${isMCQMulti ? 'rounded-md' : 'rounded-full'} border-2 flex items-center justify-center transition ${
-                          isSelected
-                            ? 'border-blue-500 bg-blue-500 text-white'
-                            : 'border-slate-300 group-hover:border-blue-400'
-                        }`}>
-                          {isSelected ? (
-                            <CheckCircle2 size={16} />
-                          ) : (
-                            <span className="text-xs font-bold text-slate-400">
-                              {String.fromCharCode(65 + optIdx)}
-                            </span>
-                          )}
-                        </div>
-                        <span className={`text-sm font-medium ${isSelected ? 'text-blue-800' : 'text-slate-700'}`}>
-                          {optionText}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
+                      return (
+                        <motion.button
+                          whileHover={{ scale: 1.003, x: 2 }}
+                          whileTap={{ scale: 0.995 }}
+                          key={optIdx}
+                          onClick={() => handleAnswer(currentQ.id, optionValue, currentQ.question_type)}
+                          className={`w-full text-left p-4.5 rounded-2xl border-2 transition flex items-center gap-4 cursor-pointer group shadow-sm ${
+                            isSelected
+                              ? 'border-blue-600 bg-blue-50/80 ring-1 ring-blue-600 shadow-blue-500/5'
+                              : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/20'
+                          }`}
+                        >
+                          <div className={`w-9 h-9 shrink-0 ${isMCQMulti ? 'rounded-lg' : 'rounded-full'} border-2 flex items-center justify-center transition shadow-sm ${
+                            isSelected
+                              ? 'border-blue-600 bg-blue-600 text-white'
+                              : 'border-slate-300 bg-slate-50 group-hover:border-blue-400 group-hover:bg-white'
+                          }`}>
+                            {isSelected ? (
+                              <CheckCircle2 size={18} />
+                            ) : (
+                              <span className="text-xs font-bold text-slate-500 group-hover:text-blue-600">
+                                {String.fromCharCode(65 + optIdx)}
+                              </span>
+                            )}
+                          </div>
+                          <span className={`text-sm font-medium leading-relaxed ${isSelected ? 'text-blue-900 font-semibold' : 'text-slate-700'}`}>
+                            {optionText}
+                          </span>
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Navigation Footer */}
-          <div className="bg-white border-t border-slate-200 px-8 py-3.5 flex items-center justify-between shrink-0">
-            <button
+          <div className="bg-white border-t border-slate-200 px-8 py-4 flex items-center justify-between shrink-0 shadow-sm">
+            <motion.button
+              whileHover={currentQuestion !== 0 ? { scale: 1.02 } : {}}
+              whileTap={currentQuestion !== 0 ? { scale: 0.98 } : {}}
               onClick={() => setCurrentQuestion(prev => Math.max(0, prev - 1))}
               disabled={currentQuestion === 0}
               className={`px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition ${
                 currentQuestion === 0
                   ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer'
+                  : 'bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 cursor-pointer shadow-sm'
               }`}
             >
               <ChevronLeft size={16} />
               Previous
-            </button>
+            </motion.button>
 
             <div className="flex items-center gap-3">
               {currentQuestion < questions.length - 1 ? (
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => setCurrentQuestion(prev => Math.min(questions.length - 1, prev + 1))}
-                  className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm flex items-center gap-2 transition cursor-pointer"
+                  className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm flex items-center gap-2 transition cursor-pointer shadow-md shadow-blue-500/20"
                 >
                   Next
                   <ChevronRight size={16} />
-                </button>
+                </motion.button>
               ) : (
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => {
                     if (window.confirm('Are you sure you want to submit your exam? This action cannot be undone.')) {
                       submitExam('manual');
                     }
                   }}
-                  className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm flex items-center gap-2 transition cursor-pointer shadow-lg"
+                  className="px-7 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm flex items-center gap-2 transition cursor-pointer shadow-lg shadow-emerald-500/20"
                 >
                   <Send size={16} />
                   Submit Exam
-                </button>
+                </motion.button>
               )}
             </div>
           </div>
         </div>
+
+        {/* Right Sidebar - Camera & Proctoring beside questions */}
+        <div className="w-72 bg-white border-l border-slate-200 flex flex-col shrink-0 p-5">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+              Live Proctoring
+            </span>
+            {/* Red blinking dot ONLY beside the camera, NO Rec text */}
+            <div className="w-3 h-3 rounded-full bg-rose-500 animate-pulse shadow-sm" title="Recording active" />
+          </div>
+
+          {/* Prominent camera preview beside questions */}
+          <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-900 border-2 border-slate-200 shadow-sm mb-6">
+            <video ref={videoPreviewRef} autoPlay muted playsInline className="w-full h-full object-cover transform scale-x-[-1]" />
+          </div>
+
+          <div className="space-y-3.5 border-t border-slate-100 pt-5">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">Exam Security</span>
+            
+            <div className="flex items-center gap-3 text-xs font-semibold text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm shrink-0"></div>
+              <span>Webcam Active</span>
+            </div>
+            
+            <div className="flex items-center gap-3 text-xs font-semibold text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm shrink-0"></div>
+              <span>Tab Protection Enabled</span>
+            </div>
+            
+            <div className="flex items-center gap-3 text-xs font-semibold text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm shrink-0"></div>
+              <span>Fullscreen Lock Active</span>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
