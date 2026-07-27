@@ -295,7 +295,7 @@ $app->post('/api/employee/assessments/attempts/{attemptId}/submit', function (Re
         if (!empty($selectedQs)) {
             $placeholders = implode(',', array_fill(0, count($selectedQs), '?'));
             $qStmt = $conn->prepare("
-                SELECT id, correct_options as correct_answers, question_text as title, options
+                SELECT id, correct_option, correct_options as correct_answers, question_text as title, options
                 FROM department_question_bank
                 WHERE id IN ($placeholders)
             ");
@@ -313,9 +313,23 @@ $app->post('/api/employee/assessments/attempts/{attemptId}/submit', function (Re
 
         foreach ($questions as $q) {
             $qId = (string)$q['id'];
-            $correctAns = json_decode($q['correct_answers'], true) ?: [];
+            $correctAnsRaw = json_decode($q['correct_answers'], true) ?: [];
+            if (empty($correctAnsRaw) && isset($q['correct_option']) && $q['correct_option'] !== null && $q['correct_option'] !== '') {
+                $correctAnsRaw = [ (int)$q['correct_option'] ];
+            }
+            $origOptions = json_decode($q['options'], true) ?: [];
             $marks = (float)$attempt['marks_per_question'];
             $maxScore += $marks;
+
+            // Map correct answers from indices (e.g. [0]) or text to actual option text strings
+            $cleanCorrect = [];
+            foreach ($correctAnsRaw as $c) {
+                if (is_numeric($c) && isset($origOptions[(int)$c])) {
+                    $cleanCorrect[] = trim((string)$origOptions[(int)$c]);
+                } else {
+                    $cleanCorrect[] = trim((string)$c);
+                }
+            }
 
             // Robust answer lookup by string ID, int ID, or raw ID
             $userAnsObj = $answers[$qId] ?? $answers[$q['id']] ?? $answers[(int)$qId] ?? [];
@@ -324,9 +338,16 @@ $app->post('/api/employee/assessments/attempts/{attemptId}/submit', function (Re
                 $userAnsList = [$userAnsList];
             }
 
-            // Clean strings for comparison
-            $cleanCorrect = array_map('trim', array_map('strval', $correctAns));
-            $cleanUser = array_map('trim', array_map('strval', $userAnsList));
+            // Map user answers from indices (if any) or text to actual option text strings
+            $cleanUser = [];
+            foreach ($userAnsList as $u) {
+                if (is_numeric($u) && isset($origOptions[(int)$u]) && !in_array((string)$u, $origOptions, true)) {
+                    $cleanUser[] = trim((string)$origOptions[(int)$u]);
+                } else {
+                    $cleanUser[] = trim((string)$u);
+                }
+            }
+
             sort($cleanCorrect);
             sort($cleanUser);
 
@@ -335,13 +356,13 @@ $app->post('/api/employee/assessments/attempts/{attemptId}/submit', function (Re
             $totalScore += $awarded;
 
             $evaluatedBreakdown[$qId] = [
-                'answer' => $userAnsList,
+                'answer' => $cleanUser,
                 'is_correct' => $isCorrect,
                 'marks_awarded' => $awarded,
                 'max_marks' => $marks,
-                'correct_answers' => $attempt['result_visibility'] !== 'hidden' ? $correctAns : [],
+                'correct_answers' => $attempt['result_visibility'] !== 'hidden' ? $cleanCorrect : [],
                 'title' => $q['title'],
-                'options' => json_decode($q['options'], true) ?: []
+                'options' => $origOptions
             ];
         }
 
