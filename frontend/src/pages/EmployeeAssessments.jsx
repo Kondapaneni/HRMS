@@ -31,15 +31,10 @@ const EmployeeAssessments = () => {
 
   return (
     <div className="p-6 w-full space-y-6">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
-            <Award size={24} />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">Exams & Assessments</h1>
-            <p className="text-sm text-slate-500">Your assigned employee assessments and evaluations.</p>
-          </div>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Exams & Assessments</h1>
+          <p className="text-sm text-slate-500 mt-1">Your assigned employee assessments and evaluations.</p>
         </div>
         <div className="text-sm font-semibold text-slate-500 bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm">
           {assessments.length} Available
