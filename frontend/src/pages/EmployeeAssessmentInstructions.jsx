@@ -50,6 +50,9 @@ const EmployeeAssessmentInstructions = () => {
   };
 
   const handleBeginExam = () => {
+    if (document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    }
     navigate('/employee/assessments/session', {
       state: { assessmentId },
       replace: true

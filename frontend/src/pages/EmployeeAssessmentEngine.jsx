@@ -28,6 +28,7 @@ const EmployeeAssessmentEngine = () => {
   // Modals state
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [showTabWarning, setShowTabWarning] = useState(false);
+  const [showFullscreenModal, setShowFullscreenModal] = useState(false);
 
   // Timer
   const [timeLeft, setTimeLeft] = useState(null);
@@ -139,6 +140,10 @@ const EmployeeAssessmentEngine = () => {
               break;
             } else {
               console.error(`[Upload Error] Attempt ${attempt}/3 failed:`, uploadError);
+              if (uploadError.statusCode === '400' || uploadError.statusCode === '413' || uploadError.status === 400 || uploadError.status === 413 || (uploadError.message && uploadError.message.toLowerCase().includes('size'))) {
+                console.warn('Storage file size limit exceeded or client error; skipping retries.');
+                break;
+              }
             }
           } catch (uploadErr) {
             console.error(`[Upload Exception] Attempt ${attempt}/3 exception:`, uploadErr);
@@ -235,15 +240,16 @@ const EmployeeAssessmentEngine = () => {
   useEffect(() => {
     if (!examData) return;
 
-    // Request fullscreen
-    const requestFullscreen = () => {
+    // Request fullscreen or show modal if blocked
+    if (!document.fullscreenElement) {
       if (document.documentElement.requestFullscreen) {
         document.documentElement.requestFullscreen().catch(() => {
-          // Fullscreen requires user interaction or browser permission
+          setShowFullscreenModal(true);
         });
+      } else {
+        setShowFullscreenModal(true);
       }
-    };
-    requestFullscreen();
+    }
 
     // Trap browser back button
     const trapHistory = () => {
@@ -313,7 +319,17 @@ const EmployeeAssessmentEngine = () => {
           videoPreviewRef.current.srcObject = stream;
         }
 
-        const mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9,opus' });
+        let options = { mimeType: 'video/webm;codecs=vp9,opus', videoBitsPerSecond: 150000 };
+        if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+          options = { mimeType: 'video/webm;codecs=vp8,opus', videoBitsPerSecond: 150000 };
+          if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+            options = { mimeType: 'video/webm', videoBitsPerSecond: 150000 };
+            if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+              options = { videoBitsPerSecond: 150000 };
+            }
+          }
+        }
+        const mediaRecorder = new MediaRecorder(stream, options);
         mediaRecorderRef.current = mediaRecorder;
         videoChunksRef.current = [];
 
@@ -426,11 +442,9 @@ const EmployeeAssessmentEngine = () => {
 
     const handleFullscreenChange = () => {
       if (!document.fullscreenElement && !submittedRef.current) {
-        setTimeout(() => {
-          if (!submittedRef.current && document.documentElement.requestFullscreen) {
-            document.documentElement.requestFullscreen().catch(() => {});
-          }
-        }, 300);
+        setShowFullscreenModal(true);
+      } else {
+        setShowFullscreenModal(false);
       }
     };
 
@@ -603,6 +617,48 @@ const EmployeeAssessmentEngine = () => {
                 className="px-8 py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl transition cursor-pointer"
               >
                 I Understand, Continue Exam
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Fullscreen Requirement Modal */}
+      <AnimatePresence>
+        {showFullscreenModal && !submitting && !submittedRef.current && (
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-[110] p-4"
+          >
+            <motion.div 
+              initial={{ scale: 0.95, y: 20 }} 
+              animate={{ scale: 1, y: 0 }} 
+              exit={{ scale: 0.95, y: 20 }}
+              className="bg-white rounded-2xl shadow-2xl p-8 max-w-md mx-4 text-center border border-slate-200"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center mx-auto mb-4 shadow-sm">
+                <ShieldAlert size={32} className="text-blue-600" />
+              </div>
+              <h3 className="text-xl font-extrabold text-slate-900 mb-2">Full Screen Required</h3>
+              <p className="text-sm text-slate-600 mb-6 leading-relaxed">
+                To maintain assessment security and proctoring integrity, this exam must be completed in full screen mode.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen().then(() => {
+                      setShowFullscreenModal(false);
+                    }).catch(() => {});
+                  } else {
+                    setShowFullscreenModal(false);
+                  }
+                }}
+                className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-lg shadow-blue-500/25 cursor-pointer"
+              >
+                Enter Full Screen Mode
               </button>
             </motion.div>
           </motion.div>
