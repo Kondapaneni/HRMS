@@ -142,7 +142,15 @@ $app->post('/api/employee/assessments/{id}/start', function (Request $request, R
         }
 
         // Fetch questions for this assessment
-        $selectedQs = json_decode($assessment['selected_questions'], true) ?: [];
+        $rawQs = json_decode($assessment['selected_questions'], true) ?: [];
+        $selectedQs = [];
+        foreach ($rawQs as $item) {
+            if (is_array($item) && isset($item['id'])) {
+                $selectedQs[] = (string)$item['id'];
+            } elseif (is_string($item)) {
+                $selectedQs[] = $item;
+            }
+        }
         $questions = [];
         
         if (!empty($selectedQs)) {
@@ -264,7 +272,15 @@ $app->post('/api/employee/assessments/attempts/{attemptId}/submit', function (Re
 
         $answers = $incomingAnswers !== null ? $incomingAnswers : (json_decode($attempt['answers_data'], true) ?: []);
 
-        $selectedQs = json_decode($attempt['selected_questions'], true) ?: [];
+        $rawQs = json_decode($attempt['selected_questions'], true) ?: [];
+        $selectedQs = [];
+        foreach ($rawQs as $item) {
+            if (is_array($item) && isset($item['id'])) {
+                $selectedQs[] = (string)$item['id'];
+            } elseif (is_string($item)) {
+                $selectedQs[] = $item;
+            }
+        }
         $questions = [];
         if (!empty($selectedQs)) {
             $placeholders = implode(',', array_fill(0, count($selectedQs), '?'));
