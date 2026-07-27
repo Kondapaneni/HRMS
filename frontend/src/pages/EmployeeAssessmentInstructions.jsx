@@ -4,7 +4,7 @@ import api from '../api/axios';
 import {
   Clock, Award, ShieldAlert, Video, AlertTriangle,
   ChevronRight, BookOpen, Target, Monitor, Camera,
-  CheckCircle2, XCircle
+  CheckCircle2, XCircle, ArrowLeft
 } from 'lucide-react';
 import PageLoader from '../components/PageLoader';
 
@@ -262,9 +262,10 @@ const EmployeeAssessmentInstructions = () => {
         <div className="mt-6 flex items-center justify-between">
           <button
             onClick={() => navigate('/employee/assessments')}
-            className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl transition cursor-pointer"
+            className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl transition cursor-pointer inline-flex items-center gap-2"
           >
-            ← Back to Assessments
+            <ArrowLeft size={16} />
+            Back to Assessments
           </button>
           <button
             onClick={handleBeginExam}

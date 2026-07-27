@@ -22,9 +22,10 @@ const EmployeeAssessmentResult = () => {
         </div>
         <button
           onClick={() => navigate('/employee/assessments')}
-          className="mt-4 px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl transition cursor-pointer"
+          className="mt-4 px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl transition cursor-pointer inline-flex items-center gap-2"
         >
-          ← Back to Assessments
+          <ArrowLeft size={16} />
+          Back to Assessments
         </button>
       </div>
     );
