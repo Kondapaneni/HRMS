@@ -230,13 +230,20 @@ $app->put('/api/employee/assessments/attempts/{attemptId}/save', function (Reque
     $conn = $db->getConnection();
 
     try {
+        $checkStmt = $conn->prepare('SELECT id FROM assessment_attempts WHERE id = ? AND employee_id = ? AND status = \'in_progress\'');
+        $checkStmt->execute([$attemptId, $user->id]);
+        if (!$checkStmt->fetch()) {
+            $response->getBody()->write(json_encode(['error' => 'Attempt not found or already submitted']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+        }
+
         $stmt = $conn->prepare('UPDATE assessment_attempts SET answers_data = ?::jsonb, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND employee_id = ? AND status = \'in_progress\'');
         $stmt->execute([json_encode($answers), $attemptId, $user->id]);
 
-        $response->getBody()->write(json_encode(['success' => true]));
+        $response->getBody()->write(json_encode(['success' => true, 'timestamp' => time()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (\Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'Failed to save progress: ' . $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware([], 'employeeAssessments'));
@@ -266,6 +273,9 @@ $app->post('/api/employee/assessments/attempts/{attemptId}/submit', function (Re
         $attempt = $attStmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$attempt) {
+            if ($conn->inTransaction()) {
+                $conn->rollBack();
+            }
             $response->getBody()->write(json_encode(['error' => 'Attempt not found or already submitted']));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
         }
@@ -278,7 +288,7 @@ $app->post('/api/employee/assessments/attempts/{attemptId}/submit', function (Re
             if (is_array($item) && isset($item['id'])) {
                 $selectedQs[] = (string)$item['id'];
             } elseif (is_string($item)) {
-                $selectedQs[] = $item;
+                $selectedQs[] = (string)$item;
             }
         }
         $questions = [];
@@ -293,17 +303,22 @@ $app->post('/api/employee/assessments/attempts/{attemptId}/submit', function (Re
             $questions = $qStmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
+        if (empty($questions)) {
+            throw new \Exception('No questions found for this assessment attempt.');
+        }
+
         $totalScore = 0.0;
         $maxScore = 0.0;
         $evaluatedBreakdown = [];
 
         foreach ($questions as $q) {
-            $qId = $q['id'];
+            $qId = (string)$q['id'];
             $correctAns = json_decode($q['correct_answers'], true) ?: [];
             $marks = (float)$attempt['marks_per_question'];
             $maxScore += $marks;
 
-            $userAnsObj = $answers[$qId] ?? [];
+            // Robust answer lookup by string ID, int ID, or raw ID
+            $userAnsObj = $answers[$qId] ?? $answers[$q['id']] ?? $answers[(int)$qId] ?? [];
             $userAnsList = is_array($userAnsObj) && isset($userAnsObj['answer']) ? $userAnsObj['answer'] : ($userAnsObj ?: []);
             if (!is_array($userAnsList)) {
                 $userAnsList = [$userAnsList];
@@ -373,8 +388,10 @@ $app->post('/api/employee/assessments/attempts/{attemptId}/submit', function (Re
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (\Exception $e) {
-        $conn->rollBack();
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        if ($conn->inTransaction()) {
+            $conn->rollBack();
+        }
+        $response->getBody()->write(json_encode(['error' => 'Evaluation failed: ' . $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware([], 'employeeAssessments'));

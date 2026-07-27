@@ -23,6 +23,7 @@ const EmployeeAssessmentEngine = () => {
   const [answers, setAnswers] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [autoSaving, setAutoSaving] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState('');
 
   // Modals state
   const [showSubmitModal, setShowSubmitModal] = useState(false);
@@ -40,27 +41,48 @@ const EmployeeAssessmentEngine = () => {
   const streamRef = useRef(null);
   const videoPreviewRef = useRef(null);
 
-  // Refs for cleanup
+  // Refs for cleanup and race condition prevention
   const autoSaveIntervalRef = useRef(null);
   const submittedRef = useRef(false);
+  const autoSavingRef = useRef(false);
   const examDataRef = useRef(null);
   const answersRef = useRef({});
 
   // Keep refs in sync with state
   useEffect(() => { examDataRef.current = examData; }, [examData]);
   useEffect(() => { answersRef.current = answers; }, [answers]);
+  useEffect(() => { autoSavingRef.current = autoSaving; }, [autoSaving]);
+
+  // Helper to cleanly stop MediaRecorder and wait for buffered data flush
+  const stopRecordingAndWait = () => {
+    return new Promise((resolve) => {
+      const recorder = mediaRecorderRef.current;
+      if (!recorder || recorder.state === 'inactive') {
+        resolve();
+        return;
+      }
+      const handleStop = () => {
+        recorder.removeEventListener('stop', handleStop);
+        resolve();
+      };
+      recorder.addEventListener('stop', handleStop);
+      try {
+        if (typeof recorder.requestData === 'function') recorder.requestData();
+      } catch (e) { /* ignore */ }
+      try {
+        recorder.stop();
+      } catch (e) {
+        resolve();
+      }
+    });
+  };
 
   // ===================== SUBMIT FUNCTION =====================
   const submitExam = useCallback(async (reason = 'manual') => {
     if (submittedRef.current) return;
     submittedRef.current = true;
 
-    // Stop recording
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      mediaRecorderRef.current.stop();
-    }
-
-    // Stop auto-save
+    // Stop regular auto-save timer immediately
     if (autoSaveIntervalRef.current) {
       clearInterval(autoSaveIntervalRef.current);
     }
@@ -70,45 +92,100 @@ const EmployeeAssessmentEngine = () => {
     try {
       const currentExamData = examDataRef.current;
       const currentAnswers = answersRef.current;
-
       if (!currentExamData) return;
 
-      // Upload proctoring video to Supabase Storage
+      // STEP 1: Final Pre-Submit Auto-Save (prevent race condition with ongoing saves)
+      setUploadProgress('Saving final progress...');
+      try {
+        while (autoSavingRef.current) {
+          await new Promise(r => setTimeout(r, 100));
+        }
+        if (import.meta.env.DEV) {
+          console.log('[DEV] Final pre-submit save payload:', { attemptId: currentExamData.attempt_id, answers: currentAnswers });
+        }
+        await api.put(`/employee/assessments/attempts/${currentExamData.attempt_id}/save`, {
+          answers: currentAnswers
+        });
+      } catch (saveErr) {
+        console.warn('Final auto-save request failed, proceeding with submit:', saveErr);
+      }
+
+      // STEP 2: Finish Video Recording and wait for all buffered chunks
+      setUploadProgress('Finishing video recording...');
+      await stopRecordingAndWait();
+
+      // STEP 3: Upload proctoring video with up to 3 retry attempts
       let proctoringVideoUrl = null;
       if (videoChunksRef.current.length > 0) {
-        try {
-          const videoBlob = new Blob(videoChunksRef.current, { type: 'video/webm' });
-          const fileName = `proctoring_${currentExamData.attempt_id}_${Date.now()}.webm`;
-          const { error: uploadError } = await supabase.storage
-            .from('proctoring_videos')
-            .upload(fileName, videoBlob, { contentType: 'video/webm', upsert: false });
+        const videoBlob = new Blob(videoChunksRef.current, { type: 'video/webm' });
+        const fileName = `proctoring_${currentExamData.attempt_id}_${Date.now()}.webm`;
+        
+        if (import.meta.env.DEV) {
+          console.log('[DEV] Prepared video Blob for upload:', { sizeBytes: videoBlob.size, totalChunks: videoChunksRef.current.length });
+        }
 
-          if (!uploadError) {
-            proctoringVideoUrl = fileName;
+        let uploadSuccess = false;
+        for (let attempt = 1; attempt <= 3; attempt++) {
+          try {
+            setUploadProgress(`Uploading proctoring video (Attempt ${attempt}/3)...`);
+            const { error: uploadError } = await supabase.storage
+              .from('proctoring_videos')
+              .upload(fileName, videoBlob, { contentType: 'video/webm', upsert: false });
+
+            if (!uploadError) {
+              proctoringVideoUrl = fileName;
+              uploadSuccess = true;
+              if (import.meta.env.DEV) console.log('[DEV] Proctoring video uploaded successfully:', fileName);
+              break;
+            } else {
+              console.error(`[Upload Error] Attempt ${attempt}/3 failed:`, uploadError);
+            }
+          } catch (uploadErr) {
+            console.error(`[Upload Exception] Attempt ${attempt}/3 exception:`, uploadErr);
           }
-        } catch (uploadErr) {
-          console.error('Video upload failed:', uploadErr);
+          if (!uploadSuccess && attempt < 3) {
+            await new Promise(r => setTimeout(r, 1500));
+          }
+        }
+        if (!uploadSuccess) {
+          proctoringVideoUrl = 'UPLOAD_FAILED';
+          console.warn('All 3 video upload attempts failed. Proceeding with assessment submission.');
         }
       }
 
-      // Submit exam to backend
+      // STEP 4: Submit assessment for final evaluation
+      setUploadProgress('Submitting assessment for evaluation...');
+      if (import.meta.env.DEV) {
+        console.log('[DEV] Submitting exam payload:', {
+          attemptId: currentExamData.attempt_id,
+          answeredQuestionsCount: Object.keys(currentAnswers).length,
+          proctoringVideoUrl,
+          submitReason: reason,
+          answers: currentAnswers
+        });
+      }
+
       const res = await api.post(`/employee/assessments/attempts/${currentExamData.attempt_id}/submit`, {
         answers: currentAnswers,
         proctoring_video_url: proctoringVideoUrl,
         submit_reason: reason
       });
 
-      // Stop webcam stream
+      if (import.meta.env.DEV) {
+        console.log('[DEV] Backend evaluation response:', res.data);
+      }
+
+      // Stop webcam stream tracks
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
       }
 
-      // Exit fullscreen before navigating
+      // Exit fullscreen safely
       if (document.fullscreenElement) {
         try { await document.exitFullscreen(); } catch (e) { /* ignore */ }
       }
 
-      // Navigate to result
+      // STEP 5: Navigate to result page
       navigate('/employee/assessments/result', {
         state: {
           result: res.data,
@@ -118,8 +195,9 @@ const EmployeeAssessmentEngine = () => {
         replace: true
       });
     } catch (err) {
-      console.error('Submit failed:', err);
+      console.error('Submit exam failed:', err);
       setSubmitting(false);
+      setUploadProgress('');
       submittedRef.current = false;
     }
   }, [navigate]);
@@ -243,7 +321,7 @@ const EmployeeAssessmentEngine = () => {
           if (e.data.size > 0) videoChunksRef.current.push(e.data);
         };
 
-        mediaRecorder.start(5000);
+        mediaRecorder.start(1000);
       } catch (err) {
         console.error('Webcam start failed:', err);
       }
@@ -280,6 +358,9 @@ const EmployeeAssessmentEngine = () => {
     autoSaveIntervalRef.current = setInterval(async () => {
       try {
         setAutoSaving(true);
+        if (import.meta.env.DEV) {
+          console.log('[DEV] Periodic auto-saving answers:', answersRef.current);
+        }
         await api.put(`/employee/assessments/attempts/${examData.attempt_id}/save`, {
           answers: answersRef.current
         });
@@ -319,8 +400,17 @@ const EmployeeAssessmentEngine = () => {
     if (!examData) return;
 
     const handleBeforeUnload = (e) => {
-      if (!submittedRef.current) {
-        submitExam('page_refresh_or_close');
+      if (!submittedRef.current && examDataRef.current) {
+        try {
+          const payload = JSON.stringify({ answers: answersRef.current });
+          const url = `${api.defaults.baseURL}/employee/assessments/attempts/${examDataRef.current.attempt_id}/save`;
+          if (navigator.sendBeacon) {
+            const blob = new Blob([payload], { type: 'application/json' });
+            navigator.sendBeacon(url, blob);
+          } else {
+            fetch(url, { method: 'PUT', body: payload, headers: { 'Content-Type': 'application/json' }, keepalive: true }).catch(() => {});
+          }
+        } catch (err) { /* ignore */ }
         e.preventDefault();
         e.returnValue = '';
       }
@@ -328,7 +418,7 @@ const EmployeeAssessmentEngine = () => {
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [examData, submitExam]);
+  }, [examData]);
 
   // ===================== RE-ENTER FULLSCREEN =====================
   useEffect(() => {
@@ -350,18 +440,22 @@ const EmployeeAssessmentEngine = () => {
 
   // ===================== ANSWER HANDLER =====================
   const handleAnswer = (questionId, value, questionType) => {
+    const key = String(questionId);
     const isMulti = ['mcq_multi', 'mcq_multiple', 'multiple'].includes(questionType);
     setAnswers(prev => {
       const newAnswers = { ...prev };
       if (isMulti) {
-        const current = newAnswers[questionId]?.answer || [];
+        const current = newAnswers[key]?.answer || [];
         if (current.includes(value)) {
-          newAnswers[questionId] = { answer: current.filter(v => v !== value) };
+          newAnswers[key] = { answer: current.filter(v => v !== value) };
         } else {
-          newAnswers[questionId] = { answer: [...current, value] };
+          newAnswers[key] = { answer: [...current, value] };
         }
       } else {
-        newAnswers[questionId] = { answer: [value] };
+        newAnswers[key] = { answer: [value] };
+      }
+      if (import.meta.env.DEV) {
+        console.log('[DEV] Answer selected:', { questionId: key, value, questionType, updatedAnswer: newAnswers[key] });
       }
       return newAnswers;
     });
@@ -407,7 +501,8 @@ const EmployeeAssessmentEngine = () => {
       <div className="fixed inset-0 bg-white/95 backdrop-blur flex flex-col items-center justify-center z-50">
         <Loader2 size={48} className="text-blue-600 animate-spin mb-4" />
         <h2 className="text-2xl font-black text-slate-900">Submitting Your Exam...</h2>
-        <p className="text-sm text-slate-500 mt-2">Please wait while we upload your responses and proctoring video.</p>
+        <p className="text-sm font-bold text-blue-600 mt-2 animate-pulse">{uploadProgress || 'Please wait while we upload your responses and proctoring video.'}</p>
+        <p className="text-xs text-slate-400 mt-2">Do not close or refresh this browser window.</p>
       </div>
     );
   }
