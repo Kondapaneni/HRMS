@@ -109,10 +109,35 @@ $app->delete('/api/admin/assessments/attempts/{attemptId}', function (Request $r
     $conn = $db->getConnection();
 
     try {
+        // 1. Fetch proctoring_video_url to clean up storage
+        $stmtSel = $conn->prepare('SELECT proctoring_video_url FROM assessment_attempts WHERE id = ?');
+        $stmtSel->execute([$attemptId]);
+        $row = $stmtSel->fetch(\PDO::FETCH_ASSOC);
+
+        if ($row && !empty($row['proctoring_video_url']) && $row['proctoring_video_url'] !== 'UPLOAD_FAILED') {
+            $videoFile = $row['proctoring_video_url'];
+            $supabaseUrl = isset($_ENV['VITE_SUPABASE_URL']) ? $_ENV['VITE_SUPABASE_URL'] : '';
+            $anonKey = isset($_ENV['VITE_SUPABASE_ANON_KEY']) ? $_ENV['VITE_SUPABASE_ANON_KEY'] : '';
+
+            if (!empty($supabaseUrl) && !empty($anonKey)) {
+                $deleteEndpoint = rtrim($supabaseUrl, '/') . '/storage/v1/object/proctoring_videos/' . rawurlencode($videoFile);
+                $ch = curl_init($deleteEndpoint);
+                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                    "Authorization: Bearer " . $anonKey,
+                    "apikey: " . $anonKey
+                ]);
+                curl_exec($ch);
+                curl_close($ch);
+            }
+        }
+
+        // 2. Delete database attempt record
         $stmt = $conn->prepare('DELETE FROM assessment_attempts WHERE id = ?');
         $stmt->execute([$attemptId]);
 
-        $response->getBody()->write(json_encode(['message' => 'Attempt record deleted and reset successfully']));
+        $response->getBody()->write(json_encode(['message' => 'Attempt record and video deleted successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (\Exception $e) {
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
