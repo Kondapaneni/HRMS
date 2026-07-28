@@ -14,6 +14,32 @@ const EmployeeAssessmentResult = () => {
   const stateResult = location.state?.result;
   const attemptId = location.state?.attemptId || stateResult?.attempt_id || new URLSearchParams(location.search).get('attemptId');
 
+  // ===================== BLOCK GOING BACK TO SESSION / INSTRUCTIONS =====================
+  React.useEffect(() => {
+    // Safety kill: stop any lingering background webcam/mic tracks from the exam session
+    if (window._activeAssessmentStreams) {
+      window._activeAssessmentStreams.forEach(stream => {
+        try {
+          stream.getTracks().forEach(track => {
+            try { track.enabled = false; track.stop(); } catch (e) {}
+          });
+        } catch (e) {}
+      });
+      window._activeAssessmentStreams.clear();
+    }
+
+    // Push state into browser history stack so Back button triggers popstate
+    window.history.pushState(null, '', window.location.href);
+
+    const handlePopState = (e) => {
+      // Intercept back button/gesture and redirect immediately to assessments dashboard
+      navigate('/employee/assessments', { replace: true });
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [navigate]);
+
   const { data: result, isLoading: loading } = useQuery({
     queryKey: ['assessmentResult', attemptId],
     queryFn: async () => {
@@ -53,21 +79,23 @@ const EmployeeAssessmentResult = () => {
 
   if (!result) {
     return (
-      <div className="w-full space-y-6">
-        <div className="bg-rose-50 text-rose-700 p-6 rounded-2xl border border-rose-200 flex items-center gap-3 shadow-sm">
-          <ShieldAlert size={24} className="shrink-0 text-rose-600" />
-          <div>
-            <p className="font-bold text-base">No Result Data Found</p>
-            <p className="text-sm mt-1">Result evaluation data could not be loaded. Please return to your assessment dashboard.</p>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-fade-in">
+        <div className="max-w-md w-full bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden text-center p-8 relative transform transition-all">
+          <div className="w-20 h-20 bg-rose-50 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-rose-100 shadow-inner">
+            <ShieldAlert size={36} className="text-rose-600 animate-pulse" />
           </div>
+          <h3 className="text-xl font-extrabold text-slate-900 mb-2">No Result Data Found</h3>
+          <p className="text-sm font-medium text-slate-500 leading-relaxed mb-8">
+            We couldn't load the evaluation data for this session. The result may still be evaluating or the session history was reset. Please return to your assessment dashboard.
+          </p>
+          <button
+            onClick={() => navigate('/employee/assessments')}
+            className="w-full py-3.5 px-6 bg-slate-900 hover:bg-slate-800 active:bg-slate-950 text-white font-bold text-sm rounded-2xl transition-all shadow-lg hover:shadow-xl cursor-pointer flex items-center justify-center gap-2.5 group"
+          >
+            <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
+            Return to Dashboard
+          </button>
         </div>
-        <button
-          onClick={() => navigate('/employee/assessments')}
-          className="px-5 py-2.5 bg-white hover:bg-slate-50 text-slate-700 font-bold text-sm rounded-xl border border-slate-200 transition cursor-pointer inline-flex items-center gap-2 shadow-sm"
-        >
-          <ArrowLeft size={16} />
-          Back to Assessments
-        </button>
       </div>
     );
   }

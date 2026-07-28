@@ -573,6 +573,8 @@ function getMimeType($filename) {
         case 'jpg': case 'jpeg': return 'image/jpeg';
         case 'gif': return 'image/gif';
         case 'webp': return 'image/webp';
+        case 'webm': return 'video/webm';
+        case 'mp4': return 'video/mp4';
         default: return 'application/octet-stream';
     }
 }

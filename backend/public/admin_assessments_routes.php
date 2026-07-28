@@ -34,6 +34,92 @@ $app->get('/api/admin/assessments', function (Request $request, Response $respon
     }
 })->add(new AuthMiddleware(['admin'], 'adminAssessments'));
 
+// GET /api/admin/assessments/attempts - List all employee assessment attempts
+$app->get('/api/admin/assessments/attempts', function (Request $request, Response $response, $args) {
+    $queryParams = $request->getQueryParams();
+    $assessmentId = $queryParams['assessment_id'] ?? null;
+    $db = new Database();
+    $conn = $db->getConnection();
+
+    try {
+        $sql = '
+            SELECT att.*, 
+                   att.score as total_score,
+                   att.total_marks as max_score,
+                   a.title as assessment_title, 
+                   a.department as assessment_department,
+                   a.passing_percentage,
+                   COALESCE(e."firstName" || \' \' || e."lastName", u."firstName" || \' \' || u."lastName", \'Unknown Employee\') as employee_name,
+                   COALESCE(e.email, u.email, \'\') as employee_email,
+                   COALESCE(e.department, u.department, \'General\') as employee_department,
+                   e."employeeId" as employee_code
+            FROM assessment_attempts att
+            JOIN assessments a ON att.assessment_id = a.id
+            LEFT JOIN employee e ON att.employee_id = e."userId" OR att.employee_id = e.id
+            LEFT JOIN users u ON att.employee_id = u.id
+            WHERE att.status != \'in_progress\'
+        ';
+        $params = [];
+        if ($assessmentId) {
+            $sql .= ' AND att.assessment_id = ?';
+            $params[] = $assessmentId;
+        }
+        $sql .= ' ORDER BY COALESCE(att.end_time, att.start_time) DESC';
+
+        $stmt = $conn->prepare($sql);
+        $stmt->execute($params);
+        $attempts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($attempts as &$att) {
+            $att['score'] = isset($att['score']) ? (float)$att['score'] : 0;
+            $att['total_score'] = $att['score'];
+            $att['total_marks'] = isset($att['total_marks']) ? (float)$att['total_marks'] : 0;
+            $att['max_score'] = $att['total_marks'];
+            $att['percentage'] = isset($att['percentage']) ? round((float)$att['percentage'], 1) : 0;
+            $att['passed'] = $att['passed'] === true || $att['passed'] === 'true' || $att['passed'] == 1 || $att['passed'] === 't';
+            $rawData = json_decode($att['answers_data'] ?? '{}', true) ?: [];
+            $breakdownArr = [];
+            if (is_array($rawData)) {
+                foreach ($rawData as $key => $val) {
+                    if (is_array($val)) {
+                        $breakdownArr[] = [
+                            'title' => $val['title'] ?? "Question #".(count($breakdownArr)+1),
+                            'correct' => !empty($val['is_correct']) || !empty($val['correct']),
+                            'marks_earned' => $val['marks_awarded'] ?? ($val['marks_earned'] ?? 0),
+                            'marks_possible' => $val['max_marks'] ?? ($val['marks_possible'] ?? 1)
+                        ];
+                    }
+                }
+            }
+            $att['breakdown'] = $breakdownArr;
+        }
+
+        $response->getBody()->write(json_encode($attempts));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+    } catch (\Exception $e) {
+        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    }
+})->add(new AuthMiddleware(['admin'], 'adminAssessments'));
+
+// DELETE /api/admin/assessments/attempts/{attemptId} - Reset / Delete attempt
+$app->delete('/api/admin/assessments/attempts/{attemptId}', function (Request $request, Response $response, $args) {
+    $attemptId = $args['attemptId'];
+    $db = new Database();
+    $conn = $db->getConnection();
+
+    try {
+        $stmt = $conn->prepare('DELETE FROM assessment_attempts WHERE id = ?');
+        $stmt->execute([$attemptId]);
+
+        $response->getBody()->write(json_encode(['message' => 'Attempt record deleted and reset successfully']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+    } catch (\Exception $e) {
+        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    }
+})->add(new AuthMiddleware(['admin'], 'adminAssessments'));
+
 // GET /api/admin/assessments/{id} - Get single assessment details
 $app->get('/api/admin/assessments/{id}', function (Request $request, Response $response, $args) {
     $id = $args['id'];

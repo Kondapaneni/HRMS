@@ -32,6 +32,7 @@ import AssessmentWorkspaceLayout from './components/AssessmentWorkspaceLayout'
 import AssessmentManagementPage from './pages/AssessmentManagementPage'
 import DepartmentQuestionBankPage from './pages/DepartmentQuestionBankPage'
 import AssessmentCreatePage from './pages/AssessmentCreatePage'
+import AssessmentResultsPage from './pages/AssessmentResultsPage'
 import AdminLayout from './components/AdminLayout'
 import AdminEmployees from './pages/AdminEmployees'
 import AdminDirectory from './pages/AdminDirectory'
@@ -176,6 +177,7 @@ function App() {
                 <Route path="rules" element={<Navigate to="management" replace />} />
                 <Route path="create" element={<AssessmentCreatePage />} />
                 <Route path="edit/:id" element={<AssessmentCreatePage />} />
+                <Route path="results" element={<AssessmentResultsPage />} />
               </Route>
               <Route
                 path="/employee"

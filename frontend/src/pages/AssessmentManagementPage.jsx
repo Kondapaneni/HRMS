@@ -67,13 +67,22 @@ const AssessmentManagementPage = () => {
             Create and manage assessments by linking questions from the bank and defining unique timing, grading, and security rules.
           </p>
         </div>
-        <button
-          onClick={() => navigate('/admin/assessments/create')}
-          className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 transition-colors shadow-sm cursor-pointer self-start sm:self-auto"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Create Assessment
-        </button>
+        <div className="flex items-center gap-3 self-start sm:self-auto">
+          <button
+            onClick={() => navigate('/admin/assessments/results')}
+            className="inline-flex items-center justify-center rounded-md text-sm font-bold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 h-10 px-4 py-2 transition-colors shadow-2xs cursor-pointer"
+          >
+            <Award className="w-4 h-4 mr-2 text-blue-600" />
+            View Employee Results
+          </button>
+          <button
+            onClick={() => navigate('/admin/assessments/create')}
+            className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 transition-colors shadow-sm cursor-pointer"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Create Assessment
+          </button>
+        </div>
       </div>
 
       {/* Empty State */}

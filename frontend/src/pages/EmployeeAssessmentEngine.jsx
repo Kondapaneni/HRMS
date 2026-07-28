@@ -56,6 +56,11 @@ const EmployeeAssessmentEngine = () => {
 
   // Helper to instantly turn off webcam and microphone hardware tracks
   const stopWebcamStream = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      try { mediaRecorderRef.current.stop(); } catch (e) { /* ignore */ }
+    }
+    mediaRecorderRef.current = null;
+
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => {
         try {
@@ -67,9 +72,25 @@ const EmployeeAssessmentEngine = () => {
     }
     if (videoPreviewRef.current) {
       try {
+        const srcStream = videoPreviewRef.current.srcObject;
+        if (srcStream && typeof srcStream.getTracks === 'function') {
+          srcStream.getTracks().forEach(track => {
+            try { track.enabled = false; track.stop(); } catch (e) {}
+          });
+        }
         videoPreviewRef.current.pause();
         videoPreviewRef.current.srcObject = null;
       } catch (e) { /* ignore */ }
+    }
+    if (window._activeAssessmentStreams) {
+      window._activeAssessmentStreams.forEach(stream => {
+        try {
+          stream.getTracks().forEach(track => {
+            try { track.enabled = false; track.stop(); } catch (e) {}
+          });
+        } catch (e) {}
+      });
+      window._activeAssessmentStreams.clear();
     }
   };
 
@@ -187,10 +208,11 @@ const EmployeeAssessmentEngine = () => {
       }
 
       // STEP 5: Navigate to result page
-      navigate('/employee/assessments/result', {
+      const finalAttemptId = res.data.attempt_id || currentExamData.attempt_id;
+      navigate(`/employee/assessments/result?attemptId=${finalAttemptId}`, {
         state: {
           result: res.data,
-          attemptId: res.data.attempt_id || currentExamData.attempt_id,
+          attemptId: finalAttemptId,
           assessmentTitle: currentExamData.assessment?.title,
           resultVisibility: currentExamData.assessment?.result_visibility
         },
@@ -224,7 +246,12 @@ const EmployeeAssessmentEngine = () => {
           setTimeLeft(Math.max(0, secondsLeft));
         }
       } catch (err) {
-        setError(err.response?.data?.error || 'Failed to start assessment');
+        const errMsg = err.response?.data?.error || 'Failed to start assessment';
+        if (errMsg.toLowerCase().includes('already submitted') || errMsg.toLowerCase().includes('allowable attempts')) {
+          navigate('/employee/assessments', { replace: true });
+          return;
+        }
+        setError(errMsg);
       } finally {
         setLoading(false);
       }
@@ -367,10 +394,19 @@ const EmployeeAssessmentEngine = () => {
   // ===================== START WEBCAM =====================
   useEffect(() => {
     if (!examData) return;
+    let isMounted = true;
 
     const startWebcam = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        if (!isMounted) {
+          stream.getTracks().forEach(track => {
+            try { track.enabled = false; track.stop(); } catch (e) {}
+          });
+          return;
+        }
+        window._activeAssessmentStreams = window._activeAssessmentStreams || new Set();
+        window._activeAssessmentStreams.add(stream);
         streamRef.current = stream;
 
         if (videoPreviewRef.current) {
@@ -403,6 +439,7 @@ const EmployeeAssessmentEngine = () => {
 
     startWebcam();
     return () => {
+      isMounted = false;
       stopWebcamStream();
     };
   }, [examData]);
