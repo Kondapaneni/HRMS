@@ -47,7 +47,7 @@ const EmployeeAssessmentResult = () => {
   const reasonLabel = getSubmitReasonLabel(submit_reason);
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-6 px-4 py-6 sm:px-6 sm:py-8">
       {/* Clean Top Bar Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
@@ -218,7 +218,7 @@ const EmployeeAssessmentResult = () => {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.1 }}
-            className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col lg:col-span-2"
+            className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col lg:col-span-2 min-h-[540px]"
           >
             <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
               <div>
@@ -231,7 +231,7 @@ const EmployeeAssessmentResult = () => {
             </div>
 
             {result.breakdown && result.breakdown.length > 0 ? (
-              <div className="divide-y divide-slate-100">
+              <div className="divide-y divide-slate-100 overflow-y-auto flex-1 min-h-0" style={{ maxHeight: 'calc(100vh - 300px)' }}>
                 {result.breakdown.map((item, idx) => (
                   <div key={idx} className="p-5 flex items-start sm:items-center justify-between gap-4 hover:bg-slate-50/50 transition">
                     <div className="flex items-start sm:items-center gap-3.5 min-w-0">

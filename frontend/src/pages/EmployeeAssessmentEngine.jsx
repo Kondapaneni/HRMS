@@ -101,14 +101,11 @@ const EmployeeAssessmentEngine = () => {
         while (autoSavingRef.current) {
           await new Promise(r => setTimeout(r, 100));
         }
-        if (import.meta.env.DEV) {
-          console.log('[DEV] Final pre-submit save payload:', { attemptId: currentExamData.attempt_id, answers: currentAnswers });
-        }
         await api.put(`/employee/assessments/attempts/${currentExamData.attempt_id}/save`, {
           answers: currentAnswers
         });
       } catch (saveErr) {
-        console.warn('Final auto-save request failed, proceeding with submit:', saveErr);
+        // Final auto-save failed, proceed with submission.
       }
 
       // STEP 2: Finish Video Recording and wait for all buffered chunks
@@ -121,10 +118,6 @@ const EmployeeAssessmentEngine = () => {
         const videoBlob = new Blob(videoChunksRef.current, { type: 'video/webm' });
         const fileName = `proctoring_${currentExamData.attempt_id}_${Date.now()}.webm`;
         
-        if (import.meta.env.DEV) {
-          console.log('[DEV] Prepared video Blob for upload:', { sizeBytes: videoBlob.size, totalChunks: videoChunksRef.current.length });
-        }
-
         let uploadSuccess = false;
         for (let attempt = 1; attempt <= 3; attempt++) {
           try {
@@ -136,17 +129,14 @@ const EmployeeAssessmentEngine = () => {
             if (!uploadError) {
               proctoringVideoUrl = fileName;
               uploadSuccess = true;
-              if (import.meta.env.DEV) console.log('[DEV] Proctoring video uploaded successfully:', fileName);
               break;
             } else {
-              console.error(`[Upload Error] Attempt ${attempt}/3 failed:`, uploadError);
               if (uploadError.statusCode === '400' || uploadError.statusCode === '413' || uploadError.status === 400 || uploadError.status === 413 || (uploadError.message && uploadError.message.toLowerCase().includes('size'))) {
-                console.warn('Storage file size limit exceeded or client error; skipping retries.');
                 break;
               }
             }
           } catch (uploadErr) {
-            console.error(`[Upload Exception] Attempt ${attempt}/3 exception:`, uploadErr);
+            // upload exception encountered, will retry if attempts remain.
           }
           if (!uploadSuccess && attempt < 3) {
             await new Promise(r => setTimeout(r, 1500));
@@ -154,31 +144,16 @@ const EmployeeAssessmentEngine = () => {
         }
         if (!uploadSuccess) {
           proctoringVideoUrl = 'UPLOAD_FAILED';
-          console.warn('All 3 video upload attempts failed. Proceeding with assessment submission.');
         }
       }
 
       // STEP 4: Submit assessment for final evaluation
       setUploadProgress('Submitting assessment for evaluation...');
-      if (import.meta.env.DEV) {
-        console.log('[DEV] Submitting exam payload:', {
-          attemptId: currentExamData.attempt_id,
-          answeredQuestionsCount: Object.keys(currentAnswers).length,
-          proctoringVideoUrl,
-          submitReason: reason,
-          answers: currentAnswers
-        });
-      }
-
       const res = await api.post(`/employee/assessments/attempts/${currentExamData.attempt_id}/submit`, {
         answers: currentAnswers,
         proctoring_video_url: proctoringVideoUrl,
         submit_reason: reason
       });
-
-      if (import.meta.env.DEV) {
-        console.log('[DEV] Backend evaluation response:', res.data);
-      }
 
       // Stop webcam stream tracks
       if (streamRef.current) {
@@ -200,7 +175,6 @@ const EmployeeAssessmentEngine = () => {
         replace: true
       });
     } catch (err) {
-      console.error('Submit exam failed:', err);
       setSubmitting(false);
       setUploadProgress('');
       submittedRef.current = false;
@@ -339,7 +313,7 @@ const EmployeeAssessmentEngine = () => {
 
         mediaRecorder.start(1000);
       } catch (err) {
-        console.error('Webcam start failed:', err);
+        // ignore webcam start failures during initialization.
       }
     };
 
@@ -374,14 +348,11 @@ const EmployeeAssessmentEngine = () => {
     autoSaveIntervalRef.current = setInterval(async () => {
       try {
         setAutoSaving(true);
-        if (import.meta.env.DEV) {
-          console.log('[DEV] Periodic auto-saving answers:', answersRef.current);
-        }
         await api.put(`/employee/assessments/attempts/${examData.attempt_id}/save`, {
           answers: answersRef.current
         });
       } catch (err) {
-        console.error('Auto-save failed:', err);
+        // ignore periodic save failures, form state remains.
       } finally {
         setAutoSaving(false);
       }
@@ -467,9 +438,6 @@ const EmployeeAssessmentEngine = () => {
         }
       } else {
         newAnswers[key] = { answer: [value] };
-      }
-      if (import.meta.env.DEV) {
-        console.log('[DEV] Answer selected:', { questionId: key, value, questionType, updatedAnswer: newAnswers[key] });
       }
       return newAnswers;
     });
