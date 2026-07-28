@@ -561,34 +561,61 @@ const AssessmentResultsPage = () => {
                           {breakdownList.map((q, idx) => (
                             <div
                               key={idx}
-                              className={`p-4 rounded-2xl border flex items-center justify-between gap-4 transition-all ${
+                              className={`p-4 rounded-2xl border transition-all space-y-3 ${
                                 q.correct ? 'bg-emerald-50/40 border-emerald-200/80 text-emerald-950' : 'bg-rose-50/40 border-rose-200/80 text-rose-950'
                               }`}
                             >
-                        <div className="flex items-start gap-3 flex-1">
-                          <div className="mt-0.5">
-                            {q.correct ? (
-                              <CheckCircle2 size={18} className="text-emerald-600 shrink-0" />
-                            ) : (
-                              <XCircle size={18} className="text-rose-600 shrink-0" />
-                            )}
-                          </div>
-                          <div>
-                            <p className="text-xs font-bold uppercase tracking-wider opacity-60">Question {idx + 1}</p>
-                            <p className="font-bold text-sm text-slate-900 mt-0.5">{q.title || `Question #${idx + 1}`}</p>
-                          </div>
-                        </div>
+                              <div className="flex items-start justify-between gap-4">
+                                <div className="flex items-start gap-3 flex-1">
+                                  <div className="mt-0.5">
+                                    {q.correct ? (
+                                      <CheckCircle2 size={18} className="text-emerald-600 shrink-0" />
+                                    ) : (
+                                      <XCircle size={18} className="text-rose-600 shrink-0" />
+                                    )}
+                                  </div>
+                                  <div>
+                                    <p className="text-xs font-bold uppercase tracking-wider opacity-60">Question {idx + 1}</p>
+                                    <p className="font-bold text-sm text-slate-900 mt-0.5">{q.title || `Question #${idx + 1}`}</p>
+                                  </div>
+                                </div>
 
-                        <div className="text-right shrink-0">
-                          <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-black ${
-                            q.correct ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
-                          }`}>
-                            {q.marks_earned || 0} / {q.marks_possible || 1} pts
-                          </span>
+                                <div className="text-right shrink-0">
+                                  <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-black ${
+                                    q.correct ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
+                                  }`}>
+                                    {q.marks_earned || 0} / {q.marks_possible || 1} pts
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Display Employee Selected Answer & Correct Answer */}
+                              <div className="pt-2 border-t border-slate-200/60 flex flex-wrap items-center gap-2.5 text-xs font-medium">
+                                <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs">
+                                  <span className="font-bold text-slate-500">Employee Selected:</span>
+                                  <span className={`font-black ${q.correct ? 'text-emerald-700' : 'text-rose-700'}`}>
+                                    {q.selected_answer !== undefined && q.selected_answer !== null && q.selected_answer !== ''
+                                      ? (Array.isArray(q.selected_answer) ? (q.selected_answer.length > 0 ? q.selected_answer.join(', ') : 'No answer selected') : String(q.selected_answer))
+                                      : (q.answer !== undefined && q.answer !== null && q.answer !== ''
+                                          ? (Array.isArray(q.answer) ? q.answer.join(', ') : String(q.answer))
+                                          : 'No answer selected / Skipped')}
+                                  </span>
+                                </div>
+
+                                {!q.correct && (q.correct_answers || q.correct_answer) && (
+                                  <div className="flex items-center gap-1.5 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200 text-emerald-900">
+                                    <span className="font-bold text-emerald-700">Correct Answer:</span>
+                                    <span className="font-black text-emerald-800">
+                                      {Array.isArray(q.correct_answers || q.correct_answer)
+                                        ? (q.correct_answers || q.correct_answer).join(', ')
+                                        : String(q.correct_answers || q.correct_answer)}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      </div>
-                    ))}
-                  </div>
                 )}
               </>
             );

@@ -86,7 +86,10 @@ $app->get('/api/admin/assessments/attempts', function (Request $request, Respons
                             'title' => $val['title'] ?? "Question #".(count($breakdownArr)+1),
                             'correct' => !empty($val['is_correct']) || !empty($val['correct']),
                             'marks_earned' => $val['marks_awarded'] ?? ($val['marks_earned'] ?? 0),
-                            'marks_possible' => $val['max_marks'] ?? ($val['marks_possible'] ?? 1)
+                            'marks_possible' => $val['max_marks'] ?? ($val['marks_possible'] ?? 1),
+                            'selected_answer' => $val['answer'] ?? ($val['selected_answer'] ?? ($val['user_answer'] ?? null)),
+                            'correct_answers' => $val['correct_answers'] ?? ($val['correct_answer'] ?? ($val['correct_option'] ?? null)),
+                            'options' => $val['options'] ?? []
                         ];
                     }
                 }
