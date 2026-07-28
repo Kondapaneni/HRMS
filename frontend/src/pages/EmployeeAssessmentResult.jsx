@@ -1,8 +1,9 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
   Trophy, XCircle, Clock, BarChart2, Award,
-  CheckCircle2, ArrowLeft, ShieldAlert, Eye, EyeOff, Lock
+  CheckCircle2, ArrowLeft, ShieldAlert, Eye, EyeOff, Lock, BookOpen
 } from 'lucide-react';
 
 const EmployeeAssessmentResult = () => {
@@ -12,17 +13,17 @@ const EmployeeAssessmentResult = () => {
 
   if (!result) {
     return (
-      <div className="w-full max-w-3xl mx-auto">
-        <div className="bg-rose-50 text-rose-700 p-6 rounded-2xl border border-rose-200 flex items-center gap-3">
-          <ShieldAlert size={24} />
+      <div className="w-full space-y-6">
+        <div className="bg-rose-50 text-rose-700 p-6 rounded-2xl border border-rose-200 flex items-center gap-3 shadow-sm">
+          <ShieldAlert size={24} className="shrink-0 text-rose-600" />
           <div>
-            <p className="font-bold">No Result Data</p>
-            <p className="text-sm mt-1">Result data was not found. Please go back to your assessments.</p>
+            <p className="font-bold text-base">No Result Data</p>
+            <p className="text-sm mt-1">Result data was not found. Please return to your assessments dashboard.</p>
           </div>
         </div>
         <button
           onClick={() => navigate('/employee/assessments')}
-          className="mt-4 px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl transition cursor-pointer inline-flex items-center gap-2"
+          className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl transition cursor-pointer inline-flex items-center gap-2"
         >
           <ArrowLeft size={16} />
           Back to Assessments
@@ -32,75 +33,13 @@ const EmployeeAssessmentResult = () => {
   }
 
   const visibility = resultVisibility || 'immediate';
-
-  // If result_visibility is "never" - show nothing
-  if (visibility === 'never') {
-    return (
-      <div className="w-full max-w-2xl mx-auto space-y-6">
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-12 text-center">
-          <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-6">
-            <EyeOff size={36} className="text-slate-400" />
-          </div>
-          <h1 className="text-2xl font-black text-slate-900 mb-2">Exam Submitted Successfully</h1>
-          <p className="text-sm text-slate-500 max-w-md mx-auto">
-            Your responses have been recorded. The results for this assessment are 
-            <strong> not available for viewing</strong>. Contact your administrator for more details.
-          </p>
-          <div className="mt-3 inline-flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-500">
-            <Lock size={12} />
-            Results Hidden by Admin
-          </div>
-        </div>
-
-        <button
-          onClick={() => navigate('/employee/assessments', { replace: true })}
-          className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm transition flex items-center justify-center gap-2 cursor-pointer"
-        >
-          <ArrowLeft size={16} />
-          Back to Assessments
-        </button>
-      </div>
-    );
-  }
-
-  // If result_visibility is "after_review" - show pending
-  if (visibility === 'after_review') {
-    return (
-      <div className="w-full max-w-2xl mx-auto space-y-6">
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-12 text-center">
-          <div className="w-20 h-20 rounded-full bg-amber-50 flex items-center justify-center mx-auto mb-6">
-            <Eye size={36} className="text-amber-500" />
-          </div>
-          <h1 className="text-2xl font-black text-slate-900 mb-2">Exam Submitted Successfully</h1>
-          <p className="text-sm text-slate-500 max-w-md mx-auto">
-            Your responses have been recorded and submitted for <strong>admin review</strong>. 
-            Your results will be available once the administrator has reviewed your submission.
-          </p>
-          <div className="mt-3 inline-flex items-center gap-1.5 bg-amber-100 px-3 py-1.5 rounded-lg text-xs font-bold text-amber-700">
-            <Clock size={12} />
-            Pending Admin Review
-          </div>
-        </div>
-
-        <button
-          onClick={() => navigate('/employee/assessments', { replace: true })}
-          className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm transition flex items-center justify-center gap-2 cursor-pointer"
-        >
-          <ArrowLeft size={16} />
-          Back to Assessments
-        </button>
-      </div>
-    );
-  }
-
-  // Immediate visibility - show full results
   const { score, total_marks, percentage, passed, submit_reason } = result;
 
   const getSubmitReasonLabel = (reason) => {
     switch (reason) {
-      case 'tab_switch_violation': return '⚠️ Auto-submitted due to tab switching violation';
-      case 'time_expired': return '⏰ Auto-submitted because time expired';
-      case 'page_refresh_or_close': return '🔄 Auto-submitted because you left the exam page';
+      case 'tab_switch_violation': return '⚠️ Exam was auto-submitted due to tab switching / window focus violation.';
+      case 'time_expired': return '⏰ Exam was auto-submitted because the allocated time expired.';
+      case 'page_refresh_or_close': return '🔄 Exam was auto-submitted because you navigated away or refreshed the page.';
       default: return null;
     }
   };
@@ -108,97 +47,213 @@ const EmployeeAssessmentResult = () => {
   const reasonLabel = getSubmitReasonLabel(submit_reason);
 
   return (
-    <div className="w-full max-w-2xl mx-auto space-y-6">
-      {/* Title */}
-      <div className="text-center">
-        <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Assessment Result</h2>
-        <h1 className="text-xl font-black text-slate-900 mt-1">{assessmentTitle || 'Assessment'}</h1>
+    <div className="w-full space-y-6">
+      {/* Header matching instructions & list pages */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate('/employee/assessments', { replace: true })}
+              className="p-2.5 text-slate-400 hover:text-slate-700 rounded-xl hover:bg-slate-100 border border-slate-200/80 transition cursor-pointer shrink-0"
+              title="Back to Assessments"
+            >
+              <ArrowLeft size={20} />
+            </button>
+            <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 shrink-0">
+              <Award size={24} />
+            </div>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+                {assessmentTitle || 'Assessment Result'}
+              </h1>
+              <p className="text-slate-500 text-sm font-medium mt-1">
+                Assessment Submission & Evaluation Summary
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats Grid in Header (Only when visibility is immediate) */}
+        {visibility === 'immediate' && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-6 mt-6 border-t border-slate-100">
+            <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 text-center">
+              <BarChart2 size={20} className="mx-auto mb-1 text-slate-500" />
+              <p className="text-2xl font-bold text-slate-900">{score !== undefined ? score : '0'}</p>
+              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Score Earned</p>
+            </div>
+            <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 text-center">
+              <Award size={20} className="mx-auto mb-1 text-slate-500" />
+              <p className="text-2xl font-bold text-slate-900">{total_marks !== undefined ? total_marks : '0'}</p>
+              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Marks</p>
+            </div>
+            <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 text-center">
+              <CheckCircle2 size={20} className={`mx-auto mb-1 ${passed ? 'text-emerald-600' : 'text-rose-600'}`} />
+              <p className={`text-2xl font-bold ${passed ? 'text-emerald-600' : 'text-rose-600'}`}>
+                {percentage !== null && percentage !== undefined ? `${parseFloat(percentage).toFixed(1)}%` : 'N/A'}
+              </p>
+              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Percentage</p>
+            </div>
+            <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 text-center">
+              <Trophy size={20} className={`mx-auto mb-1 ${passed ? 'text-emerald-600' : 'text-rose-600'}`} />
+              <p className={`text-2xl font-bold ${passed ? 'text-emerald-600' : 'text-rose-600'}`}>
+                {passed ? 'PASSED' : 'FAILED'}
+              </p>
+              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Result Status</p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Submit Reason Banner */}
       {reasonLabel && (
-        <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-3 text-sm font-semibold text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl p-4 text-sm font-semibold flex items-center justify-center gap-2 shadow-sm"
+        >
           {reasonLabel}
-        </div>
+        </motion.div>
       )}
 
-      {/* Result Card */}
-      <div className={`rounded-2xl border-2 shadow-lg p-8 text-center ${
-        passed ? 'bg-emerald-50 border-emerald-300' : 'bg-rose-50 border-rose-300'
-      }`}>
-        <div className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4 ${
-          passed ? 'bg-emerald-100' : 'bg-rose-100'
-        }`}>
-          {passed ? (
-            <Trophy size={48} className="text-emerald-600" />
-          ) : (
-            <XCircle size={48} className="text-rose-600" />
-          )}
-        </div>
-
-        <h2 className={`text-3xl font-black mb-1 ${passed ? 'text-emerald-700' : 'text-rose-700'}`}>
-          {passed ? '🎉 Congratulations!' : 'Better Luck Next Time'}
-        </h2>
-
-        <p className={`text-sm font-semibold ${passed ? 'text-emerald-600' : 'text-rose-600'}`}>
-          {passed ? 'You have passed this assessment!' : 'You did not meet the passing threshold.'}
-        </p>
-
-        {/* Score Display */}
-        <div className="mt-6 grid grid-cols-3 gap-4">
-          <div className="bg-white/80 rounded-xl p-4">
-            <BarChart2 size={20} className="mx-auto mb-1 text-blue-500" />
-            <p className="text-2xl font-black text-slate-900">{score}</p>
-            <p className="text-[10px] uppercase font-bold text-slate-400">Score</p>
+      {/* Case 1: Results Never Visible */}
+      {visibility === 'never' && (
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="bg-white rounded-2xl border border-slate-200 shadow-sm p-12 text-center"
+        >
+          <div className="w-20 h-20 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-6 border border-slate-200/60">
+            <EyeOff size={36} className="text-slate-400" />
           </div>
-          <div className="bg-white/80 rounded-xl p-4">
-            <Award size={20} className="mx-auto mb-1 text-blue-500" />
-            <p className="text-2xl font-black text-slate-900">{total_marks}</p>
-            <p className="text-[10px] uppercase font-bold text-slate-400">Total Marks</p>
+          <h2 className="text-2xl font-bold text-slate-900 mb-2">Exam Submitted Successfully</h2>
+          <p className="text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
+            Your responses have been securely recorded. The detailed results and scores for this assessment are 
+            <strong className="text-slate-700"> not available for viewing</strong>. Contact your administrator for more information.
+          </p>
+          <div className="mt-6 inline-flex items-center gap-2 bg-slate-100 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 border border-slate-200/60">
+            <Lock size={14} />
+            Results Hidden by Administrator
           </div>
-          <div className="bg-white/80 rounded-xl p-4">
-            <CheckCircle2 size={20} className={`mx-auto mb-1 ${passed ? 'text-emerald-500' : 'text-rose-500'}`} />
-            <p className={`text-2xl font-black ${passed ? 'text-emerald-700' : 'text-rose-700'}`}>
-              {percentage !== null && percentage !== undefined ? `${parseFloat(percentage).toFixed(1)}%` : 'N/A'}
-            </p>
-            <p className="text-[10px] uppercase font-bold text-slate-400">Percentage</p>
-          </div>
-        </div>
-      </div>
+        </motion.div>
+      )}
 
-      {/* Question Breakdown */}
-      {result.breakdown && result.breakdown.length > 0 && (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="p-5 border-b border-slate-100">
-            <h3 className="font-bold text-slate-900">Question Breakdown</h3>
+      {/* Case 2: Results Pending Admin Review */}
+      {visibility === 'after_review' && (
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="bg-white rounded-2xl border border-slate-200 shadow-sm p-12 text-center"
+        >
+          <div className="w-20 h-20 rounded-2xl bg-amber-50 flex items-center justify-center mx-auto mb-6 border border-amber-100">
+            <Clock size={36} className="text-amber-600" />
           </div>
-          <div className="divide-y divide-slate-100 max-h-96 overflow-y-auto">
-            {result.breakdown.map((item, idx) => (
-              <div key={idx} className="p-4 flex items-center gap-3">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                  item.correct ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'
-                }`}>
-                  {item.correct ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-slate-800 truncate">{item.title}</p>
-                  <p className="text-[11px] text-slate-400 mt-0.5">
-                    {item.correct ? `+${item.marks_earned}` : '0'} / {item.marks_possible} marks
-                  </p>
-                </div>
+          <h2 className="text-2xl font-bold text-slate-900 mb-2">Exam Submitted Successfully</h2>
+          <p className="text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
+            Your responses have been recorded and submitted for <strong className="text-slate-700">admin review</strong>. 
+            Your scores and detailed feedback will become available once the administrator has evaluated your submission.
+          </p>
+          <div className="mt-6 inline-flex items-center gap-2 bg-amber-100 px-3.5 py-2 rounded-xl text-xs font-bold text-amber-800 border border-amber-200/60">
+            <Clock size={14} />
+            Pending Administrator Review
+          </div>
+        </motion.div>
+      )}
+
+      {/* Case 3: Immediate Visibility - Main Status Card */}
+      {visibility === 'immediate' && (
+        <>
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+            className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-6"
+          >
+            <div className="flex items-center gap-5 text-center sm:text-left">
+              <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 mx-auto sm:mx-0 border ${
+                passed 
+                  ? 'bg-emerald-50 text-emerald-600 border-emerald-200' 
+                  : 'bg-rose-50 text-rose-600 border-rose-200'
+              }`}>
+                {passed ? <Trophy size={32} /> : <XCircle size={32} />}
               </div>
-            ))}
-          </div>
-        </div>
-      )}
+              <div>
+                <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider mb-2 border ${
+                  passed 
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                    : 'bg-rose-50 text-rose-700 border-rose-200'
+                }`}>
+                  {passed ? <CheckCircle2 size={13} /> : <XCircle size={13} />}
+                  {passed ? 'Threshold Met' : 'Threshold Not Met'}
+                </div>
+                <h2 className="text-2xl font-bold text-slate-900">
+                  {passed ? 'Congratulations, You Passed!' : 'Assessment Completed'}
+                </h2>
+                <p className="text-sm text-slate-500 mt-1">
+                  {passed 
+                    ? 'You have successfully achieved or exceeded the passing threshold for this assessment.' 
+                    : 'You did not meet the minimum required passing threshold for this evaluation.'}
+                </p>
+              </div>
+            </div>
+          </motion.div>
 
-      <button
-        onClick={() => navigate('/employee/assessments', { replace: true })}
-        className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm transition flex items-center justify-center gap-2 cursor-pointer"
-      >
-        <ArrowLeft size={16} />
-        Back to Assessments
-      </button>
+          {/* Question Breakdown */}
+          {result.breakdown && result.breakdown.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.2 }}
+              className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
+            >
+              <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+                <div>
+                  <h3 className="font-bold text-slate-900 text-base">Question Breakdown</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">Detailed review of your performance across each question</p>
+                </div>
+                <span className="text-xs font-bold text-slate-500 bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm">
+                  {result.breakdown.length} Questions
+                </span>
+              </div>
+              <div className="divide-y divide-slate-100">
+                {result.breakdown.map((item, idx) => (
+                  <div key={idx} className="p-5 flex items-start sm:items-center justify-between gap-4 hover:bg-slate-50/50 transition">
+                    <div className="flex items-start sm:items-center gap-3.5 min-w-0">
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 sm:mt-0 font-bold text-sm border ${
+                        item.correct 
+                          ? 'bg-emerald-50 text-emerald-600 border-emerald-200/60' 
+                          : 'bg-rose-50 text-rose-600 border-rose-200/60'
+                      }`}>
+                        {item.correct ? <CheckCircle2 size={18} /> : <XCircle size={18} />}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-slate-900">{item.title}</p>
+                        <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-2">
+                          <span>Question {idx + 1}</span>
+                          <span>•</span>
+                          <span className={item.correct ? 'text-emerald-600 font-semibold' : 'text-rose-600 font-semibold'}>
+                            {item.correct ? 'Correct Answer' : 'Incorrect Answer'}
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold border ${
+                        item.correct 
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                          : 'bg-slate-100 text-slate-600 border-slate-200'
+                      }`}>
+                        +{item.marks_earned} / {item.marks_possible} Marks
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </>
+      )}
     </div>
   );
 };
