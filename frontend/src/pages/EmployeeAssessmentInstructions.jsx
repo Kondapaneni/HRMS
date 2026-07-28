@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../api/axios';
 import {
@@ -13,30 +14,29 @@ const EmployeeAssessmentInstructions = () => {
   const location = useLocation();
   const assessmentId = location.state?.assessmentId;
 
-  const [assessment, setAssessment] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [cameraPermission, setCameraPermission] = useState(null); // null, 'granted', 'denied'
   const [agreed, setAgreed] = useState(false);
 
   useEffect(() => {
     if (!assessmentId) {
       navigate('/employee/assessments', { replace: true });
-      return;
     }
-    const fetchAssessment = async () => {
-      try {
-        // Use admin get endpoint to fetch rules (we can also create an employee-specific one)
-        const res = await api.get(`/employee/assessments/${assessmentId}`);
-        setAssessment(res.data);
-      } catch (err) {
-        setError(err.response?.data?.error || 'Failed to load assessment details');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchAssessment();
   }, [assessmentId, navigate]);
+
+  const { data: assessment, isLoading: loading, error: queryError } = useQuery({
+    queryKey: ['employeeAssessment', assessmentId],
+    queryFn: async () => {
+      const res = await api.get(`/employee/assessments/${assessmentId}`);
+      return res.data;
+    },
+    enabled: !!assessmentId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    refetchOnWindowFocus: false,
+    retry: 1
+  });
+
+  const error = queryError ? (queryError.response?.data?.error || 'Failed to load assessment details') : null;
 
   const handleCheckCamera = async () => {
     try {
@@ -51,7 +51,11 @@ const EmployeeAssessmentInstructions = () => {
 
   const handleBeginExam = () => {
     if (document.documentElement.requestFullscreen) {
-      document.documentElement.requestFullscreen().catch(() => {});
+      document.documentElement.requestFullscreen().then(() => {
+        if (navigator.keyboard && navigator.keyboard.lock) {
+          navigator.keyboard.lock(['Escape', 'F11', 'F5']).catch(() => {});
+        }
+      }).catch(() => {});
     }
     navigate('/employee/assessments/session', {
       state: { assessmentId },
@@ -59,7 +63,34 @@ const EmployeeAssessmentInstructions = () => {
     });
   };
 
-  if (loading) return <PageLoader />;
+  if (loading) {
+    return (
+      <div className="w-full space-y-6">
+        <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm animate-pulse space-y-6">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-slate-200" />
+            <div className="space-y-2">
+              <div className="h-8 w-64 bg-slate-200 rounded" />
+              <div className="h-4 w-40 bg-slate-100 rounded" />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-6 border-t border-slate-100">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 space-y-2">
+                <div className="h-6 w-6 bg-slate-200 rounded mx-auto" />
+                <div className="h-8 w-16 bg-slate-200 rounded mx-auto" />
+                <div className="h-3 w-20 bg-slate-100 rounded mx-auto" />
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 h-80 animate-pulse bg-slate-100/50" />
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 h-80 animate-pulse bg-slate-100/50" />
+        </div>
+      </div>
+    );
+  }
 
   if (error) {
     return (

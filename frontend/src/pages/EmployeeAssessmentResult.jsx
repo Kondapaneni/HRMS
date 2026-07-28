@@ -1,6 +1,8 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
+import api from '../api/axios';
 import {
   Trophy, XCircle, Clock, BarChart2, Award,
   CheckCircle2, ArrowLeft, ShieldAlert, EyeOff, Lock
@@ -9,7 +11,45 @@ import {
 const EmployeeAssessmentResult = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { result, assessmentTitle, resultVisibility } = location.state || {};
+  const stateResult = location.state?.result;
+  const attemptId = location.state?.attemptId || stateResult?.attempt_id || new URLSearchParams(location.search).get('attemptId');
+
+  const { data: result, isLoading: loading } = useQuery({
+    queryKey: ['assessmentResult', attemptId],
+    queryFn: async () => {
+      const res = await api.get(`/employee/assessments/attempts/${attemptId}/result`);
+      const d = res.data;
+      return {
+        ...d,
+        score: d.total_score ?? d.score ?? 0,
+        total_marks: d.max_score ?? d.total_marks ?? 0
+      };
+    },
+    enabled: !!attemptId && !stateResult,
+    initialData: stateResult ? {
+      ...stateResult,
+      score: stateResult.score ?? stateResult.total_score ?? 0,
+      total_marks: stateResult.total_marks ?? stateResult.max_score ?? 0
+    } : undefined,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
+    refetchOnWindowFocus: false
+  });
+
+  if (loading) {
+    return (
+      <div className="w-full space-y-6 px-4 py-6 sm:px-6 sm:py-8 animate-pulse">
+        <div className="flex items-center justify-between">
+          <div className="h-8 w-64 bg-slate-200 rounded-xl" />
+          <div className="h-8 w-32 bg-slate-200 rounded-xl" />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 h-96 bg-slate-100/50" />
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 h-96 bg-slate-100/50 lg:col-span-2" />
+        </div>
+      </div>
+    );
+  }
 
   if (!result) {
     return (
@@ -32,7 +72,8 @@ const EmployeeAssessmentResult = () => {
     );
   }
 
-  const visibility = resultVisibility || 'immediate';
+  const assessmentTitle = location.state?.assessmentTitle || result.assessment_title || 'Assessment Result';
+  const visibility = location.state?.resultVisibility || result.result_visibility || 'immediate';
   const { score, total_marks, percentage, passed, submit_reason } = result;
 
   const getSubmitReasonLabel = (reason) => {

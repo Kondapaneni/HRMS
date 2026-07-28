@@ -10,37 +10,84 @@ use App\Utils\AssessmentConstants;
 
 // GET /api/employee/assessments - List assigned assessments for current employee
 $app->get('/api/employee/assessments', function (Request $request, Response $response, $args) {
+    if (!ob_get_level() && extension_loaded('zlib') && strpos($request->getHeaderLine('Accept-Encoding'), 'gzip') !== false) {
+        @ob_start('ob_gzhandler');
+    }
+
     $user = $request->getAttribute('user');
     $db = new Database();
     $conn = $db->getConnection();
 
     try {
-        $sql = '
-            SELECT 
-                a.*,
-                jsonb_array_length(a.selected_questions) as questions_count,
-                (jsonb_array_length(a.selected_questions) * a.marks_per_question) as total_marks,
-                (SELECT COUNT(*) FROM assessment_attempts att WHERE att.assessment_id = a.id AND att.employee_id = :uid AND att.status != \'in_progress\') as attempts_used,
-                (SELECT att.id FROM assessment_attempts att WHERE att.assessment_id = a.id AND att.employee_id = :uid AND att.status = \'in_progress\' LIMIT 1) as in_progress_attempt_id,
-                (SELECT att.percentage FROM assessment_attempts att WHERE att.assessment_id = a.id AND att.employee_id = :uid AND att.status != \'in_progress\' ORDER BY att.percentage DESC LIMIT 1) as highest_score,
-                (SELECT att.passed FROM assessment_attempts att WHERE att.assessment_id = a.id AND att.employee_id = :uid AND att.status != \'in_progress\' ORDER BY att.percentage DESC LIMIT 1) as has_passed,
-                (SELECT att.id FROM assessment_attempts att WHERE att.assessment_id = a.id AND att.employee_id = :uid AND att.status != \'in_progress\' ORDER BY att.end_time DESC LIMIT 1) as latest_attempt_id
-            FROM assessments a
-            WHERE a.status = \'Active\'
-            ORDER BY a.created_at DESC
-        ';
-        $stmt = $conn->prepare($sql);
-        $stmt->execute(['uid' => $user->id]);
-        $assessments = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // 1. Backend Caching of static active assessment metadata (TTL 5 minutes)
+        $cacheFile = sys_get_temp_dir() . '/assessments_meta_cache.json';
+        $metaList = null;
+        if (file_exists($cacheFile) && (time() - filemtime($cacheFile)) < 300) {
+            $metaList = json_decode(file_get_contents($cacheFile), true);
+        }
+        if (!is_array($metaList)) {
+            $stmtMeta = $conn->query('SELECT id, title, department, duration_minutes, marks_per_question, max_attempts, assessment_date, created_at, status, COALESCE(questions_count, 0) AS questions_count FROM assessments WHERE status = \'Active\' ORDER BY created_at DESC');
+            $metaList = $stmtMeta->fetchAll(PDO::FETCH_ASSOC);
+            @file_put_contents($cacheFile, json_encode($metaList));
+        }
 
-        foreach ($assessments as &$item) {
-            $item['instructions'] = AssessmentConstants::DEFAULT_INSTRUCTIONS;
-            $item['questions_count'] = (int)$item['questions_count'];
-            $item['total_marks'] = (int)$item['total_marks'];
-            $item['attempts_used'] = (int)$item['attempts_used'];
-            $item['highest_score'] = $item['highest_score'] !== null ? round((float)$item['highest_score'], 1) : null;
-            $item['has_passed'] = $item['has_passed'] === true || $item['has_passed'] === 'true' || $item['has_passed'] == 1 || $item['has_passed'] === 't';
-            $item['attempts_remaining'] = $item['max_attempts'] > 0 ? max(0, (int)$item['max_attempts'] - $item['attempts_used']) : 999;
+        // 2. Fetch employee department and attempt stats in single scans
+        $stmtUser = $conn->prepare('SELECT department FROM users WHERE id = ?');
+        $stmtUser->execute([$user->id]);
+        $userDept = trim((string)$stmtUser->fetchColumn());
+
+        $stmtAtt = $conn->prepare('
+            SELECT 
+                assessment_id,
+                COUNT(*) FILTER (WHERE status != \'in_progress\') AS attempts_used,
+                MAX(id::text) FILTER (WHERE status = \'in_progress\') AS in_progress_attempt_id,
+                MAX(percentage) FILTER (WHERE status != \'in_progress\') AS highest_score,
+                COALESCE(BOOL_OR(passed) FILTER (WHERE status != \'in_progress\'), false) AS has_passed
+            FROM assessment_attempts
+            WHERE employee_id = ?
+            GROUP BY assessment_id
+        ');
+        $stmtAtt->execute([$user->id]);
+        $attemptsData = [];
+        while ($row = $stmtAtt->fetch(PDO::FETCH_ASSOC)) {
+            $attemptsData[$row['assessment_id']] = $row;
+        }
+
+        // 3. Merge and return only explicit required columns
+        $assessments = [];
+        foreach ($metaList as $meta) {
+            $aDept = trim((string)($meta['department'] ?? 'General'));
+            if ($aDept !== '' && $aDept !== 'General' && $aDept !== 'All' && $aDept !== 'General / All' && strcasecmp($aDept, $userDept) !== 0) {
+                continue;
+            }
+
+            $att = $attemptsData[$meta['id']] ?? null;
+            $attemptsUsed = $att ? (int)$att['attempts_used'] : 0;
+            $maxAttempts = (int)$meta['max_attempts'];
+            $questionsCount = (int)$meta['questions_count'];
+            $marksPerQ = (int)$meta['marks_per_question'];
+            $highestScore = ($att && $att['highest_score'] !== null) ? round((float)$att['highest_score'], 1) : null;
+            $hasPassed = $att ? ($att['has_passed'] === true || $att['has_passed'] === 'true' || $att['has_passed'] == 1 || $att['has_passed'] === 't') : false;
+            $inProgressId = ($att && !empty($att['in_progress_attempt_id'])) ? $att['in_progress_attempt_id'] : null;
+
+            $assessments[] = [
+                'id' => $meta['id'],
+                'title' => $meta['title'],
+                'department' => $meta['department'],
+                'duration_minutes' => (int)$meta['duration_minutes'],
+                'marks_per_question' => $marksPerQ,
+                'max_attempts' => $maxAttempts,
+                'assessment_date' => $meta['assessment_date'],
+                'created_at' => $meta['created_at'],
+                'status' => $meta['status'],
+                'questions_count' => $questionsCount,
+                'total_marks' => $questionsCount * $marksPerQ,
+                'attempts_used' => $attemptsUsed,
+                'attempts_remaining' => $maxAttempts > 0 ? max(0, $maxAttempts - $attemptsUsed) : 999,
+                'highest_score' => $highestScore,
+                'has_passed' => $hasPassed,
+                'in_progress_attempt_id' => $inProgressId
+            ];
         }
 
         $response->getBody()->write(json_encode($assessments));

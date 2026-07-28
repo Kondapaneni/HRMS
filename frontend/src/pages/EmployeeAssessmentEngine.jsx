@@ -54,16 +54,37 @@ const EmployeeAssessmentEngine = () => {
   useEffect(() => { answersRef.current = answers; }, [answers]);
   useEffect(() => { autoSavingRef.current = autoSaving; }, [autoSaving]);
 
+  // Helper to instantly turn off webcam and microphone hardware tracks
+  const stopWebcamStream = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => {
+        try {
+          track.enabled = false;
+          track.stop();
+        } catch (e) { /* ignore */ }
+      });
+      streamRef.current = null;
+    }
+    if (videoPreviewRef.current) {
+      try {
+        videoPreviewRef.current.pause();
+        videoPreviewRef.current.srcObject = null;
+      } catch (e) { /* ignore */ }
+    }
+  };
+
   // Helper to cleanly stop MediaRecorder and wait for buffered data flush
   const stopRecordingAndWait = () => {
     return new Promise((resolve) => {
       const recorder = mediaRecorderRef.current;
       if (!recorder || recorder.state === 'inactive') {
+        stopWebcamStream();
         resolve();
         return;
       }
       const handleStop = () => {
         recorder.removeEventListener('stop', handleStop);
+        stopWebcamStream();
         resolve();
       };
       recorder.addEventListener('stop', handleStop);
@@ -73,6 +94,7 @@ const EmployeeAssessmentEngine = () => {
       try {
         recorder.stop();
       } catch (e) {
+        stopWebcamStream();
         resolve();
       }
     });
@@ -111,6 +133,7 @@ const EmployeeAssessmentEngine = () => {
       // STEP 2: Finish Video Recording and wait for all buffered chunks
       setUploadProgress('Finishing video recording...');
       await stopRecordingAndWait();
+      stopWebcamStream(); // Instantly turn off camera hardware while video uploads
 
       // STEP 3: Upload proctoring video with up to 3 retry attempts
       let proctoringVideoUrl = null;
@@ -156,9 +179,7 @@ const EmployeeAssessmentEngine = () => {
       });
 
       // Stop webcam stream tracks
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-      }
+      stopWebcamStream();
 
       // Exit fullscreen safely
       if (document.fullscreenElement) {
@@ -169,12 +190,14 @@ const EmployeeAssessmentEngine = () => {
       navigate('/employee/assessments/result', {
         state: {
           result: res.data,
+          attemptId: res.data.attempt_id || currentExamData.attempt_id,
           assessmentTitle: currentExamData.assessment?.title,
           resultVisibility: currentExamData.assessment?.result_visibility
         },
         replace: true
       });
     } catch (err) {
+      stopWebcamStream(); // Ensure camera hardware is off if submission fails
       setSubmitting(false);
       setUploadProgress('');
       submittedRef.current = false;
@@ -214,16 +237,28 @@ const EmployeeAssessmentEngine = () => {
   useEffect(() => {
     if (!examData) return;
 
-    // Request fullscreen or show modal if blocked
-    if (!document.fullscreenElement) {
-      if (document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen().catch(() => {
+    // Request fullscreen and lock ESC key
+    const enforceFullscreen = () => {
+      if (!document.fullscreenElement) {
+        if (document.documentElement.requestFullscreen) {
+          document.documentElement.requestFullscreen().then(() => {
+            if (navigator.keyboard && navigator.keyboard.lock) {
+              navigator.keyboard.lock(['Escape', 'F11', 'F5']).catch(() => {});
+            }
+          }).catch(() => {
+            setShowFullscreenModal(true);
+          });
+        } else {
           setShowFullscreenModal(true);
-        });
+        }
       } else {
-        setShowFullscreenModal(true);
+        if (navigator.keyboard && navigator.keyboard.lock) {
+          navigator.keyboard.lock(['Escape', 'F11', 'F5']).catch(() => {});
+        }
       }
-    }
+    };
+
+    enforceFullscreen();
 
     // Trap browser back button
     const trapHistory = () => {
@@ -280,6 +315,55 @@ const EmployeeAssessmentEngine = () => {
     };
   }, [examData]);
 
+  // ===================== TOUCHPAD & GESTURE BLOCKING =====================
+  useEffect(() => {
+    if (!examData) return;
+
+    // 1. Block CSS overscroll navigation (two-finger horizontal swipe back/forward & pull-to-refresh)
+    const originalBodyOverscroll = document.body.style.overscrollBehavior;
+    const originalHtmlOverscroll = document.documentElement.style.overscrollBehavior;
+    document.body.style.overscrollBehavior = 'none';
+    document.documentElement.style.overscrollBehavior = 'none';
+
+    // 2. Intercept touchpad wheel navigation (horizontal swipe) & touchpad pinch-to-zoom (ctrl+wheel)
+    const handleWheel = (e) => {
+      // If horizontal scrolling is greater than vertical (two-finger swipe left/right navigation)
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) && Math.abs(e.deltaX) > 0) {
+        e.preventDefault();
+      }
+      // If holding Ctrl during wheel (touchpad pinch-to-zoom in Windows Chrome/Edge)
+      if (e.ctrlKey) {
+        e.preventDefault();
+      }
+    };
+
+    // 3. Intercept Safari/Mac touchpad zoom gestures
+    const preventGesture = (e) => e.preventDefault();
+
+    // 4. Intercept multi-finger touchscreen swipes
+    const handleTouchMove = (e) => {
+      if (e.touches && e.touches.length > 1) {
+        e.preventDefault();
+      }
+    };
+
+    window.addEventListener('wheel', handleWheel, { passive: false });
+    window.addEventListener('gesturestart', preventGesture, { passive: false });
+    window.addEventListener('gesturechange', preventGesture, { passive: false });
+    window.addEventListener('gestureend', preventGesture, { passive: false });
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+
+    return () => {
+      document.body.style.overscrollBehavior = originalBodyOverscroll;
+      document.documentElement.style.overscrollBehavior = originalHtmlOverscroll;
+      window.removeEventListener('wheel', handleWheel, { passive: false });
+      window.removeEventListener('gesturestart', preventGesture, { passive: false });
+      window.removeEventListener('gesturechange', preventGesture, { passive: false });
+      window.removeEventListener('gestureend', preventGesture, { passive: false });
+      window.removeEventListener('touchmove', handleTouchMove, { passive: false });
+    };
+  }, [examData]);
+
   // ===================== START WEBCAM =====================
   useEffect(() => {
     if (!examData) return;
@@ -319,7 +403,7 @@ const EmployeeAssessmentEngine = () => {
 
     startWebcam();
     return () => {
-      if (streamRef.current) streamRef.current.getTracks().forEach(track => track.stop());
+      stopWebcamStream();
     };
   }, [examData]);
 
@@ -407,7 +491,7 @@ const EmployeeAssessmentEngine = () => {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [examData]);
 
-  // ===================== RE-ENTER FULLSCREEN =====================
+  // ===================== RE-ENTER FULLSCREEN & AGGRESSIVE RECOVERY =====================
   useEffect(() => {
     if (!examData) return;
 
@@ -415,13 +499,36 @@ const EmployeeAssessmentEngine = () => {
       if (!document.fullscreenElement && !submittedRef.current) {
         setShowFullscreenModal(true);
       } else {
+        if (navigator.keyboard && navigator.keyboard.lock) {
+          navigator.keyboard.lock(['Escape', 'F11', 'F5']).catch(() => {});
+        }
         setShowFullscreenModal(false);
       }
     };
 
+    const forceReturnFullscreen = () => {
+      if (showFullscreenModal && !document.fullscreenElement && !submittedRef.current) {
+        if (document.documentElement.requestFullscreen) {
+          document.documentElement.requestFullscreen().then(() => {
+            if (navigator.keyboard && navigator.keyboard.lock) {
+              navigator.keyboard.lock(['Escape', 'F11', 'F5']).catch(() => {});
+            }
+            setShowFullscreenModal(false);
+          }).catch(() => {});
+        }
+      }
+    };
+
     document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
-  }, [examData]);
+    window.addEventListener('click', forceReturnFullscreen, true);
+    window.addEventListener('keydown', forceReturnFullscreen, true);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      window.removeEventListener('click', forceReturnFullscreen, true);
+      window.removeEventListener('keydown', forceReturnFullscreen, true);
+    };
+  }, [examData, showFullscreenModal]);
 
   // ===================== ANSWER HANDLER =====================
   const handleAnswer = (questionId, value, questionType) => {
@@ -618,6 +725,9 @@ const EmployeeAssessmentEngine = () => {
                 onClick={() => {
                   if (document.documentElement.requestFullscreen) {
                     document.documentElement.requestFullscreen().then(() => {
+                      if (navigator.keyboard && navigator.keyboard.lock) {
+                        navigator.keyboard.lock(['Escape', 'F11', 'F5']).catch(() => {});
+                      }
                       setShowFullscreenModal(false);
                     }).catch(() => {});
                   } else {

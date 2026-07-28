@@ -49,7 +49,16 @@ $queries = [
     'ALTER TABLE assessments ADD COLUMN IF NOT EXISTS marks_per_question INTEGER DEFAULT 1;',
     'ALTER TABLE assessments ADD COLUMN IF NOT EXISTS assessment_date VARCHAR(50) DEFAULT NULL;',
     'ALTER TABLE assessments ADD COLUMN IF NOT EXISTS selected_questions JSONB DEFAULT \'[]\'::jsonb;',
-    'ALTER TABLE assessments ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT \'Active\';'
+    'ALTER TABLE assessments ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT \'Active\';',
+    'ALTER TABLE assessments ADD COLUMN IF NOT EXISTS questions_count INTEGER DEFAULT 0;',
+    'UPDATE assessments SET questions_count = CASE WHEN selected_questions IS NOT NULL AND jsonb_typeof(selected_questions) = \'array\' THEN jsonb_array_length(selected_questions) ELSE 0 END WHERE questions_count IS NULL OR questions_count = 0;',
+    'CREATE INDEX IF NOT EXISTS idx_assessment_attempts_emp_ass ON assessment_attempts (employee_id, assessment_id);',
+    'CREATE INDEX IF NOT EXISTS idx_assessment_attempts_emp_ass_status ON assessment_attempts (employee_id, assessment_id, status);',
+    'CREATE INDEX IF NOT EXISTS idx_assessment_attempts_ass ON assessment_attempts (assessment_id);',
+    'CREATE INDEX IF NOT EXISTS idx_assessment_attempts_status ON assessment_attempts (status);',
+    'CREATE INDEX IF NOT EXISTS idx_assessments_status ON assessments (status);',
+    'CREATE INDEX IF NOT EXISTS idx_assessments_date ON assessments (assessment_date);',
+    'CREATE INDEX IF NOT EXISTS idx_assessments_dept_status ON assessments (department, status);'
 ];
 
 foreach ($queries as $index => $sql) {

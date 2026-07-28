@@ -81,6 +81,7 @@ $app->post('/api/admin/assessments', function (Request $request, Response $respo
     $assessmentDate = !empty($data['assessment_date']) ? trim($data['assessment_date']) : null;
     $selectedQs = json_encode($data['selected_questions'] ?? []);
     $status = trim($data['status'] ?? 'Active');
+    $questionsCount = is_array($data['selected_questions'] ?? null) ? count($data['selected_questions']) : 0;
 
     if (empty($title)) {
         $response->getBody()->write(json_encode(['error' => 'Title is required']));
@@ -91,10 +92,12 @@ $app->post('/api/admin/assessments', function (Request $request, Response $respo
     $conn = $db->getConnection();
 
     try {
-        $sql = 'INSERT INTO assessments (title, department, duration_minutes, passing_percentage, max_attempts, marks_per_question, randomize_questions, randomize_options, result_visibility, assessment_date, selected_questions, status, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+        $sql = 'INSERT INTO assessments (title, department, duration_minutes, passing_percentage, max_attempts, marks_per_question, randomize_questions, randomize_options, result_visibility, assessment_date, selected_questions, status, questions_count, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
         $stmt = $conn->prepare($sql);
-        $stmt->execute([$title, $department, $duration, $passing, $maxAttempts, $marksPerQ, $randomizeQ, $randomizeO, $visibility, $assessmentDate, $selectedQs, $status, $user->id]);
+        $stmt->execute([$title, $department, $duration, $passing, $maxAttempts, $marksPerQ, $randomizeQ, $randomizeO, $visibility, $assessmentDate, $selectedQs, $status, $questionsCount, $user->id]);
         $assessmentId = $stmt->fetchColumn();
+
+        @unlink(sys_get_temp_dir() . '/assessments_meta_cache.json');
 
         $response->getBody()->write(json_encode(['message' => 'Assessment created successfully', 'id' => $assessmentId]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
@@ -121,14 +124,17 @@ $app->put('/api/admin/assessments/{id}', function (Request $request, Response $r
     $assessmentDate = !empty($data['assessment_date']) ? trim($data['assessment_date']) : null;
     $selectedQs = json_encode($data['selected_questions'] ?? []);
     $status = trim($data['status'] ?? 'Active');
+    $questionsCount = is_array($data['selected_questions'] ?? null) ? count($data['selected_questions']) : 0;
 
     $db = new Database();
     $conn = $db->getConnection();
 
     try {
-        $sql = 'UPDATE assessments SET title = ?, department = ?, duration_minutes = ?, passing_percentage = ?, max_attempts = ?, marks_per_question = ?, randomize_questions = ?, randomize_options = ?, result_visibility = ?, assessment_date = ?, selected_questions = ?, status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?';
+        $sql = 'UPDATE assessments SET title = ?, department = ?, duration_minutes = ?, passing_percentage = ?, max_attempts = ?, marks_per_question = ?, randomize_questions = ?, randomize_options = ?, result_visibility = ?, assessment_date = ?, selected_questions = ?, status = ?, questions_count = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?';
         $stmt = $conn->prepare($sql);
-        $stmt->execute([$title, $department, $duration, $passing, $maxAttempts, $marksPerQ, $randomizeQ, $randomizeO, $visibility, $assessmentDate, $selectedQs, $status, $id]);
+        $stmt->execute([$title, $department, $duration, $passing, $maxAttempts, $marksPerQ, $randomizeQ, $randomizeO, $visibility, $assessmentDate, $selectedQs, $status, $questionsCount, $id]);
+
+        @unlink(sys_get_temp_dir() . '/assessments_meta_cache.json');
 
         $response->getBody()->write(json_encode(['message' => 'Assessment updated successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
@@ -148,11 +154,14 @@ $app->delete('/api/admin/assessments/{id}', function (Request $request, Response
         $stmt = $conn->prepare('DELETE FROM assessments WHERE id = ?');
         $stmt->execute([$id]);
 
+        @unlink(sys_get_temp_dir() . '/assessments_meta_cache.json');
+
         $response->getBody()->write(json_encode(['message' => 'Assessment deleted successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (\Exception $e) {
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+
     }
 })->add(new AuthMiddleware(['admin'], 'adminAssessments'));
 
