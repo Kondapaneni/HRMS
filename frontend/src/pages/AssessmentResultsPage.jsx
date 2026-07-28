@@ -591,27 +591,47 @@ const AssessmentResultsPage = () => {
 
                               {/* Display Employee Selected Answer & Correct Answer */}
                               <div className="pt-2 border-t border-slate-200/60 flex flex-wrap items-center gap-2.5 text-xs font-medium">
-                                <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs">
-                                  <span className="font-bold text-slate-500">Employee Selected:</span>
-                                  <span className={`font-black ${q.correct ? 'text-emerald-700' : 'text-rose-700'}`}>
-                                    {q.selected_answer !== undefined && q.selected_answer !== null && q.selected_answer !== ''
-                                      ? (Array.isArray(q.selected_answer) ? (q.selected_answer.length > 0 ? q.selected_answer.join(', ') : 'No answer selected') : String(q.selected_answer))
-                                      : (q.answer !== undefined && q.answer !== null && q.answer !== ''
-                                          ? (Array.isArray(q.answer) ? q.answer.join(', ') : String(q.answer))
-                                          : 'No answer selected / Skipped')}
-                                  </span>
-                                </div>
+                                {(() => {
+                                  const rawAns = q.selected_answer ?? q.answer ?? q.user_answer;
+                                  let formattedAns = null;
+                                  if (rawAns !== undefined && rawAns !== null && rawAns !== '') {
+                                    if (Array.isArray(rawAns)) {
+                                      if (rawAns.length > 0) formattedAns = rawAns.join(', ');
+                                    } else {
+                                      formattedAns = String(rawAns);
+                                    }
+                                  }
 
-                                {!q.correct && (q.correct_answers || q.correct_answer) && (
-                                  <div className="flex items-center gap-1.5 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200 text-emerald-900">
-                                    <span className="font-bold text-emerald-700">Correct Answer:</span>
-                                    <span className="font-black text-emerald-800">
-                                      {Array.isArray(q.correct_answers || q.correct_answer)
-                                        ? (q.correct_answers || q.correct_answer).join(', ')
-                                        : String(q.correct_answers || q.correct_answer)}
-                                    </span>
-                                  </div>
-                                )}
+                                  const rawCorr = q.correct_answers ?? q.correct_answer;
+                                  let formattedCorr = null;
+                                  if (rawCorr !== undefined && rawCorr !== null && rawCorr !== '') {
+                                    if (Array.isArray(rawCorr)) {
+                                      if (rawCorr.length > 0) formattedCorr = rawCorr.join(', ');
+                                    } else {
+                                      formattedCorr = String(rawCorr);
+                                    }
+                                  }
+
+                                  return (
+                                    <>
+                                      <div className="flex items-center gap-1.5 bg-white px-3 py-1 rounded-xl border border-slate-200 shadow-2xs">
+                                        <span className="font-bold text-slate-500">Employee Selected:</span>
+                                        <span className={`font-black ${formattedAns ? (q.correct ? 'text-emerald-700' : 'text-rose-700') : 'text-slate-400 italic'}`}>
+                                          {formattedAns || 'No answer selected / Skipped'}
+                                        </span>
+                                      </div>
+
+                                      {!q.correct && formattedCorr && (
+                                        <div className="flex items-center gap-1.5 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-200 text-emerald-900">
+                                          <span className="font-bold text-emerald-700">Correct Answer:</span>
+                                          <span className="font-black text-emerald-800">
+                                            {formattedCorr}
+                                          </span>
+                                        </div>
+                                      )}
+                                    </>
+                                  );
+                                })()}
                               </div>
                             </div>
                           ))}
