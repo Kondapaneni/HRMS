@@ -117,6 +117,7 @@ $app->put('/api/admin/assessments/{id}', function (Request $request, Response $r
     $marksPerQ = (int)($data['marks_per_question'] ?? 1);
     $randomizeQ = !empty($data['randomize_questions']) ? 'true' : 'false';
     $randomizeO = !empty($data['randomize_options']) ? 'true' : 'false';
+    $visibility = $data['result_visibility'] ?? 'immediate';
     $assessmentDate = !empty($data['assessment_date']) ? trim($data['assessment_date']) : null;
     $selectedQs = json_encode($data['selected_questions'] ?? []);
     $status = trim($data['status'] ?? 'Active');
