@@ -139,8 +139,8 @@ const EmployeeAssessmentInstructions = () => {
         </div>
       </div>
 
-      {/* Side-by-Side Grid: Rules & Agreement */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+      {/* Rules */}
+      <div className="max-w-4xl mx-auto space-y-6">
         {/* Strict Rules Card */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
           <div className="p-5 border-b border-slate-100 bg-amber-50">
@@ -150,8 +150,8 @@ const EmployeeAssessmentInstructions = () => {
             </div>
           </div>
 
-          <div className="p-6 space-y-4 flex-1">
-            <div className="flex items-start gap-3 p-3 bg-rose-50 border border-rose-200 rounded-xl">
+          <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="flex flex-col gap-3 p-4 bg-rose-50 border border-rose-200 rounded-xl">
               <Monitor size={18} className="text-rose-600 mt-0.5 shrink-0" />
               <div>
                 <p className="font-bold text-sm text-rose-800">Tab Switching is Strictly Monitored</p>
@@ -162,7 +162,7 @@ const EmployeeAssessmentInstructions = () => {
               </div>
             </div>
 
-            <div className="flex items-start gap-3 p-3 bg-rose-50 border border-rose-200 rounded-xl">
+            <div className="flex flex-col gap-3 p-4 bg-rose-50 border border-rose-200 rounded-xl">
               <ShieldAlert size={18} className="text-rose-600 mt-0.5 shrink-0" />
               <div>
                 <p className="font-bold text-sm text-rose-800">No Page Refresh Allowed</p>
@@ -175,7 +175,7 @@ const EmployeeAssessmentInstructions = () => {
 
 
 
-            <div className="flex items-start gap-3 p-3 bg-blue-50 border border-blue-200 rounded-xl">
+            <div className="flex flex-col gap-3 p-4 bg-blue-50 border border-blue-200 rounded-xl">
               <Clock size={18} className="text-blue-600 mt-0.5 shrink-0" />
               <div>
                 <p className="font-bold text-sm text-blue-800">Timer is Strictly Enforced</p>
@@ -190,7 +190,7 @@ const EmployeeAssessmentInstructions = () => {
 
 
         {/* Agreement & Start */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col justify-between">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
         <label className="flex items-start gap-3 cursor-pointer group">
           <input
             type="checkbox"
