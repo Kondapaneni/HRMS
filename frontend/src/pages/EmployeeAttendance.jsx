@@ -4,12 +4,14 @@ import { Calendar, Clock, LogIn, LogOut, Search, AlertCircle } from 'lucide-reac
 import api from '../api/axios';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 import EmployeeMobileAttendance from './EmployeeMobileAttendance';
 
 const EmployeeAttendance = () => {
   const { profile } = useAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [error, setError] = useState(null);
   const [punchingAction, setPunchingAction] = useState(null);
@@ -206,7 +208,9 @@ const EmployeeAttendance = () => {
             <h1 className="text-3xl font-bold tracking-tight text-slate-900">Attendance</h1>
             <p className="text-sm text-slate-500 mt-1">Track your daily attendance</p>
           </div>
-          <button className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 h-10 px-4 py-2 transition-colors">
+          <button 
+            onClick={() => navigate('/employee/holidays')}
+            className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 h-10 px-4 py-2 transition-colors">
             Holidays
           </button>
         </div>
