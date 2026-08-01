@@ -18,7 +18,8 @@ const EmployeeMobileHolidays = () => {
   });
 
   const todayStr = new Date().toISOString().split('T')[0];
-  const upcomingHolidays = holidays.filter(h => h.holidayDate >= todayStr);
+  const currentYear = new Date().getFullYear();
+  const upcomingHolidays = holidays.filter(h => h.holidayDate >= todayStr && new Date(h.holidayDate).getFullYear() === currentYear);
 
   if (loading) return <PageLoader message="Loading Holidays..." />;
 

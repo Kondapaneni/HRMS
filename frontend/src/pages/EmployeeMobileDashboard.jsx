@@ -84,7 +84,8 @@ const EmployeeMobileDashboard = () => {
   };
 
   const todayStr = new Date().toLocaleDateString('en-CA');
-  const upcomingHolidays = holidays.filter(h => h.holidayDate >= todayStr).slice(0, 3);
+  const currentYear = new Date().getFullYear();
+  const upcomingHolidays = holidays.filter(h => h.holidayDate >= todayStr && new Date(h.holidayDate).getFullYear() === currentYear).slice(0, 3);
   const todayRecord = attendance.find(r => r.date?.split('T')[0] === todayStr) || attendance.find(r => r.date && new Date(r.date).toDateString() === new Date().toDateString());
   const checkedIn = todayRecord && todayRecord.checkIn && !todayRecord.checkOut;
   const checkOutTime = todayRecord && todayRecord.checkOut;

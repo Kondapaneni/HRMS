@@ -34,7 +34,8 @@ const EmployeeHolidays = () => {
 
   const getHolidayForDate = (dateStr) => holidays.find(h => h.holidayDate === dateStr);
   const todayStr = format(new Date(), 'yyyy-MM-dd');
-  const upcomingHolidays = holidays.filter(h => h.holidayDate >= todayStr);
+  const currentYear = new Date().getFullYear();
+  const upcomingHolidays = holidays.filter(h => h.holidayDate >= todayStr && new Date(h.holidayDate).getFullYear() === currentYear);
 
   if (loading) return <PageLoader message="Loading Holidays..." />;
 
