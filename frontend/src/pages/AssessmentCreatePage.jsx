@@ -70,7 +70,7 @@ const AssessmentCreatePage = () => {
     queryKey: ['adminEmployeesForAssignment'],
     queryFn: async () => {
       const res = await api.get('/admin/employees');
-      return res.data || [];
+      return res.data?.employees || res.data || [];
     }
   });
 
