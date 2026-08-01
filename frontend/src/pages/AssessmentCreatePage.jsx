@@ -368,9 +368,9 @@ const AssessmentCreatePage = () => {
             <div className="flex items-start gap-3">
               <Users className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
               <div>
-                <p className="font-bold">Step 2: Assign Specific Employees (Optional)</p>
+                <p className="font-bold">Step 2: Assign Specific Employees</p>
                 <p className="text-xs text-purple-800/80 mt-0.5">
-                  Select specific employees to assign this assessment to. If no employees are selected, the assessment will be assigned to all employees in the selected department (configured in Step 3).
+                  Select specific employees to assign this assessment to. If no employees are selected, this assessment will not be visible to anyone. Legacy department fallback is disabled for new assignments.
                 </p>
               </div>
             </div>
