@@ -1123,7 +1123,7 @@ export default function Chat() {
           </div>
           
           <div className="flex-1 overflow-y-auto chat-scrollbar bg-slate-50">
-            <div className="bg-white flex flex-col items-center pt-8 pb-6 shadow-sm mb-2">
+            <div className="flex flex-col items-center bg-white p-6 border-b border-slate-100 relative group">
               <div className="w-40 h-40 rounded-full bg-slate-200 overflow-hidden shadow-md mb-4 relative group">
                 {getChatAvatar(activeChat) ? (
                   <img src={getChatAvatar(activeChat)} className="w-full h-full object-cover" />
@@ -1175,17 +1175,16 @@ export default function Chat() {
                 const other = activeChat.participants.find(p => p.id !== profile?.id);
                 return (
                   <>
-                    <p className="text-slate-500 text-sm mb-4">{other?.designation || 'Employee'}</p>
-
+                    <p className="text-slate-500 text-sm">{other?.designation || 'Employee'}</p>
                   </>
                 );
               })()}
               {activeChat.type === 'group' && (
-                <p className="text-slate-500 text-sm mb-4">Group • {activeChat.participants.length} participants</p>
+                <p className="text-slate-500 text-sm">Group • {activeChat.participants.length} participants</p>
               )}
             </div>
 
-            <div className="bg-white p-4 shadow-sm mb-2 text-slate-800">
+            <div className="bg-white p-4 border-b border-slate-100 text-slate-800">
                <div className="text-blue-600 text-xs font-semibold uppercase tracking-wider mb-2">About and phone number</div>
                <div className="text-md mb-1 font-medium">Available on Acme Chat</div>
                <div className="text-sm text-slate-500 mb-4">About</div>
@@ -1198,7 +1197,7 @@ export default function Chat() {
             {activeChat.type === 'group' && (() => {
               const amIAdmin = activeChat.admin_ids?.includes(profile?.id);
               return (
-              <div className="bg-white p-4 shadow-sm mb-2 text-slate-800">
+              <div className="bg-white p-4 border-b border-slate-100 text-slate-800">
                 <div className="text-blue-600 text-xs font-semibold uppercase tracking-wider mb-3">Group Settings</div>
                 <div className="space-y-1">
                   <div 
@@ -1274,7 +1273,7 @@ export default function Chat() {
               const amIAdmin = activeChat.admin_ids?.includes(profile?.id);
               if (!amIAdmin) return null;
               return (
-                <div className="bg-white p-4 shadow-sm mb-2 text-slate-800">
+                <div className="bg-white p-4 border-b border-slate-100 text-slate-800">
                   <div className="text-blue-600 text-xs font-semibold uppercase tracking-wider mb-3">Pending Approvals</div>
                   {activeChat.pending_participants?.length > 0 ? (
                     <div className="space-y-2">
@@ -1313,7 +1312,7 @@ export default function Chat() {
               const canAdd = activeChat.permissions?.addMembers !== false || amIAdmin;
               const pendingCount = activeChat.pending_participants?.length || 0;
               return (
-              <div className="bg-white shadow-sm mb-2">
+              <div className="bg-white mb-2">
                 <div className="p-4 border-b border-slate-100 flex justify-between items-center">
                   <div className="text-blue-600 text-xs font-semibold uppercase tracking-wider">Participants</div>
                   <div className="flex gap-2">
