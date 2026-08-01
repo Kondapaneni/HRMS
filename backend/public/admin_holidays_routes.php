@@ -81,7 +81,7 @@ $app->post('/api/admin/holidays', function (Request $request, Response $response
             $insertStmt->execute([$date, $name, $image]);
         }
 
-        \App\Config\Cache::delete('dashboard_stats');
+        // \App\Config\Cache::delete('dashboard_stats');
         $response->getBody()->write(json_encode(['message' => 'Holiday saved successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (\Exception $e) {
@@ -100,8 +100,7 @@ $app->delete('/api/admin/holidays/{date}', function (Request $request, Response 
         $stmt = $conn->prepare('UPDATE company_holidays SET "isActive" = 0 WHERE "holidayDate" = ?');
         $stmt->execute([$date]);
 
-        \App\Config\Cache::delete('dashboard_stats');
-        $response->getBody()->write(json_encode(['message' => 'Holiday removed successfully']));
+        $response->getBody()->write(json_encode(['message' => 'Holiday deleted successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (\Exception $e) {
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
