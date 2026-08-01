@@ -36,6 +36,7 @@ const EmployeeHolidays = () => {
   const todayStr = format(new Date(), 'yyyy-MM-dd');
   const upcomingHolidays = holidays.filter(h => h.holidayDate >= todayStr);
 
+  if (loading) return <PageLoader message="Loading Holidays..." />;
 
   return (
     <div className="space-y-6">
