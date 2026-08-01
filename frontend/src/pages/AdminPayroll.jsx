@@ -4,10 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
-import { DollarSign, Search, ChevronLeft, ChevronRight, Download, Eye, Calculator, X, Layers } from 'lucide-react';
+import { DollarSign, Search, ChevronLeft, ChevronRight, Download, Eye, Calculator, X, Layers, Trash2 } from 'lucide-react';
 import { pdf } from '@react-pdf/renderer';
 import PayslipPDF from '../components/PayslipPDF';
 import EmployeeSelect from '../components/EmployeeSelect';
+import toast from 'react-hot-toast';
 
 const AdminPayroll = () => {
   const { profile } = useAuth();
@@ -97,6 +98,18 @@ const AdminPayroll = () => {
     } catch (err) {
       console.error('Error generating PDF:', err);
       alert('Failed to generate PDF document.');
+    }
+  };
+
+  const handleDeletePayslip = async (payslipId) => {
+    if (!window.confirm('Are you sure you want to delete this payslip?')) return;
+    try {
+      await api.delete(`/admin/payroll/${payslipId}`);
+      toast.success('Payslip deleted successfully');
+      queryClient.invalidateQueries({ queryKey: ['admin', 'payroll'] });
+    } catch (err) {
+      console.error('Error deleting payslip:', err);
+      toast.error(err.response?.data?.error || 'Failed to delete payslip');
     }
   };
 
@@ -303,6 +316,13 @@ const AdminPayroll = () => {
                           className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-9 px-3 transition-colors cursor-pointer"
                         >
                           <Download className="w-4 h-4 mr-2 text-slate-500" /> Download
+                        </button>
+                        <button 
+                          onClick={() => handleDeletePayslip(payslip.id)}
+                          className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 h-9 px-3 transition-colors cursor-pointer"
+                          title="Delete Payslip"
+                        >
+                          <Trash2 className="w-4 h-4 text-red-600" />
                         </button>
                       </div>
                     </td>

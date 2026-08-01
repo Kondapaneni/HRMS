@@ -291,7 +291,7 @@ const PayslipPDF = ({ payslip }) => {
         <View style={styles.summaryBox}>
           <View style={[styles.summaryItem, { borderRightWidth: 1, borderRightColor: '#e2e8f0' }]}>
             <Text style={styles.summaryLabel}>Actual Payable Days</Text>
-            <Text style={styles.summaryValue}>{payslip.details?.totalWorkingDays || 30.0}</Text>
+            <Text style={styles.summaryValue}>{payslip.details?.actualPayableDays || 31}</Text>
           </View>
           <View style={[styles.summaryItem, { borderRightWidth: 1, borderRightColor: '#e2e8f0' }]}>
             <Text style={styles.summaryLabel}>Total Working Days</Text>

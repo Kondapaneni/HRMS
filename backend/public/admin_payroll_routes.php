@@ -149,16 +149,31 @@ $app->post('/api/admin/payroll/generate', function (Request $request, Response $
 
     $monthStart = sprintf('%04d-%02d-01', $year, $month);
     $monthEnd = date('Y-m-t', strtotime($monthStart));
-    $totalWorkingDays = (int)date('t', strtotime($monthStart));
+    $actualPayableDays = (int)date('t', strtotime($monthStart));
 
-    // Get Missing Days
+    $joinDate = !empty($employee['joinDate']) ? $employee['joinDate'] : null;
+
+    if ($joinDate && $joinDate > $monthEnd) {
+        $response->getBody()->write(json_encode(['error' => 'Employee joined after this month. Cannot generate payslip.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+
+    $effectiveStartDate = $monthStart;
+    if ($joinDate && $joinDate > $monthStart && $joinDate <= $monthEnd) {
+        $effectiveStartDate = $joinDate;
+        $totalWorkingDays = (int)((strtotime($monthEnd) - strtotime($joinDate)) / 86400) + 1;
+    } else {
+        $totalWorkingDays = $actualPayableDays;
+    }
+
+    // Get Missing Days starting from effectiveStartDate
     $stmtMissing = $conn->prepare('SELECT COUNT(*) FROM attendance WHERE "employeeId" = ? AND status = \'missed\' AND date BETWEEN ? AND ?');
-    $stmtMissing->execute([$employeeId, $monthStart, $monthEnd]);
+    $stmtMissing->execute([$employeeId, $effectiveStartDate, $monthEnd]);
     $missingDays = (int)$stmtMissing->fetchColumn();
 
-    // Get Unpaid Leaves
+    // Get Unpaid Leaves starting from effectiveStartDate
     $stmtLeaves = $conn->prepare('SELECT SUM(days) FROM leaves WHERE "employeeId" = ? AND LOWER("leaveType") = \'unpaid\' AND status = \'approved\' AND "startDate" <= ? AND "endDate" >= ?');
-    $stmtLeaves->execute([$employeeId, $monthEnd, $monthStart]);
+    $stmtLeaves->execute([$employeeId, $monthEnd, $effectiveStartDate]);
     $unpaidLeaveDays = (int)$stmtLeaves->fetchColumn();
 
     $lossOfPayDays = min($unpaidLeaveDays + $missingDays, $totalWorkingDays);
@@ -167,9 +182,9 @@ $app->post('/api/admin/payroll/generate', function (Request $request, Response $
     $adjustedSalary = 0.0;
     $conveyance = 0.0;
 
-    if ($totalWorkingDays > 0) {
-        $adjustedSalary = round($salary * ($payableDays / $totalWorkingDays), 2);
-        $conveyance = round($config['conveyance_allowance'] * ($payableDays / $totalWorkingDays), 2);
+    if ($actualPayableDays > 0) {
+        $adjustedSalary = round($salary * ($payableDays / $actualPayableDays), 2);
+        $conveyance = round($config['conveyance_allowance'] * ($payableDays / $actualPayableDays), 2);
     }
 
     $basicSalary = floor($adjustedSalary * ($config['basic_percentage'] / 100) * 100) / 100;
@@ -205,6 +220,7 @@ $app->post('/api/admin/payroll/generate', function (Request $request, Response $
         'dateJoined' => !empty($employee['joinDate']) ? date('d M Y', strtotime($employee['joinDate'])) : 'N/A',
         'designation' => $employee['position'] ?? '',
         'monthlySalary' => $salary,
+        'actualPayableDays' => $actualPayableDays,
         'totalWorkingDays' => $totalWorkingDays,
         'lossOfPayDays' => $lossOfPayDays,
         'daysPayable' => $payableDays,
@@ -294,7 +310,7 @@ $app->post('/api/admin/payroll/generate-bulk', function (Request $request, Respo
 
     $monthStart = sprintf('%04d-%02d-01', $year, $month);
     $monthEnd = date('Y-m-t', strtotime($monthStart));
-    $totalWorkingDays = (int)date('t', strtotime($monthStart));
+    $actualPayableDays = (int)date('t', strtotime($monthStart));
 
     $placeholders = implode(',', array_fill(0, count($employeeIds), '?'));
     
@@ -308,28 +324,6 @@ $app->post('/api/admin/payroll/generate-bulk', function (Request $request, Respo
     $stmtEmp->execute($employeeIds);
     $employeesMap = [];
     foreach ($stmtEmp->fetchAll(PDO::FETCH_ASSOC) as $emp) $employeesMap[$emp['userId']] = $emp;
-
-    // 3. Missing Days
-    $stmtMissing = $conn->prepare("
-        SELECT \"employeeId\", COUNT(*) as count 
-        FROM attendance 
-        WHERE status = 'missed' AND date BETWEEN ? AND ? AND \"employeeId\" IN ($placeholders)
-        GROUP BY \"employeeId\"
-    ");
-    $stmtMissing->execute(array_merge([$monthStart, $monthEnd], $employeeIds));
-    $missingMap = [];
-    foreach ($stmtMissing->fetchAll(PDO::FETCH_ASSOC) as $m) $missingMap[$m['employeeId']] = (int)$m['count'];
-
-    // 4. Unpaid Leaves
-    $stmtLeaves = $conn->prepare("
-        SELECT \"employeeId\", SUM(days) as days 
-        FROM leaves 
-        WHERE LOWER(\"leaveType\") = 'unpaid' AND status = 'approved' AND \"startDate\" <= ? AND \"endDate\" >= ? AND \"employeeId\" IN ($placeholders)
-        GROUP BY \"employeeId\"
-    ");
-    $stmtLeaves->execute(array_merge([$monthEnd, $monthStart], $employeeIds));
-    $leaveMap = [];
-    foreach ($stmtLeaves->fetchAll(PDO::FETCH_ASSOC) as $l) $leaveMap[$l['employeeId']] = (int)$l['days'];
 
     foreach ($employeeIds as $employeeId) {
         try {
@@ -346,8 +340,36 @@ $app->post('/api/admin/payroll/generate-bulk', function (Request $request, Respo
                 continue;
             }
 
-            $missingDays = $missingMap[$employeeId] ?? 0;
-            $unpaidLeaveDays = $leaveMap[$employeeId] ?? 0;
+            $joinDate = !empty($employee['joinDate']) ? $employee['joinDate'] : null;
+            if ($joinDate && $joinDate > $monthEnd) {
+                continue; // Skip employees who joined after this month
+            }
+
+            $effectiveStartDate = $monthStart;
+            if ($joinDate && $joinDate > $monthStart && $joinDate <= $monthEnd) {
+                $effectiveStartDate = $joinDate;
+                $totalWorkingDays = (int)((strtotime($monthEnd) - strtotime($joinDate)) / 86400) + 1;
+            } else {
+                $totalWorkingDays = $actualPayableDays;
+            }
+
+            // Missing Days
+            $stmtMissing = $conn->prepare("
+                SELECT COUNT(*) as count 
+                FROM attendance 
+                WHERE status = 'missed' AND date BETWEEN ? AND ? AND \"employeeId\" = ?
+            ");
+            $stmtMissing->execute([$effectiveStartDate, $monthEnd, $employeeId]);
+            $missingDays = (int)$stmtMissing->fetchColumn();
+
+            // Unpaid Leaves
+            $stmtLeaves = $conn->prepare("
+                SELECT SUM(days) as days 
+                FROM leaves 
+                WHERE LOWER(\"leaveType\") = 'unpaid' AND status = 'approved' AND \"startDate\" <= ? AND \"endDate\" >= ? AND \"employeeId\" = ?
+            ");
+            $stmtLeaves->execute([$monthEnd, $effectiveStartDate, $employeeId]);
+            $unpaidLeaveDays = (int)$stmtLeaves->fetchColumn();
 
             $lossOfPayDays = min($unpaidLeaveDays + $missingDays, $totalWorkingDays);
             $payableDays = max(0, $totalWorkingDays - $lossOfPayDays);
@@ -355,9 +377,9 @@ $app->post('/api/admin/payroll/generate-bulk', function (Request $request, Respo
             $adjustedSalary = 0.0;
             $conveyance = 0.0;
 
-            if ($totalWorkingDays > 0) {
-                $adjustedSalary = round($salary * ($payableDays / $totalWorkingDays), 2);
-                $conveyance = round($config['conveyance_allowance'] * ($payableDays / $totalWorkingDays), 2);
+            if ($actualPayableDays > 0) {
+                $adjustedSalary = round($salary * ($payableDays / $actualPayableDays), 2);
+                $conveyance = round($config['conveyance_allowance'] * ($payableDays / $actualPayableDays), 2);
             }
 
             $basicSalary = floor($adjustedSalary * ($config['basic_percentage'] / 100) * 100) / 100;
@@ -393,6 +415,7 @@ $app->post('/api/admin/payroll/generate-bulk', function (Request $request, Respo
                 'dateJoined' => !empty($employee['joinDate']) ? date('d M Y', strtotime($employee['joinDate'])) : 'N/A',
                 'designation' => $employee['position'] ?? '',
                 'monthlySalary' => $salary,
+                'actualPayableDays' => $actualPayableDays,
                 'totalWorkingDays' => $totalWorkingDays,
                 'lossOfPayDays' => $lossOfPayDays,
                 'daysPayable' => $payableDays,
@@ -430,6 +453,17 @@ $app->post('/api/admin/payroll/generate-bulk', function (Request $request, Respo
         'successCount' => $successCount,
         'errors' => $errors
     ]));
+    return $response->withHeader('Content-Type', 'application/json');
+})->add(new AuthMiddleware(['admin'], 'payroll'));
+
+// Delete payslip
+$app->delete('/api/admin/payroll/{id}', function (Request $request, Response $response, $args) {
+    $id = $args['id'];
+    $db = new Database();
+    $conn = $db->getConnection();
+    $stmt = $conn->prepare('DELETE FROM payslips WHERE id = ?');
+    $stmt->execute([$id]);
+    $response->getBody()->write(json_encode(['message' => 'Payslip deleted successfully']));
     return $response->withHeader('Content-Type', 'application/json');
 })->add(new AuthMiddleware(['admin'], 'payroll'));
 
