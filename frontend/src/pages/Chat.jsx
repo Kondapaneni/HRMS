@@ -9,26 +9,6 @@ import { format, isToday, isYesterday } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import EmojiPicker from 'emoji-picker-react';
 
-const BackgroundOrbs = () => (
-  <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-    <motion.div
-      animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
-      transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-      className="absolute -top-20 -left-10 w-72 h-72 bg-[#ff928b] rounded-full mix-blend-multiply filter blur-[60px] opacity-20 pointer-events-none"
-    />
-    <motion.div
-      animate={{ scale: [1, 1.4, 1], x: [0, -40, 0], y: [0, 50, 0] }}
-      transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-      className="absolute -top-10 -right-10 w-64 h-64 bg-[#7bdff2] rounded-full mix-blend-multiply filter blur-[60px] opacity-20 pointer-events-none"
-    />
-    <motion.div
-      animate={{ scale: [1, 1.3, 1], x: [0, 30, 0], y: [0, -40, 0] }}
-      transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-      className="absolute bottom-0 left-20 w-80 h-80 bg-[#84dcc6] rounded-full mix-blend-multiply filter blur-[70px] opacity-20 pointer-events-none"
-    />
-  </div>
-);
-
 export default function Chat() {
   const { profile } = useAuth();
   const queryClient = useQueryClient();
@@ -601,7 +581,7 @@ export default function Chat() {
     const readCount = (msg.readBy || []).filter(id => id !== profile.id).length;
 
     if (readCount > 0 && readCount >= numOtherParticipants) {
-      return <CheckCheck size={14} className="text-[#53bdeb] ml-1 inline-block shrink-0" />;
+      return <CheckCheck size={14} className="text-blue-500 ml-1 inline-block shrink-0" />;
     } else {
       return <CheckCheck size={14} className="text-slate-400 ml-1 inline-block shrink-0" />;
     }
@@ -627,13 +607,12 @@ export default function Chat() {
     return format(date, 'dd/MM/yyyy');
   };
 
-  // WhatsApp clone layout
+  // Acme HRMS Layout
   return (
-    <div className="flex h-[calc(100vh-3.5rem)] bg-transparent font-sans -m-4 sm:-m-6 relative z-10 overflow-hidden">
-      <BackgroundOrbs />
-
+    <div className="flex h-[calc(100vh-8rem)] bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden font-sans relative z-10">
+      
       {/* Sidebar */}
-      <div className={`w-full md:w-80 lg:w-96 flex flex-col bg-white/80 backdrop-blur-md border-r border-slate-200 shrink-0 ${activeChat || showNewChat ? 'hidden md:flex' : 'flex'}`}>
+      <div className={`w-full md:w-80 lg:w-96 flex flex-col bg-white border-r border-slate-200 shrink-0 ${activeChat || showNewChat ? 'hidden md:flex' : 'flex'}`}>
 
         {/* Profile / Actions Header */}
         <div className="h-16 bg-slate-50/50 flex items-center justify-between px-4 border-b border-slate-200 shrink-0">
@@ -688,7 +667,7 @@ export default function Chat() {
                 <div className="flex justify-between items-baseline mb-1">
                   <h3 className="text-slate-900 font-medium truncate">{getChatName(chat)}</h3>
                   {chat.last_message && (
-                    <span className={`text-xs shrink-0 ml-2 ${chat.unread_count > 0 ? 'text-[#25d366] font-semibold' : 'text-slate-500'}`}>
+                    <span className={`text-xs shrink-0 ml-2 ${chat.unread_count > 0 ? 'text-emerald-500 font-semibold' : 'text-slate-500'}`}>
                       {getSmartTimestamp(chat.last_message.createdAt)}
                     </span>
                   )}
@@ -698,7 +677,7 @@ export default function Chat() {
                     {getDecryptedLastMessage(chat)}
                   </p>
                   {chat.unread_count > 0 && (
-                    <span className="bg-[#25d366] text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shrink-0">
+                    <span className="bg-blue-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shrink-0">
                       {chat.unread_count}
                     </span>
                   )}
@@ -735,7 +714,7 @@ export default function Chat() {
         ) : showNewChat ? (
           /* New Chat Selection Pane */
           <div className="flex-1 bg-white relative z-10 flex flex-col">
-            <div className="h-16 bg-[#008069] text-white flex items-center px-4 shrink-0 shadow-sm z-20">
+            <div className="h-16 bg-blue-600 text-white flex items-center px-4 shrink-0 shadow-sm z-20">
               <button
                 onClick={() => {
                   if (isCreatingGroup) {
@@ -761,7 +740,7 @@ export default function Chat() {
                       <button
                         onClick={() => setGroupCreationStep(2)}
                         disabled={selectedGroupParticipants.length === 0}
-                        className="text-[#008069] font-bold disabled:opacity-50"
+                        className="text-blue-600 font-bold disabled:opacity-50"
                       >
                         Next
                       </button>
@@ -786,7 +765,7 @@ export default function Chat() {
                             <div className="font-bold text-slate-800 text-lg">{u.firstName} {u.lastName}</div>
                             <div className="text-sm text-slate-500">{u.designation || 'Employee'}</div>
                           </div>
-                          <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${selectedGroupParticipants.includes(u.id) ? 'bg-[#008069] border-[#008069]' : 'border-slate-300'}`}>
+                          <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${selectedGroupParticipants.includes(u.id) ? 'bg-blue-600 border-blue-600' : 'border-slate-300'}`}>
                             {selectedGroupParticipants.includes(u.id) && <Check size={14} className="text-white" />}
                           </div>
                         </div>
@@ -807,7 +786,7 @@ export default function Chat() {
                         value={groupName}
                         onChange={e => setGroupName(e.target.value)}
                         placeholder="Group name (optional)"
-                        className="flex-1 border-b-2 border-[#008069] px-2 py-2 outline-none font-medium text-slate-900"
+                        className="flex-1 border-b-2 border-blue-600 px-2 py-2 outline-none font-medium text-slate-900"
                       />
                     </div>
                     <div className="bg-white mt-2 border-y border-slate-100">
@@ -847,7 +826,7 @@ export default function Chat() {
                       <button
                         onClick={handleCreateGroupChat}
                         disabled={createChatMutation.isPending}
-                        className="bg-[#00a884] text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:bg-[#008f6f] disabled:opacity-50 transition-all active:scale-95"
+                        className="bg-blue-500 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:bg-[#008f6f] disabled:opacity-50 transition-all active:scale-95"
                       >
                         <Check size={28} />
                       </button>
@@ -866,19 +845,19 @@ export default function Chat() {
                               <div className="text-lg text-slate-900 font-medium mb-1">Edit group settings</div>
                               <div className="text-sm text-slate-500 leading-relaxed">This includes the group name, icon, description, disappearing message timer, advanced chat privacy, and the ability to pin, keep or unkeep messages.</div>
                             </div>
-                            <div className={`w-11 h-6 shrink-0 flex items-center rounded-full p-1 mt-1 transition-colors ${groupPermissions.editSettings ? 'bg-[#00a884]' : 'bg-slate-300'}`}>
+                            <div className={`w-11 h-6 shrink-0 flex items-center rounded-full p-1 mt-1 transition-colors ${groupPermissions.editSettings ? 'bg-blue-500' : 'bg-slate-300'}`}>
                               <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${groupPermissions.editSettings ? 'translate-x-5' : 'translate-x-0'}`} />
                             </div>
                           </div>
                           <div onClick={() => setGroupPermissions({...groupPermissions, sendMessages: !groupPermissions.sendMessages})} className="flex items-center justify-between p-4 border-b border-slate-100 cursor-pointer hover:bg-slate-50 transition-colors">
                             <div className="text-lg text-slate-900 font-medium">Send new messages</div>
-                            <div className={`w-11 h-6 shrink-0 flex items-center rounded-full p-1 transition-colors ${groupPermissions.sendMessages ? 'bg-[#00a884]' : 'bg-slate-300'}`}>
+                            <div className={`w-11 h-6 shrink-0 flex items-center rounded-full p-1 transition-colors ${groupPermissions.sendMessages ? 'bg-blue-500' : 'bg-slate-300'}`}>
                               <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${groupPermissions.sendMessages ? 'translate-x-5' : 'translate-x-0'}`} />
                             </div>
                           </div>
                           <div onClick={() => setGroupPermissions({...groupPermissions, addMembers: !groupPermissions.addMembers})} className="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-50 transition-colors">
                             <div className="text-lg text-slate-900 font-medium">Add other members</div>
-                            <div className={`w-11 h-6 shrink-0 flex items-center rounded-full p-1 transition-colors ${groupPermissions.addMembers ? 'bg-[#00a884]' : 'bg-slate-300'}`}>
+                            <div className={`w-11 h-6 shrink-0 flex items-center rounded-full p-1 transition-colors ${groupPermissions.addMembers ? 'bg-blue-500' : 'bg-slate-300'}`}>
                               <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${groupPermissions.addMembers ? 'translate-x-5' : 'translate-x-0'}`} />
                             </div>
                           </div>
@@ -889,7 +868,7 @@ export default function Chat() {
                         <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100">
                           <div onClick={() => setGroupPermissions({...groupPermissions, approveNewMembers: !groupPermissions.approveNewMembers})} className="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-50 transition-colors">
                             <div className="text-lg text-slate-900 font-medium">Approve new members</div>
-                            <div className={`w-11 h-6 shrink-0 flex items-center rounded-full p-1 transition-colors ${groupPermissions.approveNewMembers ? 'bg-[#00a884]' : 'bg-slate-300'}`}>
+                            <div className={`w-11 h-6 shrink-0 flex items-center rounded-full p-1 transition-colors ${groupPermissions.approveNewMembers ? 'bg-blue-500' : 'bg-slate-300'}`}>
                               <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${groupPermissions.approveNewMembers ? 'translate-x-5' : 'translate-x-0'}`} />
                             </div>
                           </div>
@@ -904,12 +883,12 @@ export default function Chat() {
               <>
                 <div className="p-4 border-b border-slate-100">
                   <button onClick={() => setIsCreatingGroup(true)} className="flex items-center gap-4 w-full p-2 hover:bg-slate-50 rounded text-left">
-                    <div className="w-10 h-10 rounded-full bg-[#008069] flex items-center justify-center text-white"><Users size={20} /></div>
+                    <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white"><Users size={20} /></div>
                     <span className="font-medium">New Group</span>
                   </button>
                 </div>
                 <div className="p-4 flex-1 overflow-y-auto chat-scrollbar">
-                  <h3 className="text-[#008069] text-sm font-semibold mb-4 uppercase tracking-wider">Contacts</h3>
+                  <h3 className="text-blue-600 text-sm font-semibold mb-4 uppercase tracking-wider">Contacts</h3>
                   <div className="space-y-1">
                     {users.filter(u => u.id !== profile?.id).map(u => (
                       <button key={u.id} onClick={() => handleCreatePersonalChat(u.id)} className="flex items-center gap-3 w-full p-2 hover:bg-slate-50 rounded text-left">
@@ -949,7 +928,7 @@ export default function Chat() {
                 </div>
               </div>
               <div className="flex gap-4 text-slate-500">
-                <Search onClick={() => setShowMessageSearch(!showMessageSearch)} size={20} className={`cursor-pointer transition-colors ${showMessageSearch ? 'text-[#008069]' : 'hover:text-slate-700'}`} />
+                <Search onClick={() => setShowMessageSearch(!showMessageSearch)} size={20} className={`cursor-pointer transition-colors ${showMessageSearch ? 'text-blue-600' : 'hover:text-slate-700'}`} />
                 <MoreVertical onClick={() => setShowContactInfo(!showContactInfo)} size={20} className="cursor-pointer hover:text-slate-700" />
               </div>
             </div>
@@ -1016,12 +995,12 @@ export default function Chat() {
                               setMessageReadByDialog({ isOpen: true, message: msg });
                             }
                           }}
-                          className={`max-w-[75%] md:max-w-[65%] rounded-lg px-3 py-2 pb-1 shadow-sm relative ${isMine ? 'bg-[#d9fdd3] rounded-tr-none cursor-pointer hover:bg-[#cbf0c4] active:bg-[#cbf0c4] transition-colors' : 'bg-white rounded-tl-none'}`}
+                          className={`max-w-[75%] md:max-w-[65%] rounded-2xl px-3 py-2 pb-1 shadow-sm relative ${isMine ? 'bg-blue-600 text-white rounded-tr-sm cursor-pointer hover:bg-blue-700 active:bg-blue-700 transition-colors' : 'bg-slate-100 rounded-tl-sm border border-slate-200'}`}
                         >
                           {!isMine && activeChat.type === 'group' && (
                             <div className="text-xs font-bold text-blue-500 mb-1">{sender?.firstName}</div>
                           )}
-                          <div className="text-sm text-slate-800 whitespace-pre-wrap break-words pr-14 pb-2">
+                          <div className={`text-sm whitespace-pre-wrap break-words pr-14 pb-2 ${isMine ? 'text-white' : 'text-slate-800'}`}>
                             {msg.attachmentUrl && (
                               <div className="mb-2 w-full max-w-xs md:max-w-md">
                                 {msg.attachmentType?.startsWith('image/') ? (
@@ -1042,7 +1021,7 @@ export default function Chat() {
                             )}
                             {msg.content}
                           </div>
-                          <div className="text-[10px] text-slate-400 text-right absolute bottom-1 right-2 flex items-center justify-end">
+                          <div className={`text-[10px] text-right absolute bottom-1 right-2 flex items-center justify-end ${isMine ? 'text-blue-100' : 'text-slate-400'}`}>
                             {format(new Date(msg.createdAt), 'HH:mm')}
                             {isMine && renderMessageTicks(msg)}
                           </div>
@@ -1116,7 +1095,7 @@ export default function Chat() {
                 <button
                   onClick={handleSendMessage}
                   disabled={(!messageText.trim() && !attachment) || sendMessageMutation.isPending}
-                  className={`w-11 h-11 mb-1 rounded-full flex items-center justify-center shrink-0 transition-all ${messageText.trim() || attachment ? 'bg-[#00a884] text-white hover:bg-[#008f6f] shadow-md scale-100' : 'bg-slate-200 text-slate-400 cursor-not-allowed scale-95'}`}
+                  className={`w-11 h-11 mb-1 rounded-full flex items-center justify-center shrink-0 transition-all ${messageText.trim() || attachment ? 'bg-blue-500 text-white hover:bg-[#008f6f] shadow-md scale-100' : 'bg-slate-200 text-slate-400 cursor-not-allowed scale-95'}`}
                 >
                   <Send size={18} />
                 </button>
@@ -1207,7 +1186,7 @@ export default function Chat() {
             </div>
 
             <div className="bg-white p-4 shadow-sm mb-2 text-slate-800">
-               <div className="text-[#008069] text-xs font-semibold uppercase tracking-wider mb-2">About and phone number</div>
+               <div className="text-blue-600 text-xs font-semibold uppercase tracking-wider mb-2">About and phone number</div>
                <div className="text-md mb-1 font-medium">Available on Acme Chat</div>
                <div className="text-sm text-slate-500 mb-4">About</div>
                <div className="border-t border-slate-100 pt-3 text-md font-medium">
@@ -1220,7 +1199,7 @@ export default function Chat() {
               const amIAdmin = activeChat.admin_ids?.includes(profile?.id);
               return (
               <div className="bg-white p-4 shadow-sm mb-2 text-slate-800">
-                <div className="text-[#008069] text-xs font-semibold uppercase tracking-wider mb-3">Group Settings</div>
+                <div className="text-blue-600 text-xs font-semibold uppercase tracking-wider mb-3">Group Settings</div>
                 <div className="space-y-1">
                   <div 
                     onClick={() => handleTogglePermission('editSettings')}
@@ -1232,7 +1211,7 @@ export default function Chat() {
                         {activeChat.permissions?.editSettings ? 'All Members' : 'Admins Only'}
                       </span>
                       {amIAdmin && (
-                        <div className={`w-9 h-5 shrink-0 flex items-center rounded-full p-0.5 transition-colors ${activeChat.permissions?.editSettings ? 'bg-[#00a884]' : 'bg-slate-300'}`}>
+                        <div className={`w-9 h-5 shrink-0 flex items-center rounded-full p-0.5 transition-colors ${activeChat.permissions?.editSettings ? 'bg-blue-500' : 'bg-slate-300'}`}>
                           <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${activeChat.permissions?.editSettings ? 'translate-x-4' : 'translate-x-0'}`} />
                         </div>
                       )}
@@ -1248,7 +1227,7 @@ export default function Chat() {
                         {activeChat.permissions?.sendMessages ? 'All Members' : 'Admins Only'}
                       </span>
                       {amIAdmin && (
-                        <div className={`w-9 h-5 shrink-0 flex items-center rounded-full p-0.5 transition-colors ${activeChat.permissions?.sendMessages ? 'bg-[#00a884]' : 'bg-slate-300'}`}>
+                        <div className={`w-9 h-5 shrink-0 flex items-center rounded-full p-0.5 transition-colors ${activeChat.permissions?.sendMessages ? 'bg-blue-500' : 'bg-slate-300'}`}>
                           <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${activeChat.permissions?.sendMessages ? 'translate-x-4' : 'translate-x-0'}`} />
                         </div>
                       )}
@@ -1264,7 +1243,7 @@ export default function Chat() {
                         {activeChat.permissions?.addMembers ? 'All Members' : 'Admins Only'}
                       </span>
                       {amIAdmin && (
-                        <div className={`w-9 h-5 shrink-0 flex items-center rounded-full p-0.5 transition-colors ${activeChat.permissions?.addMembers ? 'bg-[#00a884]' : 'bg-slate-300'}`}>
+                        <div className={`w-9 h-5 shrink-0 flex items-center rounded-full p-0.5 transition-colors ${activeChat.permissions?.addMembers ? 'bg-blue-500' : 'bg-slate-300'}`}>
                           <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${activeChat.permissions?.addMembers ? 'translate-x-4' : 'translate-x-0'}`} />
                         </div>
                       )}
@@ -1280,7 +1259,7 @@ export default function Chat() {
                         {activeChat.permissions?.approveNewMembers ? 'On' : 'Off'}
                       </span>
                       {amIAdmin && (
-                        <div className={`w-9 h-5 shrink-0 flex items-center rounded-full p-0.5 transition-colors ${activeChat.permissions?.approveNewMembers ? 'bg-[#00a884]' : 'bg-slate-300'}`}>
+                        <div className={`w-9 h-5 shrink-0 flex items-center rounded-full p-0.5 transition-colors ${activeChat.permissions?.approveNewMembers ? 'bg-blue-500' : 'bg-slate-300'}`}>
                           <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${activeChat.permissions?.approveNewMembers ? 'translate-x-4' : 'translate-x-0'}`} />
                         </div>
                       )}
@@ -1296,7 +1275,7 @@ export default function Chat() {
               if (!amIAdmin) return null;
               return (
                 <div className="bg-white p-4 shadow-sm mb-2 text-slate-800">
-                  <div className="text-[#008069] text-xs font-semibold uppercase tracking-wider mb-3">Pending Approvals</div>
+                  <div className="text-blue-600 text-xs font-semibold uppercase tracking-wider mb-3">Pending Approvals</div>
                   {activeChat.pending_participants?.length > 0 ? (
                     <div className="space-y-2">
                       {activeChat.pending_participants.map(uid => {
@@ -1336,10 +1315,10 @@ export default function Chat() {
               return (
               <div className="bg-white shadow-sm mb-2">
                 <div className="p-4 border-b border-slate-100 flex justify-between items-center">
-                  <div className="text-[#008069] text-xs font-semibold uppercase tracking-wider">Participants</div>
+                  <div className="text-blue-600 text-xs font-semibold uppercase tracking-wider">Participants</div>
                   <div className="flex gap-2">
                     {canAdd && (
-                      <button onClick={() => setAddMembersDialog(true)} className="text-xs text-[#008069] font-semibold flex items-center hover:bg-slate-50 px-2 py-1 rounded transition-colors border border-slate-200">
+                      <button onClick={() => setAddMembersDialog(true)} className="text-xs text-blue-600 font-semibold flex items-center hover:bg-slate-50 px-2 py-1 rounded transition-colors border border-slate-200">
                         <UserPlus size={14} className="mr-1" /> Add
                       </button>
                     )}
@@ -1367,7 +1346,7 @@ export default function Chat() {
                         <div className="text-xs text-slate-500 truncate">{p.designation || 'Employee'}</div>
                       </div>
                       {activeChat.admin_ids?.includes(p.id) && (
-                        <span className="text-[10px] bg-emerald-100 text-[#008069] px-2 py-0.5 rounded border border-emerald-200 font-bold">Admin</span>
+                        <span className="text-[10px] bg-emerald-100 text-blue-600 px-2 py-0.5 rounded border border-emerald-200 font-bold">Admin</span>
                       )}
                     </div>
                     );
@@ -1437,7 +1416,7 @@ export default function Chat() {
                     setAdminToggleDialog({ isOpen: false, targetUser: null, isCurrentlyAdmin: false });
                   }} className="w-full px-4 py-3 bg-slate-50 hover:bg-slate-100 text-slate-700 font-medium rounded-lg transition-colors border border-slate-200 text-left flex justify-between items-center">
                     <span>{adminToggleDialog.isCurrentlyAdmin ? 'Remove Admin Privileges' : 'Make Group Admin'}</span>
-                    <Shield size={18} className={adminToggleDialog.isCurrentlyAdmin ? 'text-slate-400' : 'text-[#008069]'} />
+                    <Shield size={18} className={adminToggleDialog.isCurrentlyAdmin ? 'text-slate-400' : 'text-blue-600'} />
                   </button>
                   
                   <button onClick={() => {
@@ -1473,7 +1452,7 @@ export default function Chat() {
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden flex flex-col max-h-[80vh]">
               <div className="p-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
                 <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                  <CheckCheck size={20} className="text-[#53bdeb]" /> Message Info
+                  <CheckCheck size={20} className="text-blue-500" /> Message Info
                 </h3>
                 <button onClick={() => setMessageReadByDialog({ isOpen: false, message: null })} className="text-slate-400 hover:text-slate-600 transition-colors">
                   <X size={20} />
@@ -1481,16 +1460,16 @@ export default function Chat() {
               </div>
               
               <div className="p-4 border-b border-slate-100 bg-white">
-                <div className="bg-[#d9fdd3] p-3 rounded-lg text-sm text-slate-800 shadow-sm relative">
+                <div className="bg-blue-600 text-white p-3 rounded-lg text-sm shadow-sm relative">
                   <div className="whitespace-pre-wrap break-words">{messageReadByDialog.message.content || (messageReadByDialog.message.attachmentUrl ? '📎 Attachment' : 'Message')}</div>
-                  <div className="text-[10px] text-slate-500 text-right mt-1">
+                  <div className="text-[10px] text-blue-100 text-right mt-1">
                     {format(new Date(messageReadByDialog.message.createdAt), 'HH:mm')}
                   </div>
                 </div>
               </div>
 
               <div className="p-2 overflow-y-auto chat-scrollbar flex-1">
-                <div className="px-3 py-2 text-xs font-semibold text-[#008069] uppercase tracking-wider">Read by</div>
+                <div className="px-3 py-2 text-xs font-semibold text-blue-600 uppercase tracking-wider">Read by</div>
                 {(() => {
                   const readByIds = (messageReadByDialog.message.readBy || []).filter(id => id !== profile?.id);
                   if (readByIds.length === 0) {
@@ -1509,7 +1488,7 @@ export default function Chat() {
                           <div className="font-medium text-slate-800">{u.firstName} {u.lastName}</div>
                           <div className="text-xs text-slate-500">{u.designation || 'Employee'}</div>
                         </div>
-                        <CheckCheck size={16} className="text-[#53bdeb]" />
+                        <CheckCheck size={16} className="text-blue-500" />
                       </div>
                     );
                   });
@@ -1583,7 +1562,7 @@ export default function Chat() {
                       }
                     }} 
                     disabled={!renameDialog.name.trim() || renameGroupMutation.isPending}
-                    className="flex-1 px-4 py-2 bg-[#008069] hover:bg-[#00695c] disabled:opacity-50 text-white font-medium rounded-lg transition-colors shadow-sm"
+                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium rounded-lg transition-colors shadow-sm"
                   >
                     Save
                   </button>
@@ -1627,7 +1606,7 @@ export default function Chat() {
                       <div className="font-medium text-slate-800">{u.firstName} {u.lastName}</div>
                       <div className="text-xs text-slate-500">{u.designation || 'Employee'}</div>
                     </div>
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${selectedNewMembers.includes(u.id) ? 'bg-[#008069] border-[#008069]' : 'border-slate-300'}`}>
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${selectedNewMembers.includes(u.id) ? 'bg-blue-600 border-blue-600' : 'border-slate-300'}`}>
                       {selectedNewMembers.includes(u.id) && <Check size={12} className="text-white" />}
                     </div>
                   </div>
@@ -1648,7 +1627,7 @@ export default function Chat() {
                 <button 
                   onClick={() => addMembersMutation.mutate({ chatId: activeChat.id, userIds: selectedNewMembers })}
                   disabled={selectedNewMembers.length === 0 || addMembersMutation.isPending}
-                  className="flex-1 px-4 py-2 bg-[#008069] hover:bg-[#00695c] disabled:opacity-50 text-white font-medium rounded-lg transition-colors shadow-sm"
+                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium rounded-lg transition-colors shadow-sm"
                 >
                   Add {selectedNewMembers.length > 0 ? `(${selectedNewMembers.length})` : ''}
                 </button>
