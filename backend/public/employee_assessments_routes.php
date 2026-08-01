@@ -56,25 +56,17 @@ $app->get('/api/employee/assessments', function (Request $request, Response $res
         // 3. Merge and return only explicit required columns
         $assessments = [];
         foreach ($metaList as $meta) {
-            $assignedIds = null;
-            if ($meta['assigned_employee_ids'] !== null) {
+            $assignedIds = [];
+            if (!empty($meta['assigned_employee_ids'])) {
                 $decoded = json_decode($meta['assigned_employee_ids'], true);
                 if (is_array($decoded)) {
                     $assignedIds = $decoded;
                 }
             }
 
-            if ($assignedIds !== null) {
-                // If specific employees are assigned (even 0), ONLY they get access
-                if (!in_array($user->id, $assignedIds)) {
-                    continue;
-                }
-            } else {
-                // Fallback to department access ONLY for legacy assessments where column is null
-                $aDept = trim((string)($meta['department'] ?? 'General'));
-                if ($aDept !== '' && $aDept !== 'General' && $aDept !== 'All' && $aDept !== 'General / All' && strcasecmp($aDept, $userDept) !== 0) {
-                    continue;
-                }
+            // Only employees specifically assigned get access
+            if (!in_array($user->id, $assignedIds)) {
+                continue;
             }
 
             $att = $attemptsData[$meta['id']] ?? null;
@@ -162,29 +154,17 @@ $app->post('/api/employee/assessments/{id}/start', function (Request $request, R
         }
 
         // Check if explicitly assigned to this employee
-        $assignedIds = null;
-        if ($assessment['assigned_employee_ids'] !== null) {
+        $assignedIds = [];
+        if (!empty($assessment['assigned_employee_ids'])) {
             $decoded = json_decode($assessment['assigned_employee_ids'], true);
             if (is_array($decoded)) {
                 $assignedIds = $decoded;
             }
         }
         
-        if ($assignedIds !== null) {
-            if (!in_array($user->id, $assignedIds)) {
-                $response->getBody()->write(json_encode(['error' => 'You are not assigned to this assessment']));
-                return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
-            }
-        } else {
-            // Fallback to department check for legacy assessments
-            $stmtUser = $conn->prepare('SELECT department FROM users WHERE id = ?');
-            $stmtUser->execute([$user->id]);
-            $userDept = trim((string)$stmtUser->fetchColumn());
-            $aDept = trim((string)($assessment['department'] ?? 'General'));
-            if ($aDept !== '' && $aDept !== 'General' && $aDept !== 'All' && $aDept !== 'General / All' && strcasecmp($aDept, $userDept) !== 0) {
-                $response->getBody()->write(json_encode(['error' => 'You do not have access to this department\'s assessment']));
-                return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
-            }
+        if (!in_array($user->id, $assignedIds)) {
+            $response->getBody()->write(json_encode(['error' => 'You are not assigned to this assessment']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
         }
 
         // Enforce Assessment Date if specified
