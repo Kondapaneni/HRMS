@@ -13,6 +13,8 @@ import AdminDashboard from './pages/AdminDashboard'
 import EmployeeDashboard from './pages/EmployeeDashboard'
 import EmployeeLayout from './components/EmployeeLayout'
 import EmployeeAttendance from './pages/EmployeeAttendance'
+import EmployeeMobileAttendance from './pages/EmployeeMobileAttendance';
+import EmployeeHolidays from './pages/EmployeeHolidays';
 import EmployeeLeaves from './pages/EmployeeLeaves'
 import EmployeeApplyLeavePage from './pages/EmployeeApplyLeavePage'
 import EmployeePayroll from './pages/EmployeePayroll'
@@ -189,6 +191,7 @@ function App() {
               >
                 <Route index element={<EmployeeDashboard />} />
                 <Route path="attendance" element={<EmployeeAttendance />} />
+                <Route path="holidays" element={<EmployeeHolidays />} />
                 <Route path="leaves" element={<EmployeeLeaves />} />
                 <Route path="leaves/apply" element={<EmployeeApplyLeavePage />} />
                 <Route path="expenses" element={<EmployeeExpenses />} />
