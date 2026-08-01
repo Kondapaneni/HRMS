@@ -108,7 +108,7 @@ const EmployeeMobileExpenses = () => {
               <input type="text" required value={title} onChange={(e) => setTitle(e.target.value)} className="w-full px-4 py-3.5 bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all outline-none" placeholder="E.g. Taxi to Airport" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Amount ($)</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Amount (₹)</label>
               <input type="number" step="0.01" min="0" required value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full px-4 py-3.5 bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all outline-none" placeholder="0.00" />
             </div>
             <div>
@@ -231,7 +231,7 @@ const EmployeeMobileExpenses = () => {
                     </div>
                   </div>
                   <div className="text-right">
-                    <span className="font-black text-slate-900 text-lg">${parseFloat(exp.amount).toFixed(2)}</span>
+                    <span className="font-black text-slate-900 text-lg">₹{parseFloat(exp.amount).toFixed(2)}</span>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{exp.category}</p>
                   </div>
                 </div>

@@ -184,7 +184,7 @@ const EmployeeExpenses = () => {
                             {exp.category}
                           </td>
                           <td className="p-3 text-slate-700 font-medium">
-                            ${parseFloat(exp.amount).toFixed(2)}
+                            ₹{parseFloat(exp.amount).toFixed(2)}
                           </td>
                           <td className="p-3">
                             {getStatusBadge(exp.status)}
@@ -234,7 +234,7 @@ const EmployeeExpenses = () => {
                     <input type="text" required value={title} onChange={(e) => setTitle(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="E.g. Client Lunch" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Amount ($) *</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Amount (₹) *</label>
                     <input type="number" step="0.01" min="0" required value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="0.00" />
                   </div>
                   <div>

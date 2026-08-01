@@ -141,7 +141,7 @@ const AdminExpenses = () => {
                         {exp.category}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-900">
-                        ${parseFloat(exp.amount).toFixed(2)}
+                        ₹{parseFloat(exp.amount).toFixed(2)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {getStatusBadge(exp.status)}
@@ -188,7 +188,7 @@ const AdminExpenses = () => {
 
             <div className="p-6">
               <p className="text-sm text-slate-600 mb-4">
-                You are about to {actionType.toLowerCase()} an expense of <strong>${parseFloat(selectedExpense?.amount).toFixed(2)}</strong> from <strong>{selectedExpense?.firstName} {selectedExpense?.lastName}</strong>.
+                You are about to {actionType.toLowerCase()} an expense of <strong>₹{parseFloat(selectedExpense?.amount).toFixed(2)}</strong> from <strong>{selectedExpense?.firstName} {selectedExpense?.lastName}</strong>.
               </p>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Remarks (Optional)</label>
