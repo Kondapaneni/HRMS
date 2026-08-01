@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import {
   HelpCircle, ArrowLeft, ArrowRight, CheckCircle2, Shield, Clock, Award,
   Building2, CheckSquare, Disc, Filter, Layers, Check, Sparkles, RefreshCw,
-  AlertCircle, Eye, Lock, FileText
+  AlertCircle, Eye, Lock, FileText, Users
 } from 'lucide-react';
 import PageLoader from '../components/PageLoader';
 
@@ -47,8 +47,11 @@ const AssessmentCreatePage = () => {
     randomize_options: true,
     result_visibility: 'immediate',
     assessment_date: '',
-    status: 'Active'
+    status: 'Active',
+    assigned_employee_ids: []
   });
+
+  const [searchEmployee, setSearchEmployee] = useState('');
 
   // Fetch question bank
   const { data: questionBank = [], isLoading: loadingQuestions } = useQuery({
@@ -59,6 +62,15 @@ const AssessmentCreatePage = () => {
         : `/admin/questions?department=${encodeURIComponent(selectedDeptFilter)}`;
       const res = await api.get(url);
       return res.data?.data || res.data || [];
+    }
+  });
+
+  // Fetch employees for assignment
+  const { data: employees = [], isLoading: loadingEmployees } = useQuery({
+    queryKey: ['adminEmployeesForAssignment'],
+    queryFn: async () => {
+      const res = await api.get('/admin/employees');
+      return res.data || [];
     }
   });
 
@@ -85,7 +97,8 @@ const AssessmentCreatePage = () => {
         randomize_options: existingAssessment.randomize_options === true || existingAssessment.randomize_options === 'true' || existingAssessment.randomize_options === 1,
         result_visibility: existingAssessment.result_visibility || 'immediate',
         assessment_date: existingAssessment.assessment_date || '',
-        status: existingAssessment.status || 'Active'
+        status: existingAssessment.status || 'Active',
+        assigned_employee_ids: existingAssessment.assigned_employee_ids || []
       });
 
       // Restore selected question IDs
@@ -160,7 +173,7 @@ const AssessmentCreatePage = () => {
     saveMutation.mutate(payload);
   };
 
-  if (loadingQuestions || loadingAssessment) return <PageLoader />;
+  if (loadingQuestions || loadingAssessment || loadingEmployees) return <PageLoader />;
 
   const totalMarks = selectedIds.length * (parseInt(form.marks_per_question) || 1);
 
@@ -213,7 +226,7 @@ const AssessmentCreatePage = () => {
               disabled={selectedIds.length === 0}
               className="px-5 py-2.5 bg-blue-600 text-white font-bold text-xs rounded-md hover:bg-blue-700 transition cursor-pointer shrink-0 shadow-sm disabled:opacity-50 flex items-center gap-2 self-start sm:self-auto"
             >
-              <span>Next: Set Info & Rules ({selectedIds.length})</span>
+              <span>Next: Assign Employees</span>
               <ArrowRight size={14} />
             </button>
           </div>
@@ -347,27 +360,193 @@ const AssessmentCreatePage = () => {
       )}
 
       {/* ========================================================= */}
-      {/* STEP 2: CONFIGURE BASIC INFORMATION & RULES */}
+      {/* STEP 2: ASSIGN EMPLOYEES */}
       {/* ========================================================= */}
       {step === 2 && (
+        <div className="space-y-5 animate-in fade-in duration-300">
+          <div className="bg-purple-50/70 border border-purple-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm text-purple-950">
+            <div className="flex items-start gap-3">
+              <Users className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold">Step 2: Assign Specific Employees (Optional)</p>
+                <p className="text-xs text-purple-800/80 mt-0.5">
+                  Select specific employees to assign this assessment to. If no employees are selected, the assessment will be assigned to all employees in the selected department (configured in Step 3).
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+              <button
+                onClick={() => setStep(1)}
+                className="px-5 py-2.5 bg-white text-purple-800 border border-purple-300 font-bold text-xs rounded-md hover:bg-purple-100 transition cursor-pointer flex items-center justify-center gap-2 shadow-sm"
+              >
+                <ArrowLeft size={14} />
+                <span>Back</span>
+              </button>
+              <button
+                onClick={() => setStep(3)}
+                className="px-5 py-2.5 bg-purple-600 text-white font-bold text-xs rounded-md hover:bg-purple-700 transition cursor-pointer shadow-sm flex items-center gap-2"
+              >
+                <span>Next: Set Info & Rules</span>
+                <ArrowRight size={14} />
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
+            <div className="p-4 border-b border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row gap-4 justify-between items-center">
+              <div className="relative w-full sm:w-72">
+                <input
+                  type="text"
+                  placeholder="Search employees..."
+                  value={searchEmployee}
+                  onChange={e => setSearchEmployee(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all outline-none"
+                />
+                <Filter className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-slate-500">{form.assigned_employee_ids.length} selected</span>
+                <button
+                  onClick={() => setForm(f => ({ ...f, assigned_employee_ids: [] }))}
+                  className="text-xs font-bold text-rose-600 hover:text-rose-700 px-3 py-1.5 bg-rose-50 rounded-lg transition"
+                >
+                  Clear Selection
+                </button>
+              </div>
+            </div>
+
+            <div className="max-h-[400px] overflow-y-auto">
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
+                  <tr>
+                    <th className="px-6 py-3 text-xs font-extrabold text-slate-500 uppercase tracking-wider w-14">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const filtered = employees.filter(e => {
+                            if (!searchEmployee) return true;
+                            const s = searchEmployee.toLowerCase();
+                            return (e.firstName?.toLowerCase().includes(s) || e.lastName?.toLowerCase().includes(s) || e.email?.toLowerCase().includes(s));
+                          }).map(e => e.userId);
+                          
+                          const allSelected = filtered.every(id => form.assigned_employee_ids.includes(id));
+                          if (allSelected) {
+                            setForm(f => ({ ...f, assigned_employee_ids: f.assigned_employee_ids.filter(id => !filtered.includes(id)) }));
+                          } else {
+                            const newIds = Array.from(new Set([...form.assigned_employee_ids, ...filtered]));
+                            setForm(f => ({ ...f, assigned_employee_ids: newIds }));
+                          }
+                        }}
+                        className={`w-5 h-5 rounded flex items-center justify-center border transition-colors ${
+                          employees.length > 0 && employees.filter(e => {
+                            if (!searchEmployee) return true;
+                            const s = searchEmployee.toLowerCase();
+                            return (e.firstName?.toLowerCase().includes(s) || e.lastName?.toLowerCase().includes(s) || e.email?.toLowerCase().includes(s));
+                          }).every(e => form.assigned_employee_ids.includes(e.userId))
+                            ? 'bg-purple-600 border-purple-600'
+                            : 'border-slate-300 hover:border-purple-400 bg-white'
+                        }`}
+                      >
+                        <Check size={14} className="text-white" />
+                      </button>
+                    </th>
+                    <th className="px-6 py-3 text-xs font-extrabold text-slate-500 uppercase tracking-wider">Employee</th>
+                    <th className="px-6 py-3 text-xs font-extrabold text-slate-500 uppercase tracking-wider">Department</th>
+                    <th className="px-6 py-3 text-xs font-extrabold text-slate-500 uppercase tracking-wider">Role</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {employees.filter(e => {
+                    if (!searchEmployee) return true;
+                    const s = searchEmployee.toLowerCase();
+                    return (e.firstName?.toLowerCase().includes(s) || e.lastName?.toLowerCase().includes(s) || e.email?.toLowerCase().includes(s));
+                  }).map((emp) => {
+                    const isSelected = form.assigned_employee_ids.includes(emp.userId);
+                    return (
+                      <tr 
+                        key={emp.id} 
+                        className={`hover:bg-slate-50/80 transition-colors cursor-pointer ${isSelected ? 'bg-purple-50/30' : ''}`}
+                        onClick={() => {
+                          setForm(f => {
+                            if (isSelected) {
+                              return { ...f, assigned_employee_ids: f.assigned_employee_ids.filter(id => id !== emp.userId) };
+                            } else {
+                              return { ...f, assigned_employee_ids: [...f.assigned_employee_ids, emp.userId] };
+                            }
+                          });
+                        }}
+                      >
+                        <td className="px-6 py-3">
+                          <div className={`w-5 h-5 rounded flex items-center justify-center border transition-colors ${
+                            isSelected
+                              ? 'bg-purple-600 border-purple-600'
+                              : 'border-slate-300 bg-white'
+                          }`}>
+                            <Check size={14} className="text-white" />
+                          </div>
+                        </td>
+                        <td className="px-6 py-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-xs shrink-0 uppercase">
+                              {(emp.firstName?.[0] || '') + (emp.lastName?.[0] || '')}
+                            </div>
+                            <div>
+                              <p className="font-bold text-sm text-slate-900">{emp.firstName} {emp.lastName}</p>
+                              <p className="text-xs text-slate-500">{emp.email}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-3">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-bold bg-slate-100 text-slate-700">
+                            {emp.department || 'N/A'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-3 text-xs font-medium text-slate-600">
+                          {emp.position || 'N/A'}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {employees.filter(e => {
+                    if (!searchEmployee) return true;
+                    const s = searchEmployee.toLowerCase();
+                    return (e.firstName?.toLowerCase().includes(s) || e.lastName?.toLowerCase().includes(s) || e.email?.toLowerCase().includes(s));
+                  }).length === 0 && (
+                    <tr>
+                      <td colSpan="4" className="px-6 py-14 text-center text-slate-500">
+                        <p className="font-semibold text-slate-700">No employees found matching "{searchEmployee}"</p>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* STEP 3: CONFIGURE BASIC INFORMATION & RULES */}
+      {/* ========================================================= */}
+      {step === 3 && (
         <form onSubmit={handleSubmit} className="space-y-6 animate-in fade-in duration-300">
           <div className="bg-emerald-50/70 border border-emerald-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm text-emerald-950">
             <div className="flex items-start gap-3">
               <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
               <div>
-                <p className="font-bold">Step 2: Basic Information & Assessment Rules</p>
+                <p className="font-bold">Step 3: Basic Information & Assessment Rules</p>
                 <p className="text-xs text-emerald-800/80 mt-0.5">
-                  You have linked <span className="font-bold underline">{selectedIds.length} questions</span> to this assessment. Configure the timing, grading weights, and security rules below.
+                  You have linked <span className="font-bold underline">{selectedIds.length} questions</span> and <span className="font-bold underline">{form.assigned_employee_ids.length > 0 ? `${form.assigned_employee_ids.length} employees` : 'a department'}</span> to this assessment. Configure the timing, grading weights, and security rules below.
                 </p>
               </div>
             </div>
             <button
               type="button"
-              onClick={() => setStep(1)}
+              onClick={() => setStep(2)}
               className="px-5 py-2.5 bg-white text-emerald-800 border border-emerald-300 font-bold text-xs rounded-md hover:bg-emerald-100 transition cursor-pointer shrink-0 shadow-sm flex items-center justify-center gap-2 self-start sm:self-auto"
             >
               <ArrowLeft size={14} />
-              <span>Change Selected Questions ({selectedIds.length})</span>
+              <span>Back</span>
             </button>
           </div>
 

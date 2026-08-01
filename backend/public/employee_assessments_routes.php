@@ -26,7 +26,7 @@ $app->get('/api/employee/assessments', function (Request $request, Response $res
             $metaList = json_decode(file_get_contents($cacheFile), true);
         }
         if (!is_array($metaList)) {
-            $stmtMeta = $conn->query('SELECT id, title, department, duration_minutes, marks_per_question, max_attempts, assessment_date, created_at, status, COALESCE(questions_count, 0) AS questions_count FROM assessments WHERE status = \'Active\' ORDER BY created_at DESC');
+            $stmtMeta = $conn->query('SELECT id, title, department, duration_minutes, marks_per_question, max_attempts, assessment_date, created_at, status, COALESCE(questions_count, 0) AS questions_count, assigned_employee_ids FROM assessments WHERE status = \'Active\' ORDER BY created_at DESC');
             $metaList = $stmtMeta->fetchAll(PDO::FETCH_ASSOC);
             @file_put_contents($cacheFile, json_encode($metaList));
         }
@@ -56,9 +56,25 @@ $app->get('/api/employee/assessments', function (Request $request, Response $res
         // 3. Merge and return only explicit required columns
         $assessments = [];
         foreach ($metaList as $meta) {
-            $aDept = trim((string)($meta['department'] ?? 'General'));
-            if ($aDept !== '' && $aDept !== 'General' && $aDept !== 'All' && $aDept !== 'General / All' && strcasecmp($aDept, $userDept) !== 0) {
-                continue;
+            $assignedIds = [];
+            if (!empty($meta['assigned_employee_ids'])) {
+                $decoded = json_decode($meta['assigned_employee_ids'], true);
+                if (is_array($decoded)) {
+                    $assignedIds = $decoded;
+                }
+            }
+
+            if (!empty($assignedIds)) {
+                // If specific employees are assigned, ONLY they get access, regardless of department
+                if (!in_array($user->id, $assignedIds)) {
+                    continue;
+                }
+            } else {
+                // Fallback to department access
+                $aDept = trim((string)($meta['department'] ?? 'General'));
+                if ($aDept !== '' && $aDept !== 'General' && $aDept !== 'All' && $aDept !== 'General / All' && strcasecmp($aDept, $userDept) !== 0) {
+                    continue;
+                }
             }
 
             $att = $attemptsData[$meta['id']] ?? null;
@@ -143,6 +159,32 @@ $app->post('/api/employee/assessments/{id}/start', function (Request $request, R
         if (!$assessment) {
             $response->getBody()->write(json_encode(['error' => 'Assessment not assigned or not available']));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+        }
+
+        // Check if explicitly assigned to this employee
+        $assignedIds = [];
+        if (!empty($assessment['assigned_employee_ids'])) {
+            $decoded = json_decode($assessment['assigned_employee_ids'], true);
+            if (is_array($decoded)) {
+                $assignedIds = $decoded;
+            }
+        }
+        
+        if (!empty($assignedIds)) {
+            if (!in_array($user->id, $assignedIds)) {
+                $response->getBody()->write(json_encode(['error' => 'You are not assigned to this assessment']));
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+            }
+        } else {
+            // Fallback to department check
+            $stmtUser = $conn->prepare('SELECT department FROM users WHERE id = ?');
+            $stmtUser->execute([$user->id]);
+            $userDept = trim((string)$stmtUser->fetchColumn());
+            $aDept = trim((string)($assessment['department'] ?? 'General'));
+            if ($aDept !== '' && $aDept !== 'General' && $aDept !== 'All' && $aDept !== 'General / All' && strcasecmp($aDept, $userDept) !== 0) {
+                $response->getBody()->write(json_encode(['error' => 'You do not have access to this department\'s assessment']));
+                return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+            }
         }
 
         // Enforce Assessment Date if specified

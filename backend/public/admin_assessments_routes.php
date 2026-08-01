@@ -146,6 +146,11 @@ $app->get('/api/admin/assessments/{id}', function (Request $request, Response $r
             $decoded = json_decode($assessment['selected_questions'], true);
             if (is_array($decoded)) $assessment['selected_questions'] = $decoded;
         }
+
+        if (!empty($assessment['assigned_employee_ids']) && is_string($assessment['assigned_employee_ids'])) {
+            $decoded = json_decode($assessment['assigned_employee_ids'], true);
+            if (is_array($decoded)) $assessment['assigned_employee_ids'] = $decoded;
+        }
         $assessment['instructions'] = AssessmentConstants::DEFAULT_INSTRUCTIONS;
 
         $response->getBody()->write(json_encode($assessment));
@@ -172,6 +177,7 @@ $app->post('/api/admin/assessments', function (Request $request, Response $respo
     $visibility = $data['result_visibility'] ?? 'immediate';
     $assessmentDate = !empty($data['assessment_date']) ? trim($data['assessment_date']) : null;
     $selectedQs = json_encode($data['selected_questions'] ?? []);
+    $assignedEmployeeIds = isset($data['assigned_employee_ids']) ? json_encode($data['assigned_employee_ids']) : null;
     $status = trim($data['status'] ?? 'Active');
     $questionsCount = is_array($data['selected_questions'] ?? null) ? count($data['selected_questions']) : 0;
 
@@ -184,9 +190,9 @@ $app->post('/api/admin/assessments', function (Request $request, Response $respo
     $conn = $db->getConnection();
 
     try {
-        $sql = 'INSERT INTO assessments (title, department, duration_minutes, passing_percentage, max_attempts, marks_per_question, randomize_questions, randomize_options, result_visibility, assessment_date, selected_questions, status, questions_count, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+        $sql = 'INSERT INTO assessments (title, department, duration_minutes, passing_percentage, max_attempts, marks_per_question, randomize_questions, randomize_options, result_visibility, assessment_date, selected_questions, assigned_employee_ids, status, questions_count, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
         $stmt = $conn->prepare($sql);
-        $stmt->execute([$title, $department, $duration, $passing, $maxAttempts, $marksPerQ, $randomizeQ, $randomizeO, $visibility, $assessmentDate, $selectedQs, $status, $questionsCount, $user->id]);
+        $stmt->execute([$title, $department, $duration, $passing, $maxAttempts, $marksPerQ, $randomizeQ, $randomizeO, $visibility, $assessmentDate, $selectedQs, $assignedEmployeeIds, $status, $questionsCount, $user->id]);
         $assessmentId = $stmt->fetchColumn();
 
         @unlink(sys_get_temp_dir() . '/assessments_meta_cache.json');
@@ -215,6 +221,7 @@ $app->put('/api/admin/assessments/{id}', function (Request $request, Response $r
     $visibility = $data['result_visibility'] ?? 'immediate';
     $assessmentDate = !empty($data['assessment_date']) ? trim($data['assessment_date']) : null;
     $selectedQs = json_encode($data['selected_questions'] ?? []);
+    $assignedEmployeeIds = isset($data['assigned_employee_ids']) ? json_encode($data['assigned_employee_ids']) : null;
     $status = trim($data['status'] ?? 'Active');
     $questionsCount = is_array($data['selected_questions'] ?? null) ? count($data['selected_questions']) : 0;
 
@@ -222,9 +229,9 @@ $app->put('/api/admin/assessments/{id}', function (Request $request, Response $r
     $conn = $db->getConnection();
 
     try {
-        $sql = 'UPDATE assessments SET title = ?, department = ?, duration_minutes = ?, passing_percentage = ?, max_attempts = ?, marks_per_question = ?, randomize_questions = ?, randomize_options = ?, result_visibility = ?, assessment_date = ?, selected_questions = ?, status = ?, questions_count = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?';
+        $sql = 'UPDATE assessments SET title = ?, department = ?, duration_minutes = ?, passing_percentage = ?, max_attempts = ?, marks_per_question = ?, randomize_questions = ?, randomize_options = ?, result_visibility = ?, assessment_date = ?, selected_questions = ?, assigned_employee_ids = ?, status = ?, questions_count = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?';
         $stmt = $conn->prepare($sql);
-        $stmt->execute([$title, $department, $duration, $passing, $maxAttempts, $marksPerQ, $randomizeQ, $randomizeO, $visibility, $assessmentDate, $selectedQs, $status, $questionsCount, $id]);
+        $stmt->execute([$title, $department, $duration, $passing, $maxAttempts, $marksPerQ, $randomizeQ, $randomizeO, $visibility, $assessmentDate, $selectedQs, $assignedEmployeeIds, $status, $questionsCount, $id]);
 
         @unlink(sys_get_temp_dir() . '/assessments_meta_cache.json');
 
