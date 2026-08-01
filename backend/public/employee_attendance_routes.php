@@ -238,3 +238,36 @@ $app->get('/api/employee/geofences', function (Request $request, Response $respo
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['employee']));
+
+// Get Employee Holidays
+$app->get('/api/employee/holidays', function (Request $request, Response $response, $args) {
+    $db = new Database();
+    $conn = $db->getConnection();
+    $params = $request->getQueryParams();
+    $month = $params['month'] ?? ''; // e.g. '2026-05'
+
+    try {
+        $sql = 'SELECT "id", "holidayDate", "holidayName", "holidayImage", "isActive" FROM company_holidays WHERE "isActive" = 1';
+        $bindings = [];
+
+        if ($month) {
+            $startDate = $month . '-01';
+            $endDate = date('Y-m-d', strtotime($startDate . ' +1 month'));
+            $sql .= ' AND "holidayDate" >= ? AND "holidayDate" < ?';
+            $bindings[] = $startDate;
+            $bindings[] = $endDate;
+        }
+
+        $sql .= ' ORDER BY "holidayDate" ASC';
+
+        $stmt = $conn->prepare($sql);
+        $stmt->execute($bindings);
+        $holidays = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $response->getBody()->write(json_encode($holidays));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+    } catch (\Exception $e) {
+        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    }
+})->add(new AuthMiddleware(['employee']));

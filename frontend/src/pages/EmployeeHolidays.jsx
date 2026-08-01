@@ -16,9 +16,7 @@ const EmployeeHolidays = () => {
   const { data: holidays = [], isLoading: loading } = useQuery({
     queryKey: ['employee', 'holidays', monthStr],
     queryFn: async () => {
-      // Trying to fetch from admin endpoint, assuming no strict role guard for GET,
-      // or we can just use it.
-      const response = await api.get(`/admin/holidays?month=${monthStr}`);
+      const response = await api.get(`/employee/holidays?month=${monthStr}`);
       return response.data;
     },
     onError: () => toast.error('Failed to load holidays'),
