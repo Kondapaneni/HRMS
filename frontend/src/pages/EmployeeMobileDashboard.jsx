@@ -25,14 +25,16 @@ const EmployeeMobileDashboard = () => {
   const { data: dashboardData, isLoading: loading } = useQuery({
     queryKey: ['employee', 'dashboard'],
     queryFn: async () => {
-      const [attRes, leavesRes, perfRes, profileRes, payslipsRes, mapsRateRes, holidaysRes] = await Promise.all([
+      const [attRes, leavesRes, perfRes, profileRes, payslipsRes, mapsRateRes, holidaysRes, expensesRes, birthdaysRes] = await Promise.all([
         api.get('/employee/attendance').catch(() => ({ data: [] })),
         api.get('/employee/leaves').catch(() => ({ data: null })),
         api.get('/employee/performance').catch(() => ({ data: {} })),
         api.get('/employee/profile').catch(() => ({ data: {} })),
         api.get('/employee/payroll').catch(() => ({ data: { payslips: [] } })),
         api.get('/employee/maps-rate-limit-status').catch(() => ({ data: { locked: false } })),
-        api.get('/employee/holidays').catch(() => ({ data: [] }))
+        api.get('/employee/holidays').catch(() => ({ data: [] })),
+        api.get('/employee/expenses').catch(() => ({ data: { expenses: [] } })),
+        api.get('/employee/birthdays').catch(() => ({ data: { birthdays: [] } }))
       ]);
       return {
         attendance: attRes.data,
@@ -41,7 +43,9 @@ const EmployeeMobileDashboard = () => {
         fullProfile: profileRes.data?.profile || null,
         latestPayslip: payslipsRes.data?.payslips?.[0] || null,
         mapsRateLimit: mapsRateRes.data,
-        holidays: holidaysRes.data || []
+        holidays: holidaysRes.data || [],
+        expenses: expensesRes.data?.expenses || [],
+        birthdays: birthdaysRes.data?.birthdays || []
       };
     },
     staleTime: 30 * 1000
@@ -51,7 +55,11 @@ const EmployeeMobileDashboard = () => {
   const leaves = dashboardData?.leaves || null;
   const fullProfile = dashboardData?.fullProfile || profile;
   const holidays = dashboardData?.holidays || [];
+  const expenses = dashboardData?.expenses || [];
+  const birthdays = dashboardData?.birthdays || [];
   
+  const upcomingExpenses = expenses.slice(0, 3);
+  const upcomingBirthdays = birthdays.slice(0, 3);
   const latestPayslip = dashboardData?.latestPayslip || null;
 
   useEffect(() => {
@@ -347,9 +355,29 @@ const EmployeeMobileDashboard = () => {
           <ChevronRight className="w-5 h-5 text-slate-400" />
         </Link>
         <div className="p-4 space-y-3">
-          <div className="text-center text-slate-500 text-sm py-4 font-medium">
-            No recent expenses to show.
-          </div>
+          {upcomingExpenses.length > 0 ? (
+            upcomingExpenses.map(expense => (
+              <div key={expense.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
+                <div>
+                  <h3 className="font-semibold text-slate-800 text-sm">{expense.title}</h3>
+                  <p className="text-xs text-slate-500">{new Date(expense.created_at).toLocaleDateString()}</p>
+                </div>
+                <div className="text-right">
+                  <div className="font-bold text-slate-900">{formatCurrency(expense.amount)}</div>
+                  <div className={`text-[10px] font-bold uppercase tracking-wider ${
+                    expense.status === 'Approved' ? 'text-emerald-600' :
+                    expense.status === 'Rejected' ? 'text-rose-600' : 'text-amber-600'
+                  }`}>
+                    {expense.status}
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center text-slate-500 text-sm py-4 font-medium">
+              No recent expenses to show.
+            </div>
+          )}
         </div>
       </section>
 
@@ -413,9 +441,37 @@ const EmployeeMobileDashboard = () => {
           <ChevronRight className="w-5 h-5 text-slate-400" />
         </Link>
         <div className="p-4 space-y-3">
-          <div className="text-center text-slate-500 text-sm py-4 font-medium">
-            No upcoming birthdays.
-          </div>
+          {upcomingBirthdays.length > 0 ? (
+            upcomingBirthdays.map(birthday => (
+              <div key={birthday.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
+                <div className="flex items-center gap-3">
+                  <div className="flex flex-col items-center justify-center min-w-[3rem] px-2 py-1.5 rounded-xl bg-purple-100 text-purple-600 border border-purple-200/50 shadow-sm">
+                    <span className="text-[10px] font-bold uppercase tracking-wider leading-none mb-1">
+                      {new Date(birthday.date).toLocaleDateString(undefined, { month: 'short' })}
+                    </span>
+                    <span className="text-lg font-black leading-none">
+                      {new Date(birthday.date).getDate()}
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-slate-800 text-sm">{birthday.name}</h3>
+                    <p className="text-xs text-slate-500">{birthday.department}</p>
+                  </div>
+                </div>
+                {birthday.avatar ? (
+                  <img src={birthday.avatar} alt={birthday.name} className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold border-2 border-white shadow-sm">
+                    {birthday.name.charAt(0)}
+                  </div>
+                )}
+              </div>
+            ))
+          ) : (
+            <div className="text-center text-slate-500 text-sm py-4 font-medium">
+              No upcoming birthdays.
+            </div>
+          )}
         </div>
       </section>
 

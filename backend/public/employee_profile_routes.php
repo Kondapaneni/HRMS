@@ -165,6 +165,61 @@ $app->post('/api/employee/profile/avatar', function (Request $request, Response 
     }
 })->add(new AuthMiddleware(['employee']));
 
+// Get Upcoming Birthdays
+$app->get('/api/employee/birthdays', function (Request $request, Response $response, $args) {
+    $db = new Database();
+    $conn = $db->getConnection();
+
+    try {
+        $stmt = $conn->prepare('
+            SELECT id, "firstName", "lastName", "dateOfBirth", avatar, department 
+            FROM employee 
+            WHERE status = \'Active\' AND "dateOfBirth" IS NOT NULL
+        ');
+        $stmt->execute();
+        $employees = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $today = new DateTime();
+        $birthdays = [];
+
+        foreach ($employees as $emp) {
+            $dob = new DateTime($emp['dateOfBirth']);
+            $bdayThisYear = new DateTime($today->format('Y') . '-' . $dob->format('m-d'));
+            
+            // If birthday has passed this year, look at next year
+            if ($bdayThisYear < new DateTime($today->format('Y-m-d'))) {
+                $bdayThisYear->modify('+1 year');
+            }
+            
+            // Calculate days until birthday
+            $daysUntil = $today->diff($bdayThisYear)->days;
+            
+            // Only include if within next 30 days
+            if ($daysUntil <= 30) {
+                $birthdays[] = [
+                    'id' => $emp['id'],
+                    'name' => $emp['firstName'] . ' ' . $emp['lastName'],
+                    'date' => $bdayThisYear->format('Y-m-d'),
+                    'avatar' => $emp['avatar'],
+                    'department' => $emp['department'],
+                    'daysUntil' => $daysUntil
+                ];
+            }
+        }
+
+        // Sort by closest birthday first
+        usort($birthdays, function($a, $b) {
+            return $a['daysUntil'] <=> $b['daysUntil'];
+        });
+
+        $response->getBody()->write(json_encode(['birthdays' => $birthdays]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+    } catch (Exception $e) {
+        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+})->add(new AuthMiddleware(['employee']));
+
 // Update Employee Biometrics
 $app->post('/api/employee/biometrics/face', function (Request $request, Response $response, $args) {
     $decodedToken = $request->getAttribute('user');
