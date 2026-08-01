@@ -139,8 +139,8 @@ const EmployeeAssessmentInstructions = () => {
         </div>
       </div>
 
-      {/* Rules */}
-      <div className="max-w-3xl mx-auto">
+      {/* Side-by-Side Grid: Rules & Agreement */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
         {/* Strict Rules Card */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
           <div className="p-5 border-b border-slate-100 bg-amber-50">
@@ -189,10 +189,8 @@ const EmployeeAssessmentInstructions = () => {
         </div>
 
 
-      </div>
-
-      {/* Agreement & Start */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+        {/* Agreement & Start */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col justify-between">
         <label className="flex items-start gap-3 cursor-pointer group">
           <input
             type="checkbox"
@@ -227,6 +225,7 @@ const EmployeeAssessmentInstructions = () => {
             Begin Exam
             <ChevronRight size={16} />
           </button>
+          </div>
         </div>
       </div>
     </div>
