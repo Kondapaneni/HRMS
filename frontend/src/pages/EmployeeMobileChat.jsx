@@ -1411,13 +1411,6 @@ export default function EmployeeMobileChat() {
                   />
                 </div>
                 <div className="bg-white mt-2 border-y border-slate-100">
-                  <div className="flex items-center justify-between p-4 border-b border-slate-100 cursor-pointer hover:bg-slate-50">
-                    <span className="text-slate-800 text-lg">Disappearing messages</span>
-                    <div className="flex items-center text-slate-500">
-                      <span className="mr-2">Off</span>
-                      <ChevronRight size={20} />
-                    </div>
-                  </div>
                   <div onClick={() => setGroupCreationStep(3)} className="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-50">
                     <span className="text-slate-800 text-lg">Group permissions</span>
                     <ChevronRight size={20} className="text-slate-500" />
