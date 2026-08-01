@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PageLoader from '../components/PageLoader';
 import { Search, Calendar as CalendarIcon, Clock, Shield, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
@@ -22,6 +22,23 @@ const EmployeeMobileAttendance = () => {
 
   const [searchDate, setSearchDate] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [visibleCount, setVisibleCount] = useState(10);
+  const observerTarget = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount((prev) => prev + 10);
+        }
+      },
+      { threshold: 0.1 }
+    );
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+    return () => observer.disconnect();
+  }, []);
 
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
@@ -34,10 +51,6 @@ const EmployeeMobileAttendance = () => {
     rDateZero.setHours(0, 0, 0, 0);
 
     if (rDateZero > today) {
-      return false;
-    }
-
-    if (recordObj.getMonth() !== currentMonth || recordObj.getFullYear() !== currentYear) {
       return false;
     }
 
@@ -178,7 +191,7 @@ const EmployeeMobileAttendance = () => {
           </div>
         ) : (
           <div className="space-y-3">
-            {filteredHistory.map((record, index) => {
+            {filteredHistory.slice(0, visibleCount).map((record, index) => {
               const recordDate = new Date(record.date);
               const inTime = record.checkIn ? new Date(record.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
               const outTime = record.checkOut ? new Date(record.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
@@ -222,6 +235,11 @@ const EmployeeMobileAttendance = () => {
                 </div>
               );
             })}
+            {visibleCount < filteredHistory.length && (
+              <div ref={observerTarget} className="h-4 flex items-center justify-center">
+                <div className="w-2 h-2 rounded-full bg-slate-300 animate-pulse"></div>
+              </div>
+            )}
           </div>
         )}
       </section>
