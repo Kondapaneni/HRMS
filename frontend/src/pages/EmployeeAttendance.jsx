@@ -169,6 +169,8 @@ const EmployeeAttendance = () => {
     return key.startsWith('present') || key.includes('missing-checkout');
   }).length;
   const leaveCount = history.filter(r => resolveStatusKey(r).endsWith('leave')).length;
+  const paidLeaveCount = history.filter(r => resolveStatusKey(r) === 'paid leave').length;
+  const unpaidLeaveCount = history.filter(r => resolveStatusKey(r) === 'unpaid leave').length;
 
   const statusPalette = {
     'present': { label: 'Present', classes: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
@@ -297,11 +299,11 @@ const EmployeeAttendance = () => {
           <p className="text-sm text-slate-500">On Leave</p>
         </div>
         <div className="rounded-lg border border-slate-200 bg-white shadow-sm p-6 text-center">
-          <div className="text-2xl font-bold text-blue-600">0</div>
+          <div className="text-2xl font-bold text-blue-600">{paidLeaveCount}</div>
           <p className="text-sm text-slate-500">Paid Leave</p>
         </div>
         <div className="rounded-lg border border-slate-200 bg-white shadow-sm p-6 text-center">
-          <div className="text-2xl font-bold text-blue-600">0</div>
+          <div className="text-2xl font-bold text-blue-600">{unpaidLeaveCount}</div>
           <p className="text-sm text-slate-500">Unpaid Leaves</p>
         </div>
       </div>
