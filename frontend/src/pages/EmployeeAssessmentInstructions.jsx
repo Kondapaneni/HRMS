@@ -101,8 +101,10 @@ const EmployeeAssessmentInstructions = () => {
 
   return (
     <div className="w-full space-y-6">
+      {/* Side-by-Side Grid: Header & Rules */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-stretch">
       {/* Header */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
+      <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm flex flex-col justify-between">
         <div className="flex items-center gap-4 mb-6">
           <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700">
             <BookOpen size={24} />
@@ -115,7 +117,7 @@ const EmployeeAssessmentInstructions = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-6 border-t border-slate-100">
+        <div className="grid grid-cols-2 gap-4 pt-6 border-t border-slate-100 mt-6">
           <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 text-center">
             <Clock size={20} className="mx-auto mb-1 text-slate-500" />
             <p className="text-2xl font-bold text-slate-900">{assessment.duration_minutes}</p>
@@ -140,9 +142,7 @@ const EmployeeAssessmentInstructions = () => {
       </div>
 
       {/* Rules */}
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Strict Rules Card */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
           <div className="p-5 border-b border-slate-100 bg-amber-50">
             <div className="flex items-center gap-2">
               <AlertTriangle size={20} className="text-amber-600" />
@@ -150,8 +150,8 @@ const EmployeeAssessmentInstructions = () => {
             </div>
           </div>
 
-          <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex flex-col gap-3 p-4 bg-rose-50 border border-rose-200 rounded-xl">
+          <div className="p-6 space-y-4 flex-1">
+            <div className="flex items-start gap-3 p-4 bg-rose-50 border border-rose-200 rounded-xl">
               <Monitor size={18} className="text-rose-600 mt-0.5 shrink-0" />
               <div>
                 <p className="font-bold text-sm text-rose-800">Tab Switching is Strictly Monitored</p>
@@ -162,7 +162,7 @@ const EmployeeAssessmentInstructions = () => {
               </div>
             </div>
 
-            <div className="flex flex-col gap-3 p-4 bg-rose-50 border border-rose-200 rounded-xl">
+            <div className="flex items-start gap-3 p-4 bg-rose-50 border border-rose-200 rounded-xl">
               <ShieldAlert size={18} className="text-rose-600 mt-0.5 shrink-0" />
               <div>
                 <p className="font-bold text-sm text-rose-800">No Page Refresh Allowed</p>
@@ -175,7 +175,7 @@ const EmployeeAssessmentInstructions = () => {
 
 
 
-            <div className="flex flex-col gap-3 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+            <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-xl">
               <Clock size={18} className="text-blue-600 mt-0.5 shrink-0" />
               <div>
                 <p className="font-bold text-sm text-blue-800">Timer is Strictly Enforced</p>
@@ -187,7 +187,7 @@ const EmployeeAssessmentInstructions = () => {
             </div>
           </div>
         </div>
-
+      </div>
 
         {/* Agreement & Start */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
@@ -226,7 +226,6 @@ const EmployeeAssessmentInstructions = () => {
             <ChevronRight size={16} />
           </button>
           </div>
-        </div>
       </div>
     </div>
   );
