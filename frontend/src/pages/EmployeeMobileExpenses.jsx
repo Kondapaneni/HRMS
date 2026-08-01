@@ -289,7 +289,7 @@ const EmployeeMobileExpenses = () => {
                   setSelectedBillUrl(null);
                 }
               }}
-              className="absolute bottom-0 left-0 right-0 bg-white rounded-t-[32px] shadow-2xl h-[75dvh] flex flex-col"
+              className="absolute bottom-0 left-0 right-0 bg-white rounded-t-[32px] shadow-2xl h-[65dvh] flex flex-col"
             >
               <div
                 className="shrink-0 pt-3 pb-4 flex flex-col items-center cursor-grab active:cursor-grabbing"
@@ -312,8 +312,8 @@ const EmployeeMobileExpenses = () => {
                 {selectedBillUrl.toLowerCase().endsWith('.pdf') ? (
                   <iframe src={selectedBillUrl} className="w-full h-full border-0" title="Bill PDF" />
                 ) : (
-                  <div className="w-full h-full overflow-auto flex items-center justify-center p-4">
-                    <img src={selectedBillUrl} alt="Bill" className="max-w-full max-h-full object-contain rounded-xl shadow-sm" />
+                  <div className="w-full h-full overflow-y-auto flex flex-col items-center p-4">
+                    <img src={selectedBillUrl} alt="Bill" className="w-full h-auto object-contain rounded-xl shadow-sm" />
                   </div>
                 )}
                 
