@@ -53,8 +53,10 @@ export default function UpdateOverlay() {
         names.forEach(name => caches.delete(name));
       });
     }
-    // Hard reload to fetch new assets
-    window.location.reload(true);
+    // Delay reload slightly to let the updating animation play
+    setTimeout(() => {
+      window.location.reload(true);
+    }, 800);
   };
 
   return (
