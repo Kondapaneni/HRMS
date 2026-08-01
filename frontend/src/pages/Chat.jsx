@@ -992,12 +992,12 @@ export default function Chat() {
                               setMessageReadByDialog({ isOpen: true, message: msg });
                             }
                           }}
-                          className={`max-w-[75%] md:max-w-[65%] rounded-2xl px-3 py-2 pb-1 shadow-sm relative ${isMine ? 'bg-blue-600 text-white rounded-tr-sm cursor-pointer hover:bg-blue-700 active:bg-blue-700 transition-colors' : 'bg-slate-100 rounded-tl-sm border border-slate-200'}`}
+                          className={`max-w-[75%] md:max-w-[65%] rounded-2xl px-3 py-2 pb-1 shadow-sm relative ${isMine ? 'bg-[#d9fdd3] text-slate-800 rounded-tr-sm cursor-pointer hover:bg-[#cbf0c4] active:bg-[#cbf0c4] transition-colors' : 'bg-slate-100 text-slate-800 rounded-tl-sm border border-slate-200'}`}
                         >
                           {!isMine && activeChat.type === 'group' && (
                             <div className="text-xs font-bold text-blue-500 mb-1">{sender?.firstName}</div>
                           )}
-                          <div className={`text-sm whitespace-pre-wrap break-words pr-14 pb-2 ${isMine ? 'text-white' : 'text-slate-800'}`}>
+                          <div className="text-sm whitespace-pre-wrap break-words pr-14 pb-2 text-slate-800">
                             {msg.attachmentUrl && (
                               <div className="mb-2 w-full max-w-xs md:max-w-md">
                                 {msg.attachmentType?.startsWith('image/') ? (
@@ -1018,8 +1018,8 @@ export default function Chat() {
                             )}
                             {msg.content}
                           </div>
-                          <div className={`text-[10px] text-right absolute bottom-1 right-2 flex items-center justify-end ${isMine ? 'text-blue-100' : 'text-slate-400'}`}>
-                            {format(new Date(msg.createdAt), 'HH:mm')}
+                          <div className="absolute bottom-1 right-2 flex items-center gap-1 opacity-70">
+                            <span className="text-[10px] text-slate-500">{format(new Date(msg.createdAt), 'HH:mm')}</span>
                             {isMine && renderMessageTicks(msg)}
                           </div>
                         </div>
