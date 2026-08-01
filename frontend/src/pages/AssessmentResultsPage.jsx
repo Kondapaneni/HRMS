@@ -38,21 +38,12 @@ const AssessmentResultsPage = () => {
 
   // Delete/Reset mutation
   const deleteMutation = useMutation({
-    mutationFn: async ({ id, proctoringVideoUrl }) => {
-      if (proctoringVideoUrl && proctoringVideoUrl !== 'UPLOAD_FAILED') {
-        try {
-          await supabase.storage
-            .from('proctoring_videos')
-            .remove([proctoringVideoUrl]);
-        } catch (err) {
-          console.error('Failed to remove proctoring video from storage:', err);
-        }
-      }
+    mutationFn: async ({ id }) => {
       await api.delete(`/admin/assessments/attempts/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminAssessmentAttempts'] });
-      toast.success('Attempt record and video deleted successfully');
+      toast.success('Attempt record deleted successfully');
       if (selectedAttempt) setSelectedAttempt(null);
     },
     onError: (err) => {
@@ -60,35 +51,11 @@ const AssessmentResultsPage = () => {
     }
   });
 
-  const handleDownloadVideo = async (videoUrl) => {
-    try {
-      let downloadUrl = videoUrl;
 
-      if (!videoUrl.startsWith('http')) {
-        const { data } = supabase.storage
-          .from('proctoring_videos')
-          .getPublicUrl(videoUrl, { download: true });
-          
-        if (data && data.publicUrl) {
-          downloadUrl = data.publicUrl;
-        }
-      }
-      
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.download = videoUrl.split('/').pop() || 'video.webm';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    } catch (error) {
-      console.error('Download failed:', error);
-      toast.error('Failed to initiate download.');
-    }
-  };
 
-  const handleResetAttempt = (id, empName, title, proctoringVideoUrl) => {
-    if (window.confirm(`Are you sure you want to reset and delete this assessment attempt for "${empName}" (${title})? The recorded proctoring video will also be deleted from storage.`)) {
-      deleteMutation.mutate({ id, proctoringVideoUrl });
+  const handleResetAttempt = (id, empName, title) => {
+    if (window.confirm(`Are you sure you want to reset and delete this assessment attempt for "${empName}" (${title})?`)) {
+      deleteMutation.mutate({ id });
     }
   };
 
@@ -365,19 +332,7 @@ const AssessmentResultsPage = () => {
                               Clean Session
                             </span>
                           )}
-                          {att.proctoring_video_url && att.proctoring_video_url !== 'UPLOAD_FAILED' && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedAttempt(att);
-                              }}
-                              title="Click to watch webcam proctoring recording"
-                              className="inline-flex items-center gap-1 text-purple-700 hover:text-purple-900 font-bold text-xs transition cursor-pointer whitespace-nowrap"
-                            >
-                              <CheckCircle2 size={13} className="text-purple-600" />
-                              Recorded Available
-                            </button>
-                          )}
+
                         </div>
                       </td>
 
@@ -398,7 +353,7 @@ const AssessmentResultsPage = () => {
                             Details
                           </button>
                           <button
-                            onClick={() => handleResetAttempt(att.id, att.employee_name, att.assessment_title, att.proctoring_video_url)}
+                            onClick={() => handleResetAttempt(att.id, att.employee_name, att.assessment_title)}
                             className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
                             title="Reset / Delete Attempt"
                           >
@@ -517,38 +472,10 @@ const AssessmentResultsPage = () => {
                     </div>
                   </div>
 
-                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between">
-                    <span className="text-slate-500">Webcam Proctoring:</span>
-                    <div className="font-bold">
-                      {selectedAttempt.proctoring_video_url && selectedAttempt.proctoring_video_url !== 'UPLOAD_FAILED' ? (
-                        <span className="text-purple-700 flex items-center gap-1.5 text-xs font-bold whitespace-nowrap">
-                          <CheckCircle2 size={14} className="text-purple-600" />
-                          Recorded Available
-                        </span>
-                      ) : (
-                        <span className="text-slate-400 italic">No video stream uploaded</span>
-                      )}
-                    </div>
-                  </div>
+
                 </div>
 
-                {selectedAttempt.proctoring_video_url && selectedAttempt.proctoring_video_url !== 'UPLOAD_FAILED' && (
-                  <div className="mt-4 p-4 bg-purple-50/70 rounded-2xl border border-purple-200 text-slate-900 space-y-3 shadow-xs animate-fade-in">
-                    <div className="flex items-center justify-between gap-3 flex-wrap">
-                      <div className="flex items-center gap-2 text-purple-950 font-extrabold text-xs">
-                        <Video size={16} className="text-purple-600 animate-pulse shrink-0" />
-                        <span>Live Session Webcam Recording</span>
-                      </div>
-                      <button
-                        onClick={() => handleDownloadVideo(selectedAttempt.proctoring_video_url)}
-                        className="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition flex items-center gap-1.5 shrink-0 shadow-xs cursor-pointer"
-                      >
-                        <Download size={13} />
-                        Download Video
-                      </button>
-                    </div>
-                  </div>
-                )}
+
               </div>
 
               {/* Question Breakdown Section */}

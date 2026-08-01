@@ -301,7 +301,7 @@ $app->post('/api/employee/assessments/attempts/{attemptId}/submit', function (Re
     $attemptId = $args['attemptId'];
     $data = json_decode($request->getBody()->getContents(), true);
     $incomingAnswers = $data['answers'] ?? null;
-    $proctoringVideoUrl = $data['proctoring_video_url'] ?? null;
+    // Remove proctoringVideoUrl reading from payload
     $submitReason = $data['submit_reason'] ?? 'manual';
 
     $db = new Database();
@@ -419,10 +419,10 @@ $app->post('/api/employee/assessments/attempts/{attemptId}/submit', function (Re
         // Update attempt record to completed/graded
         $upStmt = $conn->prepare('
             UPDATE assessment_attempts 
-            SET status = \'graded\', end_time = CURRENT_TIMESTAMP, score = ?, total_marks = ?, percentage = ?, passed = ?, answers_data = ?::jsonb, proctoring_video_url = ?, updated_at = CURRENT_TIMESTAMP
+            SET status = \'graded\', end_time = CURRENT_TIMESTAMP, score = ?, total_marks = ?, percentage = ?, passed = ?, answers_data = ?::jsonb, updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
         ');
-        $upStmt->execute([(int)$totalScore, (int)$maxScore, $percentage, $passed ? 'true' : 'false', json_encode($evaluatedBreakdown), $proctoringVideoUrl, $attemptId]);
+        $upStmt->execute([(int)$totalScore, (int)$maxScore, $percentage, $passed ? 'true' : 'false', json_encode($evaluatedBreakdown), $attemptId]);
 
         $conn->commit();
 

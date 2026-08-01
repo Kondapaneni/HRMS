@@ -36,11 +36,7 @@ const EmployeeAssessmentEngine = () => {
   // Tab switch tracking
   const tabSwitchCount = useRef(0);
 
-  // Webcam recording
-  const mediaRecorderRef = useRef(null);
-  const videoChunksRef = useRef([]);
-  const streamRef = useRef(null);
-  const videoPreviewRef = useRef(null);
+
 
   // Refs for cleanup and race condition prevention
   const autoSaveIntervalRef = useRef(null);
@@ -54,72 +50,7 @@ const EmployeeAssessmentEngine = () => {
   useEffect(() => { answersRef.current = answers; }, [answers]);
   useEffect(() => { autoSavingRef.current = autoSaving; }, [autoSaving]);
 
-  // Helper to instantly turn off webcam and microphone hardware tracks
-  const stopWebcamStream = () => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      try { mediaRecorderRef.current.stop(); } catch (e) { /* ignore */ }
-    }
-    mediaRecorderRef.current = null;
 
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => {
-        try {
-          track.enabled = false;
-          track.stop();
-        } catch (e) { /* ignore */ }
-      });
-      streamRef.current = null;
-    }
-    if (videoPreviewRef.current) {
-      try {
-        const srcStream = videoPreviewRef.current.srcObject;
-        if (srcStream && typeof srcStream.getTracks === 'function') {
-          srcStream.getTracks().forEach(track => {
-            try { track.enabled = false; track.stop(); } catch (e) {}
-          });
-        }
-        videoPreviewRef.current.pause();
-        videoPreviewRef.current.srcObject = null;
-      } catch (e) { /* ignore */ }
-    }
-    if (window._activeAssessmentStreams) {
-      window._activeAssessmentStreams.forEach(stream => {
-        try {
-          stream.getTracks().forEach(track => {
-            try { track.enabled = false; track.stop(); } catch (e) {}
-          });
-        } catch (e) {}
-      });
-      window._activeAssessmentStreams.clear();
-    }
-  };
-
-  // Helper to cleanly stop MediaRecorder and wait for buffered data flush
-  const stopRecordingAndWait = () => {
-    return new Promise((resolve) => {
-      const recorder = mediaRecorderRef.current;
-      if (!recorder || recorder.state === 'inactive') {
-        stopWebcamStream();
-        resolve();
-        return;
-      }
-      const handleStop = () => {
-        recorder.removeEventListener('stop', handleStop);
-        stopWebcamStream();
-        resolve();
-      };
-      recorder.addEventListener('stop', handleStop);
-      try {
-        if (typeof recorder.requestData === 'function') recorder.requestData();
-      } catch (e) { /* ignore */ }
-      try {
-        recorder.stop();
-      } catch (e) {
-        stopWebcamStream();
-        resolve();
-      }
-    });
-  };
 
   // ===================== SUBMIT FUNCTION =====================
   const submitExam = useCallback(async (reason = 'manual') => {
@@ -151,56 +82,14 @@ const EmployeeAssessmentEngine = () => {
         // Final auto-save failed, proceed with submission.
       }
 
-      // STEP 2: Finish Video Recording and wait for all buffered chunks
-      setUploadProgress('Finishing video recording...');
-      await stopRecordingAndWait();
-      stopWebcamStream(); // Instantly turn off camera hardware while video uploads
 
-      // STEP 3: Upload proctoring video with up to 3 retry attempts
-      let proctoringVideoUrl = null;
-      if (videoChunksRef.current.length > 0) {
-        const videoBlob = new Blob(videoChunksRef.current, { type: 'video/webm' });
-        const fileName = `proctoring_${currentExamData.attempt_id}_${Date.now()}.webm`;
-        
-        let uploadSuccess = false;
-        for (let attempt = 1; attempt <= 3; attempt++) {
-          try {
-            setUploadProgress(`Uploading proctoring video (Attempt ${attempt}/3)...`);
-            const { error: uploadError } = await supabase.storage
-              .from('proctoring_videos')
-              .upload(fileName, videoBlob, { contentType: 'video/webm', upsert: false });
-
-            if (!uploadError) {
-              proctoringVideoUrl = fileName;
-              uploadSuccess = true;
-              break;
-            } else {
-              if (uploadError.statusCode === '400' || uploadError.statusCode === '413' || uploadError.status === 400 || uploadError.status === 413 || (uploadError.message && uploadError.message.toLowerCase().includes('size'))) {
-                break;
-              }
-            }
-          } catch (uploadErr) {
-            // upload exception encountered, will retry if attempts remain.
-          }
-          if (!uploadSuccess && attempt < 3) {
-            await new Promise(r => setTimeout(r, 1500));
-          }
-        }
-        if (!uploadSuccess) {
-          proctoringVideoUrl = 'UPLOAD_FAILED';
-        }
-      }
 
       // STEP 4: Submit assessment for final evaluation
       setUploadProgress('Submitting assessment for evaluation...');
       const res = await api.post(`/employee/assessments/attempts/${currentExamData.attempt_id}/submit`, {
         answers: currentAnswers,
-        proctoring_video_url: proctoringVideoUrl,
         submit_reason: reason
       });
-
-      // Stop webcam stream tracks
-      stopWebcamStream();
 
       // Exit fullscreen safely
       if (document.fullscreenElement) {
@@ -219,7 +108,6 @@ const EmployeeAssessmentEngine = () => {
         replace: true
       });
     } catch (err) {
-      stopWebcamStream(); // Ensure camera hardware is off if submission fails
       setSubmitting(false);
       setUploadProgress('');
       submittedRef.current = false;
@@ -391,58 +279,7 @@ const EmployeeAssessmentEngine = () => {
     };
   }, [examData]);
 
-  // ===================== START WEBCAM =====================
-  useEffect(() => {
-    if (!examData) return;
-    let isMounted = true;
 
-    const startWebcam = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        if (!isMounted) {
-          stream.getTracks().forEach(track => {
-            try { track.enabled = false; track.stop(); } catch (e) {}
-          });
-          return;
-        }
-        window._activeAssessmentStreams = window._activeAssessmentStreams || new Set();
-        window._activeAssessmentStreams.add(stream);
-        streamRef.current = stream;
-
-        if (videoPreviewRef.current) {
-          videoPreviewRef.current.srcObject = stream;
-        }
-
-        let options = { mimeType: 'video/webm;codecs=vp9,opus', videoBitsPerSecond: 150000 };
-        if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-          options = { mimeType: 'video/webm;codecs=vp8,opus', videoBitsPerSecond: 150000 };
-          if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-            options = { mimeType: 'video/webm', videoBitsPerSecond: 150000 };
-            if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-              options = { videoBitsPerSecond: 150000 };
-            }
-          }
-        }
-        const mediaRecorder = new MediaRecorder(stream, options);
-        mediaRecorderRef.current = mediaRecorder;
-        videoChunksRef.current = [];
-
-        mediaRecorder.ondataavailable = (e) => {
-          if (e.data.size > 0) videoChunksRef.current.push(e.data);
-        };
-
-        mediaRecorder.start(1000);
-      } catch (err) {
-        // ignore webcam start failures during initialization.
-      }
-    };
-
-    startWebcam();
-    return () => {
-      isMounted = false;
-      stopWebcamStream();
-    };
-  }, [examData]);
 
   // ===================== COUNTDOWN TIMER =====================
   useEffect(() => {
