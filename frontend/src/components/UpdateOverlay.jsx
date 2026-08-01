@@ -69,7 +69,7 @@ export default function UpdateOverlay() {
             className="bg-white rounded-[24px] p-6 sm:p-8 max-w-sm w-full shadow-2xl flex flex-col items-center text-center border border-slate-100"
           >
             <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mb-5 ring-8 ring-blue-50 relative">
-              <RefreshCw size={28} className="animate-[spin_4s_linear_infinite]" />
+              <RefreshCw size={28} className={isUpdating ? "animate-[spin_2s_linear_infinite]" : ""} />
               <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1 shadow-sm">
                 <Download size={14} className="text-blue-500" />
               </div>
@@ -88,7 +88,6 @@ export default function UpdateOverlay() {
               disabled={isUpdating}
               className="w-full py-4 px-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-70 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-600/30 active:scale-95 flex items-center justify-center gap-2"
             >
-              <RefreshCw size={18} className={isUpdating ? "animate-spin" : ""} />
               {isUpdating ? 'Updating...' : 'Update Now'}
             </button>
           </motion.div>
