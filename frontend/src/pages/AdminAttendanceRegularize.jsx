@@ -70,54 +70,70 @@ const AdminAttendanceRegularize = () => {
   };
 
   const getComputedStatus = (rec) => {
-    const status = (rec.status || 'missing').toLowerCase();
-    if (['paid leave', 'unpaid leave', 'sandwich leave', 'holiday', 'weekend', 'future', 'not-joined', 'missing', 'not-marked'].includes(status)) return status;
+    if (!rec) return 'missing';
     if (rec.isRegularized === true || rec.isRegularized === 'true' || rec.isRegularized === 'yes') return 'regularized';
-
-    const isToday = new Date(rec.date).toDateString() === new Date().toDateString();
-
-    if (status !== 'present') {
-      return status;
+    
+    const status = (rec.status || 'missing').toLowerCase();
+    
+    // If there is no checkIn and no checkOut, return static non-present statuses
+    if (!rec.checkIn && !rec.checkOut) {
+      if (['paid leave', 'unpaid leave', 'sandwich leave', 'holiday', 'weekend', 'future', 'not-joined', 'not-marked'].includes(status)) {
+        return status;
+      }
+      return 'missing';
     }
 
-    if (isToday && rec.checkIn && !rec.checkOut) return 'present-full-shift';
-
+    // Has checkIn or checkOut: compute shift status
+    const isToday = new Date(rec.date).toDateString() === new Date().toDateString();
     const shiftWindow = parseShiftWindow(employeeDetails?.shiftTime);
 
     if (rec.checkIn && !rec.checkOut) {
-      const checkInValue = new Date(rec.checkIn).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
-      if (checkInValue > shiftWindow.start) return 'late-missing-checkout';
-      return 'missing-checkout';
+      if (isToday) return 'present';
+      if (shiftWindow) {
+        const checkInValue = new Date(rec.checkIn).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+        if (checkInValue > shiftWindow.start) return 'present (late+checkout missing)';
+      }
+      return 'present (checkout missing)';
     }
 
-    if (!rec.checkIn || !rec.checkOut) return 'present-full-shift';
+    if (rec.checkIn && rec.checkOut) {
+      if (!shiftWindow) return 'present';
+      
+      const checkInValue = new Date(rec.checkIn).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+      const checkOutValue = new Date(rec.checkOut).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
 
-    const checkInValue = new Date(rec.checkIn).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
-    const checkOutValue = new Date(rec.checkOut).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' });
+      const isLateCheckIn = checkInValue > shiftWindow.start;
+      const isEarlyCheckout = checkOutValue < shiftWindow.end;
 
-    const isLateCheckIn = checkInValue > shiftWindow.start;
-    const isEarlyCheckout = checkOutValue < shiftWindow.end;
+      if (isLateCheckIn && isEarlyCheckout) return 'present (early+late)';
+      if (isLateCheckIn) return 'present (late)';
+      if (isEarlyCheckout) return 'present (early)';
 
-    if (isLateCheckIn && isEarlyCheckout) return 'late-and-early';
-    if (isLateCheckIn) return 'late-checkin';
-    if (isEarlyCheckout) return 'early-checkout';
+      return 'present';
+    }
 
-    return 'present-full-shift';
+    return status !== 'missing' ? status : 'present';
   };
 
   const getStatusPalette = (computedStatus) => {
     switch (computedStatus) {
       case 'present':
+      case 'present-full-shift':
         return { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', badge: 'bg-emerald-100 text-emerald-700', label: 'Present' };
       case 'present (late)':
+      case 'late-checkin':
         return { bg: 'bg-yellow-50', border: 'border-yellow-200', text: 'text-yellow-700', badge: 'bg-yellow-100 text-yellow-700', label: 'Late' };
       case 'present (early)':
+      case 'early-checkout':
         return { bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-700', badge: 'bg-orange-100 text-orange-700', label: 'Early' };
       case 'present (early+late)':
+      case 'late-and-early':
         return { bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-700', badge: 'bg-orange-100 text-orange-700', label: 'Late+Early' };
       case 'present (checkout missing)':
+      case 'missing-checkout':
         return { bg: 'bg-yellow-50', border: 'border-yellow-200', text: 'text-yellow-700', badge: 'bg-yellow-100 text-yellow-700', label: 'Checkout Missing' };
       case 'present (late+checkout missing)':
+      case 'late-missing-checkout':
         return { bg: 'bg-yellow-50', border: 'border-yellow-200', text: 'text-yellow-700', badge: 'bg-yellow-100 text-yellow-700', label: 'Late + Checkout Missing' };
       case 'regularized':
         return { bg: 'bg-teal-50', border: 'border-teal-200', text: 'text-teal-700', badge: 'bg-teal-100 text-teal-700', label: 'Regularized' };
