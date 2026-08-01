@@ -441,10 +441,10 @@ $app->post('/api/employee/assessments/attempts/{attemptId}/submit', function (Re
         // Update attempt record to completed/graded
         $upStmt = $conn->prepare('
             UPDATE assessment_attempts 
-            SET status = \'graded\', end_time = CURRENT_TIMESTAMP, score = ?, total_marks = ?, percentage = ?, passed = ?, answers_data = ?::jsonb, updated_at = CURRENT_TIMESTAMP
+            SET status = \'graded\', end_time = CURRENT_TIMESTAMP, score = ?, total_marks = ?, percentage = ?, passed = ?, answers_data = ?::jsonb, updated_at = CURRENT_TIMESTAMP, submit_reason = ?
             WHERE id = ?
         ');
-        $upStmt->execute([(int)$totalScore, (int)$maxScore, $percentage, $passed ? 'true' : 'false', json_encode($evaluatedBreakdown), $attemptId]);
+        $upStmt->execute([(int)$totalScore, (int)$maxScore, $percentage, $passed ? 'true' : 'false', json_encode($evaluatedBreakdown), $submitReason, $attemptId]);
 
         $conn->commit();
 
