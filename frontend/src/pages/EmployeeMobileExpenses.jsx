@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import { Plus, Upload, FileText, CheckCircle, XCircle, Clock, ArrowLeft, Receipt } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
@@ -18,6 +18,8 @@ const EmployeeMobileExpenses = () => {
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('Travel');
   const [billFile, setBillFile] = useState(null);
+  const [selectedBillUrl, setSelectedBillUrl] = useState(null);
+  const controls = useDragControls();
 
   const fileInputRef = useRef(null);
 
@@ -244,10 +246,10 @@ const EmployeeMobileExpenses = () => {
                     {exp.status}
                   </span>
                   {exp.bill_url && (
-                    <a href={exp.bill_url} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-blue-600 hover:text-blue-700 active:text-blue-800 transition-colors flex items-center gap-1 bg-blue-50 px-2 py-1 rounded-md">
+                    <button onClick={() => setSelectedBillUrl(exp.bill_url)} className="text-xs font-bold text-blue-600 hover:text-blue-700 active:text-blue-800 transition-colors flex items-center gap-1 bg-blue-50 px-2 py-1 rounded-md">
                       <FileText className="w-3.5 h-3.5" />
                       View Bill
-                    </a>
+                    </button>
                   )}
                 </div>
                 {exp.remarks && (
@@ -260,6 +262,73 @@ const EmployeeMobileExpenses = () => {
           )}
         </div>
       </div>
+
+      {/* Bill View Slide-Over Modal */}
+      <AnimatePresence>
+        {selectedBillUrl && (
+          <div className="fixed inset-x-0 top-0 bottom-0 z-[100] flex flex-col justify-end overflow-hidden">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedBillUrl(null)}
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              drag="y"
+              dragControls={controls}
+              dragListener={false}
+              dragConstraints={{ top: 0 }}
+              dragElastic={{ top: 0, bottom: 0.6 }}
+              onDragEnd={(e, info) => {
+                if (info.offset.y > 100 || info.velocity.y > 400) {
+                  setSelectedBillUrl(null);
+                }
+              }}
+              className="absolute bottom-0 left-0 right-0 bg-white rounded-t-[32px] shadow-2xl h-[75dvh] flex flex-col"
+            >
+              <div
+                className="shrink-0 pt-3 pb-4 flex flex-col items-center cursor-grab active:cursor-grabbing"
+                onPointerDown={(e) => controls.start(e)}
+                style={{ touchAction: 'none' }}
+              >
+                <div className="w-12 h-1.5 bg-slate-200 rounded-full mb-4 pointer-events-none"></div>
+                <div className="px-6 w-full flex items-center justify-between">
+                  <h3 className="text-xl font-bold text-slate-900">Expense Bill</h3>
+                  <button
+                    onClick={() => setSelectedBillUrl(null)}
+                    className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"
+                  >
+                    <XCircle className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-hidden bg-slate-50 relative pb-safe">
+                {selectedBillUrl.toLowerCase().endsWith('.pdf') ? (
+                  <iframe src={selectedBillUrl} className="w-full h-full border-0" title="Bill PDF" />
+                ) : (
+                  <div className="w-full h-full overflow-auto flex items-center justify-center p-4">
+                    <img src={selectedBillUrl} alt="Bill" className="max-w-full max-h-full object-contain rounded-xl shadow-sm" />
+                  </div>
+                )}
+                
+                {selectedBillUrl.toLowerCase().endsWith('.pdf') && (
+                  <div className="absolute bottom-6 left-0 right-0 flex justify-center pb-safe">
+                     <a href={selectedBillUrl} target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-slate-800 text-white rounded-full text-sm font-bold shadow-lg shadow-slate-800/30">
+                       Open PDF in new tab
+                     </a>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
