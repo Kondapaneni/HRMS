@@ -4,6 +4,7 @@ import { RefreshCw, Download } from 'lucide-react';
 
 export default function UpdateOverlay() {
   const [updateAvailable, setUpdateAvailable] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     const checkVersion = async () => {
@@ -45,6 +46,7 @@ export default function UpdateOverlay() {
   }, []);
 
   const handleUpdate = () => {
+    setIsUpdating(true);
     // Attempt to clear caches if any exist (PWA/ServiceWorker caches)
     if ('caches' in window) {
       caches.keys().then((names) => {
@@ -81,10 +83,11 @@ export default function UpdateOverlay() {
 
             <button
               onClick={handleUpdate}
-              className="w-full py-4 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-600/30 active:scale-95 flex items-center justify-center gap-2"
+              disabled={isUpdating}
+              className="w-full py-4 px-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-70 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-600/30 active:scale-95 flex items-center justify-center gap-2"
             >
-              <RefreshCw size={18} />
-              Update Now
+              <RefreshCw size={18} className={isUpdating ? "animate-spin" : ""} />
+              {isUpdating ? 'Updating...' : 'Update Now'}
             </button>
           </motion.div>
         </div>
