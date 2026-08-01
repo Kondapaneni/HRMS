@@ -136,16 +136,16 @@ const EmployeeLayout = () => {
       </div>
 
       {/* Sidebar - Clean, Professional */}
-      <aside className="w-56 h-screen sticky top-0 bg-white/80 backdrop-blur-md border-r border-slate-200 hidden md:flex flex-col z-20 shadow-sm">
-        <div className="h-14 flex items-center px-4 border-b border-slate-200">
-          <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white mr-3">
+      <aside className="w-[260px] h-screen sticky top-0 bg-white/80 backdrop-blur-md border-r border-slate-200 hidden md:flex flex-col z-20 shadow-sm shrink-0">
+        <div className="h-14 flex items-center px-4 border-b border-slate-200 shrink-0">
+          <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white mr-3 shrink-0">
             <Activity size={18} strokeWidth={2.5} />
           </div>
-          <span className="text-lg font-semibold tracking-tight text-slate-900">Acme HRMS</span>
+          <span className="text-lg font-semibold tracking-tight text-slate-900 whitespace-nowrap">Acme HRMS</span>
         </div>
 
         <div className="p-4 overflow-y-auto flex-1">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 px-2">Employee Portal</p>
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 px-2 whitespace-nowrap">Employee Portal</p>
           <nav className="space-y-1">
             {navItems.filter(item => !item.feature || profile?.featureAccess?.[item.feature]).map((item, idx) => {
               const isActive = location.pathname === item.path;
@@ -158,10 +158,10 @@ const EmployeeLayout = () => {
                     : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                     }`}
                 >
-                  <span className={isActive ? 'text-blue-600' : 'text-slate-400'}>{item.icon}</span>
-                  <span className="flex-1">{item.label}</span>
+                  <span className={`shrink-0 ${isActive ? 'text-blue-600' : 'text-slate-400'}`}>{item.icon}</span>
+                  <span className="flex-1 whitespace-nowrap truncate">{item.label}</span>
                   {item.label === 'Secure Chat' && totalUnread > 0 && (
-                    <span className="bg-[#25d366] text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                    <span className="bg-[#25d366] text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shrink-0">
                       {totalUnread}
                     </span>
                   )}
@@ -172,7 +172,7 @@ const EmployeeLayout = () => {
 
           {businessApps.filter(item => !item.feature || profile?.featureAccess?.[item.feature]).length > 0 && (
             <div className="pt-4 mt-4 border-t border-slate-200">
-              <p className="px-2 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">Business Apps</p>
+              <p className="px-2 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 whitespace-nowrap">Business Apps</p>
               <nav className="space-y-1">
                 {businessApps.filter(item => !item.feature || profile?.featureAccess?.[item.feature]).map((item, idx) => {
                   const isActive = location.pathname === item.path;
