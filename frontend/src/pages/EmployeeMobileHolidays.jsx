@@ -64,13 +64,18 @@ const EmployeeMobileHolidays = () => {
             {upcomingHolidays.length > 0 ? (
               upcomingHolidays.map(holiday => (
                 <div key={holiday.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-lg">
-                      {new Date(holiday.holidayDate).getDate()}
+                  <div className="flex items-center gap-4">
+                    <div className="flex flex-col items-center justify-center min-w-[3.5rem] px-2 py-2 rounded-xl bg-emerald-100 text-emerald-600 border border-emerald-200/50 shadow-sm">
+                      <span className="text-[11px] font-bold uppercase tracking-wider leading-none mb-1">
+                        {new Date(holiday.holidayDate).toLocaleDateString(undefined, { month: 'short' })}
+                      </span>
+                      <span className="text-xl font-black leading-none">
+                        {new Date(holiday.holidayDate).getDate()}
+                      </span>
                     </div>
                     <div>
                       <h3 className="font-bold text-slate-800 text-base">{holiday.holidayName}</h3>
-                      <p className="text-sm text-slate-500">{new Date(holiday.holidayDate).toLocaleDateString(undefined, { month: 'short', weekday: 'short' })}</p>
+                      <p className="text-sm text-slate-500">{new Date(holiday.holidayDate).toLocaleDateString(undefined, { weekday: 'long' })}</p>
                     </div>
                   </div>
                   {holiday.holidayImage && (

@@ -371,12 +371,17 @@ const EmployeeMobileDashboard = () => {
             upcomingHolidays.map(holiday => (
               <div key={holiday.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold">
-                    {new Date(holiday.holidayDate).getDate()}
+                  <div className="flex flex-col items-center justify-center min-w-[3rem] px-2 py-1.5 rounded-xl bg-emerald-100 text-emerald-600 border border-emerald-200/50 shadow-sm">
+                    <span className="text-[10px] font-bold uppercase tracking-wider leading-none mb-1">
+                      {new Date(holiday.holidayDate).toLocaleDateString(undefined, { month: 'short' })}
+                    </span>
+                    <span className="text-lg font-black leading-none">
+                      {new Date(holiday.holidayDate).getDate()}
+                    </span>
                   </div>
                   <div>
                     <h3 className="font-semibold text-slate-800 text-sm">{holiday.holidayName}</h3>
-                    <p className="text-xs text-slate-500">{new Date(holiday.holidayDate).toLocaleDateString(undefined, { month: 'short', weekday: 'short' })}</p>
+                    <p className="text-xs text-slate-500">{new Date(holiday.holidayDate).toLocaleDateString(undefined, { weekday: 'long' })}</p>
                   </div>
                 </div>
                 {holiday.holidayImage && (
