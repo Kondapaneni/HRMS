@@ -526,6 +526,10 @@ export default function Chat() {
       toast.error('Select at least one participant');
       return;
     }
+    if (!groupName.trim()) {
+      toast.error('Group name is required');
+      return;
+    }
     createChatMutation.mutate({
       payload: {
         type: 'group',
@@ -785,7 +789,7 @@ export default function Chat() {
                         type="text"
                         value={groupName}
                         onChange={e => setGroupName(e.target.value)}
-                        placeholder="Group name (optional)"
+                        placeholder="Group Name"
                         className="flex-1 border-b-2 border-blue-600 px-2 py-2 outline-none font-medium text-slate-900"
                       />
                     </div>

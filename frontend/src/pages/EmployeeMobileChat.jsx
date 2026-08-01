@@ -475,6 +475,7 @@ export default function EmployeeMobileChat() {
 
   const handleCreateGroupChat = () => {
     if (selectedGroupParticipants.length === 0) return toast.error('Select at least one participant');
+    if (!groupName.trim()) return toast.error('Group name is required');
     createChatMutation.mutate({
       payload: {
         type: 'group',
@@ -1406,7 +1407,7 @@ export default function EmployeeMobileChat() {
                     type="text"
                     value={groupName}
                     onChange={e => setGroupName(e.target.value)}
-                    placeholder="Group name (optional)"
+                    placeholder="Group Name"
                     className="flex-1 border-b-2 border-[#008069] px-2 py-2 outline-none font-medium text-slate-900 bg-transparent"
                   />
                 </div>
