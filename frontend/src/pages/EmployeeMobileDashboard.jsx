@@ -25,13 +25,14 @@ const EmployeeMobileDashboard = () => {
   const { data: dashboardData, isLoading: loading } = useQuery({
     queryKey: ['employee', 'dashboard'],
     queryFn: async () => {
-      const [attRes, leavesRes, perfRes, profileRes, payslipsRes, mapsRateRes] = await Promise.all([
+      const [attRes, leavesRes, perfRes, profileRes, payslipsRes, mapsRateRes, holidaysRes] = await Promise.all([
         api.get('/employee/attendance').catch(() => ({ data: [] })),
         api.get('/employee/leaves').catch(() => ({ data: null })),
         api.get('/employee/performance').catch(() => ({ data: {} })),
         api.get('/employee/profile').catch(() => ({ data: {} })),
         api.get('/employee/payroll').catch(() => ({ data: { payslips: [] } })),
-        api.get('/employee/maps-rate-limit-status').catch(() => ({ data: { locked: false } }))
+        api.get('/employee/maps-rate-limit-status').catch(() => ({ data: { locked: false } })),
+        api.get('/employee/holidays').catch(() => ({ data: [] }))
       ]);
       return {
         attendance: attRes.data,
@@ -39,7 +40,8 @@ const EmployeeMobileDashboard = () => {
         performance: perfRes.data?.currentMonthSummary || null,
         fullProfile: profileRes.data?.profile || null,
         latestPayslip: payslipsRes.data?.payslips?.[0] || null,
-        mapsRateLimit: mapsRateRes.data
+        mapsRateLimit: mapsRateRes.data,
+        holidays: holidaysRes.data || []
       };
     },
     staleTime: 30 * 1000
@@ -48,6 +50,10 @@ const EmployeeMobileDashboard = () => {
   const attendance = dashboardData?.attendance || [];
   const leaves = dashboardData?.leaves || null;
   const fullProfile = dashboardData?.fullProfile || profile;
+  const holidays = dashboardData?.holidays || [];
+  
+  const todayStr = new Date().toISOString().split('T')[0];
+  const upcomingHolidays = holidays.filter(h => h.holidayDate >= todayStr).slice(0, 3);
   const latestPayslip = dashboardData?.latestPayslip || null;
 
   useEffect(() => {
@@ -362,9 +368,28 @@ const EmployeeMobileDashboard = () => {
           <ChevronRight className="w-5 h-5 text-slate-400" />
         </Link>
         <div className="p-4 space-y-3">
-          <div className="text-center text-slate-500 text-sm py-4 font-medium">
-            No upcoming holidays.
-          </div>
+          {upcomingHolidays.length > 0 ? (
+            upcomingHolidays.map(holiday => (
+              <div key={holiday.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold">
+                    {new Date(holiday.holidayDate).getDate()}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-slate-800 text-sm">{holiday.holidayName}</h3>
+                    <p className="text-xs text-slate-500">{new Date(holiday.holidayDate).toLocaleDateString(undefined, { month: 'short', weekday: 'short' })}</p>
+                  </div>
+                </div>
+                {holiday.holidayImage && (
+                  <img src={holiday.holidayImage} alt={holiday.holidayName} className="w-10 h-10 rounded-lg object-cover" />
+                )}
+              </div>
+            ))
+          ) : (
+            <div className="text-center text-slate-500 text-sm py-4 font-medium">
+              No upcoming holidays.
+            </div>
+          )}
         </div>
       </section>
 

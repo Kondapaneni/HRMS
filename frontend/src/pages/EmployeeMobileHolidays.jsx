@@ -2,9 +2,25 @@ import React from 'react';
 import { ArrowLeft, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
+import api from '../api/axios';
+import PageLoader from '../components/PageLoader';
 
 const EmployeeMobileHolidays = () => {
   const navigate = useNavigate();
+
+  const { data: holidays = [], isLoading: loading } = useQuery({
+    queryKey: ['employee', 'holidays'],
+    queryFn: async () => {
+      const response = await api.get('/employee/holidays');
+      return response.data;
+    }
+  });
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  const upcomingHolidays = holidays.filter(h => h.holidayDate >= todayStr);
+
+  if (loading) return <PageLoader message="Loading Holidays..." />;
 
   return (
     <div className="min-h-screen bg-slate-50 md:hidden pb-safe">
@@ -45,9 +61,28 @@ const EmployeeMobileHolidays = () => {
           <h2 className="text-lg font-bold text-slate-900 tracking-tight mb-2">Upcoming Holidays</h2>
 
           <div className="space-y-3">
-            <div className="text-center text-slate-500 text-sm py-8 font-medium">
-              No upcoming holidays to show.
-            </div>
+            {upcomingHolidays.length > 0 ? (
+              upcomingHolidays.map(holiday => (
+                <div key={holiday.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-lg">
+                      {new Date(holiday.holidayDate).getDate()}
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-slate-800 text-base">{holiday.holidayName}</h3>
+                      <p className="text-sm text-slate-500">{new Date(holiday.holidayDate).toLocaleDateString(undefined, { month: 'short', weekday: 'short' })}</p>
+                    </div>
+                  </div>
+                  {holiday.holidayImage && (
+                    <img src={holiday.holidayImage} alt={holiday.holidayName} className="w-12 h-12 rounded-xl object-cover" />
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className="text-center text-slate-500 text-sm py-8 font-medium">
+                No upcoming holidays to show.
+              </div>
+            )}
           </div>
         </div>
       </div>
