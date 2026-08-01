@@ -4,7 +4,7 @@ import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
 import {
-  Award, Search, Filter, ShieldAlert, CheckCircle2, XCircle, Eye, Trash2,
+  Award, Search, Filter, ShieldAlert, CheckCircle2, XCircle, Eye, Download, Trash2,
   Calendar, User, Building2, FileText, AlertTriangle, Video, RefreshCw,
   Clock, BarChart2, X, ChevronRight, HelpCircle, ArrowUpRight
 } from 'lucide-react';
@@ -59,6 +59,32 @@ const AssessmentResultsPage = () => {
       toast.error(err.response?.data?.error || 'Failed to reset attempt');
     }
   });
+
+  const handleDownloadVideo = async (videoUrl) => {
+    try {
+      let downloadUrl = videoUrl;
+
+      if (!videoUrl.startsWith('http')) {
+        const { data } = supabase.storage
+          .from('proctoring_videos')
+          .getPublicUrl(videoUrl, { download: true });
+          
+        if (data && data.publicUrl) {
+          downloadUrl = data.publicUrl;
+        }
+      }
+      
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = videoUrl.split('/').pop() || 'video.webm';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Download failed:', error);
+      toast.error('Failed to initiate download.');
+    }
+  };
 
   const handleResetAttempt = (id, empName, title, proctoringVideoUrl) => {
     if (window.confirm(`Are you sure you want to reset and delete this assessment attempt for "${empName}" (${title})? The recorded proctoring video will also be deleted from storage.`)) {
@@ -513,26 +539,13 @@ const AssessmentResultsPage = () => {
                         <Video size={16} className="text-purple-600 animate-pulse shrink-0" />
                         <span>Live Session Webcam Recording</span>
                       </div>
-                      <a
-                        href={selectedAttempt.proctoring_video_url.startsWith('http') ? selectedAttempt.proctoring_video_url : `/Proctoring-Video/${selectedAttempt.proctoring_video_url}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        download={selectedAttempt.proctoring_video_url}
+                      <button
+                        onClick={() => handleDownloadVideo(selectedAttempt.proctoring_video_url)}
                         className="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition flex items-center gap-1.5 shrink-0 shadow-xs cursor-pointer"
                       >
-                        <Eye size={13} />
-                        Open in New Tab / Download
-                      </a>
-                    </div>
-                    <div className="rounded-xl overflow-hidden bg-slate-950 border border-purple-200 aspect-video flex items-center justify-center max-h-[380px] w-full shadow-inner">
-                      <video
-                        controls
-                        autoPlay
-                        className="w-full h-full object-contain"
-                        src={selectedAttempt.proctoring_video_url.startsWith('http') ? selectedAttempt.proctoring_video_url : `/Proctoring-Video/${selectedAttempt.proctoring_video_url}`}
-                      >
-                        Your browser does not support HTML5 webcam video playback.
-                      </video>
+                        <Download size={13} />
+                        Download Video
+                      </button>
                     </div>
                   </div>
                 )}
