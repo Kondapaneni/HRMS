@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PageLoader from '../components/PageLoader';
-import { LogIn, LogOut, Clock, Calendar, Bell, Shield, ChevronRight, Receipt, Briefcase, Megaphone } from 'lucide-react';
+import { LogIn, LogOut, Clock, Calendar, Bell, Shield, ChevronRight, Receipt, Briefcase, Megaphone, Play } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -317,7 +317,7 @@ const EmployeeMobileDashboard = () => {
       </section>
 
       {/* Business Apps Entry */}
-      {(profile?.featureAccess?.canChat || profile?.featureAccess?.canLoanOrigination) && (
+      {(profile?.featureAccess?.canChat || profile?.featureAccess?.canLoanOrigination || profile?.featureAccess?.canEmployeeTrainingVideos) && (
         <section className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
           <div className="px-6 pt-6 pb-4 border-b border-slate-100">
             <h2 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">Business Apps</h2>
@@ -351,6 +351,19 @@ const EmployeeMobileDashboard = () => {
                   </div>
                 </div>
                 <ChevronRight className="w-5 h-5 text-slate-300" />
+              </Link>
+            {profile?.featureAccess?.canEmployeeTrainingVideos && (
+              <Link to="/employee/training" className="flex items-center justify-between w-full rounded-xl bg-purple-600 text-white font-semibold text-sm px-6 py-4 hover:bg-purple-700 active:scale-[0.98] transition-all shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="bg-white/20 p-2 rounded-lg">
+                    <Play className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <div className="text-base">Training Videos</div>
+                    <div className="text-xs text-purple-200 font-normal mt-0.5">Watch your assigned videos</div>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-purple-200" />
               </Link>
             )}
           </div>
