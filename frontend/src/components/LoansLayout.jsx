@@ -94,7 +94,7 @@ const LoansLayout = () => {
             {profile?.featureAccess?.canChat && (
               <button
                 className="md:hidden relative text-slate-500 hover:text-slate-700 transition-colors ml-1"
-                onClick={() => navigate('/employee/chat')}
+                onClick={() => navigate('/employee/chat/mobile')}
               >
                 <Bell size={20} />
               </button>
