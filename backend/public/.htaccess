@@ -7,10 +7,10 @@ SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
 # Explicitly set the DirectoryIndex so that / loads index.html
 DirectoryIndex index.html index.php
 
-# If the request starts with api/, Offer-Letter/, Job-Description/, Resume/, Avatar/, Holiday/, Attendance/, Chat-Attachment/, Candidate-Document/, Bills/, Proctoring-Video/, or Training-Video/ route it to index.php
+# If the request starts with api/, Offer-Letter/, Job-Description/, Resume/, Avatar/, Holiday/, Attendance/, Chat-Attachment/, Candidate-Document/, Bills/, or Training-Video/ route it to index.php
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(api|Offer-Letter|Job-Description|Resume|Avatar|Holiday|Attendance|Chat-Attachment|Candidate-Document|Bills|Proctoring-Video|Training-Video)/ index.php [QSA,L]
+RewriteRule ^(api|Offer-Letter|Job-Description|Resume|Avatar|Holiday|Attendance|Chat-Attachment|Candidate-Document|Bills|Training-Video)/ index.php [QSA,L]
 
 # For all other non-file requests, route to index.html (React SPA)
 RewriteCond %{REQUEST_FILENAME} !-f
