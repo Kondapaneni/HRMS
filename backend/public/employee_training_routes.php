@@ -20,16 +20,17 @@ $app->get('/api/employee/training/videos', function (Request $request, Response 
         $sql = '
             SELECT tv.id, tv.title, tv.video_url, tv.created_at
             FROM training_videos tv
-            WHERE tv.assigned_employee_ids @> :userId::jsonb
+            WHERE tv.assigned_employee_ids @> :userIdInt::jsonb
+               OR tv.assigned_employee_ids @> :userIdStr::jsonb
             ORDER BY tv.created_at DESC
         ';
         
-        // Encode the user ID as a JSON array string so we can use the @> operator
-        // For example: '["4d5e6f..."]'
-        $userIdJson = json_encode([$user->id]);
+        $userIdIntJson = json_encode([(int)$user->id]);
+        $userIdStrJson = json_encode([(string)$user->id]);
         
         $stmt = $conn->prepare($sql);
-        $stmt->bindValue(':userId', $userIdJson);
+        $stmt->bindValue(':userIdInt', $userIdIntJson);
+        $stmt->bindValue(':userIdStr', $userIdStrJson);
         $stmt->execute();
         
         $videos = $stmt->fetchAll(PDO::FETCH_ASSOC);
