@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Play, Plus, Trash2, X, Upload } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../api/axios';
 import { supabase } from '../lib/supabase';
 
 const AdminTrainingModule = () => {
-  const [videos, setVideos] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   
@@ -15,20 +15,45 @@ const AdminTrainingModule = () => {
   
   const fileInputRef = useRef(null);
 
-  useEffect(() => {
-    fetchVideos();
-  }, []);
-
-  const fetchVideos = async () => {
-    try {
+  const { data: videos = [], isLoading } = useQuery({
+    queryKey: ['admin', 'trainingVideos'],
+    queryFn: async () => {
       const res = await api.get('/admin/training/videos');
-      setVideos(res.data);
-    } catch (err) {
-      toast.error('Failed to load training videos');
-    } finally {
-      setIsLoading(false);
+      return res.data;
     }
-  };
+  });
+
+  const uploadMutation = useMutation({
+    mutationFn: async (videoData) => {
+      await api.post('/admin/training/videos', videoData);
+    },
+    onSuccess: () => {
+      toast.success('Video uploaded successfully!');
+      setIsModalOpen(false);
+      setTitle('');
+      setVideoFile(null);
+      queryClient.invalidateQueries({ queryKey: ['admin', 'trainingVideos'] });
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.error || err.message || 'Failed to add video');
+    },
+    onSettled: () => {
+      setIsUploading(false);
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id) => {
+      await api.delete(`/admin/training/videos/${id}`);
+    },
+    onSuccess: () => {
+      toast.success('Video deleted successfully');
+      queryClient.invalidateQueries({ queryKey: ['admin', 'trainingVideos'] });
+    },
+    onError: (err) => {
+      toast.error('Failed to delete video');
+    }
+  });
 
   const handleUpload = async (e) => {
     e.preventDefault();
@@ -60,30 +85,16 @@ const AdminTrainingModule = () => {
       };
 
       // 3. Save to database
-      await api.post('/admin/training/videos', videoData);
-
-      toast.success('Video uploaded successfully!');
-      setIsModalOpen(false);
-      setTitle('');
-      setVideoFile(null);
-      fetchVideos();
+      uploadMutation.mutate(videoData);
     } catch (err) {
       toast.error(err.message || 'Failed to add video');
-    } finally {
       setIsUploading(false);
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = (id) => {
     if (!window.confirm('Are you sure you want to delete this video?')) return;
-    
-    try {
-      await api.delete(`/admin/training/videos/${id}`);
-      toast.success('Video deleted successfully');
-      setVideos(videos.filter(v => v.id !== id));
-    } catch (err) {
-      toast.error('Failed to delete video');
-    }
+    deleteMutation.mutate(id);
   };
 
   if (isLoading) {
