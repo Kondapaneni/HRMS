@@ -21,7 +21,7 @@ const AssessmentWorkspaceLayout = () => {
     { icon: <HelpCircle size={18} />, label: 'Department Question Bank', path: '/admin/assessments/questions' },
     { icon: <Settings size={18} />, label: 'Assessment Management', path: '/admin/assessments/management' },
     { icon: <Award size={18} />, label: 'Employee Results & Attempts', path: '/admin/assessments/results' },
-    { icon: <BookOpen size={18} />, label: 'Training Module', path: '/admin/assessments/training', heading: 'Training Modules' },
+    { icon: <BookOpen size={18} />, label: 'Training Videos', path: '/admin/assessments/training', heading: 'Training Modules' },
   ];
 
   return (

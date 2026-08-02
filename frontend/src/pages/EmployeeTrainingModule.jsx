@@ -21,12 +21,13 @@ const EmployeeTrainingModule = () => {
   }
 
   return (
-    <div className="flex-1 p-8 bg-slate-50 overflow-y-auto">
-      <div className="w-full">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-slate-800">Training Videos</h1>
-          <p className="text-slate-500 mt-1">Watch the training videos assigned to you</p>
+    <div className="w-full space-y-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Training Videos</h1>
+          <p className="text-sm text-slate-500 mt-1">Watch the training videos assigned to you.</p>
         </div>
+      </div>
 
         {videos.length === 0 ? (
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
@@ -62,7 +63,6 @@ const EmployeeTrainingModule = () => {
             ))}
           </div>
         )}
-      </div>
     </div>
   );
 };
