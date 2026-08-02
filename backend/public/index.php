@@ -305,6 +305,25 @@ $app->post('/api/logout', function (Request $request, Response $response, $args)
         ->withStatus(200);
 });
 
+// Get global news headlines (Protected)
+$app->get('/api/news', function (Request $request, Response $response, $args) {
+    $db = new Database();
+    $conn = $db->getConnection();
+    
+    $stmt = $conn->query('SELECT news_headlines, maintenance_mode, maintenance_message FROM global_settings ORDER BY id ASC LIMIT 1');
+    $settings = $stmt->fetch(PDO::FETCH_ASSOC);
+    $headlines = isset($settings['news_headlines']) ? json_decode($settings['news_headlines'], true) : [];
+    $maintenanceMode = isset($settings['maintenance_mode']) && $settings['maintenance_mode'] ? true : false;
+    $maintenanceMessage = $settings['maintenance_message'] ?? '';
+    
+    $response->getBody()->write(json_encode([
+        'news_headlines' => $headlines,
+        'maintenance_mode' => $maintenanceMode,
+        'maintenance_message' => $maintenanceMessage
+    ]));
+    return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+})->add(new AuthMiddleware());
+
 // Get current user profile endpoint (Protected)
 $app->get('/api/me', function (Request $request, Response $response, $args) {
     $decodedToken = $request->getAttribute('user');

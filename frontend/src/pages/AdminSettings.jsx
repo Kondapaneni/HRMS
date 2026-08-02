@@ -17,6 +17,8 @@ const AdminSettings = () => {
     mapsRateLimitAttempts: 5,
     mapsRateLimitWindow: 10,
     newsHeadlines: [],
+    maintenanceMode: false,
+    maintenanceMessage: 'The application is currently undergoing maintenance. Please check back later.',
   });
 
   const { isLoading: loading, data: fetchedSettings } = useQuery({
@@ -38,6 +40,8 @@ const AdminSettings = () => {
         mapsRateLimitAttempts: fetchedSettings.maps_rate_limit_attempts || 5,
         mapsRateLimitWindow: fetchedSettings.maps_rate_limit_window || 10,
         newsHeadlines: typeof fetchedSettings.news_headlines === 'string' ? JSON.parse(fetchedSettings.news_headlines) : (fetchedSettings.news_headlines || []),
+        maintenanceMode: fetchedSettings.maintenance_mode === true || fetchedSettings.maintenance_mode === 'true',
+        maintenanceMessage: fetchedSettings.maintenance_message || 'The application is currently undergoing maintenance. Please check back later.',
       });
     }
   }, [fetchedSettings]);
@@ -90,7 +94,9 @@ const AdminSettings = () => {
       forgot_password_rate_limit_window: settings.forgotPasswordRateLimitWindow,
       maps_rate_limit_attempts: settings.mapsRateLimitAttempts,
       maps_rate_limit_window: settings.mapsRateLimitWindow,
-      news_headlines: settings.newsHeadlines.filter(h => h.trim() !== '')
+      news_headlines: settings.newsHeadlines.filter(h => h.trim() !== ''),
+      maintenance_mode: settings.maintenanceMode,
+      maintenance_message: settings.maintenanceMessage
     });
   };
 
@@ -134,6 +140,49 @@ const AdminSettings = () => {
                     <option value="never">Never (Not Recommended)</option>
                   </select>
                   <p className="text-xs text-slate-500">Users will be automatically logged out after this period of inactivity.</p>
+                </div>
+              </div>
+
+              <div className="mt-10 border-t border-slate-100 pt-6">
+                <div className="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6">
+                  <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-600">
+                    <Shield size={20} />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-slate-900">App Maintenance</h2>
+                    <p className="text-sm text-slate-500">Lock the application for employees during updates</p>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      name="maintenanceMode"
+                      checked={settings.maintenanceMode}
+                      onChange={handleChange}
+                      id="maintenanceModeToggle"
+                      className="w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                    />
+                    <label htmlFor="maintenanceModeToggle" className="text-sm font-medium text-slate-700 cursor-pointer">
+                      Enable Maintenance Mode
+                    </label>
+                  </div>
+                  
+                  {settings.maintenanceMode && (
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-slate-700">Maintenance Message</label>
+                      <textarea
+                        name="maintenanceMessage"
+                        value={settings.maintenanceMessage}
+                        onChange={handleChange}
+                        rows="3"
+                        placeholder="Enter the message employees will see..."
+                        className="w-full rounded-md border border-slate-300 px-3 py-2.5 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none bg-white transition-shadow resize-none"
+                      />
+                      <p className="text-xs text-slate-500">This message will be displayed to employees when they are locked out.</p>
+                    </div>
+                  )}
                 </div>
               </div>
 

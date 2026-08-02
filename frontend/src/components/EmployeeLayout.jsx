@@ -8,6 +8,8 @@ import {
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
+import UserAvatar from './UserAvatar';
+import MaintenanceOverlay from './MaintenanceOverlay';
 import api from '../api/axios';
 import GlobalSearch from './GlobalSearch';
 
@@ -89,6 +91,20 @@ const EmployeeLayout = () => {
 
   const totalUnread = chats.reduce((sum, chat) => sum + (chat.unread_count || 0), 0);
 
+  // Fetch live news headlines
+  const { data: newsData } = useQuery({
+    queryKey: ['newsHeadlines'],
+    queryFn: async () => {
+      const res = await api.get('/news');
+      return res.data;
+    },
+    refetchInterval: 5000, // Poll every 5 seconds
+    refetchOnWindowFocus: true,
+  });
+  const newsHeadlines = newsData?.news_headlines || profile?.news_headlines || [];
+  const isMaintenanceMode = newsData?.maintenance_mode === true;
+  const maintenanceMessage = newsData?.maintenance_message;
+
   const adminFeatures = [
     { icon: <Users size={18} />, label: 'Employees', path: '/admin/employees', feature: 'canEmployees', activePaths: ['/admin/employees', '/admin/directory'] },
     { icon: <Clock size={18} />, label: 'Attendance', path: '/admin/attendance', feature: 'canAttendance', activePaths: ['/admin/attendance'] },
@@ -115,7 +131,9 @@ const EmployeeLayout = () => {
   };
 
   return (
-    <div className="h-[100dvh] w-full overflow-hidden bg-slate-50 flex font-sans text-slate-800 relative z-0">
+    <>
+      {isMaintenanceMode && <MaintenanceOverlay message={maintenanceMessage} />}
+      <div className="h-[100dvh] w-full overflow-hidden bg-slate-50 flex font-sans text-slate-800 relative z-0">
 
       {/* Global Animated Background Graphics */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden fixed md:absolute">
@@ -279,17 +297,18 @@ const EmployeeLayout = () => {
           </div>
 
           {/* Scrolling News Ticker (Desktop) */}
-          {profile?.news_headlines && profile.news_headlines.length > 0 && (
+          {newsHeadlines.length > 0 && (
             <div className="hidden md:flex flex-1 mx-6 overflow-hidden items-center text-sm font-medium text-slate-700 bg-blue-50/80 rounded-full h-9 px-4 border border-blue-100 shadow-sm relative group">
               <Megaphone size={16} className="text-blue-600 mr-3 shrink-0" />
               <div className="flex-1 overflow-hidden relative h-full flex items-center">
                 <motion.div
+                  key={newsHeadlines.join(" • ")} // Re-animate when text changes
                   className="whitespace-nowrap absolute left-0"
                   initial={{ x: "100%" }}
                   animate={{ x: "-100%" }}
-                  transition={{ repeat: Infinity, duration: profile.news_headlines.join(" • ").length * 0.15 + 10, ease: "linear" }}
+                  transition={{ repeat: Infinity, duration: newsHeadlines.join(" • ").length * 0.15 + 10, ease: "linear" }}
                 >
-                  <span className="text-blue-800 tracking-wide">{profile.news_headlines.join(" • ")}</span>
+                  <span className="text-blue-800 tracking-wide">{newsHeadlines.join(" • ")}</span>
                 </motion.div>
               </div>
             </div>
@@ -347,17 +366,18 @@ const EmployeeLayout = () => {
         </header>
 
         {/* Mobile Scrolling News Ticker */}
-        {profile?.news_headlines && profile.news_headlines.length > 0 && (
+        {newsHeadlines.length > 0 && (
           <div className="md:hidden shrink-0 bg-blue-50 border-b border-blue-100 px-4 py-2 flex items-center overflow-hidden">
             <Megaphone size={14} className="text-blue-600 mr-2 shrink-0" />
             <div className="flex-1 overflow-hidden relative h-5 flex items-center text-xs font-medium text-blue-800">
               <motion.div
+                key={newsHeadlines.join(" • ")} // Re-animate when text changes
                 className="whitespace-nowrap absolute left-0"
                 initial={{ x: "100%" }}
                 animate={{ x: "-100%" }}
-                transition={{ repeat: Infinity, duration: profile.news_headlines.join(" • ").length * 0.15 + 10, ease: "linear" }}
+                transition={{ repeat: Infinity, duration: newsHeadlines.join(" • ").length * 0.15 + 10, ease: "linear" }}
               >
-                <span className="tracking-wide">{profile.news_headlines.join(" • ")}</span>
+                <span className="tracking-wide">{newsHeadlines.join(" • ")}</span>
               </motion.div>
             </div>
           </div>
@@ -508,6 +528,7 @@ const EmployeeLayout = () => {
       </div>
 
     </div>
+    </>
   );
 };
 

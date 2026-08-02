@@ -14,7 +14,7 @@ $app->get('/api/admin/settings', function (Request $request, Response $response,
     $settings = \App\Utils\Cache::get($cacheKey);
     
     if ($settings === false) {
-        $stmt = $conn->query('SELECT id, session_timeout, login_rate_limit_attempts, login_rate_limit_window, forgot_password_rate_limit_attempts, forgot_password_rate_limit_window, maps_rate_limit_attempts, maps_rate_limit_window, news_headlines, updated_at FROM global_settings ORDER BY id ASC LIMIT 1');
+        $stmt = $conn->query('SELECT id, session_timeout, login_rate_limit_attempts, login_rate_limit_window, forgot_password_rate_limit_attempts, forgot_password_rate_limit_window, maps_rate_limit_attempts, maps_rate_limit_window, news_headlines, maintenance_mode, maintenance_message, updated_at FROM global_settings ORDER BY id ASC LIMIT 1');
         $settings = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if ($settings) {
@@ -30,10 +30,11 @@ $app->get('/api/admin/settings', function (Request $request, Response $response,
                 login_rate_limit_attempts, login_rate_limit_window, 
                 forgot_password_rate_limit_attempts, forgot_password_rate_limit_window,
                 maps_rate_limit_attempts, maps_rate_limit_window,
-                news_headlines
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING *
+                news_headlines,
+                maintenance_mode, maintenance_message
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *
         ');
-        $stmt->execute(['30', 5, 15, 3, 60, 5, 10, json_encode([])]);
+        $stmt->execute(['30', 5, 15, 3, 60, 5, 10, json_encode([]), 'false', 'The application is currently undergoing maintenance. Please check back later.']);
         $settings = $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
@@ -64,6 +65,8 @@ $app->post('/api/admin/settings', function (Request $request, Response $response
                     maps_rate_limit_attempts = ?,
                     maps_rate_limit_window = ?,
                     news_headlines = ?,
+                    maintenance_mode = ?,
+                    maintenance_message = ?,
                     updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
             ');
@@ -76,6 +79,8 @@ $app->post('/api/admin/settings', function (Request $request, Response $response
                 $data['maps_rate_limit_attempts'] ?? 5,
                 $data['maps_rate_limit_window'] ?? 10,
                 isset($data['news_headlines']) ? json_encode($data['news_headlines']) : '[]',
+                isset($data['maintenance_mode']) ? ($data['maintenance_mode'] ? 'true' : 'false') : 'false',
+                $data['maintenance_message'] ?? 'The application is currently undergoing maintenance. Please check back later.',
                 $settingId
             ]);
         } else {
@@ -85,8 +90,9 @@ $app->post('/api/admin/settings', function (Request $request, Response $response
                     login_rate_limit_attempts, login_rate_limit_window, 
                     forgot_password_rate_limit_attempts, forgot_password_rate_limit_window,
                     maps_rate_limit_attempts, maps_rate_limit_window,
-                    news_headlines
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    news_headlines,
+                    maintenance_mode, maintenance_message
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ');
             $stmtInsert->execute([
                 $data['session_timeout'] ?? '30',
@@ -96,7 +102,9 @@ $app->post('/api/admin/settings', function (Request $request, Response $response
                 $data['forgot_password_rate_limit_window'] ?? 60,
                 $data['maps_rate_limit_attempts'] ?? 5,
                 $data['maps_rate_limit_window'] ?? 10,
-                isset($data['news_headlines']) ? json_encode($data['news_headlines']) : '[]'
+                isset($data['news_headlines']) ? json_encode($data['news_headlines']) : '[]',
+                isset($data['maintenance_mode']) ? ($data['maintenance_mode'] ? 'true' : 'false') : 'false',
+                $data['maintenance_message'] ?? 'The application is currently undergoing maintenance. Please check back later.'
             ]);
         }
 
