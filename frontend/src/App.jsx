@@ -65,7 +65,7 @@ import EmployeeAssessmentInstructions from './pages/EmployeeAssessmentInstructio
 import EmployeeAssessmentEngine from './pages/EmployeeAssessmentEngine'
 import EmployeeAssessmentResult from './pages/EmployeeAssessmentResult'
 import ComingSoon from './pages/ComingSoon'
-import AdminTrainingModule from './pages/AdminTrainingModule'
+import AdminTrainingVideos from './pages/AdminTrainingVideos'
 import EmployeeTrainingModule from './pages/EmployeeTrainingModule'
 import CandidateLogin from './pages/CandidateLogin'
 import CandidateActivate from './pages/CandidateActivate'
@@ -182,7 +182,7 @@ function App() {
                 <Route path="create" element={<AssessmentCreatePage />} />
                 <Route path="edit/:id" element={<AssessmentCreatePage />} />
                 <Route path="results" element={<AssessmentResultsPage />} />
-                <Route path="training" element={<AdminTrainingModule />} />
+                <Route path="training" element={<AdminTrainingVideos />} />
               </Route>
               <Route
                 path="/employee"

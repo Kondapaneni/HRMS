@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import api from '../api/axios';
 import { supabase } from '../lib/supabase';
 
-const AdminTrainingModule = () => {
+const AdminTrainingVideos = () => {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -130,21 +130,20 @@ const AdminTrainingModule = () => {
   }
 
   return (
-    <div className="flex-1 p-8 bg-slate-50 overflow-y-auto">
-      <div className="w-full">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800">Training Module</h1>
-            <p className="text-slate-500 mt-1">Manage training videos for employees</p>
-          </div>
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-          >
-            <Plus size={20} />
-            <span>Add Video</span>
-          </button>
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Admin Training Videos</h1>
+          <p className="text-sm text-slate-500 mt-1">Manage training videos for employees</p>
         </div>
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 transition-colors shadow-sm cursor-pointer"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Add Video
+        </button>
+      </div>
 
         {videos.length === 0 ? (
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
@@ -208,8 +207,6 @@ const AdminTrainingModule = () => {
             ))}
           </div>
         )}
-      </div>
-
       {isModalOpen && (
         <div className="fixed inset-0 z-50 overflow-hidden">
           <div 
@@ -401,4 +398,4 @@ const AdminTrainingModule = () => {
   );
 };
 
-export default AdminTrainingModule;
+export default AdminTrainingVideos;
