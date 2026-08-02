@@ -54,13 +54,13 @@ const AdminTrainingModule = () => {
       }
 
       // 2. Generate proxy URL (which index.php route handles)
-      const proxyUrl = `/Training-Video/${fileName}`;
+      const videoData = {
+        title: title.trim(),
+        video_url: window.location.origin + `/Training-Video/${fileName}`
+      };
 
       // 3. Save to database
-      await api.post('/admin/training/videos', {
-        title: title.trim(),
-        video_url: proxyUrl
-      });
+      await api.post('/admin/training/videos', videoData);
 
       toast.success('Video uploaded successfully!');
       setIsModalOpen(false);
