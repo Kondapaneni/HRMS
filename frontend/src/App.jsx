@@ -29,7 +29,7 @@ import EmployeeMobileChat from './pages/EmployeeMobileChat'
 import EmployeeMobileHolidays from './pages/EmployeeMobileHolidays'
 import EmployeeMobileBirthdays from './pages/EmployeeMobileBirthdays'
 import OriginationLayout from './components/OriginationLayout'
-import LoanOrigination from './pages/LoanOrigination'
+import OriginationDashboard from './pages/OriginationDashboard'
 import AssessmentWorkspaceLayout from './components/AssessmentWorkspaceLayout'
 import AssessmentManagementPage from './pages/AssessmentManagementPage'
 import DepartmentQuestionBankPage from './pages/DepartmentQuestionBankPage'
@@ -235,7 +235,7 @@ function App() {
                   </ProtectedRoute>
                 }
               >
-                <Route path="origination" element={<LoanOrigination />} />
+                <Route path="origination" element={<OriginationDashboard />} />
               </Route>
 
               <Route
