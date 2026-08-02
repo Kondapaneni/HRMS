@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Award, HelpCircle, Users, BarChart2, ArrowLeft, Home, LogOut, Settings } from 'lucide-react';
+import { Award, HelpCircle, Users, BarChart2, ArrowLeft, Home, LogOut, Settings, BookOpen } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 
 const AssessmentWorkspaceLayout = () => {
@@ -21,6 +21,7 @@ const AssessmentWorkspaceLayout = () => {
     { icon: <HelpCircle size={18} />, label: 'Department Question Bank', path: '/admin/assessments/questions' },
     { icon: <Settings size={18} />, label: 'Assessment Management', path: '/admin/assessments/management' },
     { icon: <Award size={18} />, label: 'Employee Results & Attempts', path: '/admin/assessments/results' },
+    { icon: <BookOpen size={18} />, label: 'Training Module', path: '/admin/assessments/training', heading: 'Training Modules' },
   ];
 
   return (
@@ -29,10 +30,10 @@ const AssessmentWorkspaceLayout = () => {
       {/* Sidebar - Clean, Professional */}
       <aside className="w-[260px] h-screen sticky top-0 bg-white/80 backdrop-blur-md border-r border-slate-200 hidden md:flex flex-col z-20 shadow-sm shrink-0">
         <div className="h-14 flex items-center px-4 border-b border-slate-200 shrink-0">
-          <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white mr-3 shrink-0">
-            <Award size={18} strokeWidth={2.5} />
+          <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center mr-3 shrink-0">
+            <Award className="w-5 h-5 text-white" />
           </div>
-          <span className="text-lg font-semibold tracking-tight text-slate-900 whitespace-nowrap">Acme Assessments</span>
+          <span className="text-base font-semibold tracking-tight text-slate-900 leading-tight">Acme Assessment & Training</span>
         </div>
 
         <div className="p-4 overflow-y-auto flex-1">
@@ -43,17 +44,23 @@ const AssessmentWorkspaceLayout = () => {
                                location.pathname.startsWith(`${item.path}/`) ||
                                (item.path === '/admin/assessments/management' && (location.pathname.startsWith('/admin/assessments/create') || location.pathname.startsWith('/admin/assessments/edit') || location.pathname.startsWith('/admin/assessments/rules')));
               return (
-                <Link
-                  key={idx}
-                  to={item.path}
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                    }`}
-                >
-                  <span className={`shrink-0 ${isActive ? 'text-blue-600' : 'text-slate-400'}`}>{item.icon}</span>
-                  <span className="flex-1 whitespace-nowrap truncate">{item.label}</span>
-                </Link>
+                <React.Fragment key={idx}>
+                  {item.heading && (
+                    <div className="pt-4 mt-2 mb-4 border-t border-slate-200">
+                      <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-2 whitespace-nowrap">{item.heading}</p>
+                    </div>
+                  )}
+                  <Link
+                    to={item.path}
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive
+                      ? 'bg-blue-50 text-blue-700'
+                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                      }`}
+                  >
+                    <span className={`shrink-0 ${isActive ? 'text-blue-600' : 'text-slate-400'}`}>{item.icon}</span>
+                    <span className="flex-1 whitespace-nowrap truncate">{item.label}</span>
+                  </Link>
+                </React.Fragment>
               );
             })}
           </nav>
@@ -77,10 +84,10 @@ const AssessmentWorkspaceLayout = () => {
         <header className="h-14 shrink-0 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 flex items-center justify-between sticky top-0 z-40 md:relative md:z-10">
           <div className="flex items-center gap-4">
             <div className="md:hidden flex items-center gap-2">
-               <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white mr-2">
-                 <Award size={18} strokeWidth={2.5} />
+               <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center mr-2 shrink-0">
+                 <Award className="w-5 h-5 text-white" />
                </div>
-               <span className="text-lg font-semibold tracking-tight text-slate-900">Acme Assessments</span>
+               <span className="text-base font-semibold tracking-tight text-slate-900 leading-tight">Acme Assessment & Training</span>
             </div>
           </div>
 

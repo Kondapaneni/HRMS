@@ -44,7 +44,7 @@ const AdminLayout = () => {
     { icon: <FileText size={18} />, label: 'Expenses', path: '/admin/expenses' },
     { icon: <Monitor size={18} />, label: 'Assets', path: '/admin/assets' },
     { icon: <Briefcase size={18} />, label: 'Recruitment', path: '/admin/recruitment' },
-    { icon: <Award size={18} />, label: 'Exams & Assessments', path: '/admin/assessments' },
+    { icon: <Award size={18} />, label: 'Assessment and Training', path: '/admin/assessments' },
     { icon: <Mail size={18} />, label: 'Email Templates', path: '/admin/email-templates' },
     { icon: <MessageSquare size={18} />, label: 'Secure Chat', path: '/admin/chat' },
     { icon: <FileText size={18} />, label: 'Audit Logs', path: '/admin/audit-logs' },

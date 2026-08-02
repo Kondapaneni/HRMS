@@ -249,7 +249,7 @@ const EmployeeAssessments = () => {
     <div className="w-full space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Exams & Assessments</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Assessment and Training</h1>
           <p className="text-sm text-slate-500 mt-1">Your assigned employee assessments and evaluations.</p>
         </div>
         <div className="text-sm font-semibold text-slate-500 bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm">

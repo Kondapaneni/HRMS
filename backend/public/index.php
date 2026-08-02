@@ -441,6 +441,7 @@ require __DIR__ . '/admin_performance_routes.php';
 require __DIR__ . '/admin_settings_routes.php';
 require __DIR__ . '/admin_recruitment_routes.php';
 require __DIR__ . '/admin_assessments_routes.php';
+require __DIR__ . '/admin_training_routes.php';
 require __DIR__ . '/chat_routes.php';
 require __DIR__ . '/candidate_auth_routes.php';
 require __DIR__ . '/candidate_recruitment_routes.php';
@@ -675,6 +676,14 @@ $app->get('/Proctoring-Video/{filename:.+}', function (Request $request, Respons
     $filename = $args['filename'];
     $encodedFilename = implode('/', array_map('rawurlencode', explode('/', $filename)));
     $supabaseUrl = $_ENV['VITE_SUPABASE_URL'] . "/storage/v1/object/public/proctoring_videos/" . $encodedFilename;
+    return streamSupabaseFile($supabaseUrl, $response, $filename, 'inline');
+});
+
+// Training Video proxy route
+$app->get('/Training-Video/{filename:.+}', function (Request $request, Response $response, $args) {
+    $filename = $args['filename'];
+    $encodedFilename = implode('/', array_map('rawurlencode', explode('/', $filename)));
+    $supabaseUrl = $_ENV['VITE_SUPABASE_URL'] . "/storage/v1/object/public/training_videos/" . $encodedFilename;
     return streamSupabaseFile($supabaseUrl, $response, $filename, 'inline');
 });
 
