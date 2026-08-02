@@ -156,15 +156,25 @@ const AdminSettings = () => {
 
                 <div className="space-y-6">
                   <div className="flex items-center gap-3">
-                    <input
-                      type="checkbox"
-                      name="maintenanceMode"
-                      checked={settings.maintenanceMode}
-                      onChange={handleChange}
+                    <button
+                      type="button"
+                      onClick={() => handleChange({ target: { name: 'maintenanceMode', type: 'checkbox', checked: !settings.maintenanceMode } })}
+                      className={`${
+                        settings.maintenanceMode ? 'bg-indigo-600' : 'bg-slate-200'
+                      } relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2`}
+                      role="switch"
+                      aria-checked={settings.maintenanceMode}
                       id="maintenanceModeToggle"
-                      className="w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
-                    />
-                    <label htmlFor="maintenanceModeToggle" className="text-sm font-medium text-slate-700 cursor-pointer">
+                    >
+                      <span className="sr-only">Enable Maintenance Mode</span>
+                      <span
+                        aria-hidden="true"
+                        className={`${
+                          settings.maintenanceMode ? 'translate-x-5' : 'translate-x-0'
+                        } pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
+                      />
+                    </button>
+                    <label htmlFor="maintenanceModeToggle" className="text-sm font-medium text-slate-700 cursor-pointer" onClick={() => handleChange({ target: { name: 'maintenanceMode', type: 'checkbox', checked: !settings.maintenanceMode } })}>
                       Enable Maintenance Mode
                     </label>
                   </div>
