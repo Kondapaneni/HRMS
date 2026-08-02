@@ -8,7 +8,6 @@ import {
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import UserAvatar from './UserAvatar';
 import MaintenanceOverlay from './MaintenanceOverlay';
 import api from '../api/axios';
 import GlobalSearch from './GlobalSearch';
