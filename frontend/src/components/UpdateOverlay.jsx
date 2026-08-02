@@ -1,13 +1,29 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RefreshCw, Download } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import api from '../api/axios';
 
 export default function UpdateOverlay() {
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
 
+  const { data: newsData } = useQuery({
+    queryKey: ['newsHeadlines'],
+    queryFn: async () => {
+      const res = await api.get('/news');
+      return res.data;
+    },
+    refetchInterval: 5000,
+    refetchOnWindowFocus: true,
+  });
+
+  const isMaintenanceMode = newsData?.maintenance_mode === true;
+
   useEffect(() => {
     const checkVersion = async () => {
+      if (isMaintenanceMode) return;
+
       try {
         // Cache buster parameter to avoid getting a cached version.json
         const res = await fetch(`/version.json?t=${new Date().getTime()}`, {
@@ -29,8 +45,10 @@ export default function UpdateOverlay() {
       }
     };
 
-    // Check immediately on load
-    checkVersion();
+    // Check immediately on load or when maintenance mode turns off
+    if (!isMaintenanceMode) {
+      checkVersion();
+    }
 
     // Check when window regains focus (e.g. user switches back to the app)
     const handleFocus = () => checkVersion();
@@ -43,7 +61,7 @@ export default function UpdateOverlay() {
       window.removeEventListener('focus', handleFocus);
       clearInterval(interval);
     };
-  }, []);
+  }, [isMaintenanceMode]);
 
   const handleUpdate = () => {
     setIsUpdating(true);
@@ -61,7 +79,7 @@ export default function UpdateOverlay() {
 
   return (
     <AnimatePresence>
-      {updateAvailable && (
+      {updateAvailable && !isMaintenanceMode && (
         <div className="fixed inset-0 z-[9999] bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
