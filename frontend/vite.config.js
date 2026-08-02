@@ -83,6 +83,10 @@ export default defineConfig({
       '/Proctoring-Video': {
         target: 'http://localhost:8081',
         changeOrigin: true
+      },
+      '/Training-Video': {
+        target: 'http://localhost:8081',
+        changeOrigin: true
       }
     },
     historyApiFallback: true
