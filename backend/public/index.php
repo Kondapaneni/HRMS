@@ -260,7 +260,7 @@ $app->post('/api/login/face', function (Request $request, Response $response, $a
         
         $jwt = JWT::encode($payload, $secret, 'HS256');
 
-        $faStmt = $conn->prepare('SELECT "canAttendance", "canLeave", "canPayroll", "canEmployees", "canRecruitment", "canAssets", "canChat", "canLoanOrigination", "canAdminAssessments", "canEmployeeAssessments" FROM user_feature_access WHERE "userId" = ?');
+        $faStmt = $conn->prepare('SELECT "canAttendance", "canLeave", "canPayroll", "canEmployees", "canRecruitment", "canAssets", "canChat", "canLoanOrigination", "canAdminAssessments", "canEmployeeAssessments", "canEmployeeTrainingVideos" FROM user_feature_access WHERE "userId" = ?');
         $faStmt->execute([$user['id']]);
         $fa = $faStmt->fetch(PDO::FETCH_ASSOC);
         
@@ -276,6 +276,7 @@ $app->post('/api/login/face', function (Request $request, Response $response, $a
                 'canLoanOrigination' => (bool)$fa['canLoanOrigination'],
                 'canAdminAssessments' => (bool)($fa['canAdminAssessments'] ?? false),
                 'canEmployeeAssessments' => (bool)($fa['canEmployeeAssessments'] ?? false),
+                'canEmployeeTrainingVideos' => (bool)($fa['canEmployeeTrainingVideos'] ?? false),
             ];
         }
 
@@ -333,7 +334,7 @@ $app->get('/api/me', function (Request $request, Response $response, $args) {
     
     $stmt = $conn->prepare('
         SELECT u.id, u.email, u."firstName", u."lastName", u.role, u.department, u.position, u."isActive", u."forcePasswordChange", e.avatar, e."employeeId", e."geoFenceEnabled", e."webAttendanceEnabled",
-               fa."canAttendance", fa."canLeave", fa."canPayroll", fa."canEmployees", fa."canRecruitment", fa."canAssets", fa."canChat", fa."canLoanOrigination", fa."canAdminAssessments", fa."canEmployeeAssessments",
+               fa."canAttendance", fa."canLeave", fa."canPayroll", fa."canEmployees", fa."canRecruitment", fa."canAssets", fa."canChat", fa."canLoanOrigination", fa."canAdminAssessments", fa."canEmployeeAssessments", fa."canEmployeeTrainingVideos",
                CASE WHEN b.face_descriptor IS NOT NULL THEN true ELSE false END as "isFaceRegistered"
         FROM users u 
         LEFT JOIN employee e ON u.id = e."userId" 
@@ -366,10 +367,11 @@ $app->get('/api/me', function (Request $request, Response $response, $args) {
                 'canLoanOrigination' => (bool)$user['canLoanOrigination'],
                 'canAdminAssessments' => (bool)($user['canAdminAssessments'] ?? false),
                 'canEmployeeAssessments' => (bool)($user['canEmployeeAssessments'] ?? false),
+                'canEmployeeTrainingVideos' => (bool)($user['canEmployeeTrainingVideos'] ?? false),
             ];
         }
         $user['isFaceRegistered'] = ($user['isFaceRegistered'] === true || $user['isFaceRegistered'] === 'true' || $user['isFaceRegistered'] === 't' || $user['isFaceRegistered'] == 1);
-        unset($user['canAttendance'], $user['canLeave'], $user['canPayroll'], $user['canEmployees'], $user['canRecruitment'], $user['canAssets'], $user['canChat'], $user['canLoanOrigination'], $user['canAdminAssessments'], $user['canEmployeeAssessments']);
+        unset($user['canAttendance'], $user['canLeave'], $user['canPayroll'], $user['canEmployees'], $user['canRecruitment'], $user['canAssets'], $user['canChat'], $user['canLoanOrigination'], $user['canAdminAssessments'], $user['canEmployeeAssessments'], $user['canEmployeeTrainingVideos']);
         
         $response->getBody()->write(json_encode($user));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);

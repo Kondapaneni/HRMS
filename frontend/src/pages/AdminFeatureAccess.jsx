@@ -56,6 +56,11 @@ const featuresList = [
     key: 'canEmployeeAssessments',
     title: 'Employee Assessment Access',
     description: 'Grants access to the Employee Assessment portal to view and attempt assigned exams.'
+  },
+  {
+    key: 'canEmployeeTrainingVideos',
+    title: 'Employee Training Videos Access',
+    description: 'Grants access to view assigned training videos in the employee dashboard.'
   }
 ];
 

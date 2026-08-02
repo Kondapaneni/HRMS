@@ -74,7 +74,7 @@ const EmployeeLayout = () => {
     { icon: <MessageSquare size={18} />, label: 'Secure Chat', path: '/employee/chat', feature: 'canChat' },
     { icon: <Briefcase size={18} />, label: 'Acme Loans', path: '/employee/loans/origination', feature: 'canLoanOrigination' },
     { icon: <Award size={18} />, label: 'Assessments', path: '/employee/assessments', feature: 'canEmployeeAssessments' },
-    { icon: <Play size={18} />, label: 'Training Videos', path: '/employee/training', feature: 'canEmployeeAssessments' },
+    { icon: <Play size={18} />, label: 'Training Videos', path: '/employee/training', feature: 'canEmployeeTrainingVideos' },
   ];
 
   // Fetch chat list (shared cache with Chat.jsx) to keep unread badges perfectly synced
