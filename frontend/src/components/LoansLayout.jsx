@@ -31,7 +31,7 @@ const LoansLayout = () => {
           <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white mr-3 shrink-0">
             <Briefcase size={18} strokeWidth={2.5} />
           </div>
-          <span className="text-lg font-semibold tracking-tight text-slate-900 whitespace-nowrap">Acme Loans</span>
+          <span className="text-lg font-semibold tracking-tight text-slate-900 whitespace-nowrap">Loans Origination</span>
         </div>
 
         <div className="p-4 overflow-y-auto flex-1">

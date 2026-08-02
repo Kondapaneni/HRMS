@@ -346,7 +346,7 @@ const EmployeeMobileDashboard = () => {
                     <Briefcase className="w-5 h-5 text-white" />
                   </div>
                   <div className="text-left">
-                    <div className="text-base">Acme Loans</div>
+                    <div className="text-base">Loans Origination</div>
                     <div className="text-xs text-emerald-200 font-normal mt-0.5">Apply for a business loan</div>
                   </div>
                 </div>
