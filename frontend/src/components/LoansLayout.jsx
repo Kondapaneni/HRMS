@@ -110,12 +110,12 @@ const LoansLayout = () => {
           <Outlet />
         </div>
         
-        {/* Mobile Bottom Navigation - Floating Glassmorphism Style */}
-        <div className="md:hidden fixed bottom-6 inset-x-6 z-50">
-          <div className="bg-white/80 backdrop-blur-2xl border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-3xl p-1.5 flex justify-around items-center relative overflow-hidden">
+        {/* Mobile Bottom Navigation (iOS Liquid Glass) */}
+        <div className="md:hidden fixed bottom-6 left-4 right-4 z-50 pointer-events-none touch-none select-none">
+          <div className="bg-white/50 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-full p-1.5 flex justify-around items-center pointer-events-auto">
             <Link 
               to="/employee" 
-              className="relative flex-1 flex flex-col items-center justify-center py-2 px-1 group"
+              className="relative flex flex-col items-center justify-center w-[72px] h-[58px] z-10 group"
             >
               <Home className="relative z-10 w-6 h-6 mb-0.5 transition-all duration-300 text-slate-500 group-hover:text-slate-600 group-active:scale-95" strokeWidth={2} />
               <span className="relative z-10 text-[10px] font-medium tracking-wide transition-all duration-300 text-slate-500">HRMS</span>
@@ -128,7 +128,7 @@ const LoansLayout = () => {
                 <Link 
                   key={idx} 
                   to={item.path} 
-                  className="relative flex-1 flex flex-col items-center justify-center py-2 px-1 group"
+                  className="relative flex flex-col items-center justify-center w-[72px] h-[58px] z-10 group"
                 >
                   {isActive && (
                     <motion.div
