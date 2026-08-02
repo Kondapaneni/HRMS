@@ -13,13 +13,22 @@ $app->get('/api/chat/users', function (Request $request, Response $response) {
     $conn = $db->getConnection();
     
     $stmt = $conn->query('
-        SELECT u.id, u.email, u."firstName", u."lastName", e.avatar 
+        SELECT u.id, u.email, u."firstName", u."lastName", u.role, e.avatar 
         FROM users u
         LEFT JOIN employee e ON u.id = e."userId"
         WHERE u."isActive" = true
     ');
     
     $users = $stmt->fetchAll();
+    
+    $stmtSettings = $conn->query('SELECT admin_avatar FROM global_settings ORDER BY id ASC LIMIT 1');
+    $adminAvatar = $stmtSettings->fetchColumn();
+    
+    foreach ($users as &$u) {
+        if ($u['role'] === 'admin' && !empty($adminAvatar)) {
+            $u['avatar'] = $adminAvatar;
+        }
+    }
     
     $response->getBody()->write(json_encode($users));
     return $response->withHeader('Content-Type', 'application/json');
@@ -40,7 +49,13 @@ $app->get('/api/chat', function (Request $request, Response $response) {
             WHERE cp."userId" = ?
         ),
         chat_parts AS (
-            SELECT cp2."chatId", json_agg(json_build_object(\'id\', u.id, \'firstName\', u."firstName", \'lastName\', u."lastName", \'email\', u.email, \'avatar\', e.avatar)) as participants
+            SELECT cp2."chatId", json_agg(json_build_object(
+                \'id\', u.id, 
+                \'firstName\', u."firstName", 
+                \'lastName\', u."lastName", 
+                \'email\', u.email, 
+                \'avatar\', CASE WHEN u.role = \'admin\' THEN (SELECT admin_avatar FROM global_settings ORDER BY id ASC LIMIT 1) ELSE e.avatar END
+            )) as participants
             FROM chat_participants cp2
             JOIN users u ON u.id = cp2."userId"
             LEFT JOIN employee e ON u.id = e."userId"
