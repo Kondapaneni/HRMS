@@ -303,13 +303,13 @@ const EmployeeLayout = () => {
                   key={newsHeadlines.join(" • ")}
                   className="flex whitespace-nowrap"
                   animate={{ x: ["0%", "-50%"] }}
-                  transition={{ repeat: Infinity, duration: Math.max(30, newsHeadlines.join(" • ").length * 0.5), ease: "linear" }}
+                  transition={{ repeat: Infinity, duration: Math.max(30, newsHeadlines.join("   •   ").length * 0.5), ease: "linear" }}
                 >
                   <span className="text-blue-800 tracking-wide pr-10">
-                    {Array(4).fill(newsHeadlines.join(" • ")).join("   •   ")}
+                    {Array(4).fill(newsHeadlines.join("   •   ")).join("   •   ")}
                   </span>
                   <span className="text-blue-800 tracking-wide pr-10">
-                    {Array(4).fill(newsHeadlines.join(" • ")).join("   •   ")}
+                    {Array(4).fill(newsHeadlines.join("   •   ")).join("   •   ")}
                   </span>
                 </motion.div>
               </div>
@@ -373,13 +373,13 @@ const EmployeeLayout = () => {
                 key={newsHeadlines.join(" • ")}
                 className="flex whitespace-nowrap"
                 animate={{ x: ["0%", "-50%"] }}
-                transition={{ repeat: Infinity, duration: Math.max(30, newsHeadlines.join(" • ").length * 0.5), ease: "linear" }}
+                transition={{ repeat: Infinity, duration: Math.max(30, newsHeadlines.join("   •   ").length * 0.5), ease: "linear" }}
               >
                 <span className="tracking-wide pr-10">
-                  {Array(4).fill(newsHeadlines.join(" • ")).join("   •   ")}
+                  {Array(4).fill(newsHeadlines.join("   •   ")).join("   •   ")}
                 </span>
                 <span className="tracking-wide pr-10">
-                  {Array(4).fill(newsHeadlines.join(" • ")).join("   •   ")}
+                  {Array(4).fill(newsHeadlines.join("   •   ")).join("   •   ")}
                 </span>
               </motion.div>
             </div>
