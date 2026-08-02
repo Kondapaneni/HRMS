@@ -58,7 +58,7 @@ const EmployeeMobileTrainingVideos = () => {
       </section>
 
       {/* Videos List */}
-      <section className="bg-white rounded-[24px] shadow-lg border border-slate-100/50 overflow-hidden relative z-20 -mt-8 p-4">
+      <section className="relative z-20 -mt-8 px-2">
         {videos.length === 0 ? (
           <div className="text-center py-10">
             <div className="w-16 h-16 bg-purple-50 rounded-full flex items-center justify-center mx-auto mb-4">
