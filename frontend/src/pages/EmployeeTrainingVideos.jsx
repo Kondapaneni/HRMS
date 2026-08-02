@@ -4,7 +4,7 @@ import { Play } from 'lucide-react';
 import api from '../api/axios';
 import EmployeeMobileTrainingVideos from './EmployeeMobileTrainingVideos';
 
-const EmployeeTrainingModule = () => {
+const EmployeeTrainingVideos = () => {
   const { data: videos = [], isLoading } = useQuery({
     queryKey: ['employee', 'trainingVideos'],
     queryFn: async () => {
@@ -74,4 +74,4 @@ const EmployeeTrainingModule = () => {
   );
 };
 
-export default EmployeeTrainingModule;
+export default EmployeeTrainingVideos;
