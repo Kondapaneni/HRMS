@@ -136,7 +136,8 @@ const EmployeeMobileCamera = () => {
         action,
         latitude,
         longitude,
-        address
+        address,
+        photo: publicUrl
       });
 
       toast.success(`Successfully ${action.replace('-', ' ')}ed!`);
