@@ -22,6 +22,14 @@ $app->get('/api/admin/training/videos', function (Request $request, Response $re
         $stmt = $conn->query($sql);
         $videos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+        foreach ($videos as &$video) {
+            if (!empty($video['assigned_employee_ids']) && is_string($video['assigned_employee_ids'])) {
+                $video['assigned_employee_ids'] = json_decode($video['assigned_employee_ids'], true);
+            } else {
+                $video['assigned_employee_ids'] = [];
+            }
+        }
+
         $response->getBody()->write(json_encode($videos));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (\Exception $e) {
@@ -38,6 +46,8 @@ $app->post('/api/admin/training/videos', function (Request $request, Response $r
     $title = trim($data['title'] ?? '');
     $videoUrl = trim($data['video_url'] ?? '');
 
+    $assignedEmployeeIds = isset($data['assigned_employee_ids']) ? json_encode($data['assigned_employee_ids']) : '[]';
+
     if (empty($title) || empty($videoUrl)) {
         $response->getBody()->write(json_encode(['error' => 'Title and video URL are required']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
@@ -47,9 +57,9 @@ $app->post('/api/admin/training/videos', function (Request $request, Response $r
     $conn = $db->getConnection();
 
     try {
-        $sql = 'INSERT INTO training_videos (title, video_url, created_by) VALUES (?, ?, ?)';
+        $sql = 'INSERT INTO training_videos (title, video_url, created_by, assigned_employee_ids) VALUES (?, ?, ?, ?)';
         $stmt = $conn->prepare($sql);
-        $stmt->execute([$title, $videoUrl, $user->id]);
+        $stmt->execute([$title, $videoUrl, $user->id, $assignedEmployeeIds]);
 
         $response->getBody()->write(json_encode(['message' => 'Video added successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(201);

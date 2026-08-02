@@ -12,10 +12,11 @@ const AdminTrainingModule = () => {
   
   const [title, setTitle] = useState('');
   const [videoFile, setVideoFile] = useState(null);
+  const [assignedEmployees, setAssignedEmployees] = useState([]);
   
   const fileInputRef = useRef(null);
 
-  const { data: videos = [], isLoading } = useQuery({
+  const { data: videos = [], isLoading: videosLoading } = useQuery({
     queryKey: ['admin', 'trainingVideos'],
     queryFn: async () => {
       const res = await api.get('/admin/training/videos');
@@ -23,7 +24,16 @@ const AdminTrainingModule = () => {
     }
   });
 
-  const uploadMutation = useMutation({
+  const { data: employees = [], isLoading: employeesLoading } = useQuery({
+    queryKey: ['admin', 'employeesList'],
+    queryFn: async () => {
+      const res = await api.get('/admin/employees?limit=1000');
+      return res.data?.employees || [];
+    },
+    staleTime: 5 * 60 * 1000
+  });
+
+  const addVideoMutation = useMutation({
     mutationFn: async (videoData) => {
       await api.post('/admin/training/videos', videoData);
     },
@@ -32,10 +42,12 @@ const AdminTrainingModule = () => {
       setIsModalOpen(false);
       setTitle('');
       setVideoFile(null);
+      setAssignedEmployees([]);
+      if (fileInputRef.current) fileInputRef.current.value = '';
       queryClient.invalidateQueries({ queryKey: ['admin', 'trainingVideos'] });
     },
     onError: (err) => {
-      toast.error(err.response?.data?.error || err.message || 'Failed to add video');
+      toast.error(err.response?.data?.error || 'Failed to add video');
     },
     onSettled: () => {
       setIsUploading(false);
@@ -66,7 +78,6 @@ const AdminTrainingModule = () => {
     const fileName = `${Date.now()}_${videoFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
     
     try {
-      // 1. Upload to Supabase Storage
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('training_videos')
         .upload(fileName, videoFile, {
@@ -78,14 +89,11 @@ const AdminTrainingModule = () => {
         throw new Error(uploadError.message || 'Upload failed');
       }
 
-      // 2. Generate proxy URL (which index.php route handles)
-      const videoData = {
+      await addVideoMutation.mutateAsync({
         title: title.trim(),
-        video_url: window.location.origin + `/Training-Video/${fileName}`
-      };
-
-      // 3. Save to database
-      uploadMutation.mutate(videoData);
+        video_url: window.location.origin + `/Training-Video/${fileName}`,
+        assigned_employee_ids: assignedEmployees
+      });
     } catch (err) {
       toast.error(err.message || 'Failed to add video');
       setIsUploading(false);
@@ -97,7 +105,7 @@ const AdminTrainingModule = () => {
     deleteMutation.mutate(id);
   };
 
-  if (isLoading) {
+  if (videosLoading) {
     return (
       <div className="flex-1 p-8 flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
@@ -186,6 +194,7 @@ const AdminTrainingModule = () => {
                   setIsModalOpen(false);
                   setTitle('');
                   setVideoFile(null);
+                  setAssignedEmployees([]);
                 }} 
                 className="text-slate-400 hover:text-slate-600 p-2 rounded-lg hover:bg-slate-100 transition-colors"
                 disabled={isUploading}
@@ -240,6 +249,37 @@ const AdminTrainingModule = () => {
                     disabled={isUploading}
                   />
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Assign Employees</label>
+                  <div className="bg-white border border-slate-200 rounded-xl max-h-48 overflow-y-auto p-2">
+                    {employeesLoading ? (
+                      <p className="text-sm text-slate-500 p-2">Loading employees...</p>
+                    ) : employees.length === 0 ? (
+                      <p className="text-sm text-slate-500 p-2">No employees found.</p>
+                    ) : (
+                      employees.map(emp => (
+                        <label key={emp.id} className="flex items-center gap-3 p-2 hover:bg-slate-50 rounded-lg cursor-pointer">
+                          <input 
+                            type="checkbox"
+                            className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                            checked={assignedEmployees.includes(emp.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setAssignedEmployees(prev => [...prev, emp.id]);
+                              } else {
+                                setAssignedEmployees(prev => prev.filter(id => id !== emp.id));
+                              }
+                            }}
+                            disabled={isUploading}
+                          />
+                          <span className="text-sm text-slate-700">{emp.firstName} {emp.lastName}</span>
+                        </label>
+                      ))
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1.5">Leave unchecked to assign to no one.</p>
+                </div>
               </div>
             </form>
 
@@ -247,8 +287,11 @@ const AdminTrainingModule = () => {
               <div className="flex justify-end gap-3">
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-5 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+                  onClick={() => {
+                    setIsModalOpen(false);
+                    setAssignedEmployees([]);
+                  }}
+                  className="px-4 py-2 text-sm font-medium border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors"
                   disabled={isUploading}
                 >
                   Cancel
