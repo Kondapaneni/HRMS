@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { LogOut, Home, Briefcase, FileText, Activity, ArrowLeft } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
 const LoansLayout = () => {
   const { profile, signOut } = useAuth();
@@ -105,25 +106,45 @@ const LoansLayout = () => {
         </header>
 
         {/* Dynamic Page Content */}
-        <div className="flex-1 overflow-y-auto overscroll-y-contain bg-slate-50" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div className="flex-1 overflow-y-auto overscroll-y-contain bg-slate-50 pb-24 md:pb-0" style={{ WebkitOverflowScrolling: 'touch' }}>
           <Outlet />
         </div>
         
-        {/* Mobile Bottom Nav Minimal */}
-        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-2 flex justify-around z-50">
-           <Link to="/employee" className="flex flex-col items-center p-2 text-slate-500">
-             <Home size={20} />
-             <span className="text-[10px] mt-1">HRMS</span>
-           </Link>
-           {navItems.filter(item => !item.feature || profile?.featureAccess?.[item.feature]).map((item, idx) => {
+        {/* Mobile Bottom Navigation - Floating Glassmorphism Style */}
+        <div className="md:hidden fixed bottom-6 inset-x-6 z-50">
+          <div className="bg-white/80 backdrop-blur-2xl border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-3xl p-1.5 flex justify-around items-center relative overflow-hidden">
+            <Link 
+              to="/employee" 
+              className="relative flex-1 flex flex-col items-center justify-center py-2 px-1 group"
+            >
+              <Home className="relative z-10 w-6 h-6 mb-0.5 transition-all duration-300 text-slate-500 group-hover:text-slate-600 group-active:scale-95" strokeWidth={2} />
+              <span className="relative z-10 text-[10px] font-medium tracking-wide transition-all duration-300 text-slate-500">HRMS</span>
+            </Link>
+            
+            {navItems.filter(item => !item.feature || profile?.featureAccess?.[item.feature]).map((item, idx) => {
               const isActive = location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
+              
               return (
-                <Link key={idx} to={item.path} className={`flex flex-col items-center p-2 ${isActive ? 'text-blue-600' : 'text-slate-500'}`}>
-                  {item.icon}
-                  <span className="text-[10px] mt-1">{item.label}</span>
+                <Link 
+                  key={idx} 
+                  to={item.path} 
+                  className="relative flex-1 flex flex-col items-center justify-center py-2 px-1 group"
+                >
+                  {isActive && (
+                    <motion.div
+                      layoutId="loansMobileNavBubble"
+                      className="absolute inset-0 z-[-1] rounded-full shadow-[inset_0_1px_3px_rgba(255,255,255,0.8),0_4px_16px_rgba(0,0,0,0.06)] bg-white/40 backdrop-blur-xl border border-white/80 overflow-hidden"
+                      transition={{ type: 'spring', bounce: 0.25, duration: 0.5 }}
+                    />
+                  )}
+                  <span className={`relative z-10 flex justify-center mb-0.5 transition-all duration-300 ${isActive ? 'text-[#ff2d55] scale-105' : 'text-slate-500 group-hover:text-slate-600 group-active:scale-95'}`}>
+                    {React.cloneElement(item.icon, { strokeWidth: isActive ? 2.5 : 2, size: 24, className: '' })}
+                  </span>
+                  <span className={`relative z-10 text-[10px] font-medium tracking-wide transition-all duration-300 ${isActive ? 'text-[#ff2d55]' : 'text-slate-500'}`}>{item.label}</span>
                 </Link>
               );
-           })}
+            })}
+          </div>
         </div>
       </main>
     </div>
