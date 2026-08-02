@@ -66,6 +66,7 @@ import EmployeeAssessmentEngine from './pages/EmployeeAssessmentEngine'
 import EmployeeAssessmentResult from './pages/EmployeeAssessmentResult'
 import ComingSoon from './pages/ComingSoon'
 import AdminTrainingModule from './pages/AdminTrainingModule'
+import EmployeeTrainingModule from './pages/EmployeeTrainingModule'
 import CandidateLogin from './pages/CandidateLogin'
 import CandidateActivate from './pages/CandidateActivate'
 import CandidateLayout from './components/CandidateLayout'
@@ -201,6 +202,7 @@ function App() {
                 <Route path="performance" element={<EmployeePerformance />} />
                 <Route path="assessments" element={<EmployeeAssessments />} />
                 <Route path="assessments/instructions" element={<EmployeeAssessmentInstructions />} />
+                <Route path="training" element={<EmployeeTrainingModule />} />
                 <Route path="chat" element={<Chat />} />
                 <Route path="profile" element={<EmployeeProfile />} />
                 <Route path="profile/edit" element={<EditProfilePage />} />

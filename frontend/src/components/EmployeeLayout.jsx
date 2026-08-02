@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import {
   LogOut, User, Calendar, Users, Briefcase, Monitor,
   Home, Clock, BarChart2, DollarSign, Activity, Bell, Search, Menu, Wallet, MessageSquare,
-  Smartphone, Award, Megaphone
+  Smartphone, Award, Megaphone, Play
 } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -73,7 +73,8 @@ const EmployeeLayout = () => {
   const businessApps = [
     { icon: <MessageSquare size={18} />, label: 'Secure Chat', path: '/employee/chat', feature: 'canChat' },
     { icon: <Briefcase size={18} />, label: 'Acme Loans', path: '/employee/loans/origination', feature: 'canLoanOrigination' },
-    { icon: <Award size={18} />, label: 'Assessment and Training', path: '/employee/assessments', feature: 'canEmployeeAssessments' },
+    { icon: <Award size={18} />, label: 'Assessments', path: '/employee/assessments', feature: 'canEmployeeAssessments' },
+    { icon: <Play size={18} />, label: 'Training Videos', path: '/employee/training', feature: 'canEmployeeAssessments' },
   ];
 
   // Fetch chat list (shared cache with Chat.jsx) to keep unread badges perfectly synced
