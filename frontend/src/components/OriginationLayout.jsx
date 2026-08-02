@@ -19,7 +19,7 @@ const OriginationLayout = () => {
   };
 
   const navItems = [
-    { icon: <FileText size={18} />, label: 'Origination', path: '/employee/loans/origination', feature: 'canLoanOrigination' },
+    { icon: <Activity size={18} />, label: 'Dashboard', path: '/employee/loans/origination', feature: 'canLoanOrigination' },
   ];
 
   return (
