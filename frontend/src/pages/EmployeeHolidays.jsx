@@ -43,8 +43,8 @@ const EmployeeHolidays = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Company Holidays</h1>
-          <p className="text-slate-500">View upcoming company holidays.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Company Holidays</h1>
+          <p className="text-sm text-slate-500 mt-1">View upcoming company holidays.</p>
         </div>
         <div className="flex items-center gap-3">
           <button

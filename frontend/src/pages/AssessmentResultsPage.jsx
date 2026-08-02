@@ -128,7 +128,7 @@ const AssessmentResultsPage = () => {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 mb-1">Employee Assessment Results</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900 mb-1">Employee Assessment Results</h1>
           <p className="text-sm text-slate-500">
             Monitor employee exam performances, review security integrity logs, and inspect detailed question breakdown reports.
           </p>
