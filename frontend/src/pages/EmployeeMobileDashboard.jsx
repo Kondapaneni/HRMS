@@ -340,17 +340,17 @@ const EmployeeMobileDashboard = () => {
             )}
 
             {profile?.featureAccess?.canLoanOrigination && (
-              <Link to="/employee/loans/origination" className="flex items-center justify-between w-full rounded-xl bg-slate-900 text-white font-semibold text-sm px-6 py-4 hover:bg-slate-800 active:scale-[0.98] transition-all shadow-sm">
+              <Link to="/employee/loans/origination" className="flex items-center justify-between w-full rounded-xl bg-emerald-600 text-white font-semibold text-sm px-6 py-4 hover:bg-emerald-700 active:scale-[0.98] transition-all shadow-sm">
                 <div className="flex items-center gap-3">
                   <div className="bg-white/20 p-2 rounded-lg">
                     <Briefcase className="w-5 h-5 text-white" />
                   </div>
                   <div className="text-left">
                     <div className="text-base">Acme Loans</div>
-                    <div className="text-xs text-slate-300 font-normal mt-0.5">Apply for a business loan</div>
+                    <div className="text-xs text-emerald-200 font-normal mt-0.5">Apply for a business loan</div>
                   </div>
                 </div>
-                <ChevronRight className="w-5 h-5 text-slate-300" />
+                <ChevronRight className="w-5 h-5 text-emerald-200" />
               </Link>
             )}
 
