@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PageLoader from '../components/PageLoader';
-import { LogIn, LogOut, Clock, Calendar, Bell, Shield, ChevronRight, Receipt, Briefcase } from 'lucide-react';
+import { LogIn, LogOut, Clock, Calendar, Bell, Shield, ChevronRight, Receipt, Briefcase, Megaphone } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useQuery, useQueryClient } from '@tanstack/react-query';

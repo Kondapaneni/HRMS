@@ -326,13 +326,14 @@ $app->get('/api/me', function (Request $request, Response $response, $args) {
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($user) {
-        if ($user['role'] === 'admin') {
-            $stmtSettings = $conn->query('SELECT admin_avatar FROM global_settings ORDER BY id ASC LIMIT 1');
-            $adminAvatar = $stmtSettings->fetchColumn();
-            if (!empty($adminAvatar)) {
-                $user['avatar'] = $adminAvatar;
-            }
+        $stmtSettings = $conn->query('SELECT admin_avatar, news_headlines FROM global_settings ORDER BY id ASC LIMIT 1');
+        $settings = $stmtSettings->fetch(PDO::FETCH_ASSOC);
+        
+        if ($user['role'] === 'admin' && !empty($settings['admin_avatar'])) {
+            $user['avatar'] = $settings['admin_avatar'];
         }
+        
+        $user['news_headlines'] = isset($settings['news_headlines']) ? json_decode($settings['news_headlines'], true) : [];
 
         if (isset($user['canAttendance'])) {
             $user['featureAccess'] = [

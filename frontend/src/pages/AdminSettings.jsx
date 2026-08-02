@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PageLoader from '../components/PageLoader';
-import { Save, Shield, Info, BookOpen, ExternalLink, AlertTriangle } from 'lucide-react';
+import { Save, Shield, Info, BookOpen, ExternalLink, AlertTriangle, Plus, Trash2, Megaphone } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../api/axios';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -16,6 +16,7 @@ const AdminSettings = () => {
     forgotPasswordRateLimitWindow: 60,
     mapsRateLimitAttempts: 5,
     mapsRateLimitWindow: 10,
+    newsHeadlines: [],
   });
 
   const { isLoading: loading, data: fetchedSettings } = useQuery({
@@ -36,6 +37,7 @@ const AdminSettings = () => {
         forgotPasswordRateLimitWindow: fetchedSettings.forgot_password_rate_limit_window || 60,
         mapsRateLimitAttempts: fetchedSettings.maps_rate_limit_attempts || 5,
         mapsRateLimitWindow: fetchedSettings.maps_rate_limit_window || 10,
+        newsHeadlines: typeof fetchedSettings.news_headlines === 'string' ? JSON.parse(fetchedSettings.news_headlines) : (fetchedSettings.news_headlines || []),
       });
     }
   }, [fetchedSettings]);
@@ -46,6 +48,22 @@ const AdminSettings = () => {
       ...prev,
       [name]: type === 'number' ? Number(value) : value
     }));
+  };
+
+  const handleHeadlineChange = (index, value) => {
+    const newHeadlines = [...settings.newsHeadlines];
+    newHeadlines[index] = value;
+    setSettings(prev => ({ ...prev, newsHeadlines: newHeadlines }));
+  };
+
+  const addHeadline = () => {
+    setSettings(prev => ({ ...prev, newsHeadlines: [...prev.newsHeadlines, ''] }));
+  };
+
+  const removeHeadline = (index) => {
+    const newHeadlines = [...settings.newsHeadlines];
+    newHeadlines.splice(index, 1);
+    setSettings(prev => ({ ...prev, newsHeadlines: newHeadlines }));
   };
 
   const updateSettingsMutation = useMutation({
@@ -71,7 +89,8 @@ const AdminSettings = () => {
       forgot_password_rate_limit_attempts: settings.forgotPasswordRateLimitAttempts,
       forgot_password_rate_limit_window: settings.forgotPasswordRateLimitWindow,
       maps_rate_limit_attempts: settings.mapsRateLimitAttempts,
-      maps_rate_limit_window: settings.mapsRateLimitWindow
+      maps_rate_limit_window: settings.mapsRateLimitWindow,
+      news_headlines: settings.newsHeadlines.filter(h => h.trim() !== '')
     });
   };
 
@@ -115,6 +134,47 @@ const AdminSettings = () => {
                     <option value="never">Never (Not Recommended)</option>
                   </select>
                   <p className="text-xs text-slate-500">Users will be automatically logged out after this period of inactivity.</p>
+                </div>
+              </div>
+
+              <div className="mt-10 border-t border-slate-100 pt-6">
+                <div className="flex items-center gap-3 border-b border-slate-100 pb-4 mb-6">
+                  <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600">
+                    <Megaphone size={20} />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-slate-900">News Headlines</h2>
+                    <p className="text-sm text-slate-500">Manage scrolling news tickers for the employee dashboard</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {settings.newsHeadlines.map((headline, index) => (
+                    <div key={index} className="flex items-center gap-3">
+                      <input
+                        type="text"
+                        value={headline}
+                        onChange={(e) => handleHeadlineChange(index, e.target.value)}
+                        placeholder="Enter news headline..."
+                        className="flex-1 rounded-md border border-slate-300 px-3 py-2.5 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none bg-white transition-shadow"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeHeadline(index)}
+                        className="p-2.5 text-red-600 bg-red-50 hover:bg-red-100 rounded-md transition-colors"
+                        title="Remove Headline"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={addHeadline}
+                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-md transition-colors"
+                  >
+                    <Plus size={16} /> Add Headline
+                  </button>
                 </div>
               </div>
 

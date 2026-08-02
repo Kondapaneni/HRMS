@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import {
   LogOut, User, Calendar, Users, Briefcase, Monitor,
   Home, Clock, BarChart2, DollarSign, Activity, Bell, Search, Menu, Wallet, MessageSquare,
-  Smartphone, Award
+  Smartphone, Award, Megaphone
 } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -239,8 +239,8 @@ const EmployeeLayout = () => {
       <main className="flex-1 flex flex-col h-[100dvh] overflow-hidden relative z-30 bg-transparent">
 
         {/* Top Header - Minimalist */}
-        <header className="h-14 shrink-0 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 flex items-center justify-between sticky top-0 z-40 md:relative md:z-10">
-          <div className="flex items-center gap-4">
+        <header className="h-14 shrink-0 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 flex items-center justify-between sticky top-0 z-40 md:relative md:z-10 overflow-hidden">
+          <div className="flex items-center gap-4 shrink-0">
             <div className="hidden md:block">
               {profile?.featureAccess?.canEmployees && <GlobalSearch />}
             </div>
@@ -278,7 +278,24 @@ const EmployeeLayout = () => {
             )}
           </div>
 
-          <div className="flex items-center gap-5">
+          {/* Scrolling News Ticker (Desktop) */}
+          {profile?.news_headlines && profile.news_headlines.length > 0 && (
+            <div className="hidden md:flex flex-1 mx-6 overflow-hidden items-center text-sm font-medium text-slate-700 bg-blue-50/80 rounded-full h-9 px-4 border border-blue-100 shadow-sm relative group">
+              <Megaphone size={16} className="text-blue-600 mr-3 shrink-0" />
+              <div className="flex-1 overflow-hidden relative h-full flex items-center">
+                <motion.div
+                  className="whitespace-nowrap absolute left-0"
+                  initial={{ x: "100%" }}
+                  animate={{ x: "-100%" }}
+                  transition={{ repeat: Infinity, duration: profile.news_headlines.join(" • ").length * 0.15 + 10, ease: "linear" }}
+                >
+                  <span className="text-blue-800 tracking-wide">{profile.news_headlines.join(" • ")}</span>
+                </motion.div>
+              </div>
+            </div>
+          )}
+
+          <div className="flex items-center gap-5 shrink-0">
             {/* Desktop Right Side */}
             <div className="hidden md:flex items-center gap-5">
               {profile?.featureAccess?.canChat && (
@@ -328,6 +345,23 @@ const EmployeeLayout = () => {
             </div>
           </div>
         </header>
+
+        {/* Mobile Scrolling News Ticker */}
+        {profile?.news_headlines && profile.news_headlines.length > 0 && (
+          <div className="md:hidden shrink-0 bg-blue-50 border-b border-blue-100 px-4 py-2 flex items-center overflow-hidden">
+            <Megaphone size={14} className="text-blue-600 mr-2 shrink-0" />
+            <div className="flex-1 overflow-hidden relative h-5 flex items-center text-xs font-medium text-blue-800">
+              <motion.div
+                className="whitespace-nowrap absolute left-0"
+                initial={{ x: "100%" }}
+                animate={{ x: "-100%" }}
+                transition={{ repeat: Infinity, duration: profile.news_headlines.join(" • ").length * 0.15 + 10, ease: "linear" }}
+              >
+                <span className="tracking-wide">{profile.news_headlines.join(" • ")}</span>
+              </motion.div>
+            </div>
+          </div>
+        )}
 
         {/* Dynamic Page Content */}
         <div className="flex-1 overflow-y-auto overscroll-y-contain p-4 sm:p-6 pb-[110px] md:pb-6" style={{ WebkitOverflowScrolling: 'touch' }}>
