@@ -89,4 +89,26 @@ $app->delete('/api/admin/training/videos/{id}', function (Request $request, Resp
     }
 })->add(new AuthMiddleware(['admin'], 'canAdminAssessments'));
 
+// PUT /api/admin/training/videos/{id}/assign - Assign employees to a video
+$app->put('/api/admin/training/videos/{id}/assign', function (Request $request, Response $response, $args) {
+    $id = $args['id'];
+    $data = json_decode($request->getBody()->getContents(), true);
+
+    $assignedEmployeeIds = isset($data['assigned_employee_ids']) ? json_encode($data['assigned_employee_ids']) : '[]';
+
+    $db = new Database();
+    $conn = $db->getConnection();
+
+    try {
+        $stmt = $conn->prepare('UPDATE training_videos SET assigned_employee_ids = ? WHERE id = ?');
+        $stmt->execute([$assignedEmployeeIds, $id]);
+
+        $response->getBody()->write(json_encode(['message' => 'Employees assigned successfully']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+    } catch (\Exception $e) {
+        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    }
+})->add(new AuthMiddleware(['admin'], 'canAdminAssessments'));
+
 ?>

@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Play, Plus, Trash2, X, Upload } from 'lucide-react';
+import { Play, Plus, Trash2, X, Upload, Users, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../api/axios';
 import { supabase } from '../lib/supabase';
@@ -12,7 +12,10 @@ const AdminTrainingModule = () => {
   
   const [title, setTitle] = useState('');
   const [videoFile, setVideoFile] = useState(null);
-  const [assignedEmployees, setAssignedEmployees] = useState([]);
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [selectedVideoForAssign, setSelectedVideoForAssign] = useState(null);
+  const [assignSearchQuery, setAssignSearchQuery] = useState('');
+  const [modalAssignedEmployees, setModalAssignedEmployees] = useState([]);
   
   const fileInputRef = useRef(null);
 
@@ -42,7 +45,7 @@ const AdminTrainingModule = () => {
       setIsModalOpen(false);
       setTitle('');
       setVideoFile(null);
-      setAssignedEmployees([]);
+      setVideoFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
       queryClient.invalidateQueries({ queryKey: ['admin', 'trainingVideos'] });
     },
@@ -64,6 +67,20 @@ const AdminTrainingModule = () => {
     },
     onError: (err) => {
       toast.error('Failed to delete video');
+    }
+  });
+
+  const assignVideoMutation = useMutation({
+    mutationFn: async ({ id, assigned_employee_ids }) => {
+      await api.put(`/admin/training/videos/${id}/assign`, { assigned_employee_ids });
+    },
+    onSuccess: () => {
+      toast.success('Employees assigned successfully');
+      setIsAssignModalOpen(false);
+      queryClient.invalidateQueries({ queryKey: ['admin', 'trainingVideos'] });
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.error || 'Failed to assign employees');
     }
   });
 
@@ -89,11 +106,10 @@ const AdminTrainingModule = () => {
         throw new Error(uploadError.message || 'Upload failed');
       }
 
-      await addVideoMutation.mutateAsync({
-        title: title.trim(),
-        video_url: window.location.origin + `/Training-Video/${fileName}`,
-        assigned_employee_ids: assignedEmployees
-      });
+        await addVideoMutation.mutateAsync({
+          title: title.trim(),
+          video_url: window.location.origin + `/Training-Video/${fileName}`
+        });
     } catch (err) {
       toast.error(err.message || 'Failed to add video');
       setIsUploading(false);
@@ -166,13 +182,27 @@ const AdminTrainingModule = () => {
                       Added {new Date(video.created_at).toLocaleDateString()}
                     </p>
                   </div>
-                  <button
-                    onClick={() => handleDelete(video.id)}
-                    className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition-colors"
-                    title="Delete Video"
-                  >
-                    <Trash2 size={18} />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        setSelectedVideoForAssign(video);
+                        setModalAssignedEmployees(video.assigned_employee_ids || []);
+                        setAssignSearchQuery('');
+                        setIsAssignModalOpen(true);
+                      }}
+                      className="text-slate-400 hover:text-indigo-600 p-1.5 rounded-lg hover:bg-indigo-50 transition-colors"
+                      title="Assign Employees"
+                    >
+                      <Users size={18} />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(video.id)}
+                      className="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition-colors"
+                      title="Delete Video"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -194,7 +224,7 @@ const AdminTrainingModule = () => {
                   setIsModalOpen(false);
                   setTitle('');
                   setVideoFile(null);
-                  setAssignedEmployees([]);
+                  setVideoFile(null);
                 }} 
                 className="text-slate-400 hover:text-slate-600 p-2 rounded-lg hover:bg-slate-100 transition-colors"
                 disabled={isUploading}
@@ -236,49 +266,6 @@ const AdminTrainingModule = () => {
                     <p className="text-xs text-slate-500">MP4 format, up to 100MB</p>
                   </div>
                   
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="video/mp4,video/webm,video/ogg"
-                    onChange={e => {
-                      if (e.target.files && e.target.files[0]) {
-                        setVideoFile(e.target.files[0]);
-                      }
-                    }}
-                    className="hidden"
-                    disabled={isUploading}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Assign Employees</label>
-                  <div className="bg-white border border-slate-200 rounded-xl max-h-48 overflow-y-auto p-2">
-                    {employeesLoading ? (
-                      <p className="text-sm text-slate-500 p-2">Loading employees...</p>
-                    ) : employees.length === 0 ? (
-                      <p className="text-sm text-slate-500 p-2">No employees found.</p>
-                    ) : (
-                      employees.map(emp => (
-                        <label key={emp.id} className="flex items-center gap-3 p-2 hover:bg-slate-50 rounded-lg cursor-pointer">
-                          <input 
-                            type="checkbox"
-                            className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
-                            checked={assignedEmployees.includes(emp.id)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setAssignedEmployees(prev => [...prev, emp.id]);
-                              } else {
-                                setAssignedEmployees(prev => prev.filter(id => id !== emp.id));
-                              }
-                            }}
-                            disabled={isUploading}
-                          />
-                          <span className="text-sm text-slate-700">{emp.firstName} {emp.lastName}</span>
-                        </label>
-                      ))
-                    )}
-                  </div>
-                  <p className="text-xs text-slate-500 mt-1.5">Leave unchecked to assign to no one.</p>
                 </div>
               </div>
             </form>
@@ -289,7 +276,6 @@ const AdminTrainingModule = () => {
                   type="button"
                   onClick={() => {
                     setIsModalOpen(false);
-                    setAssignedEmployees([]);
                   }}
                   className="px-4 py-2 text-sm font-medium border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors"
                   disabled={isUploading}
@@ -310,6 +296,101 @@ const AdminTrainingModule = () => {
                   ) : (
                     'Save Video'
                   )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isAssignModalOpen && selectedVideoForAssign && (
+        <div className="fixed inset-0 z-50 overflow-hidden">
+          <div 
+            className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" 
+            onClick={() => setIsAssignModalOpen(false)}
+          />
+          <div className="fixed inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out">
+            <div className="px-6 py-5 border-b border-slate-100 flex flex-col gap-4 bg-white">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-slate-800">Assign Employees</h2>
+                <button 
+                  onClick={() => setIsAssignModalOpen(false)} 
+                  className="text-slate-400 hover:text-slate-600 p-2 rounded-lg hover:bg-slate-100 transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search className="h-4 w-4 text-slate-400" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search employees..."
+                  value={assignSearchQuery}
+                  onChange={(e) => setAssignSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-colors"
+                />
+              </div>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-4 bg-slate-50/50">
+              <div className="space-y-1">
+                {employeesLoading ? (
+                  <p className="text-sm text-slate-500 p-2 text-center">Loading employees...</p>
+                ) : (
+                  (() => {
+                    const filteredEmployees = employees.filter(emp => {
+                      const name = `${emp.firstName} ${emp.lastName}`.toLowerCase();
+                      return name.includes(assignSearchQuery.toLowerCase());
+                    });
+                    
+                    if (filteredEmployees.length === 0) {
+                      return <p className="text-sm text-slate-500 p-2 text-center">No employees found.</p>;
+                    }
+                    
+                    return filteredEmployees.map(emp => (
+                      <label key={emp.id} className="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl cursor-pointer hover:border-indigo-300 transition-colors shadow-sm">
+                        <input 
+                          type="checkbox"
+                          className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                          checked={modalAssignedEmployees.includes(emp.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setModalAssignedEmployees(prev => [...prev, emp.id]);
+                            } else {
+                              setModalAssignedEmployees(prev => prev.filter(id => id !== emp.id));
+                            }
+                          }}
+                        />
+                        <span className="text-sm font-medium text-slate-700">{emp.firstName} {emp.lastName}</span>
+                      </label>
+                    ));
+                  })()
+                )}
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-slate-100 bg-white">
+              <div className="flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsAssignModalOpen(false)}
+                  className="px-4 py-2 text-sm font-medium border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    assignVideoMutation.mutate({
+                      id: selectedVideoForAssign.id,
+                      assigned_employee_ids: modalAssignedEmployees
+                    });
+                  }}
+                  disabled={assignVideoMutation.isPending}
+                  className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors flex items-center justify-center min-w-[120px]"
+                >
+                  {assignVideoMutation.isPending ? 'Saving...' : 'Save Assignments'}
                 </button>
               </div>
             </div>
