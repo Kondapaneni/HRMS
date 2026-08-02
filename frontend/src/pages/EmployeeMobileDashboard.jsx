@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PageLoader from '../components/PageLoader';
-import { LogIn, LogOut, Clock, Calendar, Bell, Shield, ChevronRight, Receipt } from 'lucide-react';
+import { LogIn, LogOut, Clock, Calendar, Bell, Shield, ChevronRight, Receipt, Briefcase } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -316,26 +316,43 @@ const EmployeeMobileDashboard = () => {
         </div>
       </section>
 
-      {/* Team Chat Entry */}
-      {profile?.featureAccess?.canChat && (
+      {/* Business Apps Entry */}
+      {(profile?.featureAccess?.canChat || profile?.featureAccess?.canLoanOrigination) && (
         <section className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
           <div className="px-6 pt-6 pb-4 border-b border-slate-100">
             <h2 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">Business Apps</h2>
             <p className="text-[11px] font-medium text-slate-500 mt-1 uppercase tracking-wider">Company Applications</p>
           </div>
-          <div className="p-6">
-            <Link to="/employee/chat/mobile" className="flex items-center justify-between w-full rounded-xl bg-blue-600 text-white font-semibold text-sm px-6 py-4 hover:bg-blue-700 active:scale-[0.98] transition-all shadow-sm">
-              <div className="flex items-center gap-3">
-                <div className="bg-white/20 p-2 rounded-lg">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          <div className="p-6 space-y-4">
+            {profile?.featureAccess?.canChat && (
+              <Link to="/employee/chat/mobile" className="flex items-center justify-between w-full rounded-xl bg-blue-600 text-white font-semibold text-sm px-6 py-4 hover:bg-blue-700 active:scale-[0.98] transition-all shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="bg-white/20 p-2 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                  </div>
+                  <div className="text-left">
+                    <div className="text-base">Open Mobile Chat</div>
+                    <div className="text-xs text-blue-200 font-normal mt-0.5">Connect with your colleagues</div>
+                  </div>
                 </div>
-                <div className="text-left">
-                  <div className="text-base">Open Mobile Chat</div>
-                  <div className="text-xs text-blue-200 font-normal mt-0.5">Connect with your colleagues</div>
+                <ChevronRight className="w-5 h-5 text-blue-200" />
+              </Link>
+            )}
+
+            {profile?.featureAccess?.canLoanOrigination && (
+              <Link to="/employee/loans/origination" className="flex items-center justify-between w-full rounded-xl bg-slate-900 text-white font-semibold text-sm px-6 py-4 hover:bg-slate-800 active:scale-[0.98] transition-all shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="bg-white/20 p-2 rounded-lg">
+                    <Briefcase className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <div className="text-base">Acme Loans</div>
+                    <div className="text-xs text-slate-300 font-normal mt-0.5">Apply for a business loan</div>
+                  </div>
                 </div>
-              </div>
-              <ChevronRight className="w-5 h-5 text-blue-200" />
-            </Link>
+                <ChevronRight className="w-5 h-5 text-slate-300" />
+              </Link>
+            )}
           </div>
         </section>
       )}
