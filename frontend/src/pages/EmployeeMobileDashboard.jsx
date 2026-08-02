@@ -352,6 +352,8 @@ const EmployeeMobileDashboard = () => {
                 </div>
                 <ChevronRight className="w-5 h-5 text-slate-300" />
               </Link>
+            )}
+
             {profile?.featureAccess?.canEmployeeTrainingVideos && (
               <Link to="/employee/training" className="flex items-center justify-between w-full rounded-xl bg-purple-600 text-white font-semibold text-sm px-6 py-4 hover:bg-purple-700 active:scale-[0.98] transition-all shadow-sm">
                 <div className="flex items-center gap-3">
