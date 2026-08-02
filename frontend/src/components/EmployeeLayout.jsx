@@ -300,13 +300,17 @@ const EmployeeLayout = () => {
               <Megaphone size={16} className="text-blue-600 mr-3 shrink-0" />
               <div className="flex-1 overflow-hidden relative h-full flex items-center">
                 <motion.div
-                  key={newsHeadlines.join(" • ")} // Re-animate when text changes
-                  className="whitespace-nowrap absolute left-0"
-                  initial={{ x: "100%" }}
-                  animate={{ x: "-100%" }}
-                  transition={{ repeat: Infinity, duration: newsHeadlines.join(" • ").length * 0.15 + 10, ease: "linear" }}
+                  key={newsHeadlines.join(" • ")}
+                  className="flex whitespace-nowrap"
+                  animate={{ x: ["0%", "-50%"] }}
+                  transition={{ repeat: Infinity, duration: Math.max(30, newsHeadlines.join(" • ").length * 0.5), ease: "linear" }}
                 >
-                  <span className="text-blue-800 tracking-wide">{newsHeadlines.join(" • ")}</span>
+                  <span className="text-blue-800 tracking-wide pr-10">
+                    {Array(4).fill(newsHeadlines.join(" • ")).join("   •   ")}
+                  </span>
+                  <span className="text-blue-800 tracking-wide pr-10">
+                    {Array(4).fill(newsHeadlines.join(" • ")).join("   •   ")}
+                  </span>
                 </motion.div>
               </div>
             </div>
@@ -366,13 +370,17 @@ const EmployeeLayout = () => {
             <Megaphone size={14} className="text-blue-600 mr-2 shrink-0" />
             <div className="flex-1 overflow-hidden relative h-5 flex items-center text-xs font-medium text-blue-800">
               <motion.div
-                key={newsHeadlines.join(" • ")} // Re-animate when text changes
-                className="whitespace-nowrap absolute left-0"
-                initial={{ x: "100%" }}
-                animate={{ x: "-100%" }}
-                transition={{ repeat: Infinity, duration: newsHeadlines.join(" • ").length * 0.15 + 10, ease: "linear" }}
+                key={newsHeadlines.join(" • ")}
+                className="flex whitespace-nowrap"
+                animate={{ x: ["0%", "-50%"] }}
+                transition={{ repeat: Infinity, duration: Math.max(30, newsHeadlines.join(" • ").length * 0.5), ease: "linear" }}
               >
-                <span className="tracking-wide">{newsHeadlines.join(" • ")}</span>
+                <span className="tracking-wide pr-10">
+                  {Array(4).fill(newsHeadlines.join(" • ")).join("   •   ")}
+                </span>
+                <span className="tracking-wide pr-10">
+                  {Array(4).fill(newsHeadlines.join(" • ")).join("   •   ")}
+                </span>
               </motion.div>
             </div>
           </div>
