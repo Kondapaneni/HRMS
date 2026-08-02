@@ -28,7 +28,7 @@ import EmployeeMobileCamera from './pages/EmployeeMobileCamera'
 import EmployeeMobileChat from './pages/EmployeeMobileChat'
 import EmployeeMobileHolidays from './pages/EmployeeMobileHolidays'
 import EmployeeMobileBirthdays from './pages/EmployeeMobileBirthdays'
-import LoansLayout from './components/LoansLayout'
+import OriginationLayout from './components/OriginationLayout'
 import LoanOrigination from './pages/LoanOrigination'
 import AssessmentWorkspaceLayout from './components/AssessmentWorkspaceLayout'
 import AssessmentManagementPage from './pages/AssessmentManagementPage'
@@ -231,7 +231,7 @@ function App() {
                 path="/employee/loans"
                 element={
                   <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
-                    <LoansLayout />
+                    <OriginationLayout />
                   </ProtectedRoute>
                 }
               >

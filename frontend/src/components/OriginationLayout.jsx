@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { LogOut, Home, Briefcase, FileText, Activity, ArrowLeft, Bell } from 'lucide-react';
+import { LogOut, Home, Briefcase, FileText, Activity, ArrowLeft } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
-const LoansLayout = () => {
+const OriginationLayout = () => {
   const { profile, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -73,6 +73,17 @@ const LoansLayout = () => {
         {/* Top Header */}
         <header className="h-14 shrink-0 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 flex items-center justify-between sticky top-0 z-40 md:relative md:z-10 overflow-hidden">
           <div className="flex items-center gap-4 shrink-0">
+            {/* Mobile Back Button */}
+            <button
+              onClick={() => navigate('/employee')}
+              className="md:hidden flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-colors"
+            >
+              <ArrowLeft size={18} strokeWidth={2.5} />
+            </button>
+          </div>
+
+          <div className="flex items-center gap-5 shrink-0">
+            {/* Mobile Profile Avatar */}
             <div className="md:hidden flex items-center gap-3">
               <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-semibold text-sm overflow-hidden border border-slate-200">
                 {profile?.avatar ? (
@@ -81,24 +92,9 @@ const LoansLayout = () => {
                   (profile?.email || 'E').charAt(0).toUpperCase()
                 )}
               </div>
-              <div className="hidden sm:block text-left">
-                <p className="text-sm font-medium text-slate-700 leading-none">
-                  {profile?.email?.split('@')[0] || 'Employee'}
-                </p>
-                <p className="text-xs text-slate-500 mt-1 capitalize">{profile?.role || 'Employee'}</p>
-              </div>
             </div>
-          </div>
 
-          <div className="flex items-center gap-5 shrink-0">
-            {profile?.featureAccess?.canChat && (
-              <button
-                className="md:hidden relative text-slate-500 hover:text-slate-700 transition-colors ml-1"
-                onClick={() => navigate('/employee/chat/mobile')}
-              >
-                <Bell size={20} />
-              </button>
-            )}
+            {/* Desktop Profile Header Block */}
             <div className="hidden md:flex items-center gap-5">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-semibold text-sm overflow-hidden border border-slate-200">
@@ -127,13 +123,6 @@ const LoansLayout = () => {
         {/* Mobile Bottom Navigation (iOS Liquid Glass) */}
         <div className="md:hidden fixed bottom-6 left-4 right-4 z-50 pointer-events-none touch-none select-none">
           <div className="bg-white/50 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-full p-1.5 flex justify-around items-center pointer-events-auto">
-            <Link 
-              to="/employee" 
-              className="relative flex flex-col items-center justify-center w-[72px] h-[58px] z-10 group"
-            >
-              <Home className="relative z-10 w-6 h-6 mb-0.5 transition-all duration-300 text-slate-500 group-hover:text-slate-600 group-active:scale-95" strokeWidth={2} />
-              <span className="relative z-10 text-[10px] text-center leading-tight font-medium tracking-wide transition-all duration-300 text-slate-500">Back to HRMS</span>
-            </Link>
             
             {navItems.filter(item => !item.feature || profile?.featureAccess?.[item.feature]).map((item, idx) => {
               const isActive = location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
@@ -165,4 +154,4 @@ const LoansLayout = () => {
   );
 };
 
-export default LoansLayout;
+export default OriginationLayout;
