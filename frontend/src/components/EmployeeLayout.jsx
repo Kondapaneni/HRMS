@@ -263,10 +263,7 @@ const EmployeeLayout = () => {
               {profile?.featureAccess?.canEmployees && <GlobalSearch />}
             </div>
             
-            <div
-              className="md:hidden flex items-center gap-3 cursor-pointer group"
-              onClick={() => navigate('/employee/profile')}
-            >
+            <div className="md:hidden flex items-center gap-3">
               <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-semibold text-sm overflow-hidden border border-slate-200">
                 {profile?.avatar ? (
                   <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
@@ -275,7 +272,7 @@ const EmployeeLayout = () => {
                 )}
               </div>
               <div className="hidden sm:block text-left">
-                <p className="text-sm font-medium text-slate-700 leading-none group-hover:text-blue-600 transition-colors">
+                <p className="text-sm font-medium text-slate-700 leading-none">
                   {profile?.email?.split('@')[0] || 'Employee'}
                 </p>
                 <p className="text-xs text-slate-500 mt-1 capitalize">{profile?.role || 'Employee'}</p>
@@ -285,6 +282,7 @@ const EmployeeLayout = () => {
             {profile?.featureAccess?.canChat && (
               <button
                 className="md:hidden relative text-slate-500 hover:text-slate-700 transition-colors ml-1"
+                onClick={() => navigate('/employee/chat/mobile')}
               >
                 <Bell size={20} />
                 {totalUnread > 0 && (
@@ -333,10 +331,7 @@ const EmployeeLayout = () => {
 
               <div className="h-6 w-px bg-slate-200"></div>
 
-              <div
-                className="flex items-center gap-3 cursor-pointer group"
-                onClick={() => navigate('/employee/profile')}
-              >
+              <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-semibold text-sm overflow-hidden border border-slate-200">
                   {profile?.avatar ? (
                     <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
@@ -345,7 +340,7 @@ const EmployeeLayout = () => {
                   )}
                 </div>
                 <div className="hidden sm:block text-left">
-                  <p className="text-sm font-medium text-slate-700 leading-none group-hover:text-blue-600 transition-colors">
+                  <p className="text-sm font-medium text-slate-700 leading-none">
                     {profile?.email?.split('@')[0] || 'Employee'}
                   </p>
                   <p className="text-xs text-slate-500 mt-1 capitalize">{profile?.role || 'Employee'}</p>
