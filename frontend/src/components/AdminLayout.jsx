@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { 
   LogOut, Users, Settings, Activity, Briefcase, 
   Search, Bell, Menu, Home, Calendar, Clock, 
-  BarChart2, ChevronDown, DollarSign, Monitor, FileText, Shield, Network, Mail, MessageSquare, Award
+  BarChart2, ChevronDown, DollarSign, Monitor, FileText, Shield, Network, Mail, MessageSquare, Award, Smartphone
 } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -252,6 +252,46 @@ const AdminLayout = () => {
         <h3 className="text-xl font-black text-slate-900 mb-2 uppercase tracking-wide">Desktop Access Required</h3>
         <p className="text-slate-500 text-sm max-w-xs font-medium leading-relaxed mb-6">
           Admin accounts can only be accessed from a desktop or laptop. Please use the web application on a desktop device to continue.
+        </p>
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-100 rounded-xl font-semibold shadow-sm transition-all"
+        >
+          <LogOut size={18} />
+          Sign Out
+        </button>
+      </div>
+      <style>{`
+        .orientation-warning {
+          display: none;
+        }
+        @media (orientation: landscape) and (max-width: 1024px) {
+          .orientation-warning {
+            display: flex;
+          }
+        }
+      `}</style>
+
+      {/* Landscape Orientation Warning Overlay for Mobile/Tablet */}
+      <div className="orientation-warning fixed inset-0 z-[9999] flex-col items-center justify-center bg-white/60 backdrop-blur-3xl p-6 text-center select-none border border-white/80 shadow-[inset_0_1px_3px_rgba(255,255,255,0.8),0_12px_40px_rgba(0,0,0,0.08)]">
+        <div className="relative mb-6">
+          {/* Animated phone rotation container */}
+          <div className="w-20 h-20 border border-dashed border-slate-300 rounded-full flex items-center justify-center animate-[spin_8s_linear_infinite]">
+            <Smartphone className="w-8 h-8 text-[#ff2d55] opacity-20" />
+          </div>
+          {/* Main phone rotation icon */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <motion.div
+              animate={{ rotate: [0, -90, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <Smartphone className="w-10 h-10 text-slate-800" />
+            </motion.div>
+          </div>
+        </div>
+        <h3 className="text-xl font-black text-slate-900 mb-2 uppercase tracking-wide">Rotate your device</h3>
+        <p className="text-slate-500 text-sm max-w-xs font-medium leading-relaxed mb-6">
+          Please rotate your screen back to portrait orientation for the best Acme HRMS experience.
         </p>
         <button
           onClick={handleLogout}
