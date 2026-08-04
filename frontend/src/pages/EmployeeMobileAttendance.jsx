@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import PageLoader from '../components/PageLoader';
-import { Search, Calendar as CalendarIcon, Clock, Shield, AlertCircle } from 'lucide-react';
+import { Search, Calendar as CalendarIcon, Clock, Shield, AlertCircle, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
@@ -25,8 +25,17 @@ const EmployeeMobileAttendance = () => {
   const presentCount = history.filter(r => r.status?.toLowerCase().startsWith('present')).length;
   const leaveCount = history.filter(r => r.status?.toLowerCase().includes('leave')).length;
 
+  const [showMonthPicker, setShowMonthPicker] = useState(false);
+  const [pickerYear, setPickerYear] = useState(() => {
+    return parseInt(selectedMonth.split('-')[0], 10);
+  });
+  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-  const [statusFilter, setStatusFilter] = useState('all');
+  const handleMonthSelect = (monthIndex) => {
+    const newMonth = `${pickerYear}-${String(monthIndex + 1).padStart(2, '0')}`;
+    setSelectedMonth(newMonth);
+    setShowMonthPicker(false);
+  };  const [statusFilter, setStatusFilter] = useState('all');
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
 
@@ -133,12 +142,17 @@ const EmployeeMobileAttendance = () => {
 
       {/* Filters */}
       <section className="bg-white rounded-[2rem] p-5 shadow-sm border border-slate-200 space-y-3">
-        <input
-          type="month"
-          value={selectedMonth}
-          onChange={(e) => setSelectedMonth(e.target.value)}
-          className="w-full h-12 px-4 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#84dcc6] font-medium appearance-none block max-w-full"
-        />
+        <button
+          type="button"
+          onClick={() => {
+            setPickerYear(parseInt(selectedMonth.split('-')[0], 10));
+            setShowMonthPicker(true);
+          }}
+          className="w-full h-12 px-4 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#84dcc6] font-medium flex items-center justify-between text-slate-800"
+        >
+          <span>{format(new Date(selectedMonth + '-01'), 'MMMM, yyyy')}</span>
+          <CalendarIcon className="w-5 h-5 text-slate-400" />
+        </button>
 
         <select
           value={statusFilter}
@@ -219,6 +233,54 @@ const EmployeeMobileAttendance = () => {
           </div>
         )}
       </section>
+
+      {/* Custom Month Picker Bottom Sheet */}
+      {showMonthPicker && (
+        <div className="fixed inset-0 z-50 flex flex-col justify-end bg-slate-900/40 backdrop-blur-sm">
+          <motion.div 
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            transition={{ type: "spring", bounce: 0, duration: 0.3 }}
+            className="bg-white rounded-t-3xl p-6 pb-10 shadow-2xl"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-slate-800">Select Month</h3>
+              <button onClick={() => setShowMonthPicker(false)} className="p-2 bg-slate-100 rounded-full text-slate-500">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="flex items-center justify-between bg-slate-50 rounded-xl p-2 mb-6 border border-slate-100">
+              <button onClick={() => setPickerYear(y => y - 1)} className="p-3 text-slate-600 hover:bg-white rounded-lg shadow-sm">
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <span className="text-lg font-bold text-slate-800">{pickerYear}</span>
+              <button onClick={() => setPickerYear(y => y + 1)} className="p-3 text-slate-600 hover:bg-white rounded-lg shadow-sm">
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              {monthNames.map((m, i) => {
+                const isSelected = selectedMonth === `${pickerYear}-${String(i + 1).padStart(2, '0')}`;
+                return (
+                  <button
+                    key={m}
+                    onClick={() => handleMonthSelect(i)}
+                    className={`py-3 rounded-xl text-sm font-semibold transition-all ${
+                      isSelected 
+                        ? 'bg-blue-600 text-white shadow-md' 
+                        : 'bg-slate-50 text-slate-600 border border-slate-100'
+                    }`}
+                  >
+                    {m}
+                  </button>
+                )
+              })}
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };
