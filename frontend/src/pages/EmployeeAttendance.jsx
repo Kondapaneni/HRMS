@@ -349,7 +349,6 @@ const EmployeeAttendance = () => {
                 <option value="paid leave">Paid Leave</option>
                 <option value="unpaid leave">Unpaid Leave</option>
                 <option value="sandwich leave">Sandwich Leave</option>
-                <option value="not-marked">Not Marked</option>
                 <option value="missed">Missing</option>
               </select>
             </div>
