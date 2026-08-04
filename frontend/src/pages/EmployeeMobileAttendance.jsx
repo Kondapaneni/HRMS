@@ -46,29 +46,43 @@ const EmployeeMobileAttendance = () => {
     return () => {
       document.body.style.overflow = '';
     };
-  }, [showMonthPicker]);  const [statusFilter, setStatusFilter] = useState('all');
+  }, [showMonthPicker]);
+
+  const [statusFilter, setStatusFilter] = useState('all');
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
 
+  const resolveStatusKey = (record) => {
+    if (!record || !record.status) return 'missing';
+    const l = record.status.toLowerCase();
+
+    if (l.includes('present')) return l;
+    if (l === 'weekend') return 'week-off';
+    if (l === 'holiday') return 'holiday';
+    return l;
+  };
+
   const filteredHistory = history.filter(record => {
-    const recordObj = new Date(record.date);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const rDateZero = new Date(recordObj);
+    const rDateZero = new Date(record.date);
     rDateZero.setHours(0, 0, 0, 0);
 
     if (rDateZero > today) {
       return false;
     }
 
-    if (statusFilter === 'all') return true;
-    const rStatus = record.status?.toLowerCase() || '';
-    if (statusFilter === 'present' && rStatus.startsWith('present')) return true;
-    if (statusFilter === 'leave' && rStatus.includes('leave')) return true;
-    if (statusFilter === 'missing' && rStatus === 'missing') return true;
-    if (statusFilter === 'holiday' && (rStatus === 'holiday' || rStatus === 'week-off')) return true;
-    
-    return false;
+    if (statusFilter !== 'all') {
+      const recordStatus = resolveStatusKey(record);
+      if (statusFilter === 'present') {
+        if (!recordStatus.startsWith('present') && !recordStatus.includes('missing-checkout')) return false;
+      } else if (statusFilter === 'missed') {
+        if (recordStatus !== 'missed') return false;
+      } else if (recordStatus !== statusFilter) {
+        return false;
+      }
+    }
+    return true;
   });
 
   const getStatusColor = (record) => {
@@ -170,11 +184,12 @@ const EmployeeMobileAttendance = () => {
           onChange={(e) => setStatusFilter(e.target.value)}
           className="w-full h-12 px-4 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#84dcc6] font-medium appearance-none"
         >
-          <option value="all">All Statuses</option>
+          <option value="all">All Status</option>
           <option value="present">Present</option>
-          <option value="leave">On Leave</option>
-          <option value="missing">Missing Punch</option>
-          <option value="holiday">Holiday / Week Off</option>
+          <option value="paid leave">Paid Leave</option>
+          <option value="unpaid leave">Unpaid Leave</option>
+          <option value="sandwich leave">Sandwich Leave</option>
+          <option value="missed">Missing</option>
         </select>
       </section>
 
