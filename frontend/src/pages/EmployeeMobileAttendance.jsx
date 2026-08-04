@@ -25,7 +25,7 @@ const EmployeeMobileAttendance = () => {
   const presentCount = history.filter(r => r.status?.toLowerCase().startsWith('present')).length;
   const leaveCount = history.filter(r => r.status?.toLowerCase().includes('leave')).length;
 
-  const [searchDate, setSearchDate] = useState('');
+
   const [statusFilter, setStatusFilter] = useState('all');
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
@@ -41,15 +41,12 @@ const EmployeeMobileAttendance = () => {
       return false;
     }
 
-    const rDate = recordObj.toLocaleDateString('en-GB');
-    const matchesSearch = rDate.includes(searchDate) || record.date.includes(searchDate);
-    
-    if (statusFilter === 'all') return matchesSearch;
+    if (statusFilter === 'all') return true;
     const rStatus = record.status?.toLowerCase() || '';
-    if (statusFilter === 'present' && rStatus.startsWith('present')) return matchesSearch;
-    if (statusFilter === 'leave' && rStatus.includes('leave')) return matchesSearch;
-    if (statusFilter === 'missing' && rStatus === 'missing') return matchesSearch;
-    if (statusFilter === 'holiday' && (rStatus === 'holiday' || rStatus === 'week-off')) return matchesSearch;
+    if (statusFilter === 'present' && rStatus.startsWith('present')) return true;
+    if (statusFilter === 'leave' && rStatus.includes('leave')) return true;
+    if (statusFilter === 'missing' && rStatus === 'missing') return true;
+    if (statusFilter === 'holiday' && (rStatus === 'holiday' || rStatus === 'week-off')) return true;
     
     return false;
   });
@@ -140,18 +137,9 @@ const EmployeeMobileAttendance = () => {
           type="month"
           value={selectedMonth}
           onChange={(e) => setSelectedMonth(e.target.value)}
-          className="w-full h-12 px-4 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#84dcc6] font-medium"
+          className="w-full h-12 px-4 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#84dcc6] font-medium appearance-none block max-w-full"
         />
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-          <input
-            type="text"
-            value={searchDate}
-            onChange={(e) => setSearchDate(e.target.value)}
-            placeholder="Search date..."
-            className="w-full h-12 pl-12 pr-4 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#84dcc6] font-medium"
-          />
-        </div>
+
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}

@@ -24,7 +24,7 @@ const EmployeeAttendance = () => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
   });
-  const [searchDate, setSearchDate] = useState('');
+
   const [statusFilter, setStatusFilter] = useState('all');
 
   useEffect(() => {
@@ -155,7 +155,7 @@ const EmployeeAttendance = () => {
       return false;
     }
 
-    if (searchDate && !formatDateStr(record.date).includes(searchDate)) return false;
+
     if (statusFilter !== 'all') {
       const recordStatus = resolveStatusKey(record);
       if (statusFilter === 'present') {
@@ -340,16 +340,7 @@ const EmployeeAttendance = () => {
               onChange={(e) => setSelectedMonth(e.target.value)}
               className="h-10 w-full sm:w-[200px] rounded-md border border-slate-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
             />
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <input
-                type="text"
-                value={searchDate}
-                onChange={(e) => setSearchDate(e.target.value)}
-                placeholder="Search by date (DD/MM/YYYY)..."
-                className="w-full h-10 pl-10 pr-3 rounded-md border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
