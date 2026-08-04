@@ -161,7 +161,7 @@ const EmployeeAttendance = () => {
       if (statusFilter === 'present') {
         if (!recordStatus.startsWith('present') && !recordStatus.includes('missing-checkout')) return false;
       } else if (statusFilter === 'missed') {
-        if (!recordStatus.includes('missing')) return false;
+        if (recordStatus !== 'missing') return false;
       } else if (recordStatus !== statusFilter) {
         return false;
       }
