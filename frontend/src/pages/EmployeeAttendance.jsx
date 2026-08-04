@@ -329,22 +329,20 @@ const EmployeeAttendance = () => {
 
       {/* Attendance History */}
       <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
-        <div className="p-6 pb-0">
+        <div className="p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <h3 className="text-lg font-semibold text-slate-900">Attendance History</h3>
-        </div>
-        <div className="p-6">
-          <div className="flex flex-col sm:flex-row gap-4 mb-4">
+          <div className="flex flex-col sm:flex-row gap-4">
             <input
               type="month"
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
-              className="h-10 w-full sm:w-[200px] rounded-md border border-slate-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              className="h-10 w-full sm:w-[200px] rounded-md border border-slate-300 px-3 text-center text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
             />
 
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="h-10 w-full sm:w-[180px] rounded-md border border-slate-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              className="h-10 w-full sm:w-[180px] rounded-md border border-slate-300 px-3 text-center text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
             >
               <option value="all">All Status</option>
               <option value="present">Present</option>
@@ -355,7 +353,9 @@ const EmployeeAttendance = () => {
               <option value="missed">Missing</option>
             </select>
           </div>
+        </div>
 
+        <div className="px-6 pb-6">
           <div className="rounded-md border border-slate-200 overflow-x-auto">
             <table className="w-full text-sm text-left">
               <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-medium">
