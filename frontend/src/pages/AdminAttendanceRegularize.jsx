@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import PageLoader from '../components/PageLoader';
 import { ArrowLeft, Search, Calendar, MapPin, CheckCircle, Clock, AlertCircle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from '../api/axios';
 import { createPortal } from 'react-dom';
@@ -10,11 +10,28 @@ import EmployeeSelect from '../components/EmployeeSelect';
 const AdminAttendanceRegularize = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
-  const [selectedMonth, setSelectedMonth] = useState(() => {
+  
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  const selectedEmployeeId = searchParams.get('employee') || '';
+  const selectedMonth = searchParams.get('month') || (() => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-  });
+  })();
+
+  const setSelectedEmployeeId = (id) => {
+    const newParams = new URLSearchParams(searchParams);
+    if (id) newParams.set('employee', id);
+    else newParams.delete('employee');
+    setSearchParams(newParams, { replace: true });
+  };
+
+  const setSelectedMonth = (month) => {
+    const newParams = new URLSearchParams(searchParams);
+    if (month) newParams.set('month', month);
+    else newParams.delete('month');
+    setSearchParams(newParams, { replace: true });
+  };
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);

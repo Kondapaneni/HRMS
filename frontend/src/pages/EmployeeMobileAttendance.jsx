@@ -27,24 +27,6 @@ const EmployeeMobileAttendance = () => {
 
   const [searchDate, setSearchDate] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [visibleCount, setVisibleCount] = useState(10);
-  const observerTarget = useRef(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          setVisibleCount((prev) => prev + 10);
-        }
-      },
-      { threshold: 0.1 }
-    );
-    if (observerTarget.current) {
-      observer.observe(observerTarget.current);
-    }
-    return () => observer.disconnect();
-  }, []);
-
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
 
@@ -202,7 +184,7 @@ const EmployeeMobileAttendance = () => {
           </div>
         ) : (
           <div className="space-y-3">
-            {filteredHistory.slice(0, visibleCount).map((record, index) => {
+            {filteredHistory.map((record, index) => {
               const recordDate = new Date(record.date);
               const inTime = record.checkIn ? new Date(record.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
               const outTime = record.checkOut ? new Date(record.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
@@ -246,11 +228,6 @@ const EmployeeMobileAttendance = () => {
                 </div>
               );
             })}
-            {visibleCount < filteredHistory.length && (
-              <div ref={observerTarget} className="h-4 flex items-center justify-center">
-                <div className="w-2 h-2 rounded-full bg-slate-300 animate-pulse"></div>
-              </div>
-            )}
           </div>
         )}
       </section>
