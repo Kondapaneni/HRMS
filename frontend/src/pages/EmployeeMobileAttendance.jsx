@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import PageLoader from '../components/PageLoader';
 import { Search, Calendar as CalendarIcon, Clock, Shield, AlertCircle, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { format } from 'date-fns';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axios';
 
@@ -265,58 +265,70 @@ const EmployeeMobileAttendance = () => {
       </section>
 
       {/* Custom Month Picker Bottom Sheet */}
-      {showMonthPicker && (
-        <div className="fixed inset-x-0 top-0 bottom-[100px] z-[100] flex flex-col justify-end">
-          {/* Backdrop */}
-          <div 
-            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
-            onClick={() => setShowMonthPicker(false)}
-          />
-          
-          <motion.div 
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            transition={{ type: "spring", bounce: 0, duration: 0.3 }}
-            className="bg-white rounded-t-3xl p-6 pb-10 shadow-2xl relative z-10"
-          >
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-slate-800">Select Month</h3>
-              <button onClick={() => setShowMonthPicker(false)} className="p-2 bg-slate-100 rounded-full text-slate-500">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            
-            <div className="flex items-center justify-between bg-slate-50 rounded-xl p-2 mb-6 border border-slate-100">
-              <button onClick={() => setPickerYear(y => y - 1)} className="p-3 text-slate-600 hover:bg-white rounded-lg shadow-sm">
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <span className="text-lg font-bold text-slate-800">{pickerYear}</span>
-              <button onClick={() => setPickerYear(y => y + 1)} className="p-3 text-slate-600 hover:bg-white rounded-lg shadow-sm">
-                <ChevronRight className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="grid grid-cols-3 gap-3">
-              {monthNames.map((m, i) => {
-                const isSelected = selectedMonth === `${pickerYear}-${String(i + 1).padStart(2, '0')}`;
-                return (
+      <AnimatePresence>
+        {showMonthPicker && (
+          <div className="fixed inset-x-0 top-0 bottom-[100px] z-[100] flex flex-col justify-end overflow-hidden">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowMonthPicker(false)}
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="absolute bottom-0 left-0 right-0 bg-white rounded-t-[32px] shadow-2xl flex flex-col"
+            >
+              <div className="shrink-0 pt-3 pb-8 flex flex-col items-center">
+                <div className="w-12 h-1.5 bg-slate-200 rounded-full mb-4 pointer-events-none"></div>
+                <div className="px-6 w-full flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-bold text-slate-900">Select Month</h3>
                   <button
-                    key={m}
-                    onClick={() => handleMonthSelect(i)}
-                    className={`py-3 rounded-xl text-sm font-semibold transition-all ${
-                      isSelected 
-                        ? 'bg-blue-600 text-white shadow-md' 
-                        : 'bg-slate-50 text-slate-600 border border-slate-100'
-                    }`}
+                    onClick={() => setShowMonthPicker(false)}
+                    className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"
                   >
-                    {m}
+                    <X className="w-5 h-5" />
                   </button>
-                )
-              })}
-            </div>
-          </motion.div>
-        </div>
-      )}
+                </div>
+                
+                <div className="px-6 w-full">
+                  <div className="flex items-center justify-between bg-slate-50 rounded-xl p-2 mb-6 border border-slate-100">
+                    <button onClick={() => setPickerYear(y => y - 1)} className="p-3 text-slate-600 hover:bg-white rounded-lg shadow-sm">
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    <span className="text-lg font-bold text-slate-800">{pickerYear}</span>
+                    <button onClick={() => setPickerYear(y => y + 1)} className="p-3 text-slate-600 hover:bg-white rounded-lg shadow-sm">
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3">
+                    {monthNames.map((m, i) => {
+                      const isSelected = selectedMonth === `${pickerYear}-${String(i + 1).padStart(2, '0')}`;
+                      return (
+                        <button
+                          key={m}
+                          onClick={() => handleMonthSelect(i)}
+                          className={`py-3 rounded-xl text-sm font-semibold transition-all ${
+                            isSelected 
+                              ? 'bg-blue-600 text-white shadow-md' 
+                              : 'bg-slate-50 text-slate-600 border border-slate-100'
+                          }`}
+                        >
+                          {m}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
