@@ -129,7 +129,7 @@ const EmployeeAttendance = () => {
   const resolveStatusKey = (record) => {
     if (!record || !record.status) return 'missing';
     const l = record.status.toLowerCase();
-    
+
     if (l.includes('present')) return l;
     if (l === 'weekend') return 'week-off';
     if (l === 'holiday') return 'holiday';
@@ -161,7 +161,7 @@ const EmployeeAttendance = () => {
       if (statusFilter === 'present') {
         if (!recordStatus.startsWith('present') && !recordStatus.includes('missing-checkout')) return false;
       } else if (statusFilter === 'missed') {
-        if (recordStatus !== 'missing') return false;
+        if (recordStatus !== 'missed') return false;
       } else if (recordStatus !== statusFilter) {
         return false;
       }
@@ -171,11 +171,11 @@ const EmployeeAttendance = () => {
 
   const todayStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD local
   const currentMonthStr = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
-  
+
   // If we're not on the current month, we might not have today's record in `history`.
   // To avoid incorrect check-in state, we'll disable punches if viewing a past month.
   const isViewingCurrentMonth = selectedMonth === currentMonthStr;
-  
+
   const todayRecord = history.find(r => r.date?.split('T')[0] === todayStr) || history.find(r => r.date && new Date(r.date).toDateString() === new Date().toDateString());
 
   const checkedIn = todayRecord && todayRecord.checkIn && !todayRecord.checkOut;
@@ -223,183 +223,183 @@ const EmployeeAttendance = () => {
             <h1 className="text-3xl font-bold tracking-tight text-slate-900">Attendance</h1>
             <p className="text-sm text-slate-500 mt-1">Track your daily attendance</p>
           </div>
-          <button 
+          <button
             onClick={() => navigate('/employee/holidays')}
             className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 h-10 px-4 py-2 transition-colors">
             Holidays
           </button>
         </div>
 
-      {displayError && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
-          {displayError}
-        </div>
-      )}
+        {displayError && (
+          <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+            {displayError}
+          </div>
+        )}
 
-      {isOnLeaveToday && (
-        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800 font-medium flex items-center gap-2 shadow-sm">
-          <Calendar className="w-5 h-5" />
-          You are currently on an approved leave. Check-in is disabled.
-        </div>
-      )}
+        {isOnLeaveToday && (
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800 font-medium flex items-center gap-2 shadow-sm">
+            <Calendar className="w-5 h-5" />
+            You are currently on an approved leave. Check-in is disabled.
+          </div>
+        )}
 
-      {/* Check-in / Check-out Card */}
-      <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
-        <div className="p-6">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="text-center sm:text-left">
-              <div className="flex items-center justify-center sm:justify-start gap-2 text-lg font-semibold text-slate-800">
-                <Calendar className="h-5 w-5 text-slate-500" />
-                <span>{currentTime.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
-              </div>
-              <p className="text-slate-500 flex items-center justify-center sm:justify-start gap-1 mt-1">
-                <Clock className="h-4 w-4" />
-                Current time: <span>{currentTime.toLocaleTimeString()}</span>
-              </p>
-              {todayRecord?.checkIn && (
-                <p className="text-sm text-slate-500 mt-2">
-                  Check-in: <span className="font-medium text-slate-900">{new Date(todayRecord.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                  {todayRecord?.checkOut && (
-                    <> &bull; Check-out: <span className="font-medium text-slate-900">{new Date(todayRecord.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></>
-                  )}
-                </p>
-              )}
-            </div>
-
-            <div className="flex flex-wrap justify-center gap-3 w-full sm:w-auto">
-              {!isWebAttendanceEnabled ? (
-                <div className="w-full flex items-center justify-center p-3 bg-red-50 text-red-600 rounded-lg border border-red-100 text-sm font-medium shadow-sm">
-                  <AlertCircle size={16} className="mr-2 shrink-0" />
-                  Web Attendance is Disabled for You. Please use the Mobile App.
+        {/* Check-in / Check-out Card */}
+        <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
+          <div className="p-6">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-center sm:text-left">
+                <div className="flex items-center justify-center sm:justify-start gap-2 text-lg font-semibold text-slate-800">
+                  <Calendar className="h-5 w-5 text-slate-500" />
+                  <span>{currentTime.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
                 </div>
-              ) : (
-                <>
-                  <button
-                    onClick={() => handlePunch('check-in')}
-                    disabled={!isViewingCurrentMonth || punchingAction || checkedIn || checkOutTime || isOnLeaveToday}
-                    className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-11 px-6 min-w-[140px] disabled:opacity-50 transition-colors"
-                  >
-                    <LogIn className="mr-2 h-4 w-4" />
-                    {punchingAction === 'check-in' ? 'Checking In...' : 'Check In'}
-                  </button>
+                <p className="text-slate-500 flex items-center justify-center sm:justify-start gap-1 mt-1">
+                  <Clock className="h-4 w-4" />
+                  Current time: <span>{currentTime.toLocaleTimeString()}</span>
+                </p>
+                {todayRecord?.checkIn && (
+                  <p className="text-sm text-slate-500 mt-2">
+                    Check-in: <span className="font-medium text-slate-900">{new Date(todayRecord.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    {todayRecord?.checkOut && (
+                      <> &bull; Check-out: <span className="font-medium text-slate-900">{new Date(todayRecord.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></>
+                    )}
+                  </p>
+                )}
+              </div>
 
-                  <button
-                    onClick={() => handlePunch('punch')}
-                    disabled={!isViewingCurrentMonth || punchingAction || !checkedIn || checkOutTime || isOnLeaveToday}
-                    className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-11 px-6 min-w-[140px] disabled:opacity-50 transition-colors"
-                  >
-                    <Clock className="mr-2 h-4 w-4" />
-                    {punchingAction === 'punch' ? 'Punching...' : 'Punch'}
-                  </button>
+              <div className="flex flex-wrap justify-center gap-3 w-full sm:w-auto">
+                {!isWebAttendanceEnabled ? (
+                  <div className="w-full flex items-center justify-center p-3 bg-red-50 text-red-600 rounded-lg border border-red-100 text-sm font-medium shadow-sm">
+                    <AlertCircle size={16} className="mr-2 shrink-0" />
+                    Web Attendance is Disabled for You. Please use the Mobile App.
+                  </div>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => handlePunch('check-in')}
+                      disabled={!isViewingCurrentMonth || punchingAction || checkedIn || checkOutTime || isOnLeaveToday}
+                      className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-11 px-6 min-w-[140px] disabled:opacity-50 transition-colors"
+                    >
+                      <LogIn className="mr-2 h-4 w-4" />
+                      {punchingAction === 'check-in' ? 'Checking In...' : 'Check In'}
+                    </button>
 
-                  <button
-                    onClick={() => handlePunch('check-out')}
-                    disabled={!isViewingCurrentMonth || punchingAction || !checkedIn || checkOutTime || isOnLeaveToday}
-                    className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-11 px-6 min-w-[140px] disabled:opacity-50 transition-colors"
-                  >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    {punchingAction === 'check-out' ? 'Checking Out...' : 'Check Out'}
-                  </button>
-                </>
-              )}
+                    <button
+                      onClick={() => handlePunch('punch')}
+                      disabled={!isViewingCurrentMonth || punchingAction || !checkedIn || checkOutTime || isOnLeaveToday}
+                      className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-11 px-6 min-w-[140px] disabled:opacity-50 transition-colors"
+                    >
+                      <Clock className="mr-2 h-4 w-4" />
+                      {punchingAction === 'punch' ? 'Punching...' : 'Punch'}
+                    </button>
+
+                    <button
+                      onClick={() => handlePunch('check-out')}
+                      disabled={!isViewingCurrentMonth || punchingAction || !checkedIn || checkOutTime || isOnLeaveToday}
+                      className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-11 px-6 min-w-[140px] disabled:opacity-50 transition-colors"
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      {punchingAction === 'check-out' ? 'Checking Out...' : 'Check Out'}
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Attendance Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <div className="rounded-lg border border-slate-200 bg-white shadow-sm p-6 text-center">
-          <div className="text-2xl font-bold text-green-600">{presentCount}</div>
-          <p className="text-sm text-slate-500">Present</p>
-        </div>
-        <div className="rounded-lg border border-slate-200 bg-white shadow-sm p-6 text-center">
-          <div className="text-2xl font-bold text-blue-600">{leaveCount}</div>
-          <p className="text-sm text-slate-500">On Leave</p>
-        </div>
-        <div className="rounded-lg border border-slate-200 bg-white shadow-sm p-6 text-center">
-          <div className="text-2xl font-bold text-blue-600">{paidLeaveCount}</div>
-          <p className="text-sm text-slate-500">Paid Leave</p>
-        </div>
-        <div className="rounded-lg border border-slate-200 bg-white shadow-sm p-6 text-center">
-          <div className="text-2xl font-bold text-blue-600">{unpaidLeaveCount}</div>
-          <p className="text-sm text-slate-500">Unpaid Leaves</p>
-        </div>
-      </div>
-
-      {/* Attendance History */}
-      <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
-        <div className="p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <h3 className="text-lg font-semibold text-slate-900">Attendance History</h3>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <input
-              type="month"
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              className="h-10 w-full sm:w-[200px] rounded-md border border-slate-300 px-3 text-center text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-            />
-
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="h-10 w-full sm:w-fit rounded-md border border-slate-300 px-3 text-center text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-            >
-              <option value="all">All Status</option>
-              <option value="present">Present</option>
-              <option value="paid leave">Paid Leave</option>
-              <option value="unpaid leave">Unpaid Leave</option>
-              <option value="sandwich leave">Sandwich Leave</option>
-              <option value="not-marked">Not Marked</option>
-              <option value="missed">Missing</option>
-            </select>
+        {/* Attendance Stats */}
+        <div className="grid gap-4 md:grid-cols-4">
+          <div className="rounded-lg border border-slate-200 bg-white shadow-sm p-6 text-center">
+            <div className="text-2xl font-bold text-green-600">{presentCount}</div>
+            <p className="text-sm text-slate-500">Present</p>
+          </div>
+          <div className="rounded-lg border border-slate-200 bg-white shadow-sm p-6 text-center">
+            <div className="text-2xl font-bold text-blue-600">{leaveCount}</div>
+            <p className="text-sm text-slate-500">On Leave</p>
+          </div>
+          <div className="rounded-lg border border-slate-200 bg-white shadow-sm p-6 text-center">
+            <div className="text-2xl font-bold text-blue-600">{paidLeaveCount}</div>
+            <p className="text-sm text-slate-500">Paid Leave</p>
+          </div>
+          <div className="rounded-lg border border-slate-200 bg-white shadow-sm p-6 text-center">
+            <div className="text-2xl font-bold text-blue-600">{unpaidLeaveCount}</div>
+            <p className="text-sm text-slate-500">Unpaid Leaves</p>
           </div>
         </div>
 
-        <div className="px-6 pb-6">
-          <div className="rounded-md border border-slate-200 overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-medium">
-                <tr>
-                  <th className="p-3">Date</th>
-                  <th className="p-3">Check In</th>
-                  <th className="p-3">Check Out</th>
-                  <th className="p-3">Hours</th>
-                  <th className="p-3">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
+        {/* Attendance History */}
+        <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
+          <div className="p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <h3 className="text-lg font-semibold text-slate-900">Attendance History</h3>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <input
+                type="month"
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="h-10 w-full sm:w-[200px] rounded-md border border-slate-300 px-3 text-center text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              />
+
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="h-10 w-full sm:w-fit rounded-md border border-slate-300 px-3 text-center text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              >
+                <option value="all">All Status</option>
+                <option value="present">Present</option>
+                <option value="paid leave">Paid Leave</option>
+                <option value="unpaid leave">Unpaid Leave</option>
+                <option value="sandwich leave">Sandwich Leave</option>
+                <option value="not-marked">Not Marked</option>
+                <option value="missed">Missing</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="px-6 pb-6">
+            <div className="rounded-md border border-slate-200 overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-medium">
                   <tr>
-                    <td colSpan="5" className="text-center py-8 text-slate-500">Loading attendance...</td>
+                    <th className="p-3">Date</th>
+                    <th className="p-3">Check In</th>
+                    <th className="p-3">Check Out</th>
+                    <th className="p-3">Hours</th>
+                    <th className="p-3">Status</th>
                   </tr>
-                ) : filteredHistory.length === 0 ? (
-                  <tr>
-                    <td colSpan="5" className="text-center py-8 text-slate-500">No attendance records found.</td>
-                  </tr>
-                ) : (
-                  filteredHistory.map((record, i) => {
-                    const statusKey = resolveStatusKey(record);
-                    const config = statusPalette[statusKey] || statusPalette['missing'];
-                    return (
-                      <tr key={i} className="border-b border-slate-100 hover:bg-slate-50 last:border-0">
-                        <td className="p-3 font-medium text-slate-800">{formatDateStr(record.date)}</td>
-                        <td className="p-3 text-slate-600">{record.checkIn ? new Date(record.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}</td>
-                        <td className="p-3 text-slate-600">{record.checkOut ? new Date(record.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}</td>
-                        <td className="p-3 text-slate-600">{record.hours ? `${record.hours}h` : '—'}</td>
-                        <td className="p-3">
-                          <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${config.classes}`}>
-                            {config.label}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    <tr>
+                      <td colSpan="5" className="text-center py-8 text-slate-500">Loading attendance...</td>
+                    </tr>
+                  ) : filteredHistory.length === 0 ? (
+                    <tr>
+                      <td colSpan="5" className="text-center py-8 text-slate-500">No attendance records found.</td>
+                    </tr>
+                  ) : (
+                    filteredHistory.map((record, i) => {
+                      const statusKey = resolveStatusKey(record);
+                      const config = statusPalette[statusKey] || statusPalette['missing'];
+                      return (
+                        <tr key={i} className="border-b border-slate-100 hover:bg-slate-50 last:border-0">
+                          <td className="p-3 font-medium text-slate-800">{formatDateStr(record.date)}</td>
+                          <td className="p-3 text-slate-600">{record.checkIn ? new Date(record.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}</td>
+                          <td className="p-3 text-slate-600">{record.checkOut ? new Date(record.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}</td>
+                          <td className="p-3 text-slate-600">{record.hours ? `${record.hours}h` : '—'}</td>
+                          <td className="p-3">
+                            <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${config.classes}`}>
+                              {config.label}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
-      </div>
       </div>
     </>
   );
