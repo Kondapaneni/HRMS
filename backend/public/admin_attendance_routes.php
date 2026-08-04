@@ -1045,11 +1045,21 @@ $app->get('/api/admin/attendance/location/{id}', function (Request $request, Res
         $stmt->execute([$id]);
         $punches = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
+        $stmtPrev = $conn->prepare('SELECT id, date FROM attendance WHERE "employeeId" = ? AND date < ? ORDER BY date DESC LIMIT 1');
+        $stmtPrev->execute([$record['employeeId'], $record['date']]);
+        $prevRecord = $stmtPrev->fetch(PDO::FETCH_ASSOC);
+
+        $stmtNext = $conn->prepare('SELECT id, date FROM attendance WHERE "employeeId" = ? AND date > ? ORDER BY date ASC LIMIT 1');
+        $stmtNext->execute([$record['employeeId'], $record['date']]);
+        $nextRecord = $stmtNext->fetch(PDO::FETCH_ASSOC);
+
         $response->getBody()->write(json_encode([
             'record' => $record,
             'employee' => $employee,
             'punches' => $punches,
-            'googleMapsApiKey' => $_ENV['GOOGLE_MAPS_API_KEY'] ?? ''
+            'googleMapsApiKey' => $_ENV['GOOGLE_MAPS_API_KEY'] ?? '',
+            'prevRecord' => $prevRecord ?: null,
+            'nextRecord' => $nextRecord ?: null
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
         

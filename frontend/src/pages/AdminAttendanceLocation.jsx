@@ -1,13 +1,15 @@
 import React, { useEffect, useRef } from 'react';
 import PageLoader from '../components/PageLoader';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import axios from '../api/axios';
 import { toast } from 'react-hot-toast';
-import { MapPin, ArrowRightToLine, ArrowLeftFromLine, MapPinOff, ArrowLeft } from 'lucide-react';
+import { MapPin, ArrowRightToLine, ArrowLeftFromLine, MapPinOff, ArrowLeft, ArrowRight } from 'lucide-react';
 
 const AdminAttendanceLocation = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const fromRegularize = location.state?.fromRegularize;
   const [searchParams] = useSearchParams();
   const id = searchParams.get('id');
   const date = searchParams.get('date');
@@ -333,6 +335,14 @@ const AdminAttendanceLocation = () => {
                 {displayDate} - {employeeName}
               </h2>
             </div>
+            {fromRegularize && (
+              <button
+                onClick={() => navigate(-1)}
+                className="inline-flex items-center justify-center rounded-md text-xs font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-8 px-2.5 transition-colors cursor-pointer shrink-0"
+              >
+                <ArrowLeft className="w-3.5 h-3.5 mr-1.5" /> Back to Calender
+              </button>
+            )}
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -432,11 +442,31 @@ const AdminAttendanceLocation = () => {
               <h2 className="text-sm font-semibold text-slate-900">Attendance Map</h2>
               <p className="text-xs text-slate-500">Visual markers for check-in, check-out and punches.</p>
             </div>
-            {!data.googleMapsApiKey && (
-              <div className="px-2 py-1 bg-amber-50 text-amber-700 text-xs rounded border border-amber-200 font-medium">
-                Google Maps API Key Missing
-              </div>
-            )}
+            <div className="flex items-center gap-2">
+              {!data.googleMapsApiKey && (
+                <div className="px-2 py-1 bg-amber-50 text-amber-700 text-xs rounded border border-amber-200 font-medium mr-2">
+                  Google Maps API Key Missing
+                </div>
+              )}
+              {data.prevRecord && (
+                <button
+                  onClick={() => navigate(`/admin/attendance/location?id=${data.prevRecord.id}&date=${data.prevRecord.date}`, { replace: true, state: location.state })}
+                  className="inline-flex items-center justify-center rounded-md text-xs font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-8 px-2.5 transition-colors cursor-pointer"
+                  title={`Previous Date: ${data.prevRecord.date}`}
+                >
+                  <ArrowLeft className="w-3.5 h-3.5 mr-1" /> Prev
+                </button>
+              )}
+              {data.nextRecord && (
+                <button
+                  onClick={() => navigate(`/admin/attendance/location?id=${data.nextRecord.id}&date=${data.nextRecord.date}`, { replace: true, state: location.state })}
+                  className="inline-flex items-center justify-center rounded-md text-xs font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-8 px-2.5 transition-colors cursor-pointer"
+                  title={`Next Date: ${data.nextRecord.date}`}
+                >
+                  Next <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                </button>
+              )}
+            </div>
           </div>
           <div className="flex-1 min-h-0 relative">
             {data.googleMapsApiKey ? (
