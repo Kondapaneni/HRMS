@@ -35,7 +35,18 @@ const EmployeeMobileAttendance = () => {
     const newMonth = `${pickerYear}-${String(monthIndex + 1).padStart(2, '0')}`;
     setSelectedMonth(newMonth);
     setShowMonthPicker(false);
-  };  const [statusFilter, setStatusFilter] = useState('all');
+  };
+
+  useEffect(() => {
+    if (showMonthPicker) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [showMonthPicker]);  const [statusFilter, setStatusFilter] = useState('all');
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
 
@@ -236,12 +247,18 @@ const EmployeeMobileAttendance = () => {
 
       {/* Custom Month Picker Bottom Sheet */}
       {showMonthPicker && (
-        <div className="fixed inset-0 z-50 flex flex-col justify-end bg-slate-900/40 backdrop-blur-sm">
+        <div className="fixed inset-x-0 top-0 bottom-[100px] z-[100] flex flex-col justify-end">
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+            onClick={() => setShowMonthPicker(false)}
+          />
+          
           <motion.div 
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             transition={{ type: "spring", bounce: 0, duration: 0.3 }}
-            className="bg-white rounded-t-3xl p-6 pb-10 shadow-2xl"
+            className="bg-white rounded-t-3xl p-6 pb-10 shadow-2xl relative z-10"
           >
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-slate-800">Select Month</h3>
