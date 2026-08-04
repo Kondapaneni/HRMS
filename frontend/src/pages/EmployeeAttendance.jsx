@@ -342,7 +342,7 @@ const EmployeeAttendance = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="h-10 w-full sm:w-[180px] rounded-md border border-slate-300 px-3 text-center text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              className="h-10 w-full sm:w-fit rounded-md border border-slate-300 px-3 text-center text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
             >
               <option value="all">All Status</option>
               <option value="present">Present</option>
