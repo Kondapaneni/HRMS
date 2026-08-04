@@ -38,13 +38,17 @@ const EmployeeMobileAttendance = () => {
   };
 
   useEffect(() => {
+    const scrollContainer = document.querySelector('main > div.overflow-y-auto') || document.querySelector('.overflow-y-auto') || document.querySelector('.overflow-auto');
     if (showMonthPicker) {
       document.body.style.overflow = 'hidden';
+      if (scrollContainer) scrollContainer.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
+      if (scrollContainer) scrollContainer.style.overflow = '';
     }
     return () => {
       document.body.style.overflow = '';
+      if (scrollContainer) scrollContainer.style.overflow = '';
     };
   }, [showMonthPicker]);
 
