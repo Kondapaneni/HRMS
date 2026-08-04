@@ -2,11 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import PageLoader from '../components/PageLoader';
 import { Search, Calendar as CalendarIcon, Clock, Shield, AlertCircle, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { format } from 'date-fns';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axios';
 
 const EmployeeMobileAttendance = () => {
+  const controls = useDragControls();
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
@@ -280,9 +281,23 @@ const EmployeeMobileAttendance = () => {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              drag="y"
+              dragControls={controls}
+              dragListener={false}
+              dragConstraints={{ top: 0 }}
+              dragElastic={{ top: 0, bottom: 0.6 }}
+              onDragEnd={(e, info) => {
+                if (info.offset.y > 100 || info.velocity.y > 400) {
+                  setShowMonthPicker(false);
+                }
+              }}
               className="absolute bottom-0 left-0 right-0 bg-white rounded-t-[32px] shadow-2xl flex flex-col"
             >
-              <div className="shrink-0 pt-3 pb-8 flex flex-col items-center">
+              <div 
+                className="shrink-0 pt-3 pb-8 flex flex-col items-center cursor-grab active:cursor-grabbing"
+                onPointerDown={(e) => controls.start(e)}
+                style={{ touchAction: 'none' }}
+              >
                 <div className="w-12 h-1.5 bg-slate-200 rounded-full mb-4 pointer-events-none"></div>
                 <div className="px-6 w-full flex items-center justify-between mb-6">
                   <h3 className="text-xl font-bold text-slate-900">Select Month</h3>
