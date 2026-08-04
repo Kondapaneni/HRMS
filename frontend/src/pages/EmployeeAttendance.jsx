@@ -20,6 +20,10 @@ const EmployeeAttendance = () => {
   const isWebAttendanceEnabled = profile?.webAttendanceEnabled == 1 || profile?.webAttendanceEnabled === true || profile?.webAttendanceEnabled === '1' || profile?.webAttendanceEnabled === 'true';
 
   // Filters
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  });
   const [searchDate, setSearchDate] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
@@ -33,9 +37,9 @@ const EmployeeAttendance = () => {
     isLoading: loading,
     error: queryError
   } = useQuery({
-    queryKey: ['employee', 'attendance'],
+    queryKey: ['employee', 'attendance', selectedMonth],
     queryFn: async () => {
-      const res = await api.get('/employee/attendance');
+      const res = await api.get(`/employee/attendance?month=${selectedMonth}`);
       return res.data;
     },
     staleTime: 30 * 1000
@@ -66,6 +70,11 @@ const EmployeeAttendance = () => {
       queryClient.invalidateQueries({
         queryKey: ['employee', 'attendance']
       });
+      // Ensure we stay on the current month when punching
+      const currentMonthStr = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+      if (selectedMonth !== currentMonthStr) {
+        setSelectedMonth(currentMonthStr);
+      }
     }
   });
 
@@ -161,6 +170,12 @@ const EmployeeAttendance = () => {
   });
 
   const todayStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD local
+  const currentMonthStr = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+  
+  // If we're not on the current month, we might not have today's record in `history`.
+  // To avoid incorrect check-in state, we'll disable punches if viewing a past month.
+  const isViewingCurrentMonth = selectedMonth === currentMonthStr;
+  
   const todayRecord = history.find(r => r.date?.split('T')[0] === todayStr) || history.find(r => r.date && new Date(r.date).toDateString() === new Date().toDateString());
 
   const checkedIn = todayRecord && todayRecord.checkIn && !todayRecord.checkOut;
@@ -261,7 +276,7 @@ const EmployeeAttendance = () => {
                 <>
                   <button
                     onClick={() => handlePunch('check-in')}
-                    disabled={punchingAction || checkedIn || checkOutTime || isOnLeaveToday}
+                    disabled={!isViewingCurrentMonth || punchingAction || checkedIn || checkOutTime || isOnLeaveToday}
                     className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-11 px-6 min-w-[140px] disabled:opacity-50 transition-colors"
                   >
                     <LogIn className="mr-2 h-4 w-4" />
@@ -270,7 +285,7 @@ const EmployeeAttendance = () => {
 
                   <button
                     onClick={() => handlePunch('punch')}
-                    disabled={punchingAction || !checkedIn || checkOutTime || isOnLeaveToday}
+                    disabled={!isViewingCurrentMonth || punchingAction || !checkedIn || checkOutTime || isOnLeaveToday}
                     className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-11 px-6 min-w-[140px] disabled:opacity-50 transition-colors"
                   >
                     <Clock className="mr-2 h-4 w-4" />
@@ -279,7 +294,7 @@ const EmployeeAttendance = () => {
 
                   <button
                     onClick={() => handlePunch('check-out')}
-                    disabled={punchingAction || !checkedIn || checkOutTime || isOnLeaveToday}
+                    disabled={!isViewingCurrentMonth || punchingAction || !checkedIn || checkOutTime || isOnLeaveToday}
                     className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-11 px-6 min-w-[140px] disabled:opacity-50 transition-colors"
                   >
                     <LogOut className="mr-2 h-4 w-4" />
@@ -319,6 +334,12 @@ const EmployeeAttendance = () => {
         </div>
         <div className="p-6">
           <div className="flex flex-col sm:flex-row gap-4 mb-4">
+            <input
+              type="month"
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="h-10 w-full sm:w-[200px] rounded-md border border-slate-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+            />
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <input

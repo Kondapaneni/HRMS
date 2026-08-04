@@ -7,10 +7,15 @@ import { useQuery } from '@tanstack/react-query';
 import api from '../api/axios';
 
 const EmployeeMobileAttendance = () => {
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  });
+
   const { data: history = [], isLoading: loading, error: queryError } = useQuery({
-    queryKey: ['employee', 'attendance'],
+    queryKey: ['employee', 'attendance', selectedMonth],
     queryFn: async () => {
-      const res = await api.get('/employee/attendance');
+      const res = await api.get(`/employee/attendance?month=${selectedMonth}`);
       return res.data;
     },
     staleTime: 5 * 60 * 1000,
@@ -149,6 +154,12 @@ const EmployeeMobileAttendance = () => {
 
       {/* Filters */}
       <section className="bg-white rounded-[2rem] p-5 shadow-sm border border-slate-200 space-y-3">
+        <input
+          type="month"
+          value={selectedMonth}
+          onChange={(e) => setSelectedMonth(e.target.value)}
+          className="w-full h-12 px-4 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#84dcc6] font-medium"
+        />
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
           <input

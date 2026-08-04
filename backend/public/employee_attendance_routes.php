@@ -9,12 +9,23 @@ use App\Utils\RateLimiter;
 /** @var \Slim\App $app */
 $app->get('/api/employee/attendance', function (Request $request, Response $response, $args) {
     $decodedToken = $request->getAttribute('user');
+    $params = $request->getQueryParams();
+    $month = $params['month'] ?? date('Y-m'); // Default to current month if not provided
     
     $db = new Database();
     $conn = $db->getConnection();
     
-    $stmt = $conn->prepare('SELECT a.*, e."shiftTime" FROM attendance a JOIN employee e ON a."employeeId" = e."userId" WHERE a."employeeId" = ? ORDER BY date DESC LIMIT 30');
-    $stmt->execute([$decodedToken->id]);
+    if ($month) {
+        $startDate = $month . '-01';
+        $endDate = date('Y-m-t', strtotime($startDate));
+        
+        $stmt = $conn->prepare('SELECT a.*, e."shiftTime" FROM attendance a JOIN employee e ON a."employeeId" = e."userId" WHERE a."employeeId" = ? AND a.date >= ? AND a.date <= ? ORDER BY date DESC');
+        $stmt->execute([$decodedToken->id, $startDate, $endDate]);
+    } else {
+        $stmt = $conn->prepare('SELECT a.*, e."shiftTime" FROM attendance a JOIN employee e ON a."employeeId" = e."userId" WHERE a."employeeId" = ? ORDER BY date DESC LIMIT 30');
+        $stmt->execute([$decodedToken->id]);
+    }
+    
     $history = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     foreach ($history as &$record) {
