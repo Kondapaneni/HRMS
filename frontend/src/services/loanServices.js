@@ -23,7 +23,9 @@ export const getDashboardData = async () => {
  * Fetches all loan leads.
  * @returns {Promise<Object>}
  */
-export const getLeads = async () => {
-  const response = await api.get('/leads/list');
+export const getLeads = async ({ queryKey }) => {
+  const search = queryKey[3] || '';
+  const url = search ? `/leads/list?search=${encodeURIComponent(search)}` : '/leads/list';
+  const response = await api.get(url);
   return response.data;
 };

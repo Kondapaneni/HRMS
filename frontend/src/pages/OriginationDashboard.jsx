@@ -62,8 +62,6 @@ const OriginationDashboard = () => {
       <motion.div 
         className="hidden md:block p-6 space-y-6 pb-6"
         variants={containerVariants}
-        initial="hidden"
-        animate="visible"
       >
         {/* Header Section */}
         <motion.div variants={itemVariants} className="flex justify-between items-center mb-2">

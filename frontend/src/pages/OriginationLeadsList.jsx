@@ -2,23 +2,25 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getLeads } from '../services/loanServices';
 import { motion } from 'framer-motion';
-import { Search, Filter, Phone, MapPin, Calendar, CheckCircle2, Clock } from 'lucide-react';
+import { Search, Filter, Phone, MapPin, Calendar, CheckCircle2, Clock, FileText, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 
 const OriginationLeadsList = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['origination', 'leads', 'list'],
+  // Debounce the search input
+  React.useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchTerm), 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  const { data: response, isLoading, isFetching, error } = useQuery({
+    queryKey: ['origination', 'leads', 'list', debouncedSearch],
     queryFn: getLeads,
   });
 
-  const leads = data?.leads || [];
-
-  const filteredLeads = leads.filter(lead => 
-    lead.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    lead.phone.includes(searchTerm)
-  );
+  const leads = response?.leads || [];
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -45,115 +47,144 @@ const OriginationLeadsList = () => {
   };
 
   return (
-    <div className="p-4 md:p-6 space-y-6 min-h-screen bg-slate-50">
+    <motion.div 
+      className="p-4 md:p-6 space-y-6 md:pb-6"
+      variants={containerVariants}
+    >
       
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <motion.div variants={itemVariants} className="flex justify-between items-center mb-2">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">All Leads</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">All Leads</h1>
           <p className="text-sm text-slate-500 mt-1">Manage and track your loan origination leads.</p>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Toolbar */}
-      <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/60 flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-5 w-5 text-slate-400" />
-          </div>
-          <input
-            type="text"
-            className="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-xl leading-5 bg-slate-50 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
-            placeholder="Search leads by name or phone..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <button className="inline-flex items-center justify-center gap-2 px-4 py-2 border border-slate-200 rounded-xl bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
-          <Filter size={16} /> Filters
-        </button>
-      </div>
 
       {/* Data State */}
-      {isLoading ? (
-        <div className="flex justify-center items-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        </div>
-      ) : error ? (
-        <div className="bg-red-50 text-red-600 p-4 rounded-xl text-center border border-red-100">
+      {error ? (
+        <motion.div variants={itemVariants} className="bg-red-50 text-red-600 p-4 rounded-xl text-center border border-red-100">
           Failed to load leads. Please try again.
-        </div>
-      ) : filteredLeads.length === 0 ? (
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-12 text-center">
-          <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Search className="h-8 w-8 text-slate-400" />
-          </div>
-          <h3 className="text-lg font-medium text-slate-900 mb-1">No leads found</h3>
-          <p className="text-slate-500">We couldn't find any leads matching your criteria.</p>
-        </div>
+        </motion.div>
       ) : (
         /* Data Table (Desktop) & Cards (Mobile) */
-        <motion.div variants={containerVariants} initial="hidden" animate="visible">
+        <motion.div variants={itemVariants}>
           
-          {/* Mobile View: Cards */}
+          {/* Mobile View: Search & Cards */}
           <div className="md:hidden space-y-4">
-            {filteredLeads.map(lead => (
-              <motion.div key={lead.id} variants={itemVariants} className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5">
-                <div className="flex justify-between items-start mb-3">
-                  <h3 className="font-bold text-slate-900">{lead.name}</h3>
-                  {getStatusBadge(lead.status)}
-                </div>
-                <div className="space-y-2 text-sm text-slate-600">
-                  <div className="flex items-center gap-2"><Phone size={14} className="text-slate-400" /> {lead.phone}</div>
-                  <div className="flex items-center gap-2"><MapPin size={14} className="text-slate-400" /> {lead.address}</div>
-                  <div className="flex items-center gap-2"><Calendar size={14} className="text-slate-400" /> {format(new Date(lead.created_at), 'MMM d, yyyy h:mm a')}</div>
-                </div>
-              </motion.div>
-            ))}
+            <div className="relative mb-4">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                type="search"
+                className="w-full pl-9 pr-4 py-2 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
+                placeholder="Search leads..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            {isLoading ? (
+              <div className="flex justify-center items-center py-20">
+                <Loader2 className="animate-spin h-8 w-8 text-blue-600" />
+              </div>
+            ) : leads.length === 0 ? (
+              <div className="py-12 text-center text-slate-500">
+                No leads found.
+              </div>
+            ) : (
+              leads.map(lead => (
+                <motion.div key={lead.id} variants={itemVariants} className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5">
+                  <div className="flex justify-between items-start mb-3">
+                    <h3 className="font-bold text-slate-900">{lead.name}</h3>
+                    {getStatusBadge(lead.status)}
+                  </div>
+                  <div className="space-y-2 text-sm text-slate-600">
+                    <div className="flex items-center gap-2"><Phone size={14} className="text-slate-400" /> {lead.phone}</div>
+                    <div className="flex items-center gap-2"><MapPin size={14} className="text-slate-400" /> {lead.address}</div>
+                    <div className="flex items-center gap-2"><Calendar size={14} className="text-slate-400" /> {format(new Date(lead.created_at), 'MMM d, yyyy h:mm a')}</div>
+                  </div>
+                </motion.div>
+              ))
+            )}
           </div>
 
           {/* Desktop View: Table */}
-          <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-slate-200">
-                <thead className="bg-slate-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Name</th>
-                    <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Contact</th>
-                    <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Address</th>
-                    <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
-                    <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Created Date</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-slate-200">
-                  {filteredLeads.map((lead) => (
-                    <motion.tr variants={itemVariants} key={lead.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="font-medium text-slate-900">{lead.name}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                        {lead.phone}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-slate-600 max-w-xs truncate">
-                        {lead.address}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {getStatusBadge(lead.status)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-                        {format(new Date(lead.created_at), 'MMM d, yyyy h:mm a')}
-                      </td>
-                    </motion.tr>
-                  ))}
-                </tbody>
-              </table>
+          <div className="hidden md:block rounded-lg border border-slate-200 bg-white shadow-sm mb-6">
+            <div className="p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h3 className="text-lg font-semibold flex items-center gap-2 text-slate-900">
+                  <FileText className="h-5 w-5 text-slate-500" />
+                  Leads Directory
+                </h3>
+                <p className="text-sm text-slate-500 mt-1">A comprehensive list of all your loan origination leads and their current status.</p>
+              </div>
+              <div className="relative w-full sm:w-64 shrink-0">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  type="search"
+                  className="w-full pl-9 pr-4 py-2 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
+                  placeholder="Search leads..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="p-6 pt-0">
+              <div className="rounded-md border border-slate-200 overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-medium">
+                    <tr>
+                      <th className="p-3">Name</th>
+                      <th className="p-3">Contact</th>
+                      <th className="p-3">Location</th>
+                      <th className="p-3">Status</th>
+                      <th className="p-3">Created Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {isLoading ? (
+                      <tr>
+                        <td colSpan="5" className="p-12 text-center">
+                          <Loader2 className="animate-spin h-8 w-8 text-blue-600 mx-auto" />
+                          <p className="text-slate-500 mt-4">Searching leads...</p>
+                        </td>
+                      </tr>
+                    ) : leads.length === 0 ? (
+                      <tr>
+                        <td colSpan="5" className="text-center py-12 text-slate-500">
+                          No leads found.
+                        </td>
+                      </tr>
+                    ) : (
+                      leads.map((lead) => (
+                        <motion.tr variants={itemVariants} key={lead.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
+                          <td className="p-3 text-slate-700">
+                            <div className="font-medium text-slate-900">{lead.name}</div>
+                          </td>
+                          <td className="p-3 text-slate-700">
+                            {lead.phone}
+                          </td>
+                          <td className="p-3 text-slate-700 max-w-[200px] truncate" title={lead.address}>
+                            {lead.address}
+                          </td>
+                          <td className="p-3">
+                            {getStatusBadge(lead.status)}
+                          </td>
+                          <td className="p-3 text-slate-700">
+                            {format(new Date(lead.created_at), 'MMM d, yyyy h:mm a')}
+                          </td>
+                        </motion.tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
           
         </motion.div>
       )}
 
-    </div>
+    </motion.div>
   );
 };
 

@@ -7,6 +7,9 @@ use App\Config\Database;
 // Protect these routes with AuthMiddleware if needed
 $app->get('/api/leads/list', function (Request $request, Response $response, $args) {
     $user = $request->getAttribute('user');
+    $queryParams = $request->getQueryParams();
+    $search = $queryParams['search'] ?? '';
+
     try {
         $db = new Database();
         $conn = $db->getConnection();
@@ -15,13 +18,22 @@ $app->get('/api/leads/list', function (Request $request, Response $response, $ar
             throw new Exception("Database connection failed");
         }
 
-        $stmt = $conn->prepare("
+        $sql = "
             SELECT id, name, phone, address, status, created_at
             FROM public.loan_leads
             WHERE created_by = :uid
-            ORDER BY created_at DESC
-        ");
-        $stmt->execute([':uid' => $user->id]);
+        ";
+        $params = [':uid' => $user->id];
+
+        if (!empty($search)) {
+            $sql .= " AND (name ILIKE :search OR phone ILIKE :search OR address ILIKE :search)";
+            $params[':search'] = '%' . $search . '%';
+        }
+
+        $sql .= " ORDER BY created_at DESC";
+
+        $stmt = $conn->prepare($sql);
+        $stmt->execute($params);
         
         $leads = $stmt->fetchAll(PDO::FETCH_ASSOC);
 

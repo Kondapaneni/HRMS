@@ -70,7 +70,9 @@ const OriginationLayout = () => {
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 px-2 whitespace-nowrap">Loan Modules</p>
           <nav className="space-y-1">
             {navItems.filter(item => !item.feature || profile?.featureAccess?.[item.feature]).map((item, idx) => {
-              const isActive = location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
+              const isActive = item.path === '/employee/loans/origination'
+                ? location.pathname === item.path
+                : (location.pathname === item.path || location.pathname.startsWith(`${item.path}/`));
               return (
                 <Link
                   key={idx}
@@ -157,7 +159,9 @@ const OriginationLayout = () => {
           <div className="bg-white/50 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-full p-1.5 flex justify-around items-center pointer-events-auto">
             
             {navItems.filter(item => !item.feature || profile?.featureAccess?.[item.feature]).map((item, idx) => {
-              const isActive = location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
+              const isActive = item.path === '/employee/loans/origination'
+                ? location.pathname === item.path
+                : (location.pathname === item.path || location.pathname.startsWith(`${item.path}/`));
               
               return (
                 <Link 

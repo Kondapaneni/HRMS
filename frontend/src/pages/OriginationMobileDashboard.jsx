@@ -94,8 +94,6 @@ const OriginationMobileDashboard = () => {
 
       <motion.div
         variants={containerVariants}
-        initial="hidden"
-        animate="visible"
         className="relative z-20 -mt-20"
       >
         {/* Summary Carousel */}
