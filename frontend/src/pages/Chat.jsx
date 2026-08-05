@@ -18,6 +18,7 @@ export default function Chat() {
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
   const [groupCreationStep, setGroupCreationStep] = useState(1);
   const [contactSearchQuery, setContactSearchQuery] = useState('');
+  const [chatSearchQuery, setChatSearchQuery] = useState('');
   const [showContactInfo, setShowContactInfo] = useState(false);
   const [adminToggleDialog, setAdminToggleDialog] = useState({ isOpen: false, targetUser: null, isCurrentlyAdmin: false });
   const [groupName, setGroupName] = useState('');
@@ -38,22 +39,22 @@ export default function Chat() {
   const textareaRef = useRef(null);
   const prevChatIdRef = useRef(null);
   const prevMessagesLengthRef = useRef(0);
-  
+
   const [renameDialog, setRenameDialog] = useState({ isOpen: false, name: '' });
   const [messageReadByDialog, setMessageReadByDialog] = useState({ isOpen: false, message: null });
-  const [confirmDialog, setConfirmDialog] = useState({ 
-    isOpen: false, 
-    title: '', 
-    message: '', 
-    confirmText: 'Confirm', 
-    onConfirm: null 
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    confirmText: 'Confirm',
+    onConfirm: null
   });
-  
+
   const [addMembersDialog, setAddMembersDialog] = useState(false);
   const [pendingMembersDialog, setPendingMembersDialog] = useState(false);
   const [selectedNewMembers, setSelectedNewMembers] = useState([]);
   const [addMembersSearchQuery, setAddMembersSearchQuery] = useState('');
-  
+
   const [showMessageSearch, setShowMessageSearch] = useState(false);
   const [messageSearchQuery, setMessageSearchQuery] = useState('');
 
@@ -178,15 +179,15 @@ export default function Chat() {
         const fileExt = fileToUpload.name.split('.').pop();
         const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
         const filePath = `${profile.id}/${fileName}`;
-        
+
         const { error: uploadError } = await supabase.storage
           .from('chat_attachments')
           .upload(filePath, fileToUpload);
-          
+
         if (uploadError) throw new Error('File upload failed');
-        
+
         const proxyUrl = window.location.origin + "/Chat-Attachment/" + filePath;
-          
+
         attachmentData = {
           attachmentUrl: proxyUrl,
           attachmentType: fileToUpload.type,
@@ -194,7 +195,7 @@ export default function Chat() {
           attachmentSize: fileToUpload.size
         };
       }
-      
+
       const finalPayload = { ...payload, ...attachmentData };
       const res = await api.post(`/chat/${activeChat.id}/messages`, finalPayload);
       return { data: res.data, tempId };
@@ -260,13 +261,13 @@ export default function Chat() {
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    
+
     // Check size limit (10MB)
     if (file.size > 10 * 1024 * 1024) {
       toast.error('File size must be less than 10MB');
       return;
     }
-    
+
     setAttachment(file);
     setShowEmojiPicker(false);
   };
@@ -279,18 +280,18 @@ export default function Chat() {
         const fileExt = fileToUpload.name.split('.').pop();
         const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
         const filePath = `groups/${fileName}`;
-        
+
         const { error: uploadError } = await supabase.storage
           .from('chat_attachments')
           .upload(filePath, fileToUpload);
-          
+
         if (uploadError) throw new Error('Group icon upload failed');
-        
+
         const proxyUrl = window.location.origin + "/Chat-Attachment/" + filePath;
-          
+
         avatarData = { group_avatar: proxyUrl };
       }
-      
+
       const res = await api.post('/chat', { ...payload, ...avatarData });
       return res.data;
     },
@@ -302,7 +303,7 @@ export default function Chat() {
       setGroupName('');
       setSelectedGroupParticipants([]);
       setGroupAvatarFile(null);
-      
+
       if (variables.payload && variables.payload.type === 'personal') {
         toast.success('Chat created successfully');
       } else {
@@ -319,7 +320,7 @@ export default function Chat() {
     onSuccess: (data) => {
       queryClient.invalidateQueries(['chat', 'list']);
       toast.success('Admin status updated');
-      
+
       // Optionally update local state for immediate feedback
       if (activeChat) {
         setActiveChat({
@@ -341,12 +342,12 @@ export default function Chat() {
     onMutate: async ({ chatId, permissionKey, permissionValue }) => {
       await queryClient.cancelQueries({ queryKey: ['chat', 'list'] });
       const previousChats = queryClient.getQueryData(['chat', 'list']);
-      
+
       // Optimistically update query data
       queryClient.setQueryData(['chat', 'list'], (old) => {
         if (!old) return old;
-        return old.map(chat => 
-          chat.id === chatId 
+        return old.map(chat =>
+          chat.id === chatId
             ? { ...chat, permissions: { ...chat.permissions, [permissionKey]: permissionValue } }
             : chat
         );
@@ -373,15 +374,15 @@ export default function Chat() {
     onSuccess: (data, variables) => {
       queryClient.setQueryData(['chat', 'list'], (old) => {
         if (!old) return old;
-        return old.map(chat => 
-          chat.id === variables.chatId 
+        return old.map(chat =>
+          chat.id === variables.chatId
             ? { ...chat, permissions: data.permissions }
             : chat
         );
       });
       queryClient.invalidateQueries({ queryKey: ['chat', 'list'] });
       toast.success('Group settings updated');
-      
+
       setActiveChat(prev => {
         if (prev && prev.id === variables.chatId) {
           return {
@@ -407,12 +408,12 @@ export default function Chat() {
     if (!activeChat || activeChat.type !== 'group') return;
     const isAmIAdmin = activeChat.admin_ids?.includes(profile?.id);
     if (!isAmIAdmin) return;
-    
+
     const currentValue = activeChat.permissions?.[permissionKey];
-    updatePermissionsMutation.mutate({ 
-      chatId: activeChat.id, 
-      permissionKey, 
-      permissionValue: !currentValue 
+    updatePermissionsMutation.mutate({
+      chatId: activeChat.id,
+      permissionKey,
+      permissionValue: !currentValue
     });
   };
 
@@ -441,15 +442,15 @@ export default function Chat() {
       const fileExt = fileToUpload.name.split('.').pop();
       const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `groups/${fileName}`;
-      
+
       const { error: uploadError } = await supabase.storage
         .from('chat_attachments')
         .upload(filePath, fileToUpload);
-        
+
       if (uploadError) throw new Error('Group icon upload failed');
-      
+
       const proxyUrl = window.location.origin + "/Chat-Attachment/" + filePath;
-        
+
       const res = await api.put(`/chat/${chatId}/avatar`, { group_avatar: proxyUrl });
       return { ...res.data, group_avatar: proxyUrl };
     },
@@ -614,7 +615,7 @@ export default function Chat() {
   // Acme HRMS Layout
   return (
     <div className="flex h-[calc(100vh-8rem)] bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden font-sans relative z-10">
-      
+
       {/* Sidebar */}
       <div className={`w-full md:w-80 lg:w-96 flex flex-col bg-white border-r border-slate-200 shrink-0 ${activeChat || showNewChat ? 'hidden md:flex' : 'flex'}`}>
 
@@ -629,66 +630,96 @@ export default function Chat() {
         {/* Search */}
         <div className="p-2 border-b border-slate-100 bg-white/50 shrink-0">
           <div className="bg-slate-100 rounded-lg flex items-center px-3 py-1.5">
-            <Search size={18} className="text-slate-400 mr-3" />
+            <Search size={18} className="text-slate-400 mr-3 shrink-0" />
             <input
               type="text"
+              value={chatSearchQuery}
+              onChange={(e) => setChatSearchQuery(e.target.value)}
               placeholder="Search or start new chat"
-              className="bg-transparent border-none outline-none text-sm w-full"
+              className="bg-transparent border-none outline-none text-sm w-full text-slate-800"
             />
+            {chatSearchQuery && (
+              <button onClick={() => setChatSearchQuery('')} className="p-1 text-slate-400 hover:text-slate-600">
+                <X size={16} />
+              </button>
+            )}
           </div>
         </div>
 
         {/* Chat List */}
         <div className="flex-1 overflow-y-auto bg-transparent chat-scrollbar">
-          {chats.map(chat => (
-            <div
-              key={chat.id}
-              onClick={async () => {
-                setActiveChat(chat);
-                setShowNewChat(false);
-                setShowContactInfo(false);
-
-                // Optimistically clear unread counts for instant UI feedback
-                if (chat.unread_count > 0) {
-                  // Cancel any in-flight polling that might return stale data
-                  await queryClient.cancelQueries({ queryKey: ['chat', 'list'] });
-
-                  queryClient.setQueryData(['chat', 'list'], old =>
-                    old?.map(c => c.id === chat.id ? { ...c, unread_count: 0 } : c)
-                  );
-                }
-              }}
-              className={`flex items-center px-3 py-3 cursor-pointer hover:bg-slate-100/50 transition-colors ${activeChat?.id === chat.id ? 'bg-slate-100/80' : ''}`}
-            >
-              <div className="w-12 h-12 rounded-full bg-slate-200 overflow-hidden shrink-0 mr-3">
-                {getChatAvatar(chat) ? (
-                  <img src={getChatAvatar(chat)} className="w-full h-full object-cover" />
-                ) : (
-                  <Users className="w-full h-full p-2.5 text-white bg-slate-400" />
-                )}
-              </div>
-              <div className="flex-1 min-w-0 border-b border-slate-100 pb-3 h-full">
-                <div className="flex justify-between items-baseline mb-1">
-                  <h3 className="text-slate-900 font-medium truncate">{getChatName(chat)}</h3>
-                  {chat.last_message && (
-                    <span className={`text-xs shrink-0 ml-2 ${chat.unread_count > 0 ? 'text-emerald-500 font-semibold' : 'text-slate-500'}`}>
-                      {getSmartTimestamp(chat.last_message.createdAt)}
-                    </span>
-                  )}
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <p className={`truncate pr-2 ${chat.unread_count > 0 ? 'text-slate-800 font-medium' : 'text-slate-500'}`}>
-                    {getDecryptedLastMessage(chat)}
-                  </p>
-                  {chat.unread_count > 0 && (
-                    <span className="bg-blue-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shrink-0">
-                      {chat.unread_count}
-                    </span>
-                  )}
-                </div>
-              </div>
+          {chats
+            .filter(chat => {
+              if (!chatSearchQuery) return true;
+              const q = chatSearchQuery.toLowerCase();
+              const name = getChatName(chat).toLowerCase();
+              const lastMsg = (chat.last_message?.content || '').toLowerCase();
+              const participants = chat.participants.some(p => `${p.firstName} ${p.lastName}`.toLowerCase().includes(q));
+              return name.includes(q) || lastMsg.includes(q) || participants;
+            }).length === 0 ? (
+            <div className="p-8 text-center text-slate-400 text-sm font-medium">
+              No chats found
             </div>
-          ))}
+          ) : (
+            chats
+              .filter(chat => {
+                if (!chatSearchQuery) return true;
+                const q = chatSearchQuery.toLowerCase();
+                const name = getChatName(chat).toLowerCase();
+                const lastMsg = (chat.last_message?.content || '').toLowerCase();
+                const participants = chat.participants.some(p => `${p.firstName} ${p.lastName}`.toLowerCase().includes(q));
+                return name.includes(q) || lastMsg.includes(q) || participants;
+              })
+              .map(chat => (
+                <div
+                  key={chat.id}
+                  onClick={async () => {
+                    setActiveChat(chat);
+                    setShowNewChat(false);
+                    setShowContactInfo(false);
+
+                    // Optimistically clear unread counts for instant UI feedback
+                    if (chat.unread_count > 0) {
+                      // Cancel any in-flight polling that might return stale data
+                      await queryClient.cancelQueries({ queryKey: ['chat', 'list'] });
+
+                      queryClient.setQueryData(['chat', 'list'], old =>
+                        old?.map(c => c.id === chat.id ? { ...c, unread_count: 0 } : c)
+                      );
+                    }
+                  }}
+                  className={`flex items-center px-3 py-3 cursor-pointer hover:bg-slate-100/50 transition-colors ${activeChat?.id === chat.id ? 'bg-slate-100/80' : ''}`}
+                >
+                  <div className="w-12 h-12 rounded-full bg-slate-200 overflow-hidden shrink-0 mr-3">
+                    {getChatAvatar(chat) ? (
+                      <img src={getChatAvatar(chat)} className="w-full h-full object-cover" />
+                    ) : (
+                      <Users className="w-full h-full p-2.5 text-white bg-slate-400" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0 border-b border-slate-100 pb-3 h-full">
+                    <div className="flex justify-between items-baseline mb-1">
+                      <h3 className="text-slate-900 font-medium truncate">{getChatName(chat)}</h3>
+                      {chat.last_message && (
+                        <span className={`text-xs shrink-0 ml-2 ${chat.unread_count > 0 ? 'text-emerald-500 font-semibold' : 'text-slate-500'}`}>
+                          {getSmartTimestamp(chat.last_message.createdAt)}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <p className={`truncate pr-2 ${chat.unread_count > 0 ? 'text-slate-800 font-medium' : 'text-slate-500'}`}>
+                        {getDecryptedLastMessage(chat)}
+                      </p>
+                      {chat.unread_count > 0 && (
+                        <span className="bg-blue-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shrink-0">
+                          {chat.unread_count}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))
+          )}
         </div>
 
         {/* New Chat Button */}
@@ -752,7 +783,7 @@ export default function Chat() {
                     <div className="p-2 bg-white border-b border-slate-100">
                       <div className="bg-slate-100 rounded-lg flex items-center px-3 py-1.5">
                         <Search size={18} className="text-slate-400 mr-2" />
-                        <input type="text" value={contactSearchQuery} onChange={e => setContactSearchQuery(e.target.value)} placeholder="Search name or number" className="bg-transparent border-none outline-none text-sm w-full" />
+                        <input type="text" value={contactSearchQuery} onChange={e => setContactSearchQuery(e.target.value)} placeholder="Search Name" className="bg-transparent border-none outline-none text-sm w-full" />
                       </div>
                     </div>
                     <div className="flex-1 overflow-y-auto chat-scrollbar bg-white">
@@ -761,19 +792,19 @@ export default function Chat() {
                         .filter(u => u.id !== profile?.id)
                         .filter(u => `${u.firstName} ${u.lastName}`.toLowerCase().includes(contactSearchQuery.toLowerCase()))
                         .map(u => (
-                        <div key={u.id} onClick={() => toggleGroupParticipant(u.id)} className="flex items-center gap-4 w-full p-3 hover:bg-slate-50 cursor-pointer border-b border-slate-50 transition-colors">
-                          <div className="w-12 h-12 rounded-full bg-slate-200 overflow-hidden shrink-0">
-                            {u.avatar ? <img src={u.avatar} className="w-full h-full object-cover" /> : <User className="w-full h-full p-2.5 text-white bg-slate-400" />}
+                          <div key={u.id} onClick={() => toggleGroupParticipant(u.id)} className="flex items-center gap-4 w-full p-3 hover:bg-slate-50 cursor-pointer border-b border-slate-50 transition-colors">
+                            <div className="w-12 h-12 rounded-full bg-slate-200 overflow-hidden shrink-0">
+                              {u.avatar ? <img src={u.avatar} className="w-full h-full object-cover" /> : <User className="w-full h-full p-2.5 text-white bg-slate-400" />}
+                            </div>
+                            <div className="flex-1">
+                              <div className="font-bold text-slate-800 text-lg">{u.firstName} {u.lastName}</div>
+                              <div className="text-sm text-slate-500">{u.designation || 'Employee'}</div>
+                            </div>
+                            <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${selectedGroupParticipants.includes(u.id) ? 'bg-blue-600 border-blue-600' : 'border-slate-300'}`}>
+                              {selectedGroupParticipants.includes(u.id) && <Check size={14} className="text-white" />}
+                            </div>
                           </div>
-                          <div className="flex-1">
-                            <div className="font-bold text-slate-800 text-lg">{u.firstName} {u.lastName}</div>
-                            <div className="text-sm text-slate-500">{u.designation || 'Employee'}</div>
-                          </div>
-                          <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${selectedGroupParticipants.includes(u.id) ? 'bg-blue-600 border-blue-600' : 'border-slate-300'}`}>
-                            {selectedGroupParticipants.includes(u.id) && <Check size={14} className="text-white" />}
-                          </div>
-                        </div>
-                      ))}
+                        ))}
                     </div>
                   </>
                 )}
@@ -837,7 +868,7 @@ export default function Chat() {
                       <div className="p-4">
                         <h3 className="text-slate-900 font-bold mb-3 text-lg">Members can</h3>
                         <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100">
-                          <div onClick={() => setGroupPermissions({...groupPermissions, editSettings: !groupPermissions.editSettings})} className="flex items-start justify-between p-4 border-b border-slate-100 cursor-pointer hover:bg-slate-50 transition-colors">
+                          <div onClick={() => setGroupPermissions({ ...groupPermissions, editSettings: !groupPermissions.editSettings })} className="flex items-start justify-between p-4 border-b border-slate-100 cursor-pointer hover:bg-slate-50 transition-colors">
                             <div className="flex-1 mr-4">
                               <div className="text-lg text-slate-900 font-medium mb-1">Edit group settings</div>
                               <div className="text-sm text-slate-500 leading-relaxed">This includes the group name, icon, description, disappearing message timer, advanced chat privacy, and the ability to pin, keep or unkeep messages.</div>
@@ -846,13 +877,13 @@ export default function Chat() {
                               <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${groupPermissions.editSettings ? 'translate-x-5' : 'translate-x-0'}`} />
                             </div>
                           </div>
-                          <div onClick={() => setGroupPermissions({...groupPermissions, sendMessages: !groupPermissions.sendMessages})} className="flex items-center justify-between p-4 border-b border-slate-100 cursor-pointer hover:bg-slate-50 transition-colors">
+                          <div onClick={() => setGroupPermissions({ ...groupPermissions, sendMessages: !groupPermissions.sendMessages })} className="flex items-center justify-between p-4 border-b border-slate-100 cursor-pointer hover:bg-slate-50 transition-colors">
                             <div className="text-lg text-slate-900 font-medium">Send new messages</div>
                             <div className={`w-11 h-6 shrink-0 flex items-center rounded-full p-1 transition-colors ${groupPermissions.sendMessages ? 'bg-blue-500' : 'bg-slate-300'}`}>
                               <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${groupPermissions.sendMessages ? 'translate-x-5' : 'translate-x-0'}`} />
                             </div>
                           </div>
-                          <div onClick={() => setGroupPermissions({...groupPermissions, addMembers: !groupPermissions.addMembers})} className="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-50 transition-colors">
+                          <div onClick={() => setGroupPermissions({ ...groupPermissions, addMembers: !groupPermissions.addMembers })} className="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-50 transition-colors">
                             <div className="text-lg text-slate-900 font-medium">Add other members</div>
                             <div className={`w-11 h-6 shrink-0 flex items-center rounded-full p-1 transition-colors ${groupPermissions.addMembers ? 'bg-blue-500' : 'bg-slate-300'}`}>
                               <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${groupPermissions.addMembers ? 'translate-x-5' : 'translate-x-0'}`} />
@@ -863,7 +894,7 @@ export default function Chat() {
 
                         <h3 className="text-slate-900 font-bold mb-3 text-lg">Admins can</h3>
                         <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100">
-                          <div onClick={() => setGroupPermissions({...groupPermissions, approveNewMembers: !groupPermissions.approveNewMembers})} className="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-50 transition-colors">
+                          <div onClick={() => setGroupPermissions({ ...groupPermissions, approveNewMembers: !groupPermissions.approveNewMembers })} className="flex items-center justify-between p-4 cursor-pointer hover:bg-slate-50 transition-colors">
                             <div className="text-lg text-slate-900 font-medium">Approve new members</div>
                             <div className={`w-11 h-6 shrink-0 flex items-center rounded-full p-1 transition-colors ${groupPermissions.approveNewMembers ? 'bg-blue-500' : 'bg-slate-300'}`}>
                               <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${groupPermissions.approveNewMembers ? 'translate-x-5' : 'translate-x-0'}`} />
@@ -884,20 +915,59 @@ export default function Chat() {
                     <span className="font-medium">New Group</span>
                   </button>
                 </div>
+
+                {/* Search Bar for Individual Chat Contacts */}
+                <div className="px-4 py-2 border-b border-slate-100 bg-white">
+                  <div className="bg-slate-100 rounded-lg flex items-center px-3 py-2 border border-slate-200/60 focus-within:border-blue-500 focus-within:bg-white transition-all">
+                    <Search size={18} className="text-slate-400 mr-2 shrink-0" />
+                    <input
+                      type="text"
+                      value={contactSearchQuery}
+                      onChange={e => setContactSearchQuery(e.target.value)}
+                      placeholder="Search contacts..."
+                      className="bg-transparent border-none outline-none text-sm w-full text-slate-800"
+                    />
+                    {contactSearchQuery && (
+                      <button onClick={() => setContactSearchQuery('')} className="p-1 text-slate-400 hover:text-slate-600">
+                        <X size={16} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
                 <div className="p-4 flex-1 overflow-y-auto chat-scrollbar">
                   <h3 className="text-blue-600 text-sm font-semibold mb-4 uppercase tracking-wider">Contacts</h3>
                   <div className="space-y-1">
-                    {users.filter(u => u.id !== profile?.id).map(u => (
-                      <button key={u.id} onClick={() => handleCreatePersonalChat(u.id)} className="flex items-center gap-3 w-full p-2 hover:bg-slate-50 rounded text-left">
-                        <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden shrink-0">
-                          {u.avatar ? <img src={u.avatar} className="w-full h-full object-cover" /> : <User className="w-full h-full p-2 text-white bg-slate-400" />}
-                        </div>
-                        <div className="flex-1 border-b border-slate-100 pb-2">
-                          <div className="font-medium text-slate-800">{u.firstName} {u.lastName}</div>
-                          <div className="text-xs text-slate-500">Available on Acme Chat</div>
-                        </div>
-                      </button>
-                    ))}
+                    {users
+                      .filter(u => u.id !== profile?.id)
+                      .filter(u =>
+                        !contactSearchQuery ||
+                        `${u.firstName} ${u.lastName}`.toLowerCase().includes(contactSearchQuery.toLowerCase()) ||
+                        (u.designation || '').toLowerCase().includes(contactSearchQuery.toLowerCase())
+                      ).length === 0 ? (
+                      <div className="p-8 text-center text-slate-400 text-sm font-medium">
+                        No contacts found matching "{contactSearchQuery}"
+                      </div>
+                    ) : (
+                      users
+                        .filter(u => u.id !== profile?.id)
+                        .filter(u =>
+                          !contactSearchQuery ||
+                          `${u.firstName} ${u.lastName}`.toLowerCase().includes(contactSearchQuery.toLowerCase()) ||
+                          (u.designation || '').toLowerCase().includes(contactSearchQuery.toLowerCase())
+                        )
+                        .map(u => (
+                          <button key={u.id} onClick={() => { handleCreatePersonalChat(u.id); setContactSearchQuery(''); }} className="flex items-center gap-3 w-full p-2 hover:bg-slate-50 rounded text-left transition-colors">
+                            <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden shrink-0">
+                              {u.avatar ? <img src={u.avatar} className="w-full h-full object-cover" /> : <User className="w-full h-full p-2 text-white bg-slate-400" />}
+                            </div>
+                            <div className="flex-1 border-b border-slate-100 pb-2">
+                              <div className="font-medium text-slate-800">{u.firstName} {u.lastName}</div>
+                              <div className="text-xs text-slate-500">{u.designation || 'Available on Acme Chat'}</div>
+                            </div>
+                          </button>
+                        ))
+                    )}
                   </div>
                 </div>
               </>
@@ -963,71 +1033,71 @@ export default function Chat() {
               {[...messages, ...pendingMessages]
                 .filter(msg => !messageSearchQuery || (msg.content && msg.content.toLowerCase().includes(messageSearchQuery.toLowerCase())))
                 .map((msg, index, arr) => {
-                const isMine = msg.senderId === profile?.id;
-                const sender = activeChat.participants.find(p => p.id === msg.senderId);
-                const msgDate = new Date(msg.createdAt).toDateString();
-                const prevMsgDate = index > 0 ? new Date(arr[index-1].createdAt).toDateString() : null;
-                const showDateOverlay = msgDate !== prevMsgDate;
+                  const isMine = msg.senderId === profile?.id;
+                  const sender = activeChat.participants.find(p => p.id === msg.senderId);
+                  const msgDate = new Date(msg.createdAt).toDateString();
+                  const prevMsgDate = index > 0 ? new Date(arr[index - 1].createdAt).toDateString() : null;
+                  const showDateOverlay = msgDate !== prevMsgDate;
 
-                return (
-                  <React.Fragment key={msg.id}>
-                    {showDateOverlay && (
-                      <div className="flex justify-center my-4">
-                        <span className="bg-white/80 text-slate-500 text-[11px] font-bold px-3 py-1 rounded-md uppercase tracking-wider shadow-sm backdrop-blur-sm">
-                          {getOverlayDate(msg.createdAt)}
-                        </span>
-                      </div>
-                    )}
-                    {msg.isSystemMessage ? (
-                      <div className="flex justify-center my-3 relative z-10">
-                        <span className="bg-slate-100/90 text-slate-600 text-xs font-medium px-4 py-1.5 rounded-full shadow-sm border border-slate-200 text-center backdrop-blur-sm">
-                          {msg.content}
-                        </span>
-                      </div>
-                    ) : (
-                      <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
-                        <div 
-                          onClick={() => {
-                            if (isMine && activeChat.type === 'group') {
-                              setMessageReadByDialog({ isOpen: true, message: msg });
-                            }
-                          }}
-                          className={`max-w-[75%] md:max-w-[65%] rounded-2xl px-3 py-2 pb-1 shadow-sm relative ${isMine ? 'bg-[#d9fdd3] text-slate-800 rounded-tr-sm cursor-pointer hover:bg-[#cbf0c4] active:bg-[#cbf0c4] transition-colors' : 'bg-slate-100 text-slate-800 rounded-tl-sm border border-slate-200'}`}
-                        >
-                          {!isMine && activeChat.type === 'group' && (
-                            <div className="text-xs font-bold text-blue-500 mb-1">{sender?.firstName}</div>
-                          )}
-                          <div className="text-sm whitespace-pre-wrap break-words pr-14 pb-2 text-slate-800">
-                            {msg.attachmentUrl && (
-                              <div className="mb-2 w-full max-w-xs md:max-w-md">
-                                {msg.attachmentType?.startsWith('image/') ? (
-                                  <img src={msg.attachmentUrl} alt="attachment" className="rounded-lg w-full object-cover border border-slate-200 shadow-sm" style={{ maxHeight: '300px' }} />
-                                ) : (
-                                  <a href={msg.attachmentUrl} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 p-3 rounded-lg border shadow-sm transition-colors ${isMine ? 'bg-white/40 border-white/50 hover:bg-white/50' : 'bg-slate-50 border-slate-200 hover:bg-slate-100'}`}>
-                                    <div className={`p-2 rounded-lg shrink-0 ${isMine ? 'bg-white/50 text-slate-800' : 'bg-white border border-slate-200 text-blue-600'}`}>
-                                      <FileText size={20} />
-                                    </div>
-                                    <div className="overflow-hidden">
-                                      <div className="text-sm font-semibold truncate">{msg.attachmentName || 'Document'}</div>
-                                      <div className={`text-xs ${isMine ? 'text-slate-600' : 'text-slate-500'}`}>{(msg.attachmentSize / 1024 / 1024).toFixed(2)} MB</div>
-                                    </div>
-                                    <Download size={16} className={`ml-auto shrink-0 ${isMine ? 'text-slate-700' : 'text-slate-400'}`} />
-                                  </a>
-                                )}
-                              </div>
-                            )}
+                  return (
+                    <React.Fragment key={msg.id}>
+                      {showDateOverlay && (
+                        <div className="flex justify-center my-4">
+                          <span className="bg-white/80 text-slate-500 text-[11px] font-bold px-3 py-1 rounded-md uppercase tracking-wider shadow-sm backdrop-blur-sm">
+                            {getOverlayDate(msg.createdAt)}
+                          </span>
+                        </div>
+                      )}
+                      {msg.isSystemMessage ? (
+                        <div className="flex justify-center my-3 relative z-10">
+                          <span className="bg-slate-100/90 text-slate-600 text-xs font-medium px-4 py-1.5 rounded-full shadow-sm border border-slate-200 text-center backdrop-blur-sm">
                             {msg.content}
-                          </div>
-                          <div className="absolute bottom-1 right-2 flex items-center gap-1 opacity-70">
-                            <span className="text-[10px] text-slate-500">{format(new Date(msg.createdAt), 'HH:mm')}</span>
-                            {isMine && renderMessageTicks(msg)}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
+                          <div
+                            onClick={() => {
+                              if (isMine && activeChat.type === 'group') {
+                                setMessageReadByDialog({ isOpen: true, message: msg });
+                              }
+                            }}
+                            className={`max-w-[75%] md:max-w-[65%] rounded-2xl px-3 py-2 pb-1 shadow-sm relative ${isMine ? 'bg-[#d9fdd3] text-slate-800 rounded-tr-sm cursor-pointer hover:bg-[#cbf0c4] active:bg-[#cbf0c4] transition-colors' : 'bg-slate-100 text-slate-800 rounded-tl-sm border border-slate-200'}`}
+                          >
+                            {!isMine && activeChat.type === 'group' && (
+                              <div className="text-xs font-bold text-blue-500 mb-1">{sender?.firstName}</div>
+                            )}
+                            <div className="text-sm whitespace-pre-wrap break-words pr-14 pb-2 text-slate-800">
+                              {msg.attachmentUrl && (
+                                <div className="mb-2 w-full max-w-xs md:max-w-md">
+                                  {msg.attachmentType?.startsWith('image/') ? (
+                                    <img src={msg.attachmentUrl} alt="attachment" className="rounded-lg w-full object-cover border border-slate-200 shadow-sm" style={{ maxHeight: '300px' }} />
+                                  ) : (
+                                    <a href={msg.attachmentUrl} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 p-3 rounded-lg border shadow-sm transition-colors ${isMine ? 'bg-white/40 border-white/50 hover:bg-white/50' : 'bg-slate-50 border-slate-200 hover:bg-slate-100'}`}>
+                                      <div className={`p-2 rounded-lg shrink-0 ${isMine ? 'bg-white/50 text-slate-800' : 'bg-white border border-slate-200 text-blue-600'}`}>
+                                        <FileText size={20} />
+                                      </div>
+                                      <div className="overflow-hidden">
+                                        <div className="text-sm font-semibold truncate">{msg.attachmentName || 'Document'}</div>
+                                        <div className={`text-xs ${isMine ? 'text-slate-600' : 'text-slate-500'}`}>{(msg.attachmentSize / 1024 / 1024).toFixed(2)} MB</div>
+                                      </div>
+                                      <Download size={16} className={`ml-auto shrink-0 ${isMine ? 'text-slate-700' : 'text-slate-400'}`} />
+                                    </a>
+                                  )}
+                                </div>
+                              )}
+                              {msg.content}
+                            </div>
+                            <div className="absolute bottom-1 right-2 flex items-center gap-1 opacity-70">
+                              <span className="text-[10px] text-slate-500">{format(new Date(msg.createdAt), 'HH:mm')}</span>
+                              {isMine && renderMessageTicks(msg)}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    )}
-                  </React.Fragment>
-                );
-              })}
+                      )}
+                    </React.Fragment>
+                  );
+                })}
               <div ref={messagesEndRef} />
             </div>
 
@@ -1037,75 +1107,75 @@ export default function Chat() {
                 Only admins can send messages in this group.
               </div>
             ) : (
-            <div className="bg-white/80 backdrop-blur-md flex flex-col shrink-0 border-t border-slate-200 relative z-20">
-              <AnimatePresence>
-                {attachment && (
-                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="p-3 mx-4 mt-2 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm">
-                    <div className="flex items-center gap-3 overflow-hidden">
-                      <div className="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 border border-blue-200">
-                        {attachment.type.startsWith('image/') ? <ImageIcon size={20} /> : <FileText size={20} />}
+              <div className="bg-white/80 backdrop-blur-md flex flex-col shrink-0 border-t border-slate-200 relative z-20">
+                <AnimatePresence>
+                  {attachment && (
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="p-3 mx-4 mt-2 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between shadow-sm">
+                      <div className="flex items-center gap-3 overflow-hidden">
+                        <div className="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 border border-blue-200">
+                          {attachment.type.startsWith('image/') ? <ImageIcon size={20} /> : <FileText size={20} />}
+                        </div>
+                        <div className="truncate">
+                          <div className="text-sm font-bold text-slate-800 truncate">{attachment.name}</div>
+                          <div className="text-xs text-slate-500 font-medium">{(attachment.size / 1024 / 1024).toFixed(2)} MB</div>
+                        </div>
                       </div>
-                      <div className="truncate">
-                        <div className="text-sm font-bold text-slate-800 truncate">{attachment.name}</div>
-                        <div className="text-xs text-slate-500 font-medium">{(attachment.size / 1024 / 1024).toFixed(2)} MB</div>
-                      </div>
-                    </div>
-                    <button onClick={() => setAttachment(null)} className="p-2 text-slate-400 hover:text-red-500 rounded-full hover:bg-red-50 transition-colors">
-                      <X size={20} />
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                      <button onClick={() => setAttachment(null)} className="p-2 text-slate-400 hover:text-red-500 rounded-full hover:bg-red-50 transition-colors">
+                        <X size={20} />
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
-              <div className="min-h-[68px] py-2 px-4 flex items-end gap-3">
-                <input type="file" ref={fileInputRef} onChange={handleFileSelect} className="hidden" accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
-                
-                <div className="flex gap-2 text-slate-500 px-1 shrink-0 pb-2">
-                  <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
-                    <Smile size={24} className="cursor-pointer hover:text-slate-700" />
-                  </button>
-                  <button type="button" onClick={() => fileInputRef.current?.click()} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
-                    <Paperclip size={24} className="cursor-pointer hover:text-slate-700" />
+                <div className="min-h-[68px] py-2 px-4 flex items-end gap-3">
+                  <input type="file" ref={fileInputRef} onChange={handleFileSelect} className="hidden" accept="image/*,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+
+                  <div className="flex gap-2 text-slate-500 px-1 shrink-0 pb-2">
+                    <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+                      <Smile size={24} className="cursor-pointer hover:text-slate-700" />
+                    </button>
+                    <button type="button" onClick={() => fileInputRef.current?.click()} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+                      <Paperclip size={24} className="cursor-pointer hover:text-slate-700" />
+                    </button>
+                  </div>
+                  <form onSubmit={handleSendMessage} className="flex-1 flex bg-white rounded-2xl px-5 py-2 border border-slate-200 shadow-sm focus-within:border-[#00a884] focus-within:ring-1 focus-within:ring-[#00a884] items-end">
+                    <textarea
+                      ref={textareaRef}
+                      value={messageText}
+                      onChange={e => {
+                        setMessageText(e.target.value);
+                        e.target.style.height = 'auto';
+                        e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
+                      }}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          if (messageText.trim() || attachment) handleSendMessage(e);
+                        }
+                      }}
+                      placeholder="Type a message..."
+                      rows={1}
+                      className="bg-transparent border-none outline-none w-full text-slate-700 resize-none overflow-y-auto chat-scrollbar py-1.5"
+                      style={{ minHeight: '36px', maxHeight: '120px' }}
+                    />
+                  </form>
+                  <button
+                    onClick={handleSendMessage}
+                    disabled={(!messageText.trim() && !attachment) || sendMessageMutation.isPending}
+                    className={`w-11 h-11 mb-1 rounded-full flex items-center justify-center shrink-0 transition-all ${messageText.trim() || attachment ? 'bg-blue-500 text-white hover:bg-[#008f6f] shadow-md scale-100' : 'bg-slate-200 text-slate-400 cursor-not-allowed scale-95'}`}
+                  >
+                    <Send size={18} />
                   </button>
                 </div>
-                <form onSubmit={handleSendMessage} className="flex-1 flex bg-white rounded-2xl px-5 py-2 border border-slate-200 shadow-sm focus-within:border-[#00a884] focus-within:ring-1 focus-within:ring-[#00a884] items-end">
-                  <textarea
-                    ref={textareaRef}
-                    value={messageText}
-                    onChange={e => {
-                      setMessageText(e.target.value);
-                      e.target.style.height = 'auto';
-                      e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`;
-                    }}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        if (messageText.trim() || attachment) handleSendMessage(e);
-                      }
-                    }}
-                    placeholder="Type a message..."
-                    rows={1}
-                    className="bg-transparent border-none outline-none w-full text-slate-700 resize-none overflow-y-auto chat-scrollbar py-1.5"
-                    style={{ minHeight: '36px', maxHeight: '120px' }}
-                  />
-                </form>
-                <button
-                  onClick={handleSendMessage}
-                  disabled={(!messageText.trim() && !attachment) || sendMessageMutation.isPending}
-                  className={`w-11 h-11 mb-1 rounded-full flex items-center justify-center shrink-0 transition-all ${messageText.trim() || attachment ? 'bg-blue-500 text-white hover:bg-[#008f6f] shadow-md scale-100' : 'bg-slate-200 text-slate-400 cursor-not-allowed scale-95'}`}
-                >
-                  <Send size={18} />
-                </button>
+
+                <AnimatePresence>
+                  {showEmojiPicker && (
+                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 320, opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden border-t border-slate-200 bg-slate-50">
+                      <EmojiPicker onEmojiClick={(e) => setMessageText(prev => prev + e.emoji)} width="100%" height={320} searchDisabled skinTonesDisabled />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
-              
-              <AnimatePresence>
-                {showEmojiPicker && (
-                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 320, opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden border-t border-slate-200 bg-slate-50">
-                    <EmojiPicker onEmojiClick={(e) => setMessageText(prev => prev + e.emoji)} width="100%" height={320} searchDisabled skinTonesDisabled />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
             )}
           </div>
         )}
@@ -1126,7 +1196,7 @@ export default function Chat() {
               </div>
             </div>
           </div>
-          
+
           <div className="flex-1 overflow-y-auto chat-scrollbar p-4 space-y-4">
             {/* Profile Card */}
             <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
@@ -1146,15 +1216,15 @@ export default function Chat() {
                           <Camera size={20} className="mb-1" />
                           <span className="text-[10px] font-semibold uppercase tracking-wider">Change</span>
                         </div>
-                        <input 
-                          type="file" 
-                          accept="image/*" 
-                          className="hidden" 
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
                           onChange={(e) => {
                             if (e.target.files?.[0]) {
-                              updateGroupAvatarMutation.mutate({ 
-                                chatId: activeChat.id, 
-                                fileToUpload: e.target.files[0] 
+                              updateGroupAvatarMutation.mutate({
+                                chatId: activeChat.id,
+                                fileToUpload: e.target.files[0]
                               });
                             }
                           }}
@@ -1185,79 +1255,79 @@ export default function Chat() {
             {(() => {
               const amIAdmin = activeChat.admin_ids?.includes(profile?.id);
               return (
-              <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
-                <div className="p-4 border-b border-slate-100">
-                  <h3 className="text-sm font-semibold flex items-center gap-2 text-slate-900">
-                    <Shield className="h-4 w-4 text-slate-500" /> Group Settings
-                  </h3>
+                <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
+                  <div className="p-4 border-b border-slate-100">
+                    <h3 className="text-sm font-semibold flex items-center gap-2 text-slate-900">
+                      <Shield className="h-4 w-4 text-slate-500" /> Group Settings
+                    </h3>
+                  </div>
+                  <div className="p-4 space-y-1">
+                    <div
+                      onClick={() => handleTogglePermission('editSettings')}
+                      className={`flex justify-between items-center p-2.5 rounded-md ${amIAdmin ? 'cursor-pointer hover:bg-slate-50 transition-colors' : ''}`}
+                    >
+                      <span className="text-sm font-medium text-slate-700">Edit Group Info</span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-slate-500">
+                          {activeChat.permissions?.editSettings ? 'All Members' : 'Admins Only'}
+                        </span>
+                        {amIAdmin && (
+                          <div className={`w-9 h-5 shrink-0 flex items-center rounded-full p-0.5 transition-colors ${activeChat.permissions?.editSettings ? 'bg-blue-500' : 'bg-slate-300'}`}>
+                            <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${activeChat.permissions?.editSettings ? 'translate-x-4' : 'translate-x-0'}`} />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div
+                      onClick={() => handleTogglePermission('sendMessages')}
+                      className={`flex justify-between items-center p-2.5 rounded-md ${amIAdmin ? 'cursor-pointer hover:bg-slate-50 transition-colors' : ''}`}
+                    >
+                      <span className="text-sm font-medium text-slate-700">Send Messages</span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-slate-500">
+                          {activeChat.permissions?.sendMessages ? 'All Members' : 'Admins Only'}
+                        </span>
+                        {amIAdmin && (
+                          <div className={`w-9 h-5 shrink-0 flex items-center rounded-full p-0.5 transition-colors ${activeChat.permissions?.sendMessages ? 'bg-blue-500' : 'bg-slate-300'}`}>
+                            <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${activeChat.permissions?.sendMessages ? 'translate-x-4' : 'translate-x-0'}`} />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div
+                      onClick={() => handleTogglePermission('addMembers')}
+                      className={`flex justify-between items-center p-2.5 rounded-md ${amIAdmin ? 'cursor-pointer hover:bg-slate-50 transition-colors' : ''}`}
+                    >
+                      <span className="text-sm font-medium text-slate-700">Add New Members</span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-slate-500">
+                          {activeChat.permissions?.addMembers ? 'All Members' : 'Admins Only'}
+                        </span>
+                        {amIAdmin && (
+                          <div className={`w-9 h-5 shrink-0 flex items-center rounded-full p-0.5 transition-colors ${activeChat.permissions?.addMembers ? 'bg-blue-500' : 'bg-slate-300'}`}>
+                            <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${activeChat.permissions?.addMembers ? 'translate-x-4' : 'translate-x-0'}`} />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div
+                      onClick={() => handleTogglePermission('approveNewMembers')}
+                      className={`flex justify-between items-center p-2.5 rounded-md ${amIAdmin ? 'cursor-pointer hover:bg-slate-50 transition-colors' : ''}`}
+                    >
+                      <span className="text-sm font-medium text-slate-700">Approve New Members</span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-slate-500">
+                          {activeChat.permissions?.approveNewMembers ? 'On' : 'Off'}
+                        </span>
+                        {amIAdmin && (
+                          <div className={`w-9 h-5 shrink-0 flex items-center rounded-full p-0.5 transition-colors ${activeChat.permissions?.approveNewMembers ? 'bg-blue-500' : 'bg-slate-300'}`}>
+                            <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${activeChat.permissions?.approveNewMembers ? 'translate-x-4' : 'translate-x-0'}`} />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="p-4 space-y-1">
-                  <div 
-                    onClick={() => handleTogglePermission('editSettings')}
-                    className={`flex justify-between items-center p-2.5 rounded-md ${amIAdmin ? 'cursor-pointer hover:bg-slate-50 transition-colors' : ''}`}
-                  >
-                    <span className="text-sm font-medium text-slate-700">Edit Group Info</span>
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs text-slate-500">
-                        {activeChat.permissions?.editSettings ? 'All Members' : 'Admins Only'}
-                      </span>
-                      {amIAdmin && (
-                        <div className={`w-9 h-5 shrink-0 flex items-center rounded-full p-0.5 transition-colors ${activeChat.permissions?.editSettings ? 'bg-blue-500' : 'bg-slate-300'}`}>
-                          <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${activeChat.permissions?.editSettings ? 'translate-x-4' : 'translate-x-0'}`} />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div 
-                    onClick={() => handleTogglePermission('sendMessages')}
-                    className={`flex justify-between items-center p-2.5 rounded-md ${amIAdmin ? 'cursor-pointer hover:bg-slate-50 transition-colors' : ''}`}
-                  >
-                    <span className="text-sm font-medium text-slate-700">Send Messages</span>
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs text-slate-500">
-                        {activeChat.permissions?.sendMessages ? 'All Members' : 'Admins Only'}
-                      </span>
-                      {amIAdmin && (
-                        <div className={`w-9 h-5 shrink-0 flex items-center rounded-full p-0.5 transition-colors ${activeChat.permissions?.sendMessages ? 'bg-blue-500' : 'bg-slate-300'}`}>
-                          <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${activeChat.permissions?.sendMessages ? 'translate-x-4' : 'translate-x-0'}`} />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div 
-                    onClick={() => handleTogglePermission('addMembers')}
-                    className={`flex justify-between items-center p-2.5 rounded-md ${amIAdmin ? 'cursor-pointer hover:bg-slate-50 transition-colors' : ''}`}
-                  >
-                    <span className="text-sm font-medium text-slate-700">Add New Members</span>
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs text-slate-500">
-                        {activeChat.permissions?.addMembers ? 'All Members' : 'Admins Only'}
-                      </span>
-                      {amIAdmin && (
-                        <div className={`w-9 h-5 shrink-0 flex items-center rounded-full p-0.5 transition-colors ${activeChat.permissions?.addMembers ? 'bg-blue-500' : 'bg-slate-300'}`}>
-                          <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${activeChat.permissions?.addMembers ? 'translate-x-4' : 'translate-x-0'}`} />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div 
-                    onClick={() => handleTogglePermission('approveNewMembers')}
-                    className={`flex justify-between items-center p-2.5 rounded-md ${amIAdmin ? 'cursor-pointer hover:bg-slate-50 transition-colors' : ''}`}
-                  >
-                    <span className="text-sm font-medium text-slate-700">Approve New Members</span>
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs text-slate-500">
-                        {activeChat.permissions?.approveNewMembers ? 'On' : 'Off'}
-                      </span>
-                      {amIAdmin && (
-                        <div className={`w-9 h-5 shrink-0 flex items-center rounded-full p-0.5 transition-colors ${activeChat.permissions?.approveNewMembers ? 'bg-blue-500' : 'bg-slate-300'}`}>
-                          <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform ${activeChat.permissions?.approveNewMembers ? 'translate-x-4' : 'translate-x-0'}`} />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
               );
             })()}
 
@@ -1314,52 +1384,52 @@ export default function Chat() {
               const amIAdmin = activeChat.admin_ids?.includes(profile?.id);
               const canAdd = activeChat.permissions?.addMembers !== false || amIAdmin;
               return (
-              <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
-                <div className="p-4 border-b border-slate-100 flex justify-between items-center">
-                  <h3 className="text-sm font-semibold flex items-center gap-2 text-slate-900">
-                    <Users className="h-4 w-4 text-slate-500" /> Participants
-                    <span className="inline-flex items-center rounded-full bg-blue-50 text-blue-700 px-2 py-0.5 text-[10px] font-bold">{activeChat.participants.length}</span>
-                  </h3>
-                  {canAdd && (
-                    <button onClick={() => setAddMembersDialog(true)} className="inline-flex items-center rounded-md text-xs font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 px-2.5 py-1.5 transition-colors shadow-sm">
-                      <UserPlus size={13} className="mr-1.5" /> Add Member
-                    </button>
-                  )}
+                <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
+                  <div className="p-4 border-b border-slate-100 flex justify-between items-center">
+                    <h3 className="text-sm font-semibold flex items-center gap-2 text-slate-900">
+                      <Users className="h-4 w-4 text-slate-500" /> Participants
+                      <span className="inline-flex items-center rounded-full bg-blue-50 text-blue-700 px-2 py-0.5 text-[10px] font-bold">{activeChat.participants.length}</span>
+                    </h3>
+                    {canAdd && (
+                      <button onClick={() => setAddMembersDialog(true)} className="inline-flex items-center rounded-md text-xs font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 px-2.5 py-1.5 transition-colors shadow-sm">
+                        <UserPlus size={13} className="mr-1.5" /> Add Member
+                      </button>
+                    )}
+                  </div>
+                  <div className="max-h-64 overflow-y-auto chat-scrollbar divide-y divide-slate-50">
+                    {activeChat.participants.map(p => {
+                      const amIAdmin = activeChat.admin_ids?.includes(profile?.id);
+                      const isClickable = amIAdmin && p.id !== profile?.id;
+                      return (
+                        <div
+                          key={p.id}
+                          onClick={() => {
+                            if (isClickable) {
+                              setAdminToggleDialog({ isOpen: true, targetUser: p, isCurrentlyAdmin: activeChat.admin_ids?.includes(p.id) });
+                            }
+                          }}
+                          className={`flex items-center gap-3 px-4 py-3 ${isClickable ? 'hover:bg-slate-50 cursor-pointer' : ''} transition-colors`}
+                        >
+                          <div className="w-9 h-9 rounded-full bg-slate-200 overflow-hidden shrink-0 border border-slate-100">
+                            {p.avatar ? <img src={p.avatar} className="w-full h-full object-cover" /> : <User className="w-full h-full p-2 text-white bg-slate-400" />}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-sm text-slate-800">{p.firstName} {p.lastName} {p.id === profile?.id ? '(You)' : ''}</div>
+                            <div className="text-xs text-slate-500 truncate">{p.designation || 'Employee'}</div>
+                          </div>
+                          {activeChat.admin_ids?.includes(p.id) && (
+                            <span className="inline-flex items-center rounded-full bg-blue-50 text-blue-700 px-2 py-0.5 text-[10px] font-semibold border border-blue-100">Admin</span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-                <div className="max-h-64 overflow-y-auto chat-scrollbar divide-y divide-slate-50">
-                  {activeChat.participants.map(p => {
-                    const amIAdmin = activeChat.admin_ids?.includes(profile?.id);
-                    const isClickable = amIAdmin && p.id !== profile?.id;
-                    return (
-                    <div 
-                      key={p.id} 
-                      onClick={() => {
-                        if (isClickable) {
-                          setAdminToggleDialog({ isOpen: true, targetUser: p, isCurrentlyAdmin: activeChat.admin_ids?.includes(p.id) });
-                        }
-                      }}
-                      className={`flex items-center gap-3 px-4 py-3 ${isClickable ? 'hover:bg-slate-50 cursor-pointer' : ''} transition-colors`}
-                    >
-                      <div className="w-9 h-9 rounded-full bg-slate-200 overflow-hidden shrink-0 border border-slate-100">
-                        {p.avatar ? <img src={p.avatar} className="w-full h-full object-cover" /> : <User className="w-full h-full p-2 text-white bg-slate-400" />}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-sm text-slate-800">{p.firstName} {p.lastName} {p.id === profile?.id ? '(You)' : ''}</div>
-                        <div className="text-xs text-slate-500 truncate">{p.designation || 'Employee'}</div>
-                      </div>
-                      {activeChat.admin_ids?.includes(p.id) && (
-                        <span className="inline-flex items-center rounded-full bg-blue-50 text-blue-700 px-2 py-0.5 text-[10px] font-semibold border border-blue-100">Admin</span>
-                      )}
-                    </div>
-                    );
-                  })}
-                </div>
-              </div>
               );
             })()}
 
             {/* Exit Group Card */}
-            <div 
+            <div
               onClick={() => {
                 const amIAdmin = activeChat.admin_ids?.includes(profile?.id);
                 if (amIAdmin && activeChat.admin_ids.length === 1) {
@@ -1409,7 +1479,7 @@ export default function Chat() {
                 <h3 className="text-lg font-bold text-slate-900 text-center mb-6">
                   Manage {adminToggleDialog.targetUser?.firstName}
                 </h3>
-                
+
                 <div className="space-y-3">
                   <button onClick={() => {
                     toggleAdminMutation.mutate({ chatId: activeChat.id, targetUserId: adminToggleDialog.targetUser.id });
@@ -1418,7 +1488,7 @@ export default function Chat() {
                     <span>{adminToggleDialog.isCurrentlyAdmin ? 'Remove Admin Privileges' : 'Make Group Admin'}</span>
                     <Shield size={18} className={adminToggleDialog.isCurrentlyAdmin ? 'text-slate-400' : 'text-blue-600'} />
                   </button>
-                  
+
                   <button onClick={() => {
                     setConfirmDialog({
                       isOpen: true,
@@ -1434,7 +1504,7 @@ export default function Chat() {
                     <span>Remove from Group</span>
                     <X size={18} />
                   </button>
-                  
+
                   <button onClick={() => setAdminToggleDialog({ isOpen: false, targetUser: null, isCurrentlyAdmin: false })} className="w-full px-4 py-3 bg-white hover:bg-slate-50 text-slate-600 font-medium rounded-lg transition-colors text-center mt-2">
                     Cancel
                   </button>
@@ -1458,7 +1528,7 @@ export default function Chat() {
                   <X size={20} />
                 </button>
               </div>
-              
+
               <div className="p-4 border-b border-slate-100 bg-white">
                 <div className="bg-blue-600 text-white p-3 rounded-lg text-sm shadow-sm relative">
                   <div className="whitespace-pre-wrap break-words">{messageReadByDialog.message.content || (messageReadByDialog.message.attachmentUrl ? '📎 Attachment' : 'Message')}</div>
@@ -1475,7 +1545,7 @@ export default function Chat() {
                   if (readByIds.length === 0) {
                     return <div className="text-center text-slate-500 py-6 text-sm font-medium">No one has read this yet.</div>;
                   }
-                  
+
                   return readByIds.map(uid => {
                     const u = activeChat.participants.find(p => p.id === uid) || users.find(user => user.id === uid);
                     if (!u) return null;
@@ -1543,8 +1613,8 @@ export default function Chat() {
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden">
               <div className="p-5">
                 <h3 className="text-lg font-bold text-slate-900 mb-4 text-center">Rename Group</h3>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={renameDialog.name}
                   onChange={(e) => setRenameDialog(prev => ({ ...prev, name: e.target.value }))}
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-[#008069] focus:border-transparent mb-6 transition-all"
@@ -1555,12 +1625,12 @@ export default function Chat() {
                   <button onClick={() => setRenameDialog({ isOpen: false, name: '' })} className="flex-1 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-lg transition-colors">
                     Cancel
                   </button>
-                  <button 
+                  <button
                     onClick={() => {
                       if (renameDialog.name.trim()) {
                         renameGroupMutation.mutate({ chatId: activeChat.id, name: renameDialog.name.trim() });
                       }
-                    }} 
+                    }}
                     disabled={!renameDialog.name.trim() || renameGroupMutation.isPending}
                     className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium rounded-lg transition-colors shadow-sm"
                   >
@@ -1598,33 +1668,33 @@ export default function Chat() {
                   .filter(u => u.id !== profile?.id && !activeChat?.participants.some(p => p.id === u.id) && !activeChat?.pending_participants?.includes(u.id))
                   .filter(u => (u.firstName + ' ' + u.lastName).toLowerCase().includes(addMembersSearchQuery.toLowerCase()) || (u.designation || '').toLowerCase().includes(addMembersSearchQuery.toLowerCase()))
                   .map(u => (
-                  <div key={u.id} onClick={() => setSelectedNewMembers(prev => prev.includes(u.id) ? prev.filter(id => id !== u.id) : [...prev, u.id])} className="flex items-center gap-3 w-full p-2 hover:bg-slate-50 rounded cursor-pointer transition-colors">
-                    <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden shrink-0">
-                      {u.avatar ? <img src={u.avatar} className="w-full h-full object-cover" /> : <User className="w-full h-full p-2 text-white bg-slate-400" />}
+                    <div key={u.id} onClick={() => setSelectedNewMembers(prev => prev.includes(u.id) ? prev.filter(id => id !== u.id) : [...prev, u.id])} className="flex items-center gap-3 w-full p-2 hover:bg-slate-50 rounded cursor-pointer transition-colors">
+                      <div className="w-10 h-10 rounded-full bg-slate-200 overflow-hidden shrink-0">
+                        {u.avatar ? <img src={u.avatar} className="w-full h-full object-cover" /> : <User className="w-full h-full p-2 text-white bg-slate-400" />}
+                      </div>
+                      <div className="flex-1 border-b border-slate-50 pb-2">
+                        <div className="font-medium text-slate-800">{u.firstName} {u.lastName}</div>
+                        <div className="text-xs text-slate-500">{u.designation || 'Employee'}</div>
+                      </div>
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${selectedNewMembers.includes(u.id) ? 'bg-blue-600 border-blue-600' : 'border-slate-300'}`}>
+                        {selectedNewMembers.includes(u.id) && <Check size={12} className="text-white" />}
+                      </div>
                     </div>
-                    <div className="flex-1 border-b border-slate-50 pb-2">
-                      <div className="font-medium text-slate-800">{u.firstName} {u.lastName}</div>
-                      <div className="text-xs text-slate-500">{u.designation || 'Employee'}</div>
-                    </div>
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${selectedNewMembers.includes(u.id) ? 'bg-blue-600 border-blue-600' : 'border-slate-300'}`}>
-                      {selectedNewMembers.includes(u.id) && <Check size={12} className="text-white" />}
-                    </div>
-                  </div>
-                ))}
+                  ))}
                 {users.filter(u => u.id !== profile?.id && !activeChat?.participants.some(p => p.id === u.id) && !activeChat?.pending_participants?.includes(u.id)).length === 0 && (
                   <div className="text-center text-slate-500 py-8 text-sm">No new users available to add.</div>
                 )}
-                {users.filter(u => u.id !== profile?.id && !activeChat?.participants.some(p => p.id === u.id) && !activeChat?.pending_participants?.includes(u.id)).length > 0 && 
-                 users.filter(u => u.id !== profile?.id && !activeChat?.participants.some(p => p.id === u.id) && !activeChat?.pending_participants?.includes(u.id))
-                      .filter(u => (u.firstName + ' ' + u.lastName).toLowerCase().includes(addMembersSearchQuery.toLowerCase()) || (u.designation || '').toLowerCase().includes(addMembersSearchQuery.toLowerCase())).length === 0 && (
-                  <div className="text-center text-slate-500 py-8 text-sm">No results found for "{addMembersSearchQuery}"</div>
-                )}
+                {users.filter(u => u.id !== profile?.id && !activeChat?.participants.some(p => p.id === u.id) && !activeChat?.pending_participants?.includes(u.id)).length > 0 &&
+                  users.filter(u => u.id !== profile?.id && !activeChat?.participants.some(p => p.id === u.id) && !activeChat?.pending_participants?.includes(u.id))
+                    .filter(u => (u.firstName + ' ' + u.lastName).toLowerCase().includes(addMembersSearchQuery.toLowerCase()) || (u.designation || '').toLowerCase().includes(addMembersSearchQuery.toLowerCase())).length === 0 && (
+                    <div className="text-center text-slate-500 py-8 text-sm">No results found for "{addMembersSearchQuery}"</div>
+                  )}
               </div>
               <div className="p-4 border-t border-slate-100 bg-slate-50 flex gap-3">
                 <button onClick={() => { setAddMembersDialog(false); setSelectedNewMembers([]); setAddMembersSearchQuery(''); }} className="flex-1 px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium rounded-lg transition-colors">
                   Cancel
                 </button>
-                <button 
+                <button
                   onClick={() => addMembersMutation.mutate({ chatId: activeChat.id, userIds: selectedNewMembers })}
                   disabled={selectedNewMembers.length === 0 || addMembersMutation.isPending}
                   className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium rounded-lg transition-colors shadow-sm"
