@@ -52,9 +52,18 @@ const OriginationMobileAddLead = () => {
 
   return (
     <div className="w-full pb-8">
-      {/* Header with modern styling like EditMobileProfilePage */}
-      <div className="relative pt-12 pb-24 px-4 overflow-hidden rounded-b-[40px] shadow-sm bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800">
+      {/* Animated Hero Header */}
+      <div className="relative pt-12 pb-24 px-6 overflow-hidden rounded-b-[40px] shadow-md bg-slate-900">
         {/* Animated Background Blobs */}
+        <motion.div
+          animate={{
+            scale: [1, 1.2, 1],
+            x: [0, 50, 0],
+            y: [0, 30, 0],
+          }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -top-20 -left-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+        />
         <motion.div
           animate={{
             scale: [1, 1.4, 1],
@@ -62,7 +71,7 @@ const OriginationMobileAddLead = () => {
             y: [0, 50, 0],
           }}
           transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute -top-10 -right-10 w-64 h-64 bg-blue-400 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+          className="absolute -top-10 -right-10 w-64 h-64 bg-indigo-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
         />
         <motion.div
           animate={{
@@ -71,18 +80,21 @@ const OriginationMobileAddLead = () => {
             y: [0, -40, 0],
           }}
           transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-0 left-20 w-80 h-80 bg-indigo-400 rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
+          className="absolute bottom-0 left-20 w-80 h-80 bg-emerald-500 rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
         />
         
         {/* Subtle Glass Overlay */}
         <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
 
         <div className="relative z-10 flex items-center justify-between px-2">
-          <button type="button" onClick={() => navigate('/employee/loans/origination/leads')} className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center backdrop-blur-md transition-transform active:scale-95">
+          <button type="button" onClick={() => navigate('/employee/loans/origination/leads')} className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center backdrop-blur-md transition-transform active:scale-95 border border-white/20">
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <h2 className="text-xl font-bold text-white tracking-tight">Add New Lead</h2>
-          <button onClick={handleSubmit} disabled={isSubmitting} className="w-10 h-10 rounded-full bg-white text-blue-600 flex items-center justify-center shadow-lg disabled:opacity-50 transition-transform active:scale-95">
+          <div className="text-center">
+            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">Origination Module</p>
+            <h2 className="text-xl font-bold text-white tracking-tight drop-shadow-sm">Add New Lead</h2>
+          </div>
+          <button onClick={handleSubmit} disabled={isSubmitting} className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-lg disabled:opacity-50 transition-transform active:scale-95">
             {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
           </button>
         </div>
