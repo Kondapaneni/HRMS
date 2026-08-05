@@ -52,7 +52,7 @@ const OriginationMobileDashboard = () => {
   return (
     <div className="pb-20 min-h-screen bg-slate-50">
       {/* Animated Hero Header */}
-      <section className="relative px-6 pt-12 pb-24 rounded-b-[40px] overflow-hidden bg-slate-900 shadow-md">
+      <section className="relative px-6 pt-12 pb-20 rounded-b-[40px] overflow-hidden bg-slate-900 shadow-md">
         {/* Animated Background Blobs */}
         <motion.div
           animate={{
@@ -81,7 +81,7 @@ const OriginationMobileDashboard = () => {
           transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
           className="absolute bottom-0 left-20 w-80 h-80 bg-emerald-500 rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
         />
-        
+
         {/* Subtle Glass Overlay */}
         <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
 
@@ -92,11 +92,11 @@ const OriginationMobileDashboard = () => {
         </div>
       </section>
 
-      <motion.div 
+      <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="relative z-20 -mt-12"
+        className="relative z-20 -mt-20"
       >
         {/* Summary Carousel */}
         <motion.div variants={itemVariants} className="flex overflow-x-auto gap-4 px-4 py-5 hide-scrollbar snap-x">
@@ -110,12 +110,12 @@ const OriginationMobileDashboard = () => {
                 {isLoading ? '...' : stats.total_leads_month}
               </h3>
               <span className={`flex items-center text-[10px] font-bold mb-1 ${stats.percent_change_total >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                <ArrowUpRight size={12} className={`mr-0.5 ${stats.percent_change_total < 0 ? 'rotate-90' : ''}`} /> 
+                <ArrowUpRight size={12} className={`mr-0.5 ${stats.percent_change_total < 0 ? 'rotate-90' : ''}`} />
                 {Math.abs(stats.percent_change_total)}%
               </span>
             </div>
           </div>
-          
+
           <div className="bg-white/60 backdrop-blur-xl p-4 rounded-2xl border border-white/80 shadow-sm min-w-[180px] snap-center shrink-0">
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs font-medium text-slate-500">Active</p>
@@ -126,12 +126,12 @@ const OriginationMobileDashboard = () => {
                 {isLoading ? '...' : stats.active_opportunities}
               </h3>
               <span className={`flex items-center text-[10px] font-bold mb-1 ${stats.percent_change_active >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                <ArrowUpRight size={12} className={`mr-0.5 ${stats.percent_change_active < 0 ? 'rotate-90' : ''}`} /> 
+                <ArrowUpRight size={12} className={`mr-0.5 ${stats.percent_change_active < 0 ? 'rotate-90' : ''}`} />
                 {Math.abs(stats.percent_change_active)}%
               </span>
             </div>
           </div>
-          
+
           <div className="bg-white/60 backdrop-blur-xl p-4 rounded-2xl border border-white/80 shadow-sm min-w-[180px] snap-center shrink-0 pr-6">
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs font-medium text-slate-500">Converted</p>
@@ -142,7 +142,7 @@ const OriginationMobileDashboard = () => {
                 {isLoading ? '...' : stats.converted_leads}
               </h3>
               <span className={`flex items-center text-[10px] font-bold mb-1 ${stats.percent_change_converted >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                <ArrowUpRight size={12} className={`mr-0.5 ${stats.percent_change_converted < 0 ? 'rotate-90' : ''}`} /> 
+                <ArrowUpRight size={12} className={`mr-0.5 ${stats.percent_change_converted < 0 ? 'rotate-90' : ''}`} />
                 {Math.abs(stats.percent_change_converted)}%
               </span>
             </div>
@@ -151,7 +151,7 @@ const OriginationMobileDashboard = () => {
 
         {/* Charts Content */}
         <div className="px-4 space-y-4 pb-6">
-          
+
           {/* Daily Trends Chart */}
           <motion.div variants={itemVariants} className="bg-white rounded-[24px] shadow-lg border border-slate-100/50 overflow-hidden p-6">
             <h3 className="text-base font-bold text-slate-800 mb-4">Daily Leads (Last 7 Days)</h3>
@@ -161,7 +161,7 @@ const OriginationMobileDashboard = () => {
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                   <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 10 }} dy={10} />
                   <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 10 }} />
-                  <Tooltip 
+                  <Tooltip
                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }}
                   />
                   <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
@@ -181,7 +181,7 @@ const OriginationMobileDashboard = () => {
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                   <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 10 }} dy={10} />
                   <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 10 }} />
-                  <Tooltip 
+                  <Tooltip
                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }}
                     cursor={{ fill: '#f1f5f9' }}
                   />
