@@ -30,6 +30,7 @@ import EmployeeMobileHolidays from './pages/EmployeeMobileHolidays'
 import EmployeeMobileBirthdays from './pages/EmployeeMobileBirthdays'
 import OriginationLayout from './components/OriginationLayout'
 import OriginationDashboard from './pages/OriginationDashboard'
+import OriginationLeadsList from './pages/OriginationLeadsList'
 import AssessmentWorkspaceLayout from './components/AssessmentWorkspaceLayout'
 import AssessmentManagementPage from './pages/AssessmentManagementPage'
 import DepartmentQuestionBankPage from './pages/DepartmentQuestionBankPage'
@@ -236,6 +237,7 @@ function App() {
                 }
               >
                 <Route path="origination" element={<OriginationDashboard />} />
+                <Route path="origination/leads" element={<OriginationLeadsList />} />
               </Route>
 
               <Route

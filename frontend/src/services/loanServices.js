@@ -18,3 +18,12 @@ export const getDashboardData = async () => {
   const response = await api.get('/leads/dashboard');
   return response.data;
 };
+
+/**
+ * Fetches all loan leads.
+ * @returns {Promise<Object>}
+ */
+export const getLeads = async () => {
+  const response = await api.get('/leads/list');
+  return response.data;
+};

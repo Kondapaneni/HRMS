@@ -20,6 +20,7 @@ const OriginationLayout = () => {
 
   const navItems = [
     { icon: <Activity size={18} />, label: 'Dashboard', path: '/employee/loans/origination', feature: 'canLoanOrigination' },
+    { icon: <FileText size={18} />, label: 'Leads', path: '/employee/loans/origination/leads', feature: 'canLoanOrigination' },
   ];
 
   const shapeVariants = {

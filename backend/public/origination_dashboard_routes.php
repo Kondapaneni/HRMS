@@ -10,6 +10,7 @@ $app->group('/api/leads', function (\Slim\Routing\RouteCollectorProxy $group) {
     // Create a new lead
     $group->post('', function (Request $request, Response $response, $args) {
         $data = $request->getParsedBody();
+        $user = $request->getAttribute('user');
         
         $name = trim($data['name'] ?? '');
         $phone = trim($data['phone'] ?? '');
@@ -29,12 +30,12 @@ $app->group('/api/leads', function (\Slim\Routing\RouteCollectorProxy $group) {
             }
 
             $stmt = $conn->prepare('
-                INSERT INTO public.loan_leads (name, phone, address, status)
-                VALUES (?, ?, ?, ?)
+                INSERT INTO public.loan_leads (name, phone, address, status, created_by)
+                VALUES (?, ?, ?, ?, ?)
                 RETURNING id, name, phone, address, status, created_at
             ');
             
-            $stmt->execute([$name, $phone, $address, 'New']);
+            $stmt->execute([$name, $phone, $address, 'New', $user->id]);
             $lead = $stmt->fetch(PDO::FETCH_ASSOC);
 
             $response->getBody()->write(json_encode([
@@ -56,6 +57,7 @@ $app->group('/api/leads', function (\Slim\Routing\RouteCollectorProxy $group) {
 
     // Get dashboard stats
     $group->get('/dashboard', function (Request $request, Response $response, $args) {
+        $user = $request->getAttribute('user');
         try {
             $db = new Database();
             $conn = $db->getConnection();
@@ -64,29 +66,35 @@ $app->group('/api/leads', function (\Slim\Routing\RouteCollectorProxy $group) {
                 throw new Exception("Database connection failed");
             }
 
-            $stmt = $conn->query("
+            $stmt = $conn->prepare("
                 SELECT COUNT(*) as total 
                 FROM public.loan_leads 
                 WHERE date_trunc('month', created_at) = date_trunc('month', CURRENT_DATE)
+                AND created_by = :uid
             ");
+            $stmt->execute([':uid' => $user->id]);
             $totalLeadsMonth = $stmt->fetchColumn() ?: 0;
 
-            $stmt = $conn->query("
+            $stmt = $conn->prepare("
                 SELECT COUNT(*) as active 
                 FROM public.loan_leads 
                 WHERE status IN ('New', 'Active', 'In Progress')
+                AND created_by = :uid
             ");
+            $stmt->execute([':uid' => $user->id]);
             $activeOpportunities = $stmt->fetchColumn() ?: 0;
 
-            $stmt = $conn->query("
+            $stmt = $conn->prepare("
                 SELECT COUNT(*) as converted 
                 FROM public.loan_leads 
                 WHERE status = 'Converted'
+                AND created_by = :uid
             ");
+            $stmt->execute([':uid' => $user->id]);
             $convertedLeads = $stmt->fetchColumn() ?: 0;
 
             // Daily Trends (Last 7 Days)
-            $stmt = $conn->query("
+            $stmt = $conn->prepare("
                 WITH last_7_days AS (
                     SELECT generate_series(CURRENT_DATE - INTERVAL '6 days', CURRENT_DATE, '1 day'::interval)::date AS d
                 )
@@ -95,14 +103,15 @@ $app->group('/api/leads', function (\Slim\Routing\RouteCollectorProxy $group) {
                     COALESCE(SUM(CASE WHEN status != 'Converted' THEN 1 ELSE 0 END), 0) as leads,
                     COALESCE(SUM(CASE WHEN status = 'Converted' THEN 1 ELSE 0 END), 0) as converted
                 FROM last_7_days
-                LEFT JOIN public.loan_leads ON date(created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata') = d
+                LEFT JOIN public.loan_leads ON date(created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata') = d AND created_by = :uid
                 GROUP BY d
                 ORDER BY d ASC;
             ");
+            $stmt->execute([':uid' => $user->id]);
             $dailyData = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             // Monthly Trends (Last 6 Months)
-            $stmt = $conn->query("
+            $stmt = $conn->prepare("
                 WITH last_6_months AS (
                     SELECT generate_series(date_trunc('month', CURRENT_DATE) - INTERVAL '5 months', date_trunc('month', CURRENT_DATE), '1 month'::interval)::date AS m
                 )
@@ -111,17 +120,20 @@ $app->group('/api/leads', function (\Slim\Routing\RouteCollectorProxy $group) {
                     COALESCE(SUM(CASE WHEN status != 'Converted' THEN 1 ELSE 0 END), 0) as leads,
                     COALESCE(SUM(CASE WHEN status = 'Converted' THEN 1 ELSE 0 END), 0) as converted
                 FROM last_6_months
-                LEFT JOIN public.loan_leads ON date_trunc('month', created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata') = m
+                LEFT JOIN public.loan_leads ON date_trunc('month', created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata') = m AND created_by = :uid
                 GROUP BY m
                 ORDER BY m ASC;
             ");
+            $stmt->execute([':uid' => $user->id]);
             $monthlyData = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            $stmtLastMonth = $conn->query("
+            $stmtLastMonth = $conn->prepare("
                 SELECT COUNT(*) as total 
                 FROM public.loan_leads 
                 WHERE date_trunc('month', created_at) = date_trunc('month', CURRENT_DATE - INTERVAL '1 month')
+                AND created_by = :uid
             ");
+            $stmtLastMonth->execute([':uid' => $user->id]);
             $totalLeadsLastMonth = $stmtLastMonth->fetchColumn() ?: 0;
             $percentChangeTotal = $totalLeadsLastMonth > 0 
                 ? round((($totalLeadsMonth - $totalLeadsLastMonth) / $totalLeadsLastMonth) * 100) 
