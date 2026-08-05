@@ -2,13 +2,15 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getLeads } from '../services/loanServices';
 import { motion } from 'framer-motion';
-import { Search, Filter, Phone, MapPin, Calendar, CheckCircle2, Clock, FileText, Loader2 } from 'lucide-react';
+import { Search, Filter, Phone, MapPin, Calendar, CheckCircle2, Clock, FileText, Loader2, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import OriginationMobileLeadsList from './OriginationMobileLeadsList';
+import AddLeadSidebar from '../components/AddLeadSidebar';
 
 const OriginationLeadsList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [isAddLeadOpen, setIsAddLeadOpen] = useState(false);
 
   // Debounce the search input
   React.useEffect(() => {
@@ -64,6 +66,13 @@ const OriginationLeadsList = () => {
             <h1 className="text-3xl font-bold tracking-tight text-slate-900">All Leads</h1>
             <p className="text-sm text-slate-500 mt-1">Manage and track your loan origination leads.</p>
           </div>
+          <button 
+            onClick={() => setIsAddLeadOpen(true)}
+            className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 transition-colors gap-2 shadow-sm"
+          >
+            <Plus size={16} />
+            Add Leads
+          </button>
         </motion.div>
 
 
@@ -154,6 +163,8 @@ const OriginationLeadsList = () => {
       )}
 
       </motion.div>
+
+      <AddLeadSidebar isOpen={isAddLeadOpen} onClose={() => setIsAddLeadOpen(false)} />
     </>
   );
 };

@@ -7,54 +7,6 @@ use App\Config\Database;
 // Protect these routes with AuthMiddleware if needed
 $app->group('/api/leads', function (\Slim\Routing\RouteCollectorProxy $group) {
     
-    // Create a new lead
-    $group->post('', function (Request $request, Response $response, $args) {
-        $data = $request->getParsedBody();
-        $user = $request->getAttribute('user');
-        
-        $name = trim($data['name'] ?? '');
-        $phone = trim($data['phone'] ?? '');
-        $address = trim($data['address'] ?? '');
-
-        if (empty($name) || empty($phone) || empty($address)) {
-            $response->getBody()->write(json_encode(['error' => 'Name, Phone, and Address are Required']));
-            return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
-        }
-
-        try {
-            $db = new Database();
-            $conn = $db->getConnection();
-            
-            if (!$conn) {
-                throw new Exception("Database connection failed");
-            }
-
-            $stmt = $conn->prepare('
-                INSERT INTO public.loan_leads (name, phone, address, status, created_by)
-                VALUES (?, ?, ?, ?, ?)
-                RETURNING id, name, phone, address, status, created_at
-            ');
-            
-            $stmt->execute([$name, $phone, $address, 'New', $user->id]);
-            $lead = $stmt->fetch(PDO::FETCH_ASSOC);
-
-            $response->getBody()->write(json_encode([
-                'message' => 'Lead added successfully',
-                'lead' => $lead
-            ]));
-            return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
-            
-        } catch (\PDOException $e) {
-            error_log("Database error creating lead: " . $e->getMessage());
-            $response->getBody()->write(json_encode(['error' => 'Database error while saving lead']));
-            return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
-        } catch (\Exception $e) {
-            error_log("Error creating lead: " . $e->getMessage());
-            $response->getBody()->write(json_encode(['error' => 'An error occurred while saving the lead']));
-            return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
-        }
-    });
-
     // Get dashboard stats
     $group->get('/dashboard', function (Request $request, Response $response, $args) {
         $user = $request->getAttribute('user');

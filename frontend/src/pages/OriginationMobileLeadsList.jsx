@@ -2,10 +2,13 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getLeads } from '../services/loanServices';
 import { motion } from 'framer-motion';
-import { Search, Phone, MapPin, Calendar, CheckCircle2, Clock, Loader2 } from 'lucide-react';
+import { Search, Phone, MapPin, Calendar, CheckCircle2, Clock, Loader2, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 
+import { useNavigate } from 'react-router-dom';
+
 const OriginationMobileLeadsList = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
 
@@ -82,17 +85,24 @@ const OriginationMobileLeadsList = () => {
         {/* Subtle Glass Overlay */}
         <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
 
-        <div className="relative z-10 px-2">
-          <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">Origination Module</p>
-          <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">All Leads</h2>
-          <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">Manage & track opportunities</p>
+        <div className="relative z-10 px-2 flex justify-between items-center">
+          <div>
+            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">Origination Module</p>
+            <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">All Leads</h2>
+            <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">Manage & track opportunities</p>
+          </div>
+          <button 
+            className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white px-3 py-2 rounded-xl backdrop-blur-md border border-white/30 text-sm font-semibold transition-all active:scale-95"
+            onClick={() => navigate('/employee/loans/origination/leads/add')}
+          >
+            <Plus size={16} />
+            Add Leads
+          </button>
         </div>
       </section>
 
       <motion.div
         variants={containerVariants}
-        initial="hidden"
-        animate="visible"
         className="relative z-20 -mt-16 px-4 space-y-4"
       >
         {/* Search Bar - Floating */}

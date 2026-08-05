@@ -16,7 +16,6 @@ import {
 } from 'recharts';
 import { motion } from 'framer-motion';
 import OriginationMobileDashboard from './OriginationMobileDashboard';
-import AddLeadSidebar from '../components/AddLeadSidebar';
 
 const OriginationDashboard = () => {
   const { data, isLoading, error } = useQuery({
@@ -35,8 +34,6 @@ const OriginationDashboard = () => {
 
   const dailyData = data?.dailyData || [];
   const monthlyData = data?.monthlyData || [];
-
-  const [isAddLeadOpen, setIsAddLeadOpen] = useState(false);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -69,13 +66,6 @@ const OriginationDashboard = () => {
             <h1 className="text-3xl font-bold tracking-tight text-slate-900">Leads Dashboard</h1>
             <p className="text-sm text-slate-500 mt-1">Overview of lead generation and conversion trends.</p>
           </div>
-          <button 
-            onClick={() => setIsAddLeadOpen(true)}
-            className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 transition-colors gap-2 shadow-sm"
-          >
-            <Plus size={16} />
-            Add Leads
-          </button>
         </motion.div>
 
         {/* Summary Cards */}
@@ -181,8 +171,6 @@ const OriginationDashboard = () => {
 
         </motion.div>
       </motion.div>
-      
-      <AddLeadSidebar isOpen={isAddLeadOpen} onClose={() => setIsAddLeadOpen(false)} />
     </>
   );
 };
