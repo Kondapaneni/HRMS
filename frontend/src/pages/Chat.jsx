@@ -924,7 +924,7 @@ export default function Chat() {
                       type="text"
                       value={contactSearchQuery}
                       onChange={e => setContactSearchQuery(e.target.value)}
-                      placeholder="Search contacts..."
+                      placeholder="Search Name"
                       className="bg-transparent border-none outline-none text-sm w-full text-slate-800"
                     />
                     {contactSearchQuery && (

@@ -1518,7 +1518,7 @@ export default function EmployeeMobileChat() {
                   type="text"
                   value={contactSearchQuery}
                   onChange={e => setContactSearchQuery(e.target.value)}
-                  placeholder="Search name or designation..."
+                  placeholder="Search Name"
                   className="bg-transparent border-none outline-none text-sm w-full text-slate-800 placeholder:text-slate-400"
                 />
                 {contactSearchQuery && (
