@@ -50,19 +50,53 @@ const OriginationMobileDashboard = () => {
   };
 
   return (
-    <div className="pb-20 min-h-screen">
-      {/* Header */}
-      <div className="bg-white/60 backdrop-blur-xl px-4 py-4 border-b border-white/80 sticky top-0 z-10 shadow-sm flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Leads</h1>
-          <p className="text-xs text-slate-500 mt-0.5">Performance overview</p>
+    <div className="pb-20 min-h-screen bg-slate-50">
+      {/* Animated Hero Header */}
+      <section className="relative px-6 pt-12 pb-24 rounded-b-[40px] overflow-hidden bg-slate-900 shadow-md">
+        {/* Animated Background Blobs */}
+        <motion.div
+          animate={{
+            scale: [1, 1.2, 1],
+            x: [0, 50, 0],
+            y: [0, 30, 0],
+          }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -top-20 -left-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+        />
+        <motion.div
+          animate={{
+            scale: [1, 1.4, 1],
+            x: [0, -40, 0],
+            y: [0, 50, 0],
+          }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute -top-10 -right-10 w-64 h-64 bg-indigo-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+        />
+        <motion.div
+          animate={{
+            scale: [1, 1.3, 1],
+            x: [0, 30, 0],
+            y: [0, -40, 0],
+          }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          className="absolute bottom-0 left-20 w-80 h-80 bg-emerald-500 rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
+        />
+        
+        {/* Subtle Glass Overlay */}
+        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
+
+        <div className="relative z-10 px-2">
+          <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">Origination Module</p>
+          <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">Leads Dashboard</h2>
+          <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">Performance overview & conversions</p>
         </div>
-      </div>
+      </section>
 
       <motion.div 
         variants={containerVariants}
         initial="hidden"
         animate="visible"
+        className="relative z-20 -mt-12"
       >
         {/* Summary Carousel */}
         <motion.div variants={itemVariants} className="flex overflow-x-auto gap-4 px-4 py-5 hide-scrollbar snap-x">
@@ -116,10 +150,10 @@ const OriginationMobileDashboard = () => {
         </motion.div>
 
         {/* Charts Content */}
-        <div className="px-4 space-y-4">
+        <div className="px-4 space-y-4 pb-6">
           
           {/* Daily Trends Chart */}
-          <motion.div variants={itemVariants} className="bg-white/60 backdrop-blur-xl rounded-2xl border border-white/80 shadow-sm p-4">
+          <motion.div variants={itemVariants} className="bg-white rounded-[24px] shadow-lg border border-slate-100/50 overflow-hidden p-6">
             <h3 className="text-base font-bold text-slate-800 mb-4">Daily Leads (Last 7 Days)</h3>
             <div className="h-[250px] w-full -ml-3">
               <ResponsiveContainer width="100%" height="100%">
@@ -139,7 +173,7 @@ const OriginationMobileDashboard = () => {
           </motion.div>
 
           {/* Monthly Trends Chart */}
-          <motion.div variants={itemVariants} className="bg-white/60 backdrop-blur-xl rounded-2xl border border-white/80 shadow-sm p-4">
+          <motion.div variants={itemVariants} className="bg-white rounded-[24px] shadow-lg border border-slate-100/50 overflow-hidden p-6 mt-6">
             <h3 className="text-base font-bold text-slate-800 mb-4">Monthly Trends</h3>
             <div className="h-[250px] w-full -ml-3">
               <ResponsiveContainer width="100%" height="100%">
