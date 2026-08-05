@@ -51,7 +51,7 @@ const OriginationMobileAddLead = () => {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-slate-50 font-sans pb-8">
+    <div className="w-full pb-8">
       {/* Header with modern styling like EditMobileProfilePage */}
       <div className="relative pt-12 pb-24 px-4 overflow-hidden rounded-b-[40px] shadow-sm bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800">
         {/* Animated Background Blobs */}
