@@ -4,6 +4,7 @@ import { getLeads } from '../services/loanServices';
 import { motion } from 'framer-motion';
 import { Search, Filter, Phone, MapPin, Calendar, CheckCircle2, Clock, FileText, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
+import OriginationMobileLeadsList from './OriginationMobileLeadsList';
 
 const OriginationLeadsList = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -47,18 +48,23 @@ const OriginationLeadsList = () => {
   };
 
   return (
-    <motion.div 
-      className="p-4 md:p-6 space-y-6 md:pb-6"
-      variants={containerVariants}
-    >
-      
-      {/* Header */}
-      <motion.div variants={itemVariants} className="flex justify-between items-center mb-2">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">All Leads</h1>
-          <p className="text-sm text-slate-500 mt-1">Manage and track your loan origination leads.</p>
-        </div>
-      </motion.div>
+    <>
+      <div className="md:hidden">
+        <OriginationMobileLeadsList />
+      </div>
+
+      <motion.div 
+        className="hidden md:block p-4 md:p-6 space-y-6 md:pb-6"
+        variants={containerVariants}
+      >
+        
+        {/* Header */}
+        <motion.div variants={itemVariants} className="flex justify-between items-center mb-2">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900">All Leads</h1>
+            <p className="text-sm text-slate-500 mt-1">Manage and track your loan origination leads.</p>
+          </div>
+        </motion.div>
 
 
       {/* Data State */}
@@ -70,45 +76,8 @@ const OriginationLeadsList = () => {
         /* Data Table (Desktop) & Cards (Mobile) */
         <motion.div variants={itemVariants}>
           
-          {/* Mobile View: Search & Cards */}
-          <div className="md:hidden space-y-4">
-            <div className="relative mb-4">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                type="search"
-                className="w-full pl-9 pr-4 py-2 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
-                placeholder="Search leads..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            {isLoading ? (
-              <div className="flex justify-center items-center py-20">
-                <Loader2 className="animate-spin h-8 w-8 text-blue-600" />
-              </div>
-            ) : leads.length === 0 ? (
-              <div className="py-12 text-center text-slate-500">
-                No leads found.
-              </div>
-            ) : (
-              leads.map(lead => (
-                <motion.div key={lead.id} variants={itemVariants} className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5">
-                  <div className="flex justify-between items-start mb-3">
-                    <h3 className="font-bold text-slate-900">{lead.name}</h3>
-                    {getStatusBadge(lead.status)}
-                  </div>
-                  <div className="space-y-2 text-sm text-slate-600">
-                    <div className="flex items-center gap-2"><Phone size={14} className="text-slate-400" /> {lead.phone}</div>
-                    <div className="flex items-center gap-2"><MapPin size={14} className="text-slate-400" /> {lead.address}</div>
-                    <div className="flex items-center gap-2"><Calendar size={14} className="text-slate-400" /> {format(new Date(lead.created_at), 'MMM d, yyyy h:mm a')}</div>
-                  </div>
-                </motion.div>
-              ))
-            )}
-          </div>
-
-          {/* Desktop View: Table */}
-          <div className="hidden md:block rounded-lg border border-slate-200 bg-white shadow-sm mb-6">
+        {/* Desktop View: Table */}
+        <div className="rounded-lg border border-slate-200 bg-white shadow-sm mb-6">
             <div className="p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
                 <h3 className="text-lg font-semibold flex items-center gap-2 text-slate-900">
@@ -184,7 +153,8 @@ const OriginationLeadsList = () => {
         </motion.div>
       )}
 
-    </motion.div>
+      </motion.div>
+    </>
   );
 };
 

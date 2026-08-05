@@ -98,7 +98,7 @@ const OriginationMobileDashboard = () => {
       >
         {/* Summary Carousel */}
         <motion.div variants={itemVariants} className="flex overflow-x-auto gap-4 px-4 py-5 hide-scrollbar snap-x">
-          <div className="bg-white/60 backdrop-blur-xl p-4 rounded-2xl border border-white/80 shadow-sm min-w-[200px] snap-center shrink-0">
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm min-w-[200px] snap-center shrink-0">
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs font-medium text-slate-500">Total Leads (Month)</p>
               <Users size={16} className="text-blue-500" />
@@ -114,7 +114,7 @@ const OriginationMobileDashboard = () => {
             </div>
           </div>
 
-          <div className="bg-white/60 backdrop-blur-xl p-4 rounded-2xl border border-white/80 shadow-sm min-w-[180px] snap-center shrink-0">
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm min-w-[180px] snap-center shrink-0">
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs font-medium text-slate-500">Active</p>
               <TrendingUp size={16} className="text-indigo-500" />
@@ -130,7 +130,7 @@ const OriginationMobileDashboard = () => {
             </div>
           </div>
 
-          <div className="bg-white/60 backdrop-blur-xl p-4 rounded-2xl border border-white/80 shadow-sm min-w-[180px] snap-center shrink-0 pr-6">
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm min-w-[180px] snap-center shrink-0 pr-6">
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs font-medium text-slate-500">Converted</p>
               <CheckCircle size={16} className="text-emerald-500" />
