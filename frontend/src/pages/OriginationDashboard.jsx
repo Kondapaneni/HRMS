@@ -1,47 +1,56 @@
 import React, { useState } from 'react';
-import { CreditCard, History, DollarSign, Clock, FileText, ChevronRight, CheckCircle2, AlertCircle } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { useQuery } from '@tanstack/react-query';
+import { getDashboardData } from '../services/loanServices';
+import { Users, TrendingUp, CheckCircle, ArrowUpRight, Plus } from 'lucide-react';
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend
+} from 'recharts';
+import { motion } from 'framer-motion';
 import OriginationMobileDashboard from './OriginationMobileDashboard';
+import AddLeadSidebar from '../components/AddLeadSidebar';
 
 const OriginationDashboard = () => {
-  const [formData, setFormData] = useState({
-    amount: '',
-    type: 'Personal',
-    term: '12',
-    purpose: '',
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['leadsDashboard'],
+    queryFn: getDashboardData
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Mock data for UI demonstration
-  const recentApplications = [
-    { id: 'LN-2026-001', type: 'Personal Loan', amount: 5000, date: 'Aug 01, 2026', status: 'Approved' },
-    { id: 'LN-2026-002', type: 'Medical Emergency', amount: 12500, date: 'Jul 15, 2026', status: 'Pending' },
-    { id: 'LN-2026-003', type: 'Home Renovation', amount: 30000, date: 'Jun 22, 2026', status: 'Rejected' },
-  ];
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!formData.amount || !formData.purpose) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
-    
-    setIsSubmitting(true);
-    // Simulate API call
-    setTimeout(() => {
-      toast.success('Loan application submitted successfully!');
-      setIsSubmitting(false);
-      setFormData({ amount: '', type: 'Personal', term: '12', purpose: '' });
-    }, 1500);
+  const stats = data?.stats || {
+    total_leads_month: 0,
+    percent_change_total: 0,
+    active_opportunities: 0,
+    percent_change_active: 0,
+    converted_leads: 0,
+    percent_change_converted: 0
   };
 
-  const getStatusColor = (status) => {
-    switch(status) {
-      case 'Approved': return 'bg-emerald-100 text-emerald-700';
-      case 'Pending': return 'bg-amber-100 text-amber-700';
-      case 'Rejected': return 'bg-rose-100 text-rose-700';
-      default: return 'bg-slate-100 text-slate-700';
+  const dailyData = data?.dailyData || [];
+  const monthlyData = data?.monthlyData || [];
+
+  const [isAddLeadOpen, setIsAddLeadOpen] = useState(false);
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
     }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
   };
 
   return (
@@ -50,200 +59,132 @@ const OriginationDashboard = () => {
         <OriginationMobileDashboard />
       </div>
 
-      <div className="hidden md:block p-6 max-w-7xl mx-auto space-y-6 pb-24">
+      <motion.div 
+        className="hidden md:block p-6 space-y-6 pb-24"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
         {/* Header Section */}
-        <div className="flex justify-between items-center mb-2">
+        <motion.div variants={itemVariants} className="flex justify-between items-center mb-2">
           <div>
-            <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Loan Origination</h1>
-            <p className="text-sm text-slate-500 mt-1">Manage and apply for employee loans or salary advances.</p>
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900">Leads Dashboard</h1>
+            <p className="text-sm text-slate-500 mt-1">Overview of lead generation and conversion trends.</p>
           </div>
-        </div>
+          <button 
+            onClick={() => setIsAddLeadOpen(true)}
+            className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 transition-colors gap-2 shadow-sm"
+          >
+            <Plus size={16} />
+            Add Leads
+          </button>
+        </motion.div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white/60 backdrop-blur-xl p-6 rounded-2xl border border-white/80 shadow-sm flex items-center justify-between group hover:border-blue-200 transition-colors">
             <div>
-              <p className="text-sm font-medium text-slate-500 mb-1">Available Limit</p>
-              <h3 className="text-2xl font-bold text-slate-800">$50,000</h3>
+              <p className="text-sm font-medium text-slate-500 mb-1">Total Leads (This Month)</p>
+              <div className="flex items-end gap-3">
+                <h3 className="text-3xl font-bold text-slate-800">
+                  {isLoading ? '...' : stats.total_leads_month}
+                </h3>
+                <span className={`flex items-center text-sm font-medium mb-1 ${stats.percent_change_total >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                  <ArrowUpRight size={16} className={`mr-0.5 ${stats.percent_change_total < 0 ? 'rotate-90' : ''}`} /> 
+                  {Math.abs(stats.percent_change_total)}%
+                </span>
+              </div>
             </div>
-            <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
-              <DollarSign size={24} />
+            <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform">
+              <Users size={28} />
             </div>
           </div>
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-slate-500 mb-1">Active Loans</p>
-              <h3 className="text-2xl font-bold text-slate-800">1</h3>
-            </div>
-            <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
-              <CreditCard size={24} />
-            </div>
-          </div>
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-slate-500 mb-1">Pending Requests</p>
-              <h3 className="text-2xl font-bold text-slate-800">1</h3>
-            </div>
-            <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600">
-              <Clock size={24} />
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-2">
           
-          {/* Application Form Column */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-6 py-5 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50">
-                <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
-                  <FileText size={16} />
-                </div>
-                <h2 className="text-lg font-semibold text-slate-800">New Loan Application</h2>
+          <div className="bg-white/60 backdrop-blur-xl p-6 rounded-2xl border border-white/80 shadow-sm flex items-center justify-between group hover:border-indigo-200 transition-colors">
+            <div>
+              <p className="text-sm font-medium text-slate-500 mb-1">Active Opportunities</p>
+              <div className="flex items-end gap-3">
+                <h3 className="text-3xl font-bold text-slate-800">
+                  {isLoading ? '...' : stats.active_opportunities}
+                </h3>
+                <span className={`flex items-center text-sm font-medium mb-1 ${stats.percent_change_active >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                  <ArrowUpRight size={16} className={`mr-0.5 ${stats.percent_change_active < 0 ? 'rotate-90' : ''}`} /> 
+                  {Math.abs(stats.percent_change_active)}%
+                </span>
               </div>
-              
-              <form onSubmit={handleSubmit} className="p-6 space-y-5">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <div className="space-y-1.5">
-                    <label className="block text-sm font-medium text-slate-700">Loan Amount ($)</label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <span className="text-slate-500 sm:text-sm">$</span>
-                      </div>
-                      <input
-                        type="number"
-                        min="100"
-                        step="100"
-                        required
-                        value={formData.amount}
-                        onChange={(e) => setFormData({...formData, amount: e.target.value})}
-                        className="block w-full pl-7 pr-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm transition-shadow"
-                        placeholder="0.00"
-                      />
-                    </div>
-                  </div>
+            </div>
+            <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-transform">
+              <TrendingUp size={28} />
+            </div>
+          </div>
+          
+          <div className="bg-white/60 backdrop-blur-xl p-6 rounded-2xl border border-white/80 shadow-sm flex items-center justify-between group hover:border-emerald-200 transition-colors">
+            <div>
+              <p className="text-sm font-medium text-slate-500 mb-1">Converted Leads</p>
+              <div className="flex items-end gap-3">
+                <h3 className="text-3xl font-bold text-slate-800">
+                  {isLoading ? '...' : stats.converted_leads}
+                </h3>
+                <span className={`flex items-center text-sm font-medium mb-1 ${stats.percent_change_converted >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                  <ArrowUpRight size={16} className={`mr-0.5 ${stats.percent_change_converted < 0 ? 'rotate-90' : ''}`} /> 
+                  {Math.abs(stats.percent_change_converted)}%
+                </span>
+              </div>
+            </div>
+            <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
+              <CheckCircle size={28} />
+            </div>
+          </div>
+        </motion.div>
 
-                  <div className="space-y-1.5">
-                    <label className="block text-sm font-medium text-slate-700">Loan Type</label>
-                    <select
-                      value={formData.type}
-                      onChange={(e) => setFormData({...formData, type: e.target.value})}
-                      className="block w-full px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm transition-shadow bg-white"
-                    >
-                      <option value="Personal">Personal Loan</option>
-                      <option value="Medical">Medical Emergency</option>
-                      <option value="Education">Education</option>
-                      <option value="Home">Home Renovation</option>
-                      <option value="Advance">Salary Advance</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="block text-sm font-medium text-slate-700">Repayment Term (Months)</label>
-                  <div className="grid grid-cols-5 gap-3">
-                    {['6', '12', '24', '36', '48'].map((term) => (
-                      <div
-                        key={term}
-                        onClick={() => setFormData({...formData, term})}
-                        className={`cursor-pointer text-center py-2.5 rounded-xl border text-sm font-medium transition-all ${
-                          formData.term === term 
-                            ? 'bg-blue-50 border-blue-600 text-blue-700 shadow-sm ring-1 ring-blue-600' 
-                            : 'bg-white border-slate-200 text-slate-600 hover:border-blue-300 hover:bg-blue-50/50'
-                        }`}
-                      >
-                        {term}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="block text-sm font-medium text-slate-700">Purpose / Reason</label>
-                  <textarea
-                    required
-                    value={formData.purpose}
-                    onChange={(e) => setFormData({...formData, purpose: e.target.value})}
-                    rows={4}
-                    className="block w-full px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm transition-shadow resize-none"
-                    placeholder="Briefly describe the reason for this loan request..."
+        {/* Charts Section */}
+        <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
+          
+          {/* Daily Trends Chart */}
+          <div className="bg-white/60 backdrop-blur-xl rounded-2xl border border-white/80 shadow-sm p-6">
+            <h3 className="text-lg font-bold text-slate-800 mb-6">Daily Leads Trend (Last 7 Days)</h3>
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={dailyData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                   />
-                </div>
-                
-                {/* ServiceNow Mock Info Alert */}
-                <div className="bg-blue-50 rounded-xl p-4 flex items-start gap-3 border border-blue-100">
-                  <AlertCircle className="text-blue-600 shrink-0 mt-0.5" size={18} />
-                  <div className="text-sm text-blue-800">
-                    <p className="font-medium mb-1">ServiceNow Integration</p>
-                    <p className="text-blue-700/80">Submitting this form will automatically generate a ServiceNow request ticket for the HR & Finance teams to process.</p>
-                  </div>
-                </div>
-
-                <div className="pt-2">
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-70 disabled:cursor-not-allowed transition-all"
-                  >
-                    {isSubmitting ? (
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Processing...
-                      </div>
-                    ) : (
-                      'Submit Application'
-                    )}
-                  </button>
-                </div>
-              </form>
+                  <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
+                  <Line type="monotone" dataKey="leads" name="Total Leads" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6, strokeWidth: 0, fill: '#3b82f6' }} />
+                  <Line type="monotone" dataKey="converted" name="Converted" stroke="#10b981" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6, strokeWidth: 0, fill: '#10b981' }} />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
           </div>
 
-          {/* Recent Applications Column */}
-          <div className="space-y-6">
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
-                    <History size={16} />
-                  </div>
-                  <h2 className="text-lg font-semibold text-slate-800">Recent Applications</h2>
-                </div>
-              </div>
-              
-              <div className="divide-y divide-slate-100">
-                {recentApplications.map((app) => (
-                  <div key={app.id} className="p-5 hover:bg-slate-50 transition-colors cursor-pointer group">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <span className="text-xs font-semibold text-slate-400 block mb-1">{app.id}</span>
-                        <h4 className="text-sm font-medium text-slate-900 group-hover:text-blue-600 transition-colors">{app.type}</h4>
-                      </div>
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${getStatusColor(app.status)}`}>
-                        {app.status}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center mt-3">
-                      <span className="text-lg font-bold text-slate-800">${app.amount.toLocaleString()}</span>
-                      <div className="flex items-center gap-2 text-xs text-slate-500">
-                        <span>{app.date}</span>
-                        <ChevronRight size={14} className="text-slate-400 group-hover:text-blue-500 group-hover:translate-x-0.5 transition-all" />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              
-              <div className="p-4 border-t border-slate-100 bg-slate-50/50">
-                <button className="w-full text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors">
-                  View All History
-                </button>
-              </div>
+          {/* Monthly Trends Chart */}
+          <div className="bg-white/60 backdrop-blur-xl rounded-2xl border border-white/80 shadow-sm p-6">
+            <h3 className="text-lg font-bold text-slate-800 mb-6">Monthly Leads Trend (Last 6 Months)</h3>
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={monthlyData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} />
+                  <Tooltip 
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                    cursor={{ fill: '#f1f5f9' }}
+                  />
+                  <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
+                  <Bar dataKey="leads" name="Total Leads" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={32} />
+                  <Bar dataKey="converted" name="Converted" fill="#10b981" radius={[4, 4, 0, 0]} barSize={32} />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </div>
 
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
+      
+      <AddLeadSidebar isOpen={isAddLeadOpen} onClose={() => setIsAddLeadOpen(false)} />
     </>
   );
 };

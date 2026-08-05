@@ -22,9 +22,40 @@ const OriginationLayout = () => {
     { icon: <Activity size={18} />, label: 'Dashboard', path: '/employee/loans/origination', feature: 'canLoanOrigination' },
   ];
 
+  const shapeVariants = {
+    animate: (i) => ({
+      y: [0, -20, 0],
+      x: [0, 15, 0],
+      rotate: [0, 10, -10, 0],
+      transition: {
+        duration: 5 + i * 2,
+        repeat: Infinity,
+        ease: "easeInOut"
+      }
+    })
+  };
+
   return (
     <div className="h-[100dvh] w-full overflow-hidden bg-slate-50 flex font-sans text-slate-800 relative z-0">
       
+      {/* Global Animated Background Graphics */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden fixed md:absolute">
+        <motion.div custom={1} variants={shapeVariants} animate="animate" className="absolute w-64 h-64 bg-[#F59E0B] rounded-full opacity-10 -top-20 -right-20" />
+        <motion.div custom={2} variants={shapeVariants} animate="animate" className="absolute w-48 h-48 bg-[#10B981] rounded-3xl opacity-10 bottom-[-40px] left-1/4 rotate-12" />
+        <motion.div custom={3} variants={shapeVariants} animate="animate" className="absolute w-96 h-96 bg-[#3B82F6] rounded-full opacity-5 top-1/2 left-1/3" />
+        <motion.div custom={4} variants={shapeVariants} animate="animate" className="absolute w-32 h-32 bg-[#EC4899] rounded-xl opacity-10 top-20 left-10 -rotate-12" />
+        <motion.div custom={5} variants={shapeVariants} animate="animate" className="absolute w-72 h-72 bg-[#8B5CF6] rounded-full opacity-10 bottom-20 right-1/4" />
+
+        {/* Additional top-left boxes */}
+        <motion.div custom={6} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-40 h-40 bg-[#14B8A6] rounded-2xl opacity-10 top-[-20px] left-[18rem] rotate-45" />
+        <motion.div custom={7} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-28 h-28 bg-[#F43F5E] rounded-3xl opacity-10 top-32 left-[24rem] -rotate-12" />
+        <motion.div custom={8} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-56 h-56 bg-[#6366F1] rounded-full opacity-[0.06] top-10 left-[35%]" />
+
+        {/* Additional bottom-right boxes */}
+        <motion.div custom={9} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-36 h-36 bg-[#EAB308] rounded-2xl opacity-10 bottom-10 right-10 -rotate-12" />
+        <motion.div custom={10} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-24 h-24 bg-[#06B6D4] rounded-full opacity-10 bottom-40 right-28 rotate-45" />
+      </div>
+
       {/* Sidebar - Clean, Professional */}
       <aside className="w-[260px] h-screen sticky top-0 bg-white/80 backdrop-blur-md border-r border-slate-200 hidden md:flex flex-col z-20 shadow-sm shrink-0">
         <div className="h-14 flex items-center px-4 border-b border-slate-200 shrink-0">
@@ -116,7 +147,7 @@ const OriginationLayout = () => {
         </header>
 
         {/* Dynamic Page Content */}
-        <div className="flex-1 overflow-y-auto overscroll-y-contain bg-slate-50 pb-24 md:pb-0" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div className="flex-1 overflow-y-auto overscroll-y-contain bg-transparent pb-24 md:pb-0" style={{ WebkitOverflowScrolling: 'touch' }}>
           <Outlet />
         </div>
         

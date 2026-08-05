@@ -448,6 +448,7 @@ require __DIR__ . '/admin_training_routes.php';
 require __DIR__ . '/chat_routes.php';
 require __DIR__ . '/candidate_auth_routes.php';
 require __DIR__ . '/candidate_recruitment_routes.php';
+require __DIR__ . '/origination_dashboard_routes.php';
 
 // Request Password Reset
 $app->post('/api/forgot-password', function (Request $request, Response $response) {
