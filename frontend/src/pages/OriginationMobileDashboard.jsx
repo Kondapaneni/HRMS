@@ -50,7 +50,7 @@ const OriginationMobileDashboard = () => {
   };
 
   return (
-    <div className="pb-20 min-h-screen bg-slate-50">
+    <div className="pb-20 min-h-screen">
       {/* Animated Hero Header */}
       <section className="relative px-6 pt-12 pb-20 rounded-b-[40px] overflow-hidden bg-slate-900 shadow-md">
         {/* Animated Background Blobs */}
