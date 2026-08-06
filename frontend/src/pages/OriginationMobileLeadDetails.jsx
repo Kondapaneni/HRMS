@@ -61,7 +61,7 @@ const OriginationMobileLeadDetails = () => {
   return (
     <div className="w-full pb-8">
       {/* Header */}
-      <div className="relative pt-12 pb-24 px-4 overflow-hidden rounded-b-[40px] shadow-md bg-slate-900">
+      <div className="relative pt-14 pb-16 px-4 overflow-hidden rounded-b-[40px] shadow-md bg-slate-900">
         {/* Animated Background Blobs */}
         <motion.div
           animate={{
@@ -106,13 +106,13 @@ const OriginationMobileLeadDetails = () => {
           {getStatusBadge(currentStatus)}
         </div>
 
-        <div className="relative z-10 flex flex-col items-center mt-8">
+        <div className="relative z-10 flex flex-col items-center mt-2">
           <h1 className="text-2xl font-bold text-white text-center px-4 leading-snug">{lead.name}</h1>
         </div>
       </div>
 
       {/* Content */}
-      <div className="px-4 -mt-12 relative z-20">
+      <div className="px-4 -mt-8 relative z-20">
         <div className="bg-white rounded-3xl p-6 shadow-xl border border-slate-100 space-y-6">
           
           <div className="space-y-1">
