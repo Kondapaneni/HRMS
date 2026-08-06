@@ -46,6 +46,9 @@ const EmployeeMobileTrainingVideos = () => {
           className="absolute top-10 -right-10 w-64 h-64 bg-[#c5a3ff] rounded-full mix-blend-screen filter blur-[40px] opacity-40 pointer-events-none"
         />
 
+        {/* Subtle Glass Overlay */}
+        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
+
         <div className="relative z-10 px-2 flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="p-2 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-md transition-colors border border-white/10 text-white">
             <ChevronLeft size={20} />

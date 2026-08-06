@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { LogOut, Home, Briefcase, FileText, Activity, ArrowLeft } from 'lucide-react';
+import { LogOut, Home, Briefcase, FileText, Activity, ArrowLeft, Smartphone } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
@@ -37,6 +37,7 @@ const OriginationLayout = () => {
   };
 
   return (
+    <>
     <div className="h-[100dvh] w-full overflow-hidden bg-slate-50 flex font-sans text-slate-800 relative z-0">
       
       {/* Global Animated Background Graphics */}
@@ -157,9 +158,10 @@ const OriginationLayout = () => {
         </div>
         
         {/* Mobile Bottom Navigation (iOS Liquid Glass) */}
-        <div className="md:hidden fixed bottom-6 left-4 right-4 z-50 pointer-events-none touch-none select-none">
+        <div
+          className="md:hidden fixed bottom-6 left-4 right-4 z-50 pointer-events-none touch-none select-none"
+        >
           <div className="bg-white/50 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-full p-1.5 flex justify-around items-center pointer-events-auto">
-            
             {navItems.filter(item => !item.feature || profile?.featureAccess?.[item.feature]).map((item, idx) => {
               const isActive = item.path === '/employee/loans/origination'
                 ? location.pathname === item.path
@@ -168,9 +170,10 @@ const OriginationLayout = () => {
               const Icon = item.icon;
               
               return (
-                <Link 
-                  key={idx} 
-                  to={item.path} 
+                <Link
+                  key={item.path || idx}
+                  to={item.path}
+                  data-nav-path={item.path}
                   className="relative flex flex-col items-center justify-center w-[72px] h-[58px] z-10 group"
                 >
                   {isActive && (
@@ -181,7 +184,7 @@ const OriginationLayout = () => {
                     />
                   )}
                   <Icon className={`relative z-10 w-6 h-6 mb-0.5 transition-all duration-300 ${isActive ? 'text-[#ff2d55] scale-105' : 'text-slate-500 group-hover:text-slate-600 group-active:scale-95'}`} strokeWidth={isActive ? 2.5 : 2} />
-                  <span className={`relative z-10 text-[10px] text-center leading-tight font-medium tracking-wide transition-all duration-300 ${isActive ? 'text-[#ff2d55]' : 'text-slate-500'}`}>{item.label}</span>
+                  <span className={`relative z-10 text-[10px] font-medium tracking-wide transition-all duration-300 ${isActive ? 'text-[#ff2d55]' : 'text-slate-500'}`}>{item.label}</span>
                 </Link>
               );
             })}
@@ -189,6 +192,41 @@ const OriginationLayout = () => {
         </div>
       </main>
     </div>
+
+    <style>{`
+      .orientation-warning {
+        display: none;
+      }
+      @media (orientation: landscape) and (max-width: 1024px) {
+        .orientation-warning {
+          display: flex;
+        }
+      }
+    `}</style>
+
+    {/* Landscape Orientation Warning Overlay for Mobile/Tablet */}
+    <div className="orientation-warning fixed inset-0 z-[9999] flex-col items-center justify-center bg-white/60 backdrop-blur-3xl p-6 text-center select-none border border-white/80 shadow-[inset_0_1px_3px_rgba(255,255,255,0.8),0_12px_40px_rgba(0,0,0,0.08)]">
+      <div className="relative mb-6">
+        {/* Animated phone rotation container */}
+        <div className="w-20 h-20 border border-dashed border-slate-300 rounded-full flex items-center justify-center animate-[spin_8s_linear_infinite]">
+          <Smartphone className="w-8 h-8 text-[#ff2d55] opacity-20" />
+        </div>
+        {/* Main phone rotation icon */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <motion.div
+            animate={{ rotate: [0, -90, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <Smartphone className="w-10 h-10 text-slate-800" />
+          </motion.div>
+        </div>
+      </div>
+      <h3 className="text-xl font-black text-slate-900 mb-2 uppercase tracking-wide">Rotate your device</h3>
+      <p className="text-slate-500 text-sm max-w-xs font-medium leading-relaxed">
+        Please rotate your screen back to portrait orientation for the best Acme HRMS experience.
+      </p>
+    </div>
+    </>
   );
 };
 
