@@ -28,12 +28,12 @@ $app->post('/api/leads', function (Request $request, Response $response, $args) 
         }
 
         $stmt = $conn->prepare('
-            INSERT INTO public.loan_leads (name, phone, address, loan_type, status, created_by)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO public.loan_leads (name, phone, address, loan_type, status, created_by, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             RETURNING id, name, phone, address, loan_type, status, created_at
         ');
         
-        $stmt->execute([$name, $phone, $address, $loan_type, 'New', $user->id]);
+        $stmt->execute([$name, $phone, $address, $loan_type, 'New', $user->id, date('Y-m-d H:i:s')]);
         $lead = $stmt->fetch(PDO::FETCH_ASSOC);
 
         $response->getBody()->write(json_encode([
@@ -67,7 +67,7 @@ $app->get('/api/leads/list', function (Request $request, Response $response, $ar
         }
 
         $sql = "
-            SELECT id, name, phone, address, status, created_at
+            SELECT id, name, phone, address, loan_type, status, created_at
             FROM public.loan_leads
             WHERE created_by = :uid
         ";

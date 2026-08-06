@@ -4,6 +4,7 @@ import { X, User, Phone, MapPin } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { capitalizeWords, validateLeadPhone } from '../utils/loanValidations';
 import { createLead } from '../services/loanServices';
+import { useQueryClient } from '@tanstack/react-query';
 
 const AddLeadSidebar = ({ isOpen, onClose }) => {
   const [formData, setFormData] = useState({
@@ -13,6 +14,7 @@ const AddLeadSidebar = ({ isOpen, onClose }) => {
     loan_type: 'Personal Loan'
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const queryClient = useQueryClient();
 
   const handleChange = (e) => {
     let { name, value } = e.target;
@@ -37,6 +39,7 @@ const AddLeadSidebar = ({ isOpen, onClose }) => {
     try {
       setIsSubmitting(true);
       await createLead(formData);
+      queryClient.invalidateQueries(['origination', 'leads', 'list']);
       toast.success('Lead added successfully!');
       setFormData({ name: '', phone: '', address: '', loan_type: 'Personal Loan' });
       onClose();

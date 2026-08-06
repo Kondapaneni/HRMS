@@ -4,12 +4,12 @@ import { getLeads } from '../services/loanServices';
 import { motion } from 'framer-motion';
 import { Search, CheckCircle2, Users, Loader2, MoreVertical } from 'lucide-react';
 import { format } from 'date-fns';
-import LeadDetailsSidebar from '../components/LeadDetailsSidebar';
+import MemberDetailsSidebar from '../components/MemberDetailsSidebar';
 
 const OriginationMembersList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [selectedLead, setSelectedLead] = useState(null);
+  const [selectedMember, setSelectedMember] = useState(null);
 
   // Debounce the search input
   React.useEffect(() => {
@@ -22,8 +22,24 @@ const OriginationMembersList = () => {
     queryFn: getLeads,
   });
 
-  // Filter only converted leads
-  const members = (response?.leads || []).filter(lead => lead.status === 'Converted');
+  // Filter only converted leads and group by phone
+  const convertedLeads = (response?.leads || []).filter(lead => lead.status === 'Converted');
+  const members = Object.values(convertedLeads.reduce((acc, lead) => {
+    if (!acc[lead.phone]) {
+      acc[lead.phone] = {
+        id: lead.phone,
+        name: lead.name,
+        phone: lead.phone,
+        address: lead.address,
+        updated_at: lead.updated_at,
+        created_at: lead.created_at,
+        status: 'Converted',
+        loans: []
+      };
+    }
+    acc[lead.phone].loans.push(lead);
+    return acc;
+  }, {}));
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -35,34 +51,35 @@ const OriginationMembersList = () => {
     visible: { opacity: 1, y: 0, transition: { duration: 0.4 } }
   };
 
-  const getStatusBadge = (status) => {
-    return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700"><CheckCircle2 size={12} /> Converted</span>;
+  const formatLoanTypes = (loans) => {
+    if (!loans || loans.length === 0) return 'N/A';
+    const uniqueTypes = [...new Set(loans.map(l => l.loan_type || 'Personal Loan'))];
+    if (uniqueTypes.length <= 2) {
+      return uniqueTypes.join(', ');
+    } else {
+      return `${uniqueTypes.slice(0, 2).join(', ')} +${uniqueTypes.length - 2}`;
+    }
   };
 
   return (
     <>
-      <motion.div 
-        className="p-4 md:p-6 space-y-6 md:pb-6"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
+      <div className="p-4 md:p-6 space-y-6 md:pb-6">
         
         {/* Header */}
-        <motion.div variants={itemVariants} className="flex justify-between items-center mb-2">
+        <div className="flex justify-between items-center mb-2">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-slate-900">Members</h1>
             <p className="text-sm text-slate-500 mt-1">View leads that have been successfully converted into members.</p>
           </div>
-        </motion.div>
+        </div>
 
       {/* Data State */}
       {error ? (
-        <motion.div variants={itemVariants} className="bg-red-50 text-red-600 p-4 rounded-xl text-center border border-red-100">
+        <div className="bg-red-50 text-red-600 p-4 rounded-xl text-center border border-red-100">
           Failed to load members. Please try again.
-        </motion.div>
+        </div>
       ) : (
-        <motion.div variants={itemVariants}>
+        <div>
           
         {/* Table View */}
         <div className="rounded-lg border border-slate-200 bg-white shadow-sm mb-6">
@@ -93,7 +110,7 @@ const OriginationMembersList = () => {
                       <th className="p-3">Name</th>
                       <th className="p-3">Contact</th>
                       <th className="p-3">Location</th>
-                      <th className="p-3">Status</th>
+                      <th className="p-3">Loan Types</th>
                       <th className="p-3">Converted Date</th>
                       <th className="p-3 w-20 text-center">Action</th>
                     </tr>
@@ -114,7 +131,7 @@ const OriginationMembersList = () => {
                       </tr>
                     ) : (
                       members.map((member) => (
-                        <motion.tr variants={itemVariants} key={member.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
+                        <tr key={member.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
                           <td className="p-3 text-slate-700">
                             <div className="font-medium text-slate-900">{member.name}</div>
                           </td>
@@ -124,21 +141,23 @@ const OriginationMembersList = () => {
                           <td className="p-3 text-slate-700 max-w-[200px] truncate" title={member.address}>
                             {member.address}
                           </td>
-                          <td className="p-3">
-                            {getStatusBadge(member.status)}
+                          <td className="p-3 text-slate-700">
+                            <span className="inline-flex px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs font-medium border border-blue-100">
+                              {formatLoanTypes(member.loans)}
+                            </span>
                           </td>
                           <td className="p-3 text-slate-700">
                             {format(new Date(member.updated_at || member.created_at), 'MMM d, yyyy h:mm a')}
                           </td>
                           <td className="p-3 text-center">
                             <button 
-                              onClick={() => setSelectedLead(member)}
+                              onClick={() => setSelectedMember(member)}
                               className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md transition-colors"
                             >
                               <MoreVertical size={16} />
                             </button>
                           </td>
-                        </motion.tr>
+                        </tr>
                       ))
                     )}
                   </tbody>
@@ -147,15 +166,15 @@ const OriginationMembersList = () => {
             </div>
           </div>
           
-        </motion.div>
+        </div>
       )}
 
-      </motion.div>
+      </div>
 
-      <LeadDetailsSidebar 
-        isOpen={!!selectedLead} 
-        onClose={() => setSelectedLead(null)} 
-        lead={selectedLead} 
+      <MemberDetailsSidebar 
+        isOpen={!!selectedMember} 
+        onClose={() => setSelectedMember(null)} 
+        member={selectedMember} 
       />
     </>
   );

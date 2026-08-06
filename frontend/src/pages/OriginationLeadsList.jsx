@@ -120,6 +120,7 @@ const OriginationLeadsList = () => {
                       <th className="p-3">Name</th>
                       <th className="p-3">Contact</th>
                       <th className="p-3">Location</th>
+                      <th className="p-3">Loan Type</th>
                       <th className="p-3">Status</th>
                       <th className="p-3">Created Date</th>
                       <th className="p-3 w-20 text-center">Action</th>
@@ -128,14 +129,14 @@ const OriginationLeadsList = () => {
                   <tbody>
                     {isLoading ? (
                       <tr>
-                        <td colSpan="6" className="p-12 text-center">
+                        <td colSpan="7" className="p-12 text-center">
                           <Loader2 className="animate-spin h-8 w-8 text-blue-600 mx-auto" />
                           <p className="text-slate-500 mt-4">Searching leads...</p>
                         </td>
                       </tr>
                     ) : leads.length === 0 ? (
                       <tr>
-                        <td colSpan="6" className="text-center py-12 text-slate-500">
+                        <td colSpan="7" className="text-center py-12 text-slate-500">
                           No leads found.
                         </td>
                       </tr>
@@ -150,6 +151,9 @@ const OriginationLeadsList = () => {
                           </td>
                           <td className="p-3 text-slate-700 max-w-[200px] truncate" title={lead.address}>
                             {lead.address}
+                          </td>
+                          <td className="p-3 text-slate-700">
+                            <span className="font-medium text-slate-800">{lead.loan_type || 'Personal Loan'}</span>
                           </td>
                           <td className="p-3">
                             {getStatusBadge(lead.status)}
