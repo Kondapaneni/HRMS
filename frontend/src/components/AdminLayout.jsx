@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { 
   LogOut, Users, Settings, Activity, Briefcase, 
   Search, Bell, Menu, Home, Calendar, Clock, 
-  BarChart2, ChevronDown, DollarSign, Monitor, FileText, Shield, Network, Mail, MessageSquare, Award, Smartphone
+  BarChart2, ChevronDown, DollarSign, Monitor, FileText, Shield, Network, Mail, Award, Smartphone
 } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -46,23 +46,10 @@ const AdminLayout = () => {
     { icon: <Briefcase size={18} />, label: 'Recruitment', path: '/admin/recruitment' },
     { icon: <Award size={18} />, label: 'Assessment and Training', path: '/admin/assessments' },
     { icon: <Mail size={18} />, label: 'Email Templates', path: '/admin/email-templates' },
-    { icon: <MessageSquare size={18} />, label: 'Secure Chat', path: '/admin/chat' },
     { icon: <FileText size={18} />, label: 'Audit Logs', path: '/admin/audit-logs' },
     { icon: <Shield size={18} />, label: 'Feature Access', path: '/admin/feature-access' },
     { icon: <Settings size={18} />, label: 'Settings', path: '/admin/settings' },
   ];
-
-  // Fetch chat list (shared cache with Chat.jsx) to keep unread badges perfectly synced
-  const { data: chats = [] } = useQuery({
-    queryKey: ['chat', 'list'],
-    queryFn: async () => {
-      const res = await api.get('/chat');
-      return res.data;
-    },
-    refetchInterval: 1500,
-    refetchOnWindowFocus: true,
-    staleTime: 0,
-  });
 
   const { data: pendingDocsCount = 0 } = useQuery({
     queryKey: ['admin_pending_docs'],
@@ -77,8 +64,6 @@ const AdminLayout = () => {
     },
     refetchInterval: 5000,
   });
-
-  const totalUnread = chats.reduce((sum, chat) => sum + (chat.unread_count || 0), 0);
 
   const shapeVariants = {
     animate: (i) => ({
@@ -140,11 +125,7 @@ const AdminLayout = () => {
                 >
                   <span className={`shrink-0 ${isActive ? 'text-blue-600' : 'text-slate-400'}`}>{item.icon}</span>
                   <span className="flex-1 whitespace-nowrap truncate">{item.label}</span>
-                  {item.label === 'Secure Chat' && totalUnread > 0 && (
-                    <span className="bg-[#25d366] text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shrink-0">
-                      {totalUnread}
-                    </span>
-                  )}
+
                   {item.label === 'Recruitment' && pendingDocsCount > 0 && (
                     <span className="bg-amber-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shrink-0" title={`${pendingDocsCount} documents waiting for verification`}>
                       {pendingDocsCount}

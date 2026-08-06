@@ -161,7 +161,7 @@ const CandidateApplications = () => {
               </button>
             </div>
             
-            <div className="p-6 max-h-[60vh] overflow-y-auto chat-scrollbar">
+            <div className="p-6 max-h-[60vh] overflow-y-auto custom-scrollbar">
               <div className="relative wrap overflow-hidden p-2">
                 <div className="absolute border-opacity-20 border-slate-300 h-full border-l-2" style={{left: '50%', transform: 'translateX(-50%)'}}></div>
                 {(!timelineApp.timeline || timelineApp.timeline.length === 0) ? (

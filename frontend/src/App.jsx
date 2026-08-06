@@ -25,7 +25,7 @@ import EditProfilePage from './pages/EditProfilePage'
 import EmployeeFaceRegistration from './pages/EmployeeFaceRegistration'
 import EmployeeMobileMap from './pages/EmployeeMobileMap'
 import EmployeeMobileCamera from './pages/EmployeeMobileCamera'
-import EmployeeMobileChat from './pages/EmployeeMobileChat'
+
 import EmployeeMobileHolidays from './pages/EmployeeMobileHolidays'
 import EmployeeMobileBirthdays from './pages/EmployeeMobileBirthdays'
 import OriginationLayout from './components/OriginationLayout'
@@ -63,7 +63,7 @@ import AdminSettings from './pages/AdminSettings'
 import AdminEmailTemplates from './pages/AdminEmailTemplates'
 import AdminPerformance from './pages/AdminPerformance'
 import AdminExpenses from './pages/AdminExpenses'
-import Chat from './pages/Chat'
+
 import AdminRecruitment from './pages/AdminRecruitment'
 import EmployeeAssessments from './pages/EmployeeAssessments'
 import EmployeeAssessmentInstructions from './pages/EmployeeAssessmentInstructions'
@@ -164,7 +164,6 @@ function App() {
                 <Route path="holidays" element={<AdminHolidays />} />
                 <Route path="holidays/archive" element={<AdminHolidaysArchive />} />
                 <Route path="email-templates" element={<AdminEmailTemplates />} />
-                <Route path="chat" element={<Chat />} />
                 <Route path="settings" element={<AdminSettings />} />
                 <Route path="performance" element={<AdminPerformance />} />
                 <Route path="recruitment" element={<AdminRecruitment />} />
@@ -208,7 +207,6 @@ function App() {
                 <Route path="assessments" element={<EmployeeAssessments />} />
                 <Route path="assessments/instructions" element={<EmployeeAssessmentInstructions />} />
                 <Route path="training" element={<EmployeeTrainingVideos />} />
-                <Route path="chat" element={<Chat />} />
                 <Route path="profile" element={<EmployeeProfile />} />
                 <Route path="profile/edit" element={<EditProfilePage />} />
               </Route>
@@ -288,15 +286,6 @@ function App() {
                   </ProtectedRoute>
                 }
               />
-              <Route
-                path="/employee/chat/mobile"
-                element={
-                  <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
-                    <EmployeeMobileChat />
-                  </ProtectedRoute>
-                }
-              />
-
               {/* Candidate Portal Routes */}
               <Route
                 path="/candidate"

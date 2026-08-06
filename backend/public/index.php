@@ -143,7 +143,7 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
 
         unset($user['password']); // Don't return password hash
 
-        $faStmt = $conn->prepare('SELECT "canAttendance", "canLeave", "canPayroll", "canEmployees", "canRecruitment", "canAssets", "canChat", "canLoanOrigination" FROM user_feature_access WHERE "userId" = ?');
+        $faStmt = $conn->prepare('SELECT "canAttendance", "canLeave", "canPayroll", "canEmployees", "canRecruitment", "canAssets", "canLoanOrigination" FROM user_feature_access WHERE "userId" = ?');
         $faStmt->execute([$user['id']]);
         $fa = $faStmt->fetch(PDO::FETCH_ASSOC);
         
@@ -155,7 +155,6 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
                 'canEmployees' => (bool)$fa['canEmployees'],
                 'canRecruitment' => (bool)$fa['canRecruitment'],
                 'canAssets' => (bool)$fa['canAssets'],
-                'canChat' => (bool)$fa['canChat'],
                 'canLoanOrigination' => (bool)$fa['canLoanOrigination'],
             ];
         }
@@ -260,7 +259,7 @@ $app->post('/api/login/face', function (Request $request, Response $response, $a
         
         $jwt = JWT::encode($payload, $secret, 'HS256');
 
-        $faStmt = $conn->prepare('SELECT "canAttendance", "canLeave", "canPayroll", "canEmployees", "canRecruitment", "canAssets", "canChat", "canLoanOrigination", "canAdminAssessments", "canEmployeeAssessments", "canEmployeeTrainingVideos" FROM user_feature_access WHERE "userId" = ?');
+        $faStmt = $conn->prepare('SELECT "canAttendance", "canLeave", "canPayroll", "canEmployees", "canRecruitment", "canAssets", "canLoanOrigination", "canAdminAssessments", "canEmployeeAssessments", "canEmployeeTrainingVideos" FROM user_feature_access WHERE "userId" = ?');
         $faStmt->execute([$user['id']]);
         $fa = $faStmt->fetch(PDO::FETCH_ASSOC);
         
@@ -272,7 +271,6 @@ $app->post('/api/login/face', function (Request $request, Response $response, $a
                 'canEmployees' => (bool)$fa['canEmployees'],
                 'canRecruitment' => (bool)$fa['canRecruitment'],
                 'canAssets' => (bool)$fa['canAssets'],
-                'canChat' => (bool)$fa['canChat'],
                 'canLoanOrigination' => (bool)$fa['canLoanOrigination'],
                 'canAdminAssessments' => (bool)($fa['canAdminAssessments'] ?? false),
                 'canEmployeeAssessments' => (bool)($fa['canEmployeeAssessments'] ?? false),
@@ -334,7 +332,7 @@ $app->get('/api/me', function (Request $request, Response $response, $args) {
     
     $stmt = $conn->prepare('
         SELECT u.id, u.email, u."firstName", u."lastName", u.role, u.department, u.position, u."isActive", u."forcePasswordChange", e.avatar, e."employeeId", e."geoFenceEnabled", e."webAttendanceEnabled",
-               fa."canAttendance", fa."canLeave", fa."canPayroll", fa."canEmployees", fa."canRecruitment", fa."canAssets", fa."canChat", fa."canLoanOrigination", fa."canAdminAssessments", fa."canEmployeeAssessments", fa."canEmployeeTrainingVideos",
+               fa."canAttendance", fa."canLeave", fa."canPayroll", fa."canEmployees", fa."canRecruitment", fa."canAssets", fa."canLoanOrigination", fa."canAdminAssessments", fa."canEmployeeAssessments", fa."canEmployeeTrainingVideos",
                CASE WHEN b.face_descriptor IS NOT NULL THEN true ELSE false END as "isFaceRegistered"
         FROM users u 
         LEFT JOIN employee e ON u.id = e."userId" 
@@ -363,7 +361,6 @@ $app->get('/api/me', function (Request $request, Response $response, $args) {
                 'canEmployees' => (bool)$user['canEmployees'],
                 'canRecruitment' => (bool)$user['canRecruitment'],
                 'canAssets' => (bool)$user['canAssets'],
-                'canChat' => (bool)$user['canChat'],
                 'canLoanOrigination' => (bool)$user['canLoanOrigination'],
                 'canAdminAssessments' => (bool)($user['canAdminAssessments'] ?? false),
                 'canEmployeeAssessments' => (bool)($user['canEmployeeAssessments'] ?? false),
@@ -371,7 +368,7 @@ $app->get('/api/me', function (Request $request, Response $response, $args) {
             ];
         }
         $user['isFaceRegistered'] = ($user['isFaceRegistered'] === true || $user['isFaceRegistered'] === 'true' || $user['isFaceRegistered'] === 't' || $user['isFaceRegistered'] == 1);
-        unset($user['canAttendance'], $user['canLeave'], $user['canPayroll'], $user['canEmployees'], $user['canRecruitment'], $user['canAssets'], $user['canChat'], $user['canLoanOrigination'], $user['canAdminAssessments'], $user['canEmployeeAssessments'], $user['canEmployeeTrainingVideos']);
+        unset($user['canAttendance'], $user['canLeave'], $user['canPayroll'], $user['canEmployees'], $user['canRecruitment'], $user['canAssets'], $user['canLoanOrigination'], $user['canAdminAssessments'], $user['canEmployeeAssessments'], $user['canEmployeeTrainingVideos']);
         
         $response->getBody()->write(json_encode($user));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
@@ -445,7 +442,6 @@ require __DIR__ . '/admin_settings_routes.php';
 require __DIR__ . '/admin_recruitment_routes.php';
 require __DIR__ . '/admin_assessments_routes.php';
 require __DIR__ . '/admin_training_routes.php';
-require __DIR__ . '/chat_routes.php';
 require __DIR__ . '/candidate_auth_routes.php';
 require __DIR__ . '/candidate_recruitment_routes.php';
 require __DIR__ . '/origination_dashboard_routes.php';
@@ -661,14 +657,6 @@ $app->get('/Holiday/{filename:.+}', function (Request $request, Response $respon
 $app->get('/Attendance/{filename:.+}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];
     $supabaseUrl = $_ENV['VITE_SUPABASE_URL'] . "/storage/v1/object/public/attendance/" . rawurlencode($filename);
-    return streamSupabaseFile($supabaseUrl, $response, $filename, 'inline');
-});
-
-// Chat Attachment proxy route
-$app->get('/Chat-Attachment/{filename:.+}', function (Request $request, Response $response, $args) {
-    $filename = $args['filename'];
-    $encodedFilename = implode('/', array_map('rawurlencode', explode('/', $filename)));
-    $supabaseUrl = $_ENV['VITE_SUPABASE_URL'] . "/storage/v1/object/public/chat_attachments/" . $encodedFilename;
     return streamSupabaseFile($supabaseUrl, $response, $filename, 'inline');
 });
 

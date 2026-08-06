@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import {
   LogOut, User, Calendar, Users, Briefcase, Monitor,
-  Home, Clock, BarChart2, DollarSign, Activity, Bell, Search, Menu, Wallet, MessageSquare,
+  Home, Clock, BarChart2, DollarSign, Activity, Bell, Search, Menu, Wallet,
   Smartphone, Award, Megaphone, Play
 } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
@@ -71,25 +71,12 @@ const EmployeeLayout = () => {
   ];
 
   const businessApps = [
-    { icon: <MessageSquare size={18} />, label: 'Secure Chat', path: '/employee/chat', feature: 'canChat' },
     { icon: <Briefcase size={18} />, label: 'Loans Origination', path: '/employee/loans/origination', feature: 'canLoanOrigination' },
     { icon: <Award size={18} />, label: 'Assessments', path: '/employee/assessments', feature: 'canEmployeeAssessments' },
     { icon: <Play size={18} />, label: 'Training Videos', path: '/employee/training', feature: 'canEmployeeTrainingVideos' },
   ];
 
-  // Fetch chat list (shared cache with Chat.jsx) to keep unread badges perfectly synced
-  const { data: chats = [] } = useQuery({
-    queryKey: ['chat', 'list'],
-    queryFn: async () => {
-      const res = await api.get('/chat');
-      return res.data;
-    },
-    refetchInterval: 1500,
-    refetchOnWindowFocus: true,
-    staleTime: 0,
-  });
 
-  const totalUnread = chats.reduce((sum, chat) => sum + (chat.unread_count || 0), 0);
 
   // Fetch live news headlines
   const { data: newsData } = useQuery({
@@ -178,11 +165,7 @@ const EmployeeLayout = () => {
                 >
                   <span className={`shrink-0 ${isActive ? 'text-blue-600' : 'text-slate-400'}`}>{item.icon}</span>
                   <span className="flex-1 whitespace-nowrap truncate">{item.label}</span>
-                  {item.label === 'Secure Chat' && totalUnread > 0 && (
-                    <span className="bg-[#25d366] text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shrink-0">
-                      {totalUnread}
-                    </span>
-                  )}
+
                 </Link>
               );
             })}
@@ -205,11 +188,7 @@ const EmployeeLayout = () => {
                     >
                       <span className={isActive ? 'text-blue-600' : 'text-slate-400'}>{item.icon}</span>
                       <span className="flex-1">{item.label}</span>
-                      {item.label === 'Secure Chat' && totalUnread > 0 && (
-                        <span className="bg-[#25d366] text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
-                          {totalUnread}
-                        </span>
-                      )}
+
                     </Link>
                   );
                 })}
@@ -279,19 +258,6 @@ const EmployeeLayout = () => {
               </div>
             </div>
 
-            {profile?.featureAccess?.canChat && (
-              <button
-                className="md:hidden relative text-slate-500 hover:text-slate-700 transition-colors ml-1"
-                onClick={() => navigate('/employee/chat/mobile')}
-              >
-                <Bell size={20} />
-                {totalUnread > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 bg-[#25d366] text-white text-[9px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-1 border-2 border-white">
-                    {totalUnread}
-                  </span>
-                )}
-              </button>
-            )}
           </div>
 
           {/* Scrolling News Ticker (Desktop) */}
@@ -319,21 +285,7 @@ const EmployeeLayout = () => {
           <div className="flex items-center gap-5 shrink-0">
             {/* Desktop Right Side */}
             <div className="hidden md:flex items-center gap-5">
-              {profile?.featureAccess?.canChat && (
-                <button
-                  className="relative text-slate-500 hover:text-slate-700 transition-colors"
-                  onClick={() => navigate('/employee/chat')}
-                >
-                  <Bell size={20} />
-                  {totalUnread > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 bg-[#25d366] text-white text-[9px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-1 border-2 border-white">
-                      {totalUnread}
-                    </span>
-                  )}
-                </button>
-              )}
 
-              <div className="h-6 w-px bg-slate-200"></div>
 
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-semibold text-sm overflow-hidden border border-slate-200">

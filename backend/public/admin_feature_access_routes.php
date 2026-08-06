@@ -24,7 +24,6 @@ $app->get('/api/admin/feature-access', function (Request $request, Response $res
             fa."canEmployees", 
             fa."canRecruitment", 
             fa."canAssets",
-            fa."canChat",
             fa."canLoanOrigination",
             fa."canAdminAssessments",
             fa."canEmployeeAssessments",
@@ -48,7 +47,6 @@ $app->get('/api/admin/feature-access', function (Request $request, Response $res
             $user['canEmployees'] = (bool) $user['canEmployees'];
             $user['canRecruitment'] = (bool) $user['canRecruitment'];
             $user['canAssets'] = (bool) $user['canAssets'];
-            $user['canChat'] = (bool) $user['canChat'];
             $user['canLoanOrigination'] = (bool) $user['canLoanOrigination'];
             $user['canAdminAssessments'] = (bool) ($user['canAdminAssessments'] ?? false);
             $user['canEmployeeAssessments'] = (bool) ($user['canEmployeeAssessments'] ?? false);
@@ -75,7 +73,7 @@ $app->post('/api/admin/feature-access', function (Request $request, Response $re
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
 
-    $validFeatures = ['canAttendance', 'canLeave', 'canPayroll', 'canEmployees', 'canRecruitment', 'canAssets', 'canChat', 'canLoanOrigination', 'canAdminAssessments', 'canEmployeeAssessments', 'canEmployeeTrainingVideos'];
+    $validFeatures = ['canAttendance', 'canLeave', 'canPayroll', 'canEmployees', 'canRecruitment', 'canAssets', 'canLoanOrigination', 'canAdminAssessments', 'canEmployeeAssessments', 'canEmployeeTrainingVideos'];
     if (!in_array($feature, $validFeatures)) {
         $response->getBody()->write(json_encode(['error' => 'Invalid feature']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);

@@ -60,10 +60,7 @@ export default defineConfig({
         target: 'http://localhost:8081',
         changeOrigin: true
       },
-      '/Chat-Attachment': {
-        target: 'http://localhost:8081',
-        changeOrigin: true
-      },
+
       '/Candidate-Document': {
         target: 'http://localhost:8081',
         changeOrigin: true

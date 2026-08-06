@@ -37,11 +37,7 @@ const featuresList = [
     title: 'Recruitment Manager',
     description: 'A recruitment manager has all permissions to manage job postings and candidates.'
   },
-  {
-    key: 'canChat',
-    title: 'Secure Chat Access',
-    description: 'Grant access to the Secure Chat module.'
-  },
+
   {
     key: 'canLoanOrigination',
     title: 'Loan Origination Access',

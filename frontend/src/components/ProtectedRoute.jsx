@@ -94,9 +94,7 @@ export const ProtectedRoute = ({ children, allowedRoles }) => {
     // Feature access check for employee-level routes (all roles that have featureAccess)
     if (profile.featureAccess) {
       const path = location.pathname;
-      if ((path === '/employee/chat' || path === '/employee/chat/mobile') && !profile.featureAccess.canChat) {
-        return <Navigate to={getRoleHomePath(profile.role)} replace />;
-      }
+
       if (path.startsWith('/employee/loans/origination') && !profile.featureAccess.canLoanOrigination) {
         return <Navigate to={getRoleHomePath(profile.role)} replace />;
       }
