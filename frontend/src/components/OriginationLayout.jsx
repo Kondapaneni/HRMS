@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { LogOut, Home, Briefcase, FileText, Activity, ArrowLeft, Smartphone, Users } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import api from '../api/axios';
+import { LogOut, Home, Briefcase, FileText, Activity, ArrowLeft, Smartphone, Users, Megaphone } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
@@ -8,6 +10,40 @@ const OriginationLayout = () => {
   const { profile, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [swipePath, setSwipePath] = useState(null);
+
+  const handleTouchMove = (e) => {
+    const touch = e.touches[0];
+    const element = document.elementFromPoint(touch.clientX, touch.clientY);
+    if (!element) return;
+
+    const navItem = element.closest('[data-nav-path]');
+    if (navItem) {
+      const path = navItem.getAttribute('data-nav-path');
+      if (path && path !== swipePath) {
+        setSwipePath(path);
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (swipePath && swipePath !== location.pathname) {
+      navigate(swipePath);
+    }
+    setSwipePath(null);
+  };
+
+  // Fetch live news headlines
+  const { data: newsData } = useQuery({
+    queryKey: ['newsHeadlines'],
+    queryFn: async () => {
+      const res = await api.get('/news');
+      return res.data;
+    },
+    refetchInterval: 5000,
+    refetchOnWindowFocus: true,
+  });
+  const newsHeadlines = newsData?.news_headlines || profile?.news_headlines || [];
 
   const handleLogout = async () => {
     try {
@@ -120,6 +156,28 @@ const OriginationLayout = () => {
             </button>
           </div>
 
+          {/* Scrolling News Ticker (Desktop) */}
+          {newsHeadlines.length > 0 && (
+            <div className="hidden md:flex flex-1 mx-6 overflow-hidden items-center text-sm font-medium text-slate-700 bg-blue-50/80 rounded-full h-9 px-4 border border-blue-100 shadow-sm relative group">
+              <Megaphone size={16} className="text-blue-600 mr-3 shrink-0" />
+              <div className="flex-1 overflow-hidden relative h-full flex items-center">
+                <motion.div
+                  key={newsHeadlines.join(" • ")}
+                  className="flex whitespace-nowrap"
+                  animate={{ x: ["0%", "-50%"] }}
+                  transition={{ repeat: Infinity, duration: Math.max(30, newsHeadlines.join("   •   ").length * 0.5), ease: "linear" }}
+                >
+                  <span className="text-blue-800 tracking-wide pr-10">
+                    {Array(4).fill(newsHeadlines.join("   •   ")).join("   •   ")}
+                  </span>
+                  <span className="text-blue-800 tracking-wide pr-10">
+                    {Array(4).fill(newsHeadlines.join("   •   ")).join("   •   ")}
+                  </span>
+                </motion.div>
+              </div>
+            </div>
+          )}
+
           <div className="flex items-center gap-5 shrink-0">
             {/* Mobile Profile Avatar */}
             <div className="md:hidden flex items-center gap-3">
@@ -153,6 +211,28 @@ const OriginationLayout = () => {
           </div>
         </header>
 
+        {/* Mobile Scrolling News Ticker */}
+        {newsHeadlines.length > 0 && (
+          <div className="md:hidden shrink-0 bg-blue-50 border-b border-blue-100 px-4 py-2 flex items-center overflow-hidden">
+            <Megaphone size={14} className="text-blue-600 mr-2 shrink-0" />
+            <div className="flex-1 overflow-hidden relative h-5 flex items-center text-xs font-medium text-blue-800">
+              <motion.div
+                key={newsHeadlines.join(" • ")}
+                className="flex whitespace-nowrap"
+                animate={{ x: ["0%", "-50%"] }}
+                transition={{ repeat: Infinity, duration: Math.max(30, newsHeadlines.join("   •   ").length * 0.5), ease: "linear" }}
+              >
+                <span className="tracking-wide pr-10">
+                  {Array(4).fill(newsHeadlines.join("   •   ")).join("   •   ")}
+                </span>
+                <span className="tracking-wide pr-10">
+                  {Array(4).fill(newsHeadlines.join("   •   ")).join("   •   ")}
+                </span>
+              </motion.div>
+            </div>
+          </div>
+        )}
+
         {/* Dynamic Page Content */}
         <div className="flex-1 overflow-y-auto overscroll-y-contain bg-transparent pb-24 md:pb-0" style={{ WebkitOverflowScrolling: 'touch' }}>
           <Outlet />
@@ -161,12 +241,17 @@ const OriginationLayout = () => {
         {/* Mobile Bottom Navigation (iOS Liquid Glass) */}
         <div
           className="md:hidden fixed bottom-6 left-4 right-4 z-50 pointer-events-none touch-none select-none"
+          onTouchStart={handleTouchMove}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onTouchCancel={handleTouchEnd}
         >
           <div className="bg-white/50 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-full p-1.5 flex justify-around items-center pointer-events-auto">
             {navItems.filter(item => !item.feature || profile?.featureAccess?.[item.feature]).map((item, idx) => {
+              const currentPath = swipePath || location.pathname;
               const isActive = item.path === '/employee/loans/origination'
-                ? location.pathname === item.path
-                : (location.pathname === item.path || location.pathname.startsWith(`${item.path}/`));
+                ? currentPath === item.path
+                : (currentPath === item.path || currentPath.startsWith(`${item.path}/`));
               
               const Icon = item.icon;
               
@@ -175,6 +260,9 @@ const OriginationLayout = () => {
                   key={item.path || idx}
                   to={item.path}
                   data-nav-path={item.path}
+                  onClick={(e) => {
+                    if (swipePath) e.preventDefault();
+                  }}
                   className="relative flex flex-col items-center justify-center w-[72px] h-[58px] z-10 group"
                 >
                   {isActive && (
