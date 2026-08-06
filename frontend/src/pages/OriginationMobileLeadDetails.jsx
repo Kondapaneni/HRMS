@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, MapPin, Calendar, Clock, CheckCircle2, Phone, Mail, UserPlus, XCircle, Loader2, RefreshCw } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateLeadStatus } from '../services/loanServices';
@@ -58,25 +59,55 @@ const OriginationMobileLeadDetails = () => {
   const isConverted = currentStatus === 'Converted';
 
   return (
-    <div className="w-full pb-28">
+    <div className="w-full pb-8">
       {/* Header */}
-      <div className="relative pt-12 pb-24 px-4 overflow-hidden rounded-b-[40px] shadow-sm bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800">
+      <div className="relative pt-12 pb-24 px-4 overflow-hidden rounded-b-[40px] shadow-md bg-slate-900">
+        {/* Animated Background Blobs */}
+        <motion.div
+          animate={{
+            scale: [1, 1.2, 1],
+            x: [0, 50, 0],
+            y: [0, 30, 0],
+          }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -top-20 -left-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+        />
+        <motion.div
+          animate={{
+            scale: [1, 1.4, 1],
+            x: [0, -40, 0],
+            y: [0, 50, 0],
+          }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute -top-10 -right-10 w-64 h-64 bg-indigo-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+        />
+        <motion.div
+          animate={{
+            scale: [1, 1.3, 1],
+            x: [0, 30, 0],
+            y: [0, -40, 0],
+          }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          className="absolute bottom-0 left-20 w-80 h-80 bg-emerald-500 rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
+        />
+        
+        {/* Subtle Glass Overlay */}
+        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
+
         <button
           onClick={() => navigate('/employee/loans/origination/leads')}
           type="button"
-          className="absolute top-4 left-4 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full backdrop-blur-sm transition-colors"
+          className="absolute top-4 left-4 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full backdrop-blur-sm transition-colors z-20"
         >
           <ChevronLeft size={20} />
         </button>
 
-        <div className="relative z-10 flex flex-col items-center mt-6">
-          <div className="w-20 h-20 rounded-full bg-blue-500 text-white flex items-center justify-center text-3xl font-bold shadow-xl border-4 border-slate-700/50 mb-3">
-            {lead.name?.charAt(0).toUpperCase()}
-          </div>
-          <h1 className="text-2xl font-bold text-white text-center">{lead.name}</h1>
-          <div className="mt-4">
-            {getStatusBadge(currentStatus)}
-          </div>
+        <div className="absolute top-5 right-4 z-20">
+          {getStatusBadge(currentStatus)}
+        </div>
+
+        <div className="relative z-10 flex flex-col items-center mt-8">
+          <h1 className="text-2xl font-bold text-white text-center px-4 leading-snug">{lead.name}</h1>
         </div>
       </div>
 
@@ -117,34 +148,34 @@ const OriginationMobileLeadDetails = () => {
         </div>
       </div>
 
-      {/* Sticky Bottom Bar for Actions */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-slate-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-50">
-        <div className="flex gap-2">
+      {/* Action Buttons in normal document flow */}
+      <div className="px-4 mt-6">
+        <div className="bg-white rounded-3xl p-6 shadow-xl border border-slate-100 flex flex-col gap-3">
           <button 
             onClick={() => handleUpdateStatus('Follow Up')}
             disabled={statusMutation.isPending || isConverted}
-            className="flex-1 flex flex-col items-center justify-center gap-1 bg-blue-50 hover:bg-blue-100 text-blue-700 py-2.5 rounded-xl text-xs font-semibold transition-colors border border-blue-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors border border-blue-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {statusMutation.isPending && statusMutation.variables?.status === 'Follow Up' ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
-            Follow Up
+            {statusMutation.isPending && statusMutation.variables?.status === 'Follow Up' ? <Loader2 size={18} className="animate-spin" /> : <RefreshCw size={18} />}
+            Followup
           </button>
           
           <button 
             onClick={() => handleUpdateStatus('Converted')}
             disabled={statusMutation.isPending || isConverted}
-            className="flex-1 flex flex-col items-center justify-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl text-xs font-semibold transition-colors shadow-sm shadow-emerald-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm shadow-emerald-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {statusMutation.isPending && statusMutation.variables?.status === 'Converted' ? <Loader2 size={16} className="animate-spin" /> : <UserPlus size={16} />}
-            Convert
+            {statusMutation.isPending && statusMutation.variables?.status === 'Converted' ? <Loader2 size={18} className="animate-spin" /> : <UserPlus size={18} />}
+            Convert to Member
           </button>
 
           <button 
             onClick={() => handleUpdateStatus('Not Interested')}
             disabled={statusMutation.isPending || isConverted}
-            className="flex-1 flex flex-col items-center justify-center gap-1 bg-white hover:bg-red-50 text-red-600 border border-red-200 py-2.5 rounded-xl text-xs font-semibold transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-2 bg-white hover:bg-red-50 text-red-600 border border-red-200 px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {statusMutation.isPending && statusMutation.variables?.status === 'Not Interested' ? <Loader2 size={16} className="animate-spin" /> : <XCircle size={16} />}
-            Reject
+            {statusMutation.isPending && statusMutation.variables?.status === 'Not Interested' ? <Loader2 size={18} className="animate-spin" /> : <XCircle size={18} />}
+            Not Interested
           </button>
         </div>
       </div>
