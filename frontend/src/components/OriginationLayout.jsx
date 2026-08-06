@@ -4,13 +4,14 @@ import { useQuery } from '@tanstack/react-query';
 import api from '../api/axios';
 import { LogOut, Home, Briefcase, FileText, Activity, ArrowLeft, Smartphone, Users, Megaphone } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const OriginationLayout = () => {
   const { profile, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [swipePath, setSwipePath] = useState(null);
+  const [showBackModal, setShowBackModal] = useState(false);
 
   const handleTouchMove = (e) => {
     const touch = e.touches[0];
@@ -145,7 +146,7 @@ const OriginationLayout = () => {
       <main className="flex-1 flex flex-col h-[100dvh] overflow-hidden relative z-30 bg-transparent">
 
         {/* Top Header */}
-        <header className="h-14 shrink-0 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 flex items-center justify-between sticky top-0 z-40 md:relative md:z-10 overflow-hidden">
+        <header className="h-14 shrink-0 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 hidden md:flex items-center justify-between sticky top-0 z-40 md:relative md:z-10 overflow-hidden">
           <div className="flex items-center gap-4 shrink-0">
             {/* Mobile Back Button */}
             <button
@@ -155,28 +156,6 @@ const OriginationLayout = () => {
               <ArrowLeft size={18} strokeWidth={2.5} />
             </button>
           </div>
-
-          {/* Scrolling News Ticker (Desktop) */}
-          {newsHeadlines.length > 0 && (
-            <div className="hidden md:flex flex-1 mx-6 overflow-hidden items-center text-sm font-medium text-slate-700 bg-blue-50/80 rounded-full h-9 px-4 border border-blue-100 shadow-sm relative group">
-              <Megaphone size={16} className="text-blue-600 mr-3 shrink-0" />
-              <div className="flex-1 overflow-hidden relative h-full flex items-center">
-                <motion.div
-                  key={newsHeadlines.join(" • ")}
-                  className="flex whitespace-nowrap"
-                  animate={{ x: ["0%", "-50%"] }}
-                  transition={{ repeat: Infinity, duration: Math.max(30, newsHeadlines.join("   •   ").length * 0.5), ease: "linear" }}
-                >
-                  <span className="text-blue-800 tracking-wide pr-10">
-                    {Array(4).fill(newsHeadlines.join("   •   ")).join("   •   ")}
-                  </span>
-                  <span className="text-blue-800 tracking-wide pr-10">
-                    {Array(4).fill(newsHeadlines.join("   •   ")).join("   •   ")}
-                  </span>
-                </motion.div>
-              </div>
-            </div>
-          )}
 
           <div className="flex items-center gap-5 shrink-0">
             {/* Mobile Profile Avatar */}
@@ -211,28 +190,6 @@ const OriginationLayout = () => {
           </div>
         </header>
 
-        {/* Mobile Scrolling News Ticker */}
-        {newsHeadlines.length > 0 && (
-          <div className="md:hidden shrink-0 bg-blue-50 border-b border-blue-100 px-4 py-2 flex items-center overflow-hidden">
-            <Megaphone size={14} className="text-blue-600 mr-2 shrink-0" />
-            <div className="flex-1 overflow-hidden relative h-5 flex items-center text-xs font-medium text-blue-800">
-              <motion.div
-                key={newsHeadlines.join(" • ")}
-                className="flex whitespace-nowrap"
-                animate={{ x: ["0%", "-50%"] }}
-                transition={{ repeat: Infinity, duration: Math.max(30, newsHeadlines.join("   •   ").length * 0.5), ease: "linear" }}
-              >
-                <span className="tracking-wide pr-10">
-                  {Array(4).fill(newsHeadlines.join("   •   ")).join("   •   ")}
-                </span>
-                <span className="tracking-wide pr-10">
-                  {Array(4).fill(newsHeadlines.join("   •   ")).join("   •   ")}
-                </span>
-              </motion.div>
-            </div>
-          </div>
-        )}
-
         {/* Dynamic Page Content */}
         <div className="flex-1 overflow-y-auto overscroll-y-contain bg-transparent pb-24 md:pb-0" style={{ WebkitOverflowScrolling: 'touch' }}>
           <Outlet />
@@ -247,6 +204,15 @@ const OriginationLayout = () => {
           onTouchCancel={handleTouchEnd}
         >
           <div className="bg-white/50 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-full p-1.5 flex justify-around items-center pointer-events-auto">
+            {/* Back to HRMS Button */}
+            <button
+              onClick={() => setShowBackModal(true)}
+              className="relative flex flex-col items-center justify-center w-[72px] h-[58px] z-10 group"
+            >
+              <ArrowLeft className="relative z-10 w-6 h-6 mb-0.5 transition-all duration-300 text-slate-500 group-hover:text-slate-600 group-active:scale-95" strokeWidth={2} />
+              <span className="relative z-10 text-[10px] font-medium tracking-wide transition-all duration-300 text-slate-500">Back</span>
+            </button>
+
             {navItems.filter(item => !item.feature || profile?.featureAccess?.[item.feature]).map((item, idx) => {
               const currentPath = swipePath || location.pathname;
               const isActive = item.path === '/employee/loans/origination'
@@ -281,6 +247,65 @@ const OriginationLayout = () => {
         </div>
       </main>
     </div>
+
+    {/* Back to HRMS Confirmation Modal */}
+    <AnimatePresence>
+      {showBackModal && (
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 sm:p-0">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowBackModal(false)}
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm cursor-pointer"
+          />
+          <motion.div
+            initial={{ opacity: 0, y: '100%', scale: 1 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: '100%', scale: 0.95 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            drag="y"
+            dragConstraints={{ top: 0 }}
+            dragElastic={{ top: 0, bottom: 0.6 }}
+            onDragEnd={(e, info) => {
+              if (info.offset.y > 80 || info.velocity.y > 400) {
+                setShowBackModal(false);
+              }
+            }}
+            className="bg-white w-full max-w-sm rounded-[24px] sm:rounded-2xl p-6 shadow-2xl relative z-10 mb-4 sm:mb-0"
+          >
+            <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6 sm:hidden"></div>
+            <div className="flex flex-col items-center text-center">
+              <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4 ring-4 ring-blue-50">
+                <ArrowLeft size={28} />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-2">Back to HRMS</h3>
+              <p className="text-slate-500 text-sm mb-6 px-2">
+                Are you sure you want to return to the main HRMS application?
+              </p>
+
+              <div className="flex w-full gap-3">
+                <button
+                  onClick={() => setShowBackModal(false)}
+                  className="flex-1 py-3.5 px-4 rounded-xl font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setShowBackModal(false);
+                    navigate('/employee');
+                  }}
+                  className="flex-1 py-3.5 px-4 rounded-xl font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm shadow-blue-500/20"
+                >
+                  Continue
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
 
     <style>{`
       .orientation-warning {

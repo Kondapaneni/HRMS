@@ -104,9 +104,6 @@ const OriginationMobileMemberList = () => {
             <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">Members</h2>
             <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">Converted lead directory</p>
           </div>
-          <div className="w-12 h-12 bg-white/20 rounded-2xl backdrop-blur-md border border-white/30 flex justify-center items-center">
-            <Users className="text-white" size={24} />
-          </div>
         </div>
       </section>
 
