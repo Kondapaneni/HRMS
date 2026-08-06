@@ -508,7 +508,7 @@ const EmployeeLayout = () => {
       `}</style>
 
       {/* Landscape Orientation Warning Overlay for Mobile/Tablet */}
-      <div className="orientation-warning fixed inset-0 z-[9999] flex-col items-center justify-center bg-white/60 backdrop-blur-3xl p-6 text-center select-none border border-white/80 shadow-[inset_0_1px_3px_rgba(255,255,255,0.8),0_12px_40px_rgba(0,0,0,0.08)]">
+      <div className="orientation-warning fixed inset-0 z-[9999] flex-col items-center justify-center bg-slate-50 p-6 text-center select-none">
         <div className="relative mb-6">
           {/* Animated phone rotation container */}
           <div className="w-20 h-20 border border-dashed border-slate-300 rounded-full flex items-center justify-center animate-[spin_8s_linear_infinite]">

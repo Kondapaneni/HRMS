@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ChevronLeft, MapPin, Calendar, Clock, CheckCircle2, Phone, Mail, UserPlus, XCircle, Loader2, RefreshCw } from 'lucide-react';
+import { ChevronLeft, MapPin, Calendar, Clock, CheckCircle2, Phone, Mail, UserPlus, XCircle, Loader2, RefreshCw, Briefcase } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -122,6 +122,16 @@ const OriginationMobileLeadDetails = () => {
                 <Phone size={18} className="text-blue-600" />
               </div>
               <span className="font-medium text-lg">{lead.phone}</span>
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Loan Type</h3>
+            <div className="flex items-center gap-3 text-slate-700">
+              <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center shrink-0">
+                <Briefcase size={18} className="text-amber-600" />
+              </div>
+              <span className="font-medium text-lg">{lead.loan_type || 'Personal Loan'}</span>
             </div>
           </div>
 

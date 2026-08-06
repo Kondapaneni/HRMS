@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { LogOut, Home, Briefcase, FileText, Activity, ArrowLeft, Smartphone } from 'lucide-react';
+import { LogOut, Home, Briefcase, FileText, Activity, ArrowLeft, Smartphone, Users } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
@@ -21,6 +21,7 @@ const OriginationLayout = () => {
   const navItems = [
     { icon: Activity, label: 'Dashboard', path: '/employee/loans/origination', feature: 'canLoanOrigination' },
     { icon: FileText, label: 'Leads', path: '/employee/loans/origination/leads', feature: 'canLoanOrigination' },
+    { icon: Users, label: 'Members', path: '/employee/loans/origination/members', feature: 'canLoanOrigination' },
   ];
 
   const shapeVariants = {
@@ -205,7 +206,7 @@ const OriginationLayout = () => {
     `}</style>
 
     {/* Landscape Orientation Warning Overlay for Mobile/Tablet */}
-    <div className="orientation-warning fixed inset-0 z-[9999] flex-col items-center justify-center bg-white/60 backdrop-blur-3xl p-6 text-center select-none border border-white/80 shadow-[inset_0_1px_3px_rgba(255,255,255,0.8),0_12px_40px_rgba(0,0,0,0.08)]">
+    <div className="orientation-warning fixed inset-0 z-[9999] flex-col items-center justify-center bg-slate-50 p-6 text-center select-none">
       <div className="relative mb-6">
         {/* Animated phone rotation container */}
         <div className="w-20 h-20 border border-dashed border-slate-300 rounded-full flex items-center justify-center animate-[spin_8s_linear_infinite]">

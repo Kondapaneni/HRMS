@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, User, Phone, MapPin, Calendar, Clock, CheckCircle2, UserPlus, XCircle, Loader2, RefreshCw } from 'lucide-react';
+import { X, User, Phone, MapPin, Calendar, Clock, CheckCircle2, UserPlus, XCircle, Loader2, RefreshCw, Briefcase } from 'lucide-react';
 import { format } from 'date-fns';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateLeadStatus } from '../services/loanServices';
@@ -102,6 +102,14 @@ const LeadDetailsSidebar = ({ isOpen, onClose, lead }) => {
                   <div className="flex items-center gap-2 text-slate-700">
                     <Phone size={16} className="text-slate-400" />
                     <span className="font-medium">{lead.phone}</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1 pt-3 border-t border-slate-200/60">
+                  <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Loan Type</span>
+                  <div className="flex items-center gap-2 text-slate-700">
+                    <Briefcase size={16} className="text-slate-400" />
+                    <span className="font-medium">{lead.loan_type || 'Personal Loan'}</span>
                   </div>
                 </div>
 

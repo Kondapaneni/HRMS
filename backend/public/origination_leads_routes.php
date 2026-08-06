@@ -12,6 +12,7 @@ $app->post('/api/leads', function (Request $request, Response $response, $args) 
     $name = trim($data['name'] ?? '');
     $phone = trim($data['phone'] ?? '');
     $address = trim($data['address'] ?? '');
+    $loan_type = trim($data['loan_type'] ?? 'Personal Loan');
 
     if (empty($name) || empty($phone) || empty($address)) {
         $response->getBody()->write(json_encode(['error' => 'Name, Phone, and Address are Required']));
@@ -26,21 +27,13 @@ $app->post('/api/leads', function (Request $request, Response $response, $args) 
             throw new Exception("Database connection failed");
         }
 
-        // Check if lead with the same phone number already exists
-        $checkStmt = $conn->prepare('SELECT id FROM public.loan_leads WHERE phone = ?');
-        $checkStmt->execute([$phone]);
-        if ($checkStmt->fetch()) {
-            $response->getBody()->write(json_encode(['error' => 'A lead with this phone number already exists']));
-            return $response->withHeader('Content-Type', 'application/json')->withStatus(409);
-        }
-
         $stmt = $conn->prepare('
-            INSERT INTO public.loan_leads (name, phone, address, status, created_by)
-            VALUES (?, ?, ?, ?, ?)
-            RETURNING id, name, phone, address, status, created_at
+            INSERT INTO public.loan_leads (name, phone, address, loan_type, status, created_by)
+            VALUES (?, ?, ?, ?, ?, ?)
+            RETURNING id, name, phone, address, loan_type, status, created_at
         ');
         
-        $stmt->execute([$name, $phone, $address, 'New', $user->id]);
+        $stmt->execute([$name, $phone, $address, $loan_type, 'New', $user->id]);
         $lead = $stmt->fetch(PDO::FETCH_ASSOC);
 
         $response->getBody()->write(json_encode([

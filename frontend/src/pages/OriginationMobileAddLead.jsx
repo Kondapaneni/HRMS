@@ -12,7 +12,8 @@ const OriginationMobileAddLead = () => {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
-    address: ''
+    address: '',
+    loan_type: 'Personal Loan'
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -26,7 +27,7 @@ const OriginationMobileAddLead = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.phone || !formData.address) {
+    if (!formData.name || !formData.phone || !formData.address || !formData.loan_type) {
       toast.error('Please fill in all fields');
       return;
     }
@@ -136,6 +137,34 @@ const OriginationMobileAddLead = () => {
                 placeholder="10-digit mobile number"
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3 py-3 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
               />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-[12px] font-bold text-slate-500 uppercase tracking-wider">Loan Type *</label>
+            <div className="flex gap-4 pt-1">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="loan_type"
+                  value="Personal Loan"
+                  checked={formData.loan_type === 'Personal Loan'}
+                  onChange={handleChange}
+                  className="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                />
+                <span className="text-sm text-slate-700 font-medium">Personal Loan</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="loan_type"
+                  value="Business Loan"
+                  checked={formData.loan_type === 'Business Loan'}
+                  onChange={handleChange}
+                  className="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                />
+                <span className="text-sm text-slate-700 font-medium">Business Loan</span>
+              </label>
             </div>
           </div>
 

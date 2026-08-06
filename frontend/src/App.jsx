@@ -33,6 +33,7 @@ import OriginationDashboard from './pages/OriginationDashboard'
 import OriginationLeadsList from './pages/OriginationLeadsList'
 import OriginationMobileAddLead from './pages/OriginationMobileAddLead'
 import OriginationMobileLeadDetails from './pages/OriginationMobileLeadDetails'
+import OriginationMembersList from './pages/OriginationMembersList'
 import AssessmentWorkspaceLayout from './components/AssessmentWorkspaceLayout'
 import AssessmentManagementPage from './pages/AssessmentManagementPage'
 import DepartmentQuestionBankPage from './pages/DepartmentQuestionBankPage'
@@ -242,6 +243,7 @@ function App() {
                 <Route path="origination/leads" element={<OriginationLeadsList />} />
                 <Route path="origination/leads/add" element={<OriginationMobileAddLead />} />
                 <Route path="origination/leads/:id/details" element={<OriginationMobileLeadDetails />} />
+                <Route path="origination/members" element={<OriginationMembersList />} />
               </Route>
 
               <Route
