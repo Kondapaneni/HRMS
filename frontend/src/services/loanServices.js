@@ -29,3 +29,14 @@ export const getLeads = async ({ queryKey }) => {
   const response = await api.get(url);
   return response.data;
 };
+
+/**
+ * Updates the status of a loan lead.
+ * @param {number} id - Lead ID
+ * @param {string} status - New status ('Follow Up', 'Not Interested', 'Converted')
+ * @returns {Promise<Object>}
+ */
+export const updateLeadStatus = async (id, status) => {
+  const response = await api.put(`/leads/${id}/status`, { status });
+  return response.data;
+};

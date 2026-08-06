@@ -2,15 +2,17 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getLeads } from '../services/loanServices';
 import { motion } from 'framer-motion';
-import { Search, Filter, Phone, MapPin, Calendar, CheckCircle2, Clock, FileText, Loader2, Plus } from 'lucide-react';
+import { Search, Filter, Phone, MapPin, Calendar, CheckCircle2, Clock, FileText, Loader2, Plus, MoreVertical, XCircle, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
 import OriginationMobileLeadsList from './OriginationMobileLeadsList';
 import AddLeadSidebar from '../components/AddLeadSidebar';
+import LeadDetailsSidebar from '../components/LeadDetailsSidebar';
 
 const OriginationLeadsList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [isAddLeadOpen, setIsAddLeadOpen] = useState(false);
+  const [selectedLead, setSelectedLead] = useState(null);
 
   // Debounce the search input
   React.useEffect(() => {
@@ -39,11 +41,15 @@ const OriginationLeadsList = () => {
     switch(status) {
       case 'New':
         return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700"><Clock size={12} /> New</span>;
+      case 'Follow Up':
+        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-violet-100 text-violet-700"><RefreshCw size={12} /> Follow Up</span>;
       case 'Active':
       case 'In Progress':
         return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700"><Clock size={12} /> {status}</span>;
       case 'Converted':
         return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700"><CheckCircle2 size={12} /> Converted</span>;
+      case 'Not Interested':
+        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-100 text-rose-700"><XCircle size={12} /> Not Interested</span>;
       default:
         return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">{status}</span>;
     }
@@ -116,19 +122,20 @@ const OriginationLeadsList = () => {
                       <th className="p-3">Location</th>
                       <th className="p-3">Status</th>
                       <th className="p-3">Created Date</th>
+                      <th className="p-3 w-20 text-center">Action</th>
                     </tr>
                   </thead>
                   <tbody>
                     {isLoading ? (
                       <tr>
-                        <td colSpan="5" className="p-12 text-center">
+                        <td colSpan="6" className="p-12 text-center">
                           <Loader2 className="animate-spin h-8 w-8 text-blue-600 mx-auto" />
                           <p className="text-slate-500 mt-4">Searching leads...</p>
                         </td>
                       </tr>
                     ) : leads.length === 0 ? (
                       <tr>
-                        <td colSpan="5" className="text-center py-12 text-slate-500">
+                        <td colSpan="6" className="text-center py-12 text-slate-500">
                           No leads found.
                         </td>
                       </tr>
@@ -150,6 +157,14 @@ const OriginationLeadsList = () => {
                           <td className="p-3 text-slate-700">
                             {format(new Date(lead.created_at), 'MMM d, yyyy h:mm a')}
                           </td>
+                          <td className="p-3 text-center">
+                            <button 
+                              onClick={() => setSelectedLead(lead)}
+                              className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md transition-colors"
+                            >
+                              <MoreVertical size={16} />
+                            </button>
+                          </td>
                         </motion.tr>
                       ))
                     )}
@@ -165,6 +180,11 @@ const OriginationLeadsList = () => {
       </motion.div>
 
       <AddLeadSidebar isOpen={isAddLeadOpen} onClose={() => setIsAddLeadOpen(false)} />
+      <LeadDetailsSidebar 
+        isOpen={!!selectedLead} 
+        onClose={() => setSelectedLead(null)} 
+        lead={selectedLead} 
+      />
     </>
   );
 };

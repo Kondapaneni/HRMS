@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getLeads } from '../services/loanServices';
 import { motion } from 'framer-motion';
-import { Search, Phone, MapPin, Calendar, CheckCircle2, Clock, Loader2, Plus } from 'lucide-react';
+import { Search, Phone, MapPin, Calendar, CheckCircle2, Clock, Loader2, Plus, XCircle, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
 
 import { useNavigate } from 'react-router-dom';
@@ -39,11 +39,15 @@ const OriginationMobileLeadsList = () => {
     switch (status) {
       case 'New':
         return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-700"><Clock size={10} /> New</span>;
+      case 'Follow Up':
+        return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-violet-100 text-violet-700"><RefreshCw size={10} /> Follow Up</span>;
       case 'Active':
       case 'In Progress':
         return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-700"><Clock size={10} /> {status}</span>;
       case 'Converted':
         return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-700"><CheckCircle2 size={10} /> Converted</span>;
+      case 'Not Interested':
+        return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-100 text-rose-700"><XCircle size={10} /> Not Interested</span>;
       default:
         return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700">{status}</span>;
     }
@@ -135,7 +139,12 @@ const OriginationMobileLeadsList = () => {
         ) : (
           <div className="space-y-4 mt-4">
             {leads.map(lead => (
-              <motion.div key={lead.id} variants={itemVariants} className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5 hover:shadow-md transition-shadow">
+              <motion.div 
+                key={lead.id} 
+                variants={itemVariants} 
+                onClick={() => navigate(`/employee/loans/origination/leads/${lead.id}/details`, { state: { lead } })}
+                className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5 hover:shadow-md transition-shadow active:scale-[0.98] active:bg-slate-50 cursor-pointer"
+              >
                 <div className="flex justify-between items-start mb-4">
                   <h3 className="font-bold text-slate-900 text-lg leading-tight">{lead.name}</h3>
                   <div className="shrink-0 ml-3">
