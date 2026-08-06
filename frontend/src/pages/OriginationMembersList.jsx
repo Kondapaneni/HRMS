@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Search, CheckCircle2, Users, Loader2, MoreVertical } from 'lucide-react';
 import { format } from 'date-fns';
 import MemberDetailsSidebar from '../components/MemberDetailsSidebar';
+import OriginationMobileMemberList from './OriginationMobileMemberList';
 
 const OriginationMembersList = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -63,7 +64,10 @@ const OriginationMembersList = () => {
 
   return (
     <>
-      <div className="p-4 md:p-6 space-y-6 md:pb-6">
+      <div className="md:hidden">
+        <OriginationMobileMemberList />
+      </div>
+      <div className="hidden md:block p-4 md:p-6 space-y-6 md:pb-6">
         
         {/* Header */}
         <div className="flex justify-between items-center mb-2">
