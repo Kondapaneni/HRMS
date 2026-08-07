@@ -943,11 +943,11 @@ const AdminRecruitment = () => {
         </div>
       )}
 
-      {/* Timeline Modal */}
-      {isTimelineModalOpen && timelineApp && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 overflow-y-auto">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl my-auto">
-            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-start bg-slate-50 rounded-t-lg">
+      {/* Timeline Sidebar Modal */}
+      {isTimelineModalOpen && timelineApp && createPortal(
+        <div className="fixed inset-0 z-[100] flex justify-end bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white shadow-2xl w-full max-w-lg h-[100dvh] flex flex-col overflow-hidden transform transition-transform duration-300">
+            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-start bg-slate-50 shrink-0">
               <div>
                 <h2 className="text-lg font-semibold text-slate-800">Application Timeline</h2>
                 <p className="mt-1 text-sm text-slate-500">History of status changes for this application.</p>
@@ -957,22 +957,19 @@ const AdminRecruitment = () => {
               </button>
             </div>
             
-            <div className="p-6 max-h-[60vh] overflow-y-auto custom-scrollbar">
+            <div className="p-6 overflow-y-auto flex-1 custom-scrollbar">
               <div className="relative wrap overflow-hidden p-2">
-                <div className="absolute border-opacity-20 border-slate-300 h-full border-l-2" style={{left: '50%', transform: 'translateX(-50%)'}}></div>
+                <div className="absolute border-opacity-20 border-slate-300 h-full border-l-2" style={{left: '2rem'}}></div>
                 {(!timelineApp.application_timeline || timelineApp.application_timeline.length === 0) ? (
-                  <div className="rounded-xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-500 relative z-10 mx-auto w-3/4">
+                  <div className="rounded-xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-500 relative z-10 w-full ml-12">
                     Timeline history is not available yet.
                   </div>
                 ) : (
                   timelineApp.application_timeline.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).map((event, idx, arr) => {
                     const isLatest = idx === 0;
-                    const chronologicalIdx = arr.length - 1 - idx;
-                    const isLeft = chronologicalIdx % 2 === 0;
                     return (
-                      <div key={idx} className={`mb-8 flex justify-between items-center w-full ${isLeft ? 'flex-row-reverse' : 'flex-row'}`}>
-                        <div className="order-1 w-5/12"></div>
-                        <div className="z-20 flex items-center justify-center order-1 bg-blue-50 shadow-sm border-[3px] border-white w-10 h-10 rounded-full relative">
+                      <div key={idx} className="mb-8 flex justify-start items-start w-full relative">
+                        <div className="z-20 flex items-center justify-center bg-blue-50 shadow-sm border-[3px] border-white w-10 h-10 rounded-full shrink-0 mr-6 ml-3">
                           {isLatest && (
                             <span className="absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-40 animate-ping"></span>
                           )}
@@ -980,7 +977,7 @@ const AdminRecruitment = () => {
                             {isLatest ? <CheckCircle2 size={18} className="text-blue-600" /> : <Clock size={16} />}
                           </span>
                         </div>
-                        <div className={`order-1 rounded-lg border ${isLatest ? 'border-blue-200 bg-blue-50/50 shadow-md' : 'border-slate-200 bg-white shadow-sm'} w-5/12 p-4`}>
+                        <div className={`rounded-lg border ${isLatest ? 'border-blue-200 bg-blue-50/50 shadow-md' : 'border-slate-200 bg-white shadow-sm'} w-full p-4`}>
                           <div className="flex flex-col mb-1">
                             <h4 className={`font-semibold ${isLatest ? 'text-blue-900' : 'text-slate-900'}`}>{event.status_change}</h4>
                             <time className="text-xs font-medium text-slate-500 mt-1">
@@ -998,14 +995,14 @@ const AdminRecruitment = () => {
               </div>
             </div>
             
-            <div className="px-6 py-4 border-t border-slate-200 flex justify-end">
+            <div className="p-4 border-t border-slate-200 bg-slate-50 shrink-0 flex justify-end">
               <button onClick={() => setIsTimelineModalOpen(false)} className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors cursor-pointer">
                 Close
               </button>
             </div>
           </div>
         </div>
-      )}
+      , document.body)}
 
       {/* Schedule Interview Sidebar Modal */}
       {isScheduleModalOpen && createPortal(
