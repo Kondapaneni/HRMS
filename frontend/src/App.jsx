@@ -200,7 +200,6 @@ function App() {
                 <Route path="attendance" element={<EmployeeAttendance />} />
                 <Route path="holidays" element={<EmployeeHolidays />} />
                 <Route path="leaves" element={<EmployeeLeaves />} />
-                <Route path="leaves/apply" element={<EmployeeMobileApplyLeave />} />
                 <Route path="expenses" element={<EmployeeExpenses />} />
                 <Route path="payroll" element={<EmployeePayroll />} />
                 <Route path="performance" element={<EmployeePerformance />} />
@@ -283,6 +282,14 @@ function App() {
                 element={
                   <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
                     <EmployeeMobileBirthdays />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/employee/mobile/applyleave"
+                element={
+                  <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
+                    <EmployeeMobileApplyLeave />
                   </ProtectedRoute>
                 }
               />

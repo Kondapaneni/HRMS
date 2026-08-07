@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import PageLoader from '../components/PageLoader';
 import { Calendar as CalendarIcon, FileText, Plus, X, Loader2 } from 'lucide-react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 
@@ -42,6 +42,20 @@ const EmployeeLeaves = () => {
       return res.data;
     },
     onError: () => toast.error('Failed to load leaves data.'),
+  });
+
+  const cancelLeaveMutation = useMutation({
+    mutationFn: async (leaveId) => {
+      const res = await api.put(`/employee/leaves/${leaveId}/cancel`);
+      return res.data;
+    },
+    onSuccess: () => {
+      toast.success('Leave cancelled successfully');
+      queryClient.invalidateQueries({ queryKey: ['employee', 'leaves'] });
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.error || 'Failed to cancel leave');
+    },
   });
 
   const balance = leavesData?.balance || { paidTotal: 12, paidUsed: 0, unpaidUsed: 0, totalApproved: 0 };
@@ -277,16 +291,17 @@ const EmployeeLeaves = () => {
                     <th className="p-3">Days</th>
                     <th className="p-3">Reason</th>
                     <th className="p-3">Status</th>
+                    <th className="p-3 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {loading ? (
                     <tr>
-                      <td colSpan="6" className="text-center py-8 text-slate-500">Loading history...</td>
+                      <td colSpan="7" className="text-center py-8 text-slate-500">Loading history...</td>
                     </tr>
                   ) : history.length === 0 ? (
                     <tr>
-                      <td colSpan="6" className="text-center py-8 text-slate-500">No leave records found.</td>
+                      <td colSpan="7" className="text-center py-8 text-slate-500">No leave records found.</td>
                     </tr>
                   ) : (
                     history.map((leave, idx) => (
@@ -301,12 +316,25 @@ const EmployeeLeaves = () => {
                         <td className="p-3 text-slate-700">{leave.days}</td>
                         <td className="p-3 text-slate-700 max-w-[200px] truncate" title={leave.reason}>{leave.reason}</td>
                         <td className="p-3">
-                          <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${leave.status?.toLowerCase() === 'approved' ? 'bg-green-100 text-green-800' :
+                          <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                            leave.status?.toLowerCase() === 'approved' ? 'bg-green-100 text-green-800' :
                             leave.status?.toLowerCase() === 'rejected' ? 'bg-red-100 text-red-800' :
-                              'bg-yellow-100 text-yellow-800'
-                            }`}>
+                            leave.status?.toLowerCase() === 'cancelled' ? 'bg-slate-100 text-slate-800' :
+                            'bg-yellow-100 text-yellow-800'
+                          }`}>
                             {leave.status ? leave.status.charAt(0).toUpperCase() + leave.status.slice(1).toLowerCase() : ''}
                           </span>
+                        </td>
+                        <td className="p-3 text-right">
+                          {(leave.status || 'pending').toLowerCase() === 'pending' && (
+                            <button
+                              onClick={() => cancelLeaveMutation.mutate(leave.id)}
+                              disabled={cancelLeaveMutation.isPending}
+                              className="text-red-600 hover:text-red-800 text-xs font-semibold disabled:opacity-50"
+                            >
+                              {cancelLeaveMutation.isPending ? 'Cancelling...' : 'Cancel'}
+                            </button>
+                          )}
                         </td>
                       </tr>
                     ))

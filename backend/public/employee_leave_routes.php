@@ -176,3 +176,36 @@ $app->post('/api/employee/leaves/apply', function (Request $request, Response $r
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
 })->add(new AuthMiddleware(['employee']));
+
+// Cancel a Leave
+$app->put('/api/employee/leaves/{id}/cancel', function (Request $request, Response $response, $args) {
+    $decodedToken = $request->getAttribute('user');
+    $leaveId = $args['id'];
+    
+    $db = new Database();
+    $conn = $db->getConnection();
+
+    try {
+        $stmtCheck = $conn->prepare('SELECT status FROM leaves WHERE id = ? AND "employeeId" = ?');
+        $stmtCheck->execute([$leaveId, $decodedToken->id]);
+        $leave = $stmtCheck->fetch();
+
+        if (!$leave) {
+            throw new Exception("Leave record not found.");
+        }
+
+        if ($leave['status'] !== 'pending') {
+            throw new Exception("Only pending leaves can be cancel.");
+        }
+
+        $stmtUpdate = $conn->prepare("UPDATE leaves SET status = 'cancelled' WHERE id = ?");
+        $stmtUpdate->execute([$leaveId]);
+
+        $response->getBody()->write(json_encode(['message' => 'Leave cancelled successfully.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+
+    } catch (Exception $e) {
+        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+})->add(new AuthMiddleware(['employee']));

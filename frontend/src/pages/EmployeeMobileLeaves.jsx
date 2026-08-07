@@ -2,9 +2,10 @@ import React from 'react';
 import PageLoader from '../components/PageLoader';
 import { Calendar as CalendarIcon, Plus, Clock, CheckCircle, XCircle, AlertCircle, FileText } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
+import toast from 'react-hot-toast';
 
 const EmployeeMobileLeaves = () => {
   const { data: leavesData, isLoading: loading, error: queryError } = useQuery({
@@ -16,6 +17,22 @@ const EmployeeMobileLeaves = () => {
     staleTime: 5 * 60 * 1000,
   });
 
+  const queryClient = useQueryClient();
+
+  const cancelLeaveMutation = useMutation({
+    mutationFn: async (leaveId) => {
+      const res = await api.put(`/employee/leaves/${leaveId}/cancel`);
+      return res.data;
+    },
+    onSuccess: () => {
+      toast.success('Leave cancelled successfully');
+      queryClient.invalidateQueries({ queryKey: ['employee', 'leaves'] });
+    },
+    onError: (err) => {
+      toast.error(err.response?.data?.error || 'Failed to cancel leave');
+    },
+  });
+
   const balance = leavesData?.balance || { paidTotal: 12, paidUsed: 0, unpaidUsed: 0, totalApproved: 0 };
   const history = leavesData?.history || [];
   const paidRemaining = Math.max(0, balance.paidTotal - balance.paidUsed);
@@ -25,6 +42,7 @@ const EmployeeMobileLeaves = () => {
     const s = (status || '').toLowerCase();
     if (s === 'approved') return { color: 'bg-emerald-100 text-emerald-700 border-emerald-200', icon: <CheckCircle className="w-4 h-4 text-emerald-500" /> };
     if (s === 'rejected') return { color: 'bg-red-100 text-red-700 border-red-200', icon: <XCircle className="w-4 h-4 text-red-500" /> };
+    if (s === 'cancelled') return { color: 'bg-slate-100 text-slate-700 border-slate-200', icon: <XCircle className="w-4 h-4 text-slate-500" /> };
     return { color: 'bg-amber-100 text-amber-700 border-amber-200', icon: <Clock className="w-4 h-4 text-amber-500" /> };
   };
 
@@ -50,7 +68,7 @@ const EmployeeMobileLeaves = () => {
           transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
           className="absolute bottom-0 left-20 w-80 h-80 bg-[#84dcc6] rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
         />
-        
+
         {/* Subtle Glass Overlay */}
         <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
 
@@ -63,8 +81,8 @@ const EmployeeMobileLeaves = () => {
             </div>
           </div>
 
-          <Link 
-            to="/employee/leaves/apply"
+          <Link
+            to="/employee/mobile/applyleave"
             className="w-full rounded-xl bg-white text-slate-900 font-bold text-sm py-3.5 flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-md"
           >
             <Plus className="w-5 h-5" />
@@ -90,7 +108,7 @@ const EmployeeMobileLeaves = () => {
       {/* Leave History */}
       <section className="space-y-4">
         <h3 className="text-lg font-black text-slate-900 tracking-tight px-2">Recent Applications</h3>
-        
+
         {loading ? (
           <div className="text-center py-10">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#ff686b] mx-auto"></div>
@@ -110,7 +128,7 @@ const EmployeeMobileLeaves = () => {
               const start = new Date(record.startDate);
               const end = new Date(record.endDate);
               const conf = getStatusConfig(record.status);
-              
+
               return (
                 <div key={record.id || index} className="bg-white p-5 rounded-[1.5rem] border border-slate-200 shadow-sm flex flex-col gap-4">
                   <div className="flex justify-between items-start">
@@ -132,11 +150,21 @@ const EmployeeMobileLeaves = () => {
                       {record.status || 'Pending'}
                     </span>
                   </div>
-                  
+
                   {record.reason && (
                     <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
                       <p className="text-xs text-slate-600 line-clamp-2">"{record.reason}"</p>
                     </div>
+                  )}
+
+                  {(record.status || 'pending').toLowerCase() === 'pending' && (
+                    <button
+                      onClick={() => cancelLeaveMutation.mutate(record.id)}
+                      disabled={cancelLeaveMutation.isPending}
+                      className="mt-2 w-full py-2.5 rounded-xl border border-red-200 text-red-600 font-bold text-xs uppercase tracking-wider active:bg-red-50 transition-colors disabled:opacity-50"
+                    >
+                      {cancelLeaveMutation.isPending ? 'Cancelling...' : 'Cancel Leave'}
+                    </button>
                   )}
                 </div>
               );
