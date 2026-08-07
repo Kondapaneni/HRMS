@@ -117,7 +117,7 @@ $app->get('/api/candidate/documents', function (Request $request, Response $resp
     $conn = $db->getConnection();
     
     try {
-        $stmt = $conn->prepare('SELECT id, candidate_id, document_type, file_name, file_path, uploaded_at FROM candidate_documents WHERE candidate_id = ? ORDER BY uploaded_at DESC');
+        $stmt = $conn->prepare('SELECT id, candidate_id, document_type, file_name, file_path, status, uploaded_at FROM candidate_documents WHERE candidate_id = ? ORDER BY uploaded_at DESC');
         $stmt->execute([$decodedToken->id]);
         $documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -155,7 +155,7 @@ $app->post('/api/candidate/documents', function (Request $request, Response $res
         $stmtInsert->execute([$decodedToken->id, $docTypeId, $fileName, $filePath]);
 
         // Get the newly inserted record to return
-        $stmtGet = $conn->prepare('SELECT id, candidate_id, document_type, file_name, file_path, uploaded_at FROM candidate_documents WHERE candidate_id = ? AND document_type = ?');
+        $stmtGet = $conn->prepare('SELECT id, candidate_id, document_type, file_name, file_path, status, uploaded_at FROM candidate_documents WHERE candidate_id = ? AND document_type = ?');
         $stmtGet->execute([$decodedToken->id, $docTypeId]);
         $newDoc = $stmtGet->fetch(PDO::FETCH_ASSOC);
 

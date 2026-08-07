@@ -248,7 +248,7 @@ $app->get('/api/admin/candidate-documents', function (Request $request, Response
     $conn = $db->getConnection();
     
     try {
-        $stmt = $conn->query('SELECT id, candidate_id, document_type, file_name, file_path, uploaded_at FROM candidate_documents');
+        $stmt = $conn->query('SELECT id, candidate_id, document_type, file_name, file_path, status, uploaded_at FROM candidate_documents');
         $documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $response->getBody()->write(json_encode(['documents' => $documents]));
