@@ -106,7 +106,7 @@ const AdminRecruitment = () => {
 
   const [isOfferModalOpen, setIsOfferModalOpen] = useState(false);
   const [offerData, setOfferData] = useState({
-    firstName: '', lastName: '', email: '', phone: '', department: '', position: '', joiningDate: '', workLocation: '', annualSalary: '', offerDeadline: ''
+    firstName: '', lastName: '', email: '', phone: '', department: '', position: '', joiningDate: '', workLocation: '', annualSalary: '', monthlySalary: '', offerDeadline: ''
   });
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
@@ -356,6 +356,7 @@ const AdminRecruitment = () => {
       joiningDate: '',
       workLocation: app.jobs?.location || '',
       annualSalary: '',
+      monthlySalary: '',
       offerDeadline: ''
     });
     setIsOfferModalOpen(true);
@@ -805,9 +806,32 @@ const AdminRecruitment = () => {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700">Annual Compensation (INR)</label>
-                    <input type="text" required placeholder="e.g., ₹12,00,000" value={offerData.annualSalary} onChange={(e) => setOfferData({...offerData, annualSalary: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-slate-700">Monthly Compensation (INR)</label>
+                      <input 
+                        type="number" 
+                        required 
+                        placeholder="e.g., 100000" 
+                        value={offerData.monthlySalary} 
+                        onChange={(e) => {
+                          const monthly = e.target.value;
+                          const annual = monthly ? String(Number(monthly) * 12) : '';
+                          setOfferData({...offerData, monthlySalary: monthly, annualSalary: annual});
+                        }} 
+                        className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-slate-700">Annual Compensation (INR)</label>
+                      <input 
+                        type="text" 
+                        readOnly
+                        placeholder="Auto-calculated"
+                        value={offerData.annualSalary ? `₹${Number(offerData.annualSalary).toLocaleString('en-IN')}` : ''} 
+                        className="w-full px-3 py-2 border border-slate-200 bg-slate-50 text-slate-500 rounded-md focus:outline-none cursor-not-allowed" 
+                      />
+                    </div>
                   </div>
                 </form>
               </div>
