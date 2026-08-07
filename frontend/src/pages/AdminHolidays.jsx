@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import PageLoader from '../components/PageLoader';
+import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Loader2, X, Trash2, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, getDay, getDate } from 'date-fns';
@@ -279,23 +280,24 @@ const AdminHolidays = () => {
         </div>
       </div>
 
-      {/* Add/Edit Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+      {/* Add/Edit Sidebar Modal */}
+      {showModal && createPortal(
+        <div className="fixed inset-0 z-[100] flex justify-end bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white shadow-2xl w-full max-w-md h-[100dvh] flex flex-col overflow-hidden transform transition-transform duration-300">
+            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 shrink-0">
               <div>
-                <h3 className="text-lg font-semibold text-slate-900">
+                <h2 className="text-lg font-semibold text-slate-800">
                   {existingImage ? 'Edit Holiday' : 'Add Holiday'}
-                </h3>
+                </h2>
                 <p className="text-sm text-slate-500">Save holiday details for {selectedDate}</p>
               </div>
-              <button onClick={closeModal} className="text-slate-400 hover:text-slate-600 transition-colors p-1 hover:bg-slate-100 rounded-full">
-                <X className="w-5 h-5" />
+              <button onClick={closeModal} className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
+                <X size={20} />
               </button>
             </div>
-
-            <form onSubmit={handleSaveHoliday} className="p-6 overflow-y-auto space-y-5">
+            
+            <div className="p-6 overflow-y-auto flex-1">
+              <form id="holiday-form" onSubmit={handleSaveHoliday} className="space-y-5">
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-slate-700">Date</label>
                 <input
@@ -330,25 +332,29 @@ const AdminHolidays = () => {
               </div>
 
 
-              <div className="pt-2 flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 h-10 px-4 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {saving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Saving...</> : 'Save Holiday'}
-                </button>
-              </div>
-            </form>
+              </form>
+            </div>
+            
+            <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3 shrink-0">
+              <button
+                type="button"
+                onClick={closeModal}
+                className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                form="holiday-form"
+                disabled={saving}
+                className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 transition-colors shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {saving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Saving...</> : 'Save Holiday'}
+              </button>
+            </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

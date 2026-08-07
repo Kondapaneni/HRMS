@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import PageLoader from '../components/PageLoader';
+import { createPortal } from 'react-dom';
 import { Shield, Edit2, Search, X, Monitor, Plus, Trash2, History, ArrowRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
@@ -283,14 +284,14 @@ const AdminAssets = () => {
         )}
       </div>
 
-      {/* Modals */}
-      {modalMode && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[85vh]">
+      {/* Modals (Sidebar Drawer) */}
+      {modalMode && createPortal(
+        <div className="fixed inset-0 z-[100] flex justify-end bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white shadow-2xl w-full max-w-md h-[100dvh] flex flex-col overflow-hidden transform transition-transform duration-300">
             {/* Header */}
-            <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 shrink-0">
               <div>
-                <h2 className="text-lg font-bold text-slate-900">
+                <h2 className="text-lg font-semibold text-slate-800">
                   {modalMode === 'assign' ? `Assign ${selectedAsset.name}` :
                     modalMode === 'add' ? 'Add New Asset' :
                       modalMode === 'history' ? `Track History: ${selectedAsset.name}` : 'Edit Asset'}
@@ -300,10 +301,7 @@ const AdminAssets = () => {
                     modalMode === 'history' ? 'View the assignment and status history.' : 'Enter the details of the asset.'}
                 </p>
               </div>
-              <button
-                onClick={closeModal}
-                className="text-slate-400 hover:text-slate-600 bg-slate-200/50 hover:bg-slate-200 p-2 rounded-full transition-colors"
-              >
+              <button onClick={closeModal} className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
                 <X size={20} />
               </button>
             </div>
@@ -480,21 +478,22 @@ const AdminAssets = () => {
               <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3 shrink-0">
                 <button
                   onClick={closeModal}
-                  className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   form="asset-form"
                   disabled={saving}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 transition-colors shadow-sm cursor-pointer disabled:opacity-50"
                 >
                   {saving ? 'Saving...' : 'Save Asset'}
                 </button>
               </div>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

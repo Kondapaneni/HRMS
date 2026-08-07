@@ -37,7 +37,7 @@ const AdminLayout = () => {
     { icon: <Home size={18} />, label: 'Dashboard', path: '/admin' },
     { icon: <Users size={18} />, label: 'Employees', path: '/admin/employees' },
     { icon: <Network size={18} />, label: 'Org Directory', path: '/admin/directory' },
-    { icon: <Clock size={18} />, label: 'Attendance', path: '/admin/attendance' },
+    { icon: <Clock size={18} />, label: 'Attendance', path: '/admin/attendance', activePaths: ['/admin/attendance', '/admin/holidays'] },
     { icon: <Calendar size={18} />, label: 'Leave', path: '/admin/leaves' },
     { icon: <BarChart2 size={18} />, label: 'Performance', path: '/admin/performance' },
     { icon: <DollarSign size={18} />, label: 'Payroll', path: '/admin/payroll' },
@@ -112,7 +112,9 @@ const AdminLayout = () => {
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 px-2 whitespace-nowrap">Main Menu</p>
           <nav className="space-y-1">
             {navItems.map((item, idx) => {
-              const isActive = location.pathname === item.path || (item.path !== '/admin' && location.pathname.startsWith(item.path));
+              const isActive = location.pathname === item.path || 
+                               (item.path !== '/admin' && location.pathname.startsWith(item.path)) ||
+                               (item.activePaths && item.activePaths.some(p => location.pathname === p || location.pathname.startsWith(p)));
               return (
                 <Link 
                   key={idx}
