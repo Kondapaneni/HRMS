@@ -326,12 +326,23 @@ const AdminVerifyDocuments = () => {
               {/* Document Preview */}
               <div className="flex-1 p-6 overflow-hidden flex flex-col">
                 {selectedDocument ? (
-                  <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden relative">
-                    <iframe 
-                      src={selectedDocument.file_path} 
-                      className="absolute inset-0 w-full h-full" 
-                      title={selectedDocType.label} 
-                    />
+                  <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col items-center justify-center p-8">
+                    <div className="w-24 h-24 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center mb-6 shadow-sm border border-blue-100">
+                      <FileText size={40} />
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-800 mb-2">{selectedDocument.file_name || selectedDocType.label}</h3>
+                    <p className="text-slate-500 mb-8 max-w-sm text-center">
+                      This document has been successfully uploaded by the candidate and is ready for your review.
+                    </p>
+                    <a 
+                      href={selectedDocument.file_path} 
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium shadow-md shadow-blue-200 transition-all hover:-translate-y-0.5"
+                    >
+                      <Eye size={20} />
+                      Open Document in New Tab
+                    </a>
                   </div>
                 ) : (
                   <div className="flex-1 flex flex-col items-center justify-center text-center max-w-sm mx-auto">
