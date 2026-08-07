@@ -46,15 +46,6 @@ const EmployeeHolidays = () => {
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">Company Holidays</h1>
           <p className="text-sm text-slate-500 mt-1">View upcoming company holidays.</p>
         </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate('/employee/attendance')}
-            className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-10 px-4 py-2 transition-colors cursor-pointer"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Attendance
-          </button>
-        </div>
       </div>
 
       <div className="rounded-xl border border-slate-200 bg-white shadow-sm flex flex-col overflow-hidden">
