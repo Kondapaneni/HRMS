@@ -21,7 +21,7 @@ const renderBooleanBadge = (val) => val ? (
 );
 import PageLoader from '../components/PageLoader';
 
-const AssessmentManagementPage = () => {
+const AssessmentManagement = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [selectedAssessmentForRules, setSelectedAssessmentForRules] = useState(null);
@@ -348,4 +348,4 @@ const AssessmentManagementPage = () => {
   );
 };
 
-export default AssessmentManagementPage;
+export default AssessmentManagement;

@@ -16,12 +16,12 @@ import EmployeeAttendance from './pages/EmployeeAttendance'
 import EmployeeMobileAttendance from './pages/EmployeeMobileAttendance';
 import EmployeeHolidays from './pages/EmployeeHolidays';
 import EmployeeLeaves from './pages/EmployeeLeaves'
-import EmployeeApplyLeavePage from './pages/EmployeeApplyLeavePage'
+import EmployeeMobileApplyLeave from './pages/EmployeeMobileApplyLeave'
 import EmployeePayroll from './pages/EmployeePayroll'
 import EmployeeProfile from './pages/EmployeeProfile'
 import EmployeePerformance from './pages/EmployeePerformance'
 import EmployeeExpenses from './pages/EmployeeExpenses'
-import EditProfilePage from './pages/EditProfilePage'
+import EditProfile from './pages/EditProfile'
 import EmployeeFaceRegistration from './pages/EmployeeFaceRegistration'
 import EmployeeMobileMap from './pages/EmployeeMobileMap'
 import EmployeeMobileCamera from './pages/EmployeeMobileCamera'
@@ -36,10 +36,10 @@ import OriginationMobileLeadDetails from './pages/OriginationMobileLeadDetails'
 import OriginationMobileMemberDetails from './pages/OriginationMobileMemberDetails'
 import OriginationMembersList from './pages/OriginationMembersList'
 import AssessmentWorkspaceLayout from './components/AssessmentWorkspaceLayout'
-import AssessmentManagementPage from './pages/AssessmentManagementPage'
-import DepartmentQuestionBankPage from './pages/DepartmentQuestionBankPage'
-import AssessmentCreatePage from './pages/AssessmentCreatePage'
-import AssessmentResultsPage from './pages/AssessmentResultsPage'
+import AssessmentManagement from './pages/AssessmentManagement'
+import DepartmentQuestionBank from './pages/DepartmentQuestionBank'
+import AssessmentCreate from './pages/AssessmentCreate'
+import AssessmentResults from './pages/AssessmentResults'
 import AdminLayout from './components/AdminLayout'
 import AdminEmployees from './pages/AdminEmployees'
 import AdminDirectory from './pages/AdminDirectory'
@@ -83,7 +83,7 @@ import CandidateDocuments from './pages/CandidateDocuments'
 import NotFound from './pages/NotFound'
 import { Toaster } from 'react-hot-toast'
 import SnowflakeCursor from './components/CustomCursor'
-import OfflinePage from './pages/OfflinePage'
+import Offline from './pages/Offline'
 import UpdateOverlay from './components/UpdateOverlay'
 
 
@@ -119,7 +119,7 @@ function App() {
       <Router>
         <AuthProvider>
             <UpdateOverlay />
-            <OfflinePage />
+            <Offline />
             <SnowflakeCursor />
             <Toaster position="top-right" />
             <Routes>
@@ -180,12 +180,12 @@ function App() {
                 }
               >
                 <Route index element={<Navigate to="questions" replace />} />
-                <Route path="questions" element={<DepartmentQuestionBankPage />} />
-                <Route path="management" element={<AssessmentManagementPage />} />
+                <Route path="questions" element={<DepartmentQuestionBank />} />
+                <Route path="management" element={<AssessmentManagement />} />
                 <Route path="rules" element={<Navigate to="management" replace />} />
-                <Route path="create" element={<AssessmentCreatePage />} />
-                <Route path="edit/:id" element={<AssessmentCreatePage />} />
-                <Route path="results" element={<AssessmentResultsPage />} />
+                <Route path="create" element={<AssessmentCreate />} />
+                <Route path="edit/:id" element={<AssessmentCreate />} />
+                <Route path="results" element={<AssessmentResults />} />
                 <Route path="training" element={<AdminTrainingVideos />} />
               </Route>
               <Route
@@ -200,7 +200,7 @@ function App() {
                 <Route path="attendance" element={<EmployeeAttendance />} />
                 <Route path="holidays" element={<EmployeeHolidays />} />
                 <Route path="leaves" element={<EmployeeLeaves />} />
-                <Route path="leaves/apply" element={<EmployeeApplyLeavePage />} />
+                <Route path="leaves/apply" element={<EmployeeMobileApplyLeave />} />
                 <Route path="expenses" element={<EmployeeExpenses />} />
                 <Route path="payroll" element={<EmployeePayroll />} />
                 <Route path="performance" element={<EmployeePerformance />} />
@@ -208,7 +208,7 @@ function App() {
                 <Route path="assessments/instructions" element={<EmployeeAssessmentInstructions />} />
                 <Route path="training" element={<EmployeeTrainingVideos />} />
                 <Route path="profile" element={<EmployeeProfile />} />
-                <Route path="profile/edit" element={<EditProfilePage />} />
+                <Route path="profile/edit" element={<EditProfile />} />
               </Route>
 
               {/* Fullscreen Exam Routes (no sidebar/header) */}

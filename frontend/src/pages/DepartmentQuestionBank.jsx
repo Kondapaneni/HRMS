@@ -19,7 +19,7 @@ const DEPARTMENTS = [
   'General / All'
 ];
 
-const DepartmentQuestionBankPage = () => {
+const DepartmentQuestionBank = () => {
   const queryClient = useQueryClient();
   const [selectedDeptFilter, setSelectedDeptFilter] = useState('All');
   const [showModal, setShowModal] = useState(false);
@@ -580,4 +580,4 @@ const DepartmentQuestionBankPage = () => {
   );
 };
 
-export default DepartmentQuestionBankPage;
+export default DepartmentQuestionBank;

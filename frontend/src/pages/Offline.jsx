@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { RefreshCcw } from 'lucide-react';
 import FuzzyText from '../components/FuzzyText';
 
-const OfflinePage = () => {
+const Offline = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [isChecking, setIsChecking] = useState(false);
 
@@ -73,4 +73,4 @@ const OfflinePage = () => {
   );
 };
 
-export default OfflinePage;
+export default Offline;

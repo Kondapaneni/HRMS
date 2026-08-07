@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import PageLoader from '../components/PageLoader';
 
-const AssessmentResultsPage = () => {
+const AssessmentResults = () => {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -608,4 +608,4 @@ const AssessmentResultsPage = () => {
   );
 };
 
-export default AssessmentResultsPage;
+export default AssessmentResults;

@@ -8,7 +8,7 @@ import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
 
-const EditMobileProfilePage = () => {
+const EditMobileProfile = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { fetchProfile } = useAuth();
@@ -235,4 +235,4 @@ const EditMobileProfilePage = () => {
   );
 };
 
-export default EditMobileProfilePage;
+export default EditMobileProfile;

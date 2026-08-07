@@ -7,7 +7,7 @@ import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 
-const EmployeeApplyLeavePage = () => {
+const EmployeeMobileApplyLeave = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [error, setError] = useState('');
@@ -173,7 +173,7 @@ const EmployeeApplyLeavePage = () => {
     <div className="relative pb-6">
       
       {/* Mobile Header Hero */}
-      <div className="md:hidden -mx-4 -mt-4 px-4 pt-8 pb-20 relative overflow-hidden bg-slate-900">
+      <div className="-mx-4 -mt-4 px-4 pt-8 pb-20 relative overflow-hidden bg-slate-900">
         <motion.div
           animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
@@ -195,26 +195,11 @@ const EmployeeApplyLeavePage = () => {
         </div>
       </div>
 
-      {/* Desktop Header */}
-      <div className="hidden md:flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Apply Leave</h1>
-          <p className="text-sm text-slate-500 mt-1">Submit a new leave request</p>
-        </div>
-        <button 
-          onClick={() => navigate('/employee/leaves')}
-          className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-10 px-4 py-2 transition-colors shadow-sm"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Leaves
-        </button>
-      </div>
-
-      <div className="relative z-20 md:-mt-0 -mt-12 mx-1 md:mx-auto max-w-2xl space-y-6">
-        <form onSubmit={handleApplyLeave} className="bg-white p-5 md:p-8 rounded-[24px] shadow-lg border border-slate-100/50 space-y-6">
+      <div className="relative z-20 -mt-12 mx-1 space-y-6">
+        <form onSubmit={handleApplyLeave} className="bg-white p-5 rounded-[24px] shadow-lg border border-slate-100/50 space-y-6">
           
           <div className="space-y-2">
-            <label className="text-[11px] md:text-sm font-semibold text-slate-500 uppercase tracking-wider">Leave Type *</label>
+            <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Leave Type *</label>
             {paidRemaining === 0 ? (
               <>
                 <div className="rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm text-rose-700 font-medium">
@@ -242,8 +227,8 @@ const EmployeeApplyLeavePage = () => {
           </div>
 
           <div className="space-y-3">
-            <label className="text-[11px] md:text-sm font-semibold text-slate-500 uppercase tracking-wider">Select Dates *</label>
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 md:p-5 shadow-inner">
+            <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Select Dates *</label>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-inner">
               <div className="flex items-center justify-between mb-4">
                 <button
                   type="button"
@@ -272,10 +257,10 @@ const EmployeeApplyLeavePage = () => {
                 </button>
               </div>
 
-              <div className="grid grid-cols-7 gap-2 text-center text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
+              <div className="grid grid-cols-7 gap-2 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">
                 <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
               </div>
-              <div className="grid grid-cols-7 gap-1.5 md:gap-2">
+              <div className="grid grid-cols-7 gap-1.5">
                 {renderCalendar()}
               </div>
             </div>
@@ -293,7 +278,7 @@ const EmployeeApplyLeavePage = () => {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[11px] md:text-sm font-semibold text-slate-500 uppercase tracking-wider">Reason *</label>
+            <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Reason *</label>
             <textarea
               name="reason"
               rows="3"
@@ -322,4 +307,4 @@ const EmployeeApplyLeavePage = () => {
   );
 };
 
-export default EmployeeApplyLeavePage;
+export default EmployeeMobileApplyLeave;

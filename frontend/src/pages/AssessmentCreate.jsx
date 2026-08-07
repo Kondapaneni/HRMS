@@ -22,7 +22,7 @@ const DEPARTMENTS = [
   'General / All'
 ];
 
-const AssessmentCreatePage = () => {
+const AssessmentCreate = () => {
   const { id } = useParams();
   const isEditing = Boolean(id);
   const navigate = useNavigate();
@@ -770,4 +770,4 @@ const AssessmentCreatePage = () => {
   );
 };
 
-export default AssessmentCreatePage;
+export default AssessmentCreate;
