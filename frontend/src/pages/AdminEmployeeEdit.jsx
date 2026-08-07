@@ -13,6 +13,8 @@ const AdminEmployeeEdit = () => {
 
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({});
+  const [managerSearch, setManagerSearch] = useState('');
+  const [showManagerDropdown, setShowManagerDropdown] = useState(false);
 
   const employeeQuery = useQuery({
     queryKey: ['admin', 'employee', id],
@@ -62,6 +64,15 @@ const AdminEmployeeEdit = () => {
     setFormData(cleanData);
   }, [employeeQuery.data]);
 
+  useEffect(() => {
+    if (formData.managerId && managersQuery.data) {
+      const m = managersQuery.data.find(emp => emp.id === formData.managerId);
+      if (m) setManagerSearch(`${m.firstName} ${m.lastName} (${m.employeeId})`);
+    } else if (!formData.managerId) {
+      setManagerSearch('');
+    }
+  }, [formData.managerId, managersQuery.data]);
+
   const updateEmployeeMutation = useMutation({
     mutationFn: async () => {
       return api.put(`/admin/employees/${id}`, formData);
@@ -82,6 +93,11 @@ const AdminEmployeeEdit = () => {
   const shifts = shiftsQuery.data || [];
 
   const loading = employeeQuery.isLoading || managersQuery.isLoading || branchesQuery.isLoading || shiftsQuery.isLoading;
+
+  const filteredManagers = managers.filter(m => {
+    const searchString = `${m.firstName} ${m.lastName} ${m.employeeId}`.toLowerCase();
+    return searchString.includes(managerSearch.toLowerCase());
+  });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -187,6 +203,22 @@ const AdminEmployeeEdit = () => {
                 <input type="date" name="dateOfBirth" value={formData.dateOfBirth} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" />
               </div>
             </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-slate-700">Blood Group</label>
+                <select name="bloodGroup" value={formData.bloodGroup} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none bg-white cursor-pointer">
+                  <option value="">Select Blood Group</option>
+                  <option value="A+">A+</option>
+                  <option value="A-">A-</option>
+                  <option value="B+">B+</option>
+                  <option value="B-">B-</option>
+                  <option value="AB+">AB+</option>
+                  <option value="AB-">AB-</option>
+                  <option value="O+">O+</option>
+                  <option value="O-">O-</option>
+                </select>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -220,14 +252,51 @@ const AdminEmployeeEdit = () => {
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1">
+              <div className="space-y-1 relative">
                 <label className="text-sm font-medium text-slate-700">Manager</label>
-                <select name="managerId" value={formData.managerId} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none bg-white cursor-pointer">
-                  <option value="">No Manager</option>
-                  {managers.map(m => (
-                    <option key={m.id} value={m.id}>{m.firstName} {m.lastName} ({m.employeeId})</option>
-                  ))}
-                </select>
+                <input 
+                  type="text" 
+                  value={managerSearch} 
+                  onChange={(e) => {
+                    setManagerSearch(e.target.value);
+                    setFormData(prev => ({ ...prev, managerId: '' }));
+                    setShowManagerDropdown(true);
+                  }}
+                  onFocus={() => setShowManagerDropdown(true)}
+                  onBlur={() => setTimeout(() => setShowManagerDropdown(false), 200)}
+                  placeholder="Search by name or ID..."
+                  className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+                />
+                {showManagerDropdown && (
+                  <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                    <div 
+                      className="px-3 py-2 text-sm cursor-pointer hover:bg-slate-50 text-slate-700"
+                      onClick={() => {
+                        setFormData(prev => ({ ...prev, managerId: '' }));
+                        setManagerSearch('');
+                        setShowManagerDropdown(false);
+                      }}
+                    >
+                      No Manager
+                    </div>
+                    {filteredManagers.map(m => (
+                      <div 
+                        key={m.id}
+                        className="px-3 py-2 text-sm cursor-pointer hover:bg-slate-50 text-slate-700"
+                        onClick={() => {
+                          setFormData(prev => ({ ...prev, managerId: m.id }));
+                          setManagerSearch(`${m.firstName} ${m.lastName} (${m.employeeId})`);
+                          setShowManagerDropdown(false);
+                        }}
+                      >
+                        {m.firstName} {m.lastName} ({m.employeeId})
+                      </div>
+                    ))}
+                    {filteredManagers.length === 0 && (
+                      <div className="px-3 py-2 text-sm text-slate-500">No matching employees</div>
+                    )}
+                  </div>
+                )}
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium text-slate-700">Employment Type</label>
@@ -245,7 +314,7 @@ const AdminEmployeeEdit = () => {
                 <input type="number" name="noticePeriod" value={formData.noticePeriod} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" />
               </div>
               <div className="space-y-1">
-                <label className="text-sm font-medium text-slate-700">Salary</label>
+                <label className="text-sm font-medium text-slate-700">Salary (Annually)</label>
                 <input type="number" step="0.01" name="salary" value={formData.salary} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" />
               </div>
             </div>
