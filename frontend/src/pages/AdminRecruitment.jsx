@@ -931,7 +931,7 @@ const AdminRecruitment = () => {
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-medium text-slate-600">Monthly Compensation (INR) *</label>
+                  <label className="text-xs font-medium text-slate-600">Monthly Salary (INR) *</label>
                   <input type="number" required value={convertData.salary} onChange={e => setConvertData({...convertData, salary: e.target.value})} placeholder="e.g. 50000" className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />
                 </div>
               </form>
