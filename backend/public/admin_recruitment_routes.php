@@ -88,9 +88,19 @@ $app->post('/api/admin/jobs', function (Request $request, Response $response, $a
     
     try {
         $stmtInsert = $conn->prepare('
-            INSERT INTO jobs (title, department, location, type, status, description, requirements, salary_range) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING *
+            INSERT INTO jobs (
+                title, department, location, type, status, description, 
+                experience, salary_min, salary_max, vacancy, skills, qualification, 
+                deadline, description_pdf_url
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *
         ');
+        
+        // Handle empty strings for numeric/date fields
+        $salaryMin = isset($data['salary_min']) && $data['salary_min'] !== '' ? $data['salary_min'] : null;
+        $salaryMax = isset($data['salary_max']) && $data['salary_max'] !== '' ? $data['salary_max'] : null;
+        $vacancy = isset($data['vacancy']) && $data['vacancy'] !== '' ? $data['vacancy'] : 1;
+        $deadline = isset($data['deadline']) && $data['deadline'] !== '' ? $data['deadline'] : null;
+
         $stmtInsert->execute([
             $data['title'] ?? null,
             $data['department'] ?? null,
@@ -98,8 +108,14 @@ $app->post('/api/admin/jobs', function (Request $request, Response $response, $a
             $data['type'] ?? null,
             $data['status'] ?? 'Draft',
             $data['description'] ?? null,
-            $data['requirements'] ?? null,
-            $data['salary_range'] ?? null
+            $data['experience'] ?? null,
+            $salaryMin,
+            $salaryMax,
+            $vacancy,
+            $data['skills'] ?? null,
+            $data['qualification'] ?? null,
+            $deadline,
+            $data['description_pdf_url'] ?? null
         ]);
         
         $newJob = $stmtInsert->fetch(PDO::FETCH_ASSOC);
