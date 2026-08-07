@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import {
   LogOut, User, Calendar, Users, Briefcase, Monitor,
   Home, Clock, BarChart2, DollarSign, Activity, Bell, Search, Menu, Wallet,
-  Smartphone, Award, Megaphone, Play
+  Smartphone, Award, Megaphone, Play, Palmtree
 } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -65,6 +65,7 @@ const EmployeeLayout = () => {
     { icon: <User size={18} />, label: 'My Profile', path: '/employee/profile', activePaths: ['/employee/profile'] },
     { icon: <Clock size={18} />, label: 'Attendance', path: '/employee/attendance' },
     { icon: <Calendar size={18} />, label: 'Leaves', path: '/employee/leaves' },
+    { icon: <Palmtree size={18} />, label: 'Company Holidays', path: '/employee/holidays' },
     { icon: <Wallet size={18} />, label: 'Payroll', path: '/employee/payroll' },
     { icon: <DollarSign size={18} />, label: 'Expenses', path: '/employee/expenses' },
     { icon: <BarChart2 size={18} />, label: 'Performance', path: '/employee/performance' },
