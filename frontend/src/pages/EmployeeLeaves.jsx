@@ -346,22 +346,19 @@ const EmployeeLeaves = () => {
         </div>
       </div>
 
-      {/* Apply Leave Modal */}
+      {/* Apply Leave Sidebar Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 transition-all overflow-hidden">
-          <div className="bg-white rounded-[24px] sm:rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[90dvh]">
-            <div className="p-6 border-b border-slate-100 flex items-center justify-between shrink-0">
-              <div>
-                <h2 className="text-lg font-semibold text-slate-900">Apply for Leave</h2>
-                <p className="text-sm text-slate-500">Submit a new leave request</p>
-              </div>
-              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600">
-                <X className="h-5 w-5" />
+        <div className="fixed inset-0 z-[100] flex justify-end bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white shadow-2xl w-full max-w-lg h-[100dvh] flex flex-col overflow-hidden transform transition-transform duration-300">
+            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 shrink-0">
+              <h2 className="text-lg font-semibold text-slate-800">Apply for Leave</h2>
+              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
+                <X size={20} />
               </button>
             </div>
 
-            <div className="p-6 overflow-y-auto overscroll-contain flex-1">
-              <form onSubmit={handleApplyLeave} className="space-y-4">
+            <div className="p-6 overflow-y-auto flex-1">
+              <form id="apply-leave-form" onSubmit={handleApplyLeave} className="space-y-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-slate-700">Leave Type</label>
                   {paidRemaining === 0 ? (
@@ -455,24 +452,26 @@ const EmployeeLeaves = () => {
                   ></textarea>
                 </div>
 
-                <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
-                  <button
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 h-10 px-4 py-2 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 disabled:opacity-70 transition-colors"
-                  >
-                    {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    {submitting ? 'Submitting...' : 'Submit Request'}
-                  </button>
-                </div>
               </form>
+            </div>
+
+            <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3 shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                form="apply-leave-form"
+                disabled={submitting}
+                className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 transition-colors disabled:opacity-70 cursor-pointer shadow-sm"
+              >
+                {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {submitting ? 'Submitting...' : 'Submit Request'}
+              </button>
             </div>
           </div>
         </div>
