@@ -29,7 +29,7 @@ const CandidateDashboard = () => {
       };
     },
     enabled: !!profile?.id,
-    staleTime: 30 * 1000
+    staleTime: 5 * 60 * 1000
   });
 
   const profileData = dashboardData?.profileData;
@@ -65,7 +65,7 @@ const CandidateDashboard = () => {
     }
   };
 
-  if (isLoading) {
+  if (isLoading && !dashboardData) {
     return <PageLoader message="Loading Dashboard..." />;
   }
 

@@ -38,7 +38,8 @@ const CandidateProfile = () => {
       const res = await api.get('/candidate/profile');
       return res.data.profile || null;
     },
-    enabled: !!profile?.id
+    enabled: !!profile?.id,
+    staleTime: 5 * 60 * 1000
   });
 
   useEffect(() => {
@@ -192,7 +193,7 @@ const CandidateProfile = () => {
     }
   };
 
-  if (isLoadingProfile) {
+  if (isLoadingProfile && !profileData) {
     return <PageLoader message="Loading Profile..." />;
   }
 

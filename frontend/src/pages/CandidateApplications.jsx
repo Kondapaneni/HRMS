@@ -43,7 +43,8 @@ const CandidateApplications = () => {
         };
       });
     },
-    enabled: !!profile?.id
+    enabled: !!profile?.id,
+    staleTime: 5 * 60 * 1000
   });
 
   const getStatusBadge = (status) => {
@@ -56,7 +57,7 @@ const CandidateApplications = () => {
     }
   };
 
-  if (isLoading) {
+  if (isLoading && applications.length === 0) {
     return <PageLoader message="Loading Applications..." />;
   }
 

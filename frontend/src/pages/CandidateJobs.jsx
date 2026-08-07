@@ -34,8 +34,8 @@ const CandidateJobs = () => {
         jobs: jobsRes.data.jobs || [],
         applications: appsRes.data.applications || []
       };
-    },
-    enabled: !!profile?.id
+    enabled: !!profile?.id,
+    staleTime: 5 * 60 * 1000
   });
 
   const jobs = pageData?.jobs || [];
@@ -56,7 +56,8 @@ const CandidateJobs = () => {
       const res = await api.get('/candidate/profile');
       return res.data.profile;
     },
-    enabled: !!profile?.id
+    enabled: !!profile?.id,
+    staleTime: 5 * 60 * 1000
   });
 
   const resumes = Array.isArray(profileData?.resume_url) ? profileData.resume_url : [];
@@ -134,11 +135,9 @@ const CandidateJobs = () => {
     setFilterType('');
   };
 
-  if (isLoading) {
-    return <div className="p-6 text-slate-500">Loading jobs...</div>;
+  if ((isLoading || isLoadingJobs) && !pageData) {
+    return <PageLoader message="Loading Jobs..." />;
   }
-
-  if (isLoadingJobs) return <PageLoader message="Loading Jobs..." />;
 
   return (
     <>

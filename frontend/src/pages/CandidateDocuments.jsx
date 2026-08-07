@@ -138,7 +138,8 @@ const CandidateDocuments = () => {
       const res = await api.get('/candidate/documents');
       return res.data.documents || [];
     },
-    enabled: !!profile?.id
+    enabled: !!profile?.id,
+    staleTime: 5 * 60 * 1000
   });
 
 
@@ -192,7 +193,7 @@ const CandidateDocuments = () => {
     uploadMutation.mutate({ docTypeId, file });
   };
 
-  if (isLoading) {
+  if (isLoading && documents.length === 0) {
     return <PageLoader message="Loading Documents..." />;
   }
 
