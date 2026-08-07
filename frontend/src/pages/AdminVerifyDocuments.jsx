@@ -245,9 +245,6 @@ const AdminVerifyDocuments = () => {
       {/* Header Area */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="flex items-center gap-4">
-          <button onClick={() => navigate('/admin/recruitment')} className="p-2 text-slate-500 hover:bg-slate-200 rounded-full transition-colors flex-shrink-0">
-            <ArrowLeft size={20} />
-          </button>
           <div>
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">Verify Candidate Documents</h1>
             <p className="text-sm md:text-base font-medium text-slate-500 flex items-center gap-2 mt-1">
@@ -257,7 +254,14 @@ const AdminVerifyDocuments = () => {
             </p>
           </div>
         </div>
-        <div className="w-full md:w-auto pl-14 md:pl-0">
+        <div className="w-full md:w-auto flex flex-col sm:flex-row gap-3">
+          <button 
+            onClick={() => navigate('/admin/recruitment')} 
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl font-medium border border-slate-300 text-slate-700 bg-white hover:bg-slate-50 transition-all shadow-sm"
+          >
+            <ArrowLeft size={18} />
+            Back to Recruitment
+          </button>
           <button 
             onClick={() => sendEmailMutation.mutate()} 
             disabled={!allRequiredVerified || sendEmailMutation.isPending || hasNotified}
