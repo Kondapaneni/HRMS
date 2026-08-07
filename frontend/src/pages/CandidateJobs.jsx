@@ -34,6 +34,7 @@ const CandidateJobs = () => {
         jobs: jobsRes.data.jobs || [],
         applications: appsRes.data.applications || []
       };
+    },
     enabled: !!profile?.id,
     staleTime: 5 * 60 * 1000
   });
