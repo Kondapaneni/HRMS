@@ -241,16 +241,16 @@ const AdminVerifyDocuments = () => {
   const optionalDocs = documentTypes.filter(d => !d.isRequired);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="w-full space-y-8 pb-12">
       {/* Header Area */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="flex items-center gap-4">
           <button onClick={() => navigate('/admin/recruitment')} className="p-2 text-slate-500 hover:bg-slate-200 rounded-full transition-colors flex-shrink-0">
             <ArrowLeft size={20} />
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Verify Candidate Documents</h1>
-            <p className="text-sm font-medium text-slate-500 flex items-center gap-2 mt-1">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">Verify Candidate Documents</h1>
+            <p className="text-sm md:text-base font-medium text-slate-500 flex items-center gap-2 mt-1">
               <span className="text-blue-600 font-semibold">{userInfo?.firstName || 'Candidate'} {userInfo?.lastName || ''}</span>
               <span className="text-slate-300">•</span>
               <span>{application.jobs?.title}</span>
