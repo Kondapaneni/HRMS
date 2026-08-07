@@ -870,104 +870,106 @@ const AdminRecruitment = () => {
         </div>
       )}
 
-      {/* Convert to Employee Modal */}
+      {/* Convert to Employee Sidebar Modal */}
       {isConvertModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 overflow-y-auto">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl my-auto">
-            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-start bg-slate-50 rounded-t-lg">
+        <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white shadow-2xl w-full max-w-lg h-[100dvh] flex flex-col overflow-hidden transform transition-transform duration-300">
+            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
               <div>
                 <h2 className="text-lg font-semibold text-slate-800">Convert Candidate to Employee</h2>
-                <p className="mt-1 text-sm text-slate-500">Create a staff user and employee record for this candidate.</p>
+                <p className="mt-0.5 text-xs text-slate-500">Create a staff user and employee record for this candidate.</p>
               </div>
-              <button onClick={() => setIsConvertModalOpen(false)} className="text-slate-400 hover:text-slate-600 p-1">
+              <button onClick={() => setIsConvertModalOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
                 <X size={20} />
               </button>
             </div>
             
-            <form onSubmit={handleConvertToEmployee} className="p-6 space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">First Name</label>
-                  <input type="text" required value={convertData.firstName} onChange={e => setConvertData({...convertData, firstName: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
+            <div className="p-6 overflow-y-auto flex-1">
+              <form id="convert-candidate-form" onSubmit={handleConvertToEmployee} className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-slate-600">First Name *</label>
+                    <input type="text" required value={convertData.firstName} onChange={e => setConvertData({...convertData, firstName: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-slate-600">Last Name *</label>
+                    <input type="text" required value={convertData.lastName} onChange={e => setConvertData({...convertData, lastName: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Last Name</label>
-                  <input type="text" required value={convertData.lastName} onChange={e => setConvertData({...convertData, lastName: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-slate-600">Email *</label>
+                    <input type="email" required value={convertData.email} onChange={e => setConvertData({...convertData, email: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-slate-600">Phone *</label>
+                    <input type="text" value={convertData.phone} onChange={e => setConvertData({...convertData, phone: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />
+                  </div>
                 </div>
-              </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Email</label>
-                  <input type="email" required value={convertData.email} onChange={e => setConvertData({...convertData, email: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-slate-600">Department *</label>
+                    <input type="text" required value={convertData.department} onChange={e => setConvertData({...convertData, department: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-slate-600">Designation *</label>
+                    <input type="text" required value={convertData.position} onChange={e => setConvertData({...convertData, position: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Phone</label>
-                  <input type="text" value={convertData.phone} onChange={e => setConvertData({...convertData, phone: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-slate-600">Branch *</label>
+                    <select required value={convertData.branch} onChange={e => setConvertData({...convertData, branch: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all bg-white cursor-pointer">
+                      {branches.map(b => (
+                        <option key={b.id} value={b.id}>{b.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-slate-600">Join Date *</label>
+                    <input type="date" required value={convertData.joinDate} onChange={e => setConvertData({...convertData, joinDate: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />
+                  </div>
                 </div>
-              </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Department</label>
-                  <input type="text" required value={convertData.department} onChange={e => setConvertData({...convertData, department: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-slate-600">Annual Compensation (INR) *</label>
+                    <input type="number" required value={convertData.salary} onChange={e => setConvertData({...convertData, salary: e.target.value})} placeholder="e.g. 600000" className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-slate-600">Status *</label>
+                    <select required value={convertData.status} onChange={e => setConvertData({...convertData, status: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all bg-white cursor-pointer">
+                      <option value="Active">Active</option>
+                      <option value="On Leave">On Leave</option>
+                      <option value="Terminated">Terminated</option>
+                    </select>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Designation</label>
-                  <input type="text" required value={convertData.position} onChange={e => setConvertData({...convertData, position: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
-                </div>
-              </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Branch</label>
-                  <select required value={convertData.branch} onChange={e => setConvertData({...convertData, branch: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 bg-white">
-                    {branches.map(b => (
-                      <option key={b.id} value={b.id}>{b.name}</option>
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-slate-600">Manager (Optional)</label>
+                  <select 
+                    value={convertData.managerId} 
+                    onChange={e => setConvertData({...convertData, managerId: e.target.value})} 
+                    className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all bg-white cursor-pointer" 
+                  >
+                    <option value="">Select a Manager...</option>
+                    {employeesList.map(emp => (
+                      <option key={emp.id} value={emp.id}>
+                        {emp.firstName} {emp.lastName} ({emp.employeeId})
+                      </option>
                     ))}
                   </select>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Join Date</label>
-                  <input type="date" required value={convertData.joinDate} onChange={e => setConvertData({...convertData, joinDate: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
-                </div>
-              </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Annual Compensation (INR)</label>
-                  <input type="number" required value={convertData.salary} onChange={e => setConvertData({...convertData, salary: e.target.value})} placeholder="e.g. 600000" className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Status</label>
-                  <select required value={convertData.status} onChange={e => setConvertData({...convertData, status: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 bg-white">
-                    <option value="Active">Active</option>
-                    <option value="On Leave">On Leave</option>
-                    <option value="Terminated">Terminated</option>
-                  </select>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Manager (Optional)</label>
-                <select 
-                  value={convertData.managerId} 
-                  onChange={e => setConvertData({...convertData, managerId: e.target.value})} 
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 bg-white" 
-                >
-                  <option value="">Select a Manager...</option>
-                  {employeesList.map(emp => (
-                    <option key={emp.id} value={emp.id}>
-                      {emp.firstName} {emp.lastName} ({emp.employeeId})
-                    </option>
-                  ))}
-                </select>
-              </div>
-              
-              <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 mt-6">
-                <button type="button" onClick={() => setIsConvertModalOpen(false)} className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors cursor-pointer" disabled={convertEmployeeMutation.isPending}>
-                  Cancel
-                </button>
-                <button type="submit" disabled={convertEmployeeMutation.isPending} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors cursor-pointer disabled:opacity-50">
-                  {convertEmployeeMutation.isPending ? 'Converting...' : 'Convert to Employee'}
-                </button>
-              </div>
-            </form>
+              </form>
+            </div>
+
+            <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3">
+              <button type="button" onClick={() => setIsConvertModalOpen(false)} className="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors cursor-pointer" disabled={convertEmployeeMutation.isPending}>
+                Cancel
+              </button>
+              <button type="submit" form="convert-candidate-form" disabled={convertEmployeeMutation.isPending} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors cursor-pointer disabled:opacity-50">
+                {convertEmployeeMutation.isPending ? 'Converting...' : 'Convert to Employee'}
+              </button>
+            </div>
           </div>
         </div>
       )}
