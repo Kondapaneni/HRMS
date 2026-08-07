@@ -806,8 +806,8 @@ const AdminRecruitment = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700">Annual Compensation</label>
-                    <input type="text" required placeholder="e.g., $120,000" value={offerData.annualSalary} onChange={(e) => setOfferData({...offerData, annualSalary: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <label className="text-sm font-medium text-slate-700">Annual Compensation (INR)</label>
+                    <input type="text" required placeholder="e.g., ₹12,00,000" value={offerData.annualSalary} onChange={(e) => setOfferData({...offerData, annualSalary: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
                   </div>
                 </form>
               </div>
