@@ -219,6 +219,17 @@ const AdminEmployeeEdit = () => {
                 </select>
               </div>
             </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-slate-700">Emergency Contact Name</label>
+                <input readOnly type="text" value={formData.emergencyContact || ''} className="w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500 outline-none cursor-not-allowed" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-sm font-medium text-slate-700">Emergency Contact Phone</label>
+                <input readOnly type="text" value={formData.emergencyPhone || ''} className="w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500 outline-none cursor-not-allowed" />
+              </div>
+            </div>
           </div>
         </div>
 
