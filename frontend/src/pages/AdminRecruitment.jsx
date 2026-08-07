@@ -958,10 +958,10 @@ const AdminRecruitment = () => {
             </div>
             
             <div className="p-6 overflow-y-auto flex-1 custom-scrollbar">
-              <div className="relative wrap overflow-hidden p-2">
-                <div className="absolute border-opacity-20 border-slate-300 h-full border-l-2" style={{left: '2rem'}}></div>
+              <div className="relative overflow-hidden pt-2 pb-6">
+                <div className="absolute top-0 bottom-0 left-[1.25rem] w-0.5 bg-slate-200"></div>
                 {(!timelineApp.application_timeline || timelineApp.application_timeline.length === 0) ? (
-                  <div className="rounded-xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-500 relative z-10 w-full ml-12">
+                  <div className="rounded-xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-500 relative z-10 w-full ml-10">
                     Timeline history is not available yet.
                   </div>
                 ) : (
@@ -969,7 +969,7 @@ const AdminRecruitment = () => {
                     const isLatest = idx === 0;
                     return (
                       <div key={idx} className="mb-8 flex justify-start items-start w-full relative">
-                        <div className="z-20 flex items-center justify-center bg-blue-50 shadow-sm border-[3px] border-white w-10 h-10 rounded-full shrink-0 mr-6 ml-3">
+                        <div className="z-20 flex items-center justify-center bg-blue-50 shadow-sm border-[3px] border-white w-10 h-10 rounded-full shrink-0 mr-4 ml-0">
                           {isLatest && (
                             <span className="absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-40 animate-ping"></span>
                           )}
