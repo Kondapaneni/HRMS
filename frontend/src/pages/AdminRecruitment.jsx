@@ -157,6 +157,20 @@ const AdminRecruitment = () => {
     createJobMutation.mutate();
   };
 
+  const updateJobStatusMutation = useMutation({
+    mutationFn: async ({ jobId, status }) => {
+      await api.put(`/admin/jobs/${jobId}/status`, { status });
+    },
+    onSuccess: () => {
+      toast.success('Job status updated');
+      queryClient.invalidateQueries({ queryKey: ['admin', 'jobs'] });
+    },
+    onError: (error) => {
+      console.error(error);
+      toast.error('Failed to update job status');
+    }
+  });
+
   const updateStatusMutation = useMutation({
     mutationFn: async ({ app, userInfo, newStatus, additionalNotes = '', offerLetterUrl = null }) => {
       await api.put(`/admin/applications/${app.id}/status`, { 
@@ -537,6 +551,23 @@ const AdminRecruitment = () => {
                       >
                         View Applicants
                       </button>
+                      {job.status === 'Draft' ? (
+                        <button 
+                          onClick={() => updateJobStatusMutation.mutate({ jobId: job.id, status: 'Published' })}
+                          disabled={updateJobStatusMutation.isPending}
+                          className="inline-flex items-center justify-center whitespace-nowrap rounded-md border border-transparent bg-emerald-600 hover:bg-emerald-700 h-10 px-4 py-2 text-sm font-medium text-white transition-colors disabled:opacity-50"
+                        >
+                          Publish
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={() => updateJobStatusMutation.mutate({ jobId: job.id, status: 'Draft' })}
+                          disabled={updateJobStatusMutation.isPending}
+                          className="inline-flex items-center justify-center whitespace-nowrap rounded-md border border-slate-300 bg-white hover:bg-slate-50 h-10 px-4 py-2 text-sm font-medium text-slate-700 transition-colors disabled:opacity-50"
+                        >
+                          Unpublish
+                        </button>
+                      )}
                       {job.description_pdf_url && (
                         <a 
                           href={job.description_pdf_url} 
