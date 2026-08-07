@@ -7,6 +7,7 @@ import { FileText, UploadCloud, CheckCircle2, AlertCircle, X, Eye, Loader2, Info
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'react-hot-toast';
 import CandidateMobileDocuments from './CandidateMobileDocuments';
+import PageLoader from '../components/PageLoader';
 
 const documentTypes = [
   { id: 'signed_offer_letter', label: 'Signed Offer Letter', isRequired: true, isSpecial: true, description: 'Please sign and upload your official offer letter.' },
