@@ -306,7 +306,7 @@ $app->post('/api/candidate/applications', function (Request $request, Response $
         $conn->commit();
 
         // Get the inserted app
-        $stmtGet = $conn->prepare('SELECT id, job_id, candidate_id, resume_url, status, applied_at, updated_at FROM applications WHERE id = ?');
+        $stmtGet = $conn->prepare('SELECT id, job_id, candidate_id, resume_url, status, applied_date, updated_at FROM applications WHERE id = ?');
         $stmtGet->execute([$newAppId]);
         $newApp = $stmtGet->fetch(PDO::FETCH_ASSOC);
 
