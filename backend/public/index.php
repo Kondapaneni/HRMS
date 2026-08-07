@@ -55,7 +55,7 @@ $app->add(function (Request $request, $handler) {
         ->withHeader('Access-Control-Allow-Credentials', 'true')
         ->withHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Accept, Origin, Authorization')
         ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS')
-        ->withHeader('X-Frame-Options', 'DENY')
+        ->withHeader('X-Frame-Options', 'SAMEORIGIN')
         ->withHeader('X-XSS-Protection', '1; mode=block')
         ->withHeader('X-Content-Type-Options', 'nosniff')
         ->withHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
