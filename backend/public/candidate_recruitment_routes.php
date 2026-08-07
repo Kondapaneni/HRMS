@@ -193,7 +193,7 @@ $app->get('/api/candidate/jobs', function (Request $request, Response $response,
     $conn = $db->getConnection();
     
     try {
-        $stmt = $conn->query('SELECT id, title, department, location, type, status, description, requirements, salary_range, created_at, updated_at FROM jobs WHERE status = \'Published\' ORDER BY created_at DESC');
+        $stmt = $conn->query('SELECT id, title, department, location, type, status, description, experience, salary_min, salary_max, vacancy, skills, qualification, deadline, description_pdf_url, created_at, updated_at FROM jobs WHERE status = \'Published\' ORDER BY created_at DESC');
         $jobs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $response->getBody()->write(json_encode(['jobs' => $jobs]));
