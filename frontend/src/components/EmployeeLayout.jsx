@@ -62,7 +62,7 @@ const EmployeeLayout = () => {
 
   const navItems = [
     { icon: <Home size={18} />, label: 'Dashboard', path: '/employee' },
-    { icon: <User size={18} />, label: 'My Profile', path: '/employee/profile' },
+    { icon: <User size={18} />, label: 'My Profile', path: '/employee/profile', activePaths: ['/employee/profile'] },
     { icon: <Clock size={18} />, label: 'Attendance', path: '/employee/attendance' },
     { icon: <Calendar size={18} />, label: 'Leaves', path: '/employee/leaves' },
     { icon: <Wallet size={18} />, label: 'Payroll', path: '/employee/payroll' },
@@ -153,7 +153,7 @@ const EmployeeLayout = () => {
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 px-2 whitespace-nowrap">Employee Portal</p>
           <nav className="space-y-1">
             {navItems.filter(item => !item.feature || profile?.featureAccess?.[item.feature]).map((item, idx) => {
-              const isActive = location.pathname === item.path;
+              const isActive = location.pathname === item.path || (item.activePaths && item.activePaths.some(p => location.pathname === p || location.pathname.startsWith(`${p}/`)));
               return (
                 <Link
                   key={idx}
