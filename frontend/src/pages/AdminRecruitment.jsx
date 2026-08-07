@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import PageLoader from '../components/PageLoader';
+import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
@@ -1022,11 +1023,11 @@ const AdminRecruitment = () => {
         </div>
       )}
 
-      {/* Post Job Modal */}
-      {isJobModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+      {/* Post Job Sidebar Modal */}
+      {isJobModalOpen && createPortal(
+        <div className="fixed inset-0 z-[100] flex justify-end bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white shadow-2xl w-full max-w-2xl h-[100dvh] flex flex-col overflow-hidden transform transition-transform duration-300">
+            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 shrink-0">
               <h2 className="text-lg font-semibold text-slate-800">Post New Job</h2>
               <button onClick={() => setIsJobModalOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
                 <X size={20} />
@@ -1109,19 +1110,20 @@ const AdminRecruitment = () => {
               </form>
             </div>
             
-            <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3">
+            <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3 shrink-0">
               <button type="button" onClick={() => setIsJobModalOpen(false)} className="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors cursor-pointer" disabled={createJobMutation.isPending}>
                 Cancel
               </button>
               <button type="submit" form="post-job-form" onClick={() => setSubmitStatus('Draft')} disabled={createJobMutation.isPending} className="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors cursor-pointer disabled:opacity-50">
                 {createJobMutation.isPending && submitStatus === 'Draft' ? 'Saving...' : 'Save Draft'}
               </button>
-              <button type="submit" form="post-job-form" onClick={() => setSubmitStatus('Published')} disabled={createJobMutation.isPending} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors cursor-pointer disabled:opacity-50">
+              <button type="submit" form="post-job-form" onClick={() => setSubmitStatus('Published')} disabled={createJobMutation.isPending} className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 transition-colors shadow-sm cursor-pointer disabled:opacity-50">
                 {createJobMutation.isPending && submitStatus === 'Published' ? 'Publishing...' : 'Publish'}
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
       {/* Documents Verification Modal */}
       {isDocsModalOpen && docsModalApp && (
