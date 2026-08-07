@@ -1007,52 +1007,54 @@ const AdminRecruitment = () => {
         </div>
       )}
 
-      {/* Schedule Interview Modal */}
-      {isScheduleModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 overflow-y-auto">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl my-auto">
-            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-start bg-slate-50 rounded-t-lg">
+      {/* Schedule Interview Sidebar Modal */}
+      {isScheduleModalOpen && createPortal(
+        <div className="fixed inset-0 z-[100] flex justify-end bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white shadow-2xl w-full max-w-lg h-[100dvh] flex flex-col overflow-hidden transform transition-transform duration-300">
+            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-start bg-slate-50 shrink-0">
               <div>
                 <h2 className="text-lg font-semibold text-slate-800">Schedule {interviewData.status}</h2>
                 <p className="mt-1 text-sm text-slate-500">Enter the interview details to notify the candidate.</p>
               </div>
-              <button onClick={() => setIsScheduleModalOpen(false)} className="text-slate-400 hover:text-slate-600 p-1">
+              <button onClick={() => setIsScheduleModalOpen(false)} className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer">
                 <X size={20} />
               </button>
             </div>
             
-            <form onSubmit={handleScheduleInterview} className="p-6 space-y-4">
-              <div className="grid gap-4 md:grid-cols-3">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Date</label>
-                  <input type="date" required value={interviewData.date} onChange={e => setInterviewData({...interviewData, date: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
+            <div className="p-6 overflow-y-auto flex-1">
+              <form id="schedule-interview-form" onSubmit={handleScheduleInterview} className="space-y-4">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">Date</label>
+                    <input type="date" required value={interviewData.date} onChange={e => setInterviewData({...interviewData, date: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">Time</label>
+                    <input type="time" required value={interviewData.time} onChange={e => setInterviewData({...interviewData, time: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">Location / Link</label>
+                    <input type="text" required value={interviewData.location} onChange={e => setInterviewData({...interviewData, location: e.target.value})} placeholder="Zoom link, Office, etc." className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
+                  </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Time</label>
-                  <input type="time" required value={interviewData.time} onChange={e => setInterviewData({...interviewData, time: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
+                  <label className="text-sm font-medium text-slate-700">Additional Notes (optional)</label>
+                  <textarea rows="4" value={interviewData.notes} onChange={e => setInterviewData({...interviewData, notes: e.target.value})} placeholder="Any preparation instructions..." className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Location / Link</label>
-                  <input type="text" required value={interviewData.location} onChange={e => setInterviewData({...interviewData, location: e.target.value})} placeholder="Zoom link, Office, etc." className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Additional Notes (optional)</label>
-                <textarea rows="3" value={interviewData.notes} onChange={e => setInterviewData({...interviewData, notes: e.target.value})} placeholder="Any preparation instructions..." className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400" />
-              </div>
-              
-              <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 mt-6">
-                <button type="button" onClick={() => setIsScheduleModalOpen(false)} className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors cursor-pointer" disabled={updateStatusMutation.isPending}>
-                  Cancel
-                </button>
-                <button type="submit" disabled={updateStatusMutation.isPending} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors cursor-pointer disabled:opacity-50">
-                  {updateStatusMutation.isPending ? 'Scheduling...' : 'Schedule Interview'}
-                </button>
-              </div>
-            </form>
+              </form>
+            </div>
+
+            <div className="p-4 border-t border-slate-200 bg-slate-50 shrink-0 flex justify-end gap-3">
+              <button type="button" onClick={() => setIsScheduleModalOpen(false)} className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors cursor-pointer" disabled={updateStatusMutation.isPending}>
+                Cancel
+              </button>
+              <button type="submit" form="schedule-interview-form" disabled={updateStatusMutation.isPending} className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors cursor-pointer disabled:opacity-50">
+                {updateStatusMutation.isPending ? 'Scheduling...' : 'Schedule Interview'}
+              </button>
+            </div>
           </div>
         </div>
-      )}
+      , document.body)}
 
       {/* Post Job Sidebar Modal */}
       {isJobModalOpen && createPortal(
