@@ -5,20 +5,18 @@ import { formatDistanceToNow } from 'date-fns';
 import {
   LogOut, Users, Settings, Activity, Briefcase,
   Search, Bell, Menu, Home, Calendar, Clock,
-  BarChart2, ChevronDown, Plus
+  BarChart2, ChevronDown
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import api from '../api/axios';
 import { useNavigate } from 'react-router-dom';
-import AddEmployeeModal from '../components/AddEmployeeModal';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { useQuery } from '@tanstack/react-query';
 
 const AdminDashboard = () => {
   const { profile, signOut } = useAuth();
   const navigate = useNavigate();
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const {
     data: dashboardData = {
@@ -72,13 +70,6 @@ const AdminDashboard = () => {
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">Dashboard</h1>
           <p className="text-sm text-slate-500 mt-1">Overview of your organization's key metrics.</p>
         </div>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors shadow-sm"
-        >
-          <Plus size={16} />
-          Add Employee
-        </button>
       </div>
 
       {/* KPI Cards */}
@@ -209,7 +200,6 @@ const AdminDashboard = () => {
               {[
                 { label: 'Mark Attendance', path: '/admin/attendance' },
                 { label: 'View Payslip', path: '/admin/payroll' },
-                { label: 'Add Employee', action: () => setIsModalOpen(true) },
               ].map((action, idx) => (
                 <button
                   key={idx}
@@ -223,14 +213,6 @@ const AdminDashboard = () => {
           </div>
         </div>
       </div>
-
-      <AddEmployeeModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSuccess={() => {
-          setIsModalOpen(false);
-        }}
-      />
     </div>
   );
 };
