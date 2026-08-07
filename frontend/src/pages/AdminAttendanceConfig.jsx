@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import PageLoader from '../components/PageLoader';
 import { createPortal } from 'react-dom';
-import { Globe, Clock, Edit2, Trash2, AlertTriangle, ArrowLeft } from 'lucide-react';
+import { Globe, Clock, Edit2, Trash2, AlertTriangle, ArrowLeft, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
@@ -213,16 +213,18 @@ const AdminAttendanceConfig = () => {
         </div>
       </div>
 
-      {/* Geo Modal */}
+      {/* Geo Sidebar Modal */}
       {showGeoModal && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <form onSubmit={handleAddGeo}>
-              <div className="p-6 border-b border-slate-100">
-                <h2 className="text-lg font-semibold text-slate-900">{editingGeo ? 'Edit Geo Location' : 'Add Geo Location'}</h2>
-                <p className="text-sm text-slate-500 mt-1">{editingGeo ? 'Modify permitted attendance coordinates.' : 'Save permitted attendance coordinates for this site.'}</p>
-              </div>
-              <div className="p-6 space-y-4">
+        <div className="fixed inset-0 z-[100] flex justify-end bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white shadow-2xl w-full max-w-md h-[100dvh] flex flex-col overflow-hidden transform transition-transform duration-300">
+            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 shrink-0">
+              <h2 className="text-lg font-semibold text-slate-800">{editingGeo ? 'Edit Geo Location' : 'Add Geo Location'}</h2>
+              <button onClick={() => { setShowGeoModal(false); setEditingGeo(null); }} className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto flex-1">
+              <form id="geo-form" onSubmit={handleAddGeo} className="space-y-4">
                 <div className="space-y-1">
                   <label className="text-sm font-medium text-slate-700">Name <span className="text-red-500">*</span></label>
                   <input required type="text" name="location_name" defaultValue={editingGeo?.name || ''} placeholder="Office Name" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" />
@@ -241,31 +243,33 @@ const AdminAttendanceConfig = () => {
                   <label className="text-sm font-medium text-slate-700">Radius (meters) <span className="text-red-500">*</span></label>
                   <input required type="number" name="radius" defaultValue={editingGeo?.radius || 100} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" />
                 </div>
-              </div>
-              <div className="p-6 pt-0 flex justify-end gap-3 bg-slate-50">
-                <button type="button" onClick={() => { setShowGeoModal(false); setEditingGeo(null); }} className="px-4 py-2 text-sm font-medium border border-slate-300 rounded-md text-slate-700 bg-white hover:bg-slate-50 mt-6 cursor-pointer">
-                  Cancel
-                </button>
-                <button type="submit" className="px-4 py-2 text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 mt-6 cursor-pointer">
-                  {editingGeo ? 'Update Location' : 'Save Location'}
-                </button>
-              </div>
-            </form>
+              </form>
+            </div>
+            <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3 shrink-0">
+              <button type="button" onClick={() => { setShowGeoModal(false); setEditingGeo(null); }} className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors cursor-pointer">
+                Cancel
+              </button>
+              <button type="submit" form="geo-form" className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 transition-colors shadow-sm cursor-pointer">
+                {editingGeo ? 'Update Location' : 'Save Location'}
+              </button>
+            </div>
           </div>
         </div>,
         document.body
       )}
 
-      {/* Shift Modal */}
+      {/* Shift Sidebar Modal */}
       {showShiftModal && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <form onSubmit={handleAddShift}>
-              <div className="p-6 border-b border-slate-100">
-                <h2 className="text-lg font-semibold text-slate-900">{editingShift ? 'Edit Shift Time' : 'Add Shift Time'}</h2>
-                <p className="text-sm text-slate-500 mt-1">{editingShift ? 'Modify shift using start and end time.' : 'Create a new shift using start and end time.'}</p>
-              </div>
-              <div className="p-6 space-y-4">
+        <div className="fixed inset-0 z-[100] flex justify-end bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white shadow-2xl w-full max-w-md h-[100dvh] flex flex-col overflow-hidden transform transition-transform duration-300">
+            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 shrink-0">
+              <h2 className="text-lg font-semibold text-slate-800">{editingShift ? 'Edit Shift Time' : 'Add Shift Time'}</h2>
+              <button onClick={() => { setShowShiftModal(false); setEditingShift(null); }} className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto flex-1">
+              <form id="shift-form" onSubmit={handleAddShift} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <label className="text-sm font-medium text-slate-700">Start Time <span className="text-red-500">*</span></label>
@@ -276,16 +280,16 @@ const AdminAttendanceConfig = () => {
                     <input required type="time" name="end_time" defaultValue={editingShift?.endTime || ''} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" />
                   </div>
                 </div>
-              </div>
-              <div className="p-6 pt-0 flex justify-end gap-3 bg-slate-50">
-                <button type="button" onClick={() => { setShowShiftModal(false); setEditingShift(null); }} className="px-4 py-2 text-sm font-medium border border-slate-300 rounded-md text-slate-700 bg-white hover:bg-slate-50 mt-6 cursor-pointer">
-                  Cancel
-                </button>
-                <button type="submit" className="px-4 py-2 text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 mt-6 cursor-pointer">
-                  {editingShift ? 'Update Shift Time' : 'Save Shift Time'}
-                </button>
-              </div>
-            </form>
+              </form>
+            </div>
+            <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3 shrink-0">
+              <button type="button" onClick={() => { setShowShiftModal(false); setEditingShift(null); }} className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors cursor-pointer">
+                Cancel
+              </button>
+              <button type="submit" form="shift-form" className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 transition-colors shadow-sm cursor-pointer">
+                {editingShift ? 'Update Shift Time' : 'Save Shift Time'}
+              </button>
+            </div>
           </div>
         </div>,
         document.body
