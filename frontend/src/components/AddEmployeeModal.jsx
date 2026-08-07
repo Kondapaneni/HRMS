@@ -220,7 +220,7 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Salary *</label>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Salary (Monthly) *</label>
                 <input required type="number" step="0.01" name="salary" value={formData.salary} onChange={handleChange} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />
               </div>
               <div>
