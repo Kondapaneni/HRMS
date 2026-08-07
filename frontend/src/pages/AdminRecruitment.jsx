@@ -283,8 +283,8 @@ const AdminRecruitment = () => {
         branch: convertData.branch,
         joinDate: convertData.joinDate,
         salary: parseFloat(convertData.salary),
-        status: convertData.status.toLowerCase(),
-        managerId: convertData.managerId || null
+        status: 'active',
+        managerId: null
       };
 
       await api.post('/admin/employees/convert', payload);
@@ -930,34 +930,9 @@ const AdminRecruitment = () => {
                     <input type="date" required value={convertData.joinDate} onChange={e => setConvertData({...convertData, joinDate: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />
                   </div>
                 </div>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-1">
-                    <label className="text-xs font-medium text-slate-600">Annual Compensation (INR) *</label>
-                    <input type="number" required value={convertData.salary} onChange={e => setConvertData({...convertData, salary: e.target.value})} placeholder="e.g. 600000" className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-medium text-slate-600">Status *</label>
-                    <select required value={convertData.status} onChange={e => setConvertData({...convertData, status: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all bg-white cursor-pointer">
-                      <option value="Active">Active</option>
-                      <option value="On Leave">On Leave</option>
-                      <option value="Terminated">Terminated</option>
-                    </select>
-                  </div>
-                </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-medium text-slate-600">Manager (Optional)</label>
-                  <select 
-                    value={convertData.managerId} 
-                    onChange={e => setConvertData({...convertData, managerId: e.target.value})} 
-                    className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all bg-white cursor-pointer" 
-                  >
-                    <option value="">Select a Manager...</option>
-                    {employeesList.map(emp => (
-                      <option key={emp.id} value={emp.id}>
-                        {emp.firstName} {emp.lastName} ({emp.employeeId})
-                      </option>
-                    ))}
-                  </select>
+                  <label className="text-xs font-medium text-slate-600">Monthly Compensation (INR) *</label>
+                  <input type="number" required value={convertData.salary} onChange={e => setConvertData({...convertData, salary: e.target.value})} placeholder="e.g. 50000" className="w-full px-3 py-2 border border-slate-200 rounded-md text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 outline-none transition-all" />
                 </div>
               </form>
             </div>
