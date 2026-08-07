@@ -76,7 +76,9 @@ const EmployeePerformance = () => {
     queryFn: async () => {
       const res = await api.get('/employee/performance');
       return res.data;
-    }
+    },
+    staleTime: 0,
+    refetchOnMount: 'always'
   });
 
   if (isLoading) {

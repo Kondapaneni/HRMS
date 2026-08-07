@@ -77,7 +77,9 @@ const AdminPerformance = () => {
     queryFn: async () => {
       const res = await api.get('/admin/employees?limit=1000');
       return res.data.employees || [];
-    }
+    },
+    staleTime: 0,
+    refetchOnMount: 'always'
   });
 
   const { data: perfData, isLoading, isError } = useQuery({
@@ -88,6 +90,8 @@ const AdminPerformance = () => {
       return res.data;
     },
     enabled: !!selectedEmpId,
+    staleTime: 0,
+    refetchOnMount: 'always'
   });
 
   if (isLoadingEmployees) return <PageLoader message="Loading Performance Data..." />;
