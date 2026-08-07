@@ -214,21 +214,19 @@ const EmployeeExpenses = () => {
             )}
       </div>
 
-      {/* Modal */}
-        {isModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={handleCloseModal}></div>
-            <div className="bg-white rounded-xl shadow-xl w-full max-w-md relative z-10 flex flex-col max-h-[90vh]">
-              <div className="flex items-center justify-between p-6 border-b border-slate-100">
-                <h3 className="text-lg font-semibold text-slate-900">Submit New Expense</h3>
-                <button onClick={handleCloseModal} className="text-slate-400 hover:text-slate-500">
-                  <span className="sr-only">Close</span>
-                  <XCircle className="w-5 h-5" />
-                </button>
-              </div>
+      {/* Expenses Sidebar Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-[100] flex justify-end bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white shadow-2xl w-full max-w-lg h-[100dvh] flex flex-col overflow-hidden transform transition-transform duration-300">
+            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 shrink-0">
+              <h2 className="text-lg font-semibold text-slate-800">Submit New Expense</h2>
+              <button onClick={handleCloseModal} className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
+                <XCircle size={20} />
+              </button>
+            </div>
 
-              <div className="p-6 overflow-y-auto">
-                <form id="expenseForm" onSubmit={handleSubmit} className="space-y-4">
+            <div className="p-6 overflow-y-auto flex-1">
+              <form id="expenseForm" onSubmit={handleSubmit} className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Title *</label>
                     <input type="text" required value={title} onChange={(e) => setTitle(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="E.g. Client Lunch" />
@@ -275,9 +273,11 @@ const EmployeeExpenses = () => {
                 </form>
               </div>
 
-              <div className="p-6 border-t border-slate-100 bg-slate-50 rounded-b-xl flex justify-end space-x-3">
-                <button type="button" onClick={handleCloseModal} className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50">Cancel</button>
-                <button type="submit" form="expenseForm" disabled={submitExpenseMutation.isPending} className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 disabled:opacity-50">
+              <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3 shrink-0">
+                <button type="button" onClick={handleCloseModal} className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors cursor-pointer">
+                  Cancel
+                </button>
+                <button type="submit" form="expenseForm" disabled={submitExpenseMutation.isPending} className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 transition-colors disabled:opacity-70 cursor-pointer shadow-sm">
                   {submitExpenseMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   Submit
                 </button>
