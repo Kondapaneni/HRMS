@@ -274,7 +274,7 @@ const AdminEmployeeEdit = () => {
                     setShowManagerDropdown(true);
                   }}
                   onFocus={() => setShowManagerDropdown(true)}
-                  onBlur={() => setTimeout(() => setShowManagerDropdown(false), 200)}
+                  onBlur={() => setShowManagerDropdown(false)}
                   placeholder="Search by name or ID..."
                   className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
                 />
@@ -282,7 +282,8 @@ const AdminEmployeeEdit = () => {
                   <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-md shadow-lg max-h-48 overflow-y-auto">
                     <div 
                       className="px-3 py-2 text-sm cursor-pointer hover:bg-slate-50 text-slate-700"
-                      onClick={() => {
+                      onMouseDown={(e) => {
+                        e.preventDefault();
                         setFormData(prev => ({ ...prev, managerId: '' }));
                         setManagerSearch('');
                         setShowManagerDropdown(false);
@@ -294,7 +295,8 @@ const AdminEmployeeEdit = () => {
                       <div 
                         key={m.id}
                         className="px-3 py-2 text-sm cursor-pointer hover:bg-slate-50 text-slate-700"
-                        onClick={() => {
+                        onMouseDown={(e) => {
+                          e.preventDefault();
                           setFormData(prev => ({ ...prev, managerId: m.id }));
                           setManagerSearch(`${m.firstName} ${m.lastName} (${m.employeeId})`);
                           setShowManagerDropdown(false);
@@ -325,7 +327,7 @@ const AdminEmployeeEdit = () => {
                 <input type="number" name="noticePeriod" value={formData.noticePeriod} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" />
               </div>
               <div className="space-y-1">
-                <label className="text-sm font-medium text-slate-700">Salary (Annually)</label>
+                <label className="text-sm font-medium text-slate-700">Salary (Monthly)</label>
                 <input type="number" step="0.01" name="salary" value={formData.salary} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" />
               </div>
             </div>
