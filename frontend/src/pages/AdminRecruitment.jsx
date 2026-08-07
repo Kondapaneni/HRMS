@@ -680,6 +680,11 @@ const AdminRecruitment = () => {
                             className="inline-flex items-center justify-center whitespace-nowrap rounded-md border border-slate-300 bg-white hover:bg-slate-50 h-9 px-3 py-2 text-sm font-medium text-slate-700"
                           >
                             Verify Documents
+                            {Number(app.pending_documents_count) > 0 && (
+                              <span className="ml-2 inline-flex items-center justify-center px-1.5 min-w-[1.25rem] h-5 text-xs font-bold text-white bg-amber-500 rounded-full">
+                                {app.pending_documents_count}
+                              </span>
+                            )}
                           </button>
                           )}
 

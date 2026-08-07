@@ -161,7 +161,8 @@ $app->get('/api/admin/applications', function (Request $request, Response $respo
     
     try {
         $stmt = $conn->query('
-            SELECT a.*, j.title as job_title, j.department as job_department 
+            SELECT a.*, j.title as job_title, j.department as job_department,
+                   (SELECT COUNT(*) FROM candidate_documents cd WHERE cd.candidate_id = a.candidate_id AND (cd.status = \'pending\' OR cd.status IS NULL)) as pending_documents_count
             FROM applications a 
             JOIN jobs j ON a.job_id = j.id 
             ORDER BY a.applied_date DESC
