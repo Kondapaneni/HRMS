@@ -18,13 +18,20 @@ export default function UpdateOverlay() {
     refetchOnWindowFocus: true,
   });
 
-  const isMaintenanceMode = newsData?.maintenance_mode === true;
-  const isDevBypassed = typeof window !== 'undefined' && localStorage.getItem('dev_bypass_maintenance_session') === 'true';
+  const rawMaintMode = newsData?.maintenance_mode;
+  const isMaintenanceMode = rawMaintMode === true || rawMaintMode === 'true' || rawMaintMode === 1 || rawMaintMode === '1';
 
   useEffect(() => {
     const checkVersion = async () => {
+      const isDevBypassed = typeof window !== 'undefined' && localStorage.getItem('dev_bypass_maintenance_session') === 'true';
+      const rawMode = newsData?.maintenance_mode;
+      const isMaint = rawMode === true || rawMode === 'true' || rawMode === 1 || rawMode === '1';
+
       // If maintenance mode is active AND dev bypass is NOT active, don't show update modal
-      if (isMaintenanceMode && !isDevBypassed) return;
+      if (isMaint && !isDevBypassed) {
+        setUpdateAvailable(false);
+        return;
+      }
 
       try {
         // Cache buster parameter to avoid getting a cached version.json
@@ -37,33 +44,32 @@ export default function UpdateOverlay() {
           // VITE_APP_VERSION is injected by Vite at build time
           const currentVersion = Number(import.meta.env.VITE_APP_VERSION);
 
-          if (data.version && currentVersion && data.version > currentVersion) {
+          if (data.version && currentVersion && Number(data.version) > currentVersion) {
             setUpdateAvailable(true);
           }
         }
       } catch (e) {
-        // Silently fail if offline or server is unreachable
         console.error('Version check failed:', e);
       }
     };
 
-    // Check immediately on load or when maintenance mode turns off (or when dev bypass is active)
-    if (!isMaintenanceMode || isDevBypassed) {
-      checkVersion();
-    }
+    // Check version immediately on mount or data change
+    checkVersion();
 
-    // Check when window regains focus (e.g. user switches back to the app)
-    const handleFocus = () => checkVersion();
-    window.addEventListener('focus', handleFocus);
+    // Check when window regains focus or storage updates
+    const handleCheck = () => checkVersion();
+    window.addEventListener('focus', handleCheck);
+    window.addEventListener('storage', handleCheck);
 
-    // Also check periodically every 5 minutes while the app is open
-    const interval = setInterval(checkVersion, 5 * 60 * 1000);
+    // Periodically check version every 15 seconds
+    const interval = setInterval(checkVersion, 15 * 1000);
 
     return () => {
-      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('focus', handleCheck);
+      window.removeEventListener('storage', handleCheck);
       clearInterval(interval);
     };
-  }, [isMaintenanceMode, isDevBypassed]);
+  }, [newsData]);
 
   const handleUpdate = () => {
     setIsUpdating(true);
@@ -79,7 +85,8 @@ export default function UpdateOverlay() {
     }, 800);
   };
 
-  const shouldShowUpdate = updateAvailable && (!isMaintenanceMode || isDevBypassed);
+  const isDevBypassedNow = typeof window !== 'undefined' && localStorage.getItem('dev_bypass_maintenance_session') === 'true';
+  const shouldShowUpdate = updateAvailable && (!isMaintenanceMode || isDevBypassedNow);
 
   return (
     <AnimatePresence>
