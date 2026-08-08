@@ -80,7 +80,7 @@ const EmployeeLayout = () => {
   const businessApps = [
     { icon: <Briefcase size={18} />, label: 'Loans Origination', path: '/employee/loans/origination', feature: 'canLoanOrigination' },
     { icon: <Award size={18} />, label: 'Assessments', path: '/employee/assessments', isAssessment: true },
-    { icon: <Play size={18} />, label: 'Training Videos', path: '/employee/training', feature: 'canEmployeeTrainingVideos' },
+    { icon: <Play size={18} />, label: 'Training Videos', path: '/employee/training', isTraining: true },
   ];
 
   // Automatically check if an assessment is scheduled for TODAY for the current employee
@@ -89,6 +89,20 @@ const EmployeeLayout = () => {
     queryFn: async () => {
       try {
         const res = await api.get('/employee/assessments');
+        return res.data || [];
+      } catch (e) {
+        return [];
+      }
+    },
+    staleTime: 60000,
+  });
+
+  // Automatically check if training videos are assigned to the current employee
+  const { data: employeeTrainingVideos = [] } = useQuery({
+    queryKey: ['employeeTrainingVideosList'],
+    queryFn: async () => {
+      try {
+        const res = await api.get('/employee/training/videos');
         return res.data || [];
       } catch (e) {
         return [];
@@ -106,14 +120,21 @@ const EmployeeLayout = () => {
     return Array.isArray(employeeAssessments) && employeeAssessments.some(a => a.assessment_date && a.assessment_date === todayStr);
   }, [employeeAssessments, todayStr]);
 
+  const hasTrainingVideos = useMemo(() => {
+    return Array.isArray(employeeTrainingVideos) && employeeTrainingVideos.length > 0;
+  }, [employeeTrainingVideos]);
+
   const visibleBusinessApps = useMemo(() => {
     return businessApps.filter(item => {
       if (item.isAssessment) {
         return profile?.role === 'admin' || hasAssessmentToday;
       }
+      if (item.isTraining) {
+        return profile?.role === 'admin' || hasTrainingVideos;
+      }
       return !item.feature || profile?.featureAccess?.[item.feature];
     });
-  }, [businessApps, profile, hasAssessmentToday]);
+  }, [businessApps, profile, hasAssessmentToday, hasTrainingVideos]);
 
 
 

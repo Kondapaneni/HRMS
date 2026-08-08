@@ -47,11 +47,6 @@ const featuresList = [
     key: 'canAdminAssessments',
     title: 'Admin Exam & Assessment Manager',
     description: 'Grants administrative access to build MCQ question banks, configure exams, and assign them.'
-  },
-  {
-    key: 'canEmployeeTrainingVideos',
-    title: 'Employee Training Videos Access',
-    description: 'Grants access to view assigned training videos in the employee dashboard.'
   }
 ];
 
