@@ -134,23 +134,36 @@ const EmployeeLayout = () => {
         />
       )}
 
-      {/* Developer Bypass Banner */}
+      {/* Floating Developer Bypass Badge */}
       {isMaintenanceMode && isDevBypassed && (
-        <div className="fixed top-0 left-0 right-0 z-[90] bg-indigo-900 text-white px-4 py-1.5 flex items-center justify-between text-xs font-semibold shadow-md">
-          <div className="flex items-center gap-2">
-            <Terminal size={14} className="text-indigo-300 animate-pulse" />
-            <span>Developer Bypass Mode Active — Maintenance Mode ON for public users</span>
+        <motion.div 
+          initial={{ opacity: 0, y: -10, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          className="fixed top-3 right-3 sm:right-6 z-[95] bg-slate-900/95 backdrop-blur-md text-white px-3 sm:px-4 py-1.5 rounded-full border border-slate-700/60 shadow-xl shadow-slate-900/30 flex items-center gap-2 sm:gap-3 text-xs font-semibold max-w-[calc(100vw-1.5rem)]"
+        >
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <Terminal size={14} className="text-emerald-400 shrink-0" />
+            <span className="hidden sm:inline text-slate-200">Dev Bypass Active</span>
+            <span className="sm:hidden text-slate-200 text-[11px]">Dev Bypass</span>
+            <span className="hidden md:inline text-[10px] px-2 py-0.5 bg-amber-500/20 text-amber-300 rounded-full font-medium border border-amber-500/30">
+              Maintenance ON
+            </span>
           </div>
+
           <button 
             onClick={handleExitBypass}
-            className="bg-indigo-700 hover:bg-indigo-600 text-white px-2.5 py-0.5 rounded font-bold transition-colors cursor-pointer"
+            className="bg-red-500/20 hover:bg-red-500/30 text-red-300 hover:text-red-200 border border-red-500/30 px-2.5 py-0.5 rounded-full font-bold transition-all cursor-pointer text-[11px] shrink-0 active:scale-95"
           >
-            Exit Bypass
+            Exit
           </button>
-        </div>
+        </motion.div>
       )}
 
-      <div className={`h-[100dvh] w-full overflow-hidden bg-slate-50 flex font-sans text-slate-800 relative z-0 ${isMaintenanceMode && isDevBypassed ? 'pt-7' : ''}`}>
+      <div className="h-[100dvh] w-full overflow-hidden bg-slate-50 flex font-sans text-slate-800 relative z-0">
 
       {/* Global Animated Background Graphics */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden fixed md:absolute">
