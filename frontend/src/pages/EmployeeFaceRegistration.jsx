@@ -2,16 +2,23 @@ import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../api/axios';
 import FastFaceScanner from '../components/FastFaceScanner';
-import { Camera, CheckCircle, AlertCircle } from 'lucide-react';
+import { Camera, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
 const EmployeeFaceRegistration = () => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [isScanning, setIsScanning] = useState(false);
   const [status, setStatus] = useState('idle'); // idle, scanning, success, error
+
+  const handleBackToLogin = async () => {
+    if (signOut) {
+      await signOut();
+    }
+    navigate('/');
+  };
 
   const handleFaceDetected = async (descriptor) => {
     setIsScanning(false);
@@ -73,6 +80,15 @@ const EmployeeFaceRegistration = () => {
             <Camera size={28} strokeWidth={2.5} />
           </div>
 
+          <button
+            type="button"
+            onClick={handleBackToLogin}
+            className="inline-flex items-center gap-2 text-slate-500 hover:text-[#1E1B4B] font-bold mb-4 transition-colors cursor-pointer"
+          >
+            <ArrowLeft size={18} strokeWidth={3} />
+            Back to Login
+          </button>
+
           <div className="mb-8 text-center mt-2">
             <h2 className="text-3xl font-black text-[#1E1B4B] mb-2 tracking-tight leading-tight">Biometric<br/>Registration</h2>
             <p className="text-[#4F46E5] font-black text-sm">Register your face for lightning-fast logins.</p>
@@ -111,6 +127,18 @@ const EmployeeFaceRegistration = () => {
                   />
                 </>
               )}
+            </div>
+          )}
+
+          {status !== 'success' && !isScanning && (
+            <div className="mt-6 text-center">
+              <button
+                type="button"
+                onClick={handleBackToLogin}
+                className="text-sm font-bold text-slate-500 hover:text-[#1E1B4B] transition-colors hover:underline decoration-2 underline-offset-4 cursor-pointer"
+              >
+                Back to Login
+              </button>
             </div>
           )}
         </div>
