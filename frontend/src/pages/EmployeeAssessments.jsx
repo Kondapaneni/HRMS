@@ -245,36 +245,54 @@ const EmployeeAssessments = () => {
     );
   }
 
+  // Filter assessments that are scheduled for TODAY
+  const todayAssessments = useMemo(() => {
+    return assessments.filter(a => a.assessment_date && a.assessment_date === todayStr);
+  }, [assessments, todayStr]);
+
   return (
     <div className="w-full space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">Assessments</h1>
-          <p className="text-sm text-slate-500 mt-1">Your assigned employee assessments and evaluations.</p>
+          <p className="text-sm text-slate-500 mt-1">Your scheduled employee assessments and evaluations for today.</p>
         </div>
         <div className="text-sm font-semibold text-slate-500 bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm">
-          {assessments.length} Available
+          {todayAssessments.length} Scheduled Today
         </div>
       </div>
 
-      {assessments.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-16 text-center shadow-sm w-full">
-          <Award size={56} className="text-blue-500/40 mx-auto mb-4" />
-          <h3 className="text-xl font-bold text-slate-800 mb-2">No Assessments Found</h3>
-          <p className="text-sm text-slate-500 max-w-lg mx-auto">
-            You currently have no active assessments assigned to you. When new exams are published, they will appear here.
+      {todayAssessments.length === 0 ? (
+        <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center shadow-sm w-full max-w-xl mx-auto space-y-4 my-8">
+          <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto text-amber-500 mb-2">
+            <Calendar size={40} />
+          </div>
+          <h3 className="text-2xl font-bold text-slate-800 tracking-tight">No Assessment Scheduled for Today</h3>
+          <p className="text-slate-500 text-sm leading-relaxed max-w-md mx-auto">
+            You can access the Assessment Portal only on the specific day an assessment is scheduled for you.
           </p>
+          <div className="inline-block px-3.5 py-1.5 bg-amber-50 border border-amber-200/80 rounded-full text-xs font-bold text-amber-700">
+            Today's Date: {todayStr}
+          </div>
+          <div className="pt-2">
+            <button 
+              onClick={() => navigate('/employee')}
+              className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm rounded-xl transition-all cursor-pointer shadow-sm"
+            >
+              Return to Dashboard
+            </button>
+          </div>
         </div>
-      ) : assessments.length > 20 ? (
+      ) : todayAssessments.length > 20 ? (
         /* Virtualized rendering for large lists (Requirement 9) */
         <VirtualizedAssessmentGrid 
-          assessments={assessments} 
+          assessments={todayAssessments} 
           onStart={handleStart} 
           todayStr={todayStr} 
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {assessments.map((assessment) => (
+          {todayAssessments.map((assessment) => (
             <EmployeeAssessmentCard 
               key={assessment.id} 
               assessment={assessment} 

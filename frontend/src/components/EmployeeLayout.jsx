@@ -79,9 +79,41 @@ const EmployeeLayout = () => {
 
   const businessApps = [
     { icon: <Briefcase size={18} />, label: 'Loans Origination', path: '/employee/loans/origination', feature: 'canLoanOrigination' },
-    { icon: <Award size={18} />, label: 'Assessments', path: '/employee/assessments', feature: 'canEmployeeAssessments' },
+    { icon: <Award size={18} />, label: 'Assessments', path: '/employee/assessments', isAssessment: true },
     { icon: <Play size={18} />, label: 'Training Videos', path: '/employee/training', feature: 'canEmployeeTrainingVideos' },
   ];
+
+  // Automatically check if an assessment is scheduled for TODAY for the current employee
+  const { data: employeeAssessments = [] } = useQuery({
+    queryKey: ['employeeAssessmentsList'],
+    queryFn: async () => {
+      try {
+        const res = await api.get('/employee/assessments');
+        return res.data || [];
+      } catch (e) {
+        return [];
+      }
+    },
+    staleTime: 60000,
+  });
+
+  const todayStr = useMemo(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }, []);
+
+  const hasAssessmentToday = useMemo(() => {
+    return Array.isArray(employeeAssessments) && employeeAssessments.some(a => a.assessment_date && a.assessment_date === todayStr);
+  }, [employeeAssessments, todayStr]);
+
+  const visibleBusinessApps = useMemo(() => {
+    return businessApps.filter(item => {
+      if (item.isAssessment) {
+        return profile?.role === 'admin' || hasAssessmentToday;
+      }
+      return !item.feature || profile?.featureAccess?.[item.feature];
+    });
+  }, [businessApps, profile, hasAssessmentToday]);
 
 
 
@@ -214,11 +246,11 @@ const EmployeeLayout = () => {
             })}
           </nav>
 
-          {businessApps.filter(item => !item.feature || profile?.featureAccess?.[item.feature]).length > 0 && (
+          {visibleBusinessApps.length > 0 && (
             <div className="pt-4 mt-4 border-t border-slate-200">
               <p className="px-2 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 whitespace-nowrap">Business Apps</p>
               <nav className="space-y-1">
-                {businessApps.filter(item => !item.feature || profile?.featureAccess?.[item.feature]).map((item, idx) => {
+                {visibleBusinessApps.map((item, idx) => {
                   const isActive = location.pathname === item.path;
                   return (
                     <Link
