@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import {
   LogOut, User, Calendar, Users, Briefcase, Monitor,
   Home, Clock, BarChart2, DollarSign, Activity, Bell, Search, Menu, Wallet,
-  Smartphone, Award, Megaphone, Play, Palmtree
+  Smartphone, Award, Megaphone, Play, Palmtree, Terminal
 } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
