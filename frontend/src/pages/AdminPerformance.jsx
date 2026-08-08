@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import PageLoader from '../components/PageLoader';
 import { useQuery } from '@tanstack/react-query';
-import { Loader2, TrendingUp, TrendingDown, Activity, Users, CalendarDays, Coffee, AlertCircle, Building2, User, Clock } from 'lucide-react';
+import { Search, Loader2, Activity, Users, CalendarDays, Coffee, Building2, User, Clock, Check } from 'lucide-react';
 import {
   BarChart,
   Bar,
@@ -14,7 +14,6 @@ import {
   Line
 } from 'recharts';
 import api from '../api/axios';
-import EmployeeSelect from '../components/EmployeeSelect';
 
 const StatCard = ({ title, value, subtitle, icon: Icon, colorClass, highlight }) => (
   <div className={`rounded-2xl border ${highlight ? 'border-blue-200 bg-blue-50/50' : 'border-slate-200 bg-white'} p-5 shadow-sm transition-all hover:shadow-md hover:-translate-y-1`}>
@@ -31,15 +30,19 @@ const StatCard = ({ title, value, subtitle, icon: Icon, colorClass, highlight })
   </div>
 );
 
-const EmployeeRow = ({ item, type = 'peer' }) => {
+const EmployeeRow = ({ item, onSelect }) => {
   const { employee, summary } = item;
   const isHigh = summary.attendancePct >= 90;
   const isLow = summary.attendancePct < 75;
 
   return (
-    <div className="flex items-center justify-between p-4 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
+    <div 
+      onClick={() => onSelect && onSelect(employee.id)}
+      className="flex items-center justify-between p-4 border-b border-slate-100 last:border-0 hover:bg-blue-50/60 transition-colors cursor-pointer group"
+      title="Click to view performance details"
+    >
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden shrink-0">
+        <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden shrink-0 group-hover:border-blue-300">
           {employee.avatar ? (
             <img src={employee.avatar} alt="Avatar" className="w-full h-full object-cover" />
           ) : (
@@ -49,7 +52,7 @@ const EmployeeRow = ({ item, type = 'peer' }) => {
           )}
         </div>
         <div>
-          <p className="text-sm font-bold text-slate-800">{employee.firstName} {employee.lastName}</p>
+          <p className="text-sm font-bold text-slate-800 group-hover:text-blue-600 transition-colors">{employee.firstName} {employee.lastName}</p>
           <p className="text-[11px] text-slate-500">{employee.position || 'Employee'}</p>
         </div>
       </div>
@@ -75,17 +78,28 @@ const EmployeeRow = ({ item, type = 'peer' }) => {
 
 const AdminPerformance = () => {
   const [selectedEmpId, setSelectedEmpId] = useState('');
+  const [search, setSearch] = useState('');
 
+  // Always fetch fresh employee roster — no stale caching
   const { data: employees = [], isLoading: isLoadingEmployees } = useQuery({
     queryKey: ['admin', 'employees'],
     queryFn: async () => {
       const res = await api.get('/admin/employees?limit=1000');
       return res.data.employees || [];
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
+    refetchOnMount: 'always'
   });
 
-  const { data: perfData, isLoading } = useQuery({
+  // Auto-select first employee when data loads
+  useEffect(() => {
+    if (!selectedEmpId && employees.length > 0) {
+      setSelectedEmpId(employees[0].id);
+    }
+  }, [employees, selectedEmpId]);
+
+  // Always fetch fresh performance analytics — no stale caching
+  const { data: perfData, isLoading: isLoadingPerf } = useQuery({
     queryKey: ['admin', 'performance', selectedEmpId],
     queryFn: async () => {
       if (!selectedEmpId) return null;
@@ -93,15 +107,24 @@ const AdminPerformance = () => {
       return res.data;
     },
     enabled: !!selectedEmpId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
+    refetchOnMount: 'always'
   });
+
+  const filteredEmployees = useMemo(() => {
+    if (!search.trim()) return employees;
+    const q = search.toLowerCase();
+    return employees.filter(e => 
+      `${e.firstName} ${e.lastName} ${e.employeeId}`.toLowerCase().includes(q)
+    );
+  }, [employees, search]);
 
   const currentWeek = useMemo(() => {
     if (!perfData?.currentMetrics?.weekly) return null;
     return perfData.currentMetrics.weekly.find(w => w.isCurrentWeek) || perfData.currentMetrics.weekly[perfData.currentMetrics.weekly.length - 1];
   }, [perfData]);
 
-  if (isLoadingEmployees) return <PageLoader message="Loading Performance Data..." />;
+  if (isLoadingEmployees && !employees.length) return <PageLoader message="Loading Performance Analytics..." />;
 
   return (
     <div className="space-y-6">
@@ -109,36 +132,63 @@ const AdminPerformance = () => {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">Team Performance Analytics</h1>
-          <p className="text-sm text-slate-500 mt-1">Select an employee to view their attendance, work hours, leaves, and compare with peers.</p>
-        </div>
-        <div className="w-full md:w-80">
-          <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Select Employee</label>
-          <EmployeeSelect 
-            employees={employees} 
-            selectedId={selectedEmpId} 
-            onChange={(id) => setSelectedEmpId(id)} 
-          />
+          <p className="text-sm text-slate-500 mt-1">Real-time attendance, work hours, leave usage, and peer comparisons across your organization.</p>
         </div>
       </div>
 
-      {!selectedEmpId && (
-        <div className="flex flex-col items-center justify-center p-16 bg-white rounded-2xl border border-slate-200 border-dashed">
-          <Activity className="w-16 h-16 text-slate-300 mb-4" />
-          <h3 className="text-lg font-bold text-slate-600">No Employee Selected</h3>
-          <p className="text-slate-400 text-sm mt-1">Please select an employee from the dropdown above.</p>
+      {/* Employee Quick Roster & Search Bar */}
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="relative flex-1 max-w-md">
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input 
+              type="text" 
+              placeholder="Search employee by name or ID..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+            />
+          </div>
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            Showing {filteredEmployees.length} employees
+          </p>
         </div>
-      )}
 
-      {selectedEmpId && isLoading && !perfData && (
-        <div className="flex items-center justify-center p-12">
+        {/* Horizontal Chips Roster */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 pt-1 scrollbar-thin">
+          {filteredEmployees.map(emp => {
+            const isSelected = emp.id === selectedEmpId;
+            return (
+              <button
+                key={emp.id}
+                onClick={() => setSelectedEmpId(emp.id)}
+                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-xs font-semibold shrink-0 transition-all cursor-pointer ${
+                  isSelected 
+                    ? 'bg-blue-600 text-white border-blue-600 shadow-sm shadow-blue-200 ring-2 ring-blue-600/30' 
+                    : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100 hover:border-slate-300'
+                }`}
+              >
+                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold uppercase overflow-hidden ${isSelected ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'}`}>
+                  {emp.avatar ? <img src={emp.avatar} alt="Avatar" className="w-full h-full object-cover" /> : emp.firstName?.[0]}
+                </div>
+                <span>{emp.firstName} {emp.lastName}</span>
+                {isSelected && <Check className="w-3.5 h-3.5 ml-0.5" />}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {isLoadingPerf && (
+        <div className="flex items-center justify-center p-12 bg-white rounded-2xl border border-slate-200 shadow-sm">
           <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
         </div>
       )}
 
-      {selectedEmpId && perfData && (
+      {!isLoadingPerf && perfData && (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
           
-          {/* Employee Header Info */}
+          {/* Active Employee Header Info */}
           <div className="flex items-center gap-4 p-6 bg-white border border-slate-200 rounded-2xl shadow-sm">
             <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200 shrink-0 overflow-hidden">
               {perfData.employee.avatar ? (
@@ -148,7 +198,12 @@ const AdminPerformance = () => {
               )}
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-slate-900">{perfData.employee.firstName} {perfData.employee.lastName}</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-2xl font-bold text-slate-900">{perfData.employee.firstName} {perfData.employee.lastName}</h2>
+                <span className="text-xs font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full">
+                  {perfData.employee.employeeId}
+                </span>
+              </div>
               <div className="flex items-center gap-3 mt-1 text-slate-500 text-sm font-medium">
                 <span className="flex items-center gap-1"><Building2 className="w-4 h-4 text-slate-400" /> {perfData.employee.department || 'N/A'}</span>
                 <span className="text-slate-300">•</span>
@@ -274,7 +329,7 @@ const AdminPerformance = () => {
                     <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
                       <Users className="w-4 h-4 text-slate-400" /> Peer Comparison
                     </h3>
-                    <p className="text-xs text-slate-500 mt-0.5">Employees under the same manager</p>
+                    <p className="text-xs text-slate-500 mt-0.5">Click any peer below to inspect their full analytics</p>
                   </div>
                   <div className="text-right">
                     <p className="text-[10px] font-bold text-slate-400 uppercase">Avg Attendance</p>
@@ -283,7 +338,7 @@ const AdminPerformance = () => {
                 </div>
                 <div className="divide-y divide-slate-100 max-h-[400px] overflow-y-auto">
                   {perfData.peerMetrics.map(peer => (
-                    <EmployeeRow key={peer.employee.id} item={peer} />
+                    <EmployeeRow key={peer.employee.id} item={peer} onSelect={(id) => setSelectedEmpId(id)} />
                   ))}
                 </div>
               </div>
@@ -296,7 +351,7 @@ const AdminPerformance = () => {
                     <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
                       <Building2 className="w-4 h-4 text-slate-400" /> Direct Reports
                     </h3>
-                    <p className="text-xs text-slate-500 mt-0.5">Reporting team analytics</p>
+                    <p className="text-xs text-slate-500 mt-0.5">Click any direct report below to inspect their full analytics</p>
                   </div>
                   <div className="text-right">
                     <p className="text-[10px] font-bold text-slate-400 uppercase">Avg Attendance</p>
@@ -305,7 +360,7 @@ const AdminPerformance = () => {
                 </div>
                 <div className="divide-y divide-slate-100 max-h-[400px] overflow-y-auto">
                   {perfData.reportMetrics.map(report => (
-                    <EmployeeRow key={report.employee.id} item={report} type="report" />
+                    <EmployeeRow key={report.employee.id} item={report} onSelect={(id) => setSelectedEmpId(id)} />
                   ))}
                 </div>
               </div>
