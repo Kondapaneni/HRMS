@@ -92,6 +92,7 @@ const EmployeeLayout = () => {
   const newsHeadlines = newsData?.news_headlines || profile?.news_headlines || [];
   const isMaintenanceMode = newsData?.maintenance_mode === true;
   const maintenanceMessage = newsData?.maintenance_message;
+  const showMaintenanceOverlay = isMaintenanceMode && !isDevBypassed;
 
   const adminFeatures = [
     { icon: <Users size={18} />, label: 'Employees', path: '/admin/employees', feature: 'canEmployees', activePaths: ['/admin/employees', '/admin/directory'] },
@@ -120,8 +121,30 @@ const EmployeeLayout = () => {
 
   return (
     <>
-      {isMaintenanceMode && <MaintenanceOverlay message={maintenanceMessage} />}
-      <div className="h-[100dvh] w-full overflow-hidden bg-slate-50 flex font-sans text-slate-800 relative z-0">
+      {showMaintenanceOverlay && (
+        <MaintenanceOverlay 
+          message={maintenanceMessage} 
+          onBypassSuccess={() => setIsDevBypassed(true)} 
+        />
+      )}
+
+      {/* Developer Bypass Banner */}
+      {isMaintenanceMode && isDevBypassed && (
+        <div className="fixed top-0 left-0 right-0 z-[90] bg-indigo-900 text-white px-4 py-1.5 flex items-center justify-between text-xs font-semibold shadow-md">
+          <div className="flex items-center gap-2">
+            <Terminal size={14} className="text-indigo-300 animate-pulse" />
+            <span>Developer Bypass Mode Active — Maintenance Mode ON for public users</span>
+          </div>
+          <button 
+            onClick={handleExitBypass}
+            className="bg-indigo-700 hover:bg-indigo-600 text-white px-2.5 py-0.5 rounded font-bold transition-colors cursor-pointer"
+          >
+            Exit Bypass
+          </button>
+        </div>
+      )}
+
+      <div className={`h-[100dvh] w-full overflow-hidden bg-slate-50 flex font-sans text-slate-800 relative z-0 ${isMaintenanceMode && isDevBypassed ? 'pt-7' : ''}`}>
 
       {/* Global Animated Background Graphics */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden fixed md:absolute">
