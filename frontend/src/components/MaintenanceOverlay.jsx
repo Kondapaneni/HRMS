@@ -8,6 +8,14 @@ const MaintenanceOverlay = ({ message, onBypassSuccess }) => {
   const [showModal, setShowModal] = useState(false);
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    setTimeout(() => {
+      window.location.reload();
+    }, 400);
+  };
 
   const handleIconClick = () => {
     const newCount = clickCount + 1;
@@ -62,11 +70,12 @@ const MaintenanceOverlay = ({ message, onBypassSuccess }) => {
 
         <div className="flex flex-col items-center gap-3">
           <button 
-            onClick={() => window.location.reload()}
-            className="inline-flex items-center justify-center gap-2 w-full px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-xl transition-colors cursor-pointer"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="inline-flex items-center justify-center gap-2 w-full px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium rounded-xl transition-colors cursor-pointer disabled:opacity-70"
           >
-            <RefreshCw size={18} />
-            Refresh Page
+            <RefreshCw size={18} className={isRefreshing ? 'animate-spin text-amber-600' : ''} />
+            {isRefreshing ? 'Refreshing...' : 'Refresh Page'}
           </button>
 
           {/* Secret Developer Bypass Button (Revealed after 5 clicks) */}
