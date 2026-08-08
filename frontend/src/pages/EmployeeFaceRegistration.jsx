@@ -129,18 +129,6 @@ const EmployeeFaceRegistration = () => {
               )}
             </div>
           )}
-
-          {status !== 'success' && !isScanning && (
-            <div className="mt-6 text-center">
-              <button
-                type="button"
-                onClick={handleBackToLogin}
-                className="text-sm font-bold text-slate-500 hover:text-[#1E1B4B] transition-colors hover:underline decoration-2 underline-offset-4 cursor-pointer"
-              >
-                Back to Login
-              </button>
-            </div>
-          )}
         </div>
       </motion.div>
     </div>
