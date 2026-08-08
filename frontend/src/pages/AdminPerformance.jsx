@@ -79,7 +79,6 @@ const EmployeeRow = ({ item, onSelect }) => {
 const AdminPerformance = () => {
   const [selectedEmpId, setSelectedEmpId] = useState('');
   const [search, setSearch] = useState('');
-  const [showAll, setShowAll] = useState(false);
 
   // Always fetch fresh employee roster — no stale caching
   const { data: employees = [], isLoading: isLoadingEmployees } = useQuery({
@@ -120,24 +119,6 @@ const AdminPerformance = () => {
     );
   }, [employees, search]);
 
-  const MAX_VISIBLE = 5;
-
-  const visibleEmployees = useMemo(() => {
-    if (search.trim() || showAll || filteredEmployees.length <= MAX_VISIBLE) {
-      return filteredEmployees;
-    }
-    const selectedIdx = filteredEmployees.findIndex(e => e.id === selectedEmpId);
-    if (selectedIdx < MAX_VISIBLE) {
-      return filteredEmployees.slice(0, MAX_VISIBLE);
-    } else {
-      const selectedEmp = filteredEmployees[selectedIdx];
-      const slice = filteredEmployees.slice(0, MAX_VISIBLE - 1);
-      return [...slice, selectedEmp];
-    }
-  }, [filteredEmployees, search, showAll, selectedEmpId]);
-
-  const hiddenCount = filteredEmployees.length - visibleEmployees.length;
-
   const currentWeek = useMemo(() => {
     if (!perfData?.currentMetrics?.weekly) return null;
     return perfData.currentMetrics.weekly.find(w => w.isCurrentWeek) || perfData.currentMetrics.weekly[perfData.currentMetrics.weekly.length - 1];
@@ -169,13 +150,13 @@ const AdminPerformance = () => {
             />
           </div>
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-            Showing {visibleEmployees.length} of {filteredEmployees.length} employees
+            Showing {filteredEmployees.length} employees
           </p>
         </div>
 
         {/* Chips Roster */}
-        <div className="flex flex-wrap items-center gap-2 pt-1">
-          {visibleEmployees.map(emp => {
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 pt-1 scrollbar-thin">
+          {filteredEmployees.map(emp => {
             const isSelected = emp.id === selectedEmpId;
             return (
               <button
@@ -195,24 +176,6 @@ const AdminPerformance = () => {
               </button>
             );
           })}
-
-          {hiddenCount > 0 && !search.trim() && (
-            <button
-              onClick={() => setShowAll(true)}
-              className="flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 text-xs font-bold transition-all cursor-pointer"
-            >
-              +{hiddenCount} more
-            </button>
-          )}
-
-          {showAll && !search.trim() && filteredEmployees.length > MAX_VISIBLE && (
-            <button
-              onClick={() => setShowAll(false)}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 hover:bg-slate-200 text-xs font-semibold transition-all cursor-pointer ml-1"
-            >
-              Show less
-            </button>
-          )}
         </div>
       </div>
 
