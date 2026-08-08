@@ -19,10 +19,12 @@ export default function UpdateOverlay() {
   });
 
   const isMaintenanceMode = newsData?.maintenance_mode === true;
+  const isDevBypassed = typeof window !== 'undefined' && localStorage.getItem('dev_bypass_maintenance_session') === 'true';
 
   useEffect(() => {
     const checkVersion = async () => {
-      if (isMaintenanceMode) return;
+      // If maintenance mode is active AND dev bypass is NOT active, don't show update modal
+      if (isMaintenanceMode && !isDevBypassed) return;
 
       try {
         // Cache buster parameter to avoid getting a cached version.json
@@ -45,8 +47,8 @@ export default function UpdateOverlay() {
       }
     };
 
-    // Check immediately on load or when maintenance mode turns off
-    if (!isMaintenanceMode) {
+    // Check immediately on load or when maintenance mode turns off (or when dev bypass is active)
+    if (!isMaintenanceMode || isDevBypassed) {
       checkVersion();
     }
 
@@ -61,7 +63,7 @@ export default function UpdateOverlay() {
       window.removeEventListener('focus', handleFocus);
       clearInterval(interval);
     };
-  }, [isMaintenanceMode]);
+  }, [isMaintenanceMode, isDevBypassed]);
 
   const handleUpdate = () => {
     setIsUpdating(true);
@@ -77,9 +79,11 @@ export default function UpdateOverlay() {
     }, 800);
   };
 
+  const shouldShowUpdate = updateAvailable && (!isMaintenanceMode || isDevBypassed);
+
   return (
     <AnimatePresence>
-      {updateAvailable && !isMaintenanceMode && (
+      {shouldShowUpdate && (
         <div className="fixed inset-0 z-[9999] bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
