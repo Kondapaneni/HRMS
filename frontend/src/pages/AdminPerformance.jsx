@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import PageLoader from '../components/PageLoader';
 import { useQuery } from '@tanstack/react-query';
-import { Loader2, TrendingUp, TrendingDown, Activity, Users, CalendarDays, Coffee, AlertCircle, Building2, User } from 'lucide-react';
+import { Loader2, TrendingUp, TrendingDown, Activity, Users, CalendarDays, Coffee, AlertCircle, Building2, User, Clock } from 'lucide-react';
 import {
   BarChart,
   Bar,
@@ -53,12 +53,16 @@ const EmployeeRow = ({ item, type = 'peer' }) => {
           <p className="text-[11px] text-slate-500">{employee.position || 'Employee'}</p>
         </div>
       </div>
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-5">
         <div className="text-right">
           <p className="text-[10px] uppercase font-bold text-slate-400">Attendance</p>
           <p className={`text-sm font-bold ${isLow ? 'text-red-600' : isHigh ? 'text-green-600' : 'text-slate-700'}`}>
             {summary.attendancePct}%
           </p>
+        </div>
+        <div className="text-right">
+          <p className="text-[10px] uppercase font-bold text-slate-400">Work Hours</p>
+          <p className="text-sm font-bold text-indigo-600">{summary.totalHours || 0} hrs</p>
         </div>
         <div className="text-right">
           <p className="text-[10px] uppercase font-bold text-slate-400">Leaves</p>
@@ -92,6 +96,11 @@ const AdminPerformance = () => {
     staleTime: 5 * 60 * 1000,
   });
 
+  const currentWeek = useMemo(() => {
+    if (!perfData?.currentMetrics?.weekly) return null;
+    return perfData.currentMetrics.weekly.find(w => w.isCurrentWeek) || perfData.currentMetrics.weekly[perfData.currentMetrics.weekly.length - 1];
+  }, [perfData]);
+
   if (isLoadingEmployees) return <PageLoader message="Loading Performance Data..." />;
 
   return (
@@ -100,7 +109,7 @@ const AdminPerformance = () => {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">Team Performance Analytics</h1>
-          <p className="text-sm text-slate-500 mt-1">Select an employee to view their attendance, leaves, and compare with peers.</p>
+          <p className="text-sm text-slate-500 mt-1">Select an employee to view their attendance, work hours, leaves, and compare with peers.</p>
         </div>
         <div className="w-full md:w-80">
           <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Select Employee</label>
@@ -149,7 +158,22 @@ const AdminPerformance = () => {
           </div>
 
           {/* Stats Row */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <StatCard 
+              title="Work Hours (This Week)" 
+              value={currentWeek ? `${currentWeek.totalHours} hrs` : '0 hrs'}
+              subtitle={currentWeek ? `Avg ${currentWeek.avgHoursPerDay} hrs/day (${currentWeek.presentDays} days)` : 'Current week'}
+              icon={Clock} 
+              colorClass="bg-indigo-100 text-indigo-600"
+              highlight={true}
+            />
+            <StatCard 
+              title="Work Hours (This Month)" 
+              value={`${perfData.currentMonthSummary.totalHours || 0} hrs`}
+              subtitle="Total hours worked"
+              icon={Clock} 
+              colorClass="bg-blue-100 text-blue-600" 
+            />
             <StatCard 
               title="Present Days (This Month)" 
               value={perfData.currentMonthSummary.totalPresent}
@@ -158,23 +182,57 @@ const AdminPerformance = () => {
               colorClass="bg-green-100 text-green-600" 
             />
             <StatCard 
-              title="Leave Days (This Month)" 
-              value={perfData.currentMonthSummary.totalLeave}
-              subtitle="Approved absences"
-              icon={Coffee} 
-              colorClass="bg-amber-100 text-amber-600" 
-            />
-            <StatCard 
               title="Attendance Score" 
               value={`${perfData.currentMonthSummary.attendancePct}%`}
               subtitle="Monthly average"
               icon={Activity} 
-              colorClass="bg-blue-100 text-blue-600"
-              highlight={true}
+              colorClass="bg-teal-100 text-teal-600"
             />
           </div>
 
-          {/* Charts Row */}
+          {/* Weekly Work Hours Chart & Breakdown */}
+          {perfData.currentMetrics?.weekly && perfData.currentMetrics.weekly.length > 0 && (
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-2">
+                <div>
+                  <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                    <Clock className="w-5 h-5 text-indigo-600" /> Weekly Work Hours Breakdown
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">Total hours worked per week for the last 6 weeks</p>
+                </div>
+                {currentWeek && (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 self-start sm:self-auto">
+                    This Week: {currentWeek.totalHours} hrs ({currentWeek.avgHoursPerDay} hrs/day)
+                  </span>
+                )}
+              </div>
+
+              <div className="h-[250px] w-full mb-6">
+                <ResponsiveContainer width="100%" height="100%" minHeight={1}>
+                  <BarChart data={perfData.currentMetrics.weekly}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                    <XAxis dataKey="shortLabel" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748B' }} dy={10} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748B' }} dx={-10} allowDecimals={false} />
+                    <Tooltip cursor={{ fill: '#F1F5F9' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} formatter={(val) => [`${val} hrs`, 'Work Hours']} />
+                    <Bar dataKey="totalHours" name="Work Hours" fill="#6366F1" radius={[6, 6, 0, 0]} maxBarSize={40} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Weekly Grid Details */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                {perfData.currentMetrics.weekly.map((w, idx) => (
+                  <div key={idx} className={`p-3 rounded-xl border ${w.isCurrentWeek ? 'bg-indigo-50/60 border-indigo-200 ring-1 ring-indigo-200' : 'bg-slate-50 border-slate-200'}`}>
+                    <p className="text-[11px] font-bold text-slate-500 truncate" title={w.label}>{w.label}</p>
+                    <p className="text-lg font-extrabold text-slate-800 mt-1">{w.totalHours} <span className="text-xs font-normal text-slate-500">hrs</span></p>
+                    <p className="text-[10px] font-medium text-slate-400 mt-0.5">{w.presentDays} days • {w.avgHoursPerDay}h/day</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Monthly Charts Row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
               <h3 className="text-lg font-bold text-slate-800 mb-6">6-Month Attendance Trend</h3>

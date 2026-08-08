@@ -99,7 +99,7 @@ function buildPerformanceIntervalSummary(array $employee, string $startDate, str
     
     $emptySummary = [
         'employee' => $employee, 'totalPresent' => 0, 'totalLeave' => 0,
-        'totalWorkdays' => 0, 'attendancePct' => 0, 'leavePct' => 0,
+        'totalWorkdays' => 0, 'totalHours' => 0, 'attendancePct' => 0, 'leavePct' => 0,
     ];
 
     if ($joinDate !== null && $joinDate > $intervalEnd) return $emptySummary;
@@ -108,7 +108,7 @@ function buildPerformanceIntervalSummary(array $employee, string $startDate, str
 
     $attendanceRecords = $attendanceByEmployee[$employee['userId'] ?? $employee['id']] ?? [];
 
-    $present = 0; $leave = 0; $totalDays = 0;
+    $present = 0; $leave = 0; $totalDays = 0; $totalHours = 0.0;
     
     // Parse week off
     $weekOff = 'sunday'; // default
@@ -132,6 +132,7 @@ function buildPerformanceIntervalSummary(array $employee, string $startDate, str
         if ($status === 'present') {
             $present++;
             $totalDays++;
+            $totalHours += (float)($record['hours'] ?? 0);
         } elseif (!$isHoliday && !$isWeekOff) {
             $totalDays++;
             if ($status === 'leave') {
@@ -146,9 +147,64 @@ function buildPerformanceIntervalSummary(array $employee, string $startDate, str
         'totalPresent' => $present,
         'totalLeave' => $leave,
         'totalWorkdays' => $totalDays,
+        'totalHours' => round($totalHours, 1),
         'attendancePct' => $totalDays > 0 ? round($present / $totalDays * 100, 1) : 0,
         'leavePct' => $totalDays > 0 ? round($leave / $totalDays * 100, 1) : 0,
     ];
+}
+
+function buildWeeklyMetrics(array $employee, array $attendanceByEmployee, string $today): array {
+    $attendanceRecords = $attendanceByEmployee[$employee['userId'] ?? $employee['id']] ?? [];
+    
+    $currentDate = new DateTime($today);
+    $dayOfWeek = (int)$currentDate->format('N'); // 1 (Mon) to 7 (Sun)
+    $monday = (clone $currentDate)->modify('-' . ($dayOfWeek - 1) . ' days');
+    
+    $weeks = [];
+    for ($i = 5; $i >= 0; $i--) {
+        $wStart = (clone $monday)->modify("-{$i} weeks");
+        $wEnd = (clone $wStart)->modify('+6 days');
+        
+        $startStr = $wStart->format('Y-m-d');
+        $endStr = $wEnd->format('Y-m-d');
+        $capEndStr = ($endStr > $today) ? $today : $endStr;
+        
+        $totalHours = 0.0;
+        $presentDays = 0;
+        
+        $iter = clone $wStart;
+        $limit = new DateTime($capEndStr);
+        while ($iter <= $limit) {
+            $d = $iter->format('Y-m-d');
+            if (isset($attendanceRecords[$d])) {
+                $rec = $attendanceRecords[$d];
+                $st = normalizeStatus($rec['status'] ?? '', $rec['checkIn'] ?? null);
+                if ($st === 'present') {
+                    $presentDays++;
+                    $totalHours += (float)($rec['hours'] ?? 0);
+                }
+            }
+            $iter->modify('+1 day');
+        }
+        
+        $isCurrentWeek = ($i === 0);
+        $label = $wStart->format('M d') . ' - ' . $wEnd->format('M d');
+        if ($isCurrentWeek) {
+            $label .= ' (This Week)';
+        }
+        
+        $weeks[] = [
+            'startDate' => $startStr,
+            'endDate' => $endStr,
+            'label' => $label,
+            'shortLabel' => $wStart->format('d M'),
+            'totalHours' => round($totalHours, 1),
+            'presentDays' => $presentDays,
+            'avgHoursPerDay' => $presentDays > 0 ? round($totalHours / $presentDays, 1) : 0,
+            'isCurrentWeek' => $isCurrentWeek
+        ];
+    }
+    return $weeks;
 }
 
 function buildCurrentMonthSummary(array $employee, string $today, array $holidays, array $attendanceByEmployee): array {
@@ -159,7 +215,7 @@ function buildCurrentMonthSummary(array $employee, string $today, array $holiday
 
 function buildMetrics(array $employee, array $months, array $holidays, array $attendanceByEmployee, ?string $referenceDate = null): array {
     $monthly = [];
-    $totalPresent = 0; $totalLeave = 0; $totalWorkdays = 0;
+    $totalPresent = 0; $totalLeave = 0; $totalWorkdays = 0; $totalHours = 0.0;
     $referenceDate = $referenceDate !== null ? substr($referenceDate, 0, 10) : null;
     $joinDate = !empty($employee['joinDate']) ? substr($employee['joinDate'], 0, 10) : null;
 
@@ -174,6 +230,7 @@ function buildMetrics(array $employee, array $months, array $holidays, array $at
             'present' => $summary['totalPresent'],
             'leave' => $summary['totalLeave'],
             'workdays' => $summary['totalWorkdays'],
+            'hours' => $summary['totalHours'],
             'attendancePct' => $summary['attendancePct'],
             'leavePct' => $summary['leavePct'],
             'label' => $month['label'],
@@ -182,14 +239,20 @@ function buildMetrics(array $employee, array $months, array $holidays, array $at
         $totalPresent += $summary['totalPresent'];
         $totalLeave += $summary['totalLeave'];
         $totalWorkdays += $summary['totalWorkdays'];
+        $totalHours += $summary['totalHours'];
     }
+
+    $todayStr = $referenceDate ?? date('Y-m-d');
+    $weekly = buildWeeklyMetrics($employee, $attendanceByEmployee, $todayStr);
 
     return [
         'employee' => $employee,
         'monthly' => $monthly,
+        'weekly' => $weekly,
         'totalPresent' => $totalPresent,
         'totalLeave' => $totalLeave,
         'totalWorkdays' => $totalWorkdays,
+        'totalHours' => round($totalHours, 1),
         'attendancePct' => $totalWorkdays > 0 ? round($totalPresent / $totalWorkdays * 100, 1) : 0,
         'leavePct' => $totalWorkdays > 0 ? round($totalLeave / $totalWorkdays * 100, 1) : 0,
     ];

@@ -59,7 +59,7 @@ $app->get('/api/employee/performance', function (Request $request, Response $res
         $placeholders = implode(',', array_fill(0, count($allEmployeeIds), '?'));
         
         // Fetch Attendance
-        $attendanceSql = "SELECT \"employeeId\", date, status, \"checkIn\" FROM attendance WHERE \"employeeId\" IN ({$placeholders}) AND date BETWEEN ? AND ?";
+        $attendanceSql = "SELECT \"employeeId\", date, status, \"checkIn\", hours FROM attendance WHERE \"employeeId\" IN ({$placeholders}) AND date BETWEEN ? AND ?";
         $attStmt = $conn->prepare($attendanceSql);
         $attStmt->execute(array_merge($allEmployeeIds, [$periodStart, $periodEnd]));
         $attendanceRows = $attStmt->fetchAll(PDO::FETCH_ASSOC);
@@ -70,6 +70,7 @@ $app->get('/api/employee/performance', function (Request $request, Response $res
             $attendanceByEmployee[$attUserId][$date] = [
                 'status' => $row['status'],
                 'checkIn' => $row['checkIn'],
+                'hours' => (float)($row['hours'] ?? 0),
             ];
         }
     }
