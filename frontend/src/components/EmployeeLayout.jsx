@@ -18,6 +18,12 @@ const EmployeeLayout = () => {
   const location = useLocation();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [swipePath, setSwipePath] = useState(null);
+  const [isDevBypassed, setIsDevBypassed] = useState(() => localStorage.getItem('dev_bypass_maintenance_session') === 'true');
+
+  const handleExitBypass = () => {
+    localStorage.removeItem('dev_bypass_maintenance_session');
+    setIsDevBypassed(false);
+  };
 
   const handleTouchMove = (e) => {
     const touch = e.touches[0];
