@@ -28,7 +28,7 @@ $app->get('/api/admin/feature-access', function (Request $request, Response $res
             fa."canAdminAssessments"
         FROM users u
         LEFT JOIN user_feature_access fa ON fa."userId" = u.id
-        WHERE u.role != 'admin'
+        WHERE u.role != \'admin\'
         ORDER BY u."firstName" ASC, u."lastName" ASC
     ';
 
