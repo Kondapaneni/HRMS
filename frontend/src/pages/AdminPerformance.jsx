@@ -77,17 +77,19 @@ const AdminPerformance = () => {
     queryFn: async () => {
       const res = await api.get('/admin/employees?limit=1000');
       return res.data.employees || [];
-    }
+    },
+    staleTime: 5 * 60 * 1000,
   });
 
-  const { data: perfData, isLoading, isError } = useQuery({
+  const { data: perfData, isLoading } = useQuery({
     queryKey: ['admin', 'performance', selectedEmpId],
     queryFn: async () => {
       if (!selectedEmpId) return null;
       const res = await api.get(`/admin/performance?id=${selectedEmpId}`);
       return res.data;
     },
-    enabled: !!selectedEmpId
+    enabled: !!selectedEmpId,
+    staleTime: 5 * 60 * 1000,
   });
 
   if (isLoadingEmployees) return <PageLoader message="Loading Performance Data..." />;
@@ -118,13 +120,13 @@ const AdminPerformance = () => {
         </div>
       )}
 
-      {selectedEmpId && isLoading && (
+      {selectedEmpId && isLoading && !perfData && (
         <div className="flex items-center justify-center p-12">
           <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
         </div>
       )}
 
-      {selectedEmpId && !isLoading && perfData && (
+      {selectedEmpId && perfData && (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
           
           {/* Employee Header Info */}

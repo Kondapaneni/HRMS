@@ -84,6 +84,9 @@ const AdminEmployeeEdit = () => {
       queryClient.invalidateQueries({
         queryKey: ['admin', 'employees']
       });
+      queryClient.invalidateQueries({
+        queryKey: ['admin', 'performance']
+      });
     }
   });
 
