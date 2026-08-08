@@ -119,7 +119,7 @@ const AssessmentResults = () => {
       let matchStatus = true;
       if (statusFilter === 'passed') matchStatus = att.passed === true;
       else if (statusFilter === 'failed') matchStatus = att.passed === false;
-      else if (statusFilter === 'violation') matchStatus = att.submit_reason && att.submit_reason !== 'normal';
+      else if (statusFilter === 'violation') matchStatus = att.submit_reason && att.submit_reason !== 'manual' && att.submit_reason !== 'normal' && att.submit_reason !== 'time_expired';
 
       return matchSearch && matchAssessment && matchStatus;
     });
@@ -131,7 +131,7 @@ const AssessmentResults = () => {
     const passedCount = attempts.filter(a => a.passed).length;
     const passRate = total > 0 ? Math.round((passedCount / total) * 100) : 0;
     const avgScore = total > 0 ? Math.round(attempts.reduce((acc, curr) => acc + (curr.percentage || 0), 0) / total) : 0;
-    const violationsCount = attempts.filter(a => a.submit_reason && a.submit_reason !== 'normal').length;
+    const violationsCount = attempts.filter(a => a.submit_reason && a.submit_reason !== 'manual' && a.submit_reason !== 'normal' && a.submit_reason !== 'time_expired').length;
     return { total, passedCount, passRate, avgScore, violationsCount };
   }, [attempts]);
 
@@ -147,13 +147,6 @@ const AssessmentResults = () => {
             Monitor employee exam performances, review security integrity logs, and inspect detailed question breakdown reports.
           </p>
         </div>
-        <button
-          onClick={() => refetch()}
-          className="inline-flex items-center justify-center rounded-md text-xs font-bold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 h-9 px-3.5 transition-colors shadow-2xs cursor-pointer self-start sm:self-auto"
-        >
-          <RefreshCw size={14} className="mr-1.5" />
-          Refresh Results
-        </button>
       </div>
 
       {/* Summary Stats Grid */}
