@@ -21,9 +21,8 @@ const MaintenanceOverlay = ({ message, onBypassSuccess }) => {
     e.preventDefault();
     setError('');
 
-    // Accept valid developer passwords
-    const validPasswords = ['dev123', 'admin123', 'developer', 'devpass'];
-    if (validPasswords.includes(password.trim().toLowerCase())) {
+    // Developer password verification
+    if (password.trim() === 'AcmeDev@2026') {
       localStorage.setItem('dev_bypass_maintenance_session', 'true');
       if (onBypassSuccess) {
         onBypassSuccess();
