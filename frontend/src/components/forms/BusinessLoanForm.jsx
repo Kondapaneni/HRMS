@@ -253,19 +253,7 @@ export function BusinessLoanForm() {
           error={errors.marital_status}
         />
 
-        <RadioGroup
-          name="own_house"
-          label="Own House"
-          value={formData.own_house}
-          onChange={(val) => updateField('own_house', val)}
-          required
-          direction="horizontal"
-          options={[
-            { label: 'Yes', value: 'Yes' },
-            { label: 'No', value: 'No' }
-          ]}
-          error={errors.own_house}
-        />
+
 
         {showParents && (
           <>
@@ -291,6 +279,7 @@ export function BusinessLoanForm() {
           </>
         )}
 
+
         {showHusband && (
           <TextField
             name="husband_name"
@@ -302,6 +291,20 @@ export function BusinessLoanForm() {
             error={errors.husband_name}
           />
         )}
+
+        <RadioGroup
+          name="own_house"
+          label="Own House"
+          value={formData.own_house}
+          onChange={(val) => updateField('own_house', val)}
+          required
+          direction="horizontal"
+          options={[
+            { label: 'Yes', value: 'Yes' },
+            { label: 'No', value: 'No' }
+          ]}
+          error={errors.own_house}
+        />
       </FormGrid>
 
       <div className="pt-6 border-t border-slate-100 flex items-center justify-end gap-3">
