@@ -5,8 +5,8 @@ use Psr\Http\Message\ResponseInterface as Response;
 use App\Config\Database;
 
 /**
- * Endpoint to submit a new loan application.
- * Stores complete form submission as JSON in public.loan_applications table.
+ * Endpoint to submit or save draft for a loan application.
+ * Stores complete form submission/draft as JSON in public.loan_applications table.
  */
 $app->post('/api/loans/applications', function (Request $request, Response $response, $args) {
     $user = $request->getAttribute('user');
@@ -20,6 +20,7 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
     $loanType = trim($data['loan_type'] ?? 'Business Loan');
     $applicantName = trim($data['applicant_name'] ?? '');
     $phoneNumber = trim($data['phone_number'] ?? '');
+    $status = trim($data['status'] ?? 'Submitted');
     $formData = $data['form_data'] ?? $data;
 
     // Fallback extracts if not provided at top-level
@@ -28,6 +29,12 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
     }
     if (empty($phoneNumber) && !empty($formData['phone_number'])) {
         $phoneNumber = trim($formData['phone_number']);
+    }
+
+    // For drafts, allow default placeholder if applicant name / phone not provided yet
+    if ($status === 'Draft') {
+        if (empty($applicantName)) $applicantName = 'Draft Applicant';
+        if (empty($phoneNumber)) $phoneNumber = '0000000000';
     }
 
     if (empty($applicantName) || empty($phoneNumber)) {
@@ -58,7 +65,7 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
             $loanType,
             $applicantName,
             $phoneNumber,
-            'Submitted',
+            $status,
             $jsonPayload,
             $createdById
         ]);
@@ -71,24 +78,24 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
 
         $response->getBody()->write(json_encode([
             'success' => true,
-            'message' => 'Loan application submitted successfully',
+            'message' => $status === 'Draft' ? 'Loan application draft saved successfully' : 'Loan application submitted successfully',
             'application' => $application
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
         
     } catch (\PDOException $e) {
         error_log("Database error submitting loan application: " . $e->getMessage());
-        $response->getBody()->write(json_encode(['error' => 'Database error while submitting loan application: ' . $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'Database error while saving loan application: ' . $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     } catch (\Exception $e) {
         error_log("Error submitting loan application: " . $e->getMessage());
-        $response->getBody()->write(json_encode(['error' => 'An error occurred while submitting the loan application']));
+        $response->getBody()->write(json_encode(['error' => 'An error occurred while saving the loan application']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new \App\Middleware\AuthMiddleware());
 
 /**
- * Endpoint to list submitted loan applications.
+ * Endpoint to list submitted & draft loan applications.
  */
 $app->get('/api/loans/applications', function (Request $request, Response $response, $args) {
     $user = $request->getAttribute('user');

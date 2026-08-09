@@ -44,6 +44,7 @@ export function BusinessLoanForm() {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDrafting, setIsDrafting] = useState(false);
 
   // Auto-populate when profile data or navigation state resolves
   useEffect(() => {
@@ -70,6 +71,22 @@ export function BusinessLoanForm() {
     }
   }, [profile, location.state]);
 
+  const handleSaveDraft = async () => {
+    try {
+      setIsDrafting(true);
+      // Save form data to DB table public.loan_applications in JSON format as Draft
+      await submitLoanApplication('Business Loan', formData, 'Draft');
+      localStorage.setItem('business_loan_draft', JSON.stringify(formData));
+      toast.success('Business Loan draft saved to database!');
+    } catch (err) {
+      console.error('Error saving draft to DB:', err);
+      localStorage.setItem('business_loan_draft', JSON.stringify(formData));
+      toast.success('Draft saved locally!');
+    } finally {
+      setIsDrafting(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -84,8 +101,9 @@ export function BusinessLoanForm() {
 
     try {
       setIsSubmitting(true);
-      // Submit full form data to public.loan_applications in JSON format
-      await submitLoanApplication('Business Loan', formData);
+      // Submit full form data to public.loan_applications in JSON format as Submitted
+      await submitLoanApplication('Business Loan', formData, 'Submitted');
+      localStorage.removeItem('business_loan_draft');
       toast.success('Business Loan Application Submitted Successfully!');
       resetForm({
         applicant_name: '',
@@ -171,14 +189,15 @@ export function BusinessLoanForm() {
       <div className="pt-6 border-t border-slate-100 flex items-center justify-end gap-3">
         <button
           type="button"
-          onClick={() => toast.success('Business loan draft saved!')}
-          className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 h-10 px-4 py-2 transition-colors cursor-pointer border border-slate-200 gap-2"
+          onClick={handleSaveDraft}
+          disabled={isDrafting || isSubmitting}
+          className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 h-10 px-4 py-2 transition-colors cursor-pointer border border-slate-200 gap-2 disabled:opacity-50"
         >
-          <Save className="h-4 w-4" /> Save Draft
+          {isDrafting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save Draft
         </button>
         <button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitting || isDrafting}
           className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50 gap-2"
         >
           {isSubmitting ? (
