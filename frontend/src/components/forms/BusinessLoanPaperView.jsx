@@ -51,7 +51,6 @@ export function BusinessLoanPaperView({ formData = {}, application = {}, onBack 
 
   const formattedDate = formatDateSafe(application.created_at || application.updated_at) || format(new Date(), 'dd MMM yyyy');
   const appId = application.application_id || formData.application_id || 'LA-DRAFT';
-  const status = application.status || 'Submitted';
 
   const formatCurrency = (val) => {
     if (!val) return '—';
@@ -224,7 +223,7 @@ export function BusinessLoanPaperView({ formData = {}, application = {}, onBack 
               </p>
             </div>
 
-            {/* App / Loan ID & Status Info (Clean, No Box, Big ID) */}
+            {/* App / Loan ID & Date Info */}
             <div className="flex flex-col items-start md:items-end gap-1 text-left md:text-right">
               <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
                 Application ID
@@ -232,13 +231,8 @@ export function BusinessLoanPaperView({ formData = {}, application = {}, onBack 
               <div className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-blue-600">
                 {appId}
               </div>
-              <div className="flex items-center gap-2 mt-0.5">
-                <span className="px-2.5 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
-                  {status}
-                </span>
-                <span className="text-xs text-slate-500 flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5 text-slate-400" /> {formattedDate}
-                </span>
+              <div className="flex items-center gap-1 mt-0.5 text-xs text-slate-500">
+                <Calendar className="w-3.5 h-3.5 text-slate-400" /> {formattedDate}
               </div>
             </div>
           </div>
