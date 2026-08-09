@@ -367,6 +367,114 @@ export const validateBusinessLoanForm = (formData = {}) => {
     }
   }
 
+  // Co-Applicant Validation (if has_co_applicant === 'Yes')
+  if (formData.has_co_applicant === 'Yes') {
+    const coNameErr = validateApplicantName(formData.co_applicant_name);
+    if (coNameErr) errors.co_applicant_name = coNameErr;
+
+    const coRelErr = validateTextOnlyField(formData.co_relation_with_applicant, 'Relation with Applicant');
+    if (coRelErr) errors.co_relation_with_applicant = coRelErr;
+
+    if (!formData.co_phone_number || !validateLeadPhone(formData.co_phone_number)) {
+      errors.co_phone_number = 'Please enter a valid 10-digit mobile number.';
+    }
+
+    const coAadhaarErr = validateAadhaar(formData.co_aadhaar_number);
+    if (coAadhaarErr) errors.co_aadhaar_number = coAadhaarErr;
+
+    const coAgeErr = validateAge(formData.co_age);
+    if (coAgeErr) errors.co_age = coAgeErr;
+
+    const coGenderErr = validateGender(formData.co_gender);
+    if (coGenderErr) errors.co_gender = coGenderErr;
+
+    const coMaritalErr = validateMaritalStatus(formData.co_marital_status);
+    if (coMaritalErr) errors.co_marital_status = coMaritalErr;
+
+    const coOwnHouseErr = validateOwnHouse(formData.co_own_house);
+    if (coOwnHouseErr) errors.co_own_house = coOwnHouseErr;
+
+    const showCoParents = !!(formData.co_gender && formData.co_marital_status);
+    const showCoHusband = formData.co_gender === 'Female' && formData.co_marital_status === 'Yes';
+
+    if (showCoParents) {
+      const coFatherErr = validateRelativeName(formData.co_father_name, 'Co-Applicant Father');
+      if (coFatherErr) errors.co_father_name = coFatherErr;
+
+      const coMotherErr = validateRelativeName(formData.co_mother_name, 'Co-Applicant Mother');
+      if (coMotherErr) errors.co_mother_name = coMotherErr;
+    }
+
+    if (showCoHusband) {
+      const coHusbandErr = validateRelativeName(formData.co_husband_name, 'Co-Applicant Husband');
+      if (coHusbandErr) errors.co_husband_name = coHusbandErr;
+    }
+
+    // Co-Applicant Current Address
+    const coCurAddrErr = validateAddressText(formData.co_current_address, 'Co-Applicant Current Address');
+    if (coCurAddrErr) errors.co_current_address = coCurAddrErr;
+
+    const coCurStreetErr = validateTextOnlyField(formData.co_current_street, 'Co-Applicant Current Street');
+    if (coCurStreetErr) errors.co_current_street = coCurStreetErr;
+
+    const coCurCityErr = validateTextOnlyField(formData.co_current_city, 'Co-Applicant Current City');
+    if (coCurCityErr) errors.co_current_city = coCurCityErr;
+
+    const coCurStateErr = validateTextOnlyField(formData.co_current_state, 'Co-Applicant Current State');
+    if (coCurStateErr) errors.co_current_state = coCurStateErr;
+
+    const coCurPinErr = validatePostalCode(formData.co_current_postal_code, 'Co-Applicant Current Postal Code');
+    if (coCurPinErr) errors.co_current_postal_code = coCurPinErr;
+
+    // Co-Applicant Permanent Address
+    const coPermAddrErr = validateAddressText(formData.co_permanent_address, 'Co-Applicant Permanent Address');
+    if (coPermAddrErr) errors.co_permanent_address = coPermAddrErr;
+
+    const coPermStreetErr = validateTextOnlyField(formData.co_permanent_street, 'Co-Applicant Permanent Street');
+    if (coPermStreetErr) errors.co_permanent_street = coPermStreetErr;
+
+    const coPermCityErr = validateTextOnlyField(formData.co_permanent_city, 'Co-Applicant Permanent City');
+    if (coPermCityErr) errors.co_permanent_city = coPermCityErr;
+
+    const coPermStateErr = validateTextOnlyField(formData.co_permanent_state, 'Co-Applicant Permanent State');
+    if (coPermStateErr) errors.co_permanent_state = coPermStateErr;
+
+    const coPermPinErr = validatePostalCode(formData.co_permanent_postal_code, 'Co-Applicant Permanent Postal Code');
+    if (coPermPinErr) errors.co_permanent_postal_code = coPermPinErr;
+
+    // Co-Applicant Employment
+    const coEmpErr = validateRequired(formData.co_employment, 'Co-Applicant Employment');
+    if (coEmpErr) {
+      errors.co_employment = coEmpErr;
+    } else if (formData.co_employment === 'Job') {
+      const coJobNameErr = validateTextOnlyField(formData.co_job_name, 'Co-Applicant Job Name');
+      if (coJobNameErr) errors.co_job_name = coJobNameErr;
+
+      const coJobAddrErr = validateAddressText(formData.co_job_address, 'Co-Applicant Job Address');
+      if (coJobAddrErr) errors.co_job_address = coJobAddrErr;
+
+      const coJobIncomeErr = validateRequired(formData.co_job_income_per_month, 'Co-Applicant Job Income');
+      if (coJobIncomeErr) {
+        errors.co_job_income_per_month = coJobIncomeErr;
+      } else if (Number(formData.co_job_income_per_month) <= 0) {
+        errors.co_job_income_per_month = 'Income must be greater than 0.';
+      }
+    } else if (formData.co_employment === 'Business') {
+      const coBizNameErr = validateTextOnlyField(formData.co_business_name, 'Co-Applicant Business Name');
+      if (coBizNameErr) errors.co_business_name = coBizNameErr;
+
+      const coBizAddrErr = validateAddressText(formData.co_business_address, 'Co-Applicant Business Address');
+      if (coBizAddrErr) errors.co_business_address = coBizAddrErr;
+
+      const coBizIncomeErr = validateRequired(formData.co_business_income_per_month, 'Co-Applicant Business Income');
+      if (coBizIncomeErr) {
+        errors.co_business_income_per_month = coBizIncomeErr;
+      } else if (Number(formData.co_business_income_per_month) <= 0) {
+        errors.co_business_income_per_month = 'Income must be greater than 0.';
+      }
+    }
+  }
+
   return {
     isValid: Object.keys(errors).length === 0,
     errors

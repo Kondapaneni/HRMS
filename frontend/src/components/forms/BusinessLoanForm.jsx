@@ -66,7 +66,36 @@ export function BusinessLoanForm() {
     job_income_per_month: '',
     business_name: '',
     business_address: '',
-    business_income_per_month: ''
+    business_income_per_month: '',
+    has_co_applicant: 'No',
+    co_applicant_name: '',
+    co_relation_with_applicant: '',
+    co_phone_number: '',
+    co_aadhaar_number: '',
+    co_age: '',
+    co_gender: '',
+    co_marital_status: '',
+    co_father_name: '',
+    co_mother_name: '',
+    co_husband_name: '',
+    co_own_house: '',
+    co_current_address: '',
+    co_current_street: '',
+    co_current_city: '',
+    co_current_state: '',
+    co_current_postal_code: '',
+    co_permanent_address: '',
+    co_permanent_street: '',
+    co_permanent_city: '',
+    co_permanent_state: '',
+    co_permanent_postal_code: '',
+    co_employment: '',
+    co_job_name: '',
+    co_job_address: '',
+    co_job_income_per_month: '',
+    co_business_name: '',
+    co_business_address: '',
+    co_business_income_per_month: ''
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -80,6 +109,9 @@ export function BusinessLoanForm() {
   // Female + Yes = Father and Mother and Husband Name
   const showParents = !!(formData.gender && formData.marital_status);
   const showHusband = formData.gender === 'Female' && formData.marital_status === 'Yes';
+
+  const showCoParents = !!(formData.co_gender && formData.co_marital_status);
+  const showCoHusband = formData.co_gender === 'Female' && formData.co_marital_status === 'Yes';
 
   // Automatically clear hidden conditional fields when their visibility toggles off
   useEffect(() => {
@@ -100,7 +132,44 @@ export function BusinessLoanForm() {
       if (formData.business_address) updateField('business_address', '');
       if (formData.business_income_per_month) updateField('business_income_per_month', '');
     }
-  }, [formData.gender, formData.marital_status, formData.employment, showParents, showHusband]);
+
+    // Co-Applicant auto-clear logic
+    if (formData.has_co_applicant !== 'Yes') {
+      const coKeys = [
+        'co_applicant_name', 'co_relation_with_applicant', 'co_phone_number', 'co_aadhaar_number',
+        'co_age', 'co_gender', 'co_marital_status', 'co_father_name', 'co_mother_name', 'co_husband_name',
+        'co_own_house', 'co_current_address', 'co_current_street', 'co_current_city', 'co_current_state',
+        'co_current_postal_code', 'co_permanent_address', 'co_permanent_street', 'co_permanent_city',
+        'co_permanent_state', 'co_permanent_postal_code', 'co_employment', 'co_job_name', 'co_job_address',
+        'co_job_income_per_month', 'co_business_name', 'co_business_address', 'co_business_income_per_month'
+      ];
+      coKeys.forEach(k => {
+        if (formData[k]) updateField(k, '');
+      });
+    } else {
+      if (!showCoParents) {
+        if (formData.co_father_name) updateField('co_father_name', '');
+        if (formData.co_mother_name) updateField('co_mother_name', '');
+      }
+      if (!showCoHusband) {
+        if (formData.co_husband_name) updateField('co_husband_name', '');
+      }
+      if (formData.co_employment !== 'Job') {
+        if (formData.co_job_name) updateField('co_job_name', '');
+        if (formData.co_job_address) updateField('co_job_address', '');
+        if (formData.co_job_income_per_month) updateField('co_job_income_per_month', '');
+      }
+      if (formData.co_employment !== 'Business') {
+        if (formData.co_business_name) updateField('co_business_name', '');
+        if (formData.co_business_address) updateField('co_business_address', '');
+        if (formData.co_business_income_per_month) updateField('co_business_income_per_month', '');
+      }
+    }
+  }, [
+    formData.gender, formData.marital_status, formData.employment, showParents, showHusband,
+    formData.has_co_applicant, formData.co_gender, formData.co_marital_status, formData.co_employment,
+    showCoParents, showCoHusband
+  ]);
 
   // Load saved application / draft JSON data directly from database
   const loadSavedDataFromDB = async (showToast = false) => {
@@ -147,6 +216,35 @@ export function BusinessLoanForm() {
           if (savedData.business_name) updateField('business_name', capitalizeWords(savedData.business_name));
           if (savedData.business_address) updateField('business_address', capitalizeText(savedData.business_address));
           if (savedData.business_income_per_month) updateField('business_income_per_month', String(savedData.business_income_per_month).replace(/\D/g, ''));
+          if (savedData.has_co_applicant) updateField('has_co_applicant', savedData.has_co_applicant);
+          if (savedData.co_applicant_name) updateField('co_applicant_name', capitalizeWords(savedData.co_applicant_name));
+          if (savedData.co_relation_with_applicant) updateField('co_relation_with_applicant', capitalizeWords(savedData.co_relation_with_applicant));
+          if (savedData.co_phone_number) updateField('co_phone_number', String(savedData.co_phone_number).replace(/\D/g, '').slice(0, 10));
+          if (savedData.co_aadhaar_number) updateField('co_aadhaar_number', String(savedData.co_aadhaar_number).replace(/\D/g, '').slice(0, 12));
+          if (savedData.co_age) updateField('co_age', savedData.co_age);
+          if (savedData.co_gender) updateField('co_gender', savedData.co_gender);
+          if (savedData.co_marital_status) updateField('co_marital_status', savedData.co_marital_status);
+          if (savedData.co_father_name) updateField('co_father_name', capitalizeWords(savedData.co_father_name));
+          if (savedData.co_mother_name) updateField('co_mother_name', capitalizeWords(savedData.co_mother_name));
+          if (savedData.co_husband_name) updateField('co_husband_name', capitalizeWords(savedData.co_husband_name));
+          if (savedData.co_own_house) updateField('co_own_house', savedData.co_own_house);
+          if (savedData.co_current_address) updateField('co_current_address', capitalizeText(savedData.co_current_address));
+          if (savedData.co_current_street) updateField('co_current_street', capitalizeWords(savedData.co_current_street));
+          if (savedData.co_current_city) updateField('co_current_city', capitalizeWords(savedData.co_current_city));
+          if (savedData.co_current_state) updateField('co_current_state', capitalizeWords(savedData.co_current_state));
+          if (savedData.co_current_postal_code) updateField('co_current_postal_code', String(savedData.co_current_postal_code).replace(/\D/g, '').slice(0, 6));
+          if (savedData.co_permanent_address) updateField('co_permanent_address', capitalizeText(savedData.co_permanent_address));
+          if (savedData.co_permanent_street) updateField('co_permanent_street', capitalizeWords(savedData.co_permanent_street));
+          if (savedData.co_permanent_city) updateField('co_permanent_city', capitalizeWords(savedData.co_permanent_city));
+          if (savedData.co_permanent_state) updateField('co_permanent_state', capitalizeWords(savedData.co_permanent_state));
+          if (savedData.co_permanent_postal_code) updateField('co_permanent_postal_code', String(savedData.co_permanent_postal_code).replace(/\D/g, '').slice(0, 6));
+          if (savedData.co_employment) updateField('co_employment', savedData.co_employment);
+          if (savedData.co_job_name) updateField('co_job_name', capitalizeWords(savedData.co_job_name));
+          if (savedData.co_job_address) updateField('co_job_address', capitalizeText(savedData.co_job_address));
+          if (savedData.co_job_income_per_month) updateField('co_job_income_per_month', String(savedData.co_job_income_per_month).replace(/\D/g, ''));
+          if (savedData.co_business_name) updateField('co_business_name', capitalizeWords(savedData.co_business_name));
+          if (savedData.co_business_address) updateField('co_business_address', capitalizeText(savedData.co_business_address));
+          if (savedData.co_business_income_per_month) updateField('co_business_income_per_month', String(savedData.co_business_income_per_month).replace(/\D/g, ''));
 
           if (showToast) {
             toast.success('Loaded saved draft for this lead!');
@@ -272,6 +370,35 @@ export function BusinessLoanForm() {
         business_name: '',
         business_address: '',
         business_income_per_month: '',
+        has_co_applicant: 'No',
+        co_applicant_name: '',
+        co_relation_with_applicant: '',
+        co_phone_number: '',
+        co_aadhaar_number: '',
+        co_age: '',
+        co_gender: '',
+        co_marital_status: '',
+        co_father_name: '',
+        co_mother_name: '',
+        co_husband_name: '',
+        co_own_house: '',
+        co_current_address: '',
+        co_current_street: '',
+        co_current_city: '',
+        co_current_state: '',
+        co_current_postal_code: '',
+        co_permanent_address: '',
+        co_permanent_street: '',
+        co_permanent_city: '',
+        co_permanent_state: '',
+        co_permanent_postal_code: '',
+        co_employment: '',
+        co_job_name: '',
+        co_job_address: '',
+        co_job_income_per_month: '',
+        co_business_name: '',
+        co_business_address: '',
+        co_business_income_per_month: '',
         lead_id: formData.lead_id
       });
     } catch (err) {
@@ -415,6 +542,402 @@ export function BusinessLoanForm() {
           error={errors.own_house}
         />
       </FormGrid>
+      </div>
+
+      {/* Co-Applicant Section */}
+      <div className="pt-6 border-t border-slate-200">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
+            Co-Applicant Details
+          </h3>
+        </div>
+
+        <div className="mb-6">
+          <RadioGroup
+            name="has_co_applicant"
+            label="Do you want to add a Co-Applicant?"
+            value={formData.has_co_applicant}
+            onChange={(val) => updateField('has_co_applicant', val)}
+            required
+            direction="horizontal"
+            options={[
+              { label: 'Yes', value: 'Yes' },
+              { label: 'No', value: 'No' }
+            ]}
+            error={errors.has_co_applicant}
+          />
+        </div>
+
+        {formData.has_co_applicant === 'Yes' && (
+          <div className="space-y-6">
+            {/* Co-Applicant Personal Details */}
+            <div className="p-5 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
+              <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wider">
+                Co-Applicant Personal Details
+              </h4>
+              <FormGrid columns={3} gap={6}>
+                <TextField
+                  name="co_applicant_name"
+                  label="Co-Applicant Name"
+                  value={formData.co_applicant_name}
+                  onChange={(val) => updateField('co_applicant_name', capitalizeWords(val))}
+                  required
+                  placeholder="Enter co-applicant full name"
+                  error={errors.co_applicant_name}
+                />
+
+                <TextField
+                  name="co_relation_with_applicant"
+                  label="Relation with Applicant"
+                  value={formData.co_relation_with_applicant}
+                  onChange={(val) => updateField('co_relation_with_applicant', capitalizeWords(val))}
+                  required
+                  placeholder="e.g. Spouse, Father, Partner"
+                  error={errors.co_relation_with_applicant}
+                />
+
+                <PhoneField
+                  name="co_phone_number"
+                  label="Phone Number"
+                  value={formData.co_phone_number}
+                  onChange={(val) => updateField('co_phone_number', val)}
+                  required
+                  placeholder="Enter 10-digit mobile number"
+                  error={errors.co_phone_number}
+                />
+
+                <AadhaarField
+                  name="co_aadhaar_number"
+                  label="Aadhaar Number"
+                  value={formData.co_aadhaar_number}
+                  onChange={(val) => updateField('co_aadhaar_number', val)}
+                  required
+                  placeholder="1234 5678 9012"
+                  error={errors.co_aadhaar_number}
+                />
+
+                <NumberField
+                  name="co_age"
+                  label="Age"
+                  value={formData.co_age}
+                  onChange={(val) => updateField('co_age', val)}
+                  required
+                  min={18}
+                  max={60}
+                  maxLength={2}
+                  placeholder="e.g. 35"
+                  error={errors.co_age}
+                />
+
+                <SelectField
+                  name="co_gender"
+                  label="Gender"
+                  value={formData.co_gender}
+                  onChange={(val) => updateField('co_gender', val)}
+                  required
+                  placeholder="Select gender"
+                  options={[
+                    { label: 'Male', value: 'Male' },
+                    { label: 'Female', value: 'Female' },
+                    { label: 'Other', value: 'Other' }
+                  ]}
+                  error={errors.co_gender}
+                />
+
+                <RadioGroup
+                  name="co_marital_status"
+                  label="Marital Status"
+                  value={formData.co_marital_status}
+                  onChange={(val) => updateField('co_marital_status', val)}
+                  required
+                  direction="horizontal"
+                  options={[
+                    { label: 'Yes', value: 'Yes' },
+                    { label: 'No', value: 'No' }
+                  ]}
+                  error={errors.co_marital_status}
+                />
+
+                {showCoParents && (
+                  <>
+                    <TextField
+                      name="co_father_name"
+                      label="Father Name"
+                      value={formData.co_father_name}
+                      onChange={(val) => updateField('co_father_name', capitalizeWords(val))}
+                      required
+                      placeholder="Enter father full name"
+                      error={errors.co_father_name}
+                    />
+
+                    <TextField
+                      name="co_mother_name"
+                      label="Mother Name"
+                      value={formData.co_mother_name}
+                      onChange={(val) => updateField('co_mother_name', capitalizeWords(val))}
+                      required
+                      placeholder="Enter mother full name"
+                      error={errors.co_mother_name}
+                    />
+                  </>
+                )}
+
+                {showCoHusband && (
+                  <TextField
+                    name="co_husband_name"
+                    label="Husband Name"
+                    value={formData.co_husband_name}
+                    onChange={(val) => updateField('co_husband_name', capitalizeWords(val))}
+                    required
+                    placeholder="Enter husband full name"
+                    error={errors.co_husband_name}
+                  />
+                )}
+
+                <RadioGroup
+                  name="co_own_house"
+                  label="Own House"
+                  value={formData.co_own_house}
+                  onChange={(val) => updateField('co_own_house', val)}
+                  required
+                  direction="horizontal"
+                  options={[
+                    { label: 'Yes', value: 'Yes' },
+                    { label: 'No', value: 'No' }
+                  ]}
+                  error={errors.co_own_house}
+                />
+              </FormGrid>
+            </div>
+
+            {/* Co-Applicant Current Address */}
+            <div className="p-5 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
+              <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wider">
+                Co-Applicant Current Address
+              </h4>
+              <FormGrid columns={3} gap={6}>
+                <div className="col-span-3">
+                  <TextField
+                    name="co_current_address"
+                    label="Current Address"
+                    value={formData.co_current_address}
+                    onChange={(val) => updateField('co_current_address', capitalizeText(val))}
+                    required
+                    placeholder="Enter co-applicant current address"
+                    error={errors.co_current_address}
+                  />
+                </div>
+
+                <TextField
+                  name="co_current_street"
+                  label="Street"
+                  value={formData.co_current_street}
+                  onChange={(val) => updateField('co_current_street', capitalizeWords(val))}
+                  required
+                  placeholder="Enter street (only text)"
+                  error={errors.co_current_street}
+                />
+
+                <TextField
+                  name="co_current_city"
+                  label="City"
+                  value={formData.co_current_city}
+                  onChange={(val) => updateField('co_current_city', capitalizeWords(val))}
+                  required
+                  placeholder="Enter city (only text)"
+                  error={errors.co_current_city}
+                />
+
+                <TextField
+                  name="co_current_state"
+                  label="State"
+                  value={formData.co_current_state}
+                  onChange={(val) => updateField('co_current_state', capitalizeWords(val))}
+                  required
+                  placeholder="Enter state (only text)"
+                  error={errors.co_current_state}
+                />
+
+                <TextField
+                  name="co_current_postal_code"
+                  label="Postal Code"
+                  value={formData.co_current_postal_code}
+                  onChange={(val) => updateField('co_current_postal_code', val.replace(/\D/g, '').slice(0, 6))}
+                  required
+                  placeholder="Enter 6-digit postal code"
+                  error={errors.co_current_postal_code}
+                />
+              </FormGrid>
+            </div>
+
+            {/* Co-Applicant Permanent Address */}
+            <div className="p-5 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wider">
+                  Co-Applicant Permanent Address
+                </h4>
+                <button
+                  type="button"
+                  onClick={() => {
+                    updateField('co_permanent_address', capitalizeText(formData.co_current_address || ''));
+                    updateField('co_permanent_street', capitalizeWords(formData.co_current_street || ''));
+                    updateField('co_permanent_city', capitalizeWords(formData.co_current_city || ''));
+                    updateField('co_permanent_state', capitalizeWords(formData.co_current_state || ''));
+                    updateField('co_permanent_postal_code', formData.co_current_postal_code || '');
+                    toast.success('Copied Co-Applicant Current Address to Permanent Address');
+                  }}
+                  className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer"
+                >
+                  Same as Co-Applicant Current Address
+                </button>
+              </div>
+
+              <FormGrid columns={3} gap={6}>
+                <div className="col-span-3">
+                  <TextField
+                    name="co_permanent_address"
+                    label="Permanent Address"
+                    value={formData.co_permanent_address}
+                    onChange={(val) => updateField('co_permanent_address', capitalizeText(val))}
+                    required
+                    placeholder="Enter co-applicant permanent address"
+                    error={errors.co_permanent_address}
+                  />
+                </div>
+
+                <TextField
+                  name="co_permanent_street"
+                  label="Street"
+                  value={formData.co_permanent_street}
+                  onChange={(val) => updateField('co_permanent_street', capitalizeWords(val))}
+                  required
+                  placeholder="Enter street (only text)"
+                  error={errors.co_permanent_street}
+                />
+
+                <TextField
+                  name="co_permanent_city"
+                  label="City"
+                  value={formData.co_permanent_city}
+                  onChange={(val) => updateField('co_permanent_city', capitalizeWords(val))}
+                  required
+                  placeholder="Enter city (only text)"
+                  error={errors.co_permanent_city}
+                />
+
+                <TextField
+                  name="co_permanent_state"
+                  label="State"
+                  value={formData.co_permanent_state}
+                  onChange={(val) => updateField('co_permanent_state', capitalizeWords(val))}
+                  required
+                  placeholder="Enter state (only text)"
+                  error={errors.co_permanent_state}
+                />
+
+                <TextField
+                  name="co_permanent_postal_code"
+                  label="Postal Code"
+                  value={formData.co_permanent_postal_code}
+                  onChange={(val) => updateField('co_permanent_postal_code', val.replace(/\D/g, '').slice(0, 6))}
+                  required
+                  placeholder="Enter 6-digit postal code"
+                  error={errors.co_permanent_postal_code}
+                />
+              </FormGrid>
+            </div>
+
+            {/* Co-Applicant Employment Details */}
+            <div className="p-5 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
+              <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wider">
+                Co-Applicant Employment Details
+              </h4>
+              <div className="mb-4">
+                <RadioGroup
+                  name="co_employment"
+                  label="Employment"
+                  value={formData.co_employment}
+                  onChange={(val) => updateField('co_employment', val)}
+                  required
+                  direction="horizontal"
+                  options={[
+                    { label: 'Job', value: 'Job' },
+                    { label: 'Business', value: 'Business' }
+                  ]}
+                  error={errors.co_employment}
+                />
+              </div>
+
+              {formData.co_employment === 'Job' && (
+                <FormGrid columns={3} gap={6}>
+                  <TextField
+                    name="co_job_name"
+                    label="Job Name"
+                    value={formData.co_job_name}
+                    onChange={(val) => updateField('co_job_name', capitalizeWords(val))}
+                    required
+                    placeholder="Enter job / employer name (only text)"
+                    error={errors.co_job_name}
+                  />
+
+                  <TextField
+                    name="co_job_address"
+                    label="Job Address"
+                    value={formData.co_job_address}
+                    onChange={(val) => updateField('co_job_address', capitalizeText(val))}
+                    required
+                    placeholder="Enter workplace address"
+                    error={errors.co_job_address}
+                  />
+
+                  <NumberField
+                    name="co_job_income_per_month"
+                    label="Job Income Per Month"
+                    value={formData.co_job_income_per_month}
+                    onChange={(val) => updateField('co_job_income_per_month', val)}
+                    required
+                    placeholder="e.g. 45000"
+                    error={errors.co_job_income_per_month}
+                  />
+                </FormGrid>
+              )}
+
+              {formData.co_employment === 'Business' && (
+                <FormGrid columns={3} gap={6}>
+                  <TextField
+                    name="co_business_name"
+                    label="Business Name"
+                    value={formData.co_business_name}
+                    onChange={(val) => updateField('co_business_name', capitalizeWords(val))}
+                    required
+                    placeholder="Enter business name (only text)"
+                    error={errors.co_business_name}
+                  />
+
+                  <TextField
+                    name="co_business_address"
+                    label="Business Address"
+                    value={formData.co_business_address}
+                    onChange={(val) => updateField('co_business_address', capitalizeText(val))}
+                    required
+                    placeholder="Enter business address"
+                    error={errors.co_business_address}
+                  />
+
+                  <NumberField
+                    name="co_business_income_per_month"
+                    label="Business Income Per Month"
+                    value={formData.co_business_income_per_month}
+                    onChange={(val) => updateField('co_business_income_per_month', val)}
+                    required
+                    placeholder="e.g. 75000"
+                    error={errors.co_business_income_per_month}
+                  />
+                </FormGrid>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Current Address Section */}
