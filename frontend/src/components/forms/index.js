@@ -61,6 +61,7 @@ export { useFormState } from './hooks/useFormState';
 // Pre-composed Business Loan Form & Paper View
 export { BusinessLoanForm } from './BusinessLoanForm';
 export { BusinessLoanPaperView } from './BusinessLoanPaperView';
+export { BusinessLoanMobileDetailView } from './BusinessLoanMobileDetailView';
 
 // Validation Utilities
 export { validators } from './validation/validators';

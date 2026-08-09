@@ -3,6 +3,7 @@ import { ArrowLeft, Briefcase } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { BusinessLoanForm } from '../components/forms';
+import { BusinessLoanMobileDetailView } from '../components/forms/BusinessLoanMobileDetailView';
 
 const OriginationMobileBusinessLoan = () => {
   const navigate = useNavigate();
@@ -10,6 +11,21 @@ const OriginationMobileBusinessLoan = () => {
   const isReadOnly = Boolean(location.state?.readOnly || location.state?.isReadOnly);
   const fromPath = location.state?.from || '/employee/loans/origination/applications';
 
+  // ── Read-Only Mode: Use the spacious mobile detail view ──
+  if (isReadOnly) {
+    const application = location.state?.application || {};
+    const formData = location.state?.form_data || application.form_data || {};
+
+    return (
+      <BusinessLoanMobileDetailView
+        formData={formData}
+        application={application}
+        onBack={() => navigate(fromPath)}
+      />
+    );
+  }
+
+  // ── Edit Mode: Keep the original form layout ──
   return (
     <div className="w-full pb-8">
       {/* Animated Hero Header - Matched from Member Page */}
@@ -57,7 +73,7 @@ const OriginationMobileBusinessLoan = () => {
           <div className="text-center">
             <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">Origination Module</p>
             <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-1.5 justify-center drop-shadow-sm">
-              <Briefcase className="w-4 h-4 text-blue-300" /> {isReadOnly ? 'Business Loan Details' : 'Business Loan Form'}
+              <Briefcase className="w-4 h-4 text-blue-300" /> Business Loan Form
             </h2>
           </div>
           <div className="w-10 h-10" />
