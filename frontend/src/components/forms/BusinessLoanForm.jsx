@@ -796,10 +796,10 @@ export function BusinessLoanForm() {
         </div>
 
         {formData.has_co_applicant === 'Yes' && (
-          <div className="space-y-6">
+          <div className="space-y-6 pt-4 border-t border-slate-200">
             {/* Co-Applicant Personal Details */}
-            <div className="p-5 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
-              <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wider">
+            <div>
+              <h4 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
                 Co-Applicant Personal Details
               </h4>
               <FormGrid columns={3} gap={6}>
@@ -938,8 +938,8 @@ export function BusinessLoanForm() {
             </div>
 
             {/* Co-Applicant Current Address */}
-            <div className="p-5 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
-              <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wider">
+            <div className="pt-6 border-t border-slate-200">
+              <h4 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
                 Co-Applicant Current Address
               </h4>
               <FormGrid columns={3} gap={6}>
@@ -998,9 +998,9 @@ export function BusinessLoanForm() {
             </div>
 
             {/* Co-Applicant Permanent Address */}
-            <div className="p-5 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
-              <div className="flex items-center justify-between">
-                <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wider">
+            <div className="pt-6 border-t border-slate-200">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="text-base font-bold text-slate-800 flex items-center gap-2">
                   Co-Applicant Permanent Address
                 </h4>
                 <button
@@ -1075,8 +1075,8 @@ export function BusinessLoanForm() {
             </div>
 
             {/* Co-Applicant Employment Details */}
-            <div className="p-5 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
-              <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wider">
+            <div className="pt-6 border-t border-slate-200">
+              <h4 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
                 Co-Applicant Employment Details
               </h4>
               <div className="mb-4">
