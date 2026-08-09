@@ -37,14 +37,14 @@ export default function BusinessLoanPage() {
               <button
                 type="button"
                 onClick={() => navigate(fromPath)}
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
+                className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-white text-slate-700 hover:bg-slate-50 border border-slate-300 h-10 px-4 transition-colors gap-2 shadow-xs cursor-pointer"
               >
                 <ArrowLeft className="w-4 h-4" /> Back to {fromPath.includes('members') ? 'Members' : 'Applications'}
               </button>
             </div>
 
             {/* Main Full Width Form Card */}
-            <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+            <div className="rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden">
               <div className="p-6 border-b border-slate-100 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Briefcase className="h-5 w-5 text-slate-500" />
