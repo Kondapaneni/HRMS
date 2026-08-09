@@ -2,6 +2,7 @@ import React from 'react';
 
 /**
  * Standardized wrapper for field label, required indicator, help text, error message, and layout column span.
+ * Matches exact design tokens from AddEmployeeModal.
  */
 export const FieldContainer = React.memo(({
   id,
@@ -36,7 +37,7 @@ export const FieldContainer = React.memo(({
       {label && (
         <label 
           htmlFor={id} 
-          className={`text-xs font-semibold text-slate-700 flex items-center gap-1 select-none ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
+          className={`block text-xs font-medium text-slate-600 mb-1 flex items-center gap-1 select-none ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
         >
           <span>{label}</span>
           {required && <span className="text-red-500 font-bold" title="Required field">*</span>}

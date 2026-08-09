@@ -72,18 +72,18 @@ export const NumberField = React.memo(({
           readOnly={readOnly}
           placeholder={placeholder}
           maxLength={maxLength}
-          className={`w-full px-3 py-2 text-sm text-slate-800 bg-white border rounded-md transition-colors outline-none focus:outline-none ${
+          className={`w-full px-3 py-2 border rounded-md text-sm outline-none focus:outline-none transition-all ${
             prefix ? 'pl-8' : ''
           } ${
             suffix ? 'pr-8' : ''
           } ${
             error 
-              ? 'border-red-400 focus:ring-2 focus:ring-red-500 focus:border-red-500' 
-              : 'border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+              ? 'border-red-400 focus:ring-2 focus:ring-red-100 focus:border-red-400' 
+              : 'border-slate-200 focus:ring-2 focus:ring-blue-100 focus:border-blue-400'
           } ${
-            disabled ? 'bg-slate-50 text-slate-400 cursor-not-allowed border-slate-200' : ''
+            disabled ? 'bg-slate-100 text-slate-500 cursor-not-allowed border-slate-200' : ''
           } ${
-            readOnly ? 'bg-slate-50 text-slate-600 font-medium' : ''
+            readOnly ? 'bg-slate-100 text-slate-500 cursor-not-allowed border-slate-200' : 'bg-white text-slate-800'
           }`}
         />
 

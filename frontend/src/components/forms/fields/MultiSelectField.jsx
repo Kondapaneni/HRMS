@@ -87,14 +87,14 @@ export const MultiSelectField = React.memo(({
         <div
           tabIndex={disabled || readOnly ? -1 : 0}
           onClick={() => !disabled && !readOnly && setIsOpen(!isOpen)}
-          className={`w-full min-h-[38px] px-3 py-1.5 text-sm bg-white border rounded-md transition-colors flex items-center justify-between gap-2 cursor-pointer outline-none focus:outline-none ${
+          className={`w-full min-h-[38px] px-3 py-1.5 text-sm bg-white border rounded-md transition-all flex items-center justify-between gap-2 cursor-pointer outline-none focus:outline-none ${
             error
-              ? 'border-red-400 focus:ring-2 focus:ring-red-500 focus:border-red-500'
-              : 'border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+              ? 'border-red-400 focus:ring-2 focus:ring-red-100 focus:border-red-400'
+              : 'border-slate-200 focus:ring-2 focus:ring-blue-100 focus:border-blue-400'
           } ${
-            disabled ? 'bg-slate-50 text-slate-400 cursor-not-allowed border-slate-200' : ''
+            disabled ? 'bg-slate-100 text-slate-500 cursor-not-allowed border-slate-200' : ''
           } ${
-            readOnly ? 'bg-slate-50 text-slate-600 pointer-events-none' : ''
+            readOnly ? 'bg-slate-100 text-slate-500 pointer-events-none border-slate-200' : ''
           }`}
         >
           <div className="flex flex-wrap items-center gap-1 flex-1">

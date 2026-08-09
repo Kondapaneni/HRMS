@@ -56,14 +56,14 @@ export const SelectField = React.memo(({
           onBlur={onBlur}
           disabled={disabled || loading}
           aria-readonly={readOnly}
-          className={`w-full pl-3 pr-9 py-2 text-sm text-slate-800 bg-white border rounded-md transition-colors outline-none focus:outline-none appearance-none cursor-pointer ${
+          className={`w-full pl-3 pr-9 py-2 border rounded-md text-sm outline-none focus:outline-none transition-all appearance-none cursor-pointer ${
             error 
-              ? 'border-red-400 focus:ring-2 focus:ring-red-500 focus:border-red-500' 
-              : 'border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+              ? 'border-red-400 focus:ring-2 focus:ring-red-100 focus:border-red-400' 
+              : 'border-slate-200 focus:ring-2 focus:ring-blue-100 focus:border-blue-400'
           } ${
-            disabled || loading ? 'bg-slate-50 text-slate-400 cursor-not-allowed border-slate-200' : ''
+            disabled || loading ? 'bg-slate-100 text-slate-500 cursor-not-allowed border-slate-200' : ''
           } ${
-            readOnly ? 'bg-slate-50 text-slate-600 pointer-events-none' : ''
+            readOnly ? 'bg-slate-100 text-slate-500 pointer-events-none' : 'bg-white text-slate-800'
           }`}
         >
           {placeholder && (
