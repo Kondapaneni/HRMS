@@ -47,7 +47,7 @@ const MemberDetailsSidebar = ({ isOpen, onClose, member }) => {
               {/* Member Profile Info */}
               <div className="flex items-start gap-4">
                 <div className="w-14 h-14 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xl font-bold shrink-0">
-                  {member.name.charAt(0)}
+                  {member.name ? member.name.charAt(0) : 'M'}
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-slate-900">{member.name}</h3>
@@ -77,13 +77,9 @@ const MemberDetailsSidebar = ({ isOpen, onClose, member }) => {
                         </span>
                       </div>
                       
-                      {/* Fill Loan Form Link */}
+                      {/* Fill Loan Form Link passing Name & Phone to form */}
                       <Link 
-                        to={
-                          loan.loan_type?.toLowerCase().includes('business') 
-                            ? '/employee/loans/business-loan' 
-                            : '/admin/business-loan'
-                        }
+                        to={`/employee/loans/business-loan?name=${encodeURIComponent(member.name || '')}&phone=${encodeURIComponent(member.phone || '')}`}
                         className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline transition-all"
                       >
                         Fill Loan Form <ArrowRight size={14} />
@@ -92,8 +88,14 @@ const MemberDetailsSidebar = ({ isOpen, onClose, member }) => {
                   ))}
                   
                   {(!member.loans || member.loans.length === 0) && (
-                    <div className="text-center p-4 text-slate-500 text-sm bg-slate-50 rounded-lg">
-                      No loan history available.
+                    <div className="text-center p-4 text-slate-500 text-sm bg-slate-50 rounded-lg space-y-3">
+                      <p>No loan history available.</p>
+                      <Link 
+                        to={`/employee/loans/business-loan?name=${encodeURIComponent(member.name || '')}&phone=${encodeURIComponent(member.phone || '')}`}
+                        className="inline-flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+                      >
+                        Fill Loan Form <ArrowRight size={14} />
+                      </Link>
                     </div>
                   )}
                 </div>

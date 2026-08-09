@@ -1,81 +1,48 @@
 import React from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { ChevronLeft, MapPin, Calendar, CheckCircle2, Phone, Briefcase, ArrowRight } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { ArrowLeft, Phone, MapPin, Calendar, Briefcase, CheckCircle2, ArrowRight } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
 import { format } from 'date-fns';
 
-const OriginationMobileMemberDetails = () => {
+const OriginationMobileMemberDetails = ({ member }) => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const member = location.state?.member;
 
-  // If no member in state, bounce back
-  if (!member) {
-    navigate('/employee/loans/origination/members', { replace: true });
-    return null;
-  }
+  if (!member) return null;
 
   return (
     <div className="w-full pb-8">
       {/* Header */}
-      <div className="relative pt-14 pb-16 px-4 overflow-hidden rounded-b-[40px] shadow-md bg-slate-900">
-        {/* Animated Background Blobs */}
-        <motion.div
-          animate={{
-            scale: [1, 1.2, 1],
-            x: [0, 50, 0],
-            y: [0, 30, 0],
-          }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-20 -left-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.4, 1],
-            x: [0, -40, 0],
-            y: [0, 50, 0],
-          }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute -top-10 -right-10 w-64 h-64 bg-indigo-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.3, 1],
-            x: [0, 30, 0],
-            y: [0, -40, 0],
-          }}
-          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-0 left-20 w-80 h-80 bg-emerald-500 rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
-        />
-        
-        {/* Subtle Glass Overlay */}
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
-
-        <button
-          onClick={() => navigate('/employee/loans/origination/members')}
-          type="button"
-          className="absolute top-4 left-4 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full backdrop-blur-sm transition-colors z-20"
-        >
-          <ChevronLeft size={20} />
-        </button>
-
-        <div className="absolute top-5 right-4 z-20">
-          <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
-            <CheckCircle2 size={14} /> Member
-          </span>
-        </div>
-
-        <div className="relative z-10 flex flex-col items-center mt-2">
-          <h1 className="text-2xl font-bold text-white text-center px-4 leading-snug">{member.name}</h1>
+      <div className="relative pt-12 pb-24 px-6 overflow-hidden rounded-b-[40px] shadow-md bg-slate-900">
+        <div className="relative z-10 flex items-center justify-between px-2">
+          <button 
+            type="button" 
+            onClick={() => navigate('/employee/loans/origination/members')} 
+            className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center backdrop-blur-md transition-transform active:scale-95 border border-white/20"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div className="text-center">
+            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">Origination Module</p>
+            <h2 className="text-xl font-bold text-white tracking-tight drop-shadow-sm">Member Profile</h2>
+          </div>
+          <div className="w-10 h-10" />
         </div>
       </div>
 
-      {/* Content */}
-      <div className="px-4 -mt-8 relative z-20">
-        <div className="bg-white rounded-3xl p-6 shadow-xl border border-slate-100 space-y-6">
-          
+      {/* Profile Card */}
+      <div className="space-y-6 relative z-20 -mt-12 mx-4">
+        <div className="bg-white p-6 rounded-[28px] shadow-xl border border-slate-100 space-y-6">
+          <div className="flex items-center gap-4 border-b border-slate-100 pb-5">
+            <div className="w-16 h-16 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-2xl font-bold shrink-0 shadow-inner">
+              {member.name ? member.name.charAt(0) : 'M'}
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-slate-900">{member.name}</h2>
+              <p className="text-xs font-semibold text-slate-400 mt-0.5 uppercase tracking-wider">Active Member</p>
+            </div>
+          </div>
+
           <div className="space-y-1">
-            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Contact Phone</h3>
+            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Phone Number</h3>
             <div className="flex items-center gap-3 text-slate-700">
               <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
                 <Phone size={18} className="text-blue-600" />
@@ -94,15 +61,17 @@ const OriginationMobileMemberDetails = () => {
             </div>
           </div>
 
-          <div className="space-y-1">
-            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Joined On</h3>
-            <div className="flex items-center gap-3 text-slate-700">
-              <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
-                <Calendar size={18} className="text-emerald-600" />
+          {member.created_at && (
+            <div className="space-y-1">
+              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Joined On</h3>
+              <div className="flex items-center gap-3 text-slate-700">
+                <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
+                  <Calendar size={18} className="text-emerald-600" />
+                </div>
+                <span className="font-medium">{format(new Date(member.created_at), 'MMMM d, yyyy - h:mm a')}</span>
               </div>
-              <span className="font-medium">{format(new Date(member.created_at), 'MMMM d, yyyy - h:mm a')}</span>
             </div>
-          </div>
+          )}
 
         </div>
       </div>
@@ -127,13 +96,9 @@ const OriginationMobileMemberDetails = () => {
                   </span>
                 </div>
                 
-                {/* Fill Loan Form Link */}
+                {/* Fill Loan Form Link passing Name & Phone */}
                 <Link 
-                  to={
-                    loan.loan_type?.toLowerCase().includes('business') 
-                      ? '/employee/loans/business-loan' 
-                      : '/admin/business-loan'
-                  }
+                  to={`/employee/loans/business-loan?name=${encodeURIComponent(member.name || '')}&phone=${encodeURIComponent(member.phone || '')}`}
                   className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 transition-all"
                 >
                   Fill Loan Form <ArrowRight size={14} />
@@ -142,14 +107,19 @@ const OriginationMobileMemberDetails = () => {
             ))}
             
             {(!member.loans || member.loans.length === 0) && (
-              <div className="text-center p-4 text-slate-500 text-sm bg-slate-50 rounded-lg border border-slate-100">
-                No loan history available.
+              <div className="text-center p-4 text-slate-500 text-sm bg-slate-50 rounded-lg border border-slate-100 space-y-2">
+                <p>No loan history available.</p>
+                <Link 
+                  to={`/employee/loans/business-loan?name=${encodeURIComponent(member.name || '')}&phone=${encodeURIComponent(member.phone || '')}`}
+                  className="inline-flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-700"
+                >
+                  Fill Loan Form <ArrowRight size={14} />
+                </Link>
               </div>
             )}
           </div>
         </div>
       </div>
-
     </div>
   );
 };

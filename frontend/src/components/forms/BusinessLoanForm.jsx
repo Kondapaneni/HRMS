@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams, useLocation } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 import {
   FormGrid,
   TextField,
@@ -13,13 +15,67 @@ import { Send, Save, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export function BusinessLoanForm() {
+  const { profile } = useAuth();
+  const [searchParams] = useSearchParams();
+  const location = useLocation();
+
+  // Extract default values from URL parameters, navigation state, or logged-in database profile
+  const initialName = 
+    searchParams.get('name') || 
+    searchParams.get('applicant_name') || 
+    location.state?.name || 
+    location.state?.applicant_name || 
+    profile?.full_name || 
+    profile?.name || 
+    '';
+
+  const initialPhone = 
+    searchParams.get('phone') || 
+    searchParams.get('phone_number') || 
+    location.state?.phone || 
+    location.state?.phone_number || 
+    profile?.phone || 
+    profile?.phone_number || 
+    profile?.mobile || 
+    '';
+
   const { formData, errors, updateField, setFormErrors, resetForm } = useFormState({
-    applicant_name: '',
-    phone_number: '',
+    applicant_name: capitalizeWords(initialName),
+    phone_number: initialPhone ? String(initialPhone).replace(/\D/g, '').slice(0, 10) : '',
     age: '',
     gender: ''
   });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Automatically pre-populate form fields when profile data or URL params load from DB
+  useEffect(() => {
+    const nameFromSource = 
+      searchParams.get('name') || 
+      searchParams.get('applicant_name') || 
+      location.state?.name || 
+      location.state?.applicant_name || 
+      profile?.full_name || 
+      profile?.name || 
+      '';
+
+    const phoneFromSource = 
+      searchParams.get('phone') || 
+      searchParams.get('phone_number') || 
+      location.state?.phone || 
+      location.state?.phone_number || 
+      profile?.phone || 
+      profile?.phone_number || 
+      profile?.mobile || 
+      '';
+
+    if (nameFromSource && !formData.applicant_name) {
+      updateField('applicant_name', capitalizeWords(nameFromSource));
+    }
+    if (phoneFromSource && !formData.phone_number) {
+      updateField('phone_number', String(phoneFromSource).replace(/\D/g, '').slice(0, 10));
+    }
+  }, [profile, searchParams, location.state]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
