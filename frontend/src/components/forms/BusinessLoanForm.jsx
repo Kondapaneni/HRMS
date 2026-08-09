@@ -15,7 +15,7 @@ import { validateBusinessLoanForm, capitalizeWords, capitalizeText } from '../..
 import { submitLoanApplication, getLoanApplications } from '../../services/loanServices';
 import { Send, Save, Loader2, Download, CheckCircle2, Lock, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { BusinessLoanPaperView } from './BusinessLoanPaperView';
+import { BusinessLoanDetailView } from './BusinessLoanDetailView';
 
 export function BusinessLoanForm() {
   const { profile } = useAuth();
@@ -876,7 +876,7 @@ export function BusinessLoanForm() {
 
   if (isReadOnly) {
     return (
-      <BusinessLoanPaperView
+      <BusinessLoanDetailView
         formData={formData}
         application={location.state?.application}
         onBack={() => navigate(location.state?.from || '/employee/loans/origination/applications')}

@@ -59,7 +59,7 @@ const OriginationMobileApplicationsList = () => {
   };
 
   return (
-    <div className="w-full pb-32">
+    <div className="w-full pb-5">
       {/* Animated Hero Header */}
       <section className="relative px-6 pt-12 pb-24 rounded-b-[40px] overflow-hidden bg-slate-900 shadow-md">
         {/* Animated Background Blobs */}

@@ -2,8 +2,7 @@ import React from 'react';
 import { ArrowLeft, Briefcase } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { BusinessLoanForm } from '../components/forms';
-import { BusinessLoanMobileDetailView } from '../components/forms/BusinessLoanMobileDetailView';
+import { BusinessLoanForm, BusinessLoanDetailView } from '../components/forms';
 
 const OriginationMobileBusinessLoan = () => {
   const navigate = useNavigate();
@@ -17,7 +16,7 @@ const OriginationMobileBusinessLoan = () => {
     const formData = location.state?.form_data || application.form_data || {};
 
     return (
-      <BusinessLoanMobileDetailView
+      <BusinessLoanDetailView
         formData={formData}
         application={application}
         onBack={() => navigate(fromPath)}

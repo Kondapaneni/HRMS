@@ -4,7 +4,7 @@ import { BusinessLoanForm } from '../components/forms';
 import { Briefcase, ArrowLeft } from 'lucide-react';
 import OriginationMobileBusinessLoan from './OriginationMobileBusinessLoan';
 
-export default function BusinessLoanPage() {
+export default function OriginationBusinessLoan() {
   const location = useLocation();
   const navigate = useNavigate();
   const isReadOnly = Boolean(location.state?.readOnly || location.state?.isReadOnly);
