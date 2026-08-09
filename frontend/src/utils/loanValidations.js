@@ -29,6 +29,14 @@ export const capitalizeWords = (text) => {
 };
 
 /**
+ * Capitalizes the first letter of every word without stripping numbers or special characters.
+ */
+export const capitalizeText = (text) => {
+  if (!text) return '';
+  return String(text).replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
+/**
  * Validate Required Field
  */
 export const validateRequired = (value, fieldName = 'This field') => {

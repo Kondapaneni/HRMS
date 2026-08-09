@@ -11,7 +11,7 @@ import {
   AadhaarField,
   useFormState
 } from './index';
-import { validateBusinessLoanForm, capitalizeWords } from '../../utils/loanValidations';
+import { validateBusinessLoanForm, capitalizeWords, capitalizeText } from '../../utils/loanValidations';
 import { submitLoanApplication, getLoanApplications } from '../../services/loanServices';
 import { Send, Save, Loader2, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -102,15 +102,15 @@ export function BusinessLoanForm() {
           if (savedData.mother_name) updateField('mother_name', capitalizeWords(savedData.mother_name));
           if (savedData.husband_name) updateField('husband_name', capitalizeWords(savedData.husband_name));
           if (savedData.aadhaar_number) updateField('aadhaar_number', String(savedData.aadhaar_number).replace(/\D/g, '').slice(0, 12));
-          if (savedData.current_address) updateField('current_address', savedData.current_address);
-          if (savedData.current_street) updateField('current_street', String(savedData.current_street).replace(/[^a-zA-Z\s]/g, ''));
-          if (savedData.current_city) updateField('current_city', String(savedData.current_city).replace(/[^a-zA-Z\s]/g, ''));
-          if (savedData.current_state) updateField('current_state', String(savedData.current_state).replace(/[^a-zA-Z\s]/g, ''));
+          if (savedData.current_address) updateField('current_address', capitalizeText(savedData.current_address));
+          if (savedData.current_street) updateField('current_street', capitalizeWords(savedData.current_street));
+          if (savedData.current_city) updateField('current_city', capitalizeWords(savedData.current_city));
+          if (savedData.current_state) updateField('current_state', capitalizeWords(savedData.current_state));
           if (savedData.current_postal_code) updateField('current_postal_code', String(savedData.current_postal_code).replace(/\D/g, '').slice(0, 6));
-          if (savedData.permanent_address) updateField('permanent_address', savedData.permanent_address);
-          if (savedData.permanent_street) updateField('permanent_street', String(savedData.permanent_street).replace(/[^a-zA-Z\s]/g, ''));
-          if (savedData.permanent_city) updateField('permanent_city', String(savedData.permanent_city).replace(/[^a-zA-Z\s]/g, ''));
-          if (savedData.permanent_state) updateField('permanent_state', String(savedData.permanent_state).replace(/[^a-zA-Z\s]/g, ''));
+          if (savedData.permanent_address) updateField('permanent_address', capitalizeText(savedData.permanent_address));
+          if (savedData.permanent_street) updateField('permanent_street', capitalizeWords(savedData.permanent_street));
+          if (savedData.permanent_city) updateField('permanent_city', capitalizeWords(savedData.permanent_city));
+          if (savedData.permanent_state) updateField('permanent_state', capitalizeWords(savedData.permanent_state));
           if (savedData.permanent_postal_code) updateField('permanent_postal_code', String(savedData.permanent_postal_code).replace(/\D/g, '').slice(0, 6));
 
           if (showToast) {
@@ -367,7 +367,7 @@ export function BusinessLoanForm() {
               name="current_address"
               label="Current Address"
               value={formData.current_address}
-              onChange={(val) => updateField('current_address', val)}
+              onChange={(val) => updateField('current_address', capitalizeText(val))}
               required
               placeholder="Enter current address (accepts letters, numbers, special characters)"
               error={errors.current_address}
@@ -378,7 +378,7 @@ export function BusinessLoanForm() {
             name="current_street"
             label="Street"
             value={formData.current_street}
-            onChange={(val) => updateField('current_street', val.replace(/[^a-zA-Z\s]/g, ''))}
+            onChange={(val) => updateField('current_street', capitalizeWords(val))}
             required
             placeholder="Enter street name (only text)"
             error={errors.current_street}
@@ -388,7 +388,7 @@ export function BusinessLoanForm() {
             name="current_city"
             label="City"
             value={formData.current_city}
-            onChange={(val) => updateField('current_city', val.replace(/[^a-zA-Z\s]/g, ''))}
+            onChange={(val) => updateField('current_city', capitalizeWords(val))}
             required
             placeholder="Enter city (only text)"
             error={errors.current_city}
@@ -398,7 +398,7 @@ export function BusinessLoanForm() {
             name="current_state"
             label="State"
             value={formData.current_state}
-            onChange={(val) => updateField('current_state', val.replace(/[^a-zA-Z\s]/g, ''))}
+            onChange={(val) => updateField('current_state', capitalizeWords(val))}
             required
             placeholder="Enter state (only text)"
             error={errors.current_state}
@@ -425,10 +425,10 @@ export function BusinessLoanForm() {
           <button
             type="button"
             onClick={() => {
-              updateField('permanent_address', formData.current_address || '');
-              updateField('permanent_street', formData.current_street || '');
-              updateField('permanent_city', formData.current_city || '');
-              updateField('permanent_state', formData.current_state || '');
+              updateField('permanent_address', capitalizeText(formData.current_address || ''));
+              updateField('permanent_street', capitalizeWords(formData.current_street || ''));
+              updateField('permanent_city', capitalizeWords(formData.current_city || ''));
+              updateField('permanent_state', capitalizeWords(formData.current_state || ''));
               updateField('permanent_postal_code', formData.current_postal_code || '');
               toast.success('Copied Current Address to Permanent Address');
             }}
@@ -444,7 +444,7 @@ export function BusinessLoanForm() {
               name="permanent_address"
               label="Permanent Address"
               value={formData.permanent_address}
-              onChange={(val) => updateField('permanent_address', val)}
+              onChange={(val) => updateField('permanent_address', capitalizeText(val))}
               required
               placeholder="Enter permanent address (accepts letters, numbers, special characters)"
               error={errors.permanent_address}
@@ -455,7 +455,7 @@ export function BusinessLoanForm() {
             name="permanent_street"
             label="Street"
             value={formData.permanent_street}
-            onChange={(val) => updateField('permanent_street', val.replace(/[^a-zA-Z\s]/g, ''))}
+            onChange={(val) => updateField('permanent_street', capitalizeWords(val))}
             required
             placeholder="Enter street name (only text)"
             error={errors.permanent_street}
@@ -465,7 +465,7 @@ export function BusinessLoanForm() {
             name="permanent_city"
             label="City"
             value={formData.permanent_city}
-            onChange={(val) => updateField('permanent_city', val.replace(/[^a-zA-Z\s]/g, ''))}
+            onChange={(val) => updateField('permanent_city', capitalizeWords(val))}
             required
             placeholder="Enter city (only text)"
             error={errors.permanent_city}
@@ -475,7 +475,7 @@ export function BusinessLoanForm() {
             name="permanent_state"
             label="State"
             value={formData.permanent_state}
-            onChange={(val) => updateField('permanent_state', val.replace(/[^a-zA-Z\s]/g, ''))}
+            onChange={(val) => updateField('permanent_state', capitalizeWords(val))}
             required
             placeholder="Enter state (only text)"
             error={errors.permanent_state}
