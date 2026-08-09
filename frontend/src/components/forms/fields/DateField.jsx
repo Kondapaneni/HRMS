@@ -53,7 +53,7 @@ export const DateField = React.memo(({
           min={minDate}
           max={maxDate}
           placeholder={placeholder}
-          className={`w-full pl-3 pr-9 py-2 text-sm text-slate-800 bg-white border rounded-md transition-colors outline-none cursor-pointer ${
+          className={`w-full pl-3 pr-9 py-2 text-sm text-slate-800 bg-white border rounded-md transition-colors outline-none focus:outline-none cursor-pointer ${
             error 
               ? 'border-red-400 focus:ring-2 focus:ring-red-500 focus:border-red-500' 
               : 'border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
