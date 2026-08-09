@@ -49,7 +49,17 @@ export function BusinessLoanForm() {
     father_name: '',
     mother_name: '',
     husband_name: '',
-    aadhaar_number: ''
+    aadhaar_number: '',
+    current_address: '',
+    current_street: '',
+    current_city: '',
+    current_state: '',
+    current_postal_code: '',
+    permanent_address: '',
+    permanent_street: '',
+    permanent_city: '',
+    permanent_state: '',
+    permanent_postal_code: ''
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -92,6 +102,16 @@ export function BusinessLoanForm() {
           if (savedData.mother_name) updateField('mother_name', capitalizeWords(savedData.mother_name));
           if (savedData.husband_name) updateField('husband_name', capitalizeWords(savedData.husband_name));
           if (savedData.aadhaar_number) updateField('aadhaar_number', String(savedData.aadhaar_number).replace(/\D/g, '').slice(0, 12));
+          if (savedData.current_address) updateField('current_address', savedData.current_address);
+          if (savedData.current_street) updateField('current_street', String(savedData.current_street).replace(/[^a-zA-Z\s]/g, ''));
+          if (savedData.current_city) updateField('current_city', String(savedData.current_city).replace(/[^a-zA-Z\s]/g, ''));
+          if (savedData.current_state) updateField('current_state', String(savedData.current_state).replace(/[^a-zA-Z\s]/g, ''));
+          if (savedData.current_postal_code) updateField('current_postal_code', String(savedData.current_postal_code).replace(/\D/g, '').slice(0, 6));
+          if (savedData.permanent_address) updateField('permanent_address', savedData.permanent_address);
+          if (savedData.permanent_street) updateField('permanent_street', String(savedData.permanent_street).replace(/[^a-zA-Z\s]/g, ''));
+          if (savedData.permanent_city) updateField('permanent_city', String(savedData.permanent_city).replace(/[^a-zA-Z\s]/g, ''));
+          if (savedData.permanent_state) updateField('permanent_state', String(savedData.permanent_state).replace(/[^a-zA-Z\s]/g, ''));
+          if (savedData.permanent_postal_code) updateField('permanent_postal_code', String(savedData.permanent_postal_code).replace(/\D/g, '').slice(0, 6));
 
           if (showToast) {
             toast.success('Loaded saved draft for this lead!');
@@ -187,6 +207,16 @@ export function BusinessLoanForm() {
         mother_name: '',
         husband_name: '',
         aadhaar_number: '',
+        current_address: '',
+        current_street: '',
+        current_city: '',
+        current_state: '',
+        current_postal_code: '',
+        permanent_address: '',
+        permanent_street: '',
+        permanent_city: '',
+        permanent_state: '',
+        permanent_postal_code: '',
         lead_id: formData.lead_id
       });
     } catch (err) {
@@ -325,6 +355,143 @@ export function BusinessLoanForm() {
           error={errors.own_house}
         />
       </FormGrid>
+
+      {/* Current Address Section */}
+      <div className="pt-6 border-t border-slate-200">
+        <h3 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+          Current Address
+        </h3>
+        <FormGrid columns={3} gap={6}>
+          <div className="col-span-3">
+            <TextField
+              name="current_address"
+              label="Current Address"
+              value={formData.current_address}
+              onChange={(val) => updateField('current_address', val)}
+              required
+              placeholder="Enter current address (accepts letters, numbers, special characters)"
+              error={errors.current_address}
+            />
+          </div>
+
+          <TextField
+            name="current_street"
+            label="Street"
+            value={formData.current_street}
+            onChange={(val) => updateField('current_street', val.replace(/[^a-zA-Z\s]/g, ''))}
+            required
+            placeholder="Enter street name (only text)"
+            error={errors.current_street}
+          />
+
+          <TextField
+            name="current_city"
+            label="City"
+            value={formData.current_city}
+            onChange={(val) => updateField('current_city', val.replace(/[^a-zA-Z\s]/g, ''))}
+            required
+            placeholder="Enter city (only text)"
+            error={errors.current_city}
+          />
+
+          <TextField
+            name="current_state"
+            label="State"
+            value={formData.current_state}
+            onChange={(val) => updateField('current_state', val.replace(/[^a-zA-Z\s]/g, ''))}
+            required
+            placeholder="Enter state (only text)"
+            error={errors.current_state}
+          />
+
+          <TextField
+            name="current_postal_code"
+            label="Postal Code"
+            value={formData.current_postal_code}
+            onChange={(val) => updateField('current_postal_code', val.replace(/\D/g, '').slice(0, 6))}
+            required
+            placeholder="Enter 6-digit postal code"
+            error={errors.current_postal_code}
+          />
+        </FormGrid>
+      </div>
+
+      {/* Permanent Address Section */}
+      <div className="pt-6 border-t border-slate-200">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
+            Permanent Address
+          </h3>
+          <button
+            type="button"
+            onClick={() => {
+              updateField('permanent_address', formData.current_address || '');
+              updateField('permanent_street', formData.current_street || '');
+              updateField('permanent_city', formData.current_city || '');
+              updateField('permanent_state', formData.current_state || '');
+              updateField('permanent_postal_code', formData.current_postal_code || '');
+              toast.success('Copied Current Address to Permanent Address');
+            }}
+            className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer"
+          >
+            Same as Current Address
+          </button>
+        </div>
+
+        <FormGrid columns={3} gap={6}>
+          <div className="col-span-3">
+            <TextField
+              name="permanent_address"
+              label="Permanent Address"
+              value={formData.permanent_address}
+              onChange={(val) => updateField('permanent_address', val)}
+              required
+              placeholder="Enter permanent address (accepts letters, numbers, special characters)"
+              error={errors.permanent_address}
+            />
+          </div>
+
+          <TextField
+            name="permanent_street"
+            label="Street"
+            value={formData.permanent_street}
+            onChange={(val) => updateField('permanent_street', val.replace(/[^a-zA-Z\s]/g, ''))}
+            required
+            placeholder="Enter street name (only text)"
+            error={errors.permanent_street}
+          />
+
+          <TextField
+            name="permanent_city"
+            label="City"
+            value={formData.permanent_city}
+            onChange={(val) => updateField('permanent_city', val.replace(/[^a-zA-Z\s]/g, ''))}
+            required
+            placeholder="Enter city (only text)"
+            error={errors.permanent_city}
+          />
+
+          <TextField
+            name="permanent_state"
+            label="State"
+            value={formData.permanent_state}
+            onChange={(val) => updateField('permanent_state', val.replace(/[^a-zA-Z\s]/g, ''))}
+            required
+            placeholder="Enter state (only text)"
+            error={errors.permanent_state}
+          />
+
+          <TextField
+            name="permanent_postal_code"
+            label="Postal Code"
+            value={formData.permanent_postal_code}
+            onChange={(val) => updateField('permanent_postal_code', val.replace(/\D/g, '').slice(0, 6))}
+            required
+            placeholder="Enter 6-digit postal code"
+            error={errors.permanent_postal_code}
+          />
+        </FormGrid>
+      </div>
 
       <div className="pt-6 border-t border-slate-100 flex items-center justify-end gap-3">
         <button

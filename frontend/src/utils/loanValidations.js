@@ -295,6 +295,38 @@ export const validateBusinessLoanForm = (formData = {}) => {
     if (panErr) errors.pan_number = panErr;
   }
 
+  // Current Address Validation
+  const curAddrErr = validateAddressText(formData.current_address, 'Current Address');
+  if (curAddrErr) errors.current_address = curAddrErr;
+
+  const curStreetErr = validateTextOnlyField(formData.current_street, 'Current Street');
+  if (curStreetErr) errors.current_street = curStreetErr;
+
+  const curCityErr = validateTextOnlyField(formData.current_city, 'Current City');
+  if (curCityErr) errors.current_city = curCityErr;
+
+  const curStateErr = validateTextOnlyField(formData.current_state, 'Current State');
+  if (curStateErr) errors.current_state = curStateErr;
+
+  const curPinErr = validatePostalCode(formData.current_postal_code, 'Current Postal Code');
+  if (curPinErr) errors.current_postal_code = curPinErr;
+
+  // Permanent Address Validation
+  const permAddrErr = validateAddressText(formData.permanent_address, 'Permanent Address');
+  if (permAddrErr) errors.permanent_address = permAddrErr;
+
+  const permStreetErr = validateTextOnlyField(formData.permanent_street, 'Permanent Street');
+  if (permStreetErr) errors.permanent_street = permStreetErr;
+
+  const permCityErr = validateTextOnlyField(formData.permanent_city, 'Permanent City');
+  if (permCityErr) errors.permanent_city = permCityErr;
+
+  const permStateErr = validateTextOnlyField(formData.permanent_state, 'Permanent State');
+  if (permStateErr) errors.permanent_state = permStateErr;
+
+  const permPinErr = validatePostalCode(formData.permanent_postal_code, 'Permanent Postal Code');
+  if (permPinErr) errors.permanent_postal_code = permPinErr;
+
   return {
     isValid: Object.keys(errors).length === 0,
     errors
