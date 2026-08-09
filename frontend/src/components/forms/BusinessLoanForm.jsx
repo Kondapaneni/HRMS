@@ -81,6 +81,27 @@ export function BusinessLoanForm() {
   const showParents = !!(formData.gender && formData.marital_status);
   const showHusband = formData.gender === 'Female' && formData.marital_status === 'Yes';
 
+  // Automatically clear hidden conditional fields when their visibility toggles off
+  useEffect(() => {
+    if (!showParents) {
+      if (formData.father_name) updateField('father_name', '');
+      if (formData.mother_name) updateField('mother_name', '');
+    }
+    if (!showHusband) {
+      if (formData.husband_name) updateField('husband_name', '');
+    }
+    if (formData.employment !== 'Job') {
+      if (formData.job_name) updateField('job_name', '');
+      if (formData.job_address) updateField('job_address', '');
+      if (formData.job_income_per_month) updateField('job_income_per_month', '');
+    }
+    if (formData.employment !== 'Business') {
+      if (formData.business_name) updateField('business_name', '');
+      if (formData.business_address) updateField('business_address', '');
+      if (formData.business_income_per_month) updateField('business_income_per_month', '');
+    }
+  }, [formData.gender, formData.marital_status, formData.employment, showParents, showHusband]);
+
   // Load saved application / draft JSON data directly from database
   const loadSavedDataFromDB = async (showToast = false) => {
     try {
