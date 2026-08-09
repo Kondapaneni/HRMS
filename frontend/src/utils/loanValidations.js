@@ -119,6 +119,19 @@ export const validateMaritalStatus = (status) => {
 };
 
 /**
+ * Validate Own House Selection ('Yes' or 'No')
+ */
+export const validateOwnHouse = (status) => {
+  const reqErr = validateRequired(status, 'Own House');
+  if (reqErr) return reqErr;
+  const validOptions = ['Yes', 'No'];
+  if (!validOptions.includes(String(status))) {
+    return 'Please select Own House (Yes or No).';
+  }
+  return null;
+};
+
+/**
  * Validate Indian PAN (Permanent Account Number)
  */
 export const validatePAN = (value) => {
@@ -222,7 +235,7 @@ export const validateLoanAmount = (amount, min = 5000, max = 100000000) => {
 // ==========================================
 
 /**
- * Validate Business Loan Form Data with Conditional Father/Mother/Husband logic & Aadhaar validation
+ * Validate Business Loan Form Data
  */
 export const validateBusinessLoanForm = (formData = {}) => {
   const errors = {};
@@ -244,6 +257,9 @@ export const validateBusinessLoanForm = (formData = {}) => {
 
   const maritalErr = validateMaritalStatus(formData.marital_status);
   if (maritalErr) errors.marital_status = maritalErr;
+
+  const ownHouseErr = validateOwnHouse(formData.own_house);
+  if (ownHouseErr) errors.own_house = ownHouseErr;
 
   const aadhaarErr = validateAadhaar(formData.aadhaar_number);
   if (aadhaarErr) errors.aadhaar_number = aadhaarErr;

@@ -42,6 +42,7 @@ export function BusinessLoanForm() {
     age: '',
     gender: '',
     marital_status: '',
+    own_house: '',
     father_name: '',
     mother_name: '',
     husband_name: '',
@@ -75,6 +76,7 @@ export function BusinessLoanForm() {
           if (savedData.age) updateField('age', savedData.age);
           if (savedData.gender) updateField('gender', savedData.gender);
           if (savedData.marital_status) updateField('marital_status', savedData.marital_status);
+          if (savedData.own_house) updateField('own_house', savedData.own_house);
           if (savedData.father_name) updateField('father_name', capitalizeWords(savedData.father_name));
           if (savedData.mother_name) updateField('mother_name', capitalizeWords(savedData.mother_name));
           if (savedData.husband_name) updateField('husband_name', capitalizeWords(savedData.husband_name));
@@ -162,6 +164,7 @@ export function BusinessLoanForm() {
         age: '',
         gender: '',
         marital_status: '',
+        own_house: '',
         father_name: '',
         mother_name: '',
         husband_name: '',
@@ -248,6 +251,20 @@ export function BusinessLoanForm() {
             { label: 'No', value: 'No' }
           ]}
           error={errors.marital_status}
+        />
+
+        <RadioGroup
+          name="own_house"
+          label="Own House"
+          value={formData.own_house}
+          onChange={(val) => updateField('own_house', val)}
+          required
+          direction="horizontal"
+          options={[
+            { label: 'Yes', value: 'Yes' },
+            { label: 'No', value: 'No' }
+          ]}
+          error={errors.own_house}
         />
 
         {showParents && (
