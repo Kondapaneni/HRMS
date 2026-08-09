@@ -85,8 +85,9 @@ export const MultiSelectField = React.memo(({
     >
       <div ref={containerRef} className="relative w-full">
         <div
+          tabIndex={disabled || readOnly ? -1 : 0}
           onClick={() => !disabled && !readOnly && setIsOpen(!isOpen)}
-          className={`w-full min-h-[38px] px-3 py-1.5 text-sm bg-white border rounded-md transition-colors flex items-center justify-between gap-2 cursor-pointer ${
+          className={`w-full min-h-[38px] px-3 py-1.5 text-sm bg-white border rounded-md transition-colors flex items-center justify-between gap-2 cursor-pointer outline-none focus:outline-none ${
             error
               ? 'border-red-400 focus:ring-2 focus:ring-red-500 focus:border-red-500'
               : 'border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500'

@@ -53,7 +53,7 @@ export const TextareaField = React.memo(({
           readOnly={readOnly}
           placeholder={placeholder}
           maxLength={maxLength}
-          className={`w-full px-3 py-2 text-sm text-slate-800 bg-white border rounded-md transition-colors outline-none resize-y ${
+          className={`w-full px-3 py-2 text-sm text-slate-800 bg-white border rounded-md transition-colors outline-none focus:outline-none resize-y ${
             error 
               ? 'border-red-400 focus:ring-2 focus:ring-red-500 focus:border-red-500' 
               : 'border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
