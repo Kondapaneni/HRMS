@@ -238,6 +238,44 @@ export const validateLoanAmount = (amount, min = 5000, max = 100000000) => {
   return null;
 };
 
+/**
+ * Validate Address Text (Accepts letters, numbers, spaces, and special characters)
+ */
+export const validateAddressText = (value, fieldName = 'Address') => {
+  const reqErr = validateRequired(value, fieldName);
+  if (reqErr) return reqErr;
+  return null;
+};
+
+/**
+ * Validate Text Only Field (Letters and spaces only - for Street, City, State, Job Name, Business Name, Relation)
+ */
+export const validateTextOnlyField = (value, fieldName = 'Field') => {
+  const reqErr = validateRequired(value, fieldName);
+  if (reqErr) return reqErr;
+  const clean = String(value).trim();
+  if (clean.length < 2) {
+    return `${fieldName} must be at least 2 characters.`;
+  }
+  if (!/^[a-zA-Z\s]+$/.test(clean)) {
+    return `${fieldName} can only contain letters and spaces (no numbers or special characters).`;
+  }
+  return null;
+};
+
+/**
+ * Validate Postal Code (Exactly 6 digits)
+ */
+export const validatePostalCode = (value, fieldName = 'Postal Code') => {
+  const reqErr = validateRequired(value, fieldName);
+  if (reqErr) return reqErr;
+  const clean = String(value).replace(/\D/g, '');
+  if (clean.length !== 6) {
+    return `${fieldName} must be exactly 6 digits.`;
+  }
+  return null;
+};
+
 // ==========================================
 // FORM-LEVEL LOAN TYPE VALIDATION FUNCTIONS
 // ==========================================
