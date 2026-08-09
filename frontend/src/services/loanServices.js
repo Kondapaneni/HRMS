@@ -40,3 +40,29 @@ export const updateLeadStatus = async (id, status) => {
   const response = await api.put(`/leads/${id}/status`, { status });
   return response.data;
 };
+
+/**
+ * Submits a loan application to backend DB in JSON format after validation passes.
+ * @param {string} loanType - Type of loan ('Business Loan', 'Personal Loan', etc.)
+ * @param {Object} formData - Complete form data object
+ * @returns {Promise<Object>}
+ */
+export const submitLoanApplication = async (loanType, formData) => {
+  const payload = {
+    loan_type: loanType,
+    applicant_name: formData.applicant_name || formData.name || '',
+    phone_number: formData.phone_number || formData.phone || '',
+    form_data: formData
+  };
+  const response = await api.post('/loans/applications', payload);
+  return response.data;
+};
+
+/**
+ * Fetches submitted loan applications.
+ * @returns {Promise<Object>}
+ */
+export const getLoanApplications = async () => {
+  const response = await api.get('/loans/applications');
+  return response.data;
+};

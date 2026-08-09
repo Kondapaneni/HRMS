@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   FormGrid,
   TextField,
@@ -8,28 +8,47 @@ import {
   useFormState
 } from './index';
 import { validateBusinessLoanForm, capitalizeWords } from '../../utils/loanValidations';
-import { Send, Save } from 'lucide-react';
+import { submitLoanApplication } from '../../services/loanServices';
+import { Send, Save, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export function BusinessLoanForm() {
-  const { formData, errors, updateField, setFormErrors } = useFormState({
+  const { formData, errors, updateField, setFormErrors, resetForm } = useFormState({
     applicant_name: '',
     phone_number: '',
     age: '',
     gender: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Centralized validation from src/utils/loanValidations.js
     const { isValid, errors: validationErrors } = validateBusinessLoanForm(formData);
 
-    if (isValid) {
-      toast.success('Business Loan Application Submitted Successfully!');
-    } else {
+    if (!isValid) {
       setFormErrors(validationErrors);
       toast.error('Please resolve validation errors in the form.');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      // Submit full form data to public.loan_applications in JSON format
+      await submitLoanApplication('Business Loan', formData);
+      toast.success('Business Loan Application Submitted Successfully!');
+      resetForm({
+        applicant_name: '',
+        phone_number: '',
+        age: '',
+        gender: ''
+      });
+    } catch (err) {
+      console.error('Error submitting loan application:', err);
+      toast.error(err.response?.data?.error || 'Failed to submit loan application.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -95,9 +114,18 @@ export function BusinessLoanForm() {
         </button>
         <button
           type="submit"
-          className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 transition-colors cursor-pointer shadow-sm gap-2"
+          disabled={isSubmitting}
+          className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50 gap-2"
         >
-          <Send className="h-4 w-4" /> Submit Application
+          {isSubmitting ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" /> Submitting...
+            </>
+          ) : (
+            <>
+              <Send className="h-4 w-4" /> Submit Application
+            </>
+          )}
         </button>
       </div>
     </form>
