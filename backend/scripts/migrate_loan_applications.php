@@ -26,16 +26,29 @@ try {
 
     $sql = "
         CREATE TABLE IF NOT EXISTS public.loan_applications (
-            id SERIAL PRIMARY KEY,
+            id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+            application_id VARCHAR(50) UNIQUE,
+            lead_id VARCHAR(255),
             loan_type VARCHAR(100) NOT NULL DEFAULT 'Business Loan',
-            applicant_name VARCHAR(255) NOT NULL,
-            phone_number VARCHAR(50) NOT NULL,
             status VARCHAR(50) NOT NULL DEFAULT 'Submitted',
             form_data JSONB NOT NULL DEFAULT '{}'::jsonb,
             created_by VARCHAR(255),
             created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
         );
+
+        -- Migrate existing id to UUID if it is integer
+        ALTER TABLE public.loan_applications ALTER COLUMN id DROP DEFAULT;
+        ALTER TABLE public.loan_applications ALTER COLUMN id TYPE UUID USING gen_random_uuid();
+        ALTER TABLE public.loan_applications ALTER COLUMN id SET DEFAULT gen_random_uuid();
+
+        -- Add application_id & lead_id
+        ALTER TABLE public.loan_applications ADD COLUMN IF NOT EXISTS application_id VARCHAR(50) UNIQUE;
+        ALTER TABLE public.loan_applications ADD COLUMN IF NOT EXISTS lead_id VARCHAR(255);
+
+        -- Drop redundant columns
+        ALTER TABLE public.loan_applications DROP COLUMN IF EXISTS applicant_name;
+        ALTER TABLE public.loan_applications DROP COLUMN IF EXISTS phone_number;
 
         ALTER TABLE public.loan_applications ALTER COLUMN created_by TYPE VARCHAR(255) USING created_by::text;
 

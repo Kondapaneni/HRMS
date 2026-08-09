@@ -21,6 +21,7 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
     $phoneNumber = trim($data['phone_number'] ?? '');
     $status = trim($data['status'] ?? 'Submitted');
     $formData = $data['form_data'] ?? $data;
+    $leadId = $data['lead_id'] ?? $formData['lead_id'] ?? null;
 
     // Extract fallback name / phone from form_data if not top-level
     if (empty($applicantName) && !empty($formData['applicant_name'])) {
@@ -30,7 +31,7 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
         $phoneNumber = trim($formData['phone_number']);
     }
 
-    // Default placeholders for draft entries to guarantee DB insertion
+    // Default placeholders for draft entries
     if ($status === 'Draft') {
         if (empty($applicantName)) $applicantName = 'Draft Application';
         if (empty($phoneNumber)) $phoneNumber = '0000000000';
@@ -42,6 +43,10 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
+
+    // Preserve applicant_name & phone_number inside form_data json
+    $formData['applicant_name'] = $applicantName;
+    $formData['phone_number'] = $phoneNumber;
 
     try {
         $db = new Database();
@@ -61,16 +66,18 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
             $createdById = isset($user['id']) ? (string)$user['id'] : (isset($user['user_id']) ? (string)$user['user_id'] : (isset($user['sub']) ? (string)$user['sub'] : null));
         }
 
+        $applicationId = 'LA' . random_int(100000, 999999);
+
         $stmt = $conn->prepare('
-            INSERT INTO public.loan_applications (loan_type, applicant_name, phone_number, status, form_data, created_by, created_at, updated_at)
+            INSERT INTO public.loan_applications (application_id, lead_id, loan_type, status, form_data, created_by, created_at, updated_at)
             VALUES (?, ?, ?, ?, ?::jsonb, ?, NOW(), NOW())
-            RETURNING id, loan_type, applicant_name, phone_number, status, form_data, created_at
+            RETURNING id, application_id, lead_id, loan_type, status, form_data, created_at
         ');
         
         $stmt->execute([
+            $applicationId,
+            $leadId,
             $loanType,
-            $applicantName,
-            $phoneNumber,
             $status,
             $jsonPayload,
             $createdById
@@ -121,7 +128,7 @@ $app->get('/api/loans/applications', function (Request $request, Response $respo
         }
 
         $stmt = $conn->prepare('
-            SELECT id, loan_type, applicant_name, phone_number, status, form_data, created_at
+            SELECT id, application_id, lead_id, loan_type, status, form_data, created_at
             FROM public.loan_applications
             WHERE created_by = ? OR ? = \'admin\'
             ORDER BY created_at DESC

@@ -36,9 +36,12 @@ export function BusinessLoanForm() {
     profile?.mobile || 
     '';
 
+  const initialLeadId = location.state?.lead_id || location.state?.id || '';
+
   const { formData, errors, updateField, setFormErrors, resetForm } = useFormState({
     applicant_name: capitalizeWords(initialName),
     phone_number: initialPhone ? String(initialPhone).replace(/\D/g, '').slice(0, 10) : '',
+    lead_id: initialLeadId,
     age: '',
     gender: '',
     marital_status: '',
@@ -116,11 +119,16 @@ export function BusinessLoanForm() {
       profile?.mobile || 
       '';
 
+    const leadIdFromSource = location.state?.lead_id || location.state?.id || '';
+
     if (nameFromSource && !formData.applicant_name) {
       updateField('applicant_name', capitalizeWords(nameFromSource));
     }
     if (phoneFromSource && !formData.phone_number) {
       updateField('phone_number', String(phoneFromSource).replace(/\D/g, '').slice(0, 10));
+    }
+    if (leadIdFromSource && !formData.lead_id) {
+      updateField('lead_id', leadIdFromSource);
     }
 
     // Load latest database application data
@@ -168,7 +176,8 @@ export function BusinessLoanForm() {
         father_name: '',
         mother_name: '',
         husband_name: '',
-        aadhaar_number: ''
+        aadhaar_number: '',
+        lead_id: formData.lead_id
       });
     } catch (err) {
       console.error('Error submitting loan application:', err);

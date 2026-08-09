@@ -99,7 +99,7 @@ const OriginationMobileMemberDetails = ({ member }) => {
                 {/* Clean URL link passing member data via router state */}
                 <Link 
                   to="/employee/loans/business-loan"
-                  state={{ name: member.name, phone: member.phone }}
+                  state={{ name: member.name, phone: member.phone, lead_id: loan.id || loan.lead_id || member.lead_id }}
                   className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 transition-all"
                 >
                   Fill Loan Form <ArrowRight size={14} />
@@ -112,7 +112,7 @@ const OriginationMobileMemberDetails = ({ member }) => {
                 <p>No loan history available.</p>
                 <Link 
                   to="/employee/loans/business-loan"
-                  state={{ name: member.name, phone: member.phone }}
+                  state={{ name: member.name, phone: member.phone, lead_id: member.lead_id }}
                   className="inline-flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-700"
                 >
                   Fill Loan Form <ArrowRight size={14} />

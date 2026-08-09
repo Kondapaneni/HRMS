@@ -29,6 +29,7 @@ const OriginationMobileMemberList = () => {
     if (!acc[lead.phone]) {
       acc[lead.phone] = {
         id: lead.phone,
+        lead_id: lead.id,
         name: lead.name,
         phone: lead.phone,
         address: lead.address,
