@@ -58,8 +58,9 @@ export { GSTINField } from './fields/GSTINField';
 // Hooks
 export { useFormState } from './hooks/useFormState';
 
-// Pre-composed Business Loan Form
+// Pre-composed Business Loan Form & Paper View
 export { BusinessLoanForm } from './BusinessLoanForm';
+export { BusinessLoanPaperView } from './BusinessLoanPaperView';
 
 // Validation Utilities
 export { validators } from './validation/validators';
