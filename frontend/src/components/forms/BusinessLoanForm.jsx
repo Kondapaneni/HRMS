@@ -74,14 +74,12 @@ export function BusinessLoanForm() {
   const handleSaveDraft = async () => {
     try {
       setIsDrafting(true);
-      // Save form data to DB table public.loan_applications in JSON format as Draft
+      // Save draft directly to DB table public.loan_applications in JSON format (No Local Storage)
       await submitLoanApplication('Business Loan', formData, 'Draft');
-      localStorage.setItem('business_loan_draft', JSON.stringify(formData));
       toast.success('Business Loan draft saved to database!');
     } catch (err) {
-      console.error('Error saving draft to DB:', err);
-      localStorage.setItem('business_loan_draft', JSON.stringify(formData));
-      toast.success('Draft saved locally!');
+      console.error('Error saving draft to database:', err);
+      toast.error(err.response?.data?.error || 'Failed to save draft to database.');
     } finally {
       setIsDrafting(false);
     }
@@ -103,7 +101,6 @@ export function BusinessLoanForm() {
       setIsSubmitting(true);
       // Submit full form data to public.loan_applications in JSON format as Submitted
       await submitLoanApplication('Business Loan', formData, 'Submitted');
-      localStorage.removeItem('business_loan_draft');
       toast.success('Business Loan Application Submitted Successfully!');
       resetForm({
         applicant_name: '',

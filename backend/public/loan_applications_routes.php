@@ -5,8 +5,7 @@ use Psr\Http\Message\ResponseInterface as Response;
 use App\Config\Database;
 
 /**
- * Endpoint to submit or save draft for a loan application.
- * Stores complete form submission/draft as JSON in public.loan_applications table.
+ * Endpoint to submit or save draft for a loan application in DB table public.loan_applications.
  */
 $app->post('/api/loans/applications', function (Request $request, Response $response, $args) {
     $user = $request->getAttribute('user');
@@ -23,7 +22,7 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
     $status = trim($data['status'] ?? 'Submitted');
     $formData = $data['form_data'] ?? $data;
 
-    // Fallback extracts if not provided at top-level
+    // Extract fallback name / phone from form_data if not top-level
     if (empty($applicantName) && !empty($formData['applicant_name'])) {
         $applicantName = trim($formData['applicant_name']);
     }
@@ -31,9 +30,9 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
         $phoneNumber = trim($formData['phone_number']);
     }
 
-    // For drafts, allow default placeholder if applicant name / phone not provided yet
+    // Default placeholders for draft entries to guarantee DB insertion
     if ($status === 'Draft') {
-        if (empty($applicantName)) $applicantName = 'Draft Applicant';
+        if (empty($applicantName)) $applicantName = 'Draft Application';
         if (empty($phoneNumber)) $phoneNumber = '0000000000';
     }
 
@@ -53,7 +52,14 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
         }
 
         $jsonPayload = json_encode($formData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        $createdById = $user ? ($user->id ?? null) : null;
+        
+        // Resolve user ID safely across object or array representations
+        $createdById = null;
+        if (is_object($user)) {
+            $createdById = $user->id ?? $user->user_id ?? null;
+        } elseif (is_array($user)) {
+            $createdById = $user['id'] ?? $user['user_id'] ?? $user['sub'] ?? null;
+        }
 
         $stmt = $conn->prepare('
             INSERT INTO public.loan_applications (loan_type, applicant_name, phone_number, status, form_data, created_by, created_at, updated_at)
@@ -78,18 +84,18 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
 
         $response->getBody()->write(json_encode([
             'success' => true,
-            'message' => $status === 'Draft' ? 'Loan application draft saved successfully' : 'Loan application submitted successfully',
+            'message' => $status === 'Draft' ? 'Loan application draft saved to database' : 'Loan application submitted successfully',
             'application' => $application
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
         
     } catch (\PDOException $e) {
         error_log("Database error submitting loan application: " . $e->getMessage());
-        $response->getBody()->write(json_encode(['error' => 'Database error while saving loan application: ' . $e->getMessage()]));
+        $response->getBody()->write(json_encode(['error' => 'Database error while saving to DB: ' . $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     } catch (\Exception $e) {
         error_log("Error submitting loan application: " . $e->getMessage());
-        $response->getBody()->write(json_encode(['error' => 'An error occurred while saving the loan application']));
+        $response->getBody()->write(json_encode(['error' => 'An error occurred while saving to database']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new \App\Middleware\AuthMiddleware());
@@ -104,6 +110,16 @@ $app->get('/api/loans/applications', function (Request $request, Response $respo
         $db = new Database();
         $conn = $db->getConnection();
 
+        $userId = null;
+        $userRole = 'employee';
+        if (is_object($user)) {
+            $userId = $user->id ?? null;
+            $userRole = $user->role ?? 'employee';
+        } elseif (is_array($user)) {
+            $userId = $user['id'] ?? null;
+            $userRole = $user['role'] ?? 'employee';
+        }
+
         $stmt = $conn->prepare('
             SELECT id, loan_type, applicant_name, phone_number, status, form_data, created_at
             FROM public.loan_applications
@@ -111,7 +127,7 @@ $app->get('/api/loans/applications', function (Request $request, Response $respo
             ORDER BY created_at DESC
         ');
         
-        $stmt->execute([$user->id, $user->role ?? 'employee']);
+        $stmt->execute([$userId, $userRole]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($rows as &$row) {
