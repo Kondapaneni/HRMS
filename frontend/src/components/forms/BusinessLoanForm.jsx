@@ -631,7 +631,7 @@ export function BusinessLoanForm() {
             {labelPfx} Current Address
           </h4>
           <FormGrid columns={3} gap={6}>
-            <div className="col-span-3">
+            <div className="col-span-1 sm:col-span-2 md:col-span-3">
               <TextField
                 name={`${pfx}current_address`}
                 label="Current Address"
@@ -708,7 +708,7 @@ export function BusinessLoanForm() {
           </div>
 
           <FormGrid columns={3} gap={6}>
-            <div className="col-span-3">
+            <div className="col-span-1 sm:col-span-2 md:col-span-3">
               <TextField
                 name={`${pfx}permanent_address`}
                 label="Permanent Address"
@@ -1002,7 +1002,7 @@ export function BusinessLoanForm() {
           Current Address
         </h3>
         <FormGrid columns={3} gap={6}>
-          <div className="col-span-3">
+          <div className="col-span-1 sm:col-span-2 md:col-span-3">
             <TextField
               name="current_address"
               label="Current Address"
@@ -1079,7 +1079,7 @@ export function BusinessLoanForm() {
         </div>
 
         <FormGrid columns={3} gap={6}>
-          <div className="col-span-3">
+          <div className="col-span-1 sm:col-span-2 md:col-span-3">
             <TextField
               name="permanent_address"
               label="Permanent Address"
@@ -1395,7 +1395,7 @@ export function BusinessLoanForm() {
                 Co-Applicant Current Address
               </h4>
               <FormGrid columns={3} gap={6}>
-                <div className="col-span-3">
+                <div className="col-span-1 sm:col-span-2 md:col-span-3">
                   <TextField
                     name="co_current_address"
                     label="Current Address"
@@ -1472,7 +1472,7 @@ export function BusinessLoanForm() {
               </div>
 
               <FormGrid columns={3} gap={6}>
-                <div className="col-span-3">
+                <div className="col-span-1 sm:col-span-2 md:col-span-3">
                   <TextField
                     name="co_permanent_address"
                     label="Permanent Address"
