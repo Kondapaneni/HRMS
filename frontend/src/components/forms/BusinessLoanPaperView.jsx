@@ -506,43 +506,6 @@ export function BusinessLoanPaperView({ formData = {}, application = {}, onBack 
             </div>
           </section>
 
-          {/* ================= 6. DECLARATION & SIGNATURES ================= */}
-          <section className="space-y-4 pt-6 border-t border-slate-200">
-            <div className="flex items-center gap-2 pb-1">
-              <span className="w-5 h-5 rounded bg-blue-600 text-white flex items-center justify-center text-[11px] font-bold">6</span>
-              <h2 className="text-sm sm:text-base font-bold text-slate-900 uppercase tracking-wide">
-                Declaration & Signatures
-              </h2>
-            </div>
-
-            <p className="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3.5 rounded-md border border-slate-200">
-              I / We hereby declare that all the information, particulars, and details provided in this Business Loan Application Form are true, complete, and authentic to the best of my/our knowledge and belief.
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 pt-8">
-              <div className="border-t-2 border-slate-300 pt-2 text-center">
-                <p className="text-xs font-bold text-slate-900">{formData.applicant_name || 'Primary Applicant'}</p>
-                <p className="text-[10px] text-slate-500 uppercase font-semibold">Applicant Signature</p>
-              </div>
-
-              <div className="border-t-2 border-slate-300 pt-2 text-center">
-                <p className="text-xs font-bold text-slate-900">{formData.co_applicant_name || 'Co-Applicant'}</p>
-                <p className="text-[10px] text-slate-500 uppercase font-semibold">Co-Applicant Signature</p>
-              </div>
-
-              <div className="border-t-2 border-slate-300 pt-2 text-center">
-                <p className="text-xs font-bold text-slate-900">Acme Loan Officer</p>
-                <p className="text-[10px] text-slate-500 uppercase font-semibold">Authorized Officer Stamp & Sign</p>
-              </div>
-            </div>
-          </section>
-
-        </div>
-
-        {/* Paper Document Footer */}
-        <div className="p-3.5 bg-slate-100 border-t border-slate-200 text-center text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>Acme HRMS Origination Module • Secure Commercial Record</span>
-          <span className="font-mono text-[11px] text-slate-400">DOC-REF: {appId} • {formattedDate}</span>
         </div>
       </div>
 
