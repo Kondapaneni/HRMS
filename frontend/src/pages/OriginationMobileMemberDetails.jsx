@@ -1,12 +1,44 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Phone, MapPin, Calendar, Briefcase, CheckCircle2, ArrowRight, Lock } from 'lucide-react';
-import { useNavigate, Link } from 'react-router-dom';
+import { ArrowLeft, Phone, MapPin, Calendar, Briefcase, CheckCircle2, ArrowRight, Lock, Loader2 } from 'lucide-react';
+import { useNavigate, useLocation, useParams, Link } from 'react-router-dom';
 import { format } from 'date-fns';
-import { getLoanApplications } from '../services/loanServices';
+import { useQuery } from '@tanstack/react-query';
+import { getLoanApplications, getLeads } from '../services/loanServices';
 
-const OriginationMobileMemberDetails = ({ member }) => {
+const OriginationMobileMemberDetails = ({ member: propMember }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { phone } = useParams();
   const [submittedLeadIds, setSubmittedLeadIds] = useState(new Set());
+
+  // Fetch leads if propMember or location.state.member is missing
+  const { data: response, isLoading: isLoadingLeads } = useQuery({
+    queryKey: ['origination', 'leads', 'member-details', phone],
+    queryFn: getLeads,
+    enabled: !propMember && !location.state?.member
+  });
+
+  const member = React.useMemo(() => {
+    if (propMember) return propMember;
+    if (location.state?.member) return location.state.member;
+    if (response?.leads) {
+      const converted = response.leads.filter(l => l.status === 'Converted' && String(l.phone) === String(phone));
+      if (converted.length > 0) {
+        const lead = converted[0];
+        return {
+          id: lead.phone,
+          lead_id: lead.id,
+          name: lead.name,
+          phone: lead.phone,
+          address: lead.address,
+          created_at: lead.created_at,
+          status: 'Converted',
+          loans: converted
+        };
+      }
+    }
+    return null;
+  }, [propMember, location.state?.member, response, phone]);
 
   useEffect(() => {
     const fetchSubmittedApplications = async () => {
@@ -24,10 +56,34 @@ const OriginationMobileMemberDetails = ({ member }) => {
         console.error('Error fetching loan applications:', err);
       }
     };
-    fetchSubmittedApplications();
+    if (member) {
+      fetchSubmittedApplications();
+    }
   }, [member]);
 
-  if (!member) return null;
+  if (isLoadingLeads && !member) {
+    return (
+      <div className="w-full min-h-[60vh] flex flex-col items-center justify-center p-6 text-slate-500">
+        <Loader2 className="w-8 h-8 text-blue-600 animate-spin mb-3" />
+        <p className="text-sm font-medium">Loading member details...</p>
+      </div>
+    );
+  }
+
+  if (!member) {
+    return (
+      <div className="w-full min-h-[60vh] flex flex-col items-center justify-center p-6 text-center text-slate-500 space-y-4">
+        <p className="text-base font-semibold text-slate-700">Member profile not found.</p>
+        <button
+          type="button"
+          onClick={() => navigate('/employee/loans/origination/members')}
+          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-slate-900 rounded-xl shadow-sm cursor-pointer"
+        >
+          <ArrowLeft size={16} /> Back to Members
+        </button>
+      </div>
+    );
+  }
 
   const defaultLeadId = String(member.lead_id || member.id || '');
   const isMemberDefaultSubmitted = submittedLeadIds.has(defaultLeadId);
