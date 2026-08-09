@@ -1,11 +1,37 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Phone, Briefcase, CheckCircle2, ArrowRight } from 'lucide-react';
+import { X, Phone, Briefcase, CheckCircle2, ArrowRight, Lock } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { getLoanApplications } from '../services/loanServices';
 
 const MemberDetailsSidebar = ({ isOpen, onClose, member }) => {
+  const [submittedLeadIds, setSubmittedLeadIds] = useState(new Set());
+
+  useEffect(() => {
+    const fetchSubmittedApplications = async () => {
+      try {
+        const res = await getLoanApplications();
+        if (res && res.applications) {
+          const submittedSet = new Set(
+            res.applications
+              .filter(app => app.status === 'Submitted' && app.lead_id)
+              .map(app => String(app.lead_id))
+          );
+          setSubmittedLeadIds(submittedSet);
+        }
+      } catch (err) {
+        console.error('Error fetching loan applications:', err);
+      }
+    };
+    if (isOpen) {
+      fetchSubmittedApplications();
+    }
+  }, [isOpen, member]);
 
   if (!member) return null;
+
+  const defaultLeadId = String(member.lead_id || member.id || '');
+  const isMemberDefaultSubmitted = submittedLeadIds.has(defaultLeadId);
 
   return (
     <AnimatePresence>
@@ -66,38 +92,56 @@ const MemberDetailsSidebar = ({ isOpen, onClose, member }) => {
                 </h4>
                 
                 <div className="grid gap-3">
-                  {member.loans && member.loans.map((loan) => (
-                    <div key={loan.id} className="bg-slate-50 border border-slate-100 rounded-lg p-4 transition-all hover:shadow-md hover:border-slate-200">
-                      <div className="flex justify-between items-start mb-3">
-                        <div className="font-semibold text-slate-800">
-                          {loan.loan_type || 'Personal Loan'}
+                  {member.loans && member.loans.map((loan) => {
+                    const currentLeadId = String(loan.id || loan.lead_id || member.lead_id || '');
+                    const isSubmitted = submittedLeadIds.has(currentLeadId);
+
+                    return (
+                      <div key={loan.id} className="bg-slate-50 border border-slate-100 rounded-lg p-4 transition-all hover:shadow-md hover:border-slate-200">
+                        <div className="flex justify-between items-start mb-3">
+                          <div className="font-semibold text-slate-800">
+                            {loan.loan_type || 'Personal Loan'}
+                          </div>
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                            isSubmitted ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                          }`}>
+                            <CheckCircle2 size={12} /> {isSubmitted ? 'Submitted' : (loan.status || 'Draft')}
+                          </span>
                         </div>
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 uppercase tracking-wider">
-                          <CheckCircle2 size={12} /> {loan.status}
-                        </span>
+                        
+                        {isSubmitted ? (
+                          <div className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-md bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed select-none">
+                            <Lock size={12} className="text-slate-400" /> Application Submitted
+                          </div>
+                        ) : (
+                          <Link 
+                            to="/employee/loans/business-loan"
+                            state={{ name: member.name, phone: member.phone, lead_id: currentLeadId }}
+                            className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline transition-all"
+                          >
+                            Fill Loan Form <ArrowRight size={14} />
+                          </Link>
+                        )}
                       </div>
-                      
-                      {/* Clean URL link passing member data via router state */}
-                      <Link 
-                        to="/employee/loans/business-loan"
-                        state={{ name: member.name, phone: member.phone, lead_id: loan.id || loan.lead_id || member.lead_id }}
-                        className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline transition-all"
-                      >
-                        Fill Loan Form <ArrowRight size={14} />
-                      </Link>
-                    </div>
-                  ))}
+                    );
+                  })}
                   
                   {(!member.loans || member.loans.length === 0) && (
                     <div className="text-center p-4 text-slate-500 text-sm bg-slate-50 rounded-lg space-y-3">
                       <p>No loan history available.</p>
-                      <Link 
-                        to="/employee/loans/business-loan"
-                        state={{ name: member.name, phone: member.phone, lead_id: member.lead_id }}
-                        className="inline-flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-700 hover:underline"
-                      >
-                        Fill Loan Form <ArrowRight size={14} />
-                      </Link>
+                      {isMemberDefaultSubmitted ? (
+                        <div className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-md bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed select-none">
+                          <Lock size={12} className="text-slate-400" /> Application Submitted
+                        </div>
+                      ) : (
+                        <Link 
+                          to="/employee/loans/business-loan"
+                          state={{ name: member.name, phone: member.phone, lead_id: member.lead_id }}
+                          className="inline-flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+                        >
+                          Fill Loan Form <ArrowRight size={14} />
+                        </Link>
+                      )}
                     </div>
                   )}
                 </div>

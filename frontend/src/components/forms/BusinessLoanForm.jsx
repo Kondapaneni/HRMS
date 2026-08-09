@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import {
   FormGrid,
@@ -19,6 +19,7 @@ import toast from 'react-hot-toast';
 export function BusinessLoanForm() {
   const { profile } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Extract default values from React Router state (passed quietly without query parameters) or user profile from DB
   const initialName = 
@@ -104,6 +105,7 @@ export function BusinessLoanForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDrafting, setIsDrafting] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(false);
+  const [isAlreadySubmitted, setIsAlreadySubmitted] = useState(false);
   const [activeGuarantorTab, setActiveGuarantorTab] = useState(1);
 
   // Conditional field visibility logic:
@@ -215,16 +217,20 @@ export function BusinessLoanForm() {
       const passingLeadId = location.state?.lead_id || location.state?.id || formData.lead_id;
 
       if (res && res.applications && res.applications.length > 0) {
-        // Find draft application specifically matching the passing lead_id and status Draft
-        const draftApp = res.applications.find(app => 
+        // Find existing application specifically matching the passing lead_id
+        const existingApp = res.applications.find(app => 
           app.loan_type === 'Business Loan' && 
-          app.status === 'Draft' && 
           passingLeadId && 
-          String(app.lead_id) === String(passingLeadId)
+          String(app.lead_id) === String(passingLeadId) &&
+          (app.status === 'Draft' || app.status === 'Submitted')
         );
 
-        if (draftApp && draftApp.form_data) {
-          const savedData = draftApp.form_data;
+        if (existingApp && existingApp.status === 'Submitted') {
+          setIsAlreadySubmitted(true);
+        }
+
+        if (existingApp && existingApp.form_data) {
+          const savedData = existingApp.form_data;
           if (savedData.applicant_name) updateField('applicant_name', capitalizeWords(savedData.applicant_name));
           if (savedData.phone_number) updateField('phone_number', String(savedData.phone_number).replace(/\D/g, '').slice(0, 10));
           if (savedData.age) updateField('age', savedData.age);
@@ -403,6 +409,9 @@ export function BusinessLoanForm() {
       // Submit full form data to public.loan_applications in JSON format as Submitted
       await submitLoanApplication('Business Loan', cleanData, 'Submitted');
       toast.success('Business Loan Application Submitted Successfully!');
+      setTimeout(() => {
+        navigate('/employee/loans/origination/members');
+      }, 1000);
       resetForm({
         applicant_name: '',
         phone_number: '',
@@ -848,6 +857,12 @@ export function BusinessLoanForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {isAlreadySubmitted && (
+        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-sm font-semibold flex items-center gap-2 mb-6 shadow-sm">
+          <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
+          <span>This loan application has already been submitted for this lead and is locked against further editing.</span>
+        </div>
+      )}
       {/* Personal Details Section */}
       <div>
         <h3 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
@@ -1646,14 +1661,14 @@ export function BusinessLoanForm() {
         <button
           type="button"
           onClick={handleSaveDraft}
-          disabled={isDrafting || isSubmitting || isLoadingData}
+          disabled={isDrafting || isSubmitting || isLoadingData || isAlreadySubmitted}
           className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 h-10 px-4 py-2 transition-colors cursor-pointer border border-slate-200 gap-2 disabled:opacity-50"
         >
           {isDrafting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save Draft
         </button>
         <button
           type="submit"
-          disabled={isSubmitting || isDrafting || isLoadingData}
+          disabled={isSubmitting || isDrafting || isLoadingData || isAlreadySubmitted}
           className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50 gap-2"
         >
           {isSubmitting ? (
@@ -1662,7 +1677,7 @@ export function BusinessLoanForm() {
             </>
           ) : (
             <>
-              <Send className="h-4 w-4" /> Submit Application
+              <Send className="h-4 w-4" /> {isAlreadySubmitted ? 'Application Submitted' : 'Submit Application'}
             </>
           )}
         </button>
