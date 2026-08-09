@@ -11,8 +11,8 @@ import {
   useFormState
 } from './index';
 import { validateBusinessLoanForm, capitalizeWords } from '../../utils/loanValidations';
-import { submitLoanApplication } from '../../services/loanServices';
-import { Send, Save, Loader2 } from 'lucide-react';
+import { submitLoanApplication, getLoanApplications } from '../../services/loanServices';
+import { Send, Save, Loader2, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export function BusinessLoanForm() {
@@ -45,8 +45,42 @@ export function BusinessLoanForm() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDrafting, setIsDrafting] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(false);
 
-  // Auto-populate when profile data or navigation state resolves
+  // Load saved application / draft JSON data directly from database
+  const loadSavedDataFromDB = async (showToast = false) => {
+    try {
+      setIsLoadingData(true);
+      const res = await getLoanApplications();
+      if (res && res.applications && res.applications.length > 0) {
+        // Find latest business loan entry
+        const latest = res.applications.find(app => app.loan_type === 'Business Loan') || res.applications[0];
+        if (latest && latest.form_data) {
+          const savedData = latest.form_data;
+          if (savedData.applicant_name) updateField('applicant_name', capitalizeWords(savedData.applicant_name));
+          if (savedData.phone_number) updateField('phone_number', String(savedData.phone_number).replace(/\D/g, '').slice(0, 10));
+          if (savedData.age) updateField('age', savedData.age);
+          if (savedData.gender) updateField('gender', savedData.gender);
+          if (savedData.marital_status) updateField('marital_status', savedData.marital_status);
+
+          if (showToast) {
+            toast.success(`Loaded latest ${latest.status.toLowerCase()} from database!`);
+          }
+        }
+      } else if (showToast) {
+        toast.error('No saved data found in database.');
+      }
+    } catch (err) {
+      console.error('Error loading application data from DB:', err);
+      if (showToast) {
+        toast.error('Failed to load application data from database.');
+      }
+    } finally {
+      setIsLoadingData(false);
+    }
+  };
+
+  // Auto-populate when profile data or navigation state resolves or on mount
   useEffect(() => {
     const nameFromSource = 
       location.state?.name || 
@@ -69,12 +103,15 @@ export function BusinessLoanForm() {
     if (phoneFromSource && !formData.phone_number) {
       updateField('phone_number', String(phoneFromSource).replace(/\D/g, '').slice(0, 10));
     }
+
+    // Load latest database application data
+    loadSavedDataFromDB(false);
   }, [profile, location.state]);
 
   const handleSaveDraft = async () => {
     try {
       setIsDrafting(true);
-      // Save draft directly to DB table public.loan_applications in JSON format (No Local Storage)
+      // Save draft directly to DB table public.loan_applications in JSON format
       await submitLoanApplication('Business Loan', formData, 'Draft');
       toast.success('Business Loan draft saved to database!');
     } catch (err) {
@@ -186,15 +223,23 @@ export function BusinessLoanForm() {
       <div className="pt-6 border-t border-slate-100 flex items-center justify-end gap-3">
         <button
           type="button"
+          onClick={() => loadSavedDataFromDB(true)}
+          disabled={isLoadingData || isDrafting || isSubmitting}
+          className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-slate-50 text-slate-700 hover:bg-slate-100 h-10 px-4 py-2 transition-colors cursor-pointer border border-slate-200 gap-2 disabled:opacity-50"
+        >
+          {isLoadingData ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} Load Saved Data
+        </button>
+        <button
+          type="button"
           onClick={handleSaveDraft}
-          disabled={isDrafting || isSubmitting}
+          disabled={isDrafting || isSubmitting || isLoadingData}
           className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 h-10 px-4 py-2 transition-colors cursor-pointer border border-slate-200 gap-2 disabled:opacity-50"
         >
           {isDrafting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save Draft
         </button>
         <button
           type="submit"
-          disabled={isSubmitting || isDrafting}
+          disabled={isSubmitting || isDrafting || isLoadingData}
           className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50 gap-2"
         >
           {isSubmitting ? (
