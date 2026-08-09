@@ -90,6 +90,19 @@ export const validateGender = (gender) => {
 };
 
 /**
+ * Validate Marital Status Selection ('Yes' or 'No')
+ */
+export const validateMaritalStatus = (status) => {
+  const reqErr = validateRequired(status, 'Marital Status');
+  if (reqErr) return reqErr;
+  const validOptions = ['Yes', 'No'];
+  if (!validOptions.includes(String(status))) {
+    return 'Please select Marital Status (Yes or No).';
+  }
+  return null;
+};
+
+/**
  * Validate Indian PAN (Permanent Account Number)
  */
 export const validatePAN = (value) => {
@@ -211,6 +224,9 @@ export const validateBusinessLoanForm = (formData = {}) => {
 
   const genderErr = validateGender(formData.gender);
   if (genderErr) errors.gender = genderErr;
+
+  const maritalErr = validateMaritalStatus(formData.marital_status);
+  if (maritalErr) errors.marital_status = maritalErr;
 
   if (formData.gstin) {
     const gstinErr = validateGSTIN(formData.gstin);

@@ -7,6 +7,7 @@ import {
   PhoneField,
   NumberField,
   SelectField,
+  RadioGroup,
   useFormState
 } from './index';
 import { validateBusinessLoanForm, capitalizeWords } from '../../utils/loanValidations';
@@ -38,7 +39,8 @@ export function BusinessLoanForm() {
     applicant_name: capitalizeWords(initialName),
     phone_number: initialPhone ? String(initialPhone).replace(/\D/g, '').slice(0, 10) : '',
     age: '',
-    gender: ''
+    gender: '',
+    marital_status: ''
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -89,7 +91,8 @@ export function BusinessLoanForm() {
         applicant_name: '',
         phone_number: '',
         age: '',
-        gender: ''
+        gender: '',
+        marital_status: ''
       });
     } catch (err) {
       console.error('Error submitting loan application:', err);
@@ -148,6 +151,20 @@ export function BusinessLoanForm() {
             { label: 'Other', value: 'Other' }
           ]}
           error={errors.gender}
+        />
+
+        <RadioGroup
+          name="marital_status"
+          label="Marital Status"
+          value={formData.marital_status}
+          onChange={(val) => updateField('marital_status', val)}
+          required
+          direction="horizontal"
+          options={[
+            { label: 'Yes', value: 'Yes' },
+            { label: 'No', value: 'No' }
+          ]}
+          error={errors.marital_status}
         />
       </FormGrid>
 
