@@ -95,12 +95,16 @@ export function BusinessLoanForm() {
     co_job_income_per_month: '',
     co_business_name: '',
     co_business_address: '',
-    co_business_income_per_month: ''
+    co_business_income_per_month: '',
+    guarantor_1_name: '', guarantor_1_phone_number: '', guarantor_1_aadhaar_number: '', guarantor_1_age: '', guarantor_1_gender: '', guarantor_1_marital_status: '', guarantor_1_father_name: '', guarantor_1_mother_name: '', guarantor_1_husband_name: '', guarantor_1_own_house: '', guarantor_1_current_address: '', guarantor_1_current_street: '', guarantor_1_current_city: '', guarantor_1_current_state: '', guarantor_1_current_postal_code: '', guarantor_1_permanent_address: '', guarantor_1_permanent_street: '', guarantor_1_permanent_city: '', guarantor_1_permanent_state: '', guarantor_1_permanent_postal_code: '', guarantor_1_employment: '', guarantor_1_job_name: '', guarantor_1_job_address: '', guarantor_1_job_income_per_month: '', guarantor_1_business_name: '', guarantor_1_business_address: '', guarantor_1_business_income_per_month: '',
+    guarantor_2_name: '', guarantor_2_phone_number: '', guarantor_2_aadhaar_number: '', guarantor_2_age: '', guarantor_2_gender: '', guarantor_2_marital_status: '', guarantor_2_father_name: '', guarantor_2_mother_name: '', guarantor_2_husband_name: '', guarantor_2_own_house: '', guarantor_2_current_address: '', guarantor_2_current_street: '', guarantor_2_current_city: '', guarantor_2_current_state: '', guarantor_2_current_postal_code: '', guarantor_2_permanent_address: '', guarantor_2_permanent_street: '', guarantor_2_permanent_city: '', guarantor_2_permanent_state: '', guarantor_2_permanent_postal_code: '', guarantor_2_employment: '', guarantor_2_job_name: '', guarantor_2_job_address: '', guarantor_2_job_income_per_month: '', guarantor_2_business_name: '', guarantor_2_business_address: '', guarantor_2_business_income_per_month: '',
+    guarantor_3_name: '', guarantor_3_phone_number: '', guarantor_3_aadhaar_number: '', guarantor_3_age: '', guarantor_3_gender: '', guarantor_3_marital_status: '', guarantor_3_father_name: '', guarantor_3_mother_name: '', guarantor_3_husband_name: '', guarantor_3_own_house: '', guarantor_3_current_address: '', guarantor_3_current_street: '', guarantor_3_current_city: '', guarantor_3_current_state: '', guarantor_3_current_postal_code: '', guarantor_3_permanent_address: '', guarantor_3_permanent_street: '', guarantor_3_permanent_city: '', guarantor_3_permanent_state: '', guarantor_3_permanent_postal_code: '', guarantor_3_employment: '', guarantor_3_job_name: '', guarantor_3_job_address: '', guarantor_3_job_income_per_month: '', guarantor_3_business_name: '', guarantor_3_business_address: '', guarantor_3_business_income_per_month: ''
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDrafting, setIsDrafting] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(false);
+  const [activeGuarantorTab, setActiveGuarantorTab] = useState(1);
 
   // Conditional field visibility logic:
   // Male + Yes = Father and Mother Name only
@@ -165,10 +169,42 @@ export function BusinessLoanForm() {
         if (formData.co_business_income_per_month) updateField('co_business_income_per_month', '');
       }
     }
+
+    // Guarantor 1, 2, 3 auto-clear logic
+    [1, 2, 3].forEach((idx) => {
+      const pfx = `guarantor_${idx}_`;
+      const gGender = formData[`${pfx}gender`];
+      const gMarital = formData[`${pfx}marital_status`];
+      const gEmp = formData[`${pfx}employment`];
+
+      const showGParents = !!(gGender && gMarital);
+      const showGHusband = gGender === 'Female' && gMarital === 'Yes';
+
+      if (!showGParents) {
+        if (formData[`${pfx}father_name`]) updateField(`${pfx}father_name`, '');
+        if (formData[`${pfx}mother_name`]) updateField(`${pfx}mother_name`, '');
+      }
+      if (!showGHusband) {
+        if (formData[`${pfx}husband_name`]) updateField(`${pfx}husband_name`, '');
+      }
+      if (gEmp !== 'Job') {
+        if (formData[`${pfx}job_name`]) updateField(`${pfx}job_name`, '');
+        if (formData[`${pfx}job_address`]) updateField(`${pfx}job_address`, '');
+        if (formData[`${pfx}job_income_per_month`]) updateField(`${pfx}job_income_per_month`, '');
+      }
+      if (gEmp !== 'Business') {
+        if (formData[`${pfx}business_name`]) updateField(`${pfx}business_name`, '');
+        if (formData[`${pfx}business_address`]) updateField(`${pfx}business_address`, '');
+        if (formData[`${pfx}business_income_per_month`]) updateField(`${pfx}business_income_per_month`, '');
+      }
+    });
   }, [
     formData.gender, formData.marital_status, formData.employment, showParents, showHusband,
     formData.has_co_applicant, formData.co_gender, formData.co_marital_status, formData.co_employment,
-    showCoParents, showCoHusband
+    showCoParents, showCoHusband,
+    formData.guarantor_1_gender, formData.guarantor_1_marital_status, formData.guarantor_1_employment,
+    formData.guarantor_2_gender, formData.guarantor_2_marital_status, formData.guarantor_2_employment,
+    formData.guarantor_3_gender, formData.guarantor_3_marital_status, formData.guarantor_3_employment
   ]);
 
   // Load saved application / draft JSON data directly from database
@@ -245,6 +281,31 @@ export function BusinessLoanForm() {
           if (savedData.co_business_name) updateField('co_business_name', capitalizeWords(savedData.co_business_name));
           if (savedData.co_business_address) updateField('co_business_address', capitalizeText(savedData.co_business_address));
           if (savedData.co_business_income_per_month) updateField('co_business_income_per_month', String(savedData.co_business_income_per_month).replace(/\D/g, ''));
+
+          // Restore Guarantors 1, 2, 3
+          [1, 2, 3].forEach(idx => {
+            const pfx = `guarantor_${idx}_`;
+            const keys = [
+              'name', 'phone_number', 'aadhaar_number', 'age', 'gender', 'marital_status',
+              'father_name', 'mother_name', 'husband_name', 'own_house', 'current_address',
+              'current_street', 'current_city', 'current_state', 'current_postal_code',
+              'permanent_address', 'permanent_street', 'permanent_city', 'permanent_state',
+              'permanent_postal_code', 'employment', 'job_name', 'job_address',
+              'job_income_per_month', 'business_name', 'business_address', 'business_income_per_month'
+            ];
+            keys.forEach(k => {
+              const fullKey = `${pfx}${k}`;
+              if (savedData[fullKey]) {
+                if (k.includes('name') || k.includes('street') || k.includes('city') || k.includes('state')) {
+                  updateField(fullKey, capitalizeWords(savedData[fullKey]));
+                } else if (k.includes('address')) {
+                  updateField(fullKey, capitalizeText(savedData[fullKey]));
+                } else {
+                  updateField(fullKey, savedData[fullKey]);
+                }
+              }
+            });
+          });
 
           if (showToast) {
             toast.success('Loaded saved draft for this lead!');
@@ -399,6 +460,9 @@ export function BusinessLoanForm() {
         co_business_name: '',
         co_business_address: '',
         co_business_income_per_month: '',
+        guarantor_1_name: '', guarantor_1_phone_number: '', guarantor_1_aadhaar_number: '', guarantor_1_age: '', guarantor_1_gender: '', guarantor_1_marital_status: '', guarantor_1_father_name: '', guarantor_1_mother_name: '', guarantor_1_husband_name: '', guarantor_1_own_house: '', guarantor_1_current_address: '', guarantor_1_current_street: '', guarantor_1_current_city: '', guarantor_1_current_state: '', guarantor_1_current_postal_code: '', guarantor_1_permanent_address: '', guarantor_1_permanent_street: '', guarantor_1_permanent_city: '', guarantor_1_permanent_state: '', guarantor_1_permanent_postal_code: '', guarantor_1_employment: '', guarantor_1_job_name: '', guarantor_1_job_address: '', guarantor_1_job_income_per_month: '', guarantor_1_business_name: '', guarantor_1_business_address: '', guarantor_1_business_income_per_month: '',
+        guarantor_2_name: '', guarantor_2_phone_number: '', guarantor_2_aadhaar_number: '', guarantor_2_age: '', guarantor_2_gender: '', guarantor_2_marital_status: '', guarantor_2_father_name: '', guarantor_2_mother_name: '', guarantor_2_husband_name: '', guarantor_2_own_house: '', guarantor_2_current_address: '', guarantor_2_current_street: '', guarantor_2_current_city: '', guarantor_2_current_state: '', guarantor_2_current_postal_code: '', guarantor_2_permanent_address: '', guarantor_2_permanent_street: '', guarantor_2_permanent_city: '', guarantor_2_permanent_state: '', guarantor_2_permanent_postal_code: '', guarantor_2_employment: '', guarantor_2_job_name: '', guarantor_2_job_address: '', guarantor_2_job_income_per_month: '', guarantor_2_business_name: '', guarantor_2_business_address: '', guarantor_2_business_income_per_month: '',
+        guarantor_3_name: '', guarantor_3_phone_number: '', guarantor_3_aadhaar_number: '', guarantor_3_age: '', guarantor_3_gender: '', guarantor_3_marital_status: '', guarantor_3_father_name: '', guarantor_3_mother_name: '', guarantor_3_husband_name: '', guarantor_3_own_house: '', guarantor_3_current_address: '', guarantor_3_current_street: '', guarantor_3_current_city: '', guarantor_3_current_state: '', guarantor_3_current_postal_code: '', guarantor_3_permanent_address: '', guarantor_3_permanent_street: '', guarantor_3_permanent_city: '', guarantor_3_permanent_state: '', guarantor_3_permanent_postal_code: '', guarantor_3_employment: '', guarantor_3_job_name: '', guarantor_3_job_address: '', guarantor_3_job_income_per_month: '', guarantor_3_business_name: '', guarantor_3_business_address: '', guarantor_3_business_income_per_month: '',
         lead_id: formData.lead_id
       });
     } catch (err) {
@@ -407,6 +471,379 @@ export function BusinessLoanForm() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const renderGuarantorForm = (idx) => {
+    const pfx = `guarantor_${idx}_`;
+    const labelPfx = `Guarantor ${idx}`;
+
+    const gGender = formData[`${pfx}gender`];
+    const gMarital = formData[`${pfx}marital_status`];
+    const gEmp = formData[`${pfx}employment`];
+
+    const showGParents = !!(gGender && gMarital);
+    const showGHusband = gGender === 'Female' && gMarital === 'Yes';
+
+    return (
+      <div key={idx} className="space-y-6">
+        {/* Personal Details */}
+        <div>
+          <h4 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+            {labelPfx} Personal Details
+          </h4>
+          <FormGrid columns={3} gap={6}>
+            <TextField
+              name={`${pfx}name`}
+              label={`${labelPfx} Name`}
+              value={formData[`${pfx}name`]}
+              onChange={(val) => updateField(`${pfx}name`, capitalizeWords(val))}
+              required
+              placeholder={`Enter ${labelPfx.toLowerCase()} full name`}
+              error={errors[`${pfx}name`]}
+            />
+
+            <PhoneField
+              name={`${pfx}phone_number`}
+              label="Phone Number"
+              value={formData[`${pfx}phone_number`]}
+              onChange={(val) => updateField(`${pfx}phone_number`, val)}
+              required
+              placeholder="Enter 10-digit mobile number"
+              error={errors[`${pfx}phone_number`]}
+            />
+
+            <AadhaarField
+              name={`${pfx}aadhaar_number`}
+              label="Aadhaar Number"
+              value={formData[`${pfx}aadhaar_number`]}
+              onChange={(val) => updateField(`${pfx}aadhaar_number`, val)}
+              required
+              placeholder="1234 5678 9012"
+              error={errors[`${pfx}aadhaar_number`]}
+            />
+
+            <NumberField
+              name={`${pfx}age`}
+              label="Age"
+              value={formData[`${pfx}age`]}
+              onChange={(val) => updateField(`${pfx}age`, val)}
+              required
+              min={18}
+              max={60}
+              maxLength={2}
+              placeholder="e.g. 35"
+              error={errors[`${pfx}age`]}
+            />
+
+            <SelectField
+              name={`${pfx}gender`}
+              label="Gender"
+              value={formData[`${pfx}gender`]}
+              onChange={(val) => updateField(`${pfx}gender`, val)}
+              required
+              placeholder="Select gender"
+              options={[
+                { label: 'Male', value: 'Male' },
+                { label: 'Female', value: 'Female' },
+                { label: 'Other', value: 'Other' }
+              ]}
+              error={errors[`${pfx}gender`]}
+            />
+
+            <RadioGroup
+              name={`${pfx}marital_status`}
+              label="Marital Status"
+              value={formData[`${pfx}marital_status`]}
+              onChange={(val) => updateField(`${pfx}marital_status`, val)}
+              required
+              direction="horizontal"
+              options={[
+                { label: 'Yes', value: 'Yes' },
+                { label: 'No', value: 'No' }
+              ]}
+              error={errors[`${pfx}marital_status`]}
+            />
+
+            {showGParents && (
+              <>
+                <TextField
+                  name={`${pfx}father_name`}
+                  label="Father Name"
+                  value={formData[`${pfx}father_name`]}
+                  onChange={(val) => updateField(`${pfx}father_name`, capitalizeWords(val))}
+                  required
+                  placeholder="Enter father full name"
+                  error={errors[`${pfx}father_name`]}
+                />
+
+                <TextField
+                  name={`${pfx}mother_name`}
+                  label="Mother Name"
+                  value={formData[`${pfx}mother_name`]}
+                  onChange={(val) => updateField(`${pfx}mother_name`, capitalizeWords(val))}
+                  required
+                  placeholder="Enter mother full name"
+                  error={errors[`${pfx}mother_name`]}
+                />
+              </>
+            )}
+
+            {showGHusband && (
+              <TextField
+                name={`${pfx}husband_name`}
+                label="Husband Name"
+                value={formData[`${pfx}husband_name`]}
+                onChange={(val) => updateField(`${pfx}husband_name`, capitalizeWords(val))}
+                required
+                placeholder="Enter husband full name"
+                error={errors[`${pfx}husband_name`]}
+              />
+            )}
+
+            <RadioGroup
+              name={`${pfx}own_house`}
+              label="Own House"
+              value={formData[`${pfx}own_house`]}
+              onChange={(val) => updateField(`${pfx}own_house`, val)}
+              required
+              direction="horizontal"
+              options={[
+                { label: 'Yes', value: 'Yes' },
+                { label: 'No', value: 'No' }
+              ]}
+              error={errors[`${pfx}own_house`]}
+            />
+          </FormGrid>
+        </div>
+
+        {/* Current Address */}
+        <div className="pt-6 border-t border-slate-200">
+          <h4 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+            {labelPfx} Current Address
+          </h4>
+          <FormGrid columns={3} gap={6}>
+            <div className="col-span-3">
+              <TextField
+                name={`${pfx}current_address`}
+                label="Current Address"
+                value={formData[`${pfx}current_address`]}
+                onChange={(val) => updateField(`${pfx}current_address`, capitalizeText(val))}
+                required
+                placeholder={`Enter ${labelPfx.toLowerCase()} current address`}
+                error={errors[`${pfx}current_address`]}
+              />
+            </div>
+
+            <TextField
+              name={`${pfx}current_street`}
+              label="Street"
+              value={formData[`${pfx}current_street`]}
+              onChange={(val) => updateField(`${pfx}current_street`, capitalizeWords(val))}
+              required
+              placeholder="Enter street (only text)"
+              error={errors[`${pfx}current_street`]}
+            />
+
+            <TextField
+              name={`${pfx}current_city`}
+              label="City"
+              value={formData[`${pfx}current_city`]}
+              onChange={(val) => updateField(`${pfx}current_city`, capitalizeWords(val))}
+              required
+              placeholder="Enter city (only text)"
+              error={errors[`${pfx}current_city`]}
+            />
+
+            <TextField
+              name={`${pfx}current_state`}
+              label="State"
+              value={formData[`${pfx}current_state`]}
+              onChange={(val) => updateField(`${pfx}current_state`, capitalizeWords(val))}
+              required
+              placeholder="Enter state (only text)"
+              error={errors[`${pfx}current_state`]}
+            />
+
+            <TextField
+              name={`${pfx}current_postal_code`}
+              label="Postal Code"
+              value={formData[`${pfx}current_postal_code`]}
+              onChange={(val) => updateField(`${pfx}current_postal_code`, val.replace(/\D/g, '').slice(0, 6))}
+              required
+              placeholder="Enter 6-digit postal code"
+              error={errors[`${pfx}current_postal_code`]}
+            />
+          </FormGrid>
+        </div>
+
+        {/* Permanent Address */}
+        <div className="pt-6 border-t border-slate-200">
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="text-base font-bold text-slate-800 flex items-center gap-2">
+              {labelPfx} Permanent Address
+            </h4>
+            <button
+              type="button"
+              onClick={() => {
+                updateField(`${pfx}permanent_address`, capitalizeText(formData[`${pfx}current_address`] || ''));
+                updateField(`${pfx}permanent_street`, capitalizeWords(formData[`${pfx}current_street`] || ''));
+                updateField(`${pfx}permanent_city`, capitalizeWords(formData[`${pfx}current_city`] || ''));
+                updateField(`${pfx}permanent_state`, capitalizeWords(formData[`${pfx}current_state`] || ''));
+                updateField(`${pfx}permanent_postal_code`, formData[`${pfx}current_postal_code`] || '');
+                toast.success(`Copied ${labelPfx} Current Address to Permanent Address`);
+              }}
+              className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer"
+            >
+              Same as {labelPfx} Current Address
+            </button>
+          </div>
+
+          <FormGrid columns={3} gap={6}>
+            <div className="col-span-3">
+              <TextField
+                name={`${pfx}permanent_address`}
+                label="Permanent Address"
+                value={formData[`${pfx}permanent_address`]}
+                onChange={(val) => updateField(`${pfx}permanent_address`, capitalizeText(val))}
+                required
+                placeholder={`Enter ${labelPfx.toLowerCase()} permanent address`}
+                error={errors[`${pfx}permanent_address`]}
+              />
+            </div>
+
+            <TextField
+              name={`${pfx}permanent_street`}
+              label="Street"
+              value={formData[`${pfx}permanent_street`]}
+              onChange={(val) => updateField(`${pfx}permanent_street`, capitalizeWords(val))}
+              required
+              placeholder="Enter street (only text)"
+              error={errors[`${pfx}permanent_street`]}
+            />
+
+            <TextField
+              name={`${pfx}permanent_city`}
+              label="City"
+              value={formData[`${pfx}permanent_city`]}
+              onChange={(val) => updateField(`${pfx}permanent_city`, capitalizeWords(val))}
+              required
+              placeholder="Enter city (only text)"
+              error={errors[`${pfx}permanent_city`]}
+            />
+
+            <TextField
+              name={`${pfx}permanent_state`}
+              label="State"
+              value={formData[`${pfx}permanent_state`]}
+              onChange={(val) => updateField(`${pfx}permanent_state`, capitalizeWords(val))}
+              required
+              placeholder="Enter state (only text)"
+              error={errors[`${pfx}permanent_state`]}
+            />
+
+            <TextField
+              name={`${pfx}permanent_postal_code`}
+              label="Postal Code"
+              value={formData[`${pfx}permanent_postal_code`]}
+              onChange={(val) => updateField(`${pfx}permanent_postal_code`, val.replace(/\D/g, '').slice(0, 6))}
+              required
+              placeholder="Enter 6-digit postal code"
+              error={errors[`${pfx}permanent_postal_code`]}
+            />
+          </FormGrid>
+        </div>
+
+        {/* Employment Details */}
+        <div className="pt-6 border-t border-slate-200">
+          <h4 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+            {labelPfx} Employment Details
+          </h4>
+          <div className="mb-4">
+            <RadioGroup
+              name={`${pfx}employment`}
+              label="Employment"
+              value={formData[`${pfx}employment`]}
+              onChange={(val) => updateField(`${pfx}employment`, val)}
+              required
+              direction="horizontal"
+              options={[
+                { label: 'Job', value: 'Job' },
+                { label: 'Business', value: 'Business' }
+              ]}
+              error={errors[`${pfx}employment`]}
+            />
+          </div>
+
+          {gEmp === 'Job' && (
+            <FormGrid columns={3} gap={6}>
+              <TextField
+                name={`${pfx}job_name`}
+                label="Job Name"
+                value={formData[`${pfx}job_name`]}
+                onChange={(val) => updateField(`${pfx}job_name`, capitalizeWords(val))}
+                required
+                placeholder="Enter job / employer name (only text)"
+                error={errors[`${pfx}job_name`]}
+              />
+
+              <TextField
+                name={`${pfx}job_address`}
+                label="Job Address"
+                value={formData[`${pfx}job_address`]}
+                onChange={(val) => updateField(`${pfx}job_address`, capitalizeText(val))}
+                required
+                placeholder="Enter workplace address"
+                error={errors[`${pfx}job_address`]}
+              />
+
+              <NumberField
+                name={`${pfx}job_income_per_month`}
+                label="Job Income Per Month"
+                value={formData[`${pfx}job_income_per_month`]}
+                onChange={(val) => updateField(`${pfx}job_income_per_month`, val)}
+                required
+                placeholder="e.g. 45000"
+                error={errors[`${pfx}job_income_per_month`]}
+              />
+            </FormGrid>
+          )}
+
+          {gEmp === 'Business' && (
+            <FormGrid columns={3} gap={6}>
+              <TextField
+                name={`${pfx}business_name`}
+                label="Business Name"
+                value={formData[`${pfx}business_name`]}
+                onChange={(val) => updateField(`${pfx}business_name`, capitalizeWords(val))}
+                required
+                placeholder="Enter business name (only text)"
+                error={errors[`${pfx}business_name`]}
+              />
+
+              <TextField
+                name={`${pfx}business_address`}
+                label="Business Address"
+                value={formData[`${pfx}business_address`]}
+                onChange={(val) => updateField(`${pfx}business_address`, capitalizeText(val))}
+                required
+                placeholder="Enter business address"
+                error={errors[`${pfx}business_address`]}
+              />
+
+              <NumberField
+                name={`${pfx}business_income_per_month`}
+                label="Business Income Per Month"
+                value={formData[`${pfx}business_income_per_month`]}
+                onChange={(val) => updateField(`${pfx}business_income_per_month`, val)}
+                required
+                placeholder="e.g. 75000"
+                error={errors[`${pfx}business_income_per_month`]}
+              />
+            </FormGrid>
+          )}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -1165,6 +1602,36 @@ export function BusinessLoanForm() {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Guarantor Section */}
+      <div className="pt-6 border-t border-slate-200">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
+              Guarantor Details <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">3 Required</span>
+            </h3>
+            <p className="text-xs text-slate-500 mt-1">Business loan requires details for exactly 3 guarantors.</p>
+          </div>
+          <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-lg border border-slate-200">
+            {[1, 2, 3].map((gIdx) => (
+              <button
+                key={gIdx}
+                type="button"
+                onClick={() => setActiveGuarantorTab(gIdx)}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+                  activeGuarantorTab === gIdx
+                    ? 'bg-white text-blue-700 shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Guarantor {gIdx}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {renderGuarantorForm(activeGuarantorTab)}
       </div>
 
       <div className="pt-6 border-t border-slate-100 flex items-center justify-end gap-3">

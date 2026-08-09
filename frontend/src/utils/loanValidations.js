@@ -513,6 +513,114 @@ export const validateBusinessLoanForm = (formData = {}) => {
     }
   }
 
+  // Guarantor Validation (Exactly 3 Guarantors required for Business Loan)
+  [1, 2, 3].forEach((idx) => {
+    const pfx = `guarantor_${idx}_`;
+    const labelPfx = `Guarantor ${idx}`;
+
+    const gNameErr = validateApplicantName(formData[`${pfx}name`]);
+    if (gNameErr) errors[`${pfx}name`] = gNameErr.replace('Name', `${labelPfx} Name`);
+
+    if (!formData[`${pfx}phone_number`] || !validateLeadPhone(formData[`${pfx}phone_number`])) {
+      errors[`${pfx}phone_number`] = `Please enter a valid 10-digit mobile number for ${labelPfx}.`;
+    }
+
+    const gAadhaarErr = validateAadhaar(formData[`${pfx}aadhaar_number`]);
+    if (gAadhaarErr) errors[`${pfx}aadhaar_number`] = gAadhaarErr;
+
+    const gAgeErr = validateAge(formData[`${pfx}age`]);
+    if (gAgeErr) errors[`${pfx}age`] = gAgeErr;
+
+    const gGenderErr = validateGender(formData[`${pfx}gender`]);
+    if (gGenderErr) errors[`${pfx}gender`] = gGenderErr;
+
+    const gMaritalErr = validateMaritalStatus(formData[`${pfx}marital_status`]);
+    if (gMaritalErr) errors[`${pfx}marital_status`] = gMaritalErr;
+
+    const gOwnHouseErr = validateOwnHouse(formData[`${pfx}own_house`]);
+    if (gOwnHouseErr) errors[`${pfx}own_house`] = gOwnHouseErr;
+
+    const showGParents = !!(formData[`${pfx}gender`] && formData[`${pfx}marital_status`]);
+    const showGHusband = formData[`${pfx}gender`] === 'Female' && formData[`${pfx}marital_status`] === 'Yes';
+
+    if (showGParents) {
+      const gFatherErr = validateRelativeName(formData[`${pfx}father_name`], `${labelPfx} Father`);
+      if (gFatherErr) errors[`${pfx}father_name`] = gFatherErr;
+
+      const gMotherErr = validateRelativeName(formData[`${pfx}mother_name`], `${labelPfx} Mother`);
+      if (gMotherErr) errors[`${pfx}mother_name`] = gMotherErr;
+    }
+
+    if (showGHusband) {
+      const gHusbandErr = validateRelativeName(formData[`${pfx}husband_name`], `${labelPfx} Husband`);
+      if (gHusbandErr) errors[`${pfx}husband_name`] = gHusbandErr;
+    }
+
+    // Current Address
+    const gCurAddrErr = validateAddressText(formData[`${pfx}current_address`], `${labelPfx} Current Address`);
+    if (gCurAddrErr) errors[`${pfx}current_address`] = gCurAddrErr;
+
+    const gCurStreetErr = validateTextOnlyField(formData[`${pfx}current_street`], `${labelPfx} Current Street`);
+    if (gCurStreetErr) errors[`${pfx}current_street`] = gCurStreetErr;
+
+    const gCurCityErr = validateTextOnlyField(formData[`${pfx}current_city`], `${labelPfx} Current City`);
+    if (gCurCityErr) errors[`${pfx}current_city`] = gCurCityErr;
+
+    const gCurStateErr = validateTextOnlyField(formData[`${pfx}current_state`], `${labelPfx} Current State`);
+    if (gCurStateErr) errors[`${pfx}current_state`] = gCurStateErr;
+
+    const gCurPinErr = validatePostalCode(formData[`${pfx}current_postal_code`], `${labelPfx} Current Postal Code`);
+    if (gCurPinErr) errors[`${pfx}current_postal_code`] = gCurPinErr;
+
+    // Permanent Address
+    const gPermAddrErr = validateAddressText(formData[`${pfx}permanent_address`], `${labelPfx} Permanent Address`);
+    if (gPermAddrErr) errors[`${pfx}permanent_address`] = gPermAddrErr;
+
+    const gPermStreetErr = validateTextOnlyField(formData[`${pfx}permanent_street`], `${labelPfx} Permanent Street`);
+    if (gPermStreetErr) errors[`${pfx}permanent_street`] = gPermStreetErr;
+
+    const gPermCityErr = validateTextOnlyField(formData[`${pfx}permanent_city`], `${labelPfx} Permanent City`);
+    if (gPermCityErr) errors[`${pfx}permanent_city`] = gPermCityErr;
+
+    const gPermStateErr = validateTextOnlyField(formData[`${pfx}permanent_state`], `${labelPfx} Permanent State`);
+    if (gPermStateErr) errors[`${pfx}permanent_state`] = gPermStateErr;
+
+    const gPermPinErr = validatePostalCode(formData[`${pfx}permanent_postal_code`], `${labelPfx} Permanent Postal Code`);
+    if (gPermPinErr) errors[`${pfx}permanent_postal_code`] = gPermPinErr;
+
+    // Employment
+    const gEmpErr = validateRequired(formData[`${pfx}employment`], `${labelPfx} Employment`);
+    if (gEmpErr) {
+      errors[`${pfx}employment`] = gEmpErr;
+    } else if (formData[`${pfx}employment`] === 'Job') {
+      const gJobNameErr = validateTextOnlyField(formData[`${pfx}job_name`], `${labelPfx} Job Name`);
+      if (gJobNameErr) errors[`${pfx}job_name`] = gJobNameErr;
+
+      const gJobAddrErr = validateAddressText(formData[`${pfx}job_address`], `${labelPfx} Job Address`);
+      if (gJobAddrErr) errors[`${pfx}job_address`] = gJobAddrErr;
+
+      const gJobIncomeErr = validateRequired(formData[`${pfx}job_income_per_month`], `${labelPfx} Job Income`);
+      if (gJobIncomeErr) {
+        errors[`${pfx}job_income_per_month`] = gJobIncomeErr;
+      } else if (Number(formData[`${pfx}job_income_per_month`]) <= 0) {
+        errors[`${pfx}job_income_per_month`] = 'Income must be greater than 0.';
+      }
+    } else if (formData[`${pfx}employment`] === 'Business') {
+      const gBizNameErr = validateTextOnlyField(formData[`${pfx}business_name`], `${labelPfx} Business Name`);
+      if (gBizNameErr) errors[`${pfx}business_name`] = gBizNameErr;
+
+      const gBizAddrErr = validateAddressText(formData[`${pfx}business_address`], `${labelPfx} Business Address`);
+      if (gBizAddrErr) errors[`${pfx}business_address`] = gBizAddrErr;
+
+      const gBizIncomeErr = validateRequired(formData[`${pfx}business_income_per_month`], `${labelPfx} Business Income`);
+      if (gBizIncomeErr) {
+        errors[`${pfx}business_income_per_month`] = gBizIncomeErr;
+      } else if (Number(formData[`${pfx}business_income_per_month`]) <= 0) {
+        errors[`${pfx}business_income_per_month`] = 'Income must be greater than 0.';
+      }
+    }
+  });
+
   return {
     isValid: Object.keys(errors).length === 0,
     errors
