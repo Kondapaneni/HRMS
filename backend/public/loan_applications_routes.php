@@ -66,22 +66,47 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
             $createdById = isset($user['id']) ? (string)$user['id'] : (isset($user['user_id']) ? (string)$user['user_id'] : (isset($user['sub']) ? (string)$user['sub'] : null));
         }
 
-        $applicationId = 'LA' . random_int(100000, 999999);
+        $existingDraft = null;
+        if (!empty($leadId)) {
+            $checkStmt = $conn->prepare('
+                SELECT id, application_id FROM public.loan_applications
+                WHERE lead_id = ? AND loan_type = ? AND status = \'Draft\'
+                ORDER BY created_at DESC
+                LIMIT 1
+            ');
+            $checkStmt->execute([$leadId, $loanType]);
+            $existingDraft = $checkStmt->fetch(PDO::FETCH_ASSOC);
+        }
 
-        $stmt = $conn->prepare('
-            INSERT INTO public.loan_applications (application_id, lead_id, loan_type, status, form_data, created_by, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?::jsonb, ?, NOW(), NOW())
-            RETURNING id, application_id, lead_id, loan_type, status, form_data, created_at
-        ');
-        
-        $stmt->execute([
-            $applicationId,
-            $leadId,
-            $loanType,
-            $status,
-            $jsonPayload,
-            $createdById
-        ]);
+        if ($existingDraft) {
+            $stmt = $conn->prepare('
+                UPDATE public.loan_applications
+                SET status = ?, form_data = ?::jsonb, updated_at = NOW()
+                WHERE id = ?
+                RETURNING id, application_id, lead_id, loan_type, status, form_data, created_at, updated_at
+            ');
+            $stmt->execute([
+                $status,
+                $jsonPayload,
+                $existingDraft['id']
+            ]);
+        } else {
+            $applicationId = 'LA' . random_int(100000, 999999);
+            $stmt = $conn->prepare('
+                INSERT INTO public.loan_applications (application_id, lead_id, loan_type, status, form_data, created_by, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?::jsonb, ?, NOW(), NOW())
+                RETURNING id, application_id, lead_id, loan_type, status, form_data, created_at, updated_at
+            ');
+            
+            $stmt->execute([
+                $applicationId,
+                $leadId,
+                $loanType,
+                $status,
+                $jsonPayload,
+                $createdById
+            ]);
+        }
 
         $application = $stmt->fetch(PDO::FETCH_ASSOC);
 
