@@ -40,12 +40,23 @@ export function BusinessLoanForm() {
     phone_number: initialPhone ? String(initialPhone).replace(/\D/g, '').slice(0, 10) : '',
     age: '',
     gender: '',
-    marital_status: ''
+    marital_status: '',
+    father_name: '',
+    mother_name: '',
+    husband_name: ''
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDrafting, setIsDrafting] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(false);
+
+  // Conditional field visibility logic:
+  // Male + Yes = Father and Mother Name only
+  // Male + No = Father and Mother Name only
+  // Female + No = Father and Mother Name only
+  // Female + Yes = Father and Mother and Husband Name
+  const showParents = !!(formData.gender && formData.marital_status);
+  const showHusband = formData.gender === 'Female' && formData.marital_status === 'Yes';
 
   // Load saved application / draft JSON data directly from database
   const loadSavedDataFromDB = async (showToast = false) => {
@@ -62,6 +73,9 @@ export function BusinessLoanForm() {
           if (savedData.age) updateField('age', savedData.age);
           if (savedData.gender) updateField('gender', savedData.gender);
           if (savedData.marital_status) updateField('marital_status', savedData.marital_status);
+          if (savedData.father_name) updateField('father_name', capitalizeWords(savedData.father_name));
+          if (savedData.mother_name) updateField('mother_name', capitalizeWords(savedData.mother_name));
+          if (savedData.husband_name) updateField('husband_name', capitalizeWords(savedData.husband_name));
 
           if (showToast) {
             toast.success(`Loaded latest ${latest.status.toLowerCase()} from database!`);
@@ -144,7 +158,10 @@ export function BusinessLoanForm() {
         phone_number: '',
         age: '',
         gender: '',
-        marital_status: ''
+        marital_status: '',
+        father_name: '',
+        mother_name: '',
+        husband_name: ''
       });
     } catch (err) {
       console.error('Error submitting loan application:', err);
@@ -218,6 +235,42 @@ export function BusinessLoanForm() {
           ]}
           error={errors.marital_status}
         />
+
+        {showParents && (
+          <>
+            <TextField
+              name="father_name"
+              label="Father Name"
+              value={formData.father_name}
+              onChange={(val) => updateField('father_name', capitalizeWords(val))}
+              required
+              placeholder="Enter father full name"
+              error={errors.father_name}
+            />
+
+            <TextField
+              name="mother_name"
+              label="Mother Name"
+              value={formData.mother_name}
+              onChange={(val) => updateField('mother_name', capitalizeWords(val))}
+              required
+              placeholder="Enter mother full name"
+              error={errors.mother_name}
+            />
+          </>
+        )}
+
+        {showHusband && (
+          <TextField
+            name="husband_name"
+            label="Husband Name"
+            value={formData.husband_name}
+            onChange={(val) => updateField('husband_name', capitalizeWords(val))}
+            required
+            placeholder="Enter husband full name"
+            error={errors.husband_name}
+          />
+        )}
       </FormGrid>
 
       <div className="pt-6 border-t border-slate-100 flex items-center justify-end gap-3">

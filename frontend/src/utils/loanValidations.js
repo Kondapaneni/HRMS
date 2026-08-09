@@ -58,6 +58,22 @@ export const validateApplicantName = (name) => {
 };
 
 /**
+ * Validate Relative Full Name (Father, Mother, Husband) - Text only, Title Cased
+ */
+export const validateRelativeName = (name, relativeType = 'Relative') => {
+  const reqErr = validateRequired(name, `${relativeType} Name`);
+  if (reqErr) return reqErr;
+  const clean = String(name).trim();
+  if (clean.length < 2) {
+    return `${relativeType} Name must be at least 2 letters.`;
+  }
+  if (!/^[a-zA-Z\s]+$/.test(clean)) {
+    return `${relativeType} Name can only contain letters and spaces.`;
+  }
+  return null;
+};
+
+/**
  * Validate Applicant Age (Minimum 18, Maximum 60)
  */
 export const validateAge = (age) => {
@@ -205,7 +221,7 @@ export const validateLoanAmount = (amount, min = 5000, max = 100000000) => {
 // ==========================================
 
 /**
- * Validate Business Loan Form Data
+ * Validate Business Loan Form Data with Conditional Father/Mother/Husband logic
  */
 export const validateBusinessLoanForm = (formData = {}) => {
   const errors = {};
@@ -227,6 +243,27 @@ export const validateBusinessLoanForm = (formData = {}) => {
 
   const maritalErr = validateMaritalStatus(formData.marital_status);
   if (maritalErr) errors.marital_status = maritalErr;
+
+  // Conditional Logic:
+  // Male + Yes = Father and Mother Name
+  // Male + No = Father and Mother Name
+  // Female + No = Father and Mother Name
+  // Female + Yes = Father and Mother and Husband Name
+  const showParents = !!(formData.gender && formData.marital_status);
+  const showHusband = formData.gender === 'Female' && formData.marital_status === 'Yes';
+
+  if (showParents) {
+    const fatherErr = validateRelativeName(formData.father_name, 'Father');
+    if (fatherErr) errors.father_name = fatherErr;
+
+    const motherErr = validateRelativeName(formData.mother_name, 'Mother');
+    if (motherErr) errors.mother_name = motherErr;
+  }
+
+  if (showHusband) {
+    const husbandErr = validateRelativeName(formData.husband_name, 'Husband');
+    if (husbandErr) errors.husband_name = husbandErr;
+  }
 
   if (formData.gstin) {
     const gstinErr = validateGSTIN(formData.gstin);
