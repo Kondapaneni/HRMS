@@ -181,16 +181,16 @@ export function BusinessLoanPaperView({ formData = {}, application = {}, onBack 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-6 pb-12">
       {/* Top Action Toolbar (Hidden in Print) */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-xs print:hidden">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3.5 rounded-lg border border-slate-200 shadow-xs print:hidden">
+        <div className="flex items-center gap-2.5">
           <button
             type="button"
             onClick={onBack}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-slate-900 text-white hover:bg-slate-800 transition-all cursor-pointer shadow-sm"
+            className="inline-flex items-center justify-center rounded-md text-xs sm:text-sm font-medium bg-slate-900 text-white hover:bg-slate-800 h-9 px-3.5 transition-colors gap-1.5 shadow-sm cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" /> Back to Applications
           </button>
-          <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 text-blue-800 border border-blue-200">
+          <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-blue-50 text-blue-800 border border-blue-200">
             <Lock className="w-3.5 h-3.5 text-blue-600" /> Read-Only Mode
           </span>
         </div>
@@ -199,42 +199,42 @@ export function BusinessLoanPaperView({ formData = {}, application = {}, onBack 
           <button
             type="button"
             onClick={() => window.print()}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-white text-blue-700 border border-blue-300 hover:bg-blue-50 transition-all cursor-pointer shadow-2xs"
+            className="inline-flex items-center justify-center rounded-md text-xs sm:text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-9 px-3.5 transition-colors gap-1.5 shadow-sm cursor-pointer"
           >
-            <Printer className="w-4 h-4 text-blue-600" /> Print Application Form
+            <Printer className="w-4 h-4" /> Print Application Form
           </button>
         </div>
       </div>
 
       {/* Main Physical Paper Document View */}
-      <div className="bg-white rounded-2xl border-2 border-slate-300/90 shadow-lg overflow-hidden print:shadow-none print:border-0 print:rounded-none">
+      <div className="bg-white rounded-lg border border-slate-300 shadow-sm overflow-hidden print:shadow-none print:border-0 print:rounded-none">
         
         {/* Paper Form Header (Acme HRMS & Loans Colors) */}
-        <div className="p-6 sm:p-8 bg-gradient-to-r from-slate-900 via-slate-800 to-blue-950 text-white border-b-4 border-blue-600 relative">
+        <div className="p-6 sm:p-7 bg-gradient-to-r from-slate-900 via-slate-800 to-blue-950 text-white border-b-4 border-blue-600 relative">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="space-y-1.5">
               <div className="flex items-center gap-2 text-blue-400 font-bold text-xs uppercase tracking-widest">
                 <Building2 className="w-4 h-4 text-blue-400" /> Acme Financial Services • Credit Origination
               </div>
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white uppercase">
+              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white uppercase">
                 Business Loan Application Form
               </h1>
               <p className="text-xs text-slate-300">
-                Official Origination Record • Form Code: BL-ORIG-2026
+                Official Commercial Credit Record • Form Code: BL-ORIG-2026
               </p>
             </div>
 
             {/* Official Status Box */}
-            <div className="flex flex-col items-start md:items-end gap-1.5 bg-white/10 backdrop-blur-md p-3.5 rounded-xl border border-white/20 text-xs">
+            <div className="flex flex-col items-start md:items-end gap-1.5 bg-white/10 backdrop-blur-md p-3 rounded-md border border-white/20 text-xs">
               <div className="flex items-center gap-2">
                 <span className="text-slate-300 font-semibold uppercase text-[10px]">App ID:</span>
-                <span className="font-mono font-bold text-white bg-blue-600/80 px-2 py-0.5 rounded">
+                <span className="font-mono font-bold text-white bg-blue-600/90 px-2 py-0.5 rounded-sm">
                   {appId}
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-slate-300 font-semibold uppercase text-[10px]">Status:</span>
-                <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-emerald-500 text-white">
+                <span className="px-2 py-0.5 rounded-sm text-[10px] font-bold uppercase tracking-wider bg-emerald-500 text-white">
                   {status}
                 </span>
               </div>
@@ -246,12 +246,12 @@ export function BusinessLoanPaperView({ formData = {}, application = {}, onBack 
         </div>
 
         {/* Paper Sheet Form Fields Body */}
-        <div className="p-6 sm:p-10 space-y-8 bg-white text-slate-900">
+        <div className="p-6 sm:p-8 space-y-8 bg-white text-slate-900">
           
           {/* ================= 1. APPLICANT PERSONAL DETAILS ================= */}
           <section className="space-y-3">
             <div className="flex items-center gap-2 border-b-2 border-slate-900 pb-1.5">
-              <span className="w-5 h-5 rounded-full bg-slate-900 text-white flex items-center justify-center text-[11px] font-bold">1</span>
+              <span className="w-5 h-5 rounded bg-slate-900 text-white flex items-center justify-center text-[11px] font-bold">1</span>
               <h2 className="text-sm sm:text-base font-black text-slate-900 uppercase tracking-wide">
                 Applicant Personal Details
               </h2>
@@ -281,7 +281,7 @@ export function BusinessLoanPaperView({ formData = {}, application = {}, onBack 
           {/* ================= 2. RESIDENTIAL ADDRESSES ================= */}
           <section className="space-y-4">
             <div className="flex items-center gap-2 border-b-2 border-slate-900 pb-1.5">
-              <span className="w-5 h-5 rounded-full bg-slate-900 text-white flex items-center justify-center text-[11px] font-bold">2</span>
+              <span className="w-5 h-5 rounded bg-slate-900 text-white flex items-center justify-center text-[11px] font-bold">2</span>
               <h2 className="text-sm sm:text-base font-black text-slate-900 uppercase tracking-wide">
                 Applicant Residential Address Details
               </h2>
@@ -319,7 +319,7 @@ export function BusinessLoanPaperView({ formData = {}, application = {}, onBack 
           {/* ================= 3. EMPLOYMENT & INCOME ================= */}
           <section className="space-y-3">
             <div className="flex items-center gap-2 border-b-2 border-slate-900 pb-1.5">
-              <span className="w-5 h-5 rounded-full bg-slate-900 text-white flex items-center justify-center text-[11px] font-bold">3</span>
+              <span className="w-5 h-5 rounded bg-slate-900 text-white flex items-center justify-center text-[11px] font-bold">3</span>
               <h2 className="text-sm sm:text-base font-black text-slate-900 uppercase tracking-wide">
                 Employment & Monthly Income Details
               </h2>
@@ -356,7 +356,7 @@ export function BusinessLoanPaperView({ formData = {}, application = {}, onBack 
           {/* ================= 4. CO-APPLICANT DETAILS ================= */}
           <section className="space-y-3">
             <div className="flex items-center gap-2 border-b-2 border-slate-900 pb-1.5">
-              <span className="w-5 h-5 rounded-full bg-slate-900 text-white flex items-center justify-center text-[11px] font-bold">4</span>
+              <span className="w-5 h-5 rounded bg-slate-900 text-white flex items-center justify-center text-[11px] font-bold">4</span>
               <h2 className="text-sm sm:text-base font-black text-slate-900 uppercase tracking-wide">
                 Co-Applicant Details
               </h2>
@@ -451,49 +451,55 @@ export function BusinessLoanPaperView({ formData = {}, application = {}, onBack 
 
           {/* ================= 5. GUARANTOR DETAILS (3 REQUIRED) ================= */}
           <section className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-slate-900 pb-1.5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-slate-900 pb-2">
               <div className="flex items-center gap-2">
-                <span className="w-5 h-5 rounded-full bg-slate-900 text-white flex items-center justify-center text-[11px] font-bold">5</span>
+                <span className="w-5 h-5 rounded bg-slate-900 text-white flex items-center justify-center text-[11px] font-bold">5</span>
                 <h2 className="text-sm sm:text-base font-black text-slate-900 uppercase tracking-wide">
                   Guarantors Details (3 Required)
                 </h2>
               </div>
 
-              {/* Guarantor Tabs for Screen Inspection */}
-              <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200 print:hidden">
-                {[1, 2, 3].map((gIdx) => (
-                  <button
-                    key={gIdx}
-                    type="button"
-                    onClick={() => setActiveGuarantorTab(gIdx)}
-                    className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                      activeGuarantorTab === gIdx
-                        ? 'bg-blue-600 text-white shadow-xs'
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200'
-                    }`}
-                  >
-                    Guarantor {gIdx} {formData[`guarantor_${gIdx}_name`] ? `(${formData[`guarantor_${gIdx}_name`].split(' ')[0]})` : ''}
-                  </button>
-                ))}
+              {/* Guarantor Tabs Styled Like Add Lead Button */}
+              <div className="flex flex-wrap items-center gap-2 print:hidden">
+                {[1, 2, 3].map((gIdx) => {
+                  const isActive = activeGuarantorTab === gIdx;
+                  const gName = formData[`guarantor_${gIdx}_name`];
+                  const shortName = gName ? ` (${gName.split(' ')[0]})` : '';
+
+                  return (
+                    <button
+                      key={gIdx}
+                      type="button"
+                      onClick={() => setActiveGuarantorTab(gIdx)}
+                      className={`inline-flex items-center justify-center rounded-md text-xs sm:text-sm font-medium h-9 px-3.5 transition-colors gap-1.5 cursor-pointer shadow-xs ${
+                        isActive
+                          ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm'
+                          : 'bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 border border-slate-300'
+                      }`}
+                    >
+                      Guarantor {gIdx}{shortName}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
             {/* Active Guarantor Form in Screen View */}
-            <div className="p-4 sm:p-5 rounded-xl border border-slate-200 bg-slate-50/40">
+            <div className="p-4 sm:p-5 rounded-md border border-slate-200 bg-slate-50/50">
               {renderGuarantorPaper(activeGuarantorTab)}
             </div>
 
             {/* Print View: Render all 3 Guarantors sequentially when printing */}
             <div className="hidden print:block space-y-6 pt-4">
-              <div className="p-4 border border-slate-300 rounded-xl">
+              <div className="p-4 border border-slate-300 rounded-md">
                 <h3 className="font-bold text-sm uppercase mb-3 text-blue-950">Guarantor 1 Details</h3>
                 {renderGuarantorPaper(1)}
               </div>
-              <div className="p-4 border border-slate-300 rounded-xl">
+              <div className="p-4 border border-slate-300 rounded-md">
                 <h3 className="font-bold text-sm uppercase mb-3 text-blue-950">Guarantor 2 Details</h3>
                 {renderGuarantorPaper(2)}
               </div>
-              <div className="p-4 border border-slate-300 rounded-xl">
+              <div className="p-4 border border-slate-300 rounded-md">
                 <h3 className="font-bold text-sm uppercase mb-3 text-blue-950">Guarantor 3 Details</h3>
                 {renderGuarantorPaper(3)}
               </div>
@@ -503,13 +509,13 @@ export function BusinessLoanPaperView({ formData = {}, application = {}, onBack 
           {/* ================= 6. DECLARATION & SIGNATURES ================= */}
           <section className="space-y-4 pt-6 border-t-2 border-slate-900">
             <div className="flex items-center gap-2 pb-1">
-              <span className="w-5 h-5 rounded-full bg-slate-900 text-white flex items-center justify-center text-[11px] font-bold">6</span>
+              <span className="w-5 h-5 rounded bg-slate-900 text-white flex items-center justify-center text-[11px] font-bold">6</span>
               <h2 className="text-sm sm:text-base font-black text-slate-900 uppercase tracking-wide">
                 Declaration & Signatures
               </h2>
             </div>
 
-            <p className="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3.5 rounded-lg border border-slate-200">
+            <p className="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3.5 rounded-md border border-slate-200">
               I / We hereby declare that all the information, particulars, and details provided in this Business Loan Application Form are true, complete, and authentic to the best of my/our knowledge and belief.
             </p>
 
@@ -534,7 +540,7 @@ export function BusinessLoanPaperView({ formData = {}, application = {}, onBack 
         </div>
 
         {/* Paper Document Footer */}
-        <div className="p-4 bg-slate-100 border-t border-slate-200 text-center text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2">
+        <div className="p-3.5 bg-slate-100 border-t border-slate-200 text-center text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2">
           <span>Acme HRMS Origination Module • Secure Commercial Record</span>
           <span className="font-mono text-[11px] text-slate-400">DOC-REF: {appId} • {formattedDate}</span>
         </div>
@@ -545,7 +551,7 @@ export function BusinessLoanPaperView({ formData = {}, application = {}, onBack 
         <button
           type="button"
           onClick={onBack}
-          className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold bg-slate-900 text-white hover:bg-slate-800 transition-all cursor-pointer shadow-sm"
+          className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-slate-900 text-white hover:bg-slate-800 h-10 px-6 transition-colors gap-2 shadow-sm cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" /> Back to Applications List
         </button>
