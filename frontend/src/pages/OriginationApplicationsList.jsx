@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getLoanApplications } from '../services/loanServices';
 import { Search, CheckCircle2, Briefcase, Loader2, Clock, User, Phone, MapPin, X, Eye } from 'lucide-react';
 import { format } from 'date-fns';
+import { motion, AnimatePresence } from 'framer-motion';
 import OriginationMobileApplicationsList from './OriginationMobileApplicationsList';
 
 const OriginationApplicationsList = () => {
@@ -187,119 +188,139 @@ const OriginationApplicationsList = () => {
         )}
       </div>
 
-      {/* Desktop Application Details Modal */}
-      {selectedApp && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-2xl border border-slate-200">
-            <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-              <div>
-                <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded border border-blue-100">
-                  {selectedApp.application_id || 'LA-DRAFT'}
-                </span>
-                <h3 className="text-lg font-bold text-slate-900 mt-1">
-                  {selectedApp.applicant_name || selectedApp.form_data?.applicant_name}
-                </h3>
-              </div>
-              <button
-                onClick={() => setSelectedApp(null)}
-                className="p-1.5 rounded-md bg-slate-200 text-slate-600 hover:bg-slate-300 transition-colors cursor-pointer"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className="p-6 overflow-y-auto space-y-6 text-sm">
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex justify-between items-center">
+      {/* Desktop Application Details Modal (Sidebar) */}
+      <AnimatePresence>
+        {selectedApp && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedApp(null)}
+              className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-50 cursor-pointer hidden md:block"
+            />
+            
+            {/* Sidebar */}
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed top-0 right-0 h-full w-[400px] bg-white shadow-2xl z-50 flex flex-col overflow-hidden border-l border-slate-100 hidden md:flex"
+            >
+              {/* Header */}
+              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-white">
                 <div>
-                  <p className="text-xs text-slate-500 font-medium uppercase">Loan Type</p>
-                  <p className="font-bold text-slate-900 text-base">{selectedApp.loan_type}</p>
+                  <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded border border-blue-100">
+                    {selectedApp.application_id || 'LA-DRAFT'}
+                  </span>
+                  <h3 className="text-lg font-bold text-slate-900 mt-1">
+                    {selectedApp.applicant_name || selectedApp.form_data?.applicant_name}
+                  </h3>
                 </div>
-                <span className={`px-2.5 py-1 rounded text-xs font-medium border ${
-                  selectedApp.status === 'Submitted' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'
-                }`}>
-                  {selectedApp.status}
-                </span>
+                <button
+                  onClick={() => setSelectedApp(null)}
+                  className="p-2 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                >
+                  <X size={20} />
+                </button>
               </div>
 
-              {/* Applicant Personal Details */}
-              <div className="space-y-3">
-                <h4 className="font-semibold text-slate-900 text-sm flex items-center gap-2 border-b border-slate-100 pb-2">
-                  <User size={15} className="text-blue-600" /> Primary Applicant Details
-                </h4>
-                <div className="grid grid-cols-2 gap-4 text-xs">
+              {/* Scrollable Content */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-6 text-sm">
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex justify-between items-center">
                   <div>
-                    <p className="text-slate-500 font-medium">Applicant Name</p>
-                    <p className="font-semibold text-slate-800">{selectedApp.form_data?.applicant_name || selectedApp.applicant_name}</p>
+                    <p className="text-xs text-slate-500 font-medium uppercase">Loan Type</p>
+                    <p className="font-bold text-slate-900 text-base">{selectedApp.loan_type}</p>
                   </div>
-                  <div>
-                    <p className="text-slate-500 font-medium">Phone Number</p>
-                    <p className="font-semibold text-slate-800">{selectedApp.form_data?.phone_number || selectedApp.phone_number}</p>
-                  </div>
-                  <div>
-                    <p className="text-slate-500 font-medium">Aadhaar Number</p>
-                    <p className="font-semibold text-slate-800">{selectedApp.form_data?.aadhaar_number || 'N/A'}</p>
-                  </div>
-                  <div>
-                    <p className="text-slate-500 font-medium">Age / Gender</p>
-                    <p className="font-semibold text-slate-800">{selectedApp.form_data?.age || 'N/A'} / {selectedApp.form_data?.gender || 'N/A'}</p>
-                  </div>
+                  <span className={`px-2.5 py-1 rounded text-xs font-medium border ${
+                    selectedApp.status === 'Submitted' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'
+                  }`}>
+                    {selectedApp.status}
+                  </span>
                 </div>
-              </div>
 
-              {/* Co-Applicant Details */}
-              {selectedApp.form_data?.has_co_applicant === 'Yes' && (
-                <div className="space-y-3 pt-2">
+                {/* Applicant Personal Details */}
+                <div className="space-y-3">
                   <h4 className="font-semibold text-slate-900 text-sm flex items-center gap-2 border-b border-slate-100 pb-2">
-                    <User size={15} className="text-indigo-600" /> Co-Applicant Details
+                    <User size={15} className="text-blue-600" /> Primary Applicant Details
                   </h4>
                   <div className="grid grid-cols-2 gap-4 text-xs">
                     <div>
-                      <p className="text-slate-500 font-medium">Co-Applicant Name</p>
-                      <p className="font-semibold text-slate-800">{selectedApp.form_data.co_applicant_name || 'N/A'}</p>
-                    </div>
-                    <div>
-                      <p className="text-slate-500 font-medium">Relation with Applicant</p>
-                      <p className="font-semibold text-slate-800">{selectedApp.form_data.co_relation_with_applicant || 'N/A'}</p>
+                      <p className="text-slate-500 font-medium">Applicant Name</p>
+                      <p className="font-semibold text-slate-800">{selectedApp.form_data?.applicant_name || selectedApp.applicant_name}</p>
                     </div>
                     <div>
                       <p className="text-slate-500 font-medium">Phone Number</p>
-                      <p className="font-semibold text-slate-800">{selectedApp.form_data.co_phone_number || 'N/A'}</p>
+                      <p className="font-semibold text-slate-800">{selectedApp.form_data?.phone_number || selectedApp.phone_number}</p>
                     </div>
                     <div>
                       <p className="text-slate-500 font-medium">Aadhaar Number</p>
-                      <p className="font-semibold text-slate-800">{selectedApp.form_data.co_aadhaar_number || 'N/A'}</p>
+                      <p className="font-semibold text-slate-800">{selectedApp.form_data?.aadhaar_number || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <p className="text-slate-500 font-medium">Age / Gender</p>
+                      <p className="font-semibold text-slate-800">{selectedApp.form_data?.age || 'N/A'} / {selectedApp.form_data?.gender || 'N/A'}</p>
                     </div>
                   </div>
                 </div>
-              )}
 
-              {/* Guarantors */}
-              <div className="space-y-3 pt-2">
-                <h4 className="font-semibold text-slate-900 text-sm flex items-center gap-2 border-b border-slate-100 pb-2">
-                  <User size={15} className="text-emerald-600" /> Guarantors (3 Required)
-                </h4>
-                <div className="space-y-2">
-                  {[1, 2, 3].map((gIdx) => {
-                    const pfx = `guarantor_${gIdx}_`;
-                    const gName = selectedApp.form_data?.[`${pfx}name`];
-                    const gPhone = selectedApp.form_data?.[`${pfx}phone_number`];
-                    const gAadhaar = selectedApp.form_data?.[`${pfx}aadhaar_number`];
-
-                    if (!gName) return null;
-
-                    return (
-                      <div key={gIdx} className="bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-1 text-xs">
-                        <p className="font-bold text-slate-900">Guarantor {gIdx}: {gName}</p>
-                        <p className="text-slate-600">Phone: {gPhone || 'N/A'} | Aadhaar: {gAadhaar || 'N/A'}</p>
+                {/* Co-Applicant Details */}
+                {selectedApp.form_data?.has_co_applicant === 'Yes' && (
+                  <div className="space-y-3 pt-2">
+                    <h4 className="font-semibold text-slate-900 text-sm flex items-center gap-2 border-b border-slate-100 pb-2">
+                      <User size={15} className="text-indigo-600" /> Co-Applicant Details
+                    </h4>
+                    <div className="grid grid-cols-2 gap-4 text-xs">
+                      <div>
+                        <p className="text-slate-500 font-medium">Co-Applicant Name</p>
+                        <p className="font-semibold text-slate-800">{selectedApp.form_data.co_applicant_name || 'N/A'}</p>
                       </div>
-                    );
-                  })}
+                      <div>
+                        <p className="text-slate-500 font-medium">Relation with Applicant</p>
+                        <p className="font-semibold text-slate-800">{selectedApp.form_data.co_relation_with_applicant || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-slate-500 font-medium">Phone Number</p>
+                        <p className="font-semibold text-slate-800">{selectedApp.form_data.co_phone_number || 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-slate-500 font-medium">Aadhaar Number</p>
+                        <p className="font-semibold text-slate-800">{selectedApp.form_data.co_aadhaar_number || 'N/A'}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Guarantors */}
+                <div className="space-y-3 pt-2">
+                  <h4 className="font-semibold text-slate-900 text-sm flex items-center gap-2 border-b border-slate-100 pb-2">
+                    <User size={15} className="text-emerald-600" /> Guarantors (3 Required)
+                  </h4>
+                  <div className="space-y-2">
+                    {[1, 2, 3].map((gIdx) => {
+                      const pfx = `guarantor_${gIdx}_`;
+                      const gName = selectedApp.form_data?.[`${pfx}name`];
+                      const gPhone = selectedApp.form_data?.[`${pfx}phone_number`];
+                      const gAadhaar = selectedApp.form_data?.[`${pfx}aadhaar_number`];
+
+                      if (!gName) return null;
+
+                      return (
+                        <div key={gIdx} className="bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-1 text-xs">
+                          <p className="font-bold text-slate-900">Guarantor {gIdx}: {gName}</p>
+                          <p className="text-slate-600">Phone: {gPhone || 'N/A'} | Aadhaar: {gAadhaar || 'N/A'}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </>
   );
 };
