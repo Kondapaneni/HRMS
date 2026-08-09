@@ -179,7 +179,7 @@ export function BusinessLoanPaperView({ formData = {}, application = {}, onBack 
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto space-y-6 pb-12">
+    <div className="w-full max-w-full space-y-6 pb-12">
       {/* Top Action Toolbar (Hidden in Print) */}
       <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3.5 rounded-lg border border-slate-200 shadow-xs print:hidden">
         <div className="flex items-center gap-2.5">
