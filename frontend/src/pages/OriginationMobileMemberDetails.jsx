@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Phone, MapPin, Calendar, Briefcase, CheckCircle2, ArrowRight, Lock, Loader2 } from 'lucide-react';
 import { useNavigate, useLocation, useParams, Link } from 'react-router-dom';
 import { format } from 'date-fns';
+import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { getLoanApplications, getLeads } from '../services/loanServices';
 
