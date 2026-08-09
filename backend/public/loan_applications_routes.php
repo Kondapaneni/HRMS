@@ -53,12 +53,12 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
 
         $jsonPayload = json_encode($formData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         
-        // Resolve user ID safely across object or array representations
+        // Resolve user ID safely as string (supports both UUID strings and integer IDs)
         $createdById = null;
         if (is_object($user)) {
-            $createdById = $user->id ?? $user->user_id ?? null;
+            $createdById = isset($user->id) ? (string)$user->id : (isset($user->user_id) ? (string)$user->user_id : null);
         } elseif (is_array($user)) {
-            $createdById = $user['id'] ?? $user['user_id'] ?? $user['sub'] ?? null;
+            $createdById = isset($user['id']) ? (string)$user['id'] : (isset($user['user_id']) ? (string)$user['user_id'] : (isset($user['sub']) ? (string)$user['sub'] : null));
         }
 
         $stmt = $conn->prepare('
@@ -113,10 +113,10 @@ $app->get('/api/loans/applications', function (Request $request, Response $respo
         $userId = null;
         $userRole = 'employee';
         if (is_object($user)) {
-            $userId = $user->id ?? null;
+            $userId = isset($user->id) ? (string)$user->id : null;
             $userRole = $user->role ?? 'employee';
         } elseif (is_array($user)) {
-            $userId = $user['id'] ?? null;
+            $userId = isset($user['id']) ? (string)$user['id'] : null;
             $userRole = $user['role'] ?? 'employee';
         }
 

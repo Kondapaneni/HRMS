@@ -32,17 +32,19 @@ try {
             phone_number VARCHAR(50) NOT NULL,
             status VARCHAR(50) NOT NULL DEFAULT 'Submitted',
             form_data JSONB NOT NULL DEFAULT '{}'::jsonb,
-            created_by INT,
+            created_by VARCHAR(255),
             created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
         );
+
+        ALTER TABLE public.loan_applications ALTER COLUMN created_by TYPE VARCHAR(255) USING created_by::text;
 
         CREATE INDEX IF NOT EXISTS idx_loan_applications_created_by ON public.loan_applications(created_by);
         CREATE INDEX IF NOT EXISTS idx_loan_applications_loan_type ON public.loan_applications(loan_type);
     ";
 
     $conn->exec($sql);
-    echo "Successfully created or verified public.loan_applications table in database.\n";
+    echo "Successfully updated public.loan_applications table schema in database.\n";
 } catch (PDOException $e) {
     echo "Database Error: " . $e->getMessage() . "\n";
     exit(1);
