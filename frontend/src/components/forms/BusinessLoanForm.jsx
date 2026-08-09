@@ -229,7 +229,12 @@ export function BusinessLoanForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <FormGrid columns={3} gap={6}>
+      {/* Personal Details Section */}
+      <div>
+        <h3 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+          Personal Details
+        </h3>
+        <FormGrid columns={3} gap={6}>
         <TextField
           name="applicant_name"
           label="Applicant Name"
@@ -355,6 +360,7 @@ export function BusinessLoanForm() {
           error={errors.own_house}
         />
       </FormGrid>
+      </div>
 
       {/* Current Address Section */}
       <div className="pt-6 border-t border-slate-200">
