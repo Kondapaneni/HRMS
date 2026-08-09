@@ -200,11 +200,23 @@ export function BusinessLoanForm() {
     loadSavedDataFromDB(false);
   }, [profile, location.state]);
 
+  const getCleanFormData = () => {
+    const cleaned = {};
+    Object.keys(formData).forEach(key => {
+      const val = formData[key];
+      if (val !== null && val !== undefined && String(val).trim() !== '') {
+        cleaned[key] = val;
+      }
+    });
+    return cleaned;
+  };
+
   const handleSaveDraft = async () => {
     try {
       setIsDrafting(true);
+      const cleanData = getCleanFormData();
       // Save draft directly to DB table public.loan_applications in JSON format
-      await submitLoanApplication('Business Loan', formData, 'Draft');
+      await submitLoanApplication('Business Loan', cleanData, 'Draft');
       toast.success('Business Loan draft saved to database!');
     } catch (err) {
       console.error('Error saving draft to database:', err);
@@ -228,8 +240,9 @@ export function BusinessLoanForm() {
 
     try {
       setIsSubmitting(true);
+      const cleanData = getCleanFormData();
       // Submit full form data to public.loan_applications in JSON format as Submitted
-      await submitLoanApplication('Business Loan', formData, 'Submitted');
+      await submitLoanApplication('Business Loan', cleanData, 'Submitted');
       toast.success('Business Loan Application Submitted Successfully!');
       resetForm({
         applicant_name: '',

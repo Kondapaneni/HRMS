@@ -56,7 +56,15 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
             throw new Exception("Database connection failed");
         }
 
-        $jsonPayload = json_encode($formData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        // Filter out empty string, null, or whitespace-only fields from form_data json payload
+        $cleanedFormData = [];
+        foreach ($formData as $k => $v) {
+            if ($v !== null && !(is_string($v) && trim($v) === '')) {
+                $cleanedFormData[$k] = $v;
+            }
+        }
+
+        $jsonPayload = json_encode($cleanedFormData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         
         // Resolve user ID safely as string (supports both UUID strings and integer IDs)
         $createdById = null;
