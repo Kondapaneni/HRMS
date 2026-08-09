@@ -65,6 +65,7 @@ import AdminPerformance from './pages/AdminPerformance'
 import AdminExpenses from './pages/AdminExpenses'
 
 import AdminRecruitment from './pages/AdminRecruitment'
+import BusinessLoanPage from './pages/BusinessLoanPage'
 import EmployeeAssessments from './pages/EmployeeAssessments'
 import EmployeeAssessmentInstructions from './pages/EmployeeAssessmentInstructions'
 import EmployeeAssessmentEngine from './pages/EmployeeAssessmentEngine'
@@ -168,6 +169,7 @@ function App() {
                 <Route path="performance" element={<AdminPerformance />} />
                 <Route path="recruitment" element={<AdminRecruitment />} />
                 <Route path="recruitment/verify-documents/:id" element={<AdminVerifyDocuments />} />
+                <Route path="business-loan" element={<BusinessLoanPage />} />
               </Route>
 
               {/* Acme Assessment Hub Workspace (Admin Only) */}
@@ -243,6 +245,7 @@ function App() {
                 <Route path="origination/leads/:id/details" element={<OriginationMobileLeadDetails />} />
                 <Route path="origination/members" element={<OriginationMembersList />} />
                 <Route path="origination/members/:phone/details" element={<OriginationMobileMemberDetails />} />
+                <Route path="business-loan" element={<BusinessLoanPage />} />
               </Route>
 
               <Route

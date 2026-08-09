@@ -2,9 +2,15 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, User, Phone, MapPin } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { capitalizeWords, validateLeadPhone } from '../utils/loanValidations';
+import { capitalizeWords, validateAddLeadForm } from '../utils/loanValidations';
 import { createLead } from '../services/loanServices';
 import { useQueryClient } from '@tanstack/react-query';
+import {
+  TextField,
+  PhoneField,
+  TextareaField,
+  SelectField
+} from './forms';
 
 const AddLeadSidebar = ({ isOpen, onClose }) => {
   const [formData, setFormData] = useState({
@@ -13,26 +19,40 @@ const AddLeadSidebar = ({ isOpen, onClose }) => {
     address: '',
     loan_type: 'Personal Loan'
   });
+  const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
 
-  const handleChange = (e) => {
-    let { name, value } = e.target;
-    if (name === 'name' || name === 'address') {
-      value = capitalizeWords(value);
-    }
-    setFormData({ ...formData, [name]: value });
+  const handleNameChange = (val) => {
+    setFormData((prev) => ({ ...prev, name: capitalizeWords(val) }));
+    if (errors.name) setErrors((prev) => ({ ...prev, name: null }));
+  };
+
+  const handlePhoneChange = (val) => {
+    setFormData((prev) => ({ ...prev, phone: val }));
+    if (errors.phone) setErrors((prev) => ({ ...prev, phone: null }));
+  };
+
+  const handleAddressChange = (val) => {
+    setFormData((prev) => ({ ...prev, address: capitalizeWords(val) }));
+    if (errors.address) setErrors((prev) => ({ ...prev, address: null }));
+  };
+
+  const handleLoanTypeChange = (val) => {
+    setFormData((prev) => ({ ...prev, loan_type: val }));
+    if (errors.loan_type) setErrors((prev) => ({ ...prev, loan_type: null }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.phone || !formData.address || !formData.loan_type) {
-      toast.error('Please fill in all fields');
-      return;
-    }
+    
+    // Centralized validation from src/utils/loanValidations.js
+    const { isValid, errors: validationErrors } = validateAddLeadForm(formData);
 
-    if (!validateLeadPhone(formData.phone)) {
-      toast.error('Please enter a valid 10-digit Indian phone number (starting with 6-9)');
+    if (!isValid) {
+      setErrors(validationErrors);
+      const firstErrKey = Object.keys(validationErrors)[0];
+      toast.error(validationErrors[firstErrKey]);
       return;
     }
 
@@ -42,6 +62,7 @@ const AddLeadSidebar = ({ isOpen, onClose }) => {
       queryClient.invalidateQueries(['origination', 'leads', 'list']);
       toast.success('Lead added successfully!');
       setFormData({ name: '', phone: '', address: '', loan_type: 'Personal Loan' });
+      setErrors({});
       onClose();
     } catch (error) {
       console.error('Error adding lead:', error);
@@ -77,7 +98,7 @@ const AddLeadSidebar = ({ isOpen, onClose }) => {
               <h2 className="text-xl font-bold text-slate-900">Add New Lead</h2>
               <button
                 onClick={onClose}
-                className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-2 rounded-full transition-colors"
+                className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-2 rounded-full transition-colors cursor-pointer"
               >
                 <X size={20} />
               </button>
@@ -85,123 +106,77 @@ const AddLeadSidebar = ({ isOpen, onClose }) => {
 
             {/* Form */}
             <div className="flex-1 overflow-y-auto p-6 hide-scrollbar">
-              <form onSubmit={handleSubmit} className="space-y-5">
+              <form onSubmit={handleSubmit} className="space-y-4">
 
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                    Lead Name <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <User size={16} className="text-slate-400" />
-                    </div>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      placeholder="e.g. John Doe"
-                      className="w-full pl-10 pr-3 py-2.5 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm outline-none transition-all"
-                    />
-                  </div>
-                </div>
+                <TextField
+                  name="name"
+                  label="Lead Name"
+                  value={formData.name}
+                  onChange={handleNameChange}
+                  required
+                  placeholder="e.g. Rahul Sharma"
+                  error={errors.name}
+                  prefix={<User size={16} className="text-slate-400" />}
+                />
 
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                    Lead Phone Number <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Phone size={16} className="text-slate-400" />
-                    </div>
-                    <input
-                      type="text"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      placeholder="e.g. 9876543210"
-                      className="w-full pl-10 pr-3 py-2.5 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm outline-none transition-all"
-                    />
-                  </div>
-                </div>
+                <PhoneField
+                  name="phone"
+                  label="Phone Number"
+                  value={formData.phone}
+                  onChange={handlePhoneChange}
+                  required
+                  placeholder="10-digit mobile number"
+                  error={errors.phone}
+                  prefix={<Phone size={16} className="text-slate-400" />}
+                />
 
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Loan Type <span className="text-red-500">*</span>
-                  </label>
-                  <div className="flex gap-4">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="loan_type"
-                        value="Personal Loan"
-                        checked={formData.loan_type === 'Personal Loan'}
-                        onChange={handleChange}
-                        className="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                      />
-                      <span className="text-sm text-slate-700 font-medium">Personal Loan</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="loan_type"
-                        value="Business Loan"
-                        checked={formData.loan_type === 'Business Loan'}
-                        onChange={handleChange}
-                        className="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                      />
-                      <span className="text-sm text-slate-700 font-medium">Business Loan</span>
-                    </label>
-                  </div>
-                </div>
+                <TextareaField
+                  name="address"
+                  label="Address"
+                  value={formData.address}
+                  onChange={handleAddressChange}
+                  required
+                  placeholder="Enter full address"
+                  rows={3}
+                  error={errors.address}
+                />
 
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                    Lead Address <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 pt-3 pointer-events-none">
-                      <MapPin size={16} className="text-slate-400" />
-                    </div>
-                    <textarea
-                      name="address"
-                      value={formData.address}
-                      onChange={handleChange}
-                      placeholder="Full Residential Address"
-                      rows={4}
-                      className="w-full pl-10 pr-3 py-2.5 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm outline-none transition-all resize-none"
-                    />
-                  </div>
+                <SelectField
+                  name="loan_type"
+                  label="Loan Type"
+                  value={formData.loan_type}
+                  onChange={handleLoanTypeChange}
+                  required
+                  placeholder="Select loan type"
+                  error={errors.loan_type}
+                  options={[
+                    { label: 'Personal Loan', value: 'Personal Loan' },
+                    { label: 'Home Loan', value: 'Home Loan' },
+                    { label: 'Business Loan', value: 'Business Loan' },
+                    { label: 'Vehicle Loan', value: 'Vehicle Loan' },
+                    { label: 'Education Loan', value: 'Education Loan' }
+                  ]}
+                />
+
+                <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3 mt-6">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 h-10 px-4 py-2 transition-colors cursor-pointer border border-slate-200"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50"
+                  >
+                    {isSubmitting ? 'Saving...' : 'Save Lead'}
+                  </button>
                 </div>
 
               </form>
             </div>
-
-            {/* Footer */}
-            <div className="p-6 border-t border-slate-100 bg-slate-50 flex gap-3">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                className="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 shadow-sm shadow-blue-500/20 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center"
-              >
-                {isSubmitting ? (
-                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                ) : (
-                  'Save Lead'
-                )}
-              </button>
-            </div>
-
           </motion.div>
         </>
       )}

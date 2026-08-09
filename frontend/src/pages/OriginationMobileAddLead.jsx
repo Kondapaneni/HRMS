@@ -3,8 +3,14 @@ import { ArrowLeft, Loader2, Save, User, Phone, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { capitalizeWords, validateLeadPhone } from '../utils/loanValidations';
+import { capitalizeWords, validateAddLeadForm } from '../utils/loanValidations';
 import { createLead } from '../services/loanServices';
+import {
+  TextField,
+  PhoneField,
+  TextareaField,
+  RadioGroup
+} from '../components/forms';
 
 const OriginationMobileAddLead = () => {
   const navigate = useNavigate();
@@ -15,25 +21,38 @@ const OriginationMobileAddLead = () => {
     address: '',
     loan_type: 'Personal Loan'
   });
+  const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleChange = (e) => {
-    let { name, value } = e.target;
-    if (name === 'name' || name === 'address') {
-      value = capitalizeWords(value);
-    }
-    setFormData({ ...formData, [name]: value });
+  const handleNameChange = (val) => {
+    setFormData((prev) => ({ ...prev, name: capitalizeWords(val) }));
+    if (errors.name) setErrors((prev) => ({ ...prev, name: null }));
+  };
+
+  const handlePhoneChange = (val) => {
+    setFormData((prev) => ({ ...prev, phone: val }));
+    if (errors.phone) setErrors((prev) => ({ ...prev, phone: null }));
+  };
+
+  const handleAddressChange = (val) => {
+    setFormData((prev) => ({ ...prev, address: capitalizeWords(val) }));
+    if (errors.address) setErrors((prev) => ({ ...prev, address: null }));
+  };
+
+  const handleLoanTypeChange = (val) => {
+    setFormData((prev) => ({ ...prev, loan_type: val }));
+    if (errors.loan_type) setErrors((prev) => ({ ...prev, loan_type: null }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.phone || !formData.address || !formData.loan_type) {
-      toast.error('Please fill in all fields');
-      return;
-    }
+    
+    const { isValid, errors: validationErrors } = validateAddLeadForm(formData);
 
-    if (!validateLeadPhone(formData.phone)) {
-      toast.error('Please enter a valid 10-digit Indian phone number (starting with 6-9)');
+    if (!isValid) {
+      setErrors(validationErrors);
+      const firstErrKey = Object.keys(validationErrors)[0];
+      toast.error(validationErrors[firstErrKey]);
       return;
     }
 
@@ -41,7 +60,6 @@ const OriginationMobileAddLead = () => {
       setIsSubmitting(true);
       await createLead(formData);
       toast.success('Lead added successfully!');
-      // Navigate back to leads list
       navigate('/employee/loans/origination/leads');
     } catch (error) {
       console.error('Error adding lead:', error);
@@ -104,89 +122,75 @@ const OriginationMobileAddLead = () => {
       {/* Form Content */}
       <div className="space-y-6 relative z-20 -mt-12 mx-4">
         
-        <div className="bg-white p-5 rounded-[24px] shadow-lg border border-slate-100/50 space-y-5">
+        <div className="bg-white p-5 rounded-[24px] shadow-lg border border-slate-100/50 space-y-4">
           
-          <div className="space-y-1.5">
-            <label className="text-[12px] font-bold text-slate-500 uppercase tracking-wider">Lead Name *</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                <User size={18} className="text-slate-400" />
-              </div>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="e.g. John Doe"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3 py-3 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
-              />
-            </div>
-          </div>
+          <TextField
+            name="name"
+            label="Lead Name"
+            value={formData.name}
+            onChange={handleNameChange}
+            required
+            placeholder="e.g. John Doe"
+            error={errors.name}
+            prefix={<User size={16} className="text-slate-400" />}
+          />
 
-          <div className="space-y-1.5">
-            <label className="text-[12px] font-bold text-slate-500 uppercase tracking-wider">Phone Number *</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                <Phone size={18} className="text-slate-400" />
-              </div>
-              <input
-                type="tel"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                placeholder="10-digit mobile number"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3 py-3 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
-              />
-            </div>
-          </div>
+          <PhoneField
+            name="phone"
+            label="Phone Number"
+            value={formData.phone}
+            onChange={handlePhoneChange}
+            required
+            placeholder="10-digit mobile number"
+            error={errors.phone}
+            prefix={<Phone size={16} className="text-slate-400" />}
+          />
 
-          <div className="space-y-1.5">
-            <label className="text-[12px] font-bold text-slate-500 uppercase tracking-wider">Loan Type *</label>
-            <div className="flex gap-4 pt-1">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="loan_type"
-                  value="Personal Loan"
-                  checked={formData.loan_type === 'Personal Loan'}
-                  onChange={handleChange}
-                  className="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                />
-                <span className="text-sm text-slate-700 font-medium">Personal Loan</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="loan_type"
-                  value="Business Loan"
-                  checked={formData.loan_type === 'Business Loan'}
-                  onChange={handleChange}
-                  className="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                />
-                <span className="text-sm text-slate-700 font-medium">Business Loan</span>
-              </label>
-            </div>
-          </div>
+          <RadioGroup
+            name="loan_type"
+            label="Loan Type"
+            value={formData.loan_type}
+            onChange={handleLoanTypeChange}
+            required
+            error={errors.loan_type}
+            options={[
+              { label: 'Personal Loan', value: 'Personal Loan' },
+              { label: 'Business Loan', value: 'Business Loan' },
+              { label: 'Home Loan', value: 'Home Loan' }
+            ]}
+            direction="horizontal"
+          />
 
-          <div className="space-y-1.5">
-            <label className="text-[12px] font-bold text-slate-500 uppercase tracking-wider">Address *</label>
-            <div className="relative">
-              <div className="absolute top-3.5 left-0 pl-3.5 pointer-events-none">
-                <MapPin size={18} className="text-slate-400" />
-              </div>
-              <textarea
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                rows={3}
-                placeholder="Enter complete address"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-3 py-3 text-sm font-medium text-slate-700 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all resize-none"
-              />
-            </div>
+          <TextareaField
+            name="address"
+            label="Address"
+            value={formData.address}
+            onChange={handleAddressChange}
+            required
+            placeholder="Enter full address"
+            rows={3}
+            error={errors.address}
+          />
+
+          <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => navigate('/employee/loans/origination/leads')}
+              className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 h-10 px-4 py-2 transition-colors cursor-pointer border border-slate-200"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50 gap-2"
+            >
+              {isSubmitting ? 'Saving...' : 'Save Lead'}
+            </button>
           </div>
 
         </div>
-
       </div>
     </div>
   );

@@ -129,11 +129,11 @@ const OriginationMobileMemberDetails = () => {
                 
                 {/* Fill Loan Form Link */}
                 <Link 
-                  to="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    alert(`Navigating to form for ${loan.loan_type} (Lead ID: ${loan.id})`);
-                  }}
+                  to={
+                    loan.loan_type?.toLowerCase().includes('business') 
+                      ? '/employee/loans/business-loan' 
+                      : '/admin/business-loan'
+                  }
                   className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 transition-all"
                 >
                   Fill Loan Form <ArrowRight size={14} />
