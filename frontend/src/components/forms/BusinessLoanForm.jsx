@@ -544,6 +544,233 @@ export function BusinessLoanForm() {
       </FormGrid>
       </div>
 
+      {/* Current Address Section */}
+      <div className="pt-6 border-t border-slate-200">
+        <h3 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+          Current Address
+        </h3>
+        <FormGrid columns={3} gap={6}>
+          <div className="col-span-3">
+            <TextField
+              name="current_address"
+              label="Current Address"
+              value={formData.current_address}
+              onChange={(val) => updateField('current_address', capitalizeText(val))}
+              required
+              placeholder="Enter current address (accepts letters, numbers, special characters)"
+              error={errors.current_address}
+            />
+          </div>
+
+          <TextField
+            name="current_street"
+            label="Street"
+            value={formData.current_street}
+            onChange={(val) => updateField('current_street', capitalizeWords(val))}
+            required
+            placeholder="Enter street name (only text)"
+            error={errors.current_street}
+          />
+
+          <TextField
+            name="current_city"
+            label="City"
+            value={formData.current_city}
+            onChange={(val) => updateField('current_city', capitalizeWords(val))}
+            required
+            placeholder="Enter city (only text)"
+            error={errors.current_city}
+          />
+
+          <TextField
+            name="current_state"
+            label="State"
+            value={formData.current_state}
+            onChange={(val) => updateField('current_state', capitalizeWords(val))}
+            required
+            placeholder="Enter state (only text)"
+            error={errors.current_state}
+          />
+
+          <TextField
+            name="current_postal_code"
+            label="Postal Code"
+            value={formData.current_postal_code}
+            onChange={(val) => updateField('current_postal_code', val.replace(/\D/g, '').slice(0, 6))}
+            required
+            placeholder="Enter 6-digit postal code"
+            error={errors.current_postal_code}
+          />
+        </FormGrid>
+      </div>
+
+      {/* Permanent Address Section */}
+      <div className="pt-6 border-t border-slate-200">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
+            Permanent Address
+          </h3>
+          <button
+            type="button"
+            onClick={() => {
+              updateField('permanent_address', capitalizeText(formData.current_address || ''));
+              updateField('permanent_street', capitalizeWords(formData.current_street || ''));
+              updateField('permanent_city', capitalizeWords(formData.current_city || ''));
+              updateField('permanent_state', capitalizeWords(formData.current_state || ''));
+              updateField('permanent_postal_code', formData.current_postal_code || '');
+              toast.success('Copied Current Address to Permanent Address');
+            }}
+            className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer"
+          >
+            Same as Current Address
+          </button>
+        </div>
+
+        <FormGrid columns={3} gap={6}>
+          <div className="col-span-3">
+            <TextField
+              name="permanent_address"
+              label="Permanent Address"
+              value={formData.permanent_address}
+              onChange={(val) => updateField('permanent_address', capitalizeText(val))}
+              required
+              placeholder="Enter permanent address (accepts letters, numbers, special characters)"
+              error={errors.permanent_address}
+            />
+          </div>
+
+          <TextField
+            name="permanent_street"
+            label="Street"
+            value={formData.permanent_street}
+            onChange={(val) => updateField('permanent_street', capitalizeWords(val))}
+            required
+            placeholder="Enter street name (only text)"
+            error={errors.permanent_street}
+          />
+
+          <TextField
+            name="permanent_city"
+            label="City"
+            value={formData.permanent_city}
+            onChange={(val) => updateField('permanent_city', capitalizeWords(val))}
+            required
+            placeholder="Enter city (only text)"
+            error={errors.permanent_city}
+          />
+
+          <TextField
+            name="permanent_state"
+            label="State"
+            value={formData.permanent_state}
+            onChange={(val) => updateField('permanent_state', capitalizeWords(val))}
+            required
+            placeholder="Enter state (only text)"
+            error={errors.permanent_state}
+          />
+
+          <TextField
+            name="permanent_postal_code"
+            label="Postal Code"
+            value={formData.permanent_postal_code}
+            onChange={(val) => updateField('permanent_postal_code', val.replace(/\D/g, '').slice(0, 6))}
+            required
+            placeholder="Enter 6-digit postal code"
+            error={errors.permanent_postal_code}
+          />
+        </FormGrid>
+      </div>
+
+      {/* Employment Details Section */}
+      <div className="pt-6 border-t border-slate-200">
+        <h3 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+          Employment Details
+        </h3>
+        <div className="mb-6">
+          <RadioGroup
+            name="employment"
+            label="Employment"
+            value={formData.employment}
+            onChange={(val) => updateField('employment', val)}
+            required
+            direction="horizontal"
+            options={[
+              { label: 'Job', value: 'Job' },
+              { label: 'Business', value: 'Business' }
+            ]}
+            error={errors.employment}
+          />
+        </div>
+
+        {formData.employment === 'Job' && (
+          <FormGrid columns={3} gap={6}>
+            <TextField
+              name="job_name"
+              label="Job Name"
+              value={formData.job_name}
+              onChange={(val) => updateField('job_name', capitalizeWords(val))}
+              required
+              placeholder="Enter job / employer name (only text)"
+              error={errors.job_name}
+            />
+
+            <TextField
+              name="job_address"
+              label="Job Address"
+              value={formData.job_address}
+              onChange={(val) => updateField('job_address', capitalizeText(val))}
+              required
+              placeholder="Enter workplace address"
+              error={errors.job_address}
+            />
+
+            <NumberField
+              name="job_income_per_month"
+              label="Job Income Per Month"
+              value={formData.job_income_per_month}
+              onChange={(val) => updateField('job_income_per_month', val)}
+              required
+              placeholder="e.g. 45000"
+              error={errors.job_income_per_month}
+            />
+          </FormGrid>
+        )}
+
+        {formData.employment === 'Business' && (
+          <FormGrid columns={3} gap={6}>
+            <TextField
+              name="business_name"
+              label="Business Name"
+              value={formData.business_name}
+              onChange={(val) => updateField('business_name', capitalizeWords(val))}
+              required
+              placeholder="Enter business name (only text)"
+              error={errors.business_name}
+            />
+
+            <TextField
+              name="business_address"
+              label="Business Address"
+              value={formData.business_address}
+              onChange={(val) => updateField('business_address', capitalizeText(val))}
+              required
+              placeholder="Enter business address"
+              error={errors.business_address}
+            />
+
+            <NumberField
+              name="business_income_per_month"
+              label="Business Income Per Month"
+              value={formData.business_income_per_month}
+              onChange={(val) => updateField('business_income_per_month', val)}
+              required
+              placeholder="e.g. 75000"
+              error={errors.business_income_per_month}
+            />
+          </FormGrid>
+        )}
+      </div>
+
       {/* Co-Applicant Section */}
       <div className="pt-6 border-t border-slate-200">
         <div className="flex items-center justify-between mb-4">
@@ -937,233 +1164,6 @@ export function BusinessLoanForm() {
               )}
             </div>
           </div>
-        )}
-      </div>
-
-      {/* Current Address Section */}
-      <div className="pt-6 border-t border-slate-200">
-        <h3 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
-          Current Address
-        </h3>
-        <FormGrid columns={3} gap={6}>
-          <div className="col-span-3">
-            <TextField
-              name="current_address"
-              label="Current Address"
-              value={formData.current_address}
-              onChange={(val) => updateField('current_address', capitalizeText(val))}
-              required
-              placeholder="Enter current address (accepts letters, numbers, special characters)"
-              error={errors.current_address}
-            />
-          </div>
-
-          <TextField
-            name="current_street"
-            label="Street"
-            value={formData.current_street}
-            onChange={(val) => updateField('current_street', capitalizeWords(val))}
-            required
-            placeholder="Enter street name (only text)"
-            error={errors.current_street}
-          />
-
-          <TextField
-            name="current_city"
-            label="City"
-            value={formData.current_city}
-            onChange={(val) => updateField('current_city', capitalizeWords(val))}
-            required
-            placeholder="Enter city (only text)"
-            error={errors.current_city}
-          />
-
-          <TextField
-            name="current_state"
-            label="State"
-            value={formData.current_state}
-            onChange={(val) => updateField('current_state', capitalizeWords(val))}
-            required
-            placeholder="Enter state (only text)"
-            error={errors.current_state}
-          />
-
-          <TextField
-            name="current_postal_code"
-            label="Postal Code"
-            value={formData.current_postal_code}
-            onChange={(val) => updateField('current_postal_code', val.replace(/\D/g, '').slice(0, 6))}
-            required
-            placeholder="Enter 6-digit postal code"
-            error={errors.current_postal_code}
-          />
-        </FormGrid>
-      </div>
-
-      {/* Permanent Address Section */}
-      <div className="pt-6 border-t border-slate-200">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
-            Permanent Address
-          </h3>
-          <button
-            type="button"
-            onClick={() => {
-              updateField('permanent_address', capitalizeText(formData.current_address || ''));
-              updateField('permanent_street', capitalizeWords(formData.current_street || ''));
-              updateField('permanent_city', capitalizeWords(formData.current_city || ''));
-              updateField('permanent_state', capitalizeWords(formData.current_state || ''));
-              updateField('permanent_postal_code', formData.current_postal_code || '');
-              toast.success('Copied Current Address to Permanent Address');
-            }}
-            className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer"
-          >
-            Same as Current Address
-          </button>
-        </div>
-
-        <FormGrid columns={3} gap={6}>
-          <div className="col-span-3">
-            <TextField
-              name="permanent_address"
-              label="Permanent Address"
-              value={formData.permanent_address}
-              onChange={(val) => updateField('permanent_address', capitalizeText(val))}
-              required
-              placeholder="Enter permanent address (accepts letters, numbers, special characters)"
-              error={errors.permanent_address}
-            />
-          </div>
-
-          <TextField
-            name="permanent_street"
-            label="Street"
-            value={formData.permanent_street}
-            onChange={(val) => updateField('permanent_street', capitalizeWords(val))}
-            required
-            placeholder="Enter street name (only text)"
-            error={errors.permanent_street}
-          />
-
-          <TextField
-            name="permanent_city"
-            label="City"
-            value={formData.permanent_city}
-            onChange={(val) => updateField('permanent_city', capitalizeWords(val))}
-            required
-            placeholder="Enter city (only text)"
-            error={errors.permanent_city}
-          />
-
-          <TextField
-            name="permanent_state"
-            label="State"
-            value={formData.permanent_state}
-            onChange={(val) => updateField('permanent_state', capitalizeWords(val))}
-            required
-            placeholder="Enter state (only text)"
-            error={errors.permanent_state}
-          />
-
-          <TextField
-            name="permanent_postal_code"
-            label="Postal Code"
-            value={formData.permanent_postal_code}
-            onChange={(val) => updateField('permanent_postal_code', val.replace(/\D/g, '').slice(0, 6))}
-            required
-            placeholder="Enter 6-digit postal code"
-            error={errors.permanent_postal_code}
-          />
-        </FormGrid>
-      </div>
-
-      {/* Employment Details Section */}
-      <div className="pt-6 border-t border-slate-200">
-        <h3 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
-          Employment Details
-        </h3>
-        <div className="mb-6">
-          <RadioGroup
-            name="employment"
-            label="Employment"
-            value={formData.employment}
-            onChange={(val) => updateField('employment', val)}
-            required
-            direction="horizontal"
-            options={[
-              { label: 'Job', value: 'Job' },
-              { label: 'Business', value: 'Business' }
-            ]}
-            error={errors.employment}
-          />
-        </div>
-
-        {formData.employment === 'Job' && (
-          <FormGrid columns={3} gap={6}>
-            <TextField
-              name="job_name"
-              label="Job Name"
-              value={formData.job_name}
-              onChange={(val) => updateField('job_name', capitalizeWords(val))}
-              required
-              placeholder="Enter job / employer name (only text)"
-              error={errors.job_name}
-            />
-
-            <TextField
-              name="job_address"
-              label="Job Address"
-              value={formData.job_address}
-              onChange={(val) => updateField('job_address', capitalizeText(val))}
-              required
-              placeholder="Enter workplace address"
-              error={errors.job_address}
-            />
-
-            <NumberField
-              name="job_income_per_month"
-              label="Job Income Per Month"
-              value={formData.job_income_per_month}
-              onChange={(val) => updateField('job_income_per_month', val)}
-              required
-              placeholder="e.g. 45000"
-              error={errors.job_income_per_month}
-            />
-          </FormGrid>
-        )}
-
-        {formData.employment === 'Business' && (
-          <FormGrid columns={3} gap={6}>
-            <TextField
-              name="business_name"
-              label="Business Name"
-              value={formData.business_name}
-              onChange={(val) => updateField('business_name', capitalizeWords(val))}
-              required
-              placeholder="Enter business name (only text)"
-              error={errors.business_name}
-            />
-
-            <TextField
-              name="business_address"
-              label="Business Address"
-              value={formData.business_address}
-              onChange={(val) => updateField('business_address', capitalizeText(val))}
-              required
-              placeholder="Enter business address"
-              error={errors.business_address}
-            />
-
-            <NumberField
-              name="business_income_per_month"
-              label="Business Income Per Month"
-              value={formData.business_income_per_month}
-              onChange={(val) => updateField('business_income_per_month', val)}
-              required
-              placeholder="e.g. 75000"
-              error={errors.business_income_per_month}
-            />
-          </FormGrid>
         )}
       </div>
 
