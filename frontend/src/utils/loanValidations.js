@@ -135,13 +135,14 @@ export const validatePAN = (value) => {
  * Validate Indian Aadhaar Number
  */
 export const validateAadhaar = (value) => {
-  if (!value) return null;
+  const reqErr = validateRequired(value, 'Aadhaar Number');
+  if (reqErr) return reqErr;
   const clean = String(value).replace(/\D/g, '');
   if (clean.length !== 12) {
     return 'Aadhaar number must be exactly 12 digits.';
   }
   if (/^(\d)\1{11}$/.test(clean)) {
-    return 'Invalid Aadhaar number.';
+    return 'Invalid Aadhaar number (cannot be 12 identical digits).';
   }
   return null;
 };
@@ -221,7 +222,7 @@ export const validateLoanAmount = (amount, min = 5000, max = 100000000) => {
 // ==========================================
 
 /**
- * Validate Business Loan Form Data with Conditional Father/Mother/Husband logic
+ * Validate Business Loan Form Data with Conditional Father/Mother/Husband logic & Aadhaar validation
  */
 export const validateBusinessLoanForm = (formData = {}) => {
   const errors = {};
@@ -244,10 +245,13 @@ export const validateBusinessLoanForm = (formData = {}) => {
   const maritalErr = validateMaritalStatus(formData.marital_status);
   if (maritalErr) errors.marital_status = maritalErr;
 
+  const aadhaarErr = validateAadhaar(formData.aadhaar_number);
+  if (aadhaarErr) errors.aadhaar_number = aadhaarErr;
+
   // Conditional Logic:
-  // Male + Yes = Father and Mother Name
-  // Male + No = Father and Mother Name
-  // Female + No = Father and Mother Name
+  // Male + Yes = Father and Mother Name only
+  // Male + No = Father and Mother Name only
+  // Female + No = Father and Mother Name only
   // Female + Yes = Father and Mother and Husband Name
   const showParents = !!(formData.gender && formData.marital_status);
   const showHusband = formData.gender === 'Female' && formData.marital_status === 'Yes';

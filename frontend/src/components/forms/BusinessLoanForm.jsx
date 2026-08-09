@@ -8,6 +8,7 @@ import {
   NumberField,
   SelectField,
   RadioGroup,
+  AadhaarField,
   useFormState
 } from './index';
 import { validateBusinessLoanForm, capitalizeWords } from '../../utils/loanValidations';
@@ -43,7 +44,8 @@ export function BusinessLoanForm() {
     marital_status: '',
     father_name: '',
     mother_name: '',
-    husband_name: ''
+    husband_name: '',
+    aadhaar_number: ''
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -76,6 +78,7 @@ export function BusinessLoanForm() {
           if (savedData.father_name) updateField('father_name', capitalizeWords(savedData.father_name));
           if (savedData.mother_name) updateField('mother_name', capitalizeWords(savedData.mother_name));
           if (savedData.husband_name) updateField('husband_name', capitalizeWords(savedData.husband_name));
+          if (savedData.aadhaar_number) updateField('aadhaar_number', String(savedData.aadhaar_number).replace(/\D/g, '').slice(0, 12));
 
           if (showToast) {
             toast.success(`Loaded latest ${latest.status.toLowerCase()} from database!`);
@@ -161,7 +164,8 @@ export function BusinessLoanForm() {
         marital_status: '',
         father_name: '',
         mother_name: '',
-        husband_name: ''
+        husband_name: '',
+        aadhaar_number: ''
       });
     } catch (err) {
       console.error('Error submitting loan application:', err);
@@ -192,6 +196,16 @@ export function BusinessLoanForm() {
           required
           placeholder="Enter 10-digit mobile number"
           error={errors.phone_number}
+        />
+
+        <AadhaarField
+          name="aadhaar_number"
+          label="Aadhaar Number"
+          value={formData.aadhaar_number}
+          onChange={(val) => updateField('aadhaar_number', val)}
+          required
+          placeholder="1234 5678 9012"
+          error={errors.aadhaar_number}
         />
 
         <NumberField
