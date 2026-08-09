@@ -335,6 +335,38 @@ export const validateBusinessLoanForm = (formData = {}) => {
   const permPinErr = validatePostalCode(formData.permanent_postal_code, 'Permanent Postal Code');
   if (permPinErr) errors.permanent_postal_code = permPinErr;
 
+  // Employment Validation
+  const empErr = validateRequired(formData.employment, 'Employment');
+  if (empErr) {
+    errors.employment = empErr;
+  } else if (formData.employment === 'Job') {
+    const jobNameErr = validateTextOnlyField(formData.job_name, 'Job Name');
+    if (jobNameErr) errors.job_name = jobNameErr;
+
+    const jobAddrErr = validateAddressText(formData.job_address, 'Job Address');
+    if (jobAddrErr) errors.job_address = jobAddrErr;
+
+    const jobIncomeErr = validateRequired(formData.job_income_per_month, 'Job Income Per Month');
+    if (jobIncomeErr) {
+      errors.job_income_per_month = jobIncomeErr;
+    } else if (Number(formData.job_income_per_month) <= 0) {
+      errors.job_income_per_month = 'Job Income must be greater than 0.';
+    }
+  } else if (formData.employment === 'Business') {
+    const bizNameErr = validateTextOnlyField(formData.business_name, 'Business Name');
+    if (bizNameErr) errors.business_name = bizNameErr;
+
+    const bizAddrErr = validateAddressText(formData.business_address, 'Business Address');
+    if (bizAddrErr) errors.business_address = bizAddrErr;
+
+    const bizIncomeErr = validateRequired(formData.business_income_per_month, 'Business Income Per Month');
+    if (bizIncomeErr) {
+      errors.business_income_per_month = bizIncomeErr;
+    } else if (Number(formData.business_income_per_month) <= 0) {
+      errors.business_income_per_month = 'Business Income must be greater than 0.';
+    }
+  }
+
   return {
     isValid: Object.keys(errors).length === 0,
     errors

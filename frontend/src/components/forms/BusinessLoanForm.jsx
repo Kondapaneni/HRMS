@@ -59,7 +59,14 @@ export function BusinessLoanForm() {
     permanent_street: '',
     permanent_city: '',
     permanent_state: '',
-    permanent_postal_code: ''
+    permanent_postal_code: '',
+    employment: '',
+    job_name: '',
+    job_address: '',
+    job_income_per_month: '',
+    business_name: '',
+    business_address: '',
+    business_income_per_month: ''
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -112,6 +119,13 @@ export function BusinessLoanForm() {
           if (savedData.permanent_city) updateField('permanent_city', capitalizeWords(savedData.permanent_city));
           if (savedData.permanent_state) updateField('permanent_state', capitalizeWords(savedData.permanent_state));
           if (savedData.permanent_postal_code) updateField('permanent_postal_code', String(savedData.permanent_postal_code).replace(/\D/g, '').slice(0, 6));
+          if (savedData.employment) updateField('employment', savedData.employment);
+          if (savedData.job_name) updateField('job_name', capitalizeWords(savedData.job_name));
+          if (savedData.job_address) updateField('job_address', capitalizeText(savedData.job_address));
+          if (savedData.job_income_per_month) updateField('job_income_per_month', String(savedData.job_income_per_month).replace(/\D/g, ''));
+          if (savedData.business_name) updateField('business_name', capitalizeWords(savedData.business_name));
+          if (savedData.business_address) updateField('business_address', capitalizeText(savedData.business_address));
+          if (savedData.business_income_per_month) updateField('business_income_per_month', String(savedData.business_income_per_month).replace(/\D/g, ''));
 
           if (showToast) {
             toast.success('Loaded saved draft for this lead!');
@@ -217,6 +231,13 @@ export function BusinessLoanForm() {
         permanent_city: '',
         permanent_state: '',
         permanent_postal_code: '',
+        employment: '',
+        job_name: '',
+        job_address: '',
+        job_income_per_month: '',
+        business_name: '',
+        business_address: '',
+        business_income_per_month: '',
         lead_id: formData.lead_id
       });
     } catch (err) {
@@ -497,6 +518,96 @@ export function BusinessLoanForm() {
             error={errors.permanent_postal_code}
           />
         </FormGrid>
+      </div>
+
+      {/* Employment Details Section */}
+      <div className="pt-6 border-t border-slate-200">
+        <h3 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+          Employment Details
+        </h3>
+        <div className="mb-6">
+          <RadioGroup
+            name="employment"
+            label="Employment"
+            value={formData.employment}
+            onChange={(val) => updateField('employment', val)}
+            required
+            direction="horizontal"
+            options={[
+              { label: 'Job', value: 'Job' },
+              { label: 'Business', value: 'Business' }
+            ]}
+            error={errors.employment}
+          />
+        </div>
+
+        {formData.employment === 'Job' && (
+          <FormGrid columns={3} gap={6}>
+            <TextField
+              name="job_name"
+              label="Job Name"
+              value={formData.job_name}
+              onChange={(val) => updateField('job_name', capitalizeWords(val))}
+              required
+              placeholder="Enter job / employer name (only text)"
+              error={errors.job_name}
+            />
+
+            <TextField
+              name="job_address"
+              label="Job Address"
+              value={formData.job_address}
+              onChange={(val) => updateField('job_address', capitalizeText(val))}
+              required
+              placeholder="Enter workplace address"
+              error={errors.job_address}
+            />
+
+            <NumberField
+              name="job_income_per_month"
+              label="Job Income Per Month"
+              value={formData.job_income_per_month}
+              onChange={(val) => updateField('job_income_per_month', val)}
+              required
+              placeholder="e.g. 45000"
+              error={errors.job_income_per_month}
+            />
+          </FormGrid>
+        )}
+
+        {formData.employment === 'Business' && (
+          <FormGrid columns={3} gap={6}>
+            <TextField
+              name="business_name"
+              label="Business Name"
+              value={formData.business_name}
+              onChange={(val) => updateField('business_name', capitalizeWords(val))}
+              required
+              placeholder="Enter business name (only text)"
+              error={errors.business_name}
+            />
+
+            <TextField
+              name="business_address"
+              label="Business Address"
+              value={formData.business_address}
+              onChange={(val) => updateField('business_address', capitalizeText(val))}
+              required
+              placeholder="Enter business address"
+              error={errors.business_address}
+            />
+
+            <NumberField
+              name="business_income_per_month"
+              label="Business Income Per Month"
+              value={formData.business_income_per_month}
+              onChange={(val) => updateField('business_income_per_month', val)}
+              required
+              placeholder="e.g. 75000"
+              error={errors.business_income_per_month}
+            />
+          </FormGrid>
+        )}
       </div>
 
       <div className="pt-6 border-t border-slate-100 flex items-center justify-end gap-3">
