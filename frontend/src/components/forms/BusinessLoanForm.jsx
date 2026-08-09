@@ -1647,25 +1647,28 @@ export function BusinessLoanForm() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
             <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
-              Guarantor Details <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">3 Required</span>
+              Guarantor Details <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200">3 Required</span>
             </h3>
             <p className="text-xs text-slate-500 mt-1">Business loan requires details for exactly 3 guarantors.</p>
           </div>
-          <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200 w-full sm:w-auto justify-between">
-            {[1, 2, 3].map((gIdx) => (
-              <button
-                key={gIdx}
-                type="button"
-                onClick={() => setActiveGuarantorTab(gIdx)}
-                className={`flex-1 sm:flex-none px-3 py-2 sm:py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer text-center ${
-                  activeGuarantorTab === gIdx
-                    ? 'bg-white text-blue-700 shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                Guarantor {gIdx}
-              </button>
-            ))}
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            {[1, 2, 3].map((gIdx) => {
+              const isActive = activeGuarantorTab === gIdx;
+              return (
+                <button
+                  key={gIdx}
+                  type="button"
+                  onClick={() => setActiveGuarantorTab(gIdx)}
+                  className={`flex-1 sm:flex-none inline-flex items-center justify-center rounded-md text-xs sm:text-sm font-medium h-9 px-3.5 transition-colors gap-1.5 cursor-pointer shadow-xs ${
+                    isActive
+                      ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm'
+                      : 'bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 border border-slate-300'
+                  }`}
+                >
+                  Guarantor {gIdx}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -1677,7 +1680,7 @@ export function BusinessLoanForm() {
           type="button"
           onClick={() => loadSavedDataFromDB(true)}
           disabled={isLoadingData || isDrafting || isSubmitting}
-          className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl text-sm font-medium bg-slate-50 text-slate-700 hover:bg-slate-100 h-11 sm:h-10 px-4 py-2 transition-colors cursor-pointer border border-slate-200 gap-2 disabled:opacity-50"
+          className="w-full sm:w-auto inline-flex items-center justify-center rounded-md text-sm font-medium bg-slate-50 text-slate-700 hover:bg-slate-100 h-10 px-4 py-2 transition-colors cursor-pointer border border-slate-300 gap-2 disabled:opacity-50 shadow-xs"
         >
           {isLoadingData ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} Load Saved Data
         </button>
@@ -1685,14 +1688,14 @@ export function BusinessLoanForm() {
           type="button"
           onClick={handleSaveDraft}
           disabled={isDrafting || isSubmitting || isLoadingData || isAlreadySubmitted}
-          className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 h-11 sm:h-10 px-4 py-2 transition-colors cursor-pointer border border-slate-200 gap-2 disabled:opacity-50"
+          className="w-full sm:w-auto inline-flex items-center justify-center rounded-md text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 h-10 px-4 py-2 transition-colors cursor-pointer border border-slate-300 gap-2 disabled:opacity-50 shadow-xs"
         >
           {isDrafting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save Draft
         </button>
         <button
           type="submit"
           disabled={isSubmitting || isDrafting || isLoadingData || isAlreadySubmitted}
-          className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-11 sm:h-10 px-4 py-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50 gap-2"
+          className="w-full sm:w-auto inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50 gap-2"
         >
           {isSubmitting ? (
             <>
