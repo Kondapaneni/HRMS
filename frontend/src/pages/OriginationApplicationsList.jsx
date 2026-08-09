@@ -169,9 +169,9 @@ const OriginationApplicationsList = () => {
                               <td className="p-3 text-center">
                                 <button 
                                   onClick={() => setSelectedApp(app)}
-                                  className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded border border-blue-200 transition-colors cursor-pointer"
+                                  className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer"
                                 >
-                                  <Eye size={13} /> View
+                                  <Eye size={14} /> View Details
                                 </button>
                               </td>
                             </tr>
