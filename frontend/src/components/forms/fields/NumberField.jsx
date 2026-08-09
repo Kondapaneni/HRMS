@@ -72,7 +72,7 @@ export const NumberField = React.memo(({
           readOnly={readOnly}
           placeholder={placeholder}
           maxLength={maxLength}
-          className={`w-full px-3 py-2 text-sm text-slate-800 bg-white border rounded-md transition-colors outline-none ${
+          className={`w-full px-3 py-2 text-sm text-slate-800 bg-white border rounded-md transition-colors outline-none focus:outline-none ${
             prefix ? 'pl-8' : ''
           } ${
             suffix ? 'pr-8' : ''

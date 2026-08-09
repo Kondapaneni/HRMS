@@ -77,9 +77,10 @@ const MemberDetailsSidebar = ({ isOpen, onClose, member }) => {
                         </span>
                       </div>
                       
-                      {/* Fill Loan Form Link passing Name & Phone to form */}
+                      {/* Clean URL link passing member data via router state */}
                       <Link 
-                        to={`/employee/loans/business-loan?name=${encodeURIComponent(member.name || '')}&phone=${encodeURIComponent(member.phone || '')}`}
+                        to="/employee/loans/business-loan"
+                        state={{ name: member.name, phone: member.phone }}
                         className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline transition-all"
                       >
                         Fill Loan Form <ArrowRight size={14} />
@@ -91,7 +92,8 @@ const MemberDetailsSidebar = ({ isOpen, onClose, member }) => {
                     <div className="text-center p-4 text-slate-500 text-sm bg-slate-50 rounded-lg space-y-3">
                       <p>No loan history available.</p>
                       <Link 
-                        to={`/employee/loans/business-loan?name=${encodeURIComponent(member.name || '')}&phone=${encodeURIComponent(member.phone || '')}`}
+                        to="/employee/loans/business-loan"
+                        state={{ name: member.name, phone: member.phone }}
                         className="inline-flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-700 hover:underline"
                       >
                         Fill Loan Form <ArrowRight size={14} />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import {
   FormGrid,
@@ -16,13 +16,10 @@ import toast from 'react-hot-toast';
 
 export function BusinessLoanForm() {
   const { profile } = useAuth();
-  const [searchParams] = useSearchParams();
   const location = useLocation();
 
-  // Extract default values from URL parameters, navigation state, or logged-in database profile
+  // Extract default values from React Router state (passed quietly without query parameters) or user profile from DB
   const initialName = 
-    searchParams.get('name') || 
-    searchParams.get('applicant_name') || 
     location.state?.name || 
     location.state?.applicant_name || 
     profile?.full_name || 
@@ -30,8 +27,6 @@ export function BusinessLoanForm() {
     '';
 
   const initialPhone = 
-    searchParams.get('phone') || 
-    searchParams.get('phone_number') || 
     location.state?.phone || 
     location.state?.phone_number || 
     profile?.phone || 
@@ -48,11 +43,9 @@ export function BusinessLoanForm() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Automatically pre-populate form fields when profile data or URL params load from DB
+  // Auto-populate when profile data or navigation state resolves
   useEffect(() => {
     const nameFromSource = 
-      searchParams.get('name') || 
-      searchParams.get('applicant_name') || 
       location.state?.name || 
       location.state?.applicant_name || 
       profile?.full_name || 
@@ -60,8 +53,6 @@ export function BusinessLoanForm() {
       '';
 
     const phoneFromSource = 
-      searchParams.get('phone') || 
-      searchParams.get('phone_number') || 
       location.state?.phone || 
       location.state?.phone_number || 
       profile?.phone || 
@@ -75,7 +66,7 @@ export function BusinessLoanForm() {
     if (phoneFromSource && !formData.phone_number) {
       updateField('phone_number', String(phoneFromSource).replace(/\D/g, '').slice(0, 10));
     }
-  }, [profile, searchParams, location.state]);
+  }, [profile, location.state]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
