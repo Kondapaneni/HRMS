@@ -10,6 +10,7 @@ const OriginationApplicationsList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [selectedApp, setSelectedApp] = useState(null);
+  const [showFullDetails, setShowFullDetails] = useState(false);
 
   const { data: response, isLoading, error } = useQuery({
     queryKey: ['origination', 'applications', 'list'],
@@ -220,11 +221,14 @@ const OriginationApplicationsList = () => {
                   </h3>
                 </div>
                 <button
-                  onClick={() => setSelectedApp(null)}
-                  className="p-2 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
-                >
-                  <X size={20} />
-                </button>
+                onClick={() => {
+                  setSelectedApp(null);
+                  setShowFullDetails(false);
+                }}
+                className="p-2 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                <X size={20} />
+              </button>
               </div>
 
               {/* Scrollable Content */}
@@ -315,6 +319,30 @@ const OriginationApplicationsList = () => {
                       );
                     })}
                   </div>
+                </div>
+
+                {/* View Full Info Toggle */}
+                <div className="pt-4 pb-2 border-t border-slate-100">
+                  <button
+                    onClick={() => setShowFullDetails(!showFullDetails)}
+                    className="w-full py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 font-semibold text-xs hover:bg-slate-100 transition-colors cursor-pointer"
+                  >
+                    {showFullDetails ? 'Hide Full Details' : 'View Full Application Info'}
+                  </button>
+                  
+                  {showFullDetails && selectedApp.form_data && (
+                    <div className="mt-4 pt-4 border-t border-slate-100">
+                      <h4 className="font-semibold text-slate-900 text-sm mb-3">Complete Application Data</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        {Object.entries(selectedApp.form_data).filter(([_, v]) => v && v !== 'No').map(([key, value]) => (
+                          <div key={key} className="bg-white p-3 rounded-lg border border-slate-100 shadow-sm">
+                            <p className="text-slate-400 font-medium capitalize mb-1">{key.replace(/_/g, ' ')}</p>
+                            <p className="font-semibold text-slate-800 break-words">{String(value)}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </motion.div>

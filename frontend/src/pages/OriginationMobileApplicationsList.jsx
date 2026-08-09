@@ -9,6 +9,7 @@ const OriginationMobileApplicationsList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [selectedApp, setSelectedApp] = useState(null);
+  const [showFullDetails, setShowFullDetails] = useState(false);
 
   const { data: response, isLoading, error } = useQuery({
     queryKey: ['origination', 'applications', 'list'],
@@ -216,7 +217,10 @@ const OriginationMobileApplicationsList = () => {
                   </h3>
                 </div>
                 <button
-                  onClick={() => setSelectedApp(null)}
+                  onClick={() => {
+                    setSelectedApp(null);
+                    setShowFullDetails(false);
+                  }}
                   className="p-2 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors cursor-pointer"
                 >
                   <X size={20} />
@@ -312,6 +316,30 @@ const OriginationMobileApplicationsList = () => {
                       );
                     })}
                   </div>
+                </div>
+
+                {/* View Full Info Toggle */}
+                <div className="pt-4 border-t border-slate-100">
+                  <button
+                    onClick={() => setShowFullDetails(!showFullDetails)}
+                    className="w-full py-3 rounded-2xl border border-slate-200 bg-slate-50 text-slate-700 font-bold text-sm hover:bg-slate-100 transition-colors cursor-pointer"
+                  >
+                    {showFullDetails ? 'Hide Full Details' : 'View Full Application Info'}
+                  </button>
+                  
+                  {showFullDetails && selectedApp.form_data && (
+                    <div className="mt-4 pt-4 border-t border-slate-100">
+                      <h4 className="font-bold text-slate-900 text-base mb-4">Complete Application Data</h4>
+                      <div className="grid grid-cols-1 gap-3 text-sm">
+                        {Object.entries(selectedApp.form_data).filter(([_, v]) => v && v !== 'No').map(([key, value]) => (
+                          <div key={key} className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex flex-col">
+                            <span className="text-slate-400 font-medium capitalize mb-1 text-xs">{key.replace(/_/g, ' ')}</span>
+                            <span className="font-bold text-slate-800 break-words leading-tight">{String(value)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </motion.div>
