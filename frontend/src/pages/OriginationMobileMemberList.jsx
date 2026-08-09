@@ -64,7 +64,7 @@ const OriginationMobileMemberList = () => {
   };
 
   return (
-    <div className="w-full pb-5">
+    <div className="w-full pb-32">
       {/* Animated Hero Header */}
       <section className="relative px-6 pt-12 pb-24 rounded-b-[40px] overflow-hidden bg-slate-900 shadow-md">
         {/* Animated Background Blobs */}
@@ -108,12 +108,9 @@ const OriginationMobileMemberList = () => {
         </div>
       </section>
 
-      <motion.div
-        variants={containerVariants}
-        className="relative z-20 -mt-16 px-4 space-y-4"
-      >
+      <div className="relative z-20 -mt-16 px-4 space-y-4">
         {/* Search Bar - Floating */}
-        <motion.div variants={itemVariants} className="bg-white rounded-2xl shadow-lg border border-slate-100 p-3 flex items-center">
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-3 flex items-center">
           <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
             <input
@@ -124,13 +121,13 @@ const OriginationMobileMemberList = () => {
               className="w-full pl-10 pr-4 py-3 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
             />
           </div>
-        </motion.div>
+        </div>
 
         {/* State Handling */}
         {error ? (
-          <motion.div variants={itemVariants} className="bg-red-50 text-red-600 p-4 rounded-2xl text-center border border-red-100 shadow-sm mt-4">
+          <div className="bg-red-50 text-red-600 p-4 rounded-2xl text-center border border-red-100 shadow-sm mt-4">
             Failed to load members. Please try again.
-          </motion.div>
+          </div>
         ) : isLoading ? (
           <div className="flex justify-center items-center py-20 mt-4">
             <Loader2 className="animate-spin h-8 w-8 text-blue-600" />
@@ -142,7 +139,7 @@ const OriginationMobileMemberList = () => {
         ) : (
           <div className="space-y-4 mt-4">
             {members.map(member => (
-              <motion.div 
+              <div 
                 key={member.id} 
                 variants={itemVariants} 
                 onClick={() => navigate(`/employee/loans/origination/members/${member.phone}/details`, { state: { member } })}
@@ -180,11 +177,11 @@ const OriginationMobileMemberList = () => {
                     <span className="text-slate-700 font-semibold">{formatLoanTypes(member.loans)}</span>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         )}
-      </motion.div>
+      </div>
     </div>
   );
 };

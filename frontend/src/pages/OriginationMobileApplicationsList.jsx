@@ -2,12 +2,10 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getLoanApplications } from '../services/loanServices';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, CheckCircle2, FileText, Loader2, ArrowRight, Clock, User, Phone, MapPin, Briefcase, X, Eye } from 'lucide-react';
+import { Search, CheckCircle2, Clock, User, Phone, Briefcase, X, Eye, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
-import { useNavigate } from 'react-router-dom';
 
 const OriginationMobileApplicationsList = () => {
-  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [selectedApp, setSelectedApp] = useState(null);
@@ -38,24 +36,14 @@ const OriginationMobileApplicationsList = () => {
     if (!dateStr) return 'N/A';
     try {
       const d = new Date(dateStr);
-      return isNaN(d.getTime()) ? 'N/A' : format(d, 'MMM d, yyyy - h:mm a');
+      return isNaN(d.getTime()) ? 'N/A' : format(d, 'MMM d, yyyy h:mm a');
     } catch (e) {
       return 'N/A';
     }
   };
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.08 } }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 15 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.3 } }
-  };
-
   return (
-    <div className="w-full pb-8">
+    <div className="w-full pb-32">
       {/* Animated Hero Header */}
       <section className="relative px-6 pt-12 pb-24 rounded-b-[40px] overflow-hidden bg-slate-900 shadow-md">
         {/* Animated Background Blobs */}
@@ -99,10 +87,10 @@ const OriginationMobileApplicationsList = () => {
         </div>
       </section>
 
-      {/* Main Content Area */}
-      <motion.div variants={containerVariants} initial="hidden" animate="visible" className="relative z-20 -mt-16 px-4 space-y-4">
+      {/* Main Content Area - Instant render without fadein */}
+      <div className="relative z-20 -mt-16 px-4 space-y-4">
         {/* Search Bar */}
-        <motion.div variants={itemVariants} className="bg-white rounded-2xl shadow-lg border border-slate-100 p-3 flex items-center">
+        <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-3 flex items-center">
           <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
             <input
@@ -113,10 +101,10 @@ const OriginationMobileApplicationsList = () => {
               className="w-full pl-10 pr-4 py-3 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
             />
           </div>
-        </motion.div>
+        </div>
 
         {/* Status Tabs */}
-        <motion.div variants={itemVariants} className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+        <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
           {['All', 'Submitted', 'Draft'].map((st) => (
             <button
               key={st}
@@ -130,13 +118,13 @@ const OriginationMobileApplicationsList = () => {
               {st} {st === 'All' ? `(${applications.length})` : `(${applications.filter(a => a.status === st).length})`}
             </button>
           ))}
-        </motion.div>
+        </div>
 
         {/* List Content */}
         {error ? (
-          <motion.div variants={itemVariants} className="bg-red-50 text-red-600 p-4 rounded-2xl text-center border border-red-100 shadow-sm mt-4">
+          <div className="bg-red-50 text-red-600 p-4 rounded-2xl text-center border border-red-100 shadow-sm mt-4">
             Failed to load loan applications.
-          </motion.div>
+          </div>
         ) : isLoading ? (
           <div className="flex justify-center items-center py-20 mt-4">
             <Loader2 className="animate-spin h-8 w-8 text-blue-600" />
@@ -153,9 +141,8 @@ const OriginationMobileApplicationsList = () => {
               const isSubmitted = app.status === 'Submitted';
 
               return (
-                <motion.div
+                <div
                   key={app.id || app.application_id}
-                  variants={itemVariants}
                   className="bg-white rounded-2xl shadow-sm border border-slate-200/70 p-5 space-y-3.5 hover:shadow-md transition-all"
                 >
                   <div className="flex justify-between items-start">
@@ -192,14 +179,14 @@ const OriginationMobileApplicationsList = () => {
                       <Eye size={14} /> View Details
                     </button>
                   </div>
-                </motion.div>
+                </div>
               );
             })}
           </div>
         )}
-      </motion.div>
+      </div>
 
-      {/* Application Details Modal */}
+      {/* Application Details Modal - Positioned above mobile bottom navigation (z-[100]) */}
       <AnimatePresence>
         {selectedApp && (
           <>
@@ -208,7 +195,7 @@ const OriginationMobileApplicationsList = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setSelectedApp(null)}
-              className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 cursor-pointer"
+              className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[100] cursor-pointer"
             />
 
             <motion.div
@@ -216,28 +203,28 @@ const OriginationMobileApplicationsList = () => {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 220 }}
-              className="fixed bottom-0 left-0 right-0 max-h-[85vh] bg-white rounded-t-[32px] shadow-2xl z-50 flex flex-col overflow-hidden"
+              className="fixed bottom-0 left-0 right-0 max-h-[88vh] bg-white rounded-t-[32px] shadow-2xl z-[100] flex flex-col overflow-hidden"
             >
               {/* Header */}
-              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+              <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/80 shrink-0">
                 <div>
                   <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100">
                     {selectedApp.application_id || 'LA-DRAFT'}
                   </span>
-                  <h3 className="text-xl font-bold text-slate-900 mt-1">
+                  <h3 className="text-lg font-bold text-slate-900 mt-1">
                     {selectedApp.applicant_name || selectedApp.form_data?.applicant_name}
                   </h3>
                 </div>
                 <button
                   onClick={() => setSelectedApp(null)}
-                  className="p-2 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
+                  className="p-2 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors cursor-pointer"
                 >
                   <X size={20} />
                 </button>
               </div>
 
-              {/* Modal Body */}
-              <div className="p-6 overflow-y-auto space-y-6 text-sm">
+              {/* Modal Body - padded with pb-32 so content ends well above bottom navigation */}
+              <div className="p-5 overflow-y-auto space-y-5 text-sm pb-32">
                 {/* Status & Loan Type */}
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex justify-between items-center">
                   <div>
@@ -308,21 +295,23 @@ const OriginationMobileApplicationsList = () => {
                   <h4 className="font-bold text-slate-900 text-base flex items-center gap-2 border-b border-slate-100 pb-2">
                     <User size={16} className="text-emerald-600" /> Guarantors (3 Required)
                   </h4>
-                  {[1, 2, 3].map((gIdx) => {
-                    const pfx = `guarantor_${gIdx}_`;
-                    const gName = selectedApp.form_data?.[`${pfx}name`];
-                    const gPhone = selectedApp.form_data?.[`${pfx}phone_number`];
-                    const gAadhaar = selectedApp.form_data?.[`${pfx}aadhaar_number`];
+                  <div className="space-y-2">
+                    {[1, 2, 3].map((gIdx) => {
+                      const pfx = `guarantor_${gIdx}_`;
+                      const gName = selectedApp.form_data?.[`${pfx}name`];
+                      const gPhone = selectedApp.form_data?.[`${pfx}phone_number`];
+                      const gAadhaar = selectedApp.form_data?.[`${pfx}aadhaar_number`];
 
-                    if (!gName) return null;
+                      if (!gName) return null;
 
-                    return (
-                      <div key={gIdx} className="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1 text-xs">
-                        <p className="font-bold text-slate-900">Guarantor {gIdx}: {gName}</p>
-                        <p className="text-slate-600">Phone: {gPhone || 'N/A'} | Aadhaar: {gAadhaar || 'N/A'}</p>
-                      </div>
-                    );
-                  })}
+                      return (
+                        <div key={gIdx} className="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1 text-xs">
+                          <p className="font-bold text-slate-900">Guarantor {gIdx}: {gName}</p>
+                          <p className="text-slate-600">Phone: {gPhone || 'N/A'} | Aadhaar: {gAadhaar || 'N/A'}</p>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             </motion.div>
