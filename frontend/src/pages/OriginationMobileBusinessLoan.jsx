@@ -1,11 +1,14 @@
 import React from 'react';
 import { ArrowLeft, Briefcase } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { BusinessLoanForm } from '../components/forms';
 
 const OriginationMobileBusinessLoan = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isReadOnly = Boolean(location.state?.readOnly || location.state?.isReadOnly);
+  const fromPath = location.state?.from || '/employee/loans/origination/applications';
 
   return (
     <div className="w-full pb-8">
@@ -46,7 +49,7 @@ const OriginationMobileBusinessLoan = () => {
         <div className="relative z-10 px-2 flex items-center justify-between">
           <button 
             type="button" 
-            onClick={() => navigate('/employee/loans/origination/members')} 
+            onClick={() => navigate(fromPath)} 
             className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center backdrop-blur-md transition-transform active:scale-95 border border-white/20 cursor-pointer"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -54,7 +57,7 @@ const OriginationMobileBusinessLoan = () => {
           <div className="text-center">
             <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">Origination Module</p>
             <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-1.5 justify-center drop-shadow-sm">
-              <Briefcase className="w-4 h-4 text-blue-300" /> Business Loan Form
+              <Briefcase className="w-4 h-4 text-blue-300" /> {isReadOnly ? 'Business Loan Details' : 'Business Loan Form'}
             </h2>
           </div>
           <div className="w-10 h-10" />

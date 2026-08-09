@@ -13,7 +13,7 @@ import {
 } from './index';
 import { validateBusinessLoanForm, capitalizeWords, capitalizeText } from '../../utils/loanValidations';
 import { submitLoanApplication, getLoanApplications } from '../../services/loanServices';
-import { Send, Save, Loader2, Download } from 'lucide-react';
+import { Send, Save, Loader2, Download, CheckCircle2, Lock, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export function BusinessLoanForm() {
@@ -209,12 +209,97 @@ export function BusinessLoanForm() {
     formData.guarantor_3_gender, formData.guarantor_3_marital_status, formData.guarantor_3_employment
   ]);
 
+  // Helper to populate all form fields from a saved application form_data object
+  const populateFromData = (savedData) => {
+    if (!savedData) return;
+    if (savedData.applicant_name) updateField('applicant_name', capitalizeWords(savedData.applicant_name));
+    if (savedData.phone_number) updateField('phone_number', String(savedData.phone_number).replace(/\D/g, '').slice(0, 10));
+    if (savedData.age) updateField('age', savedData.age);
+    if (savedData.gender) updateField('gender', savedData.gender);
+    if (savedData.marital_status) updateField('marital_status', savedData.marital_status);
+    if (savedData.own_house) updateField('own_house', savedData.own_house);
+    if (savedData.father_name) updateField('father_name', capitalizeWords(savedData.father_name));
+    if (savedData.mother_name) updateField('mother_name', capitalizeWords(savedData.mother_name));
+    if (savedData.husband_name) updateField('husband_name', capitalizeWords(savedData.husband_name));
+    if (savedData.aadhaar_number) updateField('aadhaar_number', String(savedData.aadhaar_number).replace(/\D/g, '').slice(0, 12));
+    if (savedData.current_address) updateField('current_address', capitalizeText(savedData.current_address));
+    if (savedData.current_street) updateField('current_street', capitalizeWords(savedData.current_street));
+    if (savedData.current_city) updateField('current_city', capitalizeWords(savedData.current_city));
+    if (savedData.current_state) updateField('current_state', capitalizeWords(savedData.current_state));
+    if (savedData.current_postal_code) updateField('current_postal_code', String(savedData.current_postal_code).replace(/\D/g, '').slice(0, 6));
+    if (savedData.permanent_address) updateField('permanent_address', capitalizeText(savedData.permanent_address));
+    if (savedData.permanent_street) updateField('permanent_street', capitalizeWords(savedData.permanent_street));
+    if (savedData.permanent_city) updateField('permanent_city', capitalizeWords(savedData.permanent_city));
+    if (savedData.permanent_state) updateField('permanent_state', capitalizeWords(savedData.permanent_state));
+    if (savedData.permanent_postal_code) updateField('permanent_postal_code', String(savedData.permanent_postal_code).replace(/\D/g, '').slice(0, 6));
+    if (savedData.employment) updateField('employment', savedData.employment);
+    if (savedData.job_name) updateField('job_name', capitalizeWords(savedData.job_name));
+    if (savedData.job_address) updateField('job_address', capitalizeText(savedData.job_address));
+    if (savedData.job_income_per_month) updateField('job_income_per_month', String(savedData.job_income_per_month).replace(/\D/g, ''));
+    if (savedData.business_name) updateField('business_name', capitalizeWords(savedData.business_name));
+    if (savedData.business_address) updateField('business_address', capitalizeText(savedData.business_address));
+    if (savedData.business_income_per_month) updateField('business_income_per_month', String(savedData.business_income_per_month).replace(/\D/g, ''));
+    if (savedData.has_co_applicant) updateField('has_co_applicant', savedData.has_co_applicant);
+    if (savedData.co_applicant_name) updateField('co_applicant_name', capitalizeWords(savedData.co_applicant_name));
+    if (savedData.co_relation_with_applicant) updateField('co_relation_with_applicant', capitalizeWords(savedData.co_relation_with_applicant));
+    if (savedData.co_phone_number) updateField('co_phone_number', String(savedData.co_phone_number).replace(/\D/g, '').slice(0, 10));
+    if (savedData.co_aadhaar_number) updateField('co_aadhaar_number', String(savedData.co_aadhaar_number).replace(/\D/g, '').slice(0, 12));
+    if (savedData.co_age) updateField('co_age', savedData.co_age);
+    if (savedData.co_gender) updateField('co_gender', savedData.co_gender);
+    if (savedData.co_marital_status) updateField('co_marital_status', savedData.co_marital_status);
+    if (savedData.co_father_name) updateField('co_father_name', capitalizeWords(savedData.co_father_name));
+    if (savedData.co_mother_name) updateField('co_mother_name', capitalizeWords(savedData.co_mother_name));
+    if (savedData.co_husband_name) updateField('co_husband_name', capitalizeWords(savedData.co_husband_name));
+    if (savedData.co_own_house) updateField('co_own_house', savedData.co_own_house);
+    if (savedData.co_current_address) updateField('co_current_address', capitalizeText(savedData.co_current_address));
+    if (savedData.co_current_street) updateField('co_current_street', capitalizeWords(savedData.co_current_street));
+    if (savedData.co_current_city) updateField('co_current_city', capitalizeWords(savedData.co_current_city));
+    if (savedData.co_current_state) updateField('co_current_state', capitalizeWords(savedData.co_current_state));
+    if (savedData.co_current_postal_code) updateField('co_current_postal_code', String(savedData.co_current_postal_code).replace(/\D/g, '').slice(0, 6));
+    if (savedData.co_permanent_address) updateField('co_permanent_address', capitalizeText(savedData.co_permanent_address));
+    if (savedData.co_permanent_street) updateField('co_permanent_street', capitalizeWords(savedData.co_permanent_street));
+    if (savedData.co_permanent_city) updateField('co_permanent_city', capitalizeWords(savedData.co_permanent_city));
+    if (savedData.co_permanent_state) updateField('co_permanent_state', capitalizeWords(savedData.co_permanent_state));
+    if (savedData.co_permanent_postal_code) updateField('co_permanent_postal_code', String(savedData.co_permanent_postal_code).replace(/\D/g, '').slice(0, 6));
+    if (savedData.co_employment) updateField('co_employment', savedData.co_employment);
+    if (savedData.co_job_name) updateField('co_job_name', capitalizeWords(savedData.co_job_name));
+    if (savedData.co_job_address) updateField('co_job_address', capitalizeText(savedData.co_job_address));
+    if (savedData.co_job_income_per_month) updateField('co_job_income_per_month', String(savedData.co_job_income_per_month).replace(/\D/g, ''));
+    if (savedData.co_business_name) updateField('co_business_name', capitalizeWords(savedData.co_business_name));
+    if (savedData.co_business_address) updateField('co_business_address', capitalizeText(savedData.co_business_address));
+    if (savedData.co_business_income_per_month) updateField('co_business_income_per_month', String(savedData.co_business_income_per_month).replace(/\D/g, ''));
+
+    [1, 2, 3].forEach(idx => {
+      const pfx = `guarantor_${idx}_`;
+      const keys = [
+        'name', 'phone_number', 'aadhaar_number', 'age', 'gender', 'marital_status',
+        'father_name', 'mother_name', 'husband_name', 'own_house', 'current_address',
+        'current_street', 'current_city', 'current_state', 'current_postal_code',
+        'permanent_address', 'permanent_street', 'permanent_city', 'permanent_state',
+        'permanent_postal_code', 'employment', 'job_name', 'job_address',
+        'job_income_per_month', 'business_name', 'business_address', 'business_income_per_month'
+      ];
+      keys.forEach(k => {
+        const fullKey = `${pfx}${k}`;
+        if (savedData[fullKey]) {
+          if (k.includes('name') || k.includes('street') || k.includes('city') || k.includes('state')) {
+            updateField(fullKey, capitalizeWords(savedData[fullKey]));
+          } else if (k.includes('address')) {
+            updateField(fullKey, capitalizeText(savedData[fullKey]));
+          } else {
+            updateField(fullKey, savedData[fullKey]);
+          }
+        }
+      });
+    });
+  };
+
   // Load saved application / draft JSON data directly from database
   const loadSavedDataFromDB = async (showToast = false) => {
     try {
       setIsLoadingData(true);
       const res = await getLoanApplications();
-      const passingLeadId = location.state?.lead_id || location.state?.id || formData.lead_id;
+      const passingLeadId = location.state?.lead_id || location.state?.id || location.state?.application?.lead_id || formData.lead_id;
 
       if (res && res.applications && res.applications.length > 0) {
         // Find existing application specifically matching the passing lead_id
@@ -230,94 +315,12 @@ export function BusinessLoanForm() {
         }
 
         if (existingApp && existingApp.form_data) {
-          const savedData = existingApp.form_data;
-          if (savedData.applicant_name) updateField('applicant_name', capitalizeWords(savedData.applicant_name));
-          if (savedData.phone_number) updateField('phone_number', String(savedData.phone_number).replace(/\D/g, '').slice(0, 10));
-          if (savedData.age) updateField('age', savedData.age);
-          if (savedData.gender) updateField('gender', savedData.gender);
-          if (savedData.marital_status) updateField('marital_status', savedData.marital_status);
-          if (savedData.own_house) updateField('own_house', savedData.own_house);
-          if (savedData.father_name) updateField('father_name', capitalizeWords(savedData.father_name));
-          if (savedData.mother_name) updateField('mother_name', capitalizeWords(savedData.mother_name));
-          if (savedData.husband_name) updateField('husband_name', capitalizeWords(savedData.husband_name));
-          if (savedData.aadhaar_number) updateField('aadhaar_number', String(savedData.aadhaar_number).replace(/\D/g, '').slice(0, 12));
-          if (savedData.current_address) updateField('current_address', capitalizeText(savedData.current_address));
-          if (savedData.current_street) updateField('current_street', capitalizeWords(savedData.current_street));
-          if (savedData.current_city) updateField('current_city', capitalizeWords(savedData.current_city));
-          if (savedData.current_state) updateField('current_state', capitalizeWords(savedData.current_state));
-          if (savedData.current_postal_code) updateField('current_postal_code', String(savedData.current_postal_code).replace(/\D/g, '').slice(0, 6));
-          if (savedData.permanent_address) updateField('permanent_address', capitalizeText(savedData.permanent_address));
-          if (savedData.permanent_street) updateField('permanent_street', capitalizeWords(savedData.permanent_street));
-          if (savedData.permanent_city) updateField('permanent_city', capitalizeWords(savedData.permanent_city));
-          if (savedData.permanent_state) updateField('permanent_state', capitalizeWords(savedData.permanent_state));
-          if (savedData.permanent_postal_code) updateField('permanent_postal_code', String(savedData.permanent_postal_code).replace(/\D/g, '').slice(0, 6));
-          if (savedData.employment) updateField('employment', savedData.employment);
-          if (savedData.job_name) updateField('job_name', capitalizeWords(savedData.job_name));
-          if (savedData.job_address) updateField('job_address', capitalizeText(savedData.job_address));
-          if (savedData.job_income_per_month) updateField('job_income_per_month', String(savedData.job_income_per_month).replace(/\D/g, ''));
-          if (savedData.business_name) updateField('business_name', capitalizeWords(savedData.business_name));
-          if (savedData.business_address) updateField('business_address', capitalizeText(savedData.business_address));
-          if (savedData.business_income_per_month) updateField('business_income_per_month', String(savedData.business_income_per_month).replace(/\D/g, ''));
-          if (savedData.has_co_applicant) updateField('has_co_applicant', savedData.has_co_applicant);
-          if (savedData.co_applicant_name) updateField('co_applicant_name', capitalizeWords(savedData.co_applicant_name));
-          if (savedData.co_relation_with_applicant) updateField('co_relation_with_applicant', capitalizeWords(savedData.co_relation_with_applicant));
-          if (savedData.co_phone_number) updateField('co_phone_number', String(savedData.co_phone_number).replace(/\D/g, '').slice(0, 10));
-          if (savedData.co_aadhaar_number) updateField('co_aadhaar_number', String(savedData.co_aadhaar_number).replace(/\D/g, '').slice(0, 12));
-          if (savedData.co_age) updateField('co_age', savedData.co_age);
-          if (savedData.co_gender) updateField('co_gender', savedData.co_gender);
-          if (savedData.co_marital_status) updateField('co_marital_status', savedData.co_marital_status);
-          if (savedData.co_father_name) updateField('co_father_name', capitalizeWords(savedData.co_father_name));
-          if (savedData.co_mother_name) updateField('co_mother_name', capitalizeWords(savedData.co_mother_name));
-          if (savedData.co_husband_name) updateField('co_husband_name', capitalizeWords(savedData.co_husband_name));
-          if (savedData.co_own_house) updateField('co_own_house', savedData.co_own_house);
-          if (savedData.co_current_address) updateField('co_current_address', capitalizeText(savedData.co_current_address));
-          if (savedData.co_current_street) updateField('co_current_street', capitalizeWords(savedData.co_current_street));
-          if (savedData.co_current_city) updateField('co_current_city', capitalizeWords(savedData.co_current_city));
-          if (savedData.co_current_state) updateField('co_current_state', capitalizeWords(savedData.co_current_state));
-          if (savedData.co_current_postal_code) updateField('co_current_postal_code', String(savedData.co_current_postal_code).replace(/\D/g, '').slice(0, 6));
-          if (savedData.co_permanent_address) updateField('co_permanent_address', capitalizeText(savedData.co_permanent_address));
-          if (savedData.co_permanent_street) updateField('co_permanent_street', capitalizeWords(savedData.co_permanent_street));
-          if (savedData.co_permanent_city) updateField('co_permanent_city', capitalizeWords(savedData.co_permanent_city));
-          if (savedData.co_permanent_state) updateField('co_permanent_state', capitalizeWords(savedData.co_permanent_state));
-          if (savedData.co_permanent_postal_code) updateField('co_permanent_postal_code', String(savedData.co_permanent_postal_code).replace(/\D/g, '').slice(0, 6));
-          if (savedData.co_employment) updateField('co_employment', savedData.co_employment);
-          if (savedData.co_job_name) updateField('co_job_name', capitalizeWords(savedData.co_job_name));
-          if (savedData.co_job_address) updateField('co_job_address', capitalizeText(savedData.co_job_address));
-          if (savedData.co_job_income_per_month) updateField('co_job_income_per_month', String(savedData.co_job_income_per_month).replace(/\D/g, ''));
-          if (savedData.co_business_name) updateField('co_business_name', capitalizeWords(savedData.co_business_name));
-          if (savedData.co_business_address) updateField('co_business_address', capitalizeText(savedData.co_business_address));
-          if (savedData.co_business_income_per_month) updateField('co_business_income_per_month', String(savedData.co_business_income_per_month).replace(/\D/g, ''));
-
-          // Restore Guarantors 1, 2, 3
-          [1, 2, 3].forEach(idx => {
-            const pfx = `guarantor_${idx}_`;
-            const keys = [
-              'name', 'phone_number', 'aadhaar_number', 'age', 'gender', 'marital_status',
-              'father_name', 'mother_name', 'husband_name', 'own_house', 'current_address',
-              'current_street', 'current_city', 'current_state', 'current_postal_code',
-              'permanent_address', 'permanent_street', 'permanent_city', 'permanent_state',
-              'permanent_postal_code', 'employment', 'job_name', 'job_address',
-              'job_income_per_month', 'business_name', 'business_address', 'business_income_per_month'
-            ];
-            keys.forEach(k => {
-              const fullKey = `${pfx}${k}`;
-              if (savedData[fullKey]) {
-                if (k.includes('name') || k.includes('street') || k.includes('city') || k.includes('state')) {
-                  updateField(fullKey, capitalizeWords(savedData[fullKey]));
-                } else if (k.includes('address')) {
-                  updateField(fullKey, capitalizeText(savedData[fullKey]));
-                } else {
-                  updateField(fullKey, savedData[fullKey]);
-                }
-              }
-            });
-          });
-
+          populateFromData(existingApp.form_data);
           if (showToast) {
-            toast.success('Loaded saved draft for this lead!');
+            toast.success('Loaded saved application data!');
           }
         } else if (showToast) {
-          toast.error('No saved draft found for this lead.');
+          toast.error('No saved data found for this application.');
         }
       } else if (showToast) {
         toast.error('No saved data found in database.');
@@ -334,9 +337,19 @@ export function BusinessLoanForm() {
 
   // Auto-populate when profile data or navigation state resolves or on mount
   useEffect(() => {
+    const directData = location.state?.application?.form_data || location.state?.form_data;
+    if (directData) {
+      populateFromData(directData);
+    }
+
+    if (location.state?.application?.status === 'Submitted') {
+      setIsAlreadySubmitted(true);
+    }
+
     const nameFromSource = 
       location.state?.name || 
       location.state?.applicant_name || 
+      location.state?.application?.applicant_name ||
       profile?.full_name || 
       profile?.name || 
       '';
@@ -344,12 +357,13 @@ export function BusinessLoanForm() {
     const phoneFromSource = 
       location.state?.phone || 
       location.state?.phone_number || 
+      location.state?.application?.phone_number ||
       profile?.phone || 
       profile?.phone_number || 
       profile?.mobile || 
       '';
 
-    const leadIdFromSource = location.state?.lead_id || location.state?.id || '';
+    const leadIdFromSource = location.state?.lead_id || location.state?.id || location.state?.application?.lead_id || '';
 
     if (nameFromSource && !formData.applicant_name) {
       updateField('applicant_name', capitalizeWords(nameFromSource));
@@ -361,8 +375,10 @@ export function BusinessLoanForm() {
       updateField('lead_id', leadIdFromSource);
     }
 
-    // Load latest database application data
-    loadSavedDataFromDB(false);
+    // Load database application data if not populated directly
+    if (!directData) {
+      loadSavedDataFromDB(false);
+    }
   }, [profile, location.state]);
 
   const getCleanFormData = () => {
@@ -482,6 +498,8 @@ export function BusinessLoanForm() {
     }
   };
 
+  const isReadOnly = Boolean(location.state?.readOnly || location.state?.isReadOnly || isAlreadySubmitted);
+
   const renderGuarantorForm = (idx) => {
     const pfx = `guarantor_${idx}_`;
     const labelPfx = `Guarantor ${idx}`;
@@ -494,7 +512,7 @@ export function BusinessLoanForm() {
     const showGHusband = gGender === 'Female' && gMarital === 'Yes';
 
     return (
-      <div key={idx} className="space-y-6">
+      <fieldset disabled={isReadOnly} key={idx} className="space-y-6 block border-0 p-0 m-0 disabled:opacity-95">
         {/* Personal Details */}
         <div>
           <h4 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
@@ -851,23 +869,43 @@ export function BusinessLoanForm() {
             </FormGrid>
           )}
         </div>
-      </div>
+      </fieldset>
     );
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {isAlreadySubmitted && (
-        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-sm font-semibold flex items-center gap-2 mb-6 shadow-sm">
-          <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
-          <span>This loan application has already been submitted for this lead and is locked against further editing.</span>
+      {isReadOnly && (
+        <div className="p-4 bg-blue-50 border border-blue-200 rounded-2xl text-blue-900 text-sm font-medium flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 shrink-0">
+              <Lock className="w-5 h-5" />
+            </div>
+            <div>
+              <span className="font-bold text-slate-900 block">Application Details — Read-Only Mode</span>
+              <span className="text-xs text-slate-500">Viewing submitted application details for this applicant</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {location.state?.application?.application_id && (
+              <span className="font-bold text-xs bg-white text-blue-700 px-3 py-1 rounded-full border border-blue-200 shadow-2xs">
+                {location.state.application.application_id}
+              </span>
+            )}
+            <span className="font-bold text-xs uppercase px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+              {location.state?.application?.status || (isAlreadySubmitted ? 'Submitted' : 'View Mode')}
+            </span>
+          </div>
         </div>
       )}
-      {/* Personal Details Section */}
-      <div>
-        <h3 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
-          Personal Details
-        </h3>
+
+      {/* Main Form Fields Container wrapped with disabled fieldset when in readOnly mode */}
+      <fieldset disabled={isReadOnly} className="space-y-6 block border-0 p-0 m-0 disabled:opacity-95">
+        {/* Personal Details Section */}
+        <div>
+          <h3 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+            Personal Details
+          </h3>
         <FormGrid columns={3} gap={6}>
         <TextField
           name="applicant_name"
@@ -1618,6 +1656,7 @@ export function BusinessLoanForm() {
           </div>
         )}
       </div>
+    </fieldset>
 
       {/* Guarantor Section */}
       <div className="pt-6 border-t border-slate-200">
@@ -1649,39 +1688,54 @@ export function BusinessLoanForm() {
         {renderGuarantorForm(activeGuarantorTab)}
       </div>
 
-      <div className="pt-6 border-t border-slate-100 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3">
-        <button
-          type="button"
-          onClick={() => loadSavedDataFromDB(true)}
-          disabled={isLoadingData || isDrafting || isSubmitting}
-          className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl text-sm font-medium bg-slate-50 text-slate-700 hover:bg-slate-100 h-11 sm:h-10 px-4 py-2 transition-colors cursor-pointer border border-slate-200 gap-2 disabled:opacity-50"
-        >
-          {isLoadingData ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} Load Saved Data
-        </button>
-        <button
-          type="button"
-          onClick={handleSaveDraft}
-          disabled={isDrafting || isSubmitting || isLoadingData || isAlreadySubmitted}
-          className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 h-11 sm:h-10 px-4 py-2 transition-colors cursor-pointer border border-slate-200 gap-2 disabled:opacity-50"
-        >
-          {isDrafting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save Draft
-        </button>
-        <button
-          type="submit"
-          disabled={isSubmitting || isDrafting || isLoadingData || isAlreadySubmitted}
-          className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-11 sm:h-10 px-4 py-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50 gap-2"
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" /> Submitting...
-            </>
-          ) : (
-            <>
-              <Send className="h-4 w-4" /> {isAlreadySubmitted ? 'Application Submitted' : 'Submit Application'}
-            </>
-          )}
-        </button>
-      </div>
+      {isReadOnly ? (
+        <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={() => navigate(location.state?.from || '/employee/loans/origination/applications')}
+            className="inline-flex items-center justify-center rounded-xl text-sm font-semibold bg-slate-900 text-white hover:bg-slate-800 h-11 sm:h-10 px-5 py-2 transition-all cursor-pointer shadow-sm gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" /> Back to Applications
+          </button>
+          <div className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
+            <Lock className="h-3.5 w-3.5 text-slate-400" /> Read-Only Mode • Modifications disabled
+          </div>
+        </div>
+      ) : (
+        <div className="pt-6 border-t border-slate-100 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3">
+          <button
+            type="button"
+            onClick={() => loadSavedDataFromDB(true)}
+            disabled={isLoadingData || isDrafting || isSubmitting}
+            className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl text-sm font-medium bg-slate-50 text-slate-700 hover:bg-slate-100 h-11 sm:h-10 px-4 py-2 transition-colors cursor-pointer border border-slate-200 gap-2 disabled:opacity-50"
+          >
+            {isLoadingData ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} Load Saved Data
+          </button>
+          <button
+            type="button"
+            onClick={handleSaveDraft}
+            disabled={isDrafting || isSubmitting || isLoadingData || isAlreadySubmitted}
+            className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 h-11 sm:h-10 px-4 py-2 transition-colors cursor-pointer border border-slate-200 gap-2 disabled:opacity-50"
+          >
+            {isDrafting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save Draft
+          </button>
+          <button
+            type="submit"
+            disabled={isSubmitting || isDrafting || isLoadingData || isAlreadySubmitted}
+            className="w-full sm:w-auto inline-flex items-center justify-center rounded-xl text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-11 sm:h-10 px-4 py-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50 gap-2"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" /> Submitting...
+              </>
+            ) : (
+              <>
+                <Send className="h-4 w-4" /> {isAlreadySubmitted ? 'Application Submitted' : 'Submit Application'}
+              </>
+            )}
+          </button>
+        </div>
+      )}
     </form>
   );
 }

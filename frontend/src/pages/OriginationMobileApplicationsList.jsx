@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getLoanApplications } from '../services/loanServices';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Search, CheckCircle2, Clock, User, Phone, Briefcase, X, Eye, Loader2 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Search, CheckCircle2, Clock, Phone, Briefcase, Eye, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 
 const OriginationMobileApplicationsList = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
-  const [selectedApp, setSelectedApp] = useState(null);
-  const [showFullDetails, setShowFullDetails] = useState(false);
 
   const { data: response, isLoading, error } = useQuery({
     queryKey: ['origination', 'applications', 'list'],
@@ -41,6 +41,21 @@ const OriginationMobileApplicationsList = () => {
     } catch (e) {
       return 'N/A';
     }
+  };
+
+  const handleViewDetails = (app) => {
+    navigate('/employee/loans/business-loan', {
+      state: {
+        application: app,
+        form_data: app.form_data,
+        lead_id: app.lead_id,
+        name: app.applicant_name || app.form_data?.applicant_name,
+        phone: app.phone_number || app.form_data?.phone_number,
+        readOnly: true,
+        isReadOnly: true,
+        from: '/employee/loans/origination/applications',
+      },
+    });
   };
 
   return (
@@ -174,7 +189,7 @@ const OriginationMobileApplicationsList = () => {
                   <div className="pt-3 border-t border-slate-100 flex justify-between items-center text-xs">
                     <span className="text-slate-400">{formatDateSafe(app.created_at || app.updated_at)}</span>
                     <button
-                      onClick={() => setSelectedApp(app)}
+                      onClick={() => handleViewDetails(app)}
                       className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-700 cursor-pointer"
                     >
                       <Eye size={14} /> View Details
@@ -186,166 +201,6 @@ const OriginationMobileApplicationsList = () => {
           </div>
         )}
       </div>
-
-      {/* Application Details Modal - Positioned above mobile bottom navigation (z-[100]) */}
-      <AnimatePresence>
-        {selectedApp && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setSelectedApp(null)}
-              className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-[100] cursor-pointer"
-            />
-
-            <motion.div
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 220 }}
-              className="fixed bottom-0 left-0 right-0 max-h-[88vh] bg-white rounded-t-[32px] shadow-2xl z-[100] flex flex-col overflow-hidden"
-            >
-              {/* Header */}
-              <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/80 shrink-0">
-                <div>
-                  <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100">
-                    {selectedApp.application_id || 'LA-DRAFT'}
-                  </span>
-                  <h3 className="text-lg font-bold text-slate-900 mt-1">
-                    {selectedApp.applicant_name || selectedApp.form_data?.applicant_name}
-                  </h3>
-                </div>
-                <button
-                  onClick={() => {
-                    setSelectedApp(null);
-                    setShowFullDetails(false);
-                  }}
-                  className="p-2 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors cursor-pointer"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-
-              {/* Modal Body - padded with pb-32 so content ends well above bottom navigation */}
-              <div className="p-5 overflow-y-auto space-y-5 text-sm pb-32">
-                {/* Status & Loan Type */}
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex justify-between items-center">
-                  <div>
-                    <p className="text-xs text-slate-400 font-semibold uppercase">Loan Type</p>
-                    <p className="font-bold text-slate-900 text-base">{selectedApp.loan_type}</p>
-                  </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-                    selectedApp.status === 'Submitted' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-                  }`}>
-                    {selectedApp.status}
-                  </span>
-                </div>
-
-                {/* Primary Applicant Details */}
-                <div className="space-y-3">
-                  <h4 className="font-bold text-slate-900 text-base flex items-center gap-2 border-b border-slate-100 pb-2">
-                    <User size={16} className="text-blue-600" /> Applicant Personal Details
-                  </h4>
-                  <div className="grid grid-cols-2 gap-3 text-xs">
-                    <div>
-                      <p className="text-slate-400 font-medium">Name</p>
-                      <p className="font-semibold text-slate-800">{selectedApp.form_data?.applicant_name || selectedApp.applicant_name}</p>
-                    </div>
-                    <div>
-                      <p className="text-slate-400 font-medium">Phone</p>
-                      <p className="font-semibold text-slate-800">{selectedApp.form_data?.phone_number || selectedApp.phone_number}</p>
-                    </div>
-                    <div>
-                      <p className="text-slate-400 font-medium">Aadhaar</p>
-                      <p className="font-semibold text-slate-800">{selectedApp.form_data?.aadhaar_number || 'N/A'}</p>
-                    </div>
-                    <div>
-                      <p className="text-slate-400 font-medium">Age / Gender</p>
-                      <p className="font-semibold text-slate-800">{selectedApp.form_data?.age || 'N/A'} / {selectedApp.form_data?.gender || 'N/A'}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Co-Applicant (If present) */}
-                {selectedApp.form_data?.has_co_applicant === 'Yes' && (
-                  <div className="space-y-3 pt-2">
-                    <h4 className="font-bold text-slate-900 text-base flex items-center gap-2 border-b border-slate-100 pb-2">
-                      <User size={16} className="text-indigo-600" /> Co-Applicant Details
-                    </h4>
-                    <div className="grid grid-cols-2 gap-3 text-xs">
-                      <div>
-                        <p className="text-slate-400 font-medium">Co-Applicant Name</p>
-                        <p className="font-semibold text-slate-800">{selectedApp.form_data.co_applicant_name || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <p className="text-slate-400 font-medium">Relation</p>
-                        <p className="font-semibold text-slate-800">{selectedApp.form_data.co_relation_with_applicant || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <p className="text-slate-400 font-medium">Phone</p>
-                        <p className="font-semibold text-slate-800">{selectedApp.form_data.co_phone_number || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <p className="text-slate-400 font-medium">Aadhaar</p>
-                        <p className="font-semibold text-slate-800">{selectedApp.form_data.co_aadhaar_number || 'N/A'}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Guarantors */}
-                <div className="space-y-3 pt-2">
-                  <h4 className="font-bold text-slate-900 text-base flex items-center gap-2 border-b border-slate-100 pb-2">
-                    <User size={16} className="text-emerald-600" /> Guarantors (3 Required)
-                  </h4>
-                  <div className="space-y-2">
-                    {[1, 2, 3].map((gIdx) => {
-                      const pfx = `guarantor_${gIdx}_`;
-                      const gName = selectedApp.form_data?.[`${pfx}name`];
-                      const gPhone = selectedApp.form_data?.[`${pfx}phone_number`];
-                      const gAadhaar = selectedApp.form_data?.[`${pfx}aadhaar_number`];
-
-                      if (!gName) return null;
-
-                      return (
-                        <div key={gIdx} className="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1 text-xs">
-                          <p className="font-bold text-slate-900">Guarantor {gIdx}: {gName}</p>
-                          <p className="text-slate-600">Phone: {gPhone || 'N/A'} | Aadhaar: {gAadhaar || 'N/A'}</p>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* View Full Info Toggle */}
-                <div className="pt-4 border-t border-slate-100">
-                  <button
-                    onClick={() => setShowFullDetails(!showFullDetails)}
-                    className="w-full py-3 rounded-2xl border border-slate-200 bg-slate-50 text-slate-700 font-bold text-sm hover:bg-slate-100 transition-colors cursor-pointer"
-                  >
-                    {showFullDetails ? 'Hide Full Details' : 'View Full Application Info'}
-                  </button>
-                  
-                  {showFullDetails && selectedApp.form_data && (
-                    <div className="mt-4 pt-4 border-t border-slate-100">
-                      <h4 className="font-bold text-slate-900 text-base mb-4">Complete Application Data</h4>
-                      <div className="grid grid-cols-1 gap-3 text-sm">
-                        {Object.entries(selectedApp.form_data).filter(([_, v]) => v && v !== 'No').map(([key, value]) => (
-                          <div key={key} className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex flex-col">
-                            <span className="text-slate-400 font-medium capitalize mb-1 text-xs">{key.replace(/_/g, ' ')}</span>
-                            <span className="font-bold text-slate-800 break-words leading-tight">{String(value)}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
     </div>
   );
 };

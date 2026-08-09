@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getLoanApplications } from '../services/loanServices';
-import { Search, CheckCircle2, Briefcase, Loader2, Clock, User, Phone, MapPin, X, Eye } from 'lucide-react';
+import { Search, CheckCircle2, Briefcase, Loader2, Clock, Eye } from 'lucide-react';
 import { format } from 'date-fns';
-import { motion, AnimatePresence } from 'framer-motion';
 import OriginationMobileApplicationsList from './OriginationMobileApplicationsList';
 
 const OriginationApplicationsList = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
-  const [selectedApp, setSelectedApp] = useState(null);
-  const [showFullDetails, setShowFullDetails] = useState(false);
 
   const { data: response, isLoading, error } = useQuery({
     queryKey: ['origination', 'applications', 'list'],
@@ -44,6 +43,21 @@ const OriginationApplicationsList = () => {
     }
   };
 
+  const handleViewDetails = (app) => {
+    navigate('/employee/loans/business-loan', {
+      state: {
+        application: app,
+        form_data: app.form_data,
+        lead_id: app.lead_id,
+        name: app.applicant_name || app.form_data?.applicant_name,
+        phone: app.phone_number || app.form_data?.phone_number,
+        readOnly: true,
+        isReadOnly: true,
+        from: '/employee/loans/origination/applications',
+      },
+    });
+  };
+
   return (
     <>
       {/* Mobile Screen View */}
@@ -51,9 +65,8 @@ const OriginationApplicationsList = () => {
         <OriginationMobileApplicationsList />
       </div>
 
-      {/* Desktop Screen View - Exactly matched with Members Page Styling */}
+      {/* Desktop Screen View */}
       <div className="hidden md:block p-4 md:p-6 space-y-6 md:pb-6">
-        
         {/* Header */}
         <div className="flex justify-between items-center mb-2">
           <div>
@@ -170,7 +183,7 @@ const OriginationApplicationsList = () => {
                               </td>
                               <td className="p-3 text-center whitespace-nowrap">
                                 <button 
-                                  onClick={() => setSelectedApp(app)}
+                                  onClick={() => handleViewDetails(app)}
                                   className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer whitespace-nowrap"
                                 >
                                   <Eye size={14} /> View Details
@@ -188,167 +201,6 @@ const OriginationApplicationsList = () => {
           </div>
         )}
       </div>
-
-      {/* Desktop Application Details Modal (Sidebar) */}
-      <AnimatePresence>
-        {selectedApp && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setSelectedApp(null)}
-              className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-50 cursor-pointer hidden md:block"
-            />
-            
-            {/* Sidebar */}
-            <motion.div
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed top-0 right-0 h-full w-[400px] bg-white shadow-2xl z-50 flex flex-col overflow-hidden border-l border-slate-100 hidden md:flex"
-            >
-              {/* Header */}
-              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-white">
-                <div>
-                  <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded border border-blue-100">
-                    {selectedApp.application_id || 'LA-DRAFT'}
-                  </span>
-                  <h3 className="text-lg font-bold text-slate-900 mt-1">
-                    {selectedApp.applicant_name || selectedApp.form_data?.applicant_name}
-                  </h3>
-                </div>
-                <button
-                onClick={() => {
-                  setSelectedApp(null);
-                  setShowFullDetails(false);
-                }}
-                className="p-2 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
-              >
-                <X size={20} />
-              </button>
-              </div>
-
-              {/* Scrollable Content */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-6 text-sm">
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex justify-between items-center">
-                  <div>
-                    <p className="text-xs text-slate-500 font-medium uppercase">Loan Type</p>
-                    <p className="font-bold text-slate-900 text-base">{selectedApp.loan_type}</p>
-                  </div>
-                  <span className={`px-2.5 py-1 rounded text-xs font-medium border ${
-                    selectedApp.status === 'Submitted' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'
-                  }`}>
-                    {selectedApp.status}
-                  </span>
-                </div>
-
-                {/* Applicant Personal Details */}
-                <div className="space-y-3">
-                  <h4 className="font-semibold text-slate-900 text-sm flex items-center gap-2 border-b border-slate-100 pb-2">
-                    <User size={15} className="text-blue-600" /> Primary Applicant Details
-                  </h4>
-                  <div className="grid grid-cols-2 gap-4 text-xs">
-                    <div>
-                      <p className="text-slate-500 font-medium">Applicant Name</p>
-                      <p className="font-semibold text-slate-800">{selectedApp.form_data?.applicant_name || selectedApp.applicant_name}</p>
-                    </div>
-                    <div>
-                      <p className="text-slate-500 font-medium">Phone Number</p>
-                      <p className="font-semibold text-slate-800">{selectedApp.form_data?.phone_number || selectedApp.phone_number}</p>
-                    </div>
-                    <div>
-                      <p className="text-slate-500 font-medium">Aadhaar Number</p>
-                      <p className="font-semibold text-slate-800">{selectedApp.form_data?.aadhaar_number || 'N/A'}</p>
-                    </div>
-                    <div>
-                      <p className="text-slate-500 font-medium">Age / Gender</p>
-                      <p className="font-semibold text-slate-800">{selectedApp.form_data?.age || 'N/A'} / {selectedApp.form_data?.gender || 'N/A'}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Co-Applicant Details */}
-                {selectedApp.form_data?.has_co_applicant === 'Yes' && (
-                  <div className="space-y-3 pt-2">
-                    <h4 className="font-semibold text-slate-900 text-sm flex items-center gap-2 border-b border-slate-100 pb-2">
-                      <User size={15} className="text-indigo-600" /> Co-Applicant Details
-                    </h4>
-                    <div className="grid grid-cols-2 gap-4 text-xs">
-                      <div>
-                        <p className="text-slate-500 font-medium">Co-Applicant Name</p>
-                        <p className="font-semibold text-slate-800">{selectedApp.form_data.co_applicant_name || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <p className="text-slate-500 font-medium">Relation with Applicant</p>
-                        <p className="font-semibold text-slate-800">{selectedApp.form_data.co_relation_with_applicant || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <p className="text-slate-500 font-medium">Phone Number</p>
-                        <p className="font-semibold text-slate-800">{selectedApp.form_data.co_phone_number || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <p className="text-slate-500 font-medium">Aadhaar Number</p>
-                        <p className="font-semibold text-slate-800">{selectedApp.form_data.co_aadhaar_number || 'N/A'}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Guarantors */}
-                <div className="space-y-3 pt-2">
-                  <h4 className="font-semibold text-slate-900 text-sm flex items-center gap-2 border-b border-slate-100 pb-2">
-                    <User size={15} className="text-emerald-600" /> Guarantors (3 Required)
-                  </h4>
-                  <div className="space-y-2">
-                    {[1, 2, 3].map((gIdx) => {
-                      const pfx = `guarantor_${gIdx}_`;
-                      const gName = selectedApp.form_data?.[`${pfx}name`];
-                      const gPhone = selectedApp.form_data?.[`${pfx}phone_number`];
-                      const gAadhaar = selectedApp.form_data?.[`${pfx}aadhaar_number`];
-
-                      if (!gName) return null;
-
-                      return (
-                        <div key={gIdx} className="bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-1 text-xs">
-                          <p className="font-bold text-slate-900">Guarantor {gIdx}: {gName}</p>
-                          <p className="text-slate-600">Phone: {gPhone || 'N/A'} | Aadhaar: {gAadhaar || 'N/A'}</p>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* View Full Info Toggle */}
-                <div className="pt-4 pb-2 border-t border-slate-100">
-                  <button
-                    onClick={() => setShowFullDetails(!showFullDetails)}
-                    className="w-full py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 font-semibold text-xs hover:bg-slate-100 transition-colors cursor-pointer"
-                  >
-                    {showFullDetails ? 'Hide Full Details' : 'View Full Application Info'}
-                  </button>
-                  
-                  {showFullDetails && selectedApp.form_data && (
-                    <div className="mt-4 pt-4 border-t border-slate-100">
-                      <h4 className="font-semibold text-slate-900 text-sm mb-3">Complete Application Data</h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                        {Object.entries(selectedApp.form_data).filter(([_, v]) => v && v !== 'No').map(([key, value]) => (
-                          <div key={key} className="bg-white p-3 rounded-lg border border-slate-100 shadow-sm">
-                            <p className="text-slate-400 font-medium capitalize mb-1">{key.replace(/_/g, ' ')}</p>
-                            <p className="font-semibold text-slate-800 break-words">{String(value)}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
     </>
   );
 };
