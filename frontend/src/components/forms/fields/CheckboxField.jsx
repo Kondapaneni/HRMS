@@ -47,11 +47,11 @@ export const CheckboxField = React.memo(({
           onChange={handleChange}
           onBlur={onBlur}
           disabled={disabled || readOnly}
-          className={`mt-0.5 w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500 cursor-pointer ${
+          className={`mt-0.5 w-4 h-4 text-blue-600 border-slate-200 rounded focus:ring-2 focus:ring-blue-100 focus:border-blue-400 cursor-pointer transition-all ${
             error ? 'border-red-400' : ''
           }`}
         />
-        <span className="text-xs font-medium text-slate-700 leading-tight">
+        <span className="text-xs font-medium text-slate-600 leading-tight">
           {checkboxLabel || label}
           {required && <span className="text-red-500 font-bold ml-1">*</span>}
         </span>

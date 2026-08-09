@@ -45,7 +45,7 @@ export const SwitchField = React.memo(({
           aria-checked={!!value}
           onClick={toggle}
           disabled={disabled || readOnly}
-          className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+          className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-100 ${
             value ? 'bg-blue-600' : 'bg-slate-200'
           } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
@@ -59,7 +59,7 @@ export const SwitchField = React.memo(({
         {(switchLabel || label) && (
           <span
             onClick={toggle}
-            className={`text-xs font-medium text-slate-700 cursor-pointer select-none ${
+            className={`text-xs font-medium text-slate-600 cursor-pointer select-none ${
               disabled ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           >
