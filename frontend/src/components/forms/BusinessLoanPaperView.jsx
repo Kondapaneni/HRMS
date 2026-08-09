@@ -207,38 +207,38 @@ export function BusinessLoanPaperView({ formData = {}, application = {}, onBack 
       </div>
 
       {/* Main Physical Paper Document View */}
-      <div className="bg-white rounded-lg border border-slate-300 shadow-sm overflow-hidden print:shadow-none print:border-0 print:rounded-none">
+      <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden print:shadow-none print:border-0 print:rounded-none">
         
-        {/* Paper Form Header (Acme HRMS & Loans Colors) */}
-        <div className="p-6 sm:p-7 bg-gradient-to-r from-slate-900 via-slate-800 to-blue-950 text-white border-b-4 border-blue-600 relative">
+        {/* Paper Form Header (Matching Acme HRMS Theme) */}
+        <div className="p-6 sm:p-7 bg-white border-b border-slate-200">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2 text-blue-400 font-bold text-xs uppercase tracking-widest">
-                <Building2 className="w-4 h-4 text-blue-400" /> Acme Financial Services • Credit Origination
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 text-blue-600 font-bold text-xs uppercase tracking-widest">
+                <Building2 className="w-4 h-4 text-blue-600" /> Acme Financial Services • Credit Origination
               </div>
-              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white uppercase">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 uppercase">
                 Business Loan Application Form
               </h1>
-              <p className="text-xs text-slate-300">
+              <p className="text-xs text-slate-500">
                 Official Commercial Credit Record • Form Code: BL-ORIG-2026
               </p>
             </div>
 
             {/* Official Status Box */}
-            <div className="flex flex-col items-start md:items-end gap-1.5 bg-white/10 backdrop-blur-md p-3 rounded-md border border-white/20 text-xs">
+            <div className="flex flex-col items-start md:items-end gap-1.5 bg-slate-50 p-3 rounded-md border border-slate-200 text-xs shadow-2xs">
               <div className="flex items-center gap-2">
-                <span className="text-slate-300 font-semibold uppercase text-[10px]">App ID:</span>
-                <span className="font-mono font-bold text-white bg-blue-600/90 px-2 py-0.5 rounded-sm">
+                <span className="text-slate-500 font-semibold uppercase text-[10px]">App ID:</span>
+                <span className="font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
                   {appId}
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-slate-300 font-semibold uppercase text-[10px]">Status:</span>
-                <span className="px-2 py-0.5 rounded-sm text-[10px] font-bold uppercase tracking-wider bg-emerald-500 text-white">
+                <span className="text-slate-500 font-semibold uppercase text-[10px]">Status:</span>
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
                   {status}
                 </span>
               </div>
-              <div className="text-[10px] text-slate-300 flex items-center gap-1 mt-0.5">
+              <div className="text-[10px] text-slate-500 flex items-center gap-1 mt-0.5">
                 <Calendar className="w-3 h-3 text-slate-400" /> Date: {formattedDate}
               </div>
             </div>
@@ -250,9 +250,9 @@ export function BusinessLoanPaperView({ formData = {}, application = {}, onBack 
           
           {/* ================= 1. APPLICANT PERSONAL DETAILS ================= */}
           <section className="space-y-3">
-            <div className="flex items-center gap-2 border-b-2 border-slate-900 pb-1.5">
-              <span className="w-5 h-5 rounded bg-slate-900 text-white flex items-center justify-center text-[11px] font-bold">1</span>
-              <h2 className="text-sm sm:text-base font-black text-slate-900 uppercase tracking-wide">
+            <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+              <span className="w-5 h-5 rounded bg-blue-600 text-white flex items-center justify-center text-[11px] font-bold">1</span>
+              <h2 className="text-sm sm:text-base font-bold text-slate-900 uppercase tracking-wide">
                 Applicant Personal Details
               </h2>
             </div>
@@ -280,9 +280,9 @@ export function BusinessLoanPaperView({ formData = {}, application = {}, onBack 
 
           {/* ================= 2. RESIDENTIAL ADDRESSES ================= */}
           <section className="space-y-4">
-            <div className="flex items-center gap-2 border-b-2 border-slate-900 pb-1.5">
-              <span className="w-5 h-5 rounded bg-slate-900 text-white flex items-center justify-center text-[11px] font-bold">2</span>
-              <h2 className="text-sm sm:text-base font-black text-slate-900 uppercase tracking-wide">
+            <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+              <span className="w-5 h-5 rounded bg-blue-600 text-white flex items-center justify-center text-[11px] font-bold">2</span>
+              <h2 className="text-sm sm:text-base font-bold text-slate-900 uppercase tracking-wide">
                 Applicant Residential Address Details
               </h2>
             </div>
@@ -318,9 +318,9 @@ export function BusinessLoanPaperView({ formData = {}, application = {}, onBack 
 
           {/* ================= 3. EMPLOYMENT & INCOME ================= */}
           <section className="space-y-3">
-            <div className="flex items-center gap-2 border-b-2 border-slate-900 pb-1.5">
-              <span className="w-5 h-5 rounded bg-slate-900 text-white flex items-center justify-center text-[11px] font-bold">3</span>
-              <h2 className="text-sm sm:text-base font-black text-slate-900 uppercase tracking-wide">
+            <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+              <span className="w-5 h-5 rounded bg-blue-600 text-white flex items-center justify-center text-[11px] font-bold">3</span>
+              <h2 className="text-sm sm:text-base font-bold text-slate-900 uppercase tracking-wide">
                 Employment & Monthly Income Details
               </h2>
             </div>
@@ -355,9 +355,9 @@ export function BusinessLoanPaperView({ formData = {}, application = {}, onBack 
 
           {/* ================= 4. CO-APPLICANT DETAILS ================= */}
           <section className="space-y-3">
-            <div className="flex items-center gap-2 border-b-2 border-slate-900 pb-1.5">
-              <span className="w-5 h-5 rounded bg-slate-900 text-white flex items-center justify-center text-[11px] font-bold">4</span>
-              <h2 className="text-sm sm:text-base font-black text-slate-900 uppercase tracking-wide">
+            <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+              <span className="w-5 h-5 rounded bg-blue-600 text-white flex items-center justify-center text-[11px] font-bold">4</span>
+              <h2 className="text-sm sm:text-base font-bold text-slate-900 uppercase tracking-wide">
                 Co-Applicant Details
               </h2>
             </div>
@@ -451,10 +451,10 @@ export function BusinessLoanPaperView({ formData = {}, application = {}, onBack 
 
           {/* ================= 5. GUARANTOR DETAILS (3 REQUIRED) ================= */}
           <section className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-2 border-slate-900 pb-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-2">
               <div className="flex items-center gap-2">
-                <span className="w-5 h-5 rounded bg-slate-900 text-white flex items-center justify-center text-[11px] font-bold">5</span>
-                <h2 className="text-sm sm:text-base font-black text-slate-900 uppercase tracking-wide">
+                <span className="w-5 h-5 rounded bg-blue-600 text-white flex items-center justify-center text-[11px] font-bold">5</span>
+                <h2 className="text-sm sm:text-base font-bold text-slate-900 uppercase tracking-wide">
                   Guarantors Details (3 Required)
                 </h2>
               </div>
@@ -507,10 +507,10 @@ export function BusinessLoanPaperView({ formData = {}, application = {}, onBack 
           </section>
 
           {/* ================= 6. DECLARATION & SIGNATURES ================= */}
-          <section className="space-y-4 pt-6 border-t-2 border-slate-900">
+          <section className="space-y-4 pt-6 border-t border-slate-200">
             <div className="flex items-center gap-2 pb-1">
-              <span className="w-5 h-5 rounded bg-slate-900 text-white flex items-center justify-center text-[11px] font-bold">6</span>
-              <h2 className="text-sm sm:text-base font-black text-slate-900 uppercase tracking-wide">
+              <span className="w-5 h-5 rounded bg-blue-600 text-white flex items-center justify-center text-[11px] font-bold">6</span>
+              <h2 className="text-sm sm:text-base font-bold text-slate-900 uppercase tracking-wide">
                 Declaration & Signatures
               </h2>
             </div>
@@ -520,17 +520,17 @@ export function BusinessLoanPaperView({ formData = {}, application = {}, onBack 
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 pt-8">
-              <div className="border-t-2 border-slate-600 pt-2 text-center">
+              <div className="border-t-2 border-slate-300 pt-2 text-center">
                 <p className="text-xs font-bold text-slate-900">{formData.applicant_name || 'Primary Applicant'}</p>
                 <p className="text-[10px] text-slate-500 uppercase font-semibold">Applicant Signature</p>
               </div>
 
-              <div className="border-t-2 border-slate-600 pt-2 text-center">
+              <div className="border-t-2 border-slate-300 pt-2 text-center">
                 <p className="text-xs font-bold text-slate-900">{formData.co_applicant_name || 'Co-Applicant'}</p>
                 <p className="text-[10px] text-slate-500 uppercase font-semibold">Co-Applicant Signature</p>
               </div>
 
-              <div className="border-t-2 border-slate-600 pt-2 text-center">
+              <div className="border-t-2 border-slate-300 pt-2 text-center">
                 <p className="text-xs font-bold text-slate-900">Acme Loan Officer</p>
                 <p className="text-[10px] text-slate-500 uppercase font-semibold">Authorized Officer Stamp & Sign</p>
               </div>
