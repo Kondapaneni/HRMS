@@ -35,6 +35,7 @@ import OriginationMobileAddLead from './pages/OriginationMobileAddLead'
 import OriginationMobileLeadDetails from './pages/OriginationMobileLeadDetails'
 import OriginationMobileMemberDetails from './pages/OriginationMobileMemberDetails'
 import OriginationMembersList from './pages/OriginationMembersList'
+import OriginationApplicationsList from './pages/OriginationApplicationsList'
 import AssessmentWorkspaceLayout from './components/AssessmentWorkspaceLayout'
 import AssessmentManagement from './pages/AssessmentManagement'
 import DepartmentQuestionBank from './pages/DepartmentQuestionBank'
@@ -245,6 +246,7 @@ function App() {
                 <Route path="origination/leads/:id/details" element={<OriginationMobileLeadDetails />} />
                 <Route path="origination/members" element={<OriginationMembersList />} />
                 <Route path="origination/members/:phone/details" element={<OriginationMobileMemberDetails />} />
+                <Route path="origination/applications" element={<OriginationApplicationsList />} />
                 <Route path="business-loan" element={<BusinessLoanPage />} />
               </Route>
 

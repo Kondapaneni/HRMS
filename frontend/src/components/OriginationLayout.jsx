@@ -59,6 +59,7 @@ const OriginationLayout = () => {
     { icon: Activity, label: 'Dashboard', path: '/employee/loans/origination', feature: 'canLoanOrigination' },
     { icon: FileText, label: 'Leads', path: '/employee/loans/origination/leads', feature: 'canLoanOrigination' },
     { icon: Users, label: 'Members', path: '/employee/loans/origination/members', feature: 'canLoanOrigination' },
+    { icon: Briefcase, label: 'Applications', path: '/employee/loans/origination/applications', feature: 'canLoanOrigination' },
   ];
 
   const shapeVariants = {
