@@ -69,11 +69,19 @@ export function BusinessLoanForm() {
     try {
       setIsLoadingData(true);
       const res = await getLoanApplications();
+      const passingLeadId = location.state?.lead_id || location.state?.id || formData.lead_id;
+
       if (res && res.applications && res.applications.length > 0) {
-        // Find latest business loan entry
-        const latest = res.applications.find(app => app.loan_type === 'Business Loan') || res.applications[0];
-        if (latest && latest.form_data) {
-          const savedData = latest.form_data;
+        // Find draft application specifically matching the passing lead_id and status Draft
+        const draftApp = res.applications.find(app => 
+          app.loan_type === 'Business Loan' && 
+          app.status === 'Draft' && 
+          passingLeadId && 
+          String(app.lead_id) === String(passingLeadId)
+        );
+
+        if (draftApp && draftApp.form_data) {
+          const savedData = draftApp.form_data;
           if (savedData.applicant_name) updateField('applicant_name', capitalizeWords(savedData.applicant_name));
           if (savedData.phone_number) updateField('phone_number', String(savedData.phone_number).replace(/\D/g, '').slice(0, 10));
           if (savedData.age) updateField('age', savedData.age);
@@ -86,8 +94,10 @@ export function BusinessLoanForm() {
           if (savedData.aadhaar_number) updateField('aadhaar_number', String(savedData.aadhaar_number).replace(/\D/g, '').slice(0, 12));
 
           if (showToast) {
-            toast.success(`Loaded latest ${latest.status.toLowerCase()} from database!`);
+            toast.success('Loaded saved draft for this lead!');
           }
+        } else if (showToast) {
+          toast.error('No saved draft found for this lead.');
         }
       } else if (showToast) {
         toast.error('No saved data found in database.');
