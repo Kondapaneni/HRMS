@@ -109,7 +109,7 @@ const OriginationApplicationsList = () => {
               <div className="p-6 pt-0">
                 <div className="rounded-md border border-slate-200 overflow-x-auto">
                   <table className="w-full text-sm text-left">
-                    <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-medium">
+                    <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-medium whitespace-nowrap">
                       <tr>
                         <th className="p-3">App ID</th>
                         <th className="p-3">Applicant Name</th>
@@ -117,10 +117,10 @@ const OriginationApplicationsList = () => {
                         <th className="p-3">Loan Type</th>
                         <th className="p-3">Status</th>
                         <th className="p-3">Submitted Date</th>
-                        <th className="p-3 w-28 text-center">Action</th>
+                        <th className="p-3 text-center whitespace-nowrap">Action</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="whitespace-nowrap">
                       {isLoading ? (
                         <tr>
                           <td colSpan="7" className="p-12 text-center">
@@ -142,34 +142,34 @@ const OriginationApplicationsList = () => {
 
                           return (
                             <tr key={app.id || app.application_id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
-                              <td className="p-3 text-slate-700">
+                              <td className="p-3 text-slate-700 whitespace-nowrap">
                                 <span className="font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded text-xs border border-blue-100">
                                   {app.application_id || 'LA-DRAFT'}
                                 </span>
                               </td>
-                              <td className="p-3 text-slate-700">
+                              <td className="p-3 text-slate-700 whitespace-nowrap">
                                 <div className="font-medium text-slate-900">{name}</div>
                               </td>
-                              <td className="p-3 text-slate-700">{phone}</td>
-                              <td className="p-3 text-slate-700">
+                              <td className="p-3 text-slate-700 whitespace-nowrap">{phone}</td>
+                              <td className="p-3 text-slate-700 whitespace-nowrap">
                                 <span className="inline-flex px-2 py-1 bg-slate-100 text-slate-700 rounded text-xs font-medium border border-slate-200">
                                   {app.loan_type}
                                 </span>
                               </td>
-                              <td className="p-3 text-slate-700">
+                              <td className="p-3 text-slate-700 whitespace-nowrap">
                                 <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border ${
                                   isSubmitted ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'
                                 }`}>
                                   {isSubmitted ? <CheckCircle2 size={12} /> : <Clock size={12} />} {app.status}
                                 </span>
                               </td>
-                              <td className="p-3 text-slate-700 text-xs">
+                              <td className="p-3 text-slate-700 text-xs whitespace-nowrap">
                                 {formatDateSafe(app.created_at || app.updated_at)}
                               </td>
-                              <td className="p-3 text-center">
+                              <td className="p-3 text-center whitespace-nowrap">
                                 <button 
                                   onClick={() => setSelectedApp(app)}
-                                  className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer"
+                                  className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer whitespace-nowrap"
                                 >
                                   <Eye size={14} /> View Details
                                 </button>
