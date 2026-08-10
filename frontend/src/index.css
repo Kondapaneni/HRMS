@@ -87,7 +87,7 @@ body.hide-mobile-nav [data-mobile-nav] {
 
   body {
     margin: 0 !important;
-    padding: 16mm 14mm 14mm 14mm !important;
+    padding: 0 !important;
     height: auto !important;
     min-height: 0 !important;
     max-height: none !important;
@@ -142,10 +142,10 @@ body.hide-mobile-nav [data-mobile-nav] {
     display: none !important;
   }
 
-  /* 3. Suppress native browser print headers & footers (removes URL, date, page title) */
+  /* 3. Page layout & margin settings (Uniform 12mm paper margins across all pages) */
   @page {
     size: A4 portrait;
-    margin: 0;
+    margin: 12mm 12mm 12mm 12mm;
   }
 
   /* 4. Strict Passport Photo sizing in print mode (Prevents giant full-page images) */
@@ -195,7 +195,7 @@ body.hide-mobile-nav [data-mobile-nav] {
     border-radius: 0 !important;
   }
 
-  /* 6. Page break controls (avoid orphan headings and force page breaks with top spacing) */
+  /* 6. Page break controls (exact break-before without adding artificial extra padding) */
   h1, h2, h3, h4, h5, h6 {
     page-break-after: avoid !important;
     break-after: avoid !important;
@@ -205,8 +205,8 @@ body.hide-mobile-nav [data-mobile-nav] {
     page-break-before: always !important;
     break-before: page !important;
     break-before: always !important;
-    padding-top: 20px !important;
-    margin-top: 10px !important;
+    padding-top: 0 !important;
+    margin-top: 0 !important;
   }
 
   .print-avoid-break,

@@ -1099,7 +1099,7 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
           </section>
 
           {/* ================= 4. CO-APPLICANT DETAILS ================= */}
-          <section className="space-y-3 print-break-before print:pt-4">
+          <section className="space-y-3 print-break-before">
             <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
               <span className="w-5 h-5 rounded bg-blue-600 text-white flex items-center justify-center text-[11px] font-bold">4</span>
               <h2 className="text-sm sm:text-base font-bold text-slate-900 uppercase tracking-wide">
@@ -1246,7 +1246,7 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
             </div>
 
             {/* Print View: Render all 3 Guarantors sequentially when printing */}
-            <div className="hidden print:block space-y-6 pt-4">
+            <div className="hidden print:block space-y-6 print:pt-0">
               <div className="space-y-4 print-avoid-break">
                 <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
                   <span className="w-5 h-5 rounded bg-blue-600 text-white flex items-center justify-center text-[11px] font-bold">5</span>
@@ -1255,7 +1255,7 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
                 {renderGuarantorPaper(1)}
               </div>
 
-              <div className="space-y-4 print-avoid-break pt-4">
+              <div className="space-y-4 print-avoid-break print:pt-0">
                 <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
                   <span className="w-5 h-5 rounded bg-blue-600 text-white flex items-center justify-center text-[11px] font-bold">6</span>
                   <h2 className="text-sm sm:text-base font-bold text-slate-900 uppercase tracking-wide">Guarantor 2 Details</h2>
@@ -1263,7 +1263,7 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
                 {renderGuarantorPaper(2)}
               </div>
 
-              <div className="space-y-4 print-avoid-break pt-4">
+              <div className="space-y-4 print-avoid-break print:pt-0">
                 <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
                   <span className="w-5 h-5 rounded bg-blue-600 text-white flex items-center justify-center text-[11px] font-bold">7</span>
                   <h2 className="text-sm sm:text-base font-bold text-slate-900 uppercase tracking-wide">Guarantor 3 Details</h2>
