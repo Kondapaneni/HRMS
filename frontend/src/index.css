@@ -210,7 +210,7 @@ body.hide-mobile-nav [data-mobile-nav] {
     page-break-before: always !important;
     break-before: page !important;
     break-before: always !important;
-    padding-top: 0 !important;
+    padding-top: 10mm !important;
     margin-top: 0 !important;
   }
 
