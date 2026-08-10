@@ -53,3 +53,12 @@ html, body {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background-color: rgba(0, 0, 0, 0.3);
 }
+
+/* Hide mobile navigation when photo lightbox/preview is active */
+body.hide-mobile-nav .mobile-bottom-nav,
+body.hide-mobile-nav [data-mobile-nav] {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}

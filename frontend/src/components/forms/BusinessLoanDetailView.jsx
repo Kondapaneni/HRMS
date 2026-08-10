@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Building2,
   User,
@@ -67,6 +68,62 @@ const getDocumentPhotoUrl = (doc) => {
     return `https://jtgqkkhqyzfbupiqwkgf.supabase.co/storage/v1/object/public/loan_documents/${doc.file_name}`;
   }
   return null;
+};
+
+/**
+ * Unified Passport Photograph Box Component
+ * Displays authentic dashed placeholder with icon + "PASSPORT PHOTO" / "Not Uploaded"
+ * or the uploaded image with tap-to-enlarge preview.
+ */
+const PassportPhotoBox = ({ doc, label, onPreview, icon: Icon = User, size = 'md' }) => {
+  const photoUrl = getDocumentPhotoUrl(doc);
+
+  const isSmall = size === 'sm';
+  const boxDimensions = isSmall 
+    ? 'w-24 h-32' 
+    : 'w-28 h-36 sm:w-32 sm:h-40';
+
+  return (
+    <div className="shrink-0 flex flex-col items-center select-none">
+      <div
+        className={`${boxDimensions} rounded-xl border-2 ${
+          photoUrl 
+            ? 'border-blue-400 bg-blue-50/20' 
+            : 'border-dashed border-slate-300 bg-slate-50/70'
+        } flex flex-col items-center justify-center p-1 overflow-hidden shadow-2xs transition-all`}
+      >
+        {photoUrl ? (
+          <img
+            src={photoUrl}
+            alt={label}
+            className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 active:scale-95 transition-all"
+            onClick={() => onPreview && onPreview(photoUrl)}
+            title="Click to view full size"
+            onError={(e) => {
+              if (doc?.file_name && !e.target.src.includes('supabase.co')) {
+                e.target.src = `https://jtgqkkhqyzfbupiqwkgf.supabase.co/storage/v1/object/public/loan_documents/${doc.file_name}`;
+              }
+            }}
+          />
+        ) : (
+          <div className="text-center p-1.5 flex flex-col items-center justify-center h-full">
+            <Icon className={`${isSmall ? 'w-6 h-6' : 'w-8 h-8'} text-slate-300 mx-auto mb-1`} />
+            <p className={`${isSmall ? 'text-[8.5px]' : 'text-[10px]'} font-bold text-slate-400 uppercase tracking-tight leading-tight`}>
+              Passport Photo
+            </p>
+            <span className={`${isSmall ? 'text-[7.5px]' : 'text-[9px]'} text-slate-300 italic mt-0.5`}>
+              Not Uploaded
+            </span>
+          </div>
+        )}
+      </div>
+      {label && (
+        <span className="text-[10px] font-bold text-slate-600 mt-1 uppercase tracking-wider text-center">
+          {label}
+        </span>
+      )}
+    </div>
+  );
 };
 
 // ============================================================================
@@ -139,6 +196,17 @@ function MobileDetailView({ formData = {}, application = {}, onBack }) {
     formData.documents || application.documents || application.form_data?.documents || {}
   );
 
+  useEffect(() => {
+    if (previewDoc) {
+      document.body.classList.add('hide-mobile-nav');
+    } else {
+      document.body.classList.remove('hide-mobile-nav');
+    }
+    return () => {
+      document.body.classList.remove('hide-mobile-nav');
+    };
+  }, [previewDoc]);
+
   const formattedDate =
     formatDateSafe(application.created_at || application.updated_at) ||
     format(new Date(), 'dd MMM yyyy');
@@ -156,34 +224,23 @@ function MobileDetailView({ formData = {}, application = {}, onBack }) {
 
     return (
       <div className="space-y-0">
-        {/* Uploaded Guarantor Photo */}
-        {gPhotoUrl && (
-          <div className="mb-3.5 flex items-center gap-3 p-2.5 bg-emerald-50/70 rounded-xl border border-emerald-200">
-            <img
-              src={gPhotoUrl}
-              alt={`Guarantor ${idx}`}
-              className="w-14 h-14 rounded-lg object-cover shadow-2xs border border-emerald-300 cursor-pointer active:scale-95 transition-transform"
-              onClick={() => setPreviewDoc(gPhotoUrl)}
-              onError={(e) => {
-                if (gPhoto?.file_name && !e.target.src.includes('supabase.co')) {
-                  e.target.src = `https://jtgqkkhqyzfbupiqwkgf.supabase.co/storage/v1/object/public/loan_documents/${gPhoto.file_name}`;
-                }
-              }}
-            />
-            <div className="flex-1 min-w-0">
-              <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">{`Guarantor ${idx} Photo`}</span>
-              <p className="text-xs font-bold text-slate-800 truncate">{g('name') || `Guarantor ${idx}`}</p>
-              <span className="text-[10px] text-emerald-600 font-medium">Tap photo to enlarge</span>
-            </div>
-          </div>
-        )}
-
         <SubSectionHeader label="Personal Details" />
-        <DetailField label="Full Name" value={g('name')} />
-        <FieldDivider />
-        <DetailField label="Phone Number" value={g('phone_number')} />
-        <FieldDivider />
-        <DetailField label="Aadhaar Number" value={g('aadhaar_number')} />
+        <div className="flex items-start justify-between gap-3 pt-1 pb-1">
+          <div className="flex-1 min-w-0">
+            <DetailField label="Full Name" value={g('name')} />
+            <FieldDivider />
+            <DetailField label="Phone Number" value={g('phone_number')} />
+            <FieldDivider />
+            <DetailField label="Aadhaar Number" value={g('aadhaar_number')} />
+          </div>
+          <PassportPhotoBox
+            doc={gPhoto}
+            label={`Guarantor ${idx}`}
+            icon={Shield}
+            size="sm"
+            onPreview={setPreviewDoc}
+          />
+        </div>
         <FieldDivider />
         <DetailField label="Age" value={g('age') ? `${g('age')} Years` : ''} />
         <FieldDivider />
@@ -315,11 +372,6 @@ function MobileDetailView({ formData = {}, application = {}, onBack }) {
         >
           <Camera className="w-4 h-4" />
           <span>Photos</span>
-          {Object.keys(currentDocs).length > 0 && (
-            <span className="w-5 h-5 rounded-full bg-emerald-500 text-white text-[10px] font-black flex items-center justify-center">
-              {Object.keys(currentDocs).length}
-            </span>
-          )}
         </button>
 
         {/* Header Content: Application ID, Loan Type, Submitted Date */}
@@ -340,37 +392,22 @@ function MobileDetailView({ formData = {}, application = {}, onBack }) {
       <div className="relative z-20 -mt-12 px-4 space-y-4">
         {/* ── 1. Applicant Personal Details ── */}
         <SectionCard number="1" title="Personal Details">
-          {/* Uploaded Applicant Photo */}
-          {(() => {
-            const applicantPhotoUrl = getDocumentPhotoUrl(currentDocs.applicant_photo);
-            if (!applicantPhotoUrl) return null;
-            return (
-              <div className="mb-3.5 flex items-center gap-3 p-2.5 bg-blue-50/70 rounded-xl border border-blue-200">
-                <img
-                  src={applicantPhotoUrl}
-                  alt="Applicant"
-                  className="w-14 h-14 rounded-lg object-cover shadow-2xs border border-blue-300 cursor-pointer active:scale-95 transition-transform"
-                  onClick={() => setPreviewDoc(applicantPhotoUrl)}
-                  onError={(e) => {
-                    if (currentDocs.applicant_photo?.file_name && !e.target.src.includes('supabase.co')) {
-                      e.target.src = `https://jtgqkkhqyzfbupiqwkgf.supabase.co/storage/v1/object/public/loan_documents/${currentDocs.applicant_photo.file_name}`;
-                    }
-                  }}
-                />
-                <div className="flex-1 min-w-0">
-                  <span className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">Applicant Photo</span>
-                  <p className="text-xs font-bold text-slate-800 truncate">{formData.applicant_name}</p>
-                  <span className="text-[10px] text-blue-600 font-medium">Tap photo to enlarge</span>
-                </div>
-              </div>
-            );
-          })()}
-
-          <DetailField label="Applicant Name" value={formData.applicant_name} />
-          <FieldDivider />
-          <DetailField label="Phone Number" value={formData.phone_number} />
-          <FieldDivider />
-          <DetailField label="Aadhaar Number" value={formData.aadhaar_number} />
+          <div className="flex items-start justify-between gap-3 pt-1 pb-1">
+            <div className="flex-1 min-w-0">
+              <DetailField label="Applicant Name" value={formData.applicant_name} />
+              <FieldDivider />
+              <DetailField label="Phone Number" value={formData.phone_number} />
+              <FieldDivider />
+              <DetailField label="Aadhaar Number" value={formData.aadhaar_number} />
+            </div>
+            <PassportPhotoBox
+              doc={currentDocs.applicant_photo}
+              label="Applicant"
+              icon={User}
+              size="sm"
+              onPreview={setPreviewDoc}
+            />
+          </div>
           <FieldDivider />
           <DetailField label="Age" value={formData.age ? `${formData.age} Years` : ''} />
           <FieldDivider />
@@ -475,40 +512,25 @@ function MobileDetailView({ formData = {}, application = {}, onBack }) {
 
           {formData.has_co_applicant === 'Yes' && (
             <>
-              {/* Uploaded Co-Applicant Photo */}
-              {(() => {
-                const coPhotoUrl = getDocumentPhotoUrl(currentDocs.co_applicant_photo);
-                if (!coPhotoUrl) return null;
-                return (
-                  <div className="my-3 flex items-center gap-3 p-2.5 bg-purple-50/70 rounded-xl border border-purple-200">
-                    <img
-                      src={coPhotoUrl}
-                      alt="Co-Applicant"
-                      className="w-14 h-14 rounded-lg object-cover shadow-2xs border border-purple-300 cursor-pointer active:scale-95 transition-transform"
-                      onClick={() => setPreviewDoc(coPhotoUrl)}
-                      onError={(e) => {
-                        if (currentDocs.co_applicant_photo?.file_name && !e.target.src.includes('supabase.co')) {
-                          e.target.src = `https://jtgqkkhqyzfbupiqwkgf.supabase.co/storage/v1/object/public/loan_documents/${currentDocs.co_applicant_photo.file_name}`;
-                        }
-                      }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <span className="text-[10px] font-bold text-purple-700 uppercase tracking-wider">Co-Applicant Photo</span>
-                      <p className="text-xs font-bold text-slate-800 truncate">{formData.co_applicant_name}</p>
-                      <span className="text-[10px] text-purple-600 font-medium">Tap photo to enlarge</span>
-                    </div>
-                  </div>
-                );
-              })()}
-
               <SubSectionHeader label="Co-Applicant Personal Details" />
-              <DetailField label="Name" value={formData.co_applicant_name} />
-              <FieldDivider />
-              <DetailField label="Relation with Applicant" value={formData.co_relation_with_applicant} />
-              <FieldDivider />
-              <DetailField label="Phone Number" value={formData.co_phone_number} />
-              <FieldDivider />
-              <DetailField label="Aadhaar Number" value={formData.co_aadhaar_number} />
+              <div className="flex items-start justify-between gap-3 pt-1 pb-1">
+                <div className="flex-1 min-w-0">
+                  <DetailField label="Name" value={formData.co_applicant_name} />
+                  <FieldDivider />
+                  <DetailField label="Relation with Applicant" value={formData.co_relation_with_applicant} />
+                  <FieldDivider />
+                  <DetailField label="Phone Number" value={formData.co_phone_number} />
+                  <FieldDivider />
+                  <DetailField label="Aadhaar Number" value={formData.co_aadhaar_number} />
+                </div>
+                <PassportPhotoBox
+                  doc={currentDocs.co_applicant_photo}
+                  label="Co-Applicant"
+                  icon={Users}
+                  size="sm"
+                  onPreview={setPreviewDoc}
+                />
+              </div>
               <FieldDivider />
               <DetailField label="Age" value={formData.co_age ? `${formData.co_age} Years` : ''} />
               <FieldDivider />
@@ -659,27 +681,32 @@ function MobileDetailView({ formData = {}, application = {}, onBack }) {
         onDocumentsUpdated={(newDocs) => setCurrentDocs(newDocs)}
       />
 
-      {/* Fullscreen Photo Lightbox Preview */}
-      {previewDoc && (
+      {/* Fullscreen Photo Lightbox Preview Portal */}
+      {previewDoc && createPortal(
         <div
-          className="fixed inset-0 z-[10005] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-150 cursor-pointer"
+          className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md animate-in fade-in duration-200 cursor-pointer"
           onClick={() => setPreviewDoc(null)}
         >
           <button
             type="button"
             onClick={() => setPreviewDoc(null)}
-            className="absolute top-4 right-4 p-2 rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors cursor-pointer"
+            className="absolute top-5 right-5 p-2.5 rounded-full bg-white/20 text-white hover:bg-white/30 active:scale-95 transition-all cursor-pointer z-10"
+            title="Close Preview"
           >
             <X size={24} />
           </button>
-          <div className="max-w-3xl max-h-[85vh] overflow-hidden rounded-2xl shadow-2xl border border-white/10" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="max-w-3xl max-h-[85vh] overflow-hidden rounded-2xl shadow-2xl border border-white/10"
+            onClick={(e) => e.stopPropagation()}
+          >
             <img
               src={previewDoc}
               alt="Enlarged Photo"
-              className="w-full h-full object-contain max-h-[85vh]"
+              className="w-full h-full object-contain max-h-[85vh] select-none"
             />
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
@@ -710,47 +737,6 @@ const PaperLine = ({ label, value, className = '', labelWidth = 'min-w-[130px] s
   );
 };
 
-/**
- * Passport Photograph Box for Physical Paper Document View
- */
-const PassportPhotoBox = ({ doc, label, onPreview, icon: Icon = User }) => {
-  const photoUrl = getDocumentPhotoUrl(doc);
-
-  return (
-    <div className="shrink-0 flex flex-col items-center">
-      <div
-        className={`w-28 h-36 sm:w-32 sm:h-40 rounded-lg border-2 ${photoUrl ? 'border-blue-400 bg-blue-50/20' : 'border-dashed border-slate-300 bg-slate-50'
-          } flex flex-col items-center justify-center p-1 overflow-hidden shadow-2xs transition-all`}
-      >
-        {photoUrl ? (
-          <img
-            src={photoUrl}
-            alt={label}
-            className="w-full h-full object-cover rounded cursor-pointer hover:opacity-90 transition-opacity"
-            onClick={() => onPreview && onPreview(photoUrl)}
-            title="Click to view full size"
-            onError={(e) => {
-              if (doc?.file_name && !e.target.src.includes('supabase.co')) {
-                e.target.src = `https://jtgqkkhqyzfbupiqwkgf.supabase.co/storage/v1/object/public/loan_documents/${doc.file_name}`;
-              }
-            }}
-          />
-        ) : (
-          <div className="text-center p-2">
-            <Icon className="w-8 h-8 text-slate-300 mx-auto mb-1" />
-            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-tight">Passport Photo</p>
-            <span className="text-[9px] text-slate-300 italic">Not Uploaded</span>
-          </div>
-        )}
-      </div>
-      <span className="text-[10px] font-bold text-slate-600 mt-1 uppercase tracking-wider">{label}</span>
-    </div>
-  );
-};
-
-/**
- * Desktop Physical Paper Document View Component
- */
 function DesktopPaperView({ formData = {}, application = {}, onBack }) {
   const [activeGuarantorTab, setActiveGuarantorTab] = useState(1);
   const [isDocsOpen, setIsDocsOpen] = useState(false);
@@ -758,6 +744,17 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
   const [currentDocs, setCurrentDocs] = useState(
     formData.documents || application.documents || application.form_data?.documents || {}
   );
+
+  useEffect(() => {
+    if (previewDoc) {
+      document.body.classList.add('hide-mobile-nav');
+    } else {
+      document.body.classList.remove('hide-mobile-nav');
+    }
+    return () => {
+      document.body.classList.remove('hide-mobile-nav');
+    };
+  }, [previewDoc]);
 
   const formattedDate = formatDateSafe(application.created_at || application.updated_at) || format(new Date(), 'dd MMM yyyy');
   const appId = application.application_id || formData.application_id || 'LA-DRAFT';
@@ -927,11 +924,6 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
             className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 transition-colors gap-2 shadow-sm cursor-pointer"
           >
             <Camera className="w-4 h-4" /> Upload Photos
-            {Object.keys(currentDocs).length > 0 && (
-              <span className="ml-1 px-1.5 py-0.2 rounded-full bg-white text-blue-700 text-[11px] font-bold">
-                {Object.keys(currentDocs).length}
-              </span>
-            )}
           </button>
 
           <button
@@ -1282,27 +1274,32 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
         onDocumentsUpdated={(newDocs) => setCurrentDocs(newDocs)}
       />
 
-      {/* Fullscreen Photo Lightbox Preview */}
-      {previewDoc && (
+      {/* Fullscreen Photo Lightbox Preview Portal */}
+      {previewDoc && createPortal(
         <div
-          className="fixed inset-0 z-[10005] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-150 cursor-pointer"
+          className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md animate-in fade-in duration-200 cursor-pointer"
           onClick={() => setPreviewDoc(null)}
         >
           <button
             type="button"
             onClick={() => setPreviewDoc(null)}
-            className="absolute top-4 right-4 p-2 rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors cursor-pointer"
+            className="absolute top-5 right-5 p-2.5 rounded-full bg-white/20 text-white hover:bg-white/30 active:scale-95 transition-all cursor-pointer z-10"
+            title="Close Preview"
           >
             <X size={24} />
           </button>
-          <div className="max-w-3xl max-h-[85vh] overflow-hidden rounded-2xl shadow-2xl border border-white/10" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="max-w-3xl max-h-[85vh] overflow-hidden rounded-2xl shadow-2xl border border-white/10"
+            onClick={(e) => e.stopPropagation()}
+          >
             <img
               src={previewDoc}
               alt="Enlarged Photo"
-              className="w-full h-full object-contain max-h-[85vh]"
+              className="w-full h-full object-contain max-h-[85vh] select-none"
             />
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

@@ -198,7 +198,8 @@ const OriginationLayout = () => {
         
         {/* Mobile Bottom Navigation (iOS Liquid Glass) */}
         <div
-          className="md:hidden fixed bottom-6 left-4 right-4 z-50 pointer-events-none touch-none select-none"
+          data-mobile-nav="true"
+          className="mobile-bottom-nav md:hidden fixed bottom-6 left-4 right-4 z-50 pointer-events-none touch-none select-none transition-all duration-200"
           onTouchStart={handleTouchMove}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
