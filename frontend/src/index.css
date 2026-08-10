@@ -92,7 +92,7 @@ body.hide-mobile-nav [data-mobile-nav] {
 
   body {
     margin: 0 !important;
-    padding: 0 !important;
+    padding: 10mm 12mm !important;
     height: auto !important;
     min-height: 0 !important;
     max-height: none !important;
@@ -147,10 +147,10 @@ body.hide-mobile-nav [data-mobile-nav] {
     display: none !important;
   }
 
-  /* 3. Page layout & margin settings (Uniform 10mm paper margins across all pages) */
+  /* 3. Suppress native browser print headers & footers (removes URL and page numbers while preserving 10mm/12mm margins) */
   @page {
     size: A4 portrait;
-    margin: 10mm 12mm;
+    margin: 0;
   }
 
   /* 4. Strict Passport Photo sizing in print mode (Prevents giant full-page images) */
