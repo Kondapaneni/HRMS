@@ -951,7 +951,7 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
       <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden print:shadow-none print:border-0 print:rounded-none">
 
         {/* Paper Form Header (Matching Acme HRMS Theme) */}
-        <div className="p-6 sm:p-7 bg-white border-b border-slate-200 print:p-4 print:pb-2">
+        <div className="p-6 sm:p-7 bg-white border-b border-slate-200 print:px-0 print:pt-0 print:pb-3">
           <div className="flex flex-row items-center justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2 text-blue-600 font-bold text-xs uppercase tracking-widest print:text-[10px]">
@@ -1208,7 +1208,7 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
 
           {/* ================= 5. GUARANTOR DETAILS (3 REQUIRED) ================= */}
           <section className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-2 print:hidden">
               <div className="flex items-center gap-2">
                 <span className="w-5 h-5 rounded bg-blue-600 text-white flex items-center justify-center text-[11px] font-bold">5</span>
                 <h2 className="text-sm sm:text-base font-bold text-slate-900 uppercase tracking-wide">
@@ -1246,8 +1246,8 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
             </div>
 
             {/* Print View: Render all 3 Guarantors sequentially when printing */}
-            <div className="hidden print:block space-y-6 print:pt-0">
-              <div className="space-y-4 print-avoid-break">
+            <div className="hidden print:block space-y-6 print:p-0 print:m-0">
+              <div className="space-y-4 print-break-before print:p-0 print:m-0">
                 <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
                   <span className="w-5 h-5 rounded bg-blue-600 text-white flex items-center justify-center text-[11px] font-bold">5</span>
                   <h2 className="text-sm sm:text-base font-bold text-slate-900 uppercase tracking-wide">Guarantor 1 Details</h2>
@@ -1255,7 +1255,7 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
                 {renderGuarantorPaper(1)}
               </div>
 
-              <div className="space-y-4 print-avoid-break print:pt-0">
+              <div className="space-y-4 print-break-before print:p-0 print:m-0">
                 <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
                   <span className="w-5 h-5 rounded bg-blue-600 text-white flex items-center justify-center text-[11px] font-bold">6</span>
                   <h2 className="text-sm sm:text-base font-bold text-slate-900 uppercase tracking-wide">Guarantor 2 Details</h2>
@@ -1263,7 +1263,7 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
                 {renderGuarantorPaper(2)}
               </div>
 
-              <div className="space-y-4 print-avoid-break print:pt-0">
+              <div className="space-y-4 print-break-before print:p-0 print:m-0">
                 <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
                   <span className="w-5 h-5 rounded bg-blue-600 text-white flex items-center justify-center text-[11px] font-bold">7</span>
                   <h2 className="text-sm sm:text-base font-bold text-slate-900 uppercase tracking-wide">Guarantor 3 Details</h2>

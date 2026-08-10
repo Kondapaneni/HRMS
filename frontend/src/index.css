@@ -142,10 +142,10 @@ body.hide-mobile-nav [data-mobile-nav] {
     display: none !important;
   }
 
-  /* 3. Page layout & margin settings (Uniform 12mm paper margins across all pages) */
+  /* 3. Page layout & margin settings (Uniform 10mm paper margins across all pages) */
   @page {
     size: A4 portrait;
-    margin: 12mm 12mm 12mm 12mm;
+    margin: 10mm 12mm;
   }
 
   /* 4. Strict Passport Photo sizing in print mode (Prevents giant full-page images) */
