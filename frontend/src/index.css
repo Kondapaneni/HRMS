@@ -147,23 +147,31 @@ body.hide-mobile-nav [data-mobile-nav] {
     display: none !important;
   }
 
-  /* Full Page Diagonal Application ID Watermark (Repeats on every printed page) */
+  /* Full Page Diagonal Application ID Watermark (Centered cross on every printed page with light color fadeout) */
   .print-watermark {
     position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) rotate(-40deg) !important;
+    width: 100vw !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     pointer-events: none !important;
     user-select: none !important;
     z-index: 0 !important;
-    opacity: 0.06 !important;
-    overflow: hidden !important;
+    overflow: visible !important;
+  }
+
+  .print-watermark-text {
+    font-size: 72pt !important;
+    font-weight: 900 !important;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    color: rgba(148, 163, 184, 0.16) !important;
+    letter-spacing: 0.15em !important;
+    text-transform: uppercase !important;
+    white-space: nowrap !important;
+    user-select: none !important;
   }
 
   /* 3. Suppress native browser print headers & footers (removes URL and page numbers while preserving 10mm/12mm margins) */

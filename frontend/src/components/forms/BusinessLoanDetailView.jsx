@@ -950,9 +950,9 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
       {/* Main Physical Paper Document View */}
       <div className="relative bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden print:shadow-none print:border-0 print:rounded-none">
 
-        {/* Full Page Diagonal Application ID Watermark (Repeats on every printed page) */}
-        <div className="print-watermark pointer-events-none select-none fixed inset-0 flex items-center justify-center overflow-hidden opacity-[0.06] z-0">
-          <span className="text-[100px] sm:text-[140px] print:text-[100pt] font-black font-mono tracking-widest text-slate-900 -rotate-[35deg] uppercase whitespace-nowrap">
+        {/* Full Page Diagonal Application ID Watermark (Centered cross on every printed page with light fadeout color) */}
+        <div className="print-watermark hidden print:flex">
+          <span className="print-watermark-text">
             {appId}
           </span>
         </div>
