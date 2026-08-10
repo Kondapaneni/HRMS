@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { 
   Building2, 
   User, 
+  Users,
+  Shield,
   Phone, 
   MapPin, 
   Briefcase, 
@@ -13,7 +15,8 @@ import {
   Lock,
   FileSpreadsheet,
   Camera,
-  Image as ImageIcon
+  Image as ImageIcon,
+  X
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
@@ -104,6 +107,7 @@ const SubSectionHeader = ({ label }) => (
 function MobileDetailView({ formData = {}, application = {}, onBack }) {
   const [activeGuarantorTab, setActiveGuarantorTab] = useState(1);
   const [isDocsOpen, setIsDocsOpen] = useState(false);
+  const [previewDoc, setPreviewDoc] = useState(null);
   const [currentDocs, setCurrentDocs] = useState(
     formData.documents || application.form_data?.documents || {}
   );
@@ -120,9 +124,27 @@ function MobileDetailView({ formData = {}, application = {}, onBack }) {
     const g = (key) => formData[`${pfx}${key}`];
     const gEmp = g('employment');
     const gMarital = g('marital_status');
+    const gPhoto = currentDocs[`guarantor_${idx}_photo`];
 
     return (
       <div className="space-y-0">
+        {/* Uploaded Guarantor Photo */}
+        {gPhoto?.url && (
+          <div className="mb-3.5 flex items-center gap-3 p-2.5 bg-emerald-50/70 rounded-xl border border-emerald-200">
+            <img 
+              src={gPhoto.url} 
+              alt={`Guarantor ${idx}`} 
+              className="w-14 h-14 rounded-lg object-cover shadow-2xs border border-emerald-300 cursor-pointer active:scale-95 transition-transform"
+              onClick={() => setPreviewDoc(gPhoto.url)}
+            />
+            <div className="flex-1 min-w-0">
+              <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">{`Guarantor ${idx} Photo`}</span>
+              <p className="text-xs font-bold text-slate-800 truncate">{g('name') || `Guarantor ${idx}`}</p>
+              <span className="text-[10px] text-emerald-600 font-medium">Tap photo to enlarge</span>
+            </div>
+          </div>
+        )}
+
         <SubSectionHeader label="Personal Details" />
         <DetailField label="Full Name" value={g('name')} />
         <FieldDivider />
@@ -285,6 +307,23 @@ function MobileDetailView({ formData = {}, application = {}, onBack }) {
       <div className="relative z-20 -mt-12 px-4 space-y-4">
         {/* ── 1. Applicant Personal Details ── */}
         <SectionCard number="1" title="Personal Details">
+          {/* Uploaded Applicant Photo */}
+          {currentDocs.applicant_photo?.url && (
+            <div className="mb-3.5 flex items-center gap-3 p-2.5 bg-blue-50/70 rounded-xl border border-blue-200">
+              <img 
+                src={currentDocs.applicant_photo.url} 
+                alt="Applicant" 
+                className="w-14 h-14 rounded-lg object-cover shadow-2xs border border-blue-300 cursor-pointer active:scale-95 transition-transform"
+                onClick={() => setPreviewDoc(currentDocs.applicant_photo.url)}
+              />
+              <div className="flex-1 min-w-0">
+                <span className="text-[10px] font-bold text-blue-700 uppercase tracking-wider">Applicant Photo</span>
+                <p className="text-xs font-bold text-slate-800 truncate">{formData.applicant_name}</p>
+                <span className="text-[10px] text-blue-600 font-medium">Tap photo to enlarge</span>
+              </div>
+            </div>
+          )}
+
           <DetailField label="Applicant Name" value={formData.applicant_name} />
           <FieldDivider />
           <DetailField label="Phone Number" value={formData.phone_number} />
@@ -394,6 +433,23 @@ function MobileDetailView({ formData = {}, application = {}, onBack }) {
 
           {formData.has_co_applicant === 'Yes' && (
             <>
+              {/* Uploaded Co-Applicant Photo */}
+              {currentDocs.co_applicant_photo?.url && (
+                <div className="my-3 flex items-center gap-3 p-2.5 bg-purple-50/70 rounded-xl border border-purple-200">
+                  <img 
+                    src={currentDocs.co_applicant_photo.url} 
+                    alt="Co-Applicant" 
+                    className="w-14 h-14 rounded-lg object-cover shadow-2xs border border-purple-300 cursor-pointer active:scale-95 transition-transform"
+                    onClick={() => setPreviewDoc(currentDocs.co_applicant_photo.url)}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <span className="text-[10px] font-bold text-purple-700 uppercase tracking-wider">Co-Applicant Photo</span>
+                    <p className="text-xs font-bold text-slate-800 truncate">{formData.co_applicant_name}</p>
+                    <span className="text-[10px] text-purple-600 font-medium">Tap photo to enlarge</span>
+                  </div>
+                </div>
+              )}
+
               <SubSectionHeader label="Co-Applicant Personal Details" />
               <DetailField label="Name" value={formData.co_applicant_name} />
               <FieldDivider />
@@ -552,6 +608,29 @@ function MobileDetailView({ formData = {}, application = {}, onBack }) {
         application={application}
         onDocumentsUpdated={(newDocs) => setCurrentDocs(newDocs)}
       />
+
+      {/* Fullscreen Photo Lightbox Preview */}
+      {previewDoc && (
+        <div 
+          className="fixed inset-0 z-[10005] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-150 cursor-pointer"
+          onClick={() => setPreviewDoc(null)}
+        >
+          <button
+            type="button"
+            onClick={() => setPreviewDoc(null)}
+            className="absolute top-4 right-4 p-2 rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors cursor-pointer"
+          >
+            <X size={24} />
+          </button>
+          <div className="max-w-3xl max-h-[85vh] overflow-hidden rounded-2xl shadow-2xl border border-white/10" onClick={(e) => e.stopPropagation()}>
+            <img 
+              src={previewDoc} 
+              alt="Enlarged Photo" 
+              className="w-full h-full object-contain max-h-[85vh]"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -582,11 +661,42 @@ const PaperLine = ({ label, value, className = '', labelWidth = 'min-w-[130px] s
 };
 
 /**
+ * Passport Photograph Box for Physical Paper Document View
+ */
+const PassportPhotoBox = ({ doc, label, onPreview, icon: Icon = User }) => (
+  <div className="shrink-0 flex flex-col items-center">
+    <div 
+      className={`w-28 h-36 sm:w-32 sm:h-40 rounded-lg border-2 ${
+        doc?.url ? 'border-blue-400 bg-blue-50/20' : 'border-dashed border-slate-300 bg-slate-50'
+      } flex flex-col items-center justify-center p-1 overflow-hidden shadow-2xs transition-all`}
+    >
+      {doc?.url ? (
+        <img 
+          src={doc.url} 
+          alt={label} 
+          className="w-full h-full object-cover rounded cursor-pointer hover:opacity-90 transition-opacity"
+          onClick={() => onPreview && onPreview(doc.url)}
+          title="Click to view full size"
+        />
+      ) : (
+        <div className="text-center p-2">
+          <Icon className="w-8 h-8 text-slate-300 mx-auto mb-1" />
+          <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-tight">Passport Photo</p>
+          <span className="text-[9px] text-slate-300 italic">Not Uploaded</span>
+        </div>
+      )}
+    </div>
+    <span className="text-[10px] font-bold text-slate-600 mt-1 uppercase tracking-wider">{label}</span>
+  </div>
+);
+
+/**
  * Desktop Physical Paper Document View Component
  */
 function DesktopPaperView({ formData = {}, application = {}, onBack }) {
   const [activeGuarantorTab, setActiveGuarantorTab] = useState(1);
   const [isDocsOpen, setIsDocsOpen] = useState(false);
+  const [previewDoc, setPreviewDoc] = useState(null);
   const [currentDocs, setCurrentDocs] = useState(
     formData.documents || application.form_data?.documents || {}
   );
@@ -635,23 +745,35 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
           <div className="text-xs font-bold text-blue-950 uppercase tracking-wider border-b border-slate-200 pb-1 mb-2">
             A. {labelPfx} Personal Details
           </div>
-          <PaperLine label={`${labelPfx} Name`} value={gName} />
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
-            <PaperLine label="Phone Number" value={gPhone} />
-            <PaperLine label="Aadhaar Number" value={gAadhaar} />
-          </div>
+          <div className="flex flex-col lg:flex-row gap-6 items-start">
+            <div className="flex-1 space-y-1 w-full">
+              <PaperLine label={`${labelPfx} Name`} value={gName} />
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+                <PaperLine label="Phone Number" value={gPhone} />
+                <PaperLine label="Aadhaar Number" value={gAadhaar} />
+              </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6">
-            <PaperLine label="Age" value={gAge ? `${gAge} Years` : ''} labelWidth="min-w-[70px]" />
-            <PaperLine label="Gender" value={gGender} labelWidth="min-w-[70px]" />
-            <PaperLine label="Marital Status" value={gMarital === 'Yes' ? 'Married' : gMarital === 'No' ? 'Unmarried' : gMarital} labelWidth="min-w-[100px]" />
-          </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6">
+                <PaperLine label="Age" value={gAge ? `${gAge} Years` : ''} labelWidth="min-w-[70px]" />
+                <PaperLine label="Gender" value={gGender} labelWidth="min-w-[70px]" />
+                <PaperLine label="Marital Status" value={gMarital === 'Yes' ? 'Married' : gMarital === 'No' ? 'Unmarried' : gMarital} labelWidth="min-w-[100px]" />
+              </div>
 
-          {gFather && <PaperLine label="Father's Name" value={gFather} />}
-          {gMother && <PaperLine label="Mother's Name" value={gMother} />}
-          {gHusband && <PaperLine label="Husband's Name" value={gHusband} />}
-          <PaperLine label="Own House" value={gOwnHouse} />
+              {gFather && <PaperLine label="Father's Name" value={gFather} />}
+              {gMother && <PaperLine label="Mother's Name" value={gMother} />}
+              {gHusband && <PaperLine label="Husband's Name" value={gHusband} />}
+              <PaperLine label="Own House" value={gOwnHouse} />
+            </div>
+
+            {/* Passport Photo Box */}
+            <PassportPhotoBox 
+              doc={currentDocs[`guarantor_${idx}_photo`]} 
+              label={`Guarantor ${idx}`} 
+              icon={Shield} 
+              onPreview={setPreviewDoc} 
+            />
+          </div>
         </div>
 
         {/* Current Address */}
@@ -798,24 +920,34 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
               </h2>
             </div>
 
-            <div className="space-y-1 pt-1">
-              <PaperLine label="Applicant Name" value={formData.applicant_name} />
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
-                <PaperLine label="Phone Number" value={formData.phone_number} />
-                <PaperLine label="Aadhaar Number" value={formData.aadhaar_number} />
+            <div className="flex flex-col lg:flex-row gap-6 items-start pt-1">
+              <div className="flex-1 space-y-1 w-full">
+                <PaperLine label="Applicant Name" value={formData.applicant_name} />
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+                  <PaperLine label="Phone Number" value={formData.phone_number} />
+                  <PaperLine label="Aadhaar Number" value={formData.aadhaar_number} />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6">
+                  <PaperLine label="Age" value={formData.age ? `${formData.age} Years` : ''} labelWidth="min-w-[70px]" />
+                  <PaperLine label="Gender" value={formData.gender} labelWidth="min-w-[70px]" />
+                  <PaperLine label="Marital Status" value={formData.marital_status === 'Yes' ? 'Married' : formData.marital_status === 'No' ? 'Unmarried' : formData.marital_status} labelWidth="min-w-[100px]" />
+                </div>
+
+                {formData.father_name && <PaperLine label="Father's Name" value={formData.father_name} />}
+                {formData.mother_name && <PaperLine label="Mother's Name" value={formData.mother_name} />}
+                {formData.husband_name && <PaperLine label="Husband's Name" value={formData.husband_name} />}
+                <PaperLine label="Own House" value={formData.own_house} />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6">
-                <PaperLine label="Age" value={formData.age ? `${formData.age} Years` : ''} labelWidth="min-w-[70px]" />
-                <PaperLine label="Gender" value={formData.gender} labelWidth="min-w-[70px]" />
-                <PaperLine label="Marital Status" value={formData.marital_status === 'Yes' ? 'Married' : formData.marital_status === 'No' ? 'Unmarried' : formData.marital_status} labelWidth="min-w-[100px]" />
-              </div>
-
-              {formData.father_name && <PaperLine label="Father's Name" value={formData.father_name} />}
-              {formData.mother_name && <PaperLine label="Mother's Name" value={formData.mother_name} />}
-              {formData.husband_name && <PaperLine label="Husband's Name" value={formData.husband_name} />}
-              <PaperLine label="Own House" value={formData.own_house} />
+              {/* Passport Photo Box */}
+              <PassportPhotoBox 
+                doc={currentDocs.applicant_photo} 
+                label="Applicant" 
+                icon={User} 
+                onPreview={setPreviewDoc} 
+              />
             </div>
           </section>
 
@@ -912,23 +1044,35 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
                   <div className="text-xs font-bold text-blue-950 uppercase tracking-wider border-b border-slate-200 pb-1 mb-2">
                     A. Co-Applicant Personal Particulars
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
-                    <PaperLine label="Co-Applicant Name" value={formData.co_applicant_name} />
-                    <PaperLine label="Relation with Applicant" value={formData.co_relation_with_applicant} />
+                  <div className="flex flex-col lg:flex-row gap-6 items-start">
+                    <div className="flex-1 space-y-1 w-full">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+                        <PaperLine label="Co-Applicant Name" value={formData.co_applicant_name} />
+                        <PaperLine label="Relation with Applicant" value={formData.co_relation_with_applicant} />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+                        <PaperLine label="Phone Number" value={formData.co_phone_number} />
+                        <PaperLine label="Aadhaar Number" value={formData.co_aadhaar_number} />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6">
+                        <PaperLine label="Age" value={formData.co_age ? `${formData.co_age} Years` : ''} labelWidth="min-w-[70px]" />
+                        <PaperLine label="Gender" value={formData.co_gender} labelWidth="min-w-[70px]" />
+                        <PaperLine label="Marital Status" value={formData.co_marital_status === 'Yes' ? 'Married' : formData.co_marital_status === 'No' ? 'Unmarried' : formData.co_marital_status} labelWidth="min-w-[100px]" />
+                      </div>
+                      {formData.co_father_name && <PaperLine label="Father's Name" value={formData.co_father_name} />}
+                      {formData.co_mother_name && <PaperLine label="Mother's Name" value={formData.co_mother_name} />}
+                      {formData.co_husband_name && <PaperLine label="Husband's Name" value={formData.co_husband_name} />}
+                      <PaperLine label="Own House" value={formData.co_own_house} />
+                    </div>
+
+                    {/* Co-Applicant Passport Photo Box */}
+                    <PassportPhotoBox 
+                      doc={currentDocs.co_applicant_photo} 
+                      label="Co-Applicant" 
+                      icon={Users} 
+                      onPreview={setPreviewDoc} 
+                    />
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
-                    <PaperLine label="Phone Number" value={formData.co_phone_number} />
-                    <PaperLine label="Aadhaar Number" value={formData.co_aadhaar_number} />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6">
-                    <PaperLine label="Age" value={formData.co_age ? `${formData.co_age} Years` : ''} labelWidth="min-w-[70px]" />
-                    <PaperLine label="Gender" value={formData.co_gender} labelWidth="min-w-[70px]" />
-                    <PaperLine label="Marital Status" value={formData.co_marital_status === 'Yes' ? 'Married' : formData.co_marital_status === 'No' ? 'Unmarried' : formData.co_marital_status} labelWidth="min-w-[100px]" />
-                  </div>
-                  {formData.co_father_name && <PaperLine label="Father's Name" value={formData.co_father_name} />}
-                  {formData.co_mother_name && <PaperLine label="Mother's Name" value={formData.co_mother_name} />}
-                  {formData.co_husband_name && <PaperLine label="Husband's Name" value={formData.co_husband_name} />}
-                  <PaperLine label="Own House" value={formData.co_own_house} />
                 </div>
 
                 {/* Co-applicant Current Address */}
@@ -1069,6 +1213,29 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
         application={application}
         onDocumentsUpdated={(newDocs) => setCurrentDocs(newDocs)}
       />
+
+      {/* Fullscreen Photo Lightbox Preview */}
+      {previewDoc && (
+        <div 
+          className="fixed inset-0 z-[10005] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-150 cursor-pointer"
+          onClick={() => setPreviewDoc(null)}
+        >
+          <button
+            type="button"
+            onClick={() => setPreviewDoc(null)}
+            className="absolute top-4 right-4 p-2 rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors cursor-pointer"
+          >
+            <X size={24} />
+          </button>
+          <div className="max-w-3xl max-h-[85vh] overflow-hidden rounded-2xl shadow-2xl border border-white/10" onClick={(e) => e.stopPropagation()}>
+            <img 
+              src={previewDoc} 
+              alt="Enlarged Photo" 
+              className="w-full h-full object-contain max-h-[85vh]"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
