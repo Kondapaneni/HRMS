@@ -881,7 +881,7 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-x-6">
                 <PaperLine label="Job / Employer Name" value={gJobName} />
-                <PaperLine label="Job Monthly Income" value={formatCurrency(gJobIncome)} />
+                <PaperLine label="Job Monthly Income" value={gJobIncome ? `${formatCurrency(gJobIncome)} / Month` : ''} labelWidth="min-w-[170px]" />
               </div>
               <PaperLine label="Workplace Address" value={gJobAddr} />
             </>
@@ -891,7 +891,7 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-x-6">
                 <PaperLine label="Business Name" value={gBizName} />
-                <PaperLine label="Business Monthly Income" value={formatCurrency(gBizIncome)} />
+                <PaperLine label="Business Monthly Income" value={gBizIncome ? `${formatCurrency(gBizIncome)} / Month` : ''} labelWidth="min-w-[175px]" />
               </div>
               <PaperLine label="Business Address" value={gBizAddr} />
             </>
@@ -1087,7 +1087,7 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
                 <>
                   <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-x-6">
                     <PaperLine label="Job / Employer Name" value={formData.job_name} />
-                    <PaperLine label="Job Monthly Income" value={formatCurrency(formData.job_income_per_month)} />
+                    <PaperLine label="Job Monthly Income" value={formData.job_income_per_month ? `${formatCurrency(formData.job_income_per_month)} / Month` : ''} labelWidth="min-w-[170px]" />
                   </div>
                   <PaperLine label="Workplace Address" value={formData.job_address} />
                 </>
@@ -1097,7 +1097,7 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
                 <>
                   <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-x-6">
                     <PaperLine label="Business Name" value={formData.business_name} />
-                    <PaperLine label="Business Monthly Income" value={formatCurrency(formData.business_income_per_month)} />
+                    <PaperLine label="Business Monthly Income" value={formData.business_income_per_month ? `${formatCurrency(formData.business_income_per_month)} / Month` : ''} labelWidth="min-w-[175px]" />
                   </div>
                   <PaperLine label="Business Address" value={formData.business_address} />
                 </>
@@ -1191,18 +1191,18 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
                     <PaperLine label="Employment Type" value={formData.co_employment === 'Job' ? 'Job (Salaried)' : formData.co_employment === 'Business' ? 'Business (Self-Employed)' : formData.co_employment} />
                     {formData.co_employment === 'Job' && (
                       <>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
-                          <PaperLine label="Job Name" value={formData.co_job_name} />
-                          <PaperLine label="Job Income" value={formatCurrency(formData.co_job_income_per_month)} />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-x-6">
+                          <PaperLine label="Job / Employer Name" value={formData.co_job_name} />
+                          <PaperLine label="Job Monthly Income" value={formData.co_job_income_per_month ? `${formatCurrency(formData.co_job_income_per_month)} / Month` : ''} labelWidth="min-w-[170px]" />
                         </div>
-                        <PaperLine label="Job Address" value={formData.co_job_address} />
+                        <PaperLine label="Workplace Address" value={formData.co_job_address} />
                       </>
                     )}
                     {formData.co_employment === 'Business' && (
                       <>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-x-6">
                           <PaperLine label="Business Name" value={formData.co_business_name} />
-                          <PaperLine label="Business Income" value={formatCurrency(formData.co_business_income_per_month)} />
+                          <PaperLine label="Business Monthly Income" value={formData.co_business_income_per_month ? `${formatCurrency(formData.co_business_income_per_month)} / Month` : ''} labelWidth="min-w-[175px]" />
                         </div>
                         <PaperLine label="Business Address" value={formData.co_business_address} />
                       </>
