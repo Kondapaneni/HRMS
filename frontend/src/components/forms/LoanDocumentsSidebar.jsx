@@ -6,7 +6,6 @@ import {
   UploadCloud, 
   CheckCircle2, 
   Trash2, 
-  Eye, 
   Loader2, 
   User, 
   Users, 
@@ -26,9 +25,8 @@ export function LoanDocumentsSidebar({
   onDocumentsUpdated 
 }) {
   const [isUploadingSlot, setIsUploadingSlot] = useState(null);
-  const [previewImage, setPreviewImage] = useState(null);
   const [documentsState, setDocumentsState] = useState(
-    formData.documents || application.form_data?.documents || {}
+    formData.documents || application.documents || application.form_data?.documents || {}
   );
 
   const fileInputRefs = useRef({});
@@ -122,9 +120,9 @@ export function LoanDocumentsSidebar({
       // 1. Remove old photo from Supabase if exists
       const currentDoc = documentsState[slotKey];
       if (currentDoc && currentDoc.url) {
-        const parts = currentDoc.url.split('/Loan-Document/');
-        if (parts.length > 1) {
-          const oldStoragePath = parts[1];
+        const parts = currentDoc.url.split('/loan_documents/');
+        const oldStoragePath = parts[1] || (currentDoc.file_name || null);
+        if (oldStoragePath) {
           try {
             await supabase.storage.from('loan_documents').remove([oldStoragePath]);
           } catch (e) {
@@ -145,11 +143,17 @@ export function LoanDocumentsSidebar({
         throw new Error(uploadError.message || 'Failed to upload photo to storage.');
       }
 
-      // 3. Construct proxy URL
+      // 3. Get direct public URL
+      const { data: publicUrlData } = supabase.storage
+        .from('loan_documents')
+        .getPublicUrl(filePath);
+
+      const publicUrl = publicUrlData?.publicUrl || `https://jtgqkkhqyzfbupiqwkgf.supabase.co/storage/v1/object/public/loan_documents/${fileName}`;
       const proxyUrl = `${window.location.origin}/Loan-Document/${fileName}`;
 
       const docRecord = {
-        url: proxyUrl,
+        url: publicUrl,
+        proxy_url: proxyUrl,
         file_name: fileName,
         original_name: file.name,
         slot_key: slotKey,
@@ -191,11 +195,12 @@ export function LoanDocumentsSidebar({
       setIsUploadingSlot(slotKey);
 
       // 1. Remove from Supabase storage
-      if (doc.url) {
-        const parts = doc.url.split('/Loan-Document/');
-        if (parts.length > 1) {
-          const oldStoragePath = parts[1];
-          await supabase.storage.from('loan_documents').remove([oldStoragePath]);
+      if (doc.file_name) {
+        await supabase.storage.from('loan_documents').remove([doc.file_name]);
+      } else if (doc.url) {
+        const parts = doc.url.split('/loan_documents/');
+        if (parts[1]) {
+          await supabase.storage.from('loan_documents').remove([parts[1]]);
         }
       }
 
@@ -286,20 +291,11 @@ export function LoanDocumentsSidebar({
                     >
                       <div className="flex flex-col gap-3">
                         
-                        {/* Person Info & Thumbnail */}
+                        {/* Person Info */}
                         <div className="flex items-center justify-between gap-3 min-w-0">
                           <div className="flex items-center gap-3 min-w-0 flex-1">
-                            <div className="w-11 h-11 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
-                              {uploadedDoc?.url ? (
-                                <img 
-                                  src={uploadedDoc.url} 
-                                  alt={slot.personName} 
-                                  className="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform"
-                                  onClick={() => setPreviewImage(uploadedDoc.url)}
-                                />
-                              ) : (
-                                <Icon className="w-5 h-5 text-slate-400" />
-                              )}
+                            <div className={`w-10 h-10 rounded-xl ${uploadedDoc ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-slate-50 text-slate-400 border-slate-200'} border flex items-center justify-center shrink-0 shadow-2xs`}>
+                              <Icon className="w-5 h-5" />
                             </div>
 
                             <div className="min-w-0 flex-1">
@@ -334,13 +330,18 @@ export function LoanDocumentsSidebar({
                             </div>
                           ) : uploadedDoc ? (
                             <>
-                              <button
-                                type="button"
-                                onClick={() => setPreviewImage(uploadedDoc.url)}
-                                className="inline-flex items-center justify-center rounded-lg text-xs font-semibold bg-white text-slate-700 hover:bg-slate-100 border border-slate-300 h-8 px-3 transition-colors gap-1 shadow-2xs cursor-pointer"
-                              >
-                                <Eye size={13} /> View
-                              </button>
+                              <input
+                                type="file"
+                                accept="image/png,image/jpeg,image/jpg,image/webp"
+                                className="hidden"
+                                ref={(el) => (fileInputRefs.current[slot.key] = el)}
+                                onChange={(e) => {
+                                  if (e.target.files && e.target.files[0]) {
+                                    handleUploadFile(slot.key, e.target.files[0]);
+                                    e.target.value = '';
+                                  }
+                                }}
+                              />
 
                               <button
                                 type="button"
@@ -382,9 +383,9 @@ export function LoanDocumentsSidebar({
                               <button
                                 type="button"
                                 onClick={() => fileInputRefs.current[slot.key]?.click()}
-                                className="inline-flex items-center justify-center rounded-lg text-xs font-semibold bg-blue-600 text-white hover:bg-blue-700 h-8.5 px-3.5 transition-all gap-1.5 shadow-sm shadow-blue-600/20 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+                                className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 transition-colors gap-2 shadow-sm cursor-pointer"
                               >
-                                <UploadCloud size={14} /> Upload Photo
+                                <UploadCloud size={16} /> Upload Photo
                               </button>
                             </>
                           )}
@@ -395,12 +396,19 @@ export function LoanDocumentsSidebar({
                   );
                 })}
 
-                {/* Submit Button Inside Content */}
-                <div className="pt-2 pb-1">
+                {/* Submit & Cancel Footer matching AddLeadSidebar */}
+                <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3 mt-4">
                   <button
                     type="button"
                     onClick={onClose}
-                    className="w-full inline-flex items-center justify-center rounded-xl text-sm font-bold bg-blue-600 text-white hover:bg-blue-700 h-10 px-5 transition-all shadow-sm shadow-blue-600/20 cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
+                    className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 h-10 px-4 py-2 transition-colors cursor-pointer border border-slate-200"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 transition-colors cursor-pointer shadow-sm"
                   >
                     Submit
                   </button>
@@ -476,17 +484,8 @@ export function LoanDocumentsSidebar({
                         {/* Member Info Row */}
                         <div className="flex items-center justify-between gap-2.5 min-w-0">
                           <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                            <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
-                              {uploadedDoc?.url ? (
-                                <img 
-                                  src={uploadedDoc.url} 
-                                  alt={slot.personName} 
-                                  className="w-full h-full object-cover cursor-pointer"
-                                  onClick={() => setPreviewImage(uploadedDoc.url)}
-                                />
-                              ) : (
-                                <Icon className="w-5 h-5 text-slate-400" />
-                              )}
+                            <div className={`w-10 h-10 rounded-xl ${uploadedDoc ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-white text-slate-400 border-slate-200'} border flex items-center justify-center shrink-0 shadow-2xs`}>
+                              <Icon className="w-5 h-5" />
                             </div>
 
                             <div className="min-w-0 flex-1">
@@ -521,13 +520,34 @@ export function LoanDocumentsSidebar({
                             </div>
                           ) : uploadedDoc ? (
                             <div className="flex items-center gap-1.5">
-                              <button
-                                type="button"
-                                onClick={() => setPreviewImage(uploadedDoc.url)}
-                                className="inline-flex items-center justify-center rounded-lg text-xs font-semibold bg-white text-slate-700 hover:bg-slate-100 border border-slate-300 h-8 px-2.5 transition-colors gap-1 shadow-2xs"
-                              >
-                                <Eye size={12} /> View
-                              </button>
+                              {/* 1. Camera Input */}
+                              <input
+                                type="file"
+                                accept="image/*"
+                                capture="environment"
+                                className="hidden"
+                                ref={(el) => (cameraInputRefs.current[slot.key] = el)}
+                                onChange={(e) => {
+                                  if (e.target.files && e.target.files[0]) {
+                                    handleUploadFile(slot.key, e.target.files[0]);
+                                    e.target.value = '';
+                                  }
+                                }}
+                              />
+
+                              {/* 2. Gallery Input */}
+                              <input
+                                type="file"
+                                accept="image/png,image/jpeg,image/jpg,image/webp"
+                                className="hidden"
+                                ref={(el) => (fileInputRefs.current[slot.key] = el)}
+                                onChange={(e) => {
+                                  if (e.target.files && e.target.files[0]) {
+                                    handleUploadFile(slot.key, e.target.files[0]);
+                                    e.target.value = '';
+                                  }
+                                }}
+                              />
 
                               <button
                                 type="button"
@@ -616,26 +636,6 @@ export function LoanDocumentsSidebar({
               </div>
             </motion.div>
           </div>
-
-          {/* Fullscreen Lightbox Preview */}
-          {previewImage && (
-            <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-150">
-              <button
-                type="button"
-                onClick={() => setPreviewImage(null)}
-                className="absolute top-4 right-4 p-2 rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors cursor-pointer"
-              >
-                <X size={22} />
-              </button>
-              <div className="max-w-3xl max-h-[85vh] overflow-hidden rounded-2xl shadow-2xl border border-white/10">
-                <img 
-                  src={previewImage} 
-                  alt="Document Preview" 
-                  className="w-full h-full object-contain max-h-[85vh]"
-                />
-              </div>
-            </div>
-          )}
         </>
       )}
     </AnimatePresence>,
