@@ -741,6 +741,35 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
   const formattedDate = formatDateSafe(application.created_at || application.updated_at) || format(new Date(), 'dd MMM yyyy');
   const appId = application.application_id || formData.application_id || 'LA-DRAFT';
 
+  useEffect(() => {
+    const originalTitle = document.title;
+    const handleBeforePrint = () => {
+      const documentName = appId && appId !== 'LA-DRAFT' ? appId : 'Business-Loan-Application';
+      document.title = documentName;
+    };
+    const handleAfterPrint = () => {
+      document.title = originalTitle;
+    };
+
+    window.addEventListener('beforeprint', handleBeforePrint);
+    window.addEventListener('afterprint', handleAfterPrint);
+
+    return () => {
+      window.removeEventListener('beforeprint', handleBeforePrint);
+      window.removeEventListener('afterprint', handleAfterPrint);
+    };
+  }, [appId]);
+
+  const handlePrint = () => {
+    const originalTitle = document.title;
+    const documentName = appId && appId !== 'LA-DRAFT' ? appId : 'Business-Loan-Application';
+    document.title = documentName;
+    window.print();
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 1000);
+  };
+
   const renderGuarantorPaper = (idx) => {
     const pfx = `guarantor_${idx}_`;
     const labelPfx = `Guarantor ${idx}`;
@@ -910,7 +939,7 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
 
           <button
             type="button"
-            onClick={() => window.print()}
+            onClick={handlePrint}
             className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 transition-colors gap-2 shadow-sm cursor-pointer"
           >
             <Printer className="w-4 h-4" /> Print Application Form
@@ -1303,6 +1332,27 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
 // ============================================================================
 
 export function BusinessLoanDetailView({ formData = {}, application = {}, onBack }) {
+  const appId = application.application_id || formData.application_id || 'LA-DRAFT';
+
+  useEffect(() => {
+    const originalTitle = document.title;
+    const handleBeforePrint = () => {
+      const documentName = appId && appId !== 'LA-DRAFT' ? appId : 'Business-Loan-Application';
+      document.title = documentName;
+    };
+    const handleAfterPrint = () => {
+      document.title = originalTitle;
+    };
+
+    window.addEventListener('beforeprint', handleBeforePrint);
+    window.addEventListener('afterprint', handleAfterPrint);
+
+    return () => {
+      window.removeEventListener('beforeprint', handleBeforePrint);
+      window.removeEventListener('afterprint', handleAfterPrint);
+    };
+  }, [appId]);
+
   return (
     <>
       {/* Mobile Detail View: Spacious cards with animated hero gradient (Hidden in Print) */}
