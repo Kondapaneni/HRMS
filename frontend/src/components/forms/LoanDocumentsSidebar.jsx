@@ -143,17 +143,10 @@ export function LoanDocumentsSidebar({
         throw new Error(uploadError.message || 'Failed to upload photo to storage.');
       }
 
-      // 3. Get direct public URL
-      const { data: publicUrlData } = supabase.storage
-        .from('loan_documents')
-        .getPublicUrl(filePath);
-
-      const publicUrl = publicUrlData?.publicUrl || `https://jtgqkkhqyzfbupiqwkgf.supabase.co/storage/v1/object/public/loan_documents/${fileName}`;
       const proxyUrl = `${window.location.origin}/Loan-Document/${fileName}`;
 
       const docRecord = {
-        url: publicUrl,
-        proxy_url: proxyUrl,
+        url: proxyUrl,
         file_name: fileName,
         original_name: file.name,
         slot_key: slotKey,
