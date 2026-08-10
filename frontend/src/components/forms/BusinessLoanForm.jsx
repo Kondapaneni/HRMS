@@ -62,7 +62,7 @@ export function BusinessLoanForm() {
     permanent_city: '',
     permanent_state: '',
     permanent_postal_code: '',
-    employment: '',
+    employment: 'Business',
     job_name: '',
     job_address: '',
     job_income_per_month: '',
@@ -233,7 +233,7 @@ export function BusinessLoanForm() {
     if (savedData.permanent_city) updateField('permanent_city', capitalizeWords(savedData.permanent_city));
     if (savedData.permanent_state) updateField('permanent_state', capitalizeWords(savedData.permanent_state));
     if (savedData.permanent_postal_code) updateField('permanent_postal_code', String(savedData.permanent_postal_code).replace(/\D/g, '').slice(0, 6));
-    if (savedData.employment) updateField('employment', savedData.employment);
+    updateField('employment', savedData.employment || 'Business');
     if (savedData.job_name) updateField('job_name', capitalizeWords(savedData.job_name));
     if (savedData.job_address) updateField('job_address', capitalizeText(savedData.job_address));
     if (savedData.job_income_per_month) updateField('job_income_per_month', String(savedData.job_income_per_month).replace(/\D/g, ''));
@@ -450,7 +450,7 @@ export function BusinessLoanForm() {
         permanent_city: '',
         permanent_state: '',
         permanent_postal_code: '',
-        employment: '',
+        employment: 'Business',
         job_name: '',
         job_address: '',
         job_income_per_month: '',
@@ -1165,12 +1165,16 @@ export function BusinessLoanForm() {
           <RadioGroup
             name="employment"
             label="Employment"
-            value={formData.employment}
-            onChange={(val) => updateField('employment', val)}
+            value={formData.employment || 'Business'}
+            onChange={(val) => {
+              if (val !== 'Job') {
+                updateField('employment', val);
+              }
+            }}
             required
             direction="horizontal"
             options={[
-              { label: 'Job', value: 'Job' },
+              { label: 'Job', value: 'Job', disabled: true },
               { label: 'Business', value: 'Business' }
             ]}
             error={errors.employment}

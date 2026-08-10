@@ -29,9 +29,13 @@ export const RadioGroup = React.memo(({
 
   const normalizedOptions = options.map((opt) => {
     if (typeof opt === 'object' && opt !== null) {
-      return { label: opt.label ?? String(opt.value), value: opt.value };
+      return {
+        label: opt.label ?? String(opt.value),
+        value: opt.value,
+        disabled: Boolean(opt.disabled)
+      };
     }
-    return { label: String(opt), value: opt };
+    return { label: String(opt), value: opt, disabled: false };
   });
 
   return (
@@ -50,13 +54,16 @@ export const RadioGroup = React.memo(({
         {normalizedOptions.map((opt, idx) => {
           const isSelected = value === opt.value;
           const radioId = `${groupName}-${opt.value}-${idx}`;
+          const isOptDisabled = disabled || opt.disabled;
 
           return (
             <label
               key={`${opt.value}-${idx}`}
               htmlFor={radioId}
-              className={`flex items-center gap-2 text-xs font-medium cursor-pointer select-none ${
-                disabled ? 'opacity-50 cursor-not-allowed' : 'text-slate-600 hover:text-slate-900'
+              className={`flex items-center gap-2 text-xs font-medium select-none ${
+                isOptDisabled
+                  ? 'opacity-40 cursor-not-allowed text-slate-400'
+                  : 'text-slate-600 hover:text-slate-900 cursor-pointer'
               }`}
             >
               <input
@@ -65,10 +72,16 @@ export const RadioGroup = React.memo(({
                 name={groupName}
                 value={opt.value}
                 checked={isSelected}
-                onChange={() => handleChange(opt.value)}
+                onChange={() => {
+                  if (!isOptDisabled) {
+                    handleChange(opt.value);
+                  }
+                }}
                 onBlur={onBlur}
-                disabled={disabled || readOnly}
-                className="w-4 h-4 text-blue-600 border-slate-200 focus:ring-2 focus:ring-blue-100 focus:border-blue-400 cursor-pointer transition-all"
+                disabled={isOptDisabled || readOnly}
+                className={`w-4 h-4 text-blue-600 border-slate-200 focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all ${
+                  isOptDisabled ? 'cursor-not-allowed' : 'cursor-pointer'
+                }`}
               />
               <span>{opt.label}</span>
             </label>
