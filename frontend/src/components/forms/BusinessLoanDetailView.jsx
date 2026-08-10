@@ -247,7 +247,7 @@ function MobileDetailView({ formData = {}, application = {}, onBack }) {
         <button
           type="button"
           onClick={onBack}
-          className="absolute top-5 left-4 z-20 w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center backdrop-blur-md transition-transform active:scale-95 border border-white/20 cursor-pointer shadow-xs"
+          className="absolute top-7 left-4 z-20 w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center backdrop-blur-md transition-transform active:scale-95 border border-white/20 cursor-pointer shadow-xs"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
@@ -256,7 +256,7 @@ function MobileDetailView({ formData = {}, application = {}, onBack }) {
         <button
           type="button"
           onClick={() => setIsDocsOpen(true)}
-          className="absolute top-5 right-4 z-20 h-10 px-3.5 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center gap-1.5 backdrop-blur-md transition-transform active:scale-95 border border-white/20 cursor-pointer shadow-xs text-xs font-bold"
+          className="absolute top-7 right-4 z-20 h-10 px-3.5 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center gap-1.5 backdrop-blur-md transition-transform active:scale-95 border border-white/20 cursor-pointer shadow-xs text-xs font-bold"
         >
           <Camera className="w-4 h-4" />
           <span>Photos</span>
