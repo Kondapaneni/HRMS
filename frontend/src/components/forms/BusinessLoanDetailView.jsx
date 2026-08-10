@@ -1125,10 +1125,8 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
                   </div>
                   <div className="flex flex-row items-start justify-between gap-4 print:flex-row print:items-start">
                     <div className="flex-1 space-y-1 w-full">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-x-6">
-                        <PaperLine label="Co-Applicant Name" value={formData.co_applicant_name} />
-                        <PaperLine label="Relation with Applicant" value={formData.co_relation_with_applicant} />
-                      </div>
+                      <PaperLine label="Co-Applicant Name" value={formData.co_applicant_name} />
+                      <PaperLine label="Relation with Applicant" value={formData.co_relation_with_applicant} />
                       <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-x-6">
                         <PaperLine label="Phone Number" value={formData.co_phone_number} />
                         <PaperLine label="Aadhaar Number" value={formData.co_aadhaar_number} />
