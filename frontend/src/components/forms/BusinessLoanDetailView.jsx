@@ -948,7 +948,14 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
       </div>
 
       {/* Main Physical Paper Document View */}
-      <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden print:shadow-none print:border-0 print:rounded-none">
+      <div className="relative bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden print:shadow-none print:border-0 print:rounded-none">
+
+        {/* Full Page Diagonal Application ID Watermark (Repeats on every printed page) */}
+        <div className="print-watermark pointer-events-none select-none fixed inset-0 flex items-center justify-center overflow-hidden opacity-[0.06] z-0">
+          <span className="text-[100px] sm:text-[140px] print:text-[100pt] font-black font-mono tracking-widest text-slate-900 -rotate-[35deg] uppercase whitespace-nowrap">
+            {appId}
+          </span>
+        </div>
 
         {/* Paper Form Header (Matching Acme HRMS Theme) */}
         <div className="p-6 sm:p-7 bg-white border-b border-slate-200 print:px-0 print:pt-0 print:pb-3">
