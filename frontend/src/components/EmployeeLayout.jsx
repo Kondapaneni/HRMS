@@ -219,7 +219,7 @@ const EmployeeLayout = () => {
       <div className="h-[100dvh] w-full overflow-hidden bg-slate-50 flex font-sans text-slate-800 relative z-0">
 
       {/* Global Animated Background Graphics */}
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden fixed md:absolute">
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden fixed md:absolute print:hidden">
         <motion.div custom={1} variants={shapeVariants} animate="animate" className="absolute w-64 h-64 bg-[#F59E0B] rounded-full opacity-10 -top-20 -right-20" />
         <motion.div custom={2} variants={shapeVariants} animate="animate" className="absolute w-48 h-48 bg-[#10B981] rounded-3xl opacity-10 bottom-[-40px] left-1/4 rotate-12" />
         <motion.div custom={3} variants={shapeVariants} animate="animate" className="absolute w-96 h-96 bg-[#3B82F6] rounded-full opacity-5 top-1/2 left-1/3" />

@@ -62,3 +62,164 @@ body.hide-mobile-nav [data-mobile-nav] {
   visibility: hidden !important;
   pointer-events: none !important;
 }
+
+/* ==========================================================================
+   GLOBAL LOAN APPLICATION PRINT LAYOUT STYLES (@media print)
+   Ensures paper application print output is clean, multi-page, and free of
+   web UI elements (sidebars, headers, mobile navigation, buttons, overlays).
+   ========================================================================== */
+@media print {
+  /* 1. Reset root & layout container constraints for multi-page paper printing */
+  html {
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    width: 100% !important;
+    overflow: visible !important;
+    position: static !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body {
+    margin: 0 !important;
+    padding: 16mm 14mm 14mm 14mm !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    width: 100% !important;
+    overflow: visible !important;
+    position: static !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    box-sizing: border-box !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  #root,
+  main,
+  div[class*="h-[100dvh]"],
+  div[class*="overflow-hidden"],
+  div[class*="overflow-y-auto"] {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* 2. Hide all non-printable UI elements */
+  aside,
+  header,
+  footer,
+  nav,
+  .mobile-bottom-nav,
+  [data-mobile-nav],
+  .orientation-warning,
+  .no-print,
+  .print\:hidden,
+  button,
+  form button,
+  [role="dialog"] {
+    display: none !important;
+  }
+
+  /* Hide background decoration graphics & floating overlays during print */
+  div.pointer-events-none.fixed,
+  div.pointer-events-none.absolute {
+    display: none !important;
+  }
+
+  /* 3. Suppress native browser print headers & footers (removes URL, date, page title) */
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  /* 4. Strict Passport Photo sizing in print mode (Prevents giant full-page images) */
+  .passport-photo-box,
+  .passport-photo-box > div {
+    width: 110px !important;
+    height: 140px !important;
+    max-width: 110px !important;
+    max-height: 140px !important;
+  }
+
+  .passport-photo-box img {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 110px !important;
+    max-height: 140px !important;
+    object-fit: cover !important;
+    border-radius: 6px !important;
+  }
+
+  /* 5. Utility printing display classes */
+  .print\:block {
+    display: block !important;
+  }
+
+  .print\:flex {
+    display: flex !important;
+  }
+
+  .print\:flex-row {
+    flex-direction: row !important;
+  }
+
+  .print\:grid {
+    display: grid !important;
+  }
+
+  .print\:shadow-none {
+    box-shadow: none !important;
+  }
+
+  .print\:border-0 {
+    border: 0 !important;
+  }
+
+  .print\:rounded-none {
+    border-radius: 0 !important;
+  }
+
+  /* 6. Page break controls (avoid orphan headings and force page breaks with top spacing) */
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+  }
+
+  .print-break-before {
+    page-break-before: always !important;
+    break-before: page !important;
+    break-before: always !important;
+    padding-top: 20px !important;
+    margin-top: 10px !important;
+  }
+
+  .print-avoid-break,
+  .passport-photo-box,
+  tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Image optimization */
+  img {
+    max-width: 100% !important;
+  }
+}
+
+

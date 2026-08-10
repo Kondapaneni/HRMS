@@ -71,19 +71,19 @@ const PassportPhotoBox = ({ doc, label, onPreview, icon: Icon = User, size = 'md
     : 'w-28 h-36 sm:w-32 sm:h-40';
 
   return (
-    <div className="shrink-0 flex flex-col items-center select-none">
+    <div className="shrink-0 flex flex-col items-center select-none passport-photo-box print:w-[110px] print:h-[140px] print:shrink-0">
       <div
         className={`${boxDimensions} rounded-xl border-2 ${
           photoUrl 
             ? 'border-blue-400 bg-blue-50/20' 
             : 'border-dashed border-slate-300 bg-slate-50/70'
-        } flex flex-col items-center justify-center p-1 overflow-hidden shadow-2xs transition-all`}
+        } flex flex-col items-center justify-center p-1 overflow-hidden shadow-2xs transition-all print:w-[110px] print:h-[140px] print:max-w-[110px] print:max-h-[140px]`}
       >
         {photoUrl ? (
           <img
             src={photoUrl}
             alt={label}
-            className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 active:scale-95 transition-all"
+            className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 active:scale-95 transition-all print:w-[102px] print:h-[130px] print:max-h-[130px] print:object-cover"
             onClick={() => onPreview && onPreview(photoUrl)}
             title="Click to view full size"
           />
@@ -100,7 +100,7 @@ const PassportPhotoBox = ({ doc, label, onPreview, icon: Icon = User, size = 'md
         )}
       </div>
       {label && (
-        <span className="text-[10px] font-bold text-slate-600 mt-1 uppercase tracking-wider text-center">
+        <span className="text-[10px] font-bold text-slate-600 mt-1 uppercase tracking-wider text-center print:text-[9px]">
           {label}
         </span>
       )}
@@ -702,16 +702,16 @@ function MobileDetailView({ formData = {}, application = {}, onBack }) {
  * Line-based Paper Application Field
  * Matches authentic printed physical application form with underline fill-ins
  */
-const PaperLine = ({ label, value, className = '', labelWidth = 'min-w-[130px] sm:min-w-[160px]' }) => {
+const PaperLine = ({ label, value, className = '', labelWidth = 'min-w-[135px]' }) => {
   const displayVal = value !== null && value !== undefined && String(value).trim() !== '' ? String(value) : '';
 
   return (
-    <div className={`flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3 py-1.5 ${className}`}>
-      <span className={`${labelWidth} text-xs sm:text-sm font-semibold text-slate-700 shrink-0 select-none`}>
+    <div className={`flex flex-row items-baseline py-1 print:py-0.5 ${className}`}>
+      <span className={`${labelWidth} text-xs sm:text-sm font-semibold text-slate-700 shrink-0 select-none pr-2 print:text-xs print:font-bold`}>
         {label}:
       </span>
-      <div className="flex-1 border-b border-slate-300 sm:border-slate-400 min-h-[26px] flex items-end pb-0.5">
-        <span className="text-xs sm:text-sm font-bold text-slate-900 tracking-wide break-words">
+      <div className="flex-1 border-b border-slate-300 sm:border-slate-400 min-h-[22px] print:min-h-[20px] flex items-end pb-0.5">
+        <span className="text-xs sm:text-sm font-bold text-slate-900 tracking-wide break-words print:text-xs">
           {displayVal || <span className="text-slate-300 font-normal italic">—</span>}
         </span>
       </div>
@@ -782,16 +782,16 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
           <div className="text-xs font-bold text-blue-950 uppercase tracking-wider border-b border-slate-200 pb-1 mb-2">
             A. {labelPfx} Personal Details
           </div>
-          <div className="flex flex-col lg:flex-row gap-6 items-start">
+          <div className="flex flex-row items-start justify-between gap-4 print:flex-row print:items-start">
             <div className="flex-1 space-y-1 w-full">
               <PaperLine label={`${labelPfx} Name`} value={gName} />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-x-6">
                 <PaperLine label="Phone Number" value={gPhone} />
                 <PaperLine label="Aadhaar Number" value={gAadhaar} />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 print:grid-cols-3 gap-x-6">
                 <PaperLine label="Age" value={gAge ? `${gAge} Years` : ''} labelWidth="min-w-[70px]" />
                 <PaperLine label="Gender" value={gGender} labelWidth="min-w-[70px]" />
                 <PaperLine label="Marital Status" value={gMarital === 'Yes' ? 'Married' : gMarital === 'No' ? 'Unmarried' : gMarital} labelWidth="min-w-[100px]" />
@@ -820,7 +820,7 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
           </div>
           <PaperLine label="Current Address" value={gCurAddr} />
           <PaperLine label="Street / Locality" value={gCurStreet} />
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 print:grid-cols-3 gap-x-6">
             <PaperLine label="City" value={gCurCity} labelWidth="min-w-[60px]" />
             <PaperLine label="State" value={gCurState} labelWidth="min-w-[60px]" />
             <PaperLine label="Postal Code" value={gCurZip} labelWidth="min-w-[90px]" />
@@ -834,7 +834,7 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
           </div>
           <PaperLine label="Permanent Address" value={gPermAddr} />
           <PaperLine label="Street / Locality" value={gPermStreet} />
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 print:grid-cols-3 gap-x-6">
             <PaperLine label="City" value={gPermCity} labelWidth="min-w-[60px]" />
             <PaperLine label="State" value={gPermState} labelWidth="min-w-[60px]" />
             <PaperLine label="Postal Code" value={gPermZip} labelWidth="min-w-[90px]" />
@@ -850,7 +850,7 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
 
           {gEmp === 'Job' && (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-x-6">
                 <PaperLine label="Job / Employer Name" value={gJobName} />
                 <PaperLine label="Job Monthly Income" value={formatCurrency(gJobIncome)} />
               </div>
@@ -860,7 +860,7 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
 
           {gEmp === 'Business' && (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-x-6">
                 <PaperLine label="Business Name" value={gBizName} />
                 <PaperLine label="Business Monthly Income" value={formatCurrency(gBizIncome)} />
               </div>
@@ -922,37 +922,37 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
       <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden print:shadow-none print:border-0 print:rounded-none">
 
         {/* Paper Form Header (Matching Acme HRMS Theme) */}
-        <div className="p-6 sm:p-7 bg-white border-b border-slate-200">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="p-6 sm:p-7 bg-white border-b border-slate-200 print:p-4 print:pb-2">
+          <div className="flex flex-row items-center justify-between gap-4">
             <div className="space-y-1">
-              <div className="flex items-center gap-2 text-blue-600 font-bold text-xs uppercase tracking-widest">
-                <Building2 className="w-4 h-4 text-blue-600" /> Acme Financial Services • Credit Origination
+              <div className="flex items-center gap-2 text-blue-600 font-bold text-xs uppercase tracking-widest print:text-[10px]">
+                <Building2 className="w-4 h-4 text-blue-600 print:w-3.5 print:h-3.5" /> Acme Financial Services • Credit Origination
               </div>
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 uppercase">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 uppercase print:text-lg">
                 Business Loan Application Form
               </h1>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 print:text-[10px]">
                 Official Commercial Credit Record • Form Code: BL-ORIG-2026
               </p>
             </div>
 
             {/* App / Loan ID & Date Info */}
-            <div className="flex flex-col items-start md:items-end gap-1 text-left md:text-right">
-              <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+            <div className="flex flex-col items-end gap-0.5 text-right">
+              <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider print:text-[9px]">
                 Application ID
               </div>
-              <div className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-blue-600">
+              <div className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-blue-600 print:text-xl">
                 {appId}
               </div>
-              <div className="flex items-center gap-1 mt-0.5 text-xs text-slate-500">
-                <Calendar className="w-3.5 h-3.5 text-slate-400" /> {formattedDate}
+              <div className="flex items-center gap-1 mt-0.5 text-xs text-slate-500 print:text-[10px]">
+                <Calendar className="w-3.5 h-3.5 text-slate-400 print:w-3 print:h-3" /> {formattedDate}
               </div>
             </div>
           </div>
         </div>
 
         {/* Paper Sheet Form Fields Body */}
-        <div className="p-6 sm:p-8 space-y-8 bg-white text-slate-900">
+        <div className="p-6 sm:p-8 space-y-8 print:space-y-4 print:p-4 bg-white text-slate-900">
 
           {/* ================= 1. APPLICANT PERSONAL DETAILS ================= */}
           <section className="space-y-3">
@@ -963,16 +963,16 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
               </h2>
             </div>
 
-            <div className="flex flex-col lg:flex-row gap-6 items-start pt-1">
+            <div className="flex flex-row items-start justify-between gap-4 print:flex-row print:items-start pt-1">
               <div className="flex-1 space-y-1 w-full">
                 <PaperLine label="Applicant Name" value={formData.applicant_name} />
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-x-6">
                   <PaperLine label="Phone Number" value={formData.phone_number} />
                   <PaperLine label="Aadhaar Number" value={formData.aadhaar_number} />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6">
+                <div className="grid grid-cols-1 sm:grid-cols-3 print:grid-cols-3 gap-x-6">
                   <PaperLine label="Age" value={formData.age ? `${formData.age} Years` : ''} labelWidth="min-w-[70px]" />
                   <PaperLine label="Gender" value={formData.gender} labelWidth="min-w-[70px]" />
                   <PaperLine label="Marital Status" value={formData.marital_status === 'Yes' ? 'Married' : formData.marital_status === 'No' ? 'Unmarried' : formData.marital_status} labelWidth="min-w-[100px]" />
@@ -1010,7 +1010,7 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
               </div>
               <PaperLine label="Current Address" value={formData.current_address} />
               <PaperLine label="Street / Locality" value={formData.current_street} />
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 print:grid-cols-3 gap-x-6">
                 <PaperLine label="City" value={formData.current_city} labelWidth="min-w-[60px]" />
                 <PaperLine label="State" value={formData.current_state} labelWidth="min-w-[60px]" />
                 <PaperLine label="Postal Code" value={formData.current_postal_code} labelWidth="min-w-[90px]" />
@@ -1024,7 +1024,7 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
               </div>
               <PaperLine label="Permanent Address" value={formData.permanent_address} />
               <PaperLine label="Street / Locality" value={formData.permanent_street} />
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 print:grid-cols-3 gap-x-6">
                 <PaperLine label="City" value={formData.permanent_city} labelWidth="min-w-[60px]" />
                 <PaperLine label="State" value={formData.permanent_state} labelWidth="min-w-[60px]" />
                 <PaperLine label="Postal Code" value={formData.permanent_postal_code} labelWidth="min-w-[90px]" />
@@ -1049,7 +1049,7 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
 
               {formData.employment === 'Job' && (
                 <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-x-6">
                     <PaperLine label="Job / Employer Name" value={formData.job_name} />
                     <PaperLine label="Job Monthly Income" value={formatCurrency(formData.job_income_per_month)} />
                   </div>
@@ -1059,7 +1059,7 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
 
               {formData.employment === 'Business' && (
                 <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-x-6">
                     <PaperLine label="Business Name" value={formData.business_name} />
                     <PaperLine label="Business Monthly Income" value={formatCurrency(formData.business_income_per_month)} />
                   </div>
@@ -1070,7 +1070,7 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
           </section>
 
           {/* ================= 4. CO-APPLICANT DETAILS ================= */}
-          <section className="space-y-3">
+          <section className="space-y-3 print-break-before print:pt-4">
             <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
               <span className="w-5 h-5 rounded bg-blue-600 text-white flex items-center justify-center text-[11px] font-bold">4</span>
               <h2 className="text-sm sm:text-base font-bold text-slate-900 uppercase tracking-wide">
@@ -1087,17 +1087,17 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
                   <div className="text-xs font-bold text-blue-950 uppercase tracking-wider border-b border-slate-200 pb-1 mb-2">
                     A. Co-Applicant Personal Particulars
                   </div>
-                  <div className="flex flex-col lg:flex-row gap-6 items-start">
+                  <div className="flex flex-row items-start justify-between gap-4 print:flex-row print:items-start">
                     <div className="flex-1 space-y-1 w-full">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-x-6">
                         <PaperLine label="Co-Applicant Name" value={formData.co_applicant_name} />
                         <PaperLine label="Relation with Applicant" value={formData.co_relation_with_applicant} />
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-x-6">
                         <PaperLine label="Phone Number" value={formData.co_phone_number} />
                         <PaperLine label="Aadhaar Number" value={formData.co_aadhaar_number} />
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 print:grid-cols-3 gap-x-6">
                         <PaperLine label="Age" value={formData.co_age ? `${formData.co_age} Years` : ''} labelWidth="min-w-[70px]" />
                         <PaperLine label="Gender" value={formData.co_gender} labelWidth="min-w-[70px]" />
                         <PaperLine label="Marital Status" value={formData.co_marital_status === 'Yes' ? 'Married' : formData.co_marital_status === 'No' ? 'Unmarried' : formData.co_marital_status} labelWidth="min-w-[100px]" />
@@ -1125,7 +1125,7 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
                   </div>
                   <PaperLine label="Current Address" value={formData.co_current_address} />
                   <PaperLine label="Street / Locality" value={formData.co_current_street} />
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 print:grid-cols-3 gap-x-6">
                     <PaperLine label="City" value={formData.co_current_city} labelWidth="min-w-[60px]" />
                     <PaperLine label="State" value={formData.co_current_state} labelWidth="min-w-[60px]" />
                     <PaperLine label="Postal Code" value={formData.co_current_postal_code} labelWidth="min-w-[90px]" />
@@ -1139,7 +1139,7 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
                   </div>
                   <PaperLine label="Permanent Address" value={formData.co_permanent_address} />
                   <PaperLine label="Street / Locality" value={formData.co_permanent_street} />
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 print:grid-cols-3 gap-x-6">
                     <PaperLine label="City" value={formData.co_permanent_city} labelWidth="min-w-[60px]" />
                     <PaperLine label="State" value={formData.co_permanent_state} labelWidth="min-w-[60px]" />
                     <PaperLine label="Postal Code" value={formData.co_permanent_postal_code} labelWidth="min-w-[90px]" />
@@ -1211,23 +1211,34 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
               </div>
             </div>
 
-            {/* Active Guarantor Form in Screen View */}
-            <div className="p-4 sm:p-5 rounded-md border border-slate-200 bg-slate-50/50">
+            {/* Active Guarantor Form in Screen View (Hidden in Print to prevent duplication) */}
+            <div className="p-4 sm:p-5 rounded-md border border-slate-200 bg-slate-50/50 print:hidden">
               {renderGuarantorPaper(activeGuarantorTab)}
             </div>
 
             {/* Print View: Render all 3 Guarantors sequentially when printing */}
             <div className="hidden print:block space-y-6 pt-4">
-              <div className="p-4 border border-slate-300 rounded-md">
-                <h3 className="font-bold text-sm uppercase mb-3 text-blue-950">Guarantor 1 Details</h3>
+              <div className="space-y-4 print-avoid-break">
+                <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+                  <span className="w-5 h-5 rounded bg-blue-600 text-white flex items-center justify-center text-[11px] font-bold">5</span>
+                  <h2 className="text-sm sm:text-base font-bold text-slate-900 uppercase tracking-wide">Guarantor 1 Details</h2>
+                </div>
                 {renderGuarantorPaper(1)}
               </div>
-              <div className="p-4 border border-slate-300 rounded-md">
-                <h3 className="font-bold text-sm uppercase mb-3 text-blue-950">Guarantor 2 Details</h3>
+
+              <div className="space-y-4 print-avoid-break pt-4">
+                <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+                  <span className="w-5 h-5 rounded bg-blue-600 text-white flex items-center justify-center text-[11px] font-bold">6</span>
+                  <h2 className="text-sm sm:text-base font-bold text-slate-900 uppercase tracking-wide">Guarantor 2 Details</h2>
+                </div>
                 {renderGuarantorPaper(2)}
               </div>
-              <div className="p-4 border border-slate-300 rounded-md">
-                <h3 className="font-bold text-sm uppercase mb-3 text-blue-950">Guarantor 3 Details</h3>
+
+              <div className="space-y-4 print-avoid-break pt-4">
+                <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+                  <span className="w-5 h-5 rounded bg-blue-600 text-white flex items-center justify-center text-[11px] font-bold">7</span>
+                  <h2 className="text-sm sm:text-base font-bold text-slate-900 uppercase tracking-wide">Guarantor 3 Details</h2>
+                </div>
                 {renderGuarantorPaper(3)}
               </div>
             </div>
@@ -1294,8 +1305,8 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
 export function BusinessLoanDetailView({ formData = {}, application = {}, onBack }) {
   return (
     <>
-      {/* Mobile Detail View: Spacious cards with animated hero gradient */}
-      <div className="md:hidden">
+      {/* Mobile Detail View: Spacious cards with animated hero gradient (Hidden in Print) */}
+      <div className="md:hidden print:hidden">
         <MobileDetailView
           formData={formData}
           application={application}
@@ -1303,8 +1314,8 @@ export function BusinessLoanDetailView({ formData = {}, application = {}, onBack
         />
       </div>
 
-      {/* Desktop Detail View: Physical paper document with print capabilities */}
-      <div className="hidden md:block">
+      {/* Desktop Detail View: Physical paper document with print capabilities (Always forced visible in Print) */}
+      <div className="hidden md:block print:block">
         <DesktopPaperView
           formData={formData}
           application={application}
