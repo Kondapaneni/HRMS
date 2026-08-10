@@ -674,12 +674,12 @@ $app->get('/Bills/{filename:.+}', function (Request $request, Response $response
 });
 
 
-// Training Video proxy route (redirect to Supabase for native video caching and range requests)
-$app->get('/Training-Video/{filename:.+}', function (Request $request, Response $response, $args) {
+// Loan Document proxy route
+$app->get('/Loan-Document/{filename:.+}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];
     $encodedFilename = implode('/', array_map('rawurlencode', explode('/', $filename)));
-    $supabaseUrl = $_ENV['VITE_SUPABASE_URL'] . "/storage/v1/object/public/training_videos/" . $encodedFilename;
-    return $response->withHeader('Location', $supabaseUrl)->withStatus(302);
+    $supabaseUrl = $_ENV['VITE_SUPABASE_URL'] . "/storage/v1/object/public/loan_documents/" . $encodedFilename;
+    return streamSupabaseFile($supabaseUrl, $response, $filename, 'inline');
 });
 
 // Run app

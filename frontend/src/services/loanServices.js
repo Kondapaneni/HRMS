@@ -68,3 +68,23 @@ export const getLoanApplications = async () => {
   const response = await api.get('/loans/applications');
   return response.data;
 };
+
+/**
+ * Saves/updates documents for a loan application.
+ * @param {string} appId - Application ID or UUID
+ * @param {Object} documents - Map or array of document objects
+ */
+export const saveLoanDocuments = async (appId, documents) => {
+  const response = await api.post(`/loans/applications/${encodeURIComponent(appId)}/documents`, { documents });
+  return response.data;
+};
+
+/**
+ * Deletes a document from a loan application.
+ * @param {string} appId - Application ID or UUID
+ * @param {string} docKey - Document key
+ */
+export const deleteLoanDocument = async (appId, docKey) => {
+  const response = await api.delete(`/loans/applications/${encodeURIComponent(appId)}/documents/${encodeURIComponent(docKey)}`);
+  return response.data;
+};

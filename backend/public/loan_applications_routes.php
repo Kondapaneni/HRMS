@@ -188,3 +188,140 @@ $app->get('/api/loans/applications', function (Request $request, Response $respo
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new \App\Middleware\AuthMiddleware());
+
+/**
+ * Endpoint to save or update documents for a loan application.
+ */
+$app->post('/api/loans/applications/{id}/documents', function (Request $request, Response $response, $args) {
+    $identifier = $args['id'];
+    $data = $request->getParsedBody();
+
+    if (!is_array($data)) {
+        $raw = (string)$request->getBody();
+        $data = json_decode($raw, true) ?: [];
+    }
+
+    $documents = $data['documents'] ?? [];
+
+    try {
+        $db = new Database();
+        $conn = $db->getConnection();
+
+        // Find application by UUID id or application_id or lead_id
+        $findStmt = $conn->prepare('
+            SELECT id, application_id, lead_id, loan_type, status, form_data
+            FROM public.loan_applications
+            WHERE id::text = ? OR application_id = ? OR lead_id = ?
+            ORDER BY created_at DESC
+            LIMIT 1
+        ');
+        $findStmt->execute([$identifier, $identifier, $identifier]);
+        $appRow = $findStmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$appRow) {
+            $response->getBody()->write(json_encode(['error' => 'Loan application not found']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+        }
+
+        $formData = [];
+        if (isset($appRow['form_data'])) {
+            $formData = is_string($appRow['form_data']) ? json_decode($appRow['form_data'], true) : (array)$appRow['form_data'];
+        }
+
+        // Merge or replace documents
+        $existingDocs = $formData['documents'] ?? [];
+        if (is_array($existingDocs) && is_array($documents)) {
+            $mergedDocs = array_merge($existingDocs, $documents);
+        } else {
+            $mergedDocs = $documents;
+        }
+
+        $formData['documents'] = $mergedDocs;
+        $updatedJson = json_encode($formData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+        $updateStmt = $conn->prepare('
+            UPDATE public.loan_applications
+            SET form_data = ?::jsonb, updated_at = NOW()
+            WHERE id = ?
+            RETURNING id, application_id, lead_id, loan_type, status, form_data, updated_at
+        ');
+        $updateStmt->execute([$updatedJson, $appRow['id']]);
+        $updatedRow = $updateStmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($updatedRow && isset($updatedRow['form_data']) && is_string($updatedRow['form_data'])) {
+            $updatedRow['form_data'] = json_decode($updatedRow['form_data'], true);
+        }
+
+        $response->getBody()->write(json_encode([
+            'success' => true,
+            'message' => 'Documents updated successfully',
+            'application' => $updatedRow,
+            'documents' => $mergedDocs
+        ]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+
+    } catch (\Exception $e) {
+        error_log("Error updating application documents: " . $e->getMessage());
+        $response->getBody()->write(json_encode(['error' => 'Failed to save documents: ' . $e->getMessage()]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    }
+})->add(new \App\Middleware\AuthMiddleware());
+
+/**
+ * Endpoint to delete a specific document from a loan application.
+ */
+$app->delete('/api/loans/applications/{id}/documents/{docKey}', function (Request $request, Response $response, $args) {
+    $identifier = $args['id'];
+    $docKey = $args['docKey'];
+
+    try {
+        $db = new Database();
+        $conn = $db->getConnection();
+
+        $findStmt = $conn->prepare('
+            SELECT id, form_data
+            FROM public.loan_applications
+            WHERE id::text = ? OR application_id = ? OR lead_id = ?
+            ORDER BY created_at DESC
+            LIMIT 1
+        ');
+        $findStmt->execute([$identifier, $identifier, $identifier]);
+        $appRow = $findStmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$appRow) {
+            $response->getBody()->write(json_encode(['error' => 'Loan application not found']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+        }
+
+        $formData = [];
+        if (isset($appRow['form_data'])) {
+            $formData = is_string($appRow['form_data']) ? json_decode($appRow['form_data'], true) : (array)$appRow['form_data'];
+        }
+
+        if (isset($formData['documents'][$docKey])) {
+            unset($formData['documents'][$docKey]);
+        }
+
+        $updatedJson = json_encode($formData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+        $updateStmt = $conn->prepare('
+            UPDATE public.loan_applications
+            SET form_data = ?::jsonb, updated_at = NOW()
+            WHERE id = ?
+            RETURNING id, form_data
+        ');
+        $updateStmt->execute([$updatedJson, $appRow['id']]);
+
+        $response->getBody()->write(json_encode([
+            'success' => true,
+            'message' => 'Document deleted successfully',
+            'documents' => $formData['documents'] ?? []
+        ]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+
+    } catch (\Exception $e) {
+        error_log("Error deleting document: " . $e->getMessage());
+        $response->getBody()->write(json_encode(['error' => 'Failed to delete document']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    }
+})->add(new \App\Middleware\AuthMiddleware());

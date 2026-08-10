@@ -61,17 +61,8 @@ export { useFormState } from './hooks/useFormState';
 // Pre-composed Business Loan Form & Detail Views
 export { BusinessLoanForm } from './BusinessLoanForm';
 export { BusinessLoanDetailView, BusinessLoanMobileDetailView } from './BusinessLoanDetailView';
+export { LoanDocumentsSidebar, LoanDocumentsSidebar as LoanDocumentsModal } from './LoanDocumentsSidebar';
 
-// Validation Utilities
-export { validators } from './validation/validators';
-export {
-  validatePAN,
-  validateAadhaar,
-  validateIFSC,
-  validateGSTIN,
-  validatePincode,
-  validateBankAccount
-} from './validation/businessValidators';
 
 // Formatting & Nested Utilities
 export {

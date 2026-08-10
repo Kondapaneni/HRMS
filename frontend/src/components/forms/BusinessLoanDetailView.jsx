@@ -11,10 +11,13 @@ import {
   Calendar, 
   Home, 
   Lock,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Camera,
+  Image as ImageIcon
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
+import { LoanDocumentsSidebar } from './LoanDocumentsSidebar';
 
 // ============================================================================
 // HELPER UTILITIES
@@ -100,6 +103,10 @@ const SubSectionHeader = ({ label }) => (
  */
 function MobileDetailView({ formData = {}, application = {}, onBack }) {
   const [activeGuarantorTab, setActiveGuarantorTab] = useState(1);
+  const [isDocsOpen, setIsDocsOpen] = useState(false);
+  const [currentDocs, setCurrentDocs] = useState(
+    formData.documents || application.form_data?.documents || {}
+  );
 
   const formattedDate =
     formatDateSafe(application.created_at || application.updated_at) ||
@@ -243,6 +250,21 @@ function MobileDetailView({ formData = {}, application = {}, onBack }) {
           className="absolute top-5 left-4 z-20 w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center backdrop-blur-md transition-transform active:scale-95 border border-white/20 cursor-pointer shadow-xs"
         >
           <ArrowLeft className="w-5 h-5" />
+        </button>
+
+        {/* Photos button on top right */}
+        <button
+          type="button"
+          onClick={() => setIsDocsOpen(true)}
+          className="absolute top-5 right-4 z-20 h-10 px-3.5 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center gap-1.5 backdrop-blur-md transition-transform active:scale-95 border border-white/20 cursor-pointer shadow-xs text-xs font-bold"
+        >
+          <Camera className="w-4 h-4" />
+          <span>Photos</span>
+          {Object.keys(currentDocs).length > 0 && (
+            <span className="w-5 h-5 rounded-full bg-emerald-500 text-white text-[10px] font-black flex items-center justify-center">
+              {Object.keys(currentDocs).length}
+            </span>
+          )}
         </button>
 
         {/* Header Content: Application ID, Loan Type, Submitted Date */}
@@ -521,6 +543,15 @@ function MobileDetailView({ formData = {}, application = {}, onBack }) {
           </button>
         </div>
       </div>
+
+      {/* Loan Documents Sidebar */}
+      <LoanDocumentsSidebar
+        isOpen={isDocsOpen}
+        onClose={() => setIsDocsOpen(false)}
+        formData={{ ...formData, documents: currentDocs }}
+        application={application}
+        onDocumentsUpdated={(newDocs) => setCurrentDocs(newDocs)}
+      />
     </div>
   );
 }
@@ -555,6 +586,10 @@ const PaperLine = ({ label, value, className = '', labelWidth = 'min-w-[130px] s
  */
 function DesktopPaperView({ formData = {}, application = {}, onBack }) {
   const [activeGuarantorTab, setActiveGuarantorTab] = useState(1);
+  const [isDocsOpen, setIsDocsOpen] = useState(false);
+  const [currentDocs, setCurrentDocs] = useState(
+    formData.documents || application.form_data?.documents || {}
+  );
 
   const formattedDate = formatDateSafe(application.created_at || application.updated_at) || format(new Date(), 'dd MMM yyyy');
   const appId = application.application_id || formData.application_id || 'LA-DRAFT';
@@ -696,6 +731,18 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setIsDocsOpen(true)}
+            className="inline-flex items-center justify-center rounded-md text-xs sm:text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-9 px-3.5 transition-colors gap-1.5 shadow-sm cursor-pointer"
+          >
+            <Camera className="w-4 h-4" /> Upload Photos
+            {Object.keys(currentDocs).length > 0 && (
+              <span className="ml-1 px-1.5 py-0.2 rounded-full bg-white text-blue-700 text-[11px] font-bold">
+                {Object.keys(currentDocs).length}
+              </span>
+            )}
+          </button>
           <button
             type="button"
             onClick={() => window.print()}
@@ -1013,6 +1060,15 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
           <ArrowLeft className="w-4 h-4" /> Back to Applications List
         </button>
       </div>
+
+      {/* Loan Documents Sidebar */}
+      <LoanDocumentsSidebar
+        isOpen={isDocsOpen}
+        onClose={() => setIsDocsOpen(false)}
+        formData={{ ...formData, documents: currentDocs }}
+        application={application}
+        onDocumentsUpdated={(newDocs) => setCurrentDocs(newDocs)}
+      />
     </div>
   );
 }
