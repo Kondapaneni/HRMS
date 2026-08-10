@@ -120,9 +120,9 @@ export function LoanDocumentsSidebar({
       // 1. Remove old photo from Supabase if exists
       const currentDoc = documentsState[slotKey];
       if (currentDoc && currentDoc.url) {
-        const parts = currentDoc.url.split('/loan_documents/');
-        const oldStoragePath = parts[1] || (currentDoc.file_name || null);
-        if (oldStoragePath) {
+        const parts = currentDoc.url.split('/Loan-Document/');
+        if (parts.length > 1) {
+          const oldStoragePath = parts[1];
           try {
             await supabase.storage.from('loan_documents').remove([oldStoragePath]);
           } catch (e) {
@@ -143,14 +143,12 @@ export function LoanDocumentsSidebar({
         throw new Error(uploadError.message || 'Failed to upload photo to storage.');
       }
 
-      const proxyUrl = `${window.location.origin}/Loan-Document/${fileName}`;
+      // 3. Construct proxy URL matching avatar pattern in EmployeeProfile.jsx
+      const documentUrl = window.location.origin + "/Loan-Document/" + fileName;
 
       const docRecord = {
-        url: proxyUrl,
-        file_name: fileName,
-        original_name: file.name,
-        slot_key: slotKey,
-        uploaded_at: new Date().toISOString()
+        url: documentUrl,
+        slot_key: slotKey
       };
 
       const updatedDocs = {

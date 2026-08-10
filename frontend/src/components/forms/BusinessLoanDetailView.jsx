@@ -44,28 +44,15 @@ const formatCurrency = (val) => {
 };
 
 /**
- * Resolves reliable photo URL for loan documents, supporting both direct Supabase URL and proxy formats
+ * Resolves photo URL for loan documents matching employee avatar implementation
  */
 const getDocumentPhotoUrl = (doc) => {
   if (!doc) return null;
+  if (typeof doc === 'object' && doc !== null) {
+    return doc.url || doc.proxy_url || null;
+  }
   if (typeof doc === 'string') {
-    if (doc.includes('/Loan-Document/')) {
-      const parts = doc.split('/Loan-Document/');
-      return `https://jtgqkkhqyzfbupiqwkgf.supabase.co/storage/v1/object/public/loan_documents/${parts[1]}`;
-    }
     return doc;
-  }
-  if (doc.url) {
-    if (doc.url.includes('/Loan-Document/')) {
-      const parts = doc.url.split('/Loan-Document/');
-      if (parts[1]) {
-        return `https://jtgqkkhqyzfbupiqwkgf.supabase.co/storage/v1/object/public/loan_documents/${parts[1]}`;
-      }
-    }
-    return doc.url;
-  }
-  if (doc.file_name) {
-    return `https://jtgqkkhqyzfbupiqwkgf.supabase.co/storage/v1/object/public/loan_documents/${doc.file_name}`;
   }
   return null;
 };
@@ -99,11 +86,6 @@ const PassportPhotoBox = ({ doc, label, onPreview, icon: Icon = User, size = 'md
             className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 active:scale-95 transition-all"
             onClick={() => onPreview && onPreview(photoUrl)}
             title="Click to view full size"
-            onError={(e) => {
-              if (doc?.file_name && !e.target.src.includes('supabase.co')) {
-                e.target.src = `https://jtgqkkhqyzfbupiqwkgf.supabase.co/storage/v1/object/public/loan_documents/${doc.file_name}`;
-              }
-            }}
           />
         ) : (
           <div className="text-center p-1.5 flex flex-col items-center justify-center h-full">

@@ -5,6 +5,57 @@ use Psr\Http\Message\ResponseInterface as Response;
 use App\Config\Database;
 
 /**
+ * Helper function to fetch all documents for a loan application from public.loan_documents table.
+ */
+function getLoanDocumentsFromTable($conn, $appId, $uuidId = null, $leadId = null) {
+    if (empty($appId) && empty($uuidId) && empty($leadId)) return [];
+
+    $stmt = $conn->prepare('
+        SELECT slot_key, url
+        FROM public.loan_documents
+        WHERE application_id = ? OR application_id = ? OR application_id = ?
+        ORDER BY created_at ASC
+    ');
+    $stmt->execute([(string)$appId, (string)$uuidId, (string)$leadId]);
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    $docsMap = [];
+    foreach ($rows as $r) {
+        $docsMap[$r['slot_key']] = [
+            'url' => $r['url'],
+            'slot_key' => $r['slot_key']
+        ];
+    }
+    return $docsMap;
+}
+
+/**
+ * Helper function to upsert documents into public.loan_documents table.
+ */
+function upsertLoanDocumentsToTable($conn, $appId, array $documents) {
+    if (empty($documents) || empty($appId)) return;
+
+    $upsertStmt = $conn->prepare('
+        INSERT INTO public.loan_documents (application_id, slot_key, url, updated_at)
+        VALUES (?, ?, ?, NOW())
+        ON CONFLICT (application_id, slot_key) DO UPDATE SET
+            url = EXCLUDED.url,
+            updated_at = NOW()
+    ');
+
+    foreach ($documents as $slotKey => $doc) {
+        $url = is_array($doc) ? ($doc['url'] ?? $doc['proxy_url'] ?? '') : (is_string($doc) ? $doc : '');
+        if (empty($url)) continue;
+
+        $upsertStmt->execute([
+            (string)$appId,
+            (string)$slotKey,
+            (string)$url
+        ]);
+    }
+}
+
+/**
  * Endpoint to submit or save draft for a loan application in DB table public.loan_applications.
  */
 $app->post('/api/loans/applications', function (Request $request, Response $response, $args) {
@@ -60,14 +111,13 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
         // Filter out empty string, null, or whitespace-only fields from form_data json payload
         $cleanedFormData = [];
         foreach ($formData as $k => $v) {
-            if ($k === 'documents') continue; // Stored in dedicated 'documents' column
+            if ($k === 'documents') continue; // Stored in dedicated loan_documents table
             if ($v !== null && !(is_string($v) && trim($v) === '')) {
                 $cleanedFormData[$k] = $v;
             }
         }
 
         $jsonPayload = json_encode($cleanedFormData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        $docsPayload = json_encode($documents ?: new stdClass(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         
         // Resolve user ID safely as string (supports both UUID strings and integer IDs)
         $createdById = null;
@@ -92,22 +142,21 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
         if ($existingDraft) {
             $stmt = $conn->prepare('
                 UPDATE public.loan_applications
-                SET status = ?, form_data = ?::jsonb, documents = ?::jsonb, updated_at = NOW()
+                SET status = ?, form_data = ?::jsonb, updated_at = NOW()
                 WHERE id = ?
-                RETURNING id, application_id, lead_id, loan_type, status, form_data, documents, created_at, updated_at
+                RETURNING id, application_id, lead_id, loan_type, status, form_data, created_at, updated_at
             ');
             $stmt->execute([
                 $status,
                 $jsonPayload,
-                $docsPayload,
                 $existingDraft['id']
             ]);
         } else {
             $applicationId = 'LA' . random_int(100000, 999999);
             $stmt = $conn->prepare('
-                INSERT INTO public.loan_applications (application_id, lead_id, loan_type, status, form_data, documents, created_by, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?::jsonb, ?::jsonb, ?, NOW(), NOW())
-                RETURNING id, application_id, lead_id, loan_type, status, form_data, documents, created_at, updated_at
+                INSERT INTO public.loan_applications (application_id, lead_id, loan_type, status, form_data, created_by, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?::jsonb, ?, NOW(), NOW())
+                RETURNING id, application_id, lead_id, loan_type, status, form_data, created_at, updated_at
             ');
             
             $stmt->execute([
@@ -116,18 +165,22 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
                 $loanType,
                 $status,
                 $jsonPayload,
-                $docsPayload,
                 $createdById
             ]);
         }
 
         $application = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if ($application && isset($application['form_data']) && is_string($application['form_data'])) {
-            $application['form_data'] = json_decode($application['form_data'], true);
-        }
-        if ($application && isset($application['documents']) && is_string($application['documents'])) {
-            $application['documents'] = json_decode($application['documents'], true);
+        if ($application) {
+            if (isset($application['form_data']) && is_string($application['form_data'])) {
+                $application['form_data'] = json_decode($application['form_data'], true);
+            }
+
+            $appId = $application['application_id'] ?: $application['id'];
+            if (is_array($documents) && !empty($documents)) {
+                upsertLoanDocumentsToTable($conn, $appId, $documents);
+            }
+            $application['documents'] = getLoanDocumentsFromTable($conn, $appId, $application['id'], $application['lead_id']);
         }
 
         $response->getBody()->write(json_encode([
@@ -169,7 +222,7 @@ $app->get('/api/loans/applications', function (Request $request, Response $respo
         }
 
         $stmt = $conn->prepare('
-            SELECT id, application_id, lead_id, loan_type, status, form_data, documents, created_at, updated_at
+            SELECT id, application_id, lead_id, loan_type, status, form_data, created_at, updated_at
             FROM public.loan_applications
             WHERE created_by = ? OR ? = \'admin\'
             ORDER BY created_at DESC
@@ -182,9 +235,7 @@ $app->get('/api/loans/applications', function (Request $request, Response $respo
             if (isset($row['form_data']) && is_string($row['form_data'])) {
                 $row['form_data'] = json_decode($row['form_data'], true);
             }
-            if (isset($row['documents']) && is_string($row['documents'])) {
-                $row['documents'] = json_decode($row['documents'], true);
-            }
+            $row['documents'] = getLoanDocumentsFromTable($conn, $row['application_id'], $row['id'], $row['lead_id']);
         }
 
         $response->getBody()->write(json_encode([
@@ -201,7 +252,7 @@ $app->get('/api/loans/applications', function (Request $request, Response $respo
 })->add(new \App\Middleware\AuthMiddleware());
 
 /**
- * Endpoint to save or update documents for a loan application into dedicated documents column.
+ * Endpoint to save or update documents for a loan application into dedicated public.loan_documents table.
  */
 $app->post('/api/loans/applications/{id}/documents', function (Request $request, Response $response, $args) {
     $identifier = $args['id'];
@@ -220,7 +271,7 @@ $app->post('/api/loans/applications/{id}/documents', function (Request $request,
 
         // Find application by UUID id or application_id or lead_id
         $findStmt = $conn->prepare('
-            SELECT id, application_id, lead_id, loan_type, status, form_data, documents
+            SELECT id, application_id, lead_id, loan_type, status, form_data
             FROM public.loan_applications
             WHERE id::text = ? OR application_id = ? OR lead_id = ?
             ORDER BY created_at DESC
@@ -234,44 +285,26 @@ $app->post('/api/loans/applications/{id}/documents', function (Request $request,
             return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
         }
 
-        $existingDocs = [];
-        if (isset($appRow['documents'])) {
-            $existingDocs = is_string($appRow['documents']) ? json_decode($appRow['documents'], true) : (array)$appRow['documents'];
-        } elseif (isset($appRow['form_data'])) {
-            $formData = is_string($appRow['form_data']) ? json_decode($appRow['form_data'], true) : (array)$appRow['form_data'];
-            $existingDocs = $formData['documents'] ?? [];
+        $appId = $appRow['application_id'] ?: $appRow['id'];
+
+        // Save/Upsert documents directly into dedicated public.loan_documents table
+        if (is_array($documents) && !empty($documents)) {
+            upsertLoanDocumentsToTable($conn, $appId, $documents);
         }
 
-        // Merge documents
-        if (is_array($existingDocs) && is_array($documents)) {
-            $mergedDocs = array_merge($existingDocs, $documents);
-        } else {
-            $mergedDocs = $documents;
-        }
+        // Fetch all current documents from dedicated public.loan_documents table
+        $allDocs = getLoanDocumentsFromTable($conn, $appId, $appRow['id'], $appRow['lead_id']);
 
-        $updatedDocsJson = json_encode($mergedDocs ?: new stdClass(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-
-        $updateStmt = $conn->prepare('
-            UPDATE public.loan_applications
-            SET documents = ?::jsonb, updated_at = NOW()
-            WHERE id = ?
-            RETURNING id, application_id, lead_id, loan_type, status, form_data, documents, updated_at
-        ');
-        $updateStmt->execute([$updatedDocsJson, $appRow['id']]);
-        $updatedRow = $updateStmt->fetch(PDO::FETCH_ASSOC);
-
-        if ($updatedRow && isset($updatedRow['form_data']) && is_string($updatedRow['form_data'])) {
-            $updatedRow['form_data'] = json_decode($updatedRow['form_data'], true);
+        if (isset($appRow['form_data']) && is_string($appRow['form_data'])) {
+            $appRow['form_data'] = json_decode($appRow['form_data'], true);
         }
-        if ($updatedRow && isset($updatedRow['documents']) && is_string($updatedRow['documents'])) {
-            $updatedRow['documents'] = json_decode($updatedRow['documents'], true);
-        }
+        $appRow['documents'] = $allDocs;
 
         $response->getBody()->write(json_encode([
             'success' => true,
-            'message' => 'Documents updated successfully in dedicated column',
-            'application' => $updatedRow,
-            'documents' => $mergedDocs
+            'message' => 'Documents saved successfully to loan_documents table',
+            'application' => $appRow,
+            'documents' => $allDocs
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
 
@@ -283,7 +316,7 @@ $app->post('/api/loans/applications/{id}/documents', function (Request $request,
 })->add(new \App\Middleware\AuthMiddleware());
 
 /**
- * Endpoint to delete a specific document from a loan application in dedicated documents column.
+ * Endpoint to delete a specific document from a loan application in dedicated public.loan_documents table.
  */
 $app->delete('/api/loans/applications/{id}/documents/{docKey}', function (Request $request, Response $response, $args) {
     $identifier = $args['id'];
@@ -294,7 +327,7 @@ $app->delete('/api/loans/applications/{id}/documents/{docKey}', function (Reques
         $conn = $db->getConnection();
 
         $findStmt = $conn->prepare('
-            SELECT id, documents, form_data
+            SELECT id, application_id, lead_id
             FROM public.loan_applications
             WHERE id::text = ? OR application_id = ? OR lead_id = ?
             ORDER BY created_at DESC
@@ -308,32 +341,22 @@ $app->delete('/api/loans/applications/{id}/documents/{docKey}', function (Reques
             return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
         }
 
-        $docs = [];
-        if (isset($appRow['documents'])) {
-            $docs = is_string($appRow['documents']) ? json_decode($appRow['documents'], true) : (array)$appRow['documents'];
-        } elseif (isset($appRow['form_data'])) {
-            $formData = is_string($appRow['form_data']) ? json_decode($appRow['form_data'], true) : (array)$appRow['form_data'];
-            $docs = $formData['documents'] ?? [];
-        }
+        $appId = $appRow['application_id'] ?: $appRow['id'];
 
-        if (isset($docs[$docKey])) {
-            unset($docs[$docKey]);
-        }
-
-        $updatedDocsJson = json_encode($docs ?: new stdClass(), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-
-        $updateStmt = $conn->prepare('
-            UPDATE public.loan_applications
-            SET documents = ?::jsonb, updated_at = NOW()
-            WHERE id = ?
-            RETURNING id, documents
+        // Delete row from dedicated public.loan_documents table
+        $delStmt = $conn->prepare('
+            DELETE FROM public.loan_documents
+            WHERE (application_id = ? OR application_id = ? OR application_id = ?) AND slot_key = ?
         ');
-        $updateStmt->execute([$updatedDocsJson, $appRow['id']]);
+        $delStmt->execute([$appId, (string)$appRow['id'], (string)$appRow['lead_id'], $docKey]);
+
+        // Fetch remaining documents from dedicated table
+        $remainingDocs = getLoanDocumentsFromTable($conn, $appId, $appRow['id'], $appRow['lead_id']);
 
         $response->getBody()->write(json_encode([
             'success' => true,
-            'message' => 'Document deleted successfully from dedicated column',
-            'documents' => $docs
+            'message' => 'Document removed successfully from loan_documents table',
+            'documents' => $remainingDocs
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
 
