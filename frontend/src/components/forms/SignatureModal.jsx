@@ -184,38 +184,36 @@ export function SignatureModal({ isOpen, onClose, onSubmit, title = "Employee Si
               </div>
             )}
           </div>
-          
-          <div className="flex justify-between items-center mt-4 shrink-0">
-            <p className="text-sm sm:text-base font-medium text-slate-600">
-              Please sign in the area above.
-            </p>
+        </div>
+
+        {/* Footer / Actions */}
+        <div className="px-4 sm:px-6 py-4 bg-white border-t border-slate-200 flex items-center justify-between shrink-0 pb-safe">
+          <div className="flex items-center">
             <button 
               type="button"
               onClick={clearCanvas}
-              className="flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-800 transition-colors bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm active:scale-95"
+              className="flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-800 transition-colors bg-white px-4 py-2.5 rounded-lg border border-slate-200 shadow-sm active:scale-95"
             >
               <Eraser size={16} /> Clear
             </button>
           </div>
-        </div>
-
-        {/* Footer / Actions */}
-        <div className="px-4 sm:px-6 py-4 bg-white border-t border-slate-200 flex justify-end gap-3 sm:gap-4 shrink-0 pb-safe">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-6 py-3 rounded-xl text-base font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={isEmpty}
-            className="px-8 py-3 rounded-xl text-base font-bold bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm active:scale-95"
-          >
-            Submit & Transfer
-          </button>
+          <div className="flex items-center gap-3 sm:gap-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={isEmpty}
+              className="px-4 sm:px-8 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-bold bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm active:scale-95"
+            >
+              Submit & Transfer
+            </button>
+          </div>
         </div>
       </div>
     </div>,
