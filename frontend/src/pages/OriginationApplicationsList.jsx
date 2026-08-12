@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getLoanApplications } from '../services/loanServices';
-import { Search, CheckCircle2, Briefcase, Loader2, Clock, Eye } from 'lucide-react';
+import { Search, CheckCircle2, Briefcase, Loader2, Clock, MoreVertical } from 'lucide-react';
 import { format } from 'date-fns';
 import OriginationMobileApplicationsList from './OriginationMobileApplicationsList';
 
@@ -184,9 +184,9 @@ const OriginationApplicationsList = () => {
                               <td className="p-3 text-center whitespace-nowrap">
                                 <button 
                                   onClick={() => handleViewDetails(app)}
-                                  className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer whitespace-nowrap"
+                                  className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md transition-colors cursor-pointer"
                                 >
-                                  <Eye size={14} /> View Details
+                                  <MoreVertical size={16} />
                                 </button>
                               </td>
                             </tr>
