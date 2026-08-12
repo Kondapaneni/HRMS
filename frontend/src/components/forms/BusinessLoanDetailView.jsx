@@ -18,11 +18,15 @@ import {
   FileSpreadsheet,
   Camera,
   Image as ImageIcon,
-  X
+  X,
+  Loader2,
+  ArrowRightCircle
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
+import toast from 'react-hot-toast';
 import { LoanDocumentsSidebar } from './LoanDocumentsSidebar';
+import { updateLoanApplicationStatus } from '../../services/loanServices';
 
 // ============================================================================
 // HELPER UTILITIES
@@ -178,6 +182,11 @@ function MobileDetailView({ formData = {}, application = {}, onBack }) {
   const [currentDocs, setCurrentDocs] = useState(
     formData.documents || application.documents || application.form_data?.documents || {}
   );
+  const [isTransferring, setIsTransferring] = useState(false);
+  const [localStatus, setLocalStatus] = useState(application.status || formData.status || 'Draft');
+  const [localTimeline, setLocalTimeline] = useState(
+    formData.timeline || application.form_data?.timeline || []
+  );
 
   useEffect(() => {
     if (previewDoc) {
@@ -194,9 +203,52 @@ function MobileDetailView({ formData = {}, application = {}, onBack }) {
     formatDateSafe(application.created_at || application.updated_at) ||
     format(new Date(), 'dd MMM yyyy');
   const appId = application.application_id || formData.application_id || 'LA-DRAFT';
+  const dbId = application.id || formData.id;
   const loanType = application.loan_type || formData.loan_type || 'Business Loan';
-  const appStatus = String(application.status || formData.status || 'Draft');
+  const appStatus = String(localStatus);
   const isSubmitted = appStatus.toLowerCase() === 'submitted' || appStatus.toLowerCase() === 'approved' || appStatus.toLowerCase() === 'under_review';
+
+  // ── Calculate Document Upload Status ──
+  const hasCoApplicant = formData.has_co_applicant === 'Yes' || (formData.co_applicant_name && String(formData.co_applicant_name).trim() !== '');
+  let requiredSlots = 1; // applicant
+  if (hasCoApplicant) requiredSlots++;
+  if (formData.guarantor_1_name && String(formData.guarantor_1_name).trim() !== '') requiredSlots++;
+  if (formData.guarantor_2_name && String(formData.guarantor_2_name).trim() !== '') requiredSlots++;
+  if (formData.guarantor_3_name && String(formData.guarantor_3_name).trim() !== '') requiredSlots++;
+
+  const uploadedCount = [
+    'applicant_photo',
+    hasCoApplicant ? 'co_applicant_photo' : null,
+    formData.guarantor_1_name ? 'guarantor_1_photo' : null,
+    formData.guarantor_2_name ? 'guarantor_2_photo' : null,
+    formData.guarantor_3_name ? 'guarantor_3_photo' : null
+  ].filter(key => key && !!currentDocs[key]).length;
+
+  const isAllUploaded = requiredSlots > 0 && uploadedCount === requiredSlots;
+
+  const handleTransferToUnderwriting = async () => {
+    if (!dbId) {
+      toast.error("Application ID not found, cannot transfer.");
+      return;
+    }
+    try {
+      setIsTransferring(true);
+      const timelineEvent = {
+        stage: 'Transferred to Underwriting',
+        timestamp: new Date().toISOString()
+      };
+      await updateLoanApplicationStatus(dbId, 'Underwriting', timelineEvent);
+      
+      setLocalStatus('Underwriting');
+      setLocalTimeline([...localTimeline, timelineEvent]);
+      toast.success("Application transferred to Underwriting successfully.");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to transfer application.");
+    } finally {
+      setIsTransferring(false);
+    }
+  };
 
   // Guarantor renderer for mobile
   const renderGuarantor = (idx) => {
@@ -380,13 +432,34 @@ function MobileDetailView({ formData = {}, application = {}, onBack }) {
           </p>
           
           {isSubmitted && (
-            <button
-              type="button"
-              onClick={() => setIsDocsOpen(true)}
-              className="inline-flex items-center gap-2 text-lg font-bold text-blue-600 hover:text-blue-700 active:text-blue-800 transition-colors cursor-pointer font-sans"
-            >
-              <span className="underline decoration-blue-300 underline-offset-4">Documents Upload</span>
-            </button>
+            <div className="flex flex-col gap-3">
+              <button
+                type="button"
+                onClick={() => setIsDocsOpen(true)}
+                className="inline-flex items-center gap-2 text-lg font-bold text-blue-600 hover:text-blue-700 active:text-blue-800 transition-colors cursor-pointer font-sans"
+              >
+                <span className="underline decoration-blue-300 underline-offset-4">Documents Upload</span>
+              </button>
+              
+              {appStatus === 'Submitted' && isAllUploaded && (
+                <button
+                  type="button"
+                  onClick={handleTransferToUnderwriting}
+                  disabled={isTransferring}
+                  className="mt-2 w-full flex items-center justify-center gap-2 bg-slate-900 text-white rounded-xl py-3 px-4 font-bold text-sm shadow-sm active:scale-95 transition-transform disabled:opacity-70 disabled:active:scale-100 cursor-pointer"
+                >
+                  {isTransferring ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" /> Transferring...
+                    </>
+                  ) : (
+                    <>
+                      Transfer to Underwriting <ArrowRightCircle size={16} />
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
           )}
         </div>
         {/* ── 1. Applicant Personal Details ── */}

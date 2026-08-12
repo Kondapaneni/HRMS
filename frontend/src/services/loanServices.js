@@ -98,3 +98,18 @@ export const deleteLoanDocument = async (appId, docKey) => {
   const response = await api.delete(`/loans/applications/${encodeURIComponent(appId)}/documents/${encodeURIComponent(docKey)}`);
   return response.data;
 };
+
+/**
+ * Updates the status of a loan application and adds a timeline event.
+ * @param {string} appId - Application ID or UUID
+ * @param {string} status - New status
+ * @param {Object} timelineEvent - Event object to append to timeline array
+ */
+export const updateLoanApplicationStatus = async (appId, status, timelineEvent) => {
+  const response = await api.patch(`/loans/applications/${encodeURIComponent(appId)}/status`, { 
+    status, 
+    timelineEvent 
+  });
+  return response.data;
+};
+

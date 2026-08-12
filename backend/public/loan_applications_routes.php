@@ -366,3 +366,74 @@ $app->delete('/api/loans/applications/{id}/documents/{docKey}', function (Reques
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new \App\Middleware\AuthMiddleware());
+
+/**
+ * Endpoint to update loan application status and append to timeline
+ */
+$app->patch('/api/loans/applications/{id}/status', function (Request $request, Response $response, $args) {
+    $identifier = $args['id'];
+    $data = $request->getParsedBody();
+
+    if (!is_array($data)) {
+        $raw = (string)$request->getBody();
+        $data = json_decode($raw, true) ?: [];
+    }
+
+    $status = trim($data['status'] ?? '');
+    $timelineEvent = $data['timelineEvent'] ?? null;
+
+    if (empty($status)) {
+        $response->getBody()->write(json_encode(['error' => 'Status is required']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+
+    try {
+        $db = new Database();
+        $conn = $db->getConnection();
+
+        $findStmt = $conn->prepare('
+            SELECT id, form_data
+            FROM public.loan_applications
+            WHERE id::text = ? OR application_id = ? OR lead_id = ?
+            ORDER BY created_at DESC
+            LIMIT 1
+        ');
+        $findStmt->execute([$identifier, $identifier, $identifier]);
+        $appRow = $findStmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$appRow) {
+            $response->getBody()->write(json_encode(['error' => 'Loan application not found']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+        }
+
+        $formData = is_string($appRow['form_data']) ? json_decode($appRow['form_data'], true) : ($appRow['form_data'] ?: []);
+        
+        if ($timelineEvent) {
+            if (!isset($formData['timeline']) || !is_array($formData['timeline'])) {
+                $formData['timeline'] = [];
+            }
+            $formData['timeline'][] = $timelineEvent;
+        }
+
+        $jsonPayload = json_encode($formData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+        $updateStmt = $conn->prepare('
+            UPDATE public.loan_applications
+            SET status = ?, form_data = ?::jsonb, updated_at = NOW()
+            WHERE id = ?
+        ');
+        $updateStmt->execute([$status, $jsonPayload, $appRow['id']]);
+
+        $response->getBody()->write(json_encode([
+            'success' => true,
+            'message' => 'Status updated successfully'
+        ]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+
+    } catch (\Exception $e) {
+        error_log("Error updating application status: " . $e->getMessage());
+        $response->getBody()->write(json_encode(['error' => 'Failed to update application status']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    }
+})->add(new \App\Middleware\AuthMiddleware());
+
