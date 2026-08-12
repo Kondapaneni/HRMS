@@ -227,6 +227,7 @@ function MobileDetailView({ formData = {}, application = {}, onBack }) {
 
   const isAllUploaded = requiredSlots > 0 && uploadedCount === requiredSlots;
   const hasTransferred = localTimeline.some(e => e.stage === 'Transferred to Underwriting');
+  const showOriginationActions = userRole === 'origination' && !hasTransferred;
   const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
 
   const handleTransferToUnderwriting = async (signatureDataUrl) => {
@@ -435,7 +436,7 @@ function MobileDetailView({ formData = {}, application = {}, onBack }) {
             {isSubmitted ? `Submitted on ${formattedDate}` : `Draft saved on ${formattedDate}`}
           </p>
           
-          {isSubmitted && !hasTransferred && (
+          {isSubmitted && showOriginationActions && (
             <div className="flex flex-col gap-3">
               <button
                 type="button"
@@ -894,6 +895,7 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
 
   const isAllUploaded = requiredSlots > 0 && uploadedCount === requiredSlots;
   const hasTransferred = localTimeline.some(e => e.stage === 'Transferred to Underwriting');
+  const showOriginationActions = userRole === 'origination' && !hasTransferred;
   const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
 
   const handleTransferToUnderwriting = async (signatureDataUrl) => {
@@ -1101,7 +1103,7 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
 
         {/* Right-aligned action buttons matching AddLead style */}
         <div className="flex items-center gap-3 shrink-0">
-          {isSubmitted && !hasTransferred && (
+          {isSubmitted && showOriginationActions && (
             <button
               type="button"
               onClick={() => setIsDocsOpen(true)}
@@ -1111,7 +1113,7 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
             </button>
           )}
 
-          {appStatus === 'Submitted' && isAllUploaded && !hasTransferred && (
+          {appStatus === 'Submitted' && isAllUploaded && showOriginationActions && (
             <button
               type="button"
               onClick={() => setIsSignatureModalOpen(true)}
@@ -1565,8 +1567,9 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
 // 3. UNIFIED RESPONSIVE BUSINESS LOAN DETAIL VIEW EXPORT
 // ============================================================================
 
-export function BusinessLoanDetailView({ formData = {}, application = {}, onBack }) {
+export function BusinessLoanDetailView({ formData = {}, application = {}, onBack, userRole = 'origination' }) {
   const appId = application.application_id || formData.application_id || 'LA-DRAFT';
+  const showOriginationActions = !application.hasTransferred && userRole === 'origination';
 
   useEffect(() => {
     const originalTitle = document.title;
