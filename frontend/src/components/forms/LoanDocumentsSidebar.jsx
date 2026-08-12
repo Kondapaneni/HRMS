@@ -1,6 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { 
+  ArrowLeft,
   X, 
   Camera, 
   UploadCloud, 
@@ -34,6 +35,17 @@ export function LoanDocumentsSidebar({
 
   const appId = application.application_id || formData.application_id || 'LA-DRAFT';
   const targetId = application.id || appId;
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('hide-mobile-nav');
+    } else {
+      document.body.classList.remove('hide-mobile-nav');
+    }
+    return () => {
+      document.body.classList.remove('hide-mobile-nav');
+    };
+  }, [isOpen]);
 
   // ── Predefined Photo Slots dynamically computed from form data ──
   const photoSlots = [];
@@ -248,7 +260,7 @@ export function LoanDocumentsSidebar({
               <div className="flex items-center justify-between p-5 sm:p-6 border-b border-slate-100 bg-slate-50/50 shrink-0">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200 font-mono">
+                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200 font-sans">
                       {appId}
                     </span>
                     <span className="text-xs text-slate-500 font-medium">
@@ -409,223 +421,237 @@ export function LoanDocumentsSidebar({
           </div>
 
           {/* ========================================================================= */}
-          {/* 2. MOBILE VIEW: Bottom Sheet Popup above Nav Bar (Matching Profile Page)  */}
+          {/* 2. MOBILE VIEW: Full-Screen Page Style (Matching EditMobileProfile.jsx)   */}
           {/* ========================================================================= */}
-          <div className="md:hidden fixed inset-x-0 top-0 bottom-[100px] z-[100] flex flex-col justify-end overflow-hidden">
-            {/* Mobile Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={onClose}
-              className="absolute inset-0 bg-slate-900/40 backdrop-blur-xs cursor-pointer"
-            />
+          <div className="md:hidden fixed inset-0 z-[100] bg-slate-50 overflow-y-auto pb-6">
+            {/* Animated Hero Header */}
+            <div className="relative px-6 pt-12 pb-24 rounded-b-[40px] overflow-hidden bg-slate-900 shadow-md">
+              {/* Animated Liquid Background Blobs */}
+              <motion.div
+                animate={{
+                  scale: [1, 1.2, 1],
+                  x: [0, 50, 0],
+                  y: [0, 30, 0],
+                }}
+                transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+                className="absolute -top-20 -left-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+              />
+              <motion.div
+                animate={{
+                  scale: [1, 1.4, 1],
+                  x: [0, -40, 0],
+                  y: [0, 50, 0],
+                }}
+                transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+                className="absolute -top-10 -right-10 w-64 h-64 bg-indigo-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+              />
+              <motion.div
+                animate={{
+                  scale: [1, 1.3, 1],
+                  x: [0, 30, 0],
+                  y: [0, -40, 0],
+                }}
+                transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+                className="absolute bottom-0 left-20 w-80 h-80 bg-emerald-500 rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
+              />
 
-            {/* Mobile Bottom Sheet Popup */}
-            <motion.div
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 280 }}
-              className="absolute bottom-0 left-0 right-0 bg-white rounded-t-[32px] shadow-2xl h-[75dvh] max-h-[82dvh] flex flex-col overflow-hidden"
-            >
-              {/* Pull handle */}
-              <div className="pt-3 pb-2 flex justify-center shrink-0">
-                <div className="w-12 h-1.5 bg-slate-200 rounded-full pointer-events-none" />
-              </div>
+              {/* Glass Overlay */}
+              <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none" />
 
-              {/* Mobile Header */}
-              <div className="px-5 pb-3 flex items-center justify-between border-b border-slate-100 shrink-0">
-                <div>
-                  <div className="flex items-center gap-1.5 mb-0.5">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200 font-mono">
-                      {appId}
-                    </span>
-                    <span className="text-[11px] text-slate-500 font-medium">
-                      {uploadedCount} of {photoSlots.length} photos
-                    </span>
-                  </div>
-                  <h3 className="text-base font-bold text-slate-900">
-                    Loan Member Photos
-                  </h3>
-                </div>
+              <div className="relative z-10 flex items-center justify-between px-2">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition-colors"
+                  className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center backdrop-blur-md transition-transform active:scale-95 border border-white/20 cursor-pointer shadow-xs"
                 >
-                  <X size={16} />
+                  <ArrowLeft className="w-5 h-5" />
                 </button>
+                <div className="text-center">
+                  <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">
+                    Origination Module
+                  </p>
+                  <h2 className="text-xl font-bold text-white tracking-tight drop-shadow-sm">
+                    Loan Member Photos
+                  </h2>
+                </div>
+                <div className="w-10 h-10" />
               </div>
+            </div>
 
-              {/* Mobile Content: Photo Cards List */}
-              <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 overscroll-contain">
-                {photoSlots.map((slot) => {
-                  const uploadedDoc = documentsState[slot.key];
-                  const isSlotBusy = isUploadingSlot === slot.key;
-                  const Icon = slot.icon;
-
-                  return (
-                    <div 
-                      key={slot.key}
-                      className="bg-slate-50/80 border border-slate-200/90 rounded-2xl p-3.5 shadow-2xs"
-                    >
-                      <div className="flex flex-col gap-2.5">
-                        
-                        {/* Member Info Row */}
-                        <div className="flex items-center justify-between gap-2.5 min-w-0">
-                          <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                            <div className={`w-10 h-10 rounded-xl ${uploadedDoc ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-white text-slate-400 border-slate-200'} border flex items-center justify-center shrink-0 shadow-2xs`}>
-                              <Icon className="w-5 h-5" />
-                            </div>
-
-                            <div className="min-w-0 flex-1">
-                              <h4 className="text-xs font-bold text-slate-900 truncate">
-                                {slot.personName}
-                              </h4>
-                              <span className={`inline-block px-1.5 py-0.2 rounded text-[9px] font-semibold border ${slot.badgeBg} mt-0.5`}>
-                                {slot.relation}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Status */}
-                          <div className="shrink-0">
-                            {uploadedDoc ? (
-                              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                                <CheckCircle2 size={11} className="text-emerald-600" /> Uploaded
-                              </span>
-                            ) : (
-                              <span className="text-[10px] text-slate-400 italic">
-                                Pending
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Mobile Actions */}
-                        <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200/60">
-                          {isSlotBusy ? (
-                            <div className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-blue-600 bg-blue-50 rounded-lg">
-                              <Loader2 size={13} className="animate-spin" /> Uploading...
-                            </div>
-                          ) : uploadedDoc ? (
-                            <div className="flex items-center gap-1.5">
-                              {/* 1. Camera Input */}
-                              <input
-                                type="file"
-                                accept="image/*"
-                                capture="environment"
-                                className="hidden"
-                                ref={(el) => (cameraInputRefs.current[slot.key] = el)}
-                                onChange={(e) => {
-                                  if (e.target.files && e.target.files[0]) {
-                                    handleUploadFile(slot.key, e.target.files[0]);
-                                    e.target.value = '';
-                                  }
-                                }}
-                              />
-
-                              {/* 2. Gallery Input */}
-                              <input
-                                type="file"
-                                accept="image/png,image/jpeg,image/jpg,image/webp"
-                                className="hidden"
-                                ref={(el) => (fileInputRefs.current[slot.key] = el)}
-                                onChange={(e) => {
-                                  if (e.target.files && e.target.files[0]) {
-                                    handleUploadFile(slot.key, e.target.files[0]);
-                                    e.target.value = '';
-                                  }
-                                }}
-                              />
-
-                              <button
-                                type="button"
-                                onClick={() => cameraInputRefs.current[slot.key]?.click()}
-                                className="inline-flex items-center justify-center rounded-lg text-xs font-semibold bg-white text-blue-700 hover:bg-blue-50 border border-blue-200 h-8 px-2.5 transition-colors gap-1 shadow-2xs"
-                              >
-                                <RefreshCw size={12} /> Retake
-                              </button>
-
-                              <button
-                                type="button"
-                                onClick={() => handleDeletePhoto(slot.key)}
-                                className="inline-flex items-center justify-center rounded-lg text-xs font-semibold bg-white text-rose-600 hover:bg-rose-50 border border-rose-200 h-8 w-8 transition-colors shadow-2xs"
-                              >
-                                <Trash2 size={12} />
-                              </button>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-1.5">
-                              {/* 1. Camera Input */}
-                              <input
-                                type="file"
-                                accept="image/*"
-                                capture="environment"
-                                className="hidden"
-                                ref={(el) => (cameraInputRefs.current[slot.key] = el)}
-                                onChange={(e) => {
-                                  if (e.target.files && e.target.files[0]) {
-                                    handleUploadFile(slot.key, e.target.files[0]);
-                                    e.target.value = '';
-                                  }
-                                }}
-                              />
-
-                              {/* 2. Gallery Input */}
-                              <input
-                                type="file"
-                                accept="image/png,image/jpeg,image/jpg,image/webp"
-                                className="hidden"
-                                ref={(el) => (fileInputRefs.current[slot.key] = el)}
-                                onChange={(e) => {
-                                  if (e.target.files && e.target.files[0]) {
-                                    handleUploadFile(slot.key, e.target.files[0]);
-                                    e.target.value = '';
-                                  }
-                                }}
-                              />
-
-                              {/* Take Photo Camera Button */}
-                              <button
-                                type="button"
-                                onClick={() => cameraInputRefs.current[slot.key]?.click()}
-                                className="inline-flex items-center justify-center rounded-lg text-xs font-bold bg-blue-600 text-white hover:bg-blue-700 h-8 px-3 transition-all gap-1.5 shadow-sm shadow-blue-600/20 active:scale-95"
-                              >
-                                <Camera size={13} /> Take Photo
-                              </button>
-
-                              {/* Gallery File Button */}
-                              <button
-                                type="button"
-                                onClick={() => fileInputRefs.current[slot.key]?.click()}
-                                className="inline-flex items-center justify-center rounded-lg text-xs font-medium bg-white text-slate-700 hover:bg-slate-100 border border-slate-300 h-8 px-2.5 transition-all shadow-2xs active:scale-95"
-                                title="Gallery Upload"
-                              >
-                                <UploadCloud size={13} />
-                              </button>
-                            </div>
-                          )}
-                        </div>
-
-                      </div>
-                    </div>
-                  );
-                })}
-
-                {/* Mobile Submit Button Inside Content */}
-                <div className="pt-2 pb-3">
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="w-full inline-flex items-center justify-center rounded-xl text-sm font-bold bg-blue-600 text-white hover:bg-blue-700 h-10 px-5 transition-all shadow-sm shadow-blue-600/20 active:scale-95 cursor-pointer"
-                  >
-                    Submit
-                  </button>
+            {/* Page Content Cards */}
+            <div className="space-y-4 relative z-20 -mt-12 mx-4">
+              {/* Summary / Progress Card */}
+              <div className="bg-white p-5 rounded-[24px] shadow-lg border border-slate-100/80 flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                    Application ID
+                  </span>
+                  <p className="text-base font-bold text-slate-800 font-sans tracking-tight">
+                    {appId}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                    Progress
+                  </span>
+                  <p className="text-xs font-bold text-blue-600">
+                    {uploadedCount} of {photoSlots.length} uploaded
+                  </p>
                 </div>
               </div>
-            </motion.div>
+
+              {/* Member Photo Slots Cards */}
+              {photoSlots.map((slot) => {
+                const uploadedDoc = documentsState[slot.key];
+                const isSlotBusy = isUploadingSlot === slot.key;
+                const Icon = slot.icon;
+
+                return (
+                  <div
+                    key={slot.key}
+                    className="bg-white p-5 rounded-[24px] shadow-lg border border-slate-100/80 space-y-4"
+                  >
+                    {/* Header Row */}
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-12 h-12 rounded-2xl ${
+                            uploadedDoc
+                              ? 'bg-blue-50 text-blue-600 border-blue-200'
+                              : 'bg-slate-50 text-slate-400 border-slate-200'
+                          } border flex items-center justify-center shrink-0 shadow-inner`}
+                        >
+                          <Icon className="w-6 h-6" />
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-bold text-slate-900 leading-tight">
+                            {slot.personName}
+                          </h4>
+                          <span
+                            className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold border ${slot.badgeBg} mt-1`}
+                          >
+                            {slot.relation}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div>
+                        {uploadedDoc ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                            <CheckCircle2 size={12} className="text-emerald-600" /> Uploaded
+                          </span>
+                        ) : (
+                          <span className="text-xs text-amber-600 font-bold bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
+                            Pending
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Uploaded Photo Preview */}
+                    {uploadedDoc && (
+                      <div className="flex items-center gap-4 bg-slate-50/80 p-3 rounded-2xl border border-slate-100">
+                        <div className="w-20 h-24 rounded-xl overflow-hidden border border-slate-200 shrink-0 bg-white shadow-xs">
+                          <img
+                            src={uploadedDoc.url}
+                            alt={slot.title}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="flex-1 space-y-1">
+                          <p className="text-xs font-bold text-slate-800">{slot.title}</p>
+                          <p className="text-[11px] text-slate-500 leading-relaxed">
+                            Photo successfully stored and attached to application record.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Hidden Inputs */}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      className="hidden"
+                      ref={(el) => (cameraInputRefs.current[slot.key] = el)}
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          handleUploadFile(slot.key, e.target.files[0]);
+                          e.target.value = '';
+                        }
+                      }}
+                    />
+
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg,image/webp"
+                      className="hidden"
+                      ref={(el) => (fileInputRefs.current[slot.key] = el)}
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          handleUploadFile(slot.key, e.target.files[0]);
+                          e.target.value = '';
+                        }
+                      }}
+                    />
+
+                    {/* Action Buttons */}
+                    <div className="pt-1">
+                      {isSlotBusy ? (
+                        <div className="flex items-center justify-center gap-2 py-3 text-xs font-bold text-blue-600 bg-blue-50 rounded-xl">
+                          <Loader2 size={15} className="animate-spin" /> Uploading photo...
+                        </div>
+                      ) : uploadedDoc ? (
+                        <div className="grid grid-cols-2 gap-2.5">
+                          <button
+                            type="button"
+                            onClick={() => cameraInputRefs.current[slot.key]?.click()}
+                            className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 transition-all active:scale-95 cursor-pointer"
+                          >
+                            <RefreshCw size={13} /> Retake Photo
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeletePhoto(slot.key)}
+                            className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 transition-all active:scale-95 cursor-pointer"
+                          >
+                            <Trash2 size={13} /> Delete Photo
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-2.5">
+                          <button
+                            type="button"
+                            onClick={() => cameraInputRefs.current[slot.key]?.click()}
+                            className="flex items-center justify-center gap-1.5 py-3 px-3 rounded-xl text-xs font-bold bg-blue-600 text-white hover:bg-blue-700 shadow-sm shadow-blue-600/20 transition-all active:scale-95 cursor-pointer"
+                          >
+                            <Camera size={14} /> Take Photo
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => fileInputRefs.current[slot.key]?.click()}
+                            className="flex items-center justify-center gap-1.5 py-3 px-3 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-slate-50 border border-slate-200 shadow-2xs transition-all active:scale-95 cursor-pointer"
+                          >
+                            <UploadCloud size={14} /> Upload File
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Done Button matching EditMobileProfile / ApplyMobileLeave */}
+              <div className="pt-2 pb-6">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="w-full py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold shadow-lg shadow-blue-600/25 active:scale-[0.98] transition-transform cursor-pointer"
+                >
+                  Done / Back to Application
+                </button>
+              </div>
+            </div>
           </div>
         </>
       )}

@@ -82,7 +82,7 @@ const EmployeeMobileLeaves = () => {
           </div>
 
           <Link
-            to="/employee/mobile/applyleave"
+            to="/employee/leaves/apply"
             className="w-full rounded-xl bg-white text-slate-900 font-bold text-sm py-3.5 flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-md"
           >
             <Plus className="w-5 h-5" />

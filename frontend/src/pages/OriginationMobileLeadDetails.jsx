@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ChevronLeft, MapPin, Calendar, Clock, CheckCircle2, Phone, Mail, UserPlus, XCircle, Loader2, RefreshCw, Briefcase } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, MapPin, Calendar, Clock, CheckCircle2, Phone, Mail, UserPlus, XCircle, Loader2, RefreshCw, Briefcase } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -60,8 +60,8 @@ const OriginationMobileLeadDetails = () => {
 
   return (
     <div className="w-full pb-8">
-      {/* Header */}
-      <div className="relative pt-14 pb-16 px-4 overflow-hidden rounded-b-[40px] shadow-md bg-slate-900">
+      {/* Animated Hero Header - Matched from Member Details */}
+      <section className="relative px-6 pt-12 pb-24 rounded-b-[40px] overflow-hidden bg-slate-900 shadow-md">
         {/* Animated Background Blobs */}
         <motion.div
           animate={{
@@ -94,26 +94,40 @@ const OriginationMobileLeadDetails = () => {
         {/* Subtle Glass Overlay */}
         <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
 
-        <button
-          onClick={() => navigate('/employee/loans/origination/leads')}
-          type="button"
-          className="absolute top-4 left-4 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full backdrop-blur-sm transition-colors z-20"
-        >
-          <ChevronLeft size={20} />
-        </button>
-
-        <div className="absolute top-5 right-4 z-20">
-          {getStatusBadge(currentStatus)}
+        <div className="relative z-10 flex items-center justify-between px-2">
+          <button 
+            type="button" 
+            onClick={() => navigate('/employee/loans/origination/leads')} 
+            className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center backdrop-blur-md transition-transform active:scale-95 border border-white/20 cursor-pointer"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div className="text-center">
+            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">Origination Module</p>
+            <h2 className="text-xl font-bold text-white tracking-tight drop-shadow-sm">Lead Details</h2>
+          </div>
+          <div className="w-10 h-10" />
         </div>
-
-        <div className="relative z-10 flex flex-col items-center mt-2">
-          <h1 className="text-2xl font-bold text-white text-center px-4 leading-snug">{lead.name}</h1>
-        </div>
-      </div>
+      </section>
 
       {/* Content */}
-      <div className="px-4 -mt-8 relative z-20">
-        <div className="bg-white rounded-3xl p-6 shadow-xl border border-slate-100 space-y-6">
+      <div className="space-y-6 relative z-20 -mt-12 mx-4">
+        <div className="bg-white p-6 rounded-[28px] shadow-xl border border-slate-100 space-y-6">
+          
+          <div className="flex items-center justify-between border-b border-slate-100 pb-5">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-2xl font-bold shrink-0 shadow-inner">
+                {lead.name ? lead.name.charAt(0).toUpperCase() : 'L'}
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-slate-900 leading-tight">{lead.name}</h3>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">{lead.loan_type || 'Personal Loan'}</p>
+              </div>
+            </div>
+            <div>
+              {getStatusBadge(currentStatus)}
+            </div>
+          </div>
           
           <div className="space-y-1">
             <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Contact Phone</h3>

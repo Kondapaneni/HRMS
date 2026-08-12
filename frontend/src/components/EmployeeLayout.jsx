@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import {
   LogOut, User, Calendar, Users, Briefcase, Monitor,
@@ -19,6 +19,21 @@ const EmployeeLayout = () => {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [swipePath, setSwipePath] = useState(null);
   const [isDevBypassed, setIsDevBypassed] = useState(() => localStorage.getItem('dev_bypass_maintenance_session') === 'true');
+  
+  const hideBottomNavRoutes = ['/employee/leaves/apply', '/employee/profile/edit'];
+  const shouldHideBottomNav = hideBottomNavRoutes.some(p => location.pathname === p || location.pathname.startsWith(`${p}/`));
+
+  const scrollContainerRef = useRef(null);
+
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      scrollContainerRef.current.scrollTop = 0;
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [location.pathname, location.search]);
 
   const handleExitBypass = () => {
     localStorage.removeItem('dev_bypass_maintenance_session');
@@ -70,7 +85,7 @@ const EmployeeLayout = () => {
     { icon: <Home size={18} />, label: 'Dashboard', path: '/employee' },
     { icon: <User size={18} />, label: 'My Profile', path: '/employee/profile', activePaths: ['/employee/profile'] },
     { icon: <Clock size={18} />, label: 'Attendance', path: '/employee/attendance' },
-    { icon: <Calendar size={18} />, label: 'Leaves', path: '/employee/leaves' },
+    { icon: <Calendar size={18} />, label: 'Leaves', path: '/employee/leaves', activePaths: ['/employee/leaves'] },
     { icon: <Palmtree size={18} />, label: 'Company Holidays', path: '/employee/holidays' },
     { icon: <Wallet size={18} />, label: 'Payroll', path: '/employee/payroll' },
     { icon: <DollarSign size={18} />, label: 'Expenses', path: '/employee/expenses' },
@@ -435,53 +450,59 @@ const EmployeeLayout = () => {
         )}
 
         {/* Dynamic Page Content */}
-        <div className="flex-1 overflow-y-auto overscroll-y-contain p-4 sm:p-6 pb-[110px] md:pb-6" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div
+          ref={scrollContainerRef}
+          className={`flex-1 overflow-y-auto overscroll-y-contain p-4 sm:p-6 ${shouldHideBottomNav ? 'pb-6' : 'pb-[110px]'} md:pb-6`}
+          style={{ WebkitOverflowScrolling: 'touch' }}
+        >
           <Outlet />
         </div>
 
         {/* Mobile Bottom Navigation (iOS Liquid Glass) */}
-        <div
-          className="mobile-bottom-nav md:hidden fixed bottom-6 left-4 right-4 z-50 pointer-events-none touch-none select-none"
-          onTouchStart={handleTouchMove}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          onTouchCancel={handleTouchEnd}
-        >
-          <div className="bg-white/50 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-full p-1.5 flex justify-around items-center pointer-events-auto">
-            {[
-              { label: 'Home', icon: Home, path: '/employee' },
-              { label: 'Attendance', icon: Clock, path: '/employee/attendance' },
-              { label: 'Leaves', icon: Calendar, path: '/employee/leaves' },
-              { label: 'Payroll', icon: Wallet, path: '/employee/payroll' },
-              { label: 'Profile', icon: User, path: '/employee/profile' }
-            ].map((item) => {
-              const isActive = (swipePath || location.pathname) === item.path;
-              const Icon = item.icon;
+        {!shouldHideBottomNav && (
+          <div
+            className="mobile-bottom-nav md:hidden fixed bottom-6 left-4 right-4 z-50 pointer-events-none touch-none select-none"
+            onTouchStart={handleTouchMove}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onTouchCancel={handleTouchEnd}
+          >
+            <div className="bg-white/50 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-full p-1.5 flex justify-around items-center pointer-events-auto">
+              {[
+                { label: 'Home', icon: Home, path: '/employee' },
+                { label: 'Attendance', icon: Clock, path: '/employee/attendance' },
+                { label: 'Leaves', icon: Calendar, path: '/employee/leaves' },
+                { label: 'Payroll', icon: Wallet, path: '/employee/payroll' },
+                { label: 'Profile', icon: User, path: '/employee/profile' }
+              ].map((item) => {
+                const isActive = (swipePath || location.pathname) === item.path || (!swipePath && item.path !== '/employee' && location.pathname.startsWith(item.path));
+                const Icon = item.icon;
 
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  data-nav-path={item.path}
-                  onClick={(e) => {
-                    if (swipePath) e.preventDefault();
-                  }}
-                  className="relative flex flex-col items-center justify-center w-[72px] h-[58px] z-10 group"
-                >
-                  {isActive && (
-                    <motion.div
-                      layoutId="mobileNavBubble"
-                      className="absolute inset-0 z-[-1] rounded-full shadow-[inset_0_1px_3px_rgba(255,255,255,0.8),0_4px_16px_rgba(0,0,0,0.06)] bg-white/40 backdrop-blur-xl border border-white/80 overflow-hidden"
-                      transition={{ type: 'spring', bounce: 0.25, duration: 0.5 }}
-                    />
-                  )}
-                  <Icon className={`relative z-10 w-6 h-6 mb-0.5 transition-all duration-300 ${isActive ? 'text-[#ff2d55] scale-105' : 'text-slate-500 group-hover:text-slate-600 group-active:scale-95'}`} strokeWidth={isActive ? 2.5 : 2} />
-                  <span className={`relative z-10 text-[10px] font-medium tracking-wide transition-all duration-300 ${isActive ? 'text-[#ff2d55]' : 'text-slate-500'}`}>{item.label}</span>
-                </Link>
-              );
-            })}
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    data-nav-path={item.path}
+                    onClick={(e) => {
+                      if (swipePath) e.preventDefault();
+                    }}
+                    className="relative flex flex-col items-center justify-center w-[72px] h-[58px] z-10 group"
+                  >
+                    {isActive && (
+                      <motion.div
+                        layoutId="mobileNavBubble"
+                        className="absolute inset-0 z-[-1] rounded-full shadow-[inset_0_1px_3px_rgba(255,255,255,0.8),0_4px_16px_rgba(0,0,0,0.06)] bg-white/40 backdrop-blur-xl border border-white/80 overflow-hidden"
+                        transition={{ type: 'spring', bounce: 0.25, duration: 0.5 }}
+                      />
+                    )}
+                    <Icon className={`relative z-10 w-6 h-6 mb-0.5 transition-all duration-300 ${isActive ? 'text-[#ff2d55] scale-105' : 'text-slate-500 group-hover:text-slate-600 group-active:scale-95'}`} strokeWidth={isActive ? 2.5 : 2} />
+                    <span className={`relative z-10 text-[10px] font-medium tracking-wide transition-all duration-300 ${isActive ? 'text-[#ff2d55]' : 'text-slate-500'}`}>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
 
       </main>
 

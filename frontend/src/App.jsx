@@ -16,7 +16,7 @@ import EmployeeAttendance from './pages/EmployeeAttendance'
 import EmployeeMobileAttendance from './pages/EmployeeMobileAttendance';
 import EmployeeHolidays from './pages/EmployeeHolidays';
 import EmployeeLeaves from './pages/EmployeeLeaves'
-import EmployeeMobileApplyLeave from './pages/EmployeeMobileApplyLeave'
+import ApplyMobileLeave from './pages/ApplyMobileLeave'
 import EmployeePayroll from './pages/EmployeePayroll'
 import EmployeeProfile from './pages/EmployeeProfile'
 import EmployeePerformance from './pages/EmployeePerformance'
@@ -203,6 +203,7 @@ function App() {
                 <Route path="attendance" element={<EmployeeAttendance />} />
                 <Route path="holidays" element={<EmployeeHolidays />} />
                 <Route path="leaves" element={<EmployeeLeaves />} />
+                <Route path="leaves/apply" element={<ApplyMobileLeave />} />
                 <Route path="expenses" element={<EmployeeExpenses />} />
                 <Route path="payroll" element={<EmployeePayroll />} />
                 <Route path="performance" element={<EmployeePerformance />} />
@@ -292,11 +293,7 @@ function App() {
               />
               <Route
                 path="/employee/mobile/applyleave"
-                element={
-                  <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
-                    <EmployeeMobileApplyLeave />
-                  </ProtectedRoute>
-                }
+                element={<Navigate to="/employee/leaves/apply" replace />}
               />
               {/* Candidate Portal Routes */}
               <Route

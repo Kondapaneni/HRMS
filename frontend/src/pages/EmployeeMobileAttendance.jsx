@@ -42,13 +42,16 @@ const EmployeeMobileAttendance = () => {
     const scrollContainer = document.querySelector('main > div.overflow-y-auto') || document.querySelector('.overflow-y-auto') || document.querySelector('.overflow-auto');
     if (showMonthPicker) {
       document.body.style.overflow = 'hidden';
+      document.body.classList.add('hide-mobile-nav');
       if (scrollContainer) scrollContainer.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
+      document.body.classList.remove('hide-mobile-nav');
       if (scrollContainer) scrollContainer.style.overflow = '';
     }
     return () => {
       document.body.style.overflow = '';
+      document.body.classList.remove('hide-mobile-nav');
       if (scrollContainer) scrollContainer.style.overflow = '';
     };
   }, [showMonthPicker]);
@@ -268,7 +271,7 @@ const EmployeeMobileAttendance = () => {
       {/* Custom Month Picker Bottom Sheet */}
       <AnimatePresence>
         {showMonthPicker && (
-          <div className="fixed inset-x-0 top-0 bottom-[100px] z-[100] flex flex-col justify-end overflow-hidden">
+          <div className="fixed inset-x-0 top-0 bottom-0 z-[100] flex flex-col justify-end overflow-hidden">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

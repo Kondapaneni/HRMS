@@ -23,6 +23,17 @@ const EmployeeMobileExpenses = () => {
 
   const fileInputRef = useRef(null);
 
+  useEffect(() => {
+    if (selectedBillUrl || isFormOpen) {
+      document.body.classList.add('hide-mobile-nav');
+    } else {
+      document.body.classList.remove('hide-mobile-nav');
+    }
+    return () => {
+      document.body.classList.remove('hide-mobile-nav');
+    };
+  }, [selectedBillUrl, isFormOpen]);
+
   const { data: expensesData = [], isLoading } = useQuery({
     queryKey: ['employee', 'expenses'],
     queryFn: async () => {
@@ -266,7 +277,7 @@ const EmployeeMobileExpenses = () => {
       {/* Bill View Slide-Over Modal */}
       <AnimatePresence>
         {selectedBillUrl && (
-          <div className="fixed inset-x-0 top-0 bottom-[100px] z-[100] flex flex-col justify-end overflow-hidden">
+          <div className="fixed inset-x-0 top-0 bottom-0 z-[100] flex flex-col justify-end overflow-hidden">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

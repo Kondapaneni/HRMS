@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axios';
@@ -12,6 +12,30 @@ const OriginationLayout = () => {
   const location = useLocation();
   const [swipePath, setSwipePath] = useState(null);
   const [showBackModal, setShowBackModal] = useState(false);
+
+  const hideBottomNavPatterns = [
+    '/employee/loans/business-loan',
+    '/employee/loans/origination/leads/add',
+    /\/employee\/loans\/origination\/leads\/[^/]+\/details/,
+    /\/employee\/loans\/origination\/members\/[^/]+\/details/,
+  ];
+  const shouldHideBottomNav = hideBottomNavPatterns.some((pattern) =>
+    typeof pattern === 'string'
+      ? location.pathname === pattern || location.pathname.startsWith(`${pattern}/`)
+      : pattern.test(location.pathname)
+  );
+
+  const scrollContainerRef = useRef(null);
+
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      scrollContainerRef.current.scrollTop = 0;
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [location.pathname, location.search]);
 
   const handleTouchMove = (e) => {
     const touch = e.touches[0];
@@ -192,61 +216,67 @@ const OriginationLayout = () => {
         </header>
 
         {/* Dynamic Page Content */}
-        <div className="flex-1 overflow-y-auto overscroll-y-contain bg-transparent pb-24 md:pb-0" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div
+          ref={scrollContainerRef}
+          className={`flex-1 overflow-y-auto overscroll-y-contain bg-transparent ${shouldHideBottomNav ? 'pb-6' : 'pb-24'} md:pb-0`}
+          style={{ WebkitOverflowScrolling: 'touch' }}
+        >
           <Outlet />
         </div>
         
         {/* Mobile Bottom Navigation (iOS Liquid Glass) */}
-        <div
-          data-mobile-nav="true"
-          className="mobile-bottom-nav md:hidden fixed bottom-6 left-4 right-4 z-50 pointer-events-none touch-none select-none transition-all duration-200"
-          onTouchStart={handleTouchMove}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          onTouchCancel={handleTouchEnd}
-        >
-          <div className="bg-white/50 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-full p-1.5 flex justify-around items-center pointer-events-auto">
-            {/* Back to HRMS Button */}
-            <button
-              onClick={() => setShowBackModal(true)}
-              className="relative flex flex-col items-center justify-center w-[72px] h-[58px] z-10 group"
-            >
-              <ArrowLeft className="relative z-10 w-6 h-6 mb-0.5 transition-all duration-300 text-slate-500 group-hover:text-slate-600 group-active:scale-95" strokeWidth={2} />
-              <span className="relative z-10 text-[10px] font-medium tracking-wide transition-all duration-300 text-slate-500">Back</span>
-            </button>
+        {!shouldHideBottomNav && (
+          <div
+            data-mobile-nav="true"
+            className="mobile-bottom-nav md:hidden fixed bottom-6 left-4 right-4 z-50 pointer-events-none touch-none select-none transition-all duration-200"
+            onTouchStart={handleTouchMove}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onTouchCancel={handleTouchEnd}
+          >
+            <div className="bg-white/50 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-full p-1.5 flex justify-around items-center pointer-events-auto">
+              {/* Back to HRMS Button */}
+              <button
+                onClick={() => setShowBackModal(true)}
+                className="relative flex flex-col items-center justify-center w-[72px] h-[58px] z-10 group"
+              >
+                <ArrowLeft className="relative z-10 w-6 h-6 mb-0.5 transition-all duration-300 text-slate-500 group-hover:text-slate-600 group-active:scale-95" strokeWidth={2} />
+                <span className="relative z-10 text-[10px] font-medium tracking-wide transition-all duration-300 text-slate-500">Back</span>
+              </button>
 
-            {navItems.filter(item => !item.feature || profile?.featureAccess?.[item.feature]).map((item, idx) => {
-              const currentPath = swipePath || location.pathname;
-              const isActive = item.path === '/employee/loans/origination'
-                ? currentPath === item.path
-                : (currentPath === item.path || currentPath.startsWith(`${item.path}/`));
-              
-              const Icon = item.icon;
-              
-              return (
-                <Link
-                  key={item.path || idx}
-                  to={item.path}
-                  data-nav-path={item.path}
-                  onClick={(e) => {
-                    if (swipePath) e.preventDefault();
-                  }}
-                  className="relative flex flex-col items-center justify-center w-[72px] h-[58px] z-10 group"
-                >
-                  {isActive && (
-                    <motion.div
-                      layoutId="loansMobileNavBubble"
-                      className="absolute inset-0 z-[-1] rounded-full shadow-[inset_0_1px_3px_rgba(255,255,255,0.8),0_4px_16px_rgba(0,0,0,0.06)] bg-white/40 backdrop-blur-xl border border-white/80 overflow-hidden"
-                      transition={{ type: 'spring', bounce: 0.25, duration: 0.5 }}
-                    />
-                  )}
-                  <Icon className={`relative z-10 w-6 h-6 mb-0.5 transition-all duration-300 ${isActive ? 'text-[#ff2d55] scale-105' : 'text-slate-500 group-hover:text-slate-600 group-active:scale-95'}`} strokeWidth={isActive ? 2.5 : 2} />
-                  <span className={`relative z-10 text-[10px] font-medium tracking-wide transition-all duration-300 ${isActive ? 'text-[#ff2d55]' : 'text-slate-500'}`}>{item.label}</span>
-                </Link>
-              );
-            })}
+              {navItems.filter(item => !item.feature || profile?.featureAccess?.[item.feature]).map((item, idx) => {
+                const currentPath = swipePath || location.pathname;
+                const isActive = item.path === '/employee/loans/origination'
+                  ? currentPath === item.path
+                  : (currentPath === item.path || currentPath.startsWith(`${item.path}/`));
+                
+                const Icon = item.icon;
+                
+                return (
+                  <Link
+                    key={item.path || idx}
+                    to={item.path}
+                    data-nav-path={item.path}
+                    onClick={(e) => {
+                      if (swipePath) e.preventDefault();
+                    }}
+                    className="relative flex flex-col items-center justify-center w-[72px] h-[58px] z-10 group"
+                  >
+                    {isActive && (
+                      <motion.div
+                        layoutId="loansMobileNavBubble"
+                        className="absolute inset-0 z-[-1] rounded-full shadow-[inset_0_1px_3px_rgba(255,255,255,0.8),0_4px_16px_rgba(0,0,0,0.06)] bg-white/40 backdrop-blur-xl border border-white/80 overflow-hidden"
+                        transition={{ type: 'spring', bounce: 0.25, duration: 0.5 }}
+                      />
+                    )}
+                    <Icon className={`relative z-10 w-6 h-6 mb-0.5 transition-all duration-300 ${isActive ? 'text-[#ff2d55] scale-105' : 'text-slate-500 group-hover:text-slate-600 group-active:scale-95'}`} strokeWidth={isActive ? 2.5 : 2} />
+                    <span className={`relative z-10 text-[10px] font-medium tracking-wide transition-all duration-300 ${isActive ? 'text-[#ff2d55]' : 'text-slate-500'}`}>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
       </main>
     </div>
 

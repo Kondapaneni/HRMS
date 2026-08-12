@@ -159,7 +159,8 @@ const OriginationMobileApplicationsList = () => {
               return (
                 <div
                   key={app.id || app.application_id}
-                  className="bg-white rounded-2xl shadow-sm border border-slate-200/70 p-5 space-y-3.5 hover:shadow-md transition-all"
+                  onClick={() => handleViewDetails(app)}
+                  className="bg-white rounded-2xl shadow-sm border border-slate-200/70 p-5 space-y-3.5 hover:shadow-md transition-all active:scale-[0.98] active:bg-slate-50 cursor-pointer"
                 >
                   <div className="flex justify-between items-start">
                     <div>
@@ -188,12 +189,6 @@ const OriginationMobileApplicationsList = () => {
 
                   <div className="pt-3 border-t border-slate-100 flex justify-between items-center text-xs">
                     <span className="text-slate-400">{formatDateSafe(app.created_at || app.updated_at)}</span>
-                    <button
-                      onClick={() => handleViewDetails(app)}
-                      className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-700 cursor-pointer"
-                    >
-                      <Eye size={14} /> View Details
-                    </button>
                   </div>
                 </div>
               );

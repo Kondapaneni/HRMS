@@ -7,7 +7,7 @@ import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 
-const EmployeeMobileApplyLeave = () => {
+const ApplyMobileLeave = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [error, setError] = useState('');
@@ -307,4 +307,4 @@ const EmployeeMobileApplyLeave = () => {
   );
 };
 
-export default EmployeeMobileApplyLeave;
+export default ApplyMobileLeave;

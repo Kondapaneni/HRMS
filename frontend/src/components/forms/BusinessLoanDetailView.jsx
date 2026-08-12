@@ -9,6 +9,7 @@ import {
   MapPin,
   Briefcase,
   CheckCircle2,
+  Clock,
   Printer,
   ArrowLeft,
   Calendar,
@@ -143,10 +144,10 @@ const FieldDivider = () => <div className="border-b border-slate-100" />;
  */
 const SectionCard = ({ number, title, children }) => (
   <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-    <div className="flex items-center gap-2.5 px-5 pt-5 pb-3">
-      <div className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center text-[11px] font-bold shrink-0">
-        {number}
-      </div>
+    <div className="flex items-center gap-1.5 px-5 pt-5 pb-3">
+      <span className="text-sm font-bold text-slate-800 shrink-0">
+        {number}.
+      </span>
       <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide">
         {title}
       </h3>
@@ -194,6 +195,8 @@ function MobileDetailView({ formData = {}, application = {}, onBack }) {
     format(new Date(), 'dd MMM yyyy');
   const appId = application.application_id || formData.application_id || 'LA-DRAFT';
   const loanType = application.loan_type || formData.loan_type || 'Business Loan';
+  const appStatus = String(application.status || formData.status || 'Draft');
+  const isSubmitted = appStatus.toLowerCase() === 'submitted' || appStatus.toLowerCase() === 'approved' || appStatus.toLowerCase() === 'under_review';
 
   // Guarantor renderer for mobile
   const renderGuarantor = (idx) => {
@@ -315,8 +318,8 @@ function MobileDetailView({ formData = {}, application = {}, onBack }) {
 
   return (
     <div className="w-full pb-2">
-      {/* ━━━ Hero Header — identical blobs and gradient to Applications list ━━━ */}
-      <section className="relative px-6 pt-6 pb-20 rounded-b-[40px] overflow-hidden bg-slate-900 shadow-md">
+      {/* ━━━ Hero Header — matching Origination Module design ━━━ */}
+      <section className="relative px-6 pt-12 pb-24 rounded-b-[40px] overflow-hidden bg-slate-900 shadow-md">
         {/* Animated Background Blobs */}
         <motion.div
           animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
@@ -337,41 +340,57 @@ function MobileDetailView({ formData = {}, application = {}, onBack }) {
         {/* Subtle Glass Overlay */}
         <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none" />
 
-        {/* Back button */}
-        <button
-          type="button"
-          onClick={onBack}
-          className="absolute top-7 left-4 z-20 w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center backdrop-blur-md transition-transform active:scale-95 border border-white/20 cursor-pointer shadow-xs"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-
-        {/* Photos button on top right */}
-        <button
-          type="button"
-          onClick={() => setIsDocsOpen(true)}
-          className="absolute top-7 right-4 z-20 h-10 px-3.5 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center gap-1.5 backdrop-blur-md transition-transform active:scale-95 border border-white/20 cursor-pointer shadow-xs text-xs font-bold"
-        >
-          <Camera className="w-4 h-4" />
-          <span>Photos</span>
-        </button>
-
-        {/* Header Content: Application ID, Loan Type, Submitted Date */}
-        <div className="relative z-10 text-center px-4 pt-2 pb-1">
-          <h1 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">
-            {appId}
-          </h1>
-          <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">
-            {loanType}
-          </p>
-          <p className="text-xs text-slate-200 mt-1 drop-shadow-sm opacity-90">
-            Submitted on {formattedDate}
-          </p>
+        <div className="relative z-10 flex items-center justify-between px-2">
+          <button
+            type="button"
+            onClick={onBack}
+            className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center backdrop-blur-md transition-transform active:scale-95 border border-white/20 cursor-pointer shadow-xs"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div className="text-center">
+            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">
+              ORIGINATION MODULE
+            </p>
+            <h2 className="text-xl font-bold text-white tracking-tight drop-shadow-sm">
+              Application Details
+            </h2>
+          </div>
+          <div className="w-10 h-10" />
         </div>
       </section>
 
       {/* ━━━ Content Cards ━━━ */}
       <div className="relative z-20 -mt-12 px-4 space-y-4">
+        {/* Application Overview & Status Card */}
+        <div className="bg-white p-5 rounded-[24px] shadow-lg border border-slate-100/80 flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-lg font-bold text-slate-900 tracking-tight font-sans">
+                {appId}
+              </span>
+              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                isSubmitted ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-amber-100 text-amber-700 border border-amber-200'
+              }`}>
+                {isSubmitted ? <CheckCircle2 size={10} /> : <Clock size={10} />} {appStatus}
+              </span>
+            </div>
+            <p className="text-xs font-semibold text-slate-500">{loanType}</p>
+            <p className="text-[11px] text-slate-400 mt-0.5">
+              {isSubmitted ? `Submitted on ${formattedDate}` : `Draft saved on ${formattedDate}`}
+            </p>
+          </div>
+          {isSubmitted && (
+            <button
+              type="button"
+              onClick={() => setIsDocsOpen(true)}
+              className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 font-bold text-xs py-2 px-3 rounded-xl transition-all active:scale-95 cursor-pointer shrink-0"
+            >
+              <Camera size={13} />
+              <span>Photos</span>
+            </button>
+          )}
+        </div>
         {/* ── 1. Applicant Personal Details ── */}
         <SectionCard number="1" title="Personal Details">
           <div className="flex items-start justify-between gap-3 pt-1 pb-1">
@@ -740,6 +759,8 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
 
   const formattedDate = formatDateSafe(application.created_at || application.updated_at) || format(new Date(), 'dd MMM yyyy');
   const appId = application.application_id || formData.application_id || 'LA-DRAFT';
+  const appStatus = String(application.status || formData.status || 'Draft');
+  const isSubmitted = appStatus.toLowerCase() === 'submitted' || appStatus.toLowerCase() === 'approved' || appStatus.toLowerCase() === 'under_review';
 
   useEffect(() => {
     const originalTitle = document.title;
@@ -929,13 +950,15 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
             <ArrowLeft className="w-4 h-4" /> Back to Applications
           </button>
 
-          <button
-            type="button"
-            onClick={() => setIsDocsOpen(true)}
-            className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 transition-colors gap-2 shadow-sm cursor-pointer"
-          >
-            <Camera className="w-4 h-4" /> Upload Photos
-          </button>
+          {isSubmitted && (
+            <button
+              type="button"
+              onClick={() => setIsDocsOpen(true)}
+              className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 transition-colors gap-2 shadow-sm cursor-pointer"
+            >
+              <Camera className="w-4 h-4" /> Upload Photos
+            </button>
+          )}
 
           <button
             type="button"
@@ -977,7 +1000,7 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
               <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider print:text-[9px]">
                 Application ID
               </div>
-              <div className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-blue-600 print:text-xl">
+              <div className="text-2xl sm:text-3xl font-bold font-sans tracking-tight text-blue-600 print:text-xl">
                 {appId}
               </div>
               <div className="flex items-center gap-1 mt-0.5 text-xs text-slate-500 print:text-[10px]">
