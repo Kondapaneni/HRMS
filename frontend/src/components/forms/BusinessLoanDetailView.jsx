@@ -816,6 +816,11 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
   const [currentDocs, setCurrentDocs] = useState(
     formData.documents || application.documents || application.form_data?.documents || {}
   );
+  const [isTransferring, setIsTransferring] = useState(false);
+  const [localStatus, setLocalStatus] = useState(application.status || formData.status || 'Draft');
+  const [localTimeline, setLocalTimeline] = useState(
+    formData.timeline || application.form_data?.timeline || []
+  );
 
   useEffect(() => {
     if (previewDoc) {
@@ -830,8 +835,51 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
 
   const formattedDate = formatDateSafe(application.created_at || application.updated_at) || format(new Date(), 'dd MMM yyyy');
   const appId = application.application_id || formData.application_id || 'LA-DRAFT';
-  const appStatus = String(application.status || formData.status || 'Draft');
+  const dbId = application.id || formData.id;
+  const appStatus = String(localStatus);
   const isSubmitted = appStatus.toLowerCase() === 'submitted' || appStatus.toLowerCase() === 'approved' || appStatus.toLowerCase() === 'under_review';
+
+  // ── Calculate Document Upload Status ──
+  const hasCoApplicant = formData.has_co_applicant === 'Yes' || (formData.co_applicant_name && String(formData.co_applicant_name).trim() !== '');
+  let requiredSlots = 1; // applicant
+  if (hasCoApplicant) requiredSlots++;
+  if (formData.guarantor_1_name && String(formData.guarantor_1_name).trim() !== '') requiredSlots++;
+  if (formData.guarantor_2_name && String(formData.guarantor_2_name).trim() !== '') requiredSlots++;
+  if (formData.guarantor_3_name && String(formData.guarantor_3_name).trim() !== '') requiredSlots++;
+
+  const uploadedCount = [
+    'applicant_photo',
+    hasCoApplicant ? 'co_applicant_photo' : null,
+    formData.guarantor_1_name ? 'guarantor_1_photo' : null,
+    formData.guarantor_2_name ? 'guarantor_2_photo' : null,
+    formData.guarantor_3_name ? 'guarantor_3_photo' : null
+  ].filter(key => key && !!currentDocs[key]).length;
+
+  const isAllUploaded = requiredSlots > 0 && uploadedCount === requiredSlots;
+
+  const handleTransferToUnderwriting = async () => {
+    if (!dbId) {
+      toast.error("Application ID not found, cannot transfer.");
+      return;
+    }
+    try {
+      setIsTransferring(true);
+      const timelineEvent = {
+        stage: 'Transferred to Underwriting',
+        timestamp: new Date().toISOString()
+      };
+      await updateLoanApplicationStatus(dbId, 'Underwriting', timelineEvent);
+      
+      setLocalStatus('Underwriting');
+      setLocalTimeline([...localTimeline, timelineEvent]);
+      toast.success("Application transferred to Underwriting successfully.");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to transfer application.");
+    } finally {
+      setIsTransferring(false);
+    }
+  };
 
   useEffect(() => {
     const originalTitle = document.title;
@@ -1028,6 +1076,21 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
               className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 transition-colors gap-2 shadow-sm cursor-pointer"
             >
               <Camera className="w-4 h-4" /> Upload Photos
+            </button>
+          )}
+
+          {appStatus === 'Submitted' && isAllUploaded && (
+            <button
+              type="button"
+              onClick={handleTransferToUnderwriting}
+              disabled={isTransferring}
+              className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 h-10 px-4 transition-colors gap-2 shadow-sm cursor-pointer disabled:opacity-70"
+            >
+              {isTransferring ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Transferring...</>
+              ) : (
+                <><ArrowRightCircle className="w-4 h-4" /> Transfer to Underwriting</>
+              )}
             </button>
           )}
 
@@ -1368,6 +1431,39 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
                   <h2 className="text-sm sm:text-base font-bold text-slate-900 uppercase tracking-wide">Guarantor 3 Details</h2>
                 </div>
                 {renderGuarantorPaper(3)}
+              </div>
+            </div>
+          </section>
+
+          {/* ================= 6. APPLICATION TIMELINE ================= */}
+          <section className="space-y-4 print:hidden">
+            <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+              <span className="w-5 h-5 rounded bg-blue-600 text-white flex items-center justify-center text-[11px] font-bold">6</span>
+              <h2 className="text-sm sm:text-base font-bold text-slate-900 uppercase tracking-wide">
+                Application Timeline
+              </h2>
+            </div>
+            
+            <div className="p-4 sm:p-5 rounded-md border border-slate-200 bg-slate-50/50">
+              <div className="relative border-l-2 border-slate-200 ml-3 space-y-6 pb-2">
+                {/* Created Event (Inferred) */}
+                <div className="relative pl-6">
+                  <div className="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-blue-100 border-2 border-blue-600" />
+                  <p className="text-sm font-bold text-slate-800">Application Created</p>
+                  <p className="text-[11px] text-slate-500 mt-0.5">{formattedDate}</p>
+                </div>
+                
+                {/* Dynamic Events from localTimeline */}
+                {localTimeline.map((event, idx) => {
+                  const isLast = idx === localTimeline.length - 1;
+                  return (
+                    <div key={idx} className="relative pl-6">
+                      <div className={`absolute -left-[9px] top-1 w-4 h-4 rounded-full border-2 ${isLast ? 'bg-emerald-100 border-emerald-600' : 'bg-blue-100 border-blue-600'}`} />
+                      <p className="text-sm font-bold text-slate-800">{event.stage}</p>
+                      <p className="text-[11px] text-slate-500 mt-0.5">{formatDateSafe(event.timestamp)}</p>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </section>
