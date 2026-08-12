@@ -1087,14 +1087,6 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
 
         {/* Right-aligned action buttons matching AddLead style */}
         <div className="flex items-center gap-3 shrink-0">
-          <button
-            type="button"
-            onClick={onBack}
-            className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-white text-slate-700 hover:bg-slate-50 border border-slate-300 h-10 px-4 transition-colors gap-2 shadow-sm cursor-pointer"
-          >
-            <ArrowLeft className="w-4 h-4" /> Back to Applications
-          </button>
-
           {isSubmitted && (
             <button
               type="button"
