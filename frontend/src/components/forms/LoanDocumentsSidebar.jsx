@@ -596,59 +596,59 @@ export function LoanDocumentsSidebar({
                     />
 
                     {/* Action Buttons */}
-                    <div className="pt-1">
+                    <div className="flex items-center justify-end gap-2 pt-2.5 border-t border-slate-100">
                       {isSlotBusy ? (
-                        <div className="flex items-center justify-center gap-2 py-3 text-xs font-bold text-blue-600 bg-blue-50 rounded-xl">
-                          <Loader2 size={15} className="animate-spin" /> Uploading photo...
+                        <div className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-blue-600 bg-blue-50 rounded-lg">
+                          <Loader2 size={14} className="animate-spin" /> Uploading...
                         </div>
                       ) : uploadedDoc ? (
-                        <div className="grid grid-cols-2 gap-2.5">
+                        <>
                           <button
                             type="button"
                             onClick={() => cameraInputRefs.current[slot.key]?.click()}
-                            className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 transition-all active:scale-95 cursor-pointer"
+                            className="inline-flex items-center justify-center rounded-lg text-xs font-semibold bg-white text-blue-700 hover:bg-blue-50 border border-blue-200 h-8 px-3 transition-colors gap-1 shadow-2xs active:scale-95 cursor-pointer"
                           >
-                            <RefreshCw size={13} /> Retake Photo
+                            <RefreshCw size={13} /> Replace
                           </button>
                           <button
                             type="button"
                             onClick={() => handleDeletePhoto(slot.key)}
-                            className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 transition-all active:scale-95 cursor-pointer"
+                            className="inline-flex items-center justify-center rounded-lg text-xs font-semibold bg-white text-rose-600 hover:bg-rose-50 border border-rose-200 h-8 w-8 transition-colors shadow-2xs active:scale-95 cursor-pointer"
                           >
-                            <Trash2 size={13} /> Delete Photo
+                            <Trash2 size={13} />
                           </button>
-                        </div>
+                        </>
                       ) : (
-                        <div className="grid grid-cols-2 gap-2.5">
-                          <button
-                            type="button"
-                            onClick={() => cameraInputRefs.current[slot.key]?.click()}
-                            className="flex items-center justify-center gap-1.5 py-3 px-3 rounded-xl text-xs font-bold bg-blue-600 text-white hover:bg-blue-700 shadow-sm shadow-blue-600/20 transition-all active:scale-95 cursor-pointer"
-                          >
-                            <Camera size={14} /> Take Photo
-                          </button>
+                        <>
                           <button
                             type="button"
                             onClick={() => fileInputRefs.current[slot.key]?.click()}
-                            className="flex items-center justify-center gap-1.5 py-3 px-3 rounded-xl text-xs font-bold bg-white text-slate-700 hover:bg-slate-50 border border-slate-200 shadow-2xs transition-all active:scale-95 cursor-pointer"
+                            className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 transition-colors gap-2 shadow-sm active:scale-95 cursor-pointer"
                           >
-                            <UploadCloud size={14} /> Upload File
+                            <UploadCloud size={16} /> Upload Photo
                           </button>
-                        </div>
+                        </>
                       )}
                     </div>
                   </div>
                 );
               })}
 
-              {/* Done Button matching EditMobileProfile / ApplyMobileLeave */}
-              <div className="pt-2 pb-6">
+              {/* Footer matching desktop sidebar */}
+              <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3 mt-4 pb-6">
                 <button
                   type="button"
                   onClick={onClose}
-                  className="w-full py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold shadow-lg shadow-blue-600/25 active:scale-[0.98] transition-transform cursor-pointer"
+                  className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 h-10 px-4 py-2 transition-colors cursor-pointer border border-slate-200 active:scale-95"
                 >
-                  Done / Back to Application
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 transition-colors cursor-pointer shadow-sm active:scale-95"
+                >
+                  Submit
                 </button>
               </div>
             </div>
