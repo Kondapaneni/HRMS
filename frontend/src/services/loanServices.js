@@ -70,6 +70,16 @@ export const getLoanApplications = async () => {
 };
 
 /**
+ * Deletes a loan application.
+ * @param {string|number} appId - Application ID
+ * @returns {Promise<Object>}
+ */
+export const deleteLoanApplication = async (appId) => {
+  const response = await api.delete(`/loans/applications/${encodeURIComponent(appId)}`);
+  return response.data;
+};
+
+/**
  * Saves/updates documents for a loan application.
  * @param {string} appId - Application ID or UUID
  * @param {Object} documents - Map or array of document objects

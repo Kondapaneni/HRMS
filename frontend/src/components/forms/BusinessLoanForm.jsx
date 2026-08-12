@@ -12,8 +12,8 @@ import {
   useFormState
 } from './index';
 import { validateBusinessLoanForm, capitalizeWords, capitalizeText } from '../../utils/loanValidations';
-import { submitLoanApplication, getLoanApplications } from '../../services/loanServices';
-import { Send, Save, Loader2, Download, CheckCircle2, Lock, ArrowLeft } from 'lucide-react';
+import { submitLoanApplication, getLoanApplications, deleteLoanApplication } from '../../services/loanServices';
+import { Send, Save, Loader2, Download, CheckCircle2, Lock, ArrowLeft, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { BusinessLoanDetailView } from './BusinessLoanDetailView';
 
@@ -105,8 +105,10 @@ export function BusinessLoanForm() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDrafting, setIsDrafting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [isAlreadySubmitted, setIsAlreadySubmitted] = useState(false);
+  const [loadedAppId, setLoadedAppId] = useState(null);
   const [activeGuarantorTab, setActiveGuarantorTab] = useState(1);
 
   // Conditional field visibility logic:
@@ -316,6 +318,7 @@ export function BusinessLoanForm() {
         }
 
         if (existingApp && existingApp.form_data) {
+          setLoadedAppId(existingApp.id || existingApp.application_id);
           populateFromData(existingApp.form_data);
           if (showToast) {
             toast.success('Loaded saved application data!');
@@ -341,6 +344,10 @@ export function BusinessLoanForm() {
     const directData = location.state?.application?.form_data || location.state?.form_data;
     if (directData) {
       populateFromData(directData);
+    }
+    
+    if (location.state?.application?.id || location.state?.application?.application_id) {
+      setLoadedAppId(location.state.application.id || location.state.application.application_id);
     }
 
     if (location.state?.application?.status === 'Submitted') {
@@ -405,6 +412,28 @@ export function BusinessLoanForm() {
       toast.error(err.response?.data?.error || 'Failed to save draft to database.');
     } finally {
       setIsDrafting(false);
+    }
+  };
+
+  const handleDeleteDraft = async () => {
+    if (!loadedAppId) return;
+    
+    if (!window.confirm('Are you sure you want to delete this draft? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      setIsDeleting(true);
+      await deleteLoanApplication(loadedAppId);
+      toast.success('Draft deleted successfully!');
+      queryClient.invalidateQueries({ queryKey: ['origination', 'applications', 'list'] });
+      queryClient.invalidateQueries({ queryKey: ['leadsDashboard'] });
+      navigate('/employee/loans/origination/applications');
+    } catch (err) {
+      console.error('Error deleting draft:', err);
+      toast.error(err.response?.data?.error || 'Failed to delete draft.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -1680,14 +1709,16 @@ export function BusinessLoanForm() {
       </div>
 
       <div className="pt-6 border-t border-slate-100 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3">
-        <button
-          type="button"
-          onClick={() => loadSavedDataFromDB(true)}
-          disabled={isLoadingData || isDrafting || isSubmitting}
-          className="w-full sm:w-auto inline-flex items-center justify-center rounded-md text-sm font-medium bg-slate-50 text-slate-700 hover:bg-slate-100 h-10 px-4 py-2 transition-colors cursor-pointer border border-slate-300 gap-2 disabled:opacity-50 shadow-xs"
-        >
-          {isLoadingData ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} Load Saved Data
-        </button>
+        {loadedAppId && !isAlreadySubmitted && (
+          <button
+            type="button"
+            onClick={handleDeleteDraft}
+            disabled={isDeleting || isDrafting || isSubmitting}
+            className="w-full sm:w-auto inline-flex items-center justify-center rounded-md text-sm font-medium bg-red-50 text-red-600 hover:bg-red-100 h-10 px-4 py-2 transition-colors cursor-pointer border border-red-200 gap-2 disabled:opacity-50 shadow-xs mr-auto"
+          >
+            {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />} Delete Draft
+          </button>
+        )}
         <button
           type="button"
           onClick={handleSaveDraft}
