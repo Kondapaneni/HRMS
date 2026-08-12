@@ -363,31 +363,29 @@ function MobileDetailView({ formData = {}, application = {}, onBack }) {
       {/* ━━━ Content Cards ━━━ */}
       <div className="relative z-20 -mt-12 px-4 space-y-4">
         {/* Application Overview & Status Card */}
-        <div className="bg-white p-5 rounded-[24px] shadow-lg border border-slate-100/80 flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-lg font-bold text-slate-900 tracking-tight font-sans">
-                {appId}
-              </span>
-              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                isSubmitted ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-amber-100 text-amber-700 border border-amber-200'
-              }`}>
-                {isSubmitted ? <CheckCircle2 size={10} /> : <Clock size={10} />} {appStatus}
-              </span>
-            </div>
-            <p className="text-xs font-semibold text-slate-500">{loanType}</p>
-            <p className="text-[11px] text-slate-400 mt-0.5">
-              {isSubmitted ? `Submitted on ${formattedDate}` : `Draft saved on ${formattedDate}`}
-            </p>
+        <div className="bg-white p-5 rounded-[24px] shadow-lg border border-slate-100/80">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-lg font-bold text-slate-900 tracking-tight font-sans">
+              {appId}
+            </span>
+            <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+              isSubmitted ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-amber-100 text-amber-700 border border-amber-200'
+            }`}>
+              {isSubmitted ? <CheckCircle2 size={10} /> : <Clock size={10} />} {appStatus}
+            </span>
           </div>
+          <p className="text-xs font-semibold text-slate-500">{loanType}</p>
+          <p className="text-[11px] text-slate-400 mt-0.5 mb-3">
+            {isSubmitted ? `Submitted on ${formattedDate}` : `Draft saved on ${formattedDate}`}
+          </p>
+          
           {isSubmitted && (
             <button
               type="button"
               onClick={() => setIsDocsOpen(true)}
-              className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-200 font-bold text-xs py-2 px-3 rounded-xl transition-all active:scale-95 cursor-pointer shrink-0"
+              className="inline-flex items-center gap-2 text-lg font-bold text-blue-600 hover:text-blue-700 active:text-blue-800 transition-colors cursor-pointer font-sans"
             >
-              <Camera size={13} />
-              <span>Photos</span>
+              <span className="underline decoration-blue-300 underline-offset-4">Documents Upload</span>
             </button>
           )}
         </div>
