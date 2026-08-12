@@ -134,9 +134,21 @@ const OriginationLayout = () => {
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 px-2 whitespace-nowrap">Loan Modules</p>
           <nav className="space-y-1">
             {navItems.filter(item => !item.feature || profile?.featureAccess?.[item.feature]).map((item, idx) => {
-              const isActive = item.path === '/employee/loans/origination'
-                ? location.pathname === item.path
-                : (location.pathname === item.path || location.pathname.startsWith(`${item.path}/`));
+              const isBusinessLoanPage = location.pathname === '/employee/loans/business-loan' || location.pathname.startsWith('/employee/loans/business-loan/');
+              const isReadOnly = Boolean(location.state?.readOnly || location.state?.isReadOnly);
+
+              let isActive;
+              if (isBusinessLoanPage && item.label === 'Members') {
+                isActive = !isReadOnly;
+              } else if (isBusinessLoanPage && item.label === 'Applications') {
+                isActive = isReadOnly;
+              } else if (isBusinessLoanPage) {
+                isActive = false;
+              } else if (item.path === '/employee/loans/origination') {
+                isActive = location.pathname === item.path;
+              } else {
+                isActive = location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
+              }
               return (
                 <Link
                   key={idx}
