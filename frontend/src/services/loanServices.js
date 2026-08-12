@@ -104,12 +104,12 @@ export const deleteLoanDocument = async (appId, docKey) => {
  * @param {string} appId - Application ID or UUID
  * @param {string} status - New status
  * @param {Object} timelineEvent - Event object to append to timeline array
- * @param {string} signatureUrl - Proxy URL of the uploaded signature
+ * @param {Object} signatureData - Object containing the signature mapping (e.g., { "Origination": url })
  */
-export const updateLoanApplicationStatus = async (appId, status, timelineEvent, signatureUrl) => {
+export const updateLoanApplicationStatus = async (appId, status, timelineEvent, signatureData) => {
   const payload = { status };
   if (timelineEvent) payload.timelineEvent = timelineEvent;
-  if (signatureUrl) payload.signatureUrl = signatureUrl;
+  if (signatureData) payload.signatureData = signatureData;
   
   const response = await api.patch(`/loans/applications/${encodeURIComponent(appId)}/status`, payload);
   return response.data;

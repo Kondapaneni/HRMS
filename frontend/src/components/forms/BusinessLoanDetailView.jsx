@@ -263,7 +263,8 @@ function MobileDetailView({ formData = {}, application = {}, onBack, userRole = 
         timestamp: new Date().toISOString(),
         signature: signatureUrl
       };
-      await updateLoanApplicationStatus(dbId, 'Underwriting', timelineEvent, signatureUrl);
+      const signatureData = signatureUrl ? { "Origination": signatureUrl } : null;
+      await updateLoanApplicationStatus(dbId, 'Underwriting', timelineEvent, signatureData);
       
       setLocalTimeline([...localTimeline, timelineEvent]);
       toast.success("Application transferred to Underwriting successfully.");
@@ -950,7 +951,8 @@ function DesktopPaperView({ formData = {}, application = {}, onBack, userRole = 
         timestamp: new Date().toISOString(),
         signature: signatureUrl
       };
-      await updateLoanApplicationStatus(dbId, 'Underwriting', timelineEvent, signatureUrl);
+      const signatureData = signatureUrl ? { "Origination": signatureUrl } : null;
+      await updateLoanApplicationStatus(dbId, 'Underwriting', timelineEvent, signatureData);
       
       setLocalTimeline([...localTimeline, timelineEvent]);
       toast.success("Application transferred to Underwriting successfully.");
