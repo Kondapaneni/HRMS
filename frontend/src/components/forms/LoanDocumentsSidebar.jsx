@@ -201,8 +201,8 @@ export function LoanDocumentsSidebar({
       if (doc.file_name) {
         await supabase.storage.from('loan_documents').remove([doc.file_name]);
       } else if (doc.url) {
-        const parts = doc.url.split('/loan_documents/');
-        if (parts[1]) {
+        const parts = doc.url.split('/Loan-Document/');
+        if (parts.length > 1) {
           await supabase.storage.from('loan_documents').remove([parts[1]]);
         }
       }
