@@ -26,24 +26,34 @@ const EmployeeMobileTrainingVideos = () => {
   return (
     <div className="space-y-6 pb-2">
       {/* Hero Section with Animated Motion Graphics */}
-      <section className="-mx-4 -mt-4 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900">
+      <section className="-mx-4 -mt-4 px-4 pt-8 pb-20 relative overflow-hidden bg-slate-900">
+        {/* Animated Liquid Orbs */}
         <motion.div
           animate={{
             scale: [1, 1.2, 1],
-            x: [0, 30, 0],
-            y: [0, 20, 0],
+            x: [0, 50, 0],
+            y: [0, 30, 0],
           }}
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-20 -left-10 w-72 h-72 bg-[#b28dff] rounded-full mix-blend-screen filter blur-[40px] opacity-40 pointer-events-none"
+          className="absolute -top-20 -left-10 w-72 h-72 bg-[#ff928b] rounded-full mix-blend-screen filter blur-[40px] opacity-60"
         />
         <motion.div
           animate={{
             scale: [1, 1.4, 1],
-            x: [0, -30, 0],
-            y: [0, 40, 0],
+            x: [0, -40, 0],
+            y: [0, 50, 0],
           }}
           transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute top-10 -right-10 w-64 h-64 bg-[#c5a3ff] rounded-full mix-blend-screen filter blur-[40px] opacity-40 pointer-events-none"
+          className="absolute -top-10 -right-10 w-64 h-64 bg-[#7bdff2] rounded-full mix-blend-screen filter blur-[40px] opacity-60"
+        />
+        <motion.div
+          animate={{
+            scale: [1, 1.3, 1],
+            x: [0, 30, 0],
+            y: [0, -40, 0],
+          }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          className="absolute bottom-0 left-20 w-80 h-80 bg-[#84dcc6] rounded-full mix-blend-screen filter blur-[50px] opacity-50"
         />
 
         {/* Subtle Glass Overlay */}
