@@ -25,6 +25,7 @@ import {
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
+import { supabase } from '../../lib/supabase';
 import { LoanDocumentsSidebar } from './LoanDocumentsSidebar';
 import { SignatureModal } from './SignatureModal';
 import { updateLoanApplicationStatus } from '../../services/loanServices';
@@ -238,12 +239,31 @@ function MobileDetailView({ formData = {}, application = {}, onBack, userRole = 
     try {
       setIsSignatureModalOpen(false);
       setIsTransferring(true);
+      
+      let signatureUrl = null;
+      if (signatureDataUrl) {
+        const res = await fetch(signatureDataUrl);
+        const blob = await res.blob();
+        const fileToUpload = new File([blob], 'signature.png', { type: 'image/png' });
+        
+        const fileName = `${dbId}/employee-signature-${Date.now()}.png`;
+        const { error: uploadError } = await supabase.storage
+          .from('loan_documents')
+          .upload(fileName, fileToUpload, {
+            cacheControl: '3600',
+            upsert: true
+          });
+          
+        if (uploadError) throw new Error(uploadError.message);
+        signatureUrl = window.location.origin + "/Loan-Document/" + fileName;
+      }
+
       const timelineEvent = {
         stage: 'Transferred to Underwriting',
         timestamp: new Date().toISOString(),
-        signature: signatureDataUrl
+        signature: signatureUrl
       };
-      await updateLoanApplicationStatus(dbId, 'Underwriting', timelineEvent);
+      await updateLoanApplicationStatus(dbId, 'Underwriting', timelineEvent, signatureUrl);
       
       setLocalTimeline([...localTimeline, timelineEvent]);
       toast.success("Application transferred to Underwriting successfully.");
@@ -906,12 +926,31 @@ function DesktopPaperView({ formData = {}, application = {}, onBack, userRole = 
     try {
       setIsSignatureModalOpen(false);
       setIsTransferring(true);
+      
+      let signatureUrl = null;
+      if (signatureDataUrl) {
+        const res = await fetch(signatureDataUrl);
+        const blob = await res.blob();
+        const fileToUpload = new File([blob], 'signature.png', { type: 'image/png' });
+        
+        const fileName = `${dbId}/employee-signature-${Date.now()}.png`;
+        const { error: uploadError } = await supabase.storage
+          .from('loan_documents')
+          .upload(fileName, fileToUpload, {
+            cacheControl: '3600',
+            upsert: true
+          });
+          
+        if (uploadError) throw new Error(uploadError.message);
+        signatureUrl = window.location.origin + "/Loan-Document/" + fileName;
+      }
+
       const timelineEvent = {
         stage: 'Transferred to Underwriting',
         timestamp: new Date().toISOString(),
-        signature: signatureDataUrl
+        signature: signatureUrl
       };
-      await updateLoanApplicationStatus(dbId, 'Underwriting', timelineEvent);
+      await updateLoanApplicationStatus(dbId, 'Underwriting', timelineEvent, signatureUrl);
       
       setLocalTimeline([...localTimeline, timelineEvent]);
       toast.success("Application transferred to Underwriting successfully.");

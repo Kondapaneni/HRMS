@@ -381,6 +381,7 @@ $app->patch('/api/loans/applications/{id}/status', function (Request $request, R
 
     $status = trim($data['status'] ?? '');
     $timelineEvent = $data['timelineEvent'] ?? null;
+    $signatureUrl = $data['signatureUrl'] ?? null;
 
     if (empty($status)) {
         $response->getBody()->write(json_encode(['error' => 'Status is required']));
@@ -416,13 +417,21 @@ $app->patch('/api/loans/applications/{id}/status', function (Request $request, R
         }
 
         $jsonPayload = json_encode($formData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        
+        $updateQuery = 'UPDATE public.loan_applications SET form_data = ?::jsonb, updated_at = NOW()';
+        $updateParams = [$jsonPayload];
+        
+        if ($signatureUrl) {
+            $signaturePayload = json_encode([$status => $signatureUrl]);
+            $updateQuery = 'UPDATE public.loan_applications SET form_data = ?::jsonb, signatures = COALESCE(signatures, \'{}\'::jsonb) || ?::jsonb, updated_at = NOW()';
+            $updateParams[] = $signaturePayload;
+        }
+        
+        $updateQuery .= ' WHERE id = ?';
+        $updateParams[] = $appRow['id'];
 
-        $updateStmt = $conn->prepare('
-            UPDATE public.loan_applications
-            SET form_data = ?::jsonb, updated_at = NOW()
-            WHERE id = ?
-        ');
-        $updateStmt->execute([$jsonPayload, $appRow['id']]);
+        $updateStmt = $conn->prepare($updateQuery);
+        $updateStmt->execute($updateParams);
 
         $response->getBody()->write(json_encode([
             'success' => true,
