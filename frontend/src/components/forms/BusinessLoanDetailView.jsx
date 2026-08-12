@@ -807,6 +807,7 @@ function MobileDetailView({ formData = {}, application = {}, onBack }) {
               className="w-full h-full object-contain max-h-[85vh] select-none"
             />
           </div>
+        </div>,
         document.body
       )}
 
