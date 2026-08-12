@@ -176,7 +176,7 @@ const SubSectionHeader = ({ label }) => (
 /**
  * Mobile Read-Only View Component (Designed for small screens)
  */
-function MobileDetailView({ formData = {}, application = {}, onBack }) {
+function MobileDetailView({ formData = {}, application = {}, onBack, userRole = 'origination' }) {
   const [activeGuarantorTab, setActiveGuarantorTab] = useState(1);
   const [isDocsOpen, setIsDocsOpen] = useState(false);
   const [previewDoc, setPreviewDoc] = useState(null);
@@ -847,7 +847,7 @@ const PaperLine = ({ label, value, className = '', labelWidth = 'min-w-[135px]' 
   );
 };
 
-function DesktopPaperView({ formData = {}, application = {}, onBack }) {
+function DesktopPaperView({ formData = {}, application = {}, onBack, userRole = 'origination' }) {
   const [activeGuarantorTab, setActiveGuarantorTab] = useState(1);
   const [isDocsOpen, setIsDocsOpen] = useState(false);
   const [previewDoc, setPreviewDoc] = useState(null);
