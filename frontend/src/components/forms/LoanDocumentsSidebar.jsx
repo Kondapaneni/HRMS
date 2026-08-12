@@ -348,24 +348,11 @@ export function LoanDocumentsSidebar({
 
                               <button
                                 type="button"
-                                onClick={() => {
-                                  if (fileInputRefs.current[slot.key]) {
-                                    fileInputRefs.current[slot.key].click();
-                                  }
-                                }}
-                                className="inline-flex items-center justify-center rounded-lg text-xs font-semibold bg-white text-blue-700 hover:bg-blue-50 border border-blue-200 h-8 px-3 transition-colors gap-1 shadow-2xs cursor-pointer"
-                                title="Replace Photo"
-                              >
-                                <RefreshCw size={13} /> Replace
-                              </button>
-
-                              <button
-                                type="button"
                                 onClick={() => handleDeletePhoto(slot.key)}
-                                className="inline-flex items-center justify-center rounded-lg text-xs font-semibold bg-white text-rose-600 hover:bg-rose-50 border border-rose-200 h-8 w-8 transition-colors shadow-2xs cursor-pointer"
+                                className="inline-flex items-center justify-center rounded-lg text-xs font-semibold bg-white text-rose-600 hover:bg-rose-50 border border-rose-200 h-8 px-3 transition-colors gap-1 shadow-2xs cursor-pointer"
                                 title="Delete Photo"
                               >
-                                <Trash2 size={13} />
+                                <Trash2 size={13} /> Delete
                               </button>
                             </>
                           ) : (
@@ -588,17 +575,10 @@ export function LoanDocumentsSidebar({
                         <>
                           <button
                             type="button"
-                            onClick={() => cameraInputRefs.current[slot.key]?.click()}
-                            className="inline-flex items-center justify-center rounded-lg text-xs font-semibold bg-white text-blue-700 hover:bg-blue-50 border border-blue-200 h-8 px-3 transition-colors gap-1 shadow-2xs active:scale-95 cursor-pointer"
-                          >
-                            <RefreshCw size={13} /> Retake
-                          </button>
-                          <button
-                            type="button"
                             onClick={() => handleDeletePhoto(slot.key)}
-                            className="inline-flex items-center justify-center rounded-lg text-xs font-semibold bg-white text-rose-600 hover:bg-rose-50 border border-rose-200 h-8 w-8 transition-colors shadow-2xs active:scale-95 cursor-pointer"
+                            className="inline-flex items-center justify-center rounded-lg text-xs font-semibold bg-white text-rose-600 hover:bg-rose-50 border border-rose-200 h-8 px-3 transition-colors gap-1 shadow-2xs active:scale-95 cursor-pointer"
                           >
-                            <Trash2 size={13} />
+                            <Trash2 size={13} /> Delete
                           </button>
                         </>
                       ) : (
