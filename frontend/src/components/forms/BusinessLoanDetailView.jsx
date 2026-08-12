@@ -26,6 +26,7 @@ import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { LoanDocumentsSidebar } from './LoanDocumentsSidebar';
+import { SignatureModal } from './SignatureModal';
 import { updateLoanApplicationStatus } from '../../services/loanServices';
 
 // ============================================================================
@@ -226,17 +227,20 @@ function MobileDetailView({ formData = {}, application = {}, onBack }) {
 
   const isAllUploaded = requiredSlots > 0 && uploadedCount === requiredSlots;
   const hasTransferred = localTimeline.some(e => e.stage === 'Transferred to Underwriting');
+  const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
 
-  const handleTransferToUnderwriting = async () => {
+  const handleTransferToUnderwriting = async (signatureDataUrl) => {
     if (!dbId) {
       toast.error("Application ID not found, cannot transfer.");
       return;
     }
     try {
+      setIsSignatureModalOpen(false);
       setIsTransferring(true);
       const timelineEvent = {
         stage: 'Transferred to Underwriting',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        signature: signatureDataUrl
       };
       await updateLoanApplicationStatus(dbId, 'Underwriting', timelineEvent);
       
@@ -444,7 +448,7 @@ function MobileDetailView({ formData = {}, application = {}, onBack }) {
               {appStatus === 'Submitted' && isAllUploaded && !hasTransferred && (
                 <button
                   type="button"
-                  onClick={handleTransferToUnderwriting}
+                  onClick={() => setIsSignatureModalOpen(true)}
                   disabled={isTransferring}
                   className="mt-2 w-full flex items-center justify-center gap-2 bg-slate-900 text-white rounded-xl py-3 px-4 font-bold text-sm shadow-sm active:scale-95 transition-transform disabled:opacity-70 disabled:active:scale-100 cursor-pointer"
                 >
@@ -454,7 +458,7 @@ function MobileDetailView({ formData = {}, application = {}, onBack }) {
                     </>
                   ) : (
                     <>
-                      Transfer to Underwriting <ArrowRightCircle size={16} />
+                      Transfer to Underwriting
                     </>
                   )}
                 </button>
@@ -803,9 +807,15 @@ function MobileDetailView({ formData = {}, application = {}, onBack }) {
               className="w-full h-full object-contain max-h-[85vh] select-none"
             />
           </div>
-        </div>,
         document.body
       )}
+
+      {/* Signature Modal */}
+      <SignatureModal 
+        isOpen={isSignatureModalOpen} 
+        onClose={() => setIsSignatureModalOpen(false)} 
+        onSubmit={handleTransferToUnderwriting} 
+      />
     </div>
   );
 }
@@ -883,17 +893,20 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
 
   const isAllUploaded = requiredSlots > 0 && uploadedCount === requiredSlots;
   const hasTransferred = localTimeline.some(e => e.stage === 'Transferred to Underwriting');
+  const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
 
-  const handleTransferToUnderwriting = async () => {
+  const handleTransferToUnderwriting = async (signatureDataUrl) => {
     if (!dbId) {
       toast.error("Application ID not found, cannot transfer.");
       return;
     }
     try {
+      setIsSignatureModalOpen(false);
       setIsTransferring(true);
       const timelineEvent = {
         stage: 'Transferred to Underwriting',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        signature: signatureDataUrl
       };
       await updateLoanApplicationStatus(dbId, 'Underwriting', timelineEvent);
       
@@ -1100,14 +1113,14 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
           {appStatus === 'Submitted' && isAllUploaded && !hasTransferred && (
             <button
               type="button"
-              onClick={handleTransferToUnderwriting}
+              onClick={() => setIsSignatureModalOpen(true)}
               disabled={isTransferring}
               className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 h-10 px-4 transition-colors gap-2 shadow-sm cursor-pointer disabled:opacity-70"
             >
               {isTransferring ? (
                 <><Loader2 className="w-4 h-4 animate-spin" /> Transferring...</>
               ) : (
-                <><ArrowRightCircle className="w-4 h-4" /> Transfer to Underwriting</>
+                <>Transfer to Underwriting</>
               )}
             </button>
           )}
@@ -1536,6 +1549,13 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
         </div>,
         document.body
       )}
+
+      {/* Signature Modal */}
+      <SignatureModal 
+        isOpen={isSignatureModalOpen} 
+        onClose={() => setIsSignatureModalOpen(false)} 
+        onSubmit={handleTransferToUnderwriting} 
+      />
     </div>
   );
 }
