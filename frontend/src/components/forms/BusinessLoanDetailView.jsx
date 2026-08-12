@@ -435,7 +435,7 @@ function MobileDetailView({ formData = {}, application = {}, onBack }) {
             {isSubmitted ? `Submitted on ${formattedDate}` : `Draft saved on ${formattedDate}`}
           </p>
           
-          {isSubmitted && (
+          {isSubmitted && !hasTransferred && (
             <div className="flex flex-col gap-3">
               <button
                 type="button"
@@ -1101,7 +1101,7 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
 
         {/* Right-aligned action buttons matching AddLead style */}
         <div className="flex items-center gap-3 shrink-0">
-          {isSubmitted && (
+          {isSubmitted && !hasTransferred && (
             <button
               type="button"
               onClick={() => setIsDocsOpen(true)}
