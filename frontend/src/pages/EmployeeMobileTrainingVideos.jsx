@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Play, ArrowLeft } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -7,6 +7,13 @@ import api from '../api/axios';
 
 const EmployeeMobileTrainingVideos = () => {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    document.body.classList.add('hide-mobile-nav');
+    return () => {
+      document.body.classList.remove('hide-mobile-nav');
+    };
+  }, []);
   const { data: videos = [], isLoading } = useQuery({
     queryKey: ['employee', 'trainingVideos'],
     queryFn: async () => {
