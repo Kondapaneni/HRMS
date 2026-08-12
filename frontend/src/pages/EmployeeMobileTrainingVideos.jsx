@@ -1,6 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Play, ChevronLeft } from 'lucide-react';
+import { Play, ArrowLeft } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import api from '../api/axios';
@@ -49,13 +49,15 @@ const EmployeeMobileTrainingVideos = () => {
         {/* Subtle Glass Overlay */}
         <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
 
-        <div className="relative z-10 px-2 flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="p-2 bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-md transition-colors border border-white/10 text-white">
-            <ChevronLeft size={20} />
-          </button>
+        <div className="relative z-10 px-2 flex justify-between items-start">
           <div>
-            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">Learning Center</p>
-            <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">Training Videos</h2>
+            <div className="flex items-center gap-2 mb-2 text-white/90">
+              <button onClick={() => navigate(-1)} className="p-1 -ml-1 hover:bg-white/10 rounded-lg">
+                <ArrowLeft className="w-4 h-4" />
+              </button>
+              <span className="text-xs font-bold tracking-widest opacity-80 uppercase">LEARNING CENTER</span>
+            </div>
+            <h1 className="text-3xl font-extrabold text-white tracking-tight drop-shadow-sm">Training Videos</h1>
           </div>
         </div>
       </section>
