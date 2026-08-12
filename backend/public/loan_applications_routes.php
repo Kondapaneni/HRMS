@@ -419,10 +419,10 @@ $app->patch('/api/loans/applications/{id}/status', function (Request $request, R
 
         $updateStmt = $conn->prepare('
             UPDATE public.loan_applications
-            SET status = ?, form_data = ?::jsonb, updated_at = NOW()
+            SET form_data = ?::jsonb, updated_at = NOW()
             WHERE id = ?
         ');
-        $updateStmt->execute([$status, $jsonPayload, $appRow['id']]);
+        $updateStmt->execute([$jsonPayload, $appRow['id']]);
 
         $response->getBody()->write(json_encode([
             'success' => true,

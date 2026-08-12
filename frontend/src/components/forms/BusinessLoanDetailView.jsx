@@ -225,6 +225,7 @@ function MobileDetailView({ formData = {}, application = {}, onBack }) {
   ].filter(key => key && !!currentDocs[key]).length;
 
   const isAllUploaded = requiredSlots > 0 && uploadedCount === requiredSlots;
+  const hasTransferred = localTimeline.some(e => e.stage === 'Transferred to Underwriting');
 
   const handleTransferToUnderwriting = async () => {
     if (!dbId) {
@@ -239,7 +240,6 @@ function MobileDetailView({ formData = {}, application = {}, onBack }) {
       };
       await updateLoanApplicationStatus(dbId, 'Underwriting', timelineEvent);
       
-      setLocalStatus('Underwriting');
       setLocalTimeline([...localTimeline, timelineEvent]);
       toast.success("Application transferred to Underwriting successfully.");
     } catch (err) {
@@ -441,7 +441,7 @@ function MobileDetailView({ formData = {}, application = {}, onBack }) {
                 <span className="underline decoration-blue-300 underline-offset-4">Documents Upload</span>
               </button>
               
-              {appStatus === 'Submitted' && isAllUploaded && (
+              {appStatus === 'Submitted' && isAllUploaded && !hasTransferred && (
                 <button
                   type="button"
                   onClick={handleTransferToUnderwriting}
@@ -882,6 +882,7 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
   ].filter(key => key && !!currentDocs[key]).length;
 
   const isAllUploaded = requiredSlots > 0 && uploadedCount === requiredSlots;
+  const hasTransferred = localTimeline.some(e => e.stage === 'Transferred to Underwriting');
 
   const handleTransferToUnderwriting = async () => {
     if (!dbId) {
@@ -896,7 +897,6 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
       };
       await updateLoanApplicationStatus(dbId, 'Underwriting', timelineEvent);
       
-      setLocalStatus('Underwriting');
       setLocalTimeline([...localTimeline, timelineEvent]);
       toast.success("Application transferred to Underwriting successfully.");
     } catch (err) {
@@ -1097,7 +1097,7 @@ function DesktopPaperView({ formData = {}, application = {}, onBack }) {
             </button>
           )}
 
-          {appStatus === 'Submitted' && isAllUploaded && (
+          {appStatus === 'Submitted' && isAllUploaded && !hasTransferred && (
             <button
               type="button"
               onClick={handleTransferToUnderwriting}
