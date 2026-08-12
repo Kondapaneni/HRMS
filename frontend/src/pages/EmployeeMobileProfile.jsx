@@ -26,13 +26,16 @@ const EmployeeMobileProfile = () => {
     const scrollContainer = document.querySelector('main > div.overflow-y-auto');
     if (activeSection) {
       document.body.style.overflow = 'hidden';
+      document.body.classList.add('hide-mobile-nav');
       if (scrollContainer) scrollContainer.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
+      document.body.classList.remove('hide-mobile-nav');
       if (scrollContainer) scrollContainer.style.overflow = '';
     }
     return () => {
       document.body.style.overflow = '';
+      document.body.classList.remove('hide-mobile-nav');
       if (scrollContainer) scrollContainer.style.overflow = '';
     };
   }, [activeSection]);

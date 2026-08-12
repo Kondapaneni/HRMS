@@ -441,7 +441,7 @@ const EmployeeLayout = () => {
 
         {/* Mobile Bottom Navigation (iOS Liquid Glass) */}
         <div
-          className="md:hidden fixed bottom-6 left-4 right-4 z-50 pointer-events-none touch-none select-none"
+          className="mobile-bottom-nav md:hidden fixed bottom-6 left-4 right-4 z-50 pointer-events-none touch-none select-none"
           onTouchStart={handleTouchMove}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
