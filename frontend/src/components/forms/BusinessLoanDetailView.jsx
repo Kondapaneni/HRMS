@@ -732,6 +732,32 @@ function MobileDetailView({ formData = {}, application = {}, onBack }) {
           {renderGuarantor(activeGuarantorTab)}
         </SectionCard>
 
+        {/* ── 6. Application Timeline ── */}
+        <SectionCard number="6" title="Application Timeline">
+          <div className="py-2">
+            <div className="relative border-l-2 border-slate-200 ml-3 space-y-6 pb-2">
+              {/* Created Event (Inferred) */}
+              <div className="relative pl-6">
+                <div className="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-blue-100 border-2 border-blue-600" />
+                <p className="text-sm font-bold text-slate-800">Application Created</p>
+                <p className="text-[11px] text-slate-500 mt-0.5">{formattedDate}</p>
+              </div>
+              
+              {/* Dynamic Events from localTimeline */}
+              {localTimeline.map((event, idx) => {
+                const isLast = idx === localTimeline.length - 1;
+                return (
+                  <div key={idx} className="relative pl-6">
+                    <div className={`absolute -left-[9px] top-1 w-4 h-4 rounded-full border-2 ${isLast ? 'bg-emerald-100 border-emerald-600' : 'bg-blue-100 border-blue-600'}`} />
+                    <p className="text-sm font-bold text-slate-800">{event.stage}</p>
+                    <p className="text-[11px] text-slate-500 mt-0.5">{formatDateSafe(event.timestamp)}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </SectionCard>
+
         {/* ── Bottom Back Button ── */}
         <div className="flex justify-center pt-1 pb-1">
           <button
