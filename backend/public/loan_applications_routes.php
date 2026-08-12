@@ -446,3 +446,29 @@ $app->patch('/api/loans/applications/{id}/status', function (Request $request, R
     }
 })->add(new \App\Middleware\AuthMiddleware());
 
+/**
+ * Endpoint to delete a loan application.
+ */
+$app->delete('/api/loans/applications/{id}', function (Request $request, Response $response, $args) {
+    $identifier = $args['id'];
+    
+    try {
+        $db = new Database();
+        $conn = $db->getConnection();
+        
+        $stmt = $conn->prepare('DELETE FROM public.loan_applications WHERE id::text = ? OR application_id = ? OR lead_id = ?');
+        $stmt->execute([$identifier, $identifier, $identifier]);
+        
+        if ($stmt->rowCount() > 0) {
+            $response->getBody()->write(json_encode(['success' => true, 'message' => 'Loan application deleted successfully']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+        } else {
+            $response->getBody()->write(json_encode(['error' => 'Loan application not found']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+        }
+    } catch (\Exception $e) {
+        error_log("Error deleting loan application: " . $e->getMessage());
+        $response->getBody()->write(json_encode(['error' => 'Error deleting loan application']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    }
+})->add(new \App\Middleware\AuthMiddleware());
