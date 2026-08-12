@@ -166,19 +166,6 @@ export function SignatureModal({ isOpen, onClose, onSubmit, title = "Employee Si
         
         {/* Canvas Area */}
         <div className="flex-1 p-4 sm:p-8 flex flex-col min-h-0 relative">
-          <div className="flex justify-between items-end mb-4 shrink-0">
-            <p className="text-sm sm:text-base font-medium text-slate-600">
-              Please sign in the area below:
-            </p>
-            <button 
-              type="button"
-              onClick={clearCanvas}
-              className="flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-800 transition-colors bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm active:scale-95"
-            >
-              <Eraser size={16} /> Clear
-            </button>
-          </div>
-
           <div className="flex-1 w-full bg-white border-2 border-dashed border-slate-300 rounded-2xl overflow-hidden shadow-inner relative">
             <canvas
               ref={canvasRef}
@@ -196,6 +183,19 @@ export function SignatureModal({ isOpen, onClose, onSubmit, title = "Employee Si
                 Sign Here
               </div>
             )}
+          </div>
+          
+          <div className="flex justify-between items-center mt-4 shrink-0">
+            <p className="text-sm sm:text-base font-medium text-slate-600">
+              Please sign in the area above.
+            </p>
+            <button 
+              type="button"
+              onClick={clearCanvas}
+              className="flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-800 transition-colors bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm active:scale-95"
+            >
+              <Eraser size={16} /> Clear
+            </button>
           </div>
         </div>
 
