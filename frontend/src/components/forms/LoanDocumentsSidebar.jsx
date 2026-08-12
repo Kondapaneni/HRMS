@@ -399,23 +399,6 @@ export function LoanDocumentsSidebar({
                   );
                 })}
 
-                {/* Submit & Cancel Footer matching AddLeadSidebar */}
-                <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3 mt-4">
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 h-10 px-4 py-2 transition-colors cursor-pointer border border-slate-200"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 transition-colors cursor-pointer shadow-sm"
-                  >
-                    Submit
-                  </button>
-                </div>
               </div>
             </motion.div>
           </div>
@@ -634,23 +617,7 @@ export function LoanDocumentsSidebar({
                 );
               })}
 
-              {/* Footer matching desktop sidebar */}
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3 mt-4 pb-6">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 h-10 px-4 py-2 transition-colors cursor-pointer border border-slate-200 active:scale-95"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 transition-colors cursor-pointer shadow-sm active:scale-95"
-                >
-                  Submit
-                </button>
-              </div>
+
             </div>
           </div>
         </>
