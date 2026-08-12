@@ -591,7 +591,7 @@ export function LoanDocumentsSidebar({
                             onClick={() => cameraInputRefs.current[slot.key]?.click()}
                             className="inline-flex items-center justify-center rounded-lg text-xs font-semibold bg-white text-blue-700 hover:bg-blue-50 border border-blue-200 h-8 px-3 transition-colors gap-1 shadow-2xs active:scale-95 cursor-pointer"
                           >
-                            <RefreshCw size={13} /> Replace
+                            <RefreshCw size={13} /> Retake
                           </button>
                           <button
                             type="button"
@@ -605,10 +605,18 @@ export function LoanDocumentsSidebar({
                         <>
                           <button
                             type="button"
-                            onClick={() => fileInputRefs.current[slot.key]?.click()}
+                            onClick={() => cameraInputRefs.current[slot.key]?.click()}
                             className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 transition-colors gap-2 shadow-sm active:scale-95 cursor-pointer"
                           >
-                            <UploadCloud size={16} /> Upload Photo
+                            <Camera size={16} /> Take Photo
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => fileInputRefs.current[slot.key]?.click()}
+                            className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-white text-slate-700 hover:bg-slate-100 border border-slate-300 h-10 px-3 transition-colors shadow-2xs active:scale-95 cursor-pointer"
+                            title="Gallery Upload"
+                          >
+                            <UploadCloud size={18} />
                           </button>
                         </>
                       )}
