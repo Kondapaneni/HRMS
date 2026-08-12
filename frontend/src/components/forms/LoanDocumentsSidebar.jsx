@@ -349,10 +349,10 @@ export function LoanDocumentsSidebar({
                               <button
                                 type="button"
                                 onClick={() => handleDeletePhoto(slot.key)}
-                                className="inline-flex items-center justify-center rounded-lg text-xs font-semibold bg-white text-rose-600 hover:bg-rose-50 border border-rose-200 h-8 px-3 transition-colors gap-1 shadow-2xs cursor-pointer"
+                                className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-white text-rose-600 hover:bg-rose-50 border border-rose-200 h-10 px-3 transition-colors shadow-2xs cursor-pointer"
                                 title="Delete Photo"
                               >
-                                <Trash2 size={13} /> Delete
+                                <Trash2 size={18} />
                               </button>
                             </>
                           ) : (
@@ -576,9 +576,10 @@ export function LoanDocumentsSidebar({
                           <button
                             type="button"
                             onClick={() => handleDeletePhoto(slot.key)}
-                            className="inline-flex items-center justify-center rounded-lg text-xs font-semibold bg-white text-rose-600 hover:bg-rose-50 border border-rose-200 h-8 px-3 transition-colors gap-1 shadow-2xs active:scale-95 cursor-pointer"
+                            className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-white text-rose-600 hover:bg-rose-50 border border-rose-200 h-10 px-3 transition-colors shadow-2xs active:scale-95 cursor-pointer"
+                            title="Delete Photo"
                           >
-                            <Trash2 size={13} /> Delete
+                            <Trash2 size={18} />
                           </button>
                         </>
                       ) : (
