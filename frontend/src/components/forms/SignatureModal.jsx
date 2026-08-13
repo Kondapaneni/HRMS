@@ -68,8 +68,14 @@ export function SignatureModal({ isOpen, onClose, onSubmit, title = "Employee Si
   const getCoordinates = (e) => {
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const touch =
+      e.touches && e.touches.length > 0
+        ? e.touches[0]
+        : e.changedTouches && e.changedTouches.length > 0
+          ? e.changedTouches[0]
+          : null;
+    const clientX = touch ? touch.clientX : e.clientX;
+    const clientY = touch ? touch.clientY : e.clientY;
 
     if (isPortrait) {
       // Rotated -90deg
@@ -86,6 +92,9 @@ export function SignatureModal({ isOpen, onClose, onSubmit, title = "Employee Si
   };
 
   const startDrawing = (e) => {
+    if (e.cancelable && e.type && e.type.startsWith('touch')) {
+      e.preventDefault();
+    }
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -94,12 +103,18 @@ export function SignatureModal({ isOpen, onClose, onSubmit, title = "Employee Si
     
     ctx.beginPath();
     ctx.moveTo(x, y);
+    // Draw immediately so single taps/clicks render a clean dot (e.g. dots on i, j, or periods)
+    ctx.lineTo(x, y);
+    ctx.stroke();
     setIsDrawing(true);
     setIsEmpty(false);
   };
 
   const draw = (e) => {
     if (!isDrawing) return;
+    if (e.cancelable && e.type && e.type.startsWith('touch')) {
+      e.preventDefault();
+    }
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
