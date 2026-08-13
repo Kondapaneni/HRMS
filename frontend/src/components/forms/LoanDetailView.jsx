@@ -680,10 +680,10 @@ function DesktopPaperView({
     const gBizIncome = formData[`${pfx}business_income_per_month`];
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 print:space-y-3 print-avoid-break">
         {/* Personal Details */}
-        <div className="space-y-2">
-          <div className="text-xs font-bold text-blue-950 uppercase tracking-wider border-b border-slate-200 pb-1 mb-2">
+        <div className="space-y-2 print:space-y-1">
+          <div className="text-xs font-bold text-blue-950 uppercase tracking-wider border-b border-slate-200 pb-1 mb-2 print:mb-1">
             A. {labelPfx} Personal Details
           </div>
           <div className="flex flex-row items-start justify-between gap-4 print:flex-row print:items-start">
@@ -718,8 +718,8 @@ function DesktopPaperView({
         </div>
 
         {/* Current Address */}
-        <div className="space-y-2">
-          <div className="text-xs font-bold text-blue-950 uppercase tracking-wider border-b border-slate-200 pb-1 mb-2">
+        <div className="space-y-2 print:space-y-1">
+          <div className="text-xs font-bold text-blue-950 uppercase tracking-wider border-b border-slate-200 pb-1 mb-2 print:mb-1">
             B. {labelPfx} Current Residential Address
           </div>
           <PaperLine label="Current Address" value={gCurAddr} />
@@ -732,8 +732,8 @@ function DesktopPaperView({
         </div>
 
         {/* Permanent Address */}
-        <div className="space-y-2">
-          <div className="text-xs font-bold text-blue-950 uppercase tracking-wider border-b border-slate-200 pb-1 mb-2">
+        <div className="space-y-2 print:space-y-1">
+          <div className="text-xs font-bold text-blue-950 uppercase tracking-wider border-b border-slate-200 pb-1 mb-2 print:mb-1">
             C. {labelPfx} Permanent Residential Address
           </div>
           <PaperLine label="Permanent Address" value={gPermAddr} />
@@ -746,8 +746,8 @@ function DesktopPaperView({
         </div>
 
         {/* Employment & Income */}
-        <div className="space-y-2">
-          <div className="text-xs font-bold text-blue-950 uppercase tracking-wider border-b border-slate-200 pb-1 mb-2">
+        <div className="space-y-2 print:space-y-1">
+          <div className="text-xs font-bold text-blue-950 uppercase tracking-wider border-b border-slate-200 pb-1 mb-2 print:mb-1">
             D. {labelPfx} Occupation & Income Details
           </div>
           <PaperLine label="Employment Type" value={gEmp === 'Job' ? 'Job (Salaried)' : gEmp === 'Business' ? 'Business (Self-Employed)' : gEmp} />
@@ -957,7 +957,7 @@ function DesktopPaperView({
         </section>
 
         {/* ================= 4. CO-APPLICANT DETAILS ================= */}
-        <section className="space-y-4">
+        <section className={`space-y-4 ${hasCoApplicant ? 'print-break-before print:space-y-2 print:p-0 print:m-0' : 'print:hidden'}`}>
           <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
             <span className="text-base sm:text-lg font-bold text-slate-900 shrink-0">4.</span>
             <h2 className="text-base sm:text-lg font-bold text-slate-900 uppercase tracking-wide">
@@ -1117,8 +1117,8 @@ function DesktopPaperView({
           </div>
 
           {/* Print Layout: Sequentially outputs all 3 Guarantors with pagination breaks */}
-          <div className="hidden print:block space-y-6">
-            <div className="space-y-4 print:p-0 print:m-0">
+          <div className="hidden print:block">
+            <div className="space-y-4 print-break-before">
               <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
                 <span className="text-base sm:text-lg font-bold text-slate-900 shrink-0">5.</span>
                 <h2 className="text-base sm:text-lg font-bold text-slate-900 uppercase tracking-wide">Guarantor 1 Details</h2>
@@ -1126,7 +1126,7 @@ function DesktopPaperView({
               {renderGuarantorPaper(1)}
             </div>
 
-            <div className="space-y-4 print-break-before print:p-0 print:m-0">
+            <div className="space-y-4 print-break-before">
               <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
                 <span className="text-base sm:text-lg font-bold text-slate-900 shrink-0">6.</span>
                 <h2 className="text-base sm:text-lg font-bold text-slate-900 uppercase tracking-wide">Guarantor 2 Details</h2>
@@ -1134,7 +1134,7 @@ function DesktopPaperView({
               {renderGuarantorPaper(2)}
             </div>
 
-            <div className="space-y-4 print-break-before print:p-0 print:m-0">
+            <div className="space-y-4 print-break-before">
               <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
                 <span className="text-base sm:text-lg font-bold text-slate-900 shrink-0">7.</span>
                 <h2 className="text-base sm:text-lg font-bold text-slate-900 uppercase tracking-wide">Guarantor 3 Details</h2>
