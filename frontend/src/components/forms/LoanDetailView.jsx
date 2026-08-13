@@ -1643,11 +1643,12 @@ export function LoanDetailView({ formData = {}, application = {}, onBack, userRo
       </div>
 
       {/* Desktop Detail View: Physical paper document with print capabilities (Always forced visible in Print) */}
-      <div className="hidden md:block print:block">
+      <div className="hidden md:block print:block p-4 md:p-6 lg:p-8">
         <DesktopPaperView
           formData={formData}
           application={application}
           onBack={onBack}
+          userRole={userRole}
         />
       </div>
     </>

@@ -60,6 +60,7 @@ export { useFormState } from './hooks/useFormState';
 
 // Pre-composed Business Loan Form & Detail Views
 export { BusinessLoanForm } from './BusinessLoanForm';
+export { PersonalLoanForm } from './PersonalLoanForm';
 export { LoanDetailView, LoanDetailView as BusinessLoanDetailView, BusinessLoanMobileDetailView } from './LoanDetailView';
 export { LoanDocumentsSidebar, LoanDocumentsSidebar as LoanDocumentsModal } from './LoanDocumentsSidebar';
 

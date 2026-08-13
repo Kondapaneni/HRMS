@@ -2,7 +2,7 @@ import React from 'react';
 import { ArrowLeft, Briefcase } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { BusinessLoanForm } from '../components/forms';
+import { BusinessLoanForm, PersonalLoanForm } from '../components/forms';
 
 const OriginationMobileLoanForms = () => {
   const navigate = useNavigate();
@@ -12,9 +12,16 @@ const OriginationMobileLoanForms = () => {
 
   const renderForm = () => {
     switch (loanType) {
+      case 'Personal Loan':
+        return <PersonalLoanForm />;
       case 'Business Loan':
-      default:
         return <BusinessLoanForm />;
+      default:
+        return (
+          <div className="p-8 text-center text-slate-500 font-medium">
+            Invalid or Unsupported Loan Type Selected.
+          </div>
+        );
     }
   };
 

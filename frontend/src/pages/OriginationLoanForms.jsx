@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { BusinessLoanForm } from '../components/forms';
+import { BusinessLoanForm, PersonalLoanForm } from '../components/forms';
 import { Briefcase, ArrowLeft } from 'lucide-react';
 import OriginationMobileLoanForms from './OriginationMobileLoanForms';
 
@@ -12,9 +12,16 @@ export default function OriginationLoanForms() {
 
   const renderForm = () => {
     switch (loanType) {
+      case 'Personal Loan':
+        return <PersonalLoanForm />;
       case 'Business Loan':
-      default:
         return <BusinessLoanForm />;
+      default:
+        return (
+          <div className="p-8 text-center text-slate-500 font-medium">
+            Invalid or Unsupported Loan Type Selected.
+          </div>
+        );
     }
   };
 
