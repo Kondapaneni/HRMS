@@ -1,0 +1,381 @@
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { createPortal } from 'react-dom';
+import {
+  ArrowLeft,
+  Calendar,
+  Clock,
+  CheckCircle2,
+  Camera,
+  Loader2,
+  X,
+  FileText
+} from 'lucide-react';
+import { motion } from 'framer-motion';
+import { format } from 'date-fns';
+import toast from 'react-hot-toast';
+import { supabase } from '../lib/supabase';
+import { getLoanApplications, updateLoanApplicationStatus } from '../services/loanServices';
+import { LoanDetailView } from '../components/forms';
+import { LoanDocumentsSidebar } from '../components/forms/LoanDocumentsSidebar';
+import { SignatureModal } from '../components/forms/SignatureModal';
+
+const formatDateSafe = (dateStr) => {
+  if (!dateStr) return null;
+  try {
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? null : format(d, 'dd MMM yyyy, hh:mm a');
+  } catch {
+    return null;
+  }
+};
+
+export default function OriginationMobileViewApplications({
+  application: propApplication,
+  formData: propFormData,
+  fromPath: propFromPath
+}) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [searchParams] = useSearchParams();
+  const paramAppId = searchParams.get('id');
+
+  const stateApplication = propApplication || location.state?.application;
+  const stateFormData = propFormData || location.state?.form_data || stateApplication?.form_data;
+  const fromPath = propFromPath || location.state?.from || '/employee/loans/origination/applications';
+
+  // Fallback query if page is refreshed or visited with a query parameter/missing state
+  const { data: response, isLoading } = useQuery({
+    queryKey: ['origination', 'applications', 'list'],
+    queryFn: getLoanApplications,
+    enabled: !stateApplication,
+  });
+
+  let application = stateApplication;
+  let formData = stateFormData;
+
+  if (!application && response?.applications) {
+    if (paramAppId) {
+      application = response.applications.find(
+        (a) => String(a.id) === String(paramAppId) || String(a.application_id) === String(paramAppId)
+      );
+    } else if (response.applications.length > 0) {
+      application = response.applications[0];
+    }
+    if (application) {
+      formData = application.form_data;
+    }
+  }
+
+  const [isDocsOpen, setIsDocsOpen] = useState(false);
+  const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
+  const [isTransferring, setIsTransferring] = useState(false);
+  const [previewDoc, setPreviewDoc] = useState(null);
+
+  const [currentDocs, setCurrentDocs] = useState(
+    formData?.documents || application?.documents || application?.form_data?.documents || {}
+  );
+  const [localStatus, setLocalStatus] = useState(
+    application?.status || formData?.status || 'Draft'
+  );
+  const [localTimeline, setLocalTimeline] = useState(
+    formData?.timeline || application?.form_data?.timeline || []
+  );
+
+  // Sync state if application is loaded via async query
+  useEffect(() => {
+    if (application) {
+      if (application.status) setLocalStatus(application.status);
+      const docs = formData?.documents || application.documents || application.form_data?.documents || {};
+      setCurrentDocs(docs);
+      const timeline = formData?.timeline || application.form_data?.timeline || [];
+      setLocalTimeline(timeline);
+    }
+  }, [application, formData]);
+
+  useEffect(() => {
+    if (previewDoc) {
+      document.body.classList.add('hide-mobile-nav');
+    } else {
+      document.body.classList.remove('hide-mobile-nav');
+    }
+    return () => {
+      document.body.classList.remove('hide-mobile-nav');
+    };
+  }, [previewDoc]);
+
+  const formattedDate =
+    formatDateSafe(application?.created_at || application?.updated_at) ||
+    format(new Date(), 'dd MMM yyyy');
+  const appId = application?.application_id || formData?.application_id || 'LA-DRAFT';
+  const dbId = application?.id || formData?.id;
+  const loanType = application?.loan_type || formData?.loan_type || 'Business Loan';
+  const appStatus = String(localStatus);
+  const isSubmitted =
+    appStatus.toLowerCase() === 'submitted' ||
+    appStatus.toLowerCase() === 'approved' ||
+    appStatus.toLowerCase() === 'under_review';
+
+  // Calculate Document Upload Status
+  const hasCoApplicant =
+    formData?.has_co_applicant === 'Yes' ||
+    (formData?.co_applicant_name && String(formData?.co_applicant_name).trim() !== '');
+  let requiredSlots = 1; // applicant
+  if (hasCoApplicant) requiredSlots++;
+  if (formData?.guarantor_1_name && String(formData?.guarantor_1_name).trim() !== '') requiredSlots++;
+  if (formData?.guarantor_2_name && String(formData?.guarantor_2_name).trim() !== '') requiredSlots++;
+  if (formData?.guarantor_3_name && String(formData?.guarantor_3_name).trim() !== '') requiredSlots++;
+
+  const uploadedCount = [
+    'applicant_photo',
+    hasCoApplicant ? 'co_applicant_photo' : null,
+    formData?.guarantor_1_name ? 'guarantor_1_photo' : null,
+    formData?.guarantor_2_name ? 'guarantor_2_photo' : null,
+    formData?.guarantor_3_name ? 'guarantor_3_photo' : null,
+  ].filter((key) => key && !!currentDocs[key]).length;
+
+  const isAllUploaded = requiredSlots > 0 && uploadedCount === requiredSlots;
+  const hasTransferred =
+    localStatus === 'Underwriting' ||
+    localStatus === 'Approved' ||
+    localStatus === 'Rejected' ||
+    localTimeline.some((e) => e.stage === 'Transferred to Underwriting');
+
+  const handleTransferToUnderwriting = async (signatureDataUrl) => {
+    if (!dbId) {
+      toast.error('Application ID not found, cannot transfer.');
+      return;
+    }
+    try {
+      setIsSignatureModalOpen(false);
+      setIsTransferring(true);
+
+      let signatureUrl = null;
+      if (signatureDataUrl) {
+        const res = await fetch(signatureDataUrl);
+        const blob = await res.blob();
+        const fileToUpload = new File([blob], 'signature.png', { type: 'image/png' });
+
+        const fileName = `${dbId}/employee-signature-${Date.now()}.png`;
+        const { error: uploadError } = await supabase.storage
+          .from('loan_documents')
+          .upload(fileName, fileToUpload, {
+            cacheControl: '3600',
+            upsert: true,
+          });
+
+        if (uploadError) throw new Error(uploadError.message);
+        signatureUrl = window.location.origin + '/Loan-Document/' + fileName;
+      }
+
+      const timelineEvent = {
+        stage: 'Transferred to Underwriting',
+        timestamp: new Date().toISOString(),
+        signature: signatureUrl,
+      };
+      const signatureData = signatureUrl ? { Origination: signatureUrl } : null;
+      await updateLoanApplicationStatus(dbId, 'Underwriting', timelineEvent, signatureData);
+
+      setLocalTimeline((prev) => [...prev, timelineEvent]);
+      queryClient.invalidateQueries({ queryKey: ['origination', 'applications', 'list'] });
+      toast.success('Application transferred to Underwriting successfully.');
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to transfer application.');
+    } finally {
+      setIsTransferring(false);
+    }
+  };
+
+  if (!application && isLoading) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-slate-500">
+        <Loader2 className="animate-spin h-8 w-8 text-blue-600 mb-3" />
+        <p className="text-sm font-medium">Loading application details...</p>
+      </div>
+    );
+  }
+
+  if (!application && !isLoading) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-slate-500">
+        <p className="text-sm font-medium mb-4">No application details found.</p>
+        <button
+          onClick={() => navigate(fromPath)}
+          className="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors"
+        >
+          Back to Applications
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full pb-8">
+      {/* ━━━ Hero Header — matching Origination Module Mobile Design ━━━ */}
+      <section className="relative px-6 pt-12 pb-24 rounded-b-[40px] overflow-hidden bg-slate-900 shadow-md">
+        {/* Animated Background Blobs */}
+        <motion.div
+          animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
+          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+          className="absolute -top-20 -left-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+        />
+        <motion.div
+          animate={{ scale: [1, 1.4, 1], x: [0, -40, 0], y: [0, 50, 0] }}
+          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+          className="absolute -top-10 -right-10 w-64 h-64 bg-indigo-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+        />
+        <motion.div
+          animate={{ scale: [1, 1.3, 1], x: [0, 30, 0], y: [0, -40, 0] }}
+          transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+          className="absolute bottom-0 left-20 w-80 h-80 bg-emerald-500 rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
+        />
+
+        {/* Subtle Glass Overlay */}
+        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none" />
+
+        <div className="relative z-10 flex items-center justify-between px-2">
+          <button
+            type="button"
+            onClick={() => navigate(fromPath)}
+            className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center backdrop-blur-md transition-transform active:scale-95 border border-white/20 cursor-pointer shadow-xs"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div className="text-center">
+            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">
+              ORIGINATION MODULE
+            </p>
+            <h2 className="text-xl font-bold text-white tracking-tight drop-shadow-sm">
+              Application Details
+            </h2>
+          </div>
+          <div className="w-10 h-10" />
+        </div>
+      </section>
+
+      {/* ━━━ Mobile Content Cards ━━━ */}
+      <div className="relative z-20 -mt-12 px-4 space-y-4">
+        {/* Application Overview & Status Card */}
+        <div className="bg-white p-5 rounded-[24px] shadow-lg border border-slate-100/80">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-lg font-bold text-slate-900 tracking-tight font-sans">
+              {appId}
+            </span>
+            <span
+              className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                isSubmitted
+                  ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                  : 'bg-amber-100 text-amber-700 border border-amber-200'
+              }`}
+            >
+              {isSubmitted ? <CheckCircle2 size={10} /> : <Clock size={10} />} {appStatus}
+            </span>
+          </div>
+          <p className="text-xs font-semibold text-slate-500">{loanType}</p>
+          <p className="text-[11px] text-slate-400 mt-0.5 mb-3">
+            {isSubmitted ? `Submitted on ${formattedDate}` : `Draft saved on ${formattedDate}`}
+          </p>
+
+          {!hasTransferred && (
+            <div className="flex flex-col gap-2.5 pt-1">
+              <button
+                type="button"
+                onClick={() => setIsDocsOpen(true)}
+                className="w-full flex items-center justify-center gap-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-xl py-2.5 px-4 font-bold text-sm shadow-xs active:scale-[0.98] transition-transform cursor-pointer"
+              >
+                <Camera size={16} /> Upload Photos ({uploadedCount}/{requiredSlots})
+              </button>
+
+              {isAllUploaded && (
+                <button
+                  type="button"
+                  onClick={() => setIsSignatureModalOpen(true)}
+                  disabled={isTransferring}
+                  className="w-full flex items-center justify-center gap-2 bg-emerald-600 text-white rounded-xl py-3 px-4 font-bold text-sm shadow-md shadow-emerald-600/20 active:scale-[0.98] transition-transform disabled:opacity-70 disabled:active:scale-100 cursor-pointer"
+                >
+                  {isTransferring ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" /> Transferring...
+                    </>
+                  ) : (
+                    <>Transfer to Underwriting</>
+                  )}
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* ━━━ Loan Details Content rendered from LoanDetailView ━━━ */}
+        <LoanDetailView
+          formData={formData || {}}
+          application={application || {}}
+          currentDocs={currentDocs}
+          onPreviewDoc={setPreviewDoc}
+          localTimeline={localTimeline}
+        />
+
+        {/* ━━━ Bottom Back Button ━━━ */}
+        <div className="flex justify-center pt-2 pb-2">
+          <button
+            type="button"
+            onClick={() => navigate(fromPath)}
+            className="inline-flex items-center justify-center rounded-xl text-sm font-semibold bg-slate-900 text-white h-11 px-6 transition-colors gap-2 shadow-sm cursor-pointer active:scale-[0.98]"
+          >
+            <ArrowLeft className="w-4 h-4" /> Back to Applications
+          </button>
+        </div>
+      </div>
+
+      {/* Loan Documents Sidebar */}
+      <LoanDocumentsSidebar
+        isOpen={isDocsOpen}
+        onClose={() => setIsDocsOpen(false)}
+        formData={{ ...(formData || {}), documents: currentDocs }}
+        application={application}
+        onDocumentsUpdated={(newDocs) => setCurrentDocs(newDocs)}
+      />
+
+      {/* Fullscreen Photo Lightbox Preview Portal */}
+      {previewDoc &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md animate-in fade-in duration-200 cursor-pointer"
+            onClick={() => setPreviewDoc(null)}
+          >
+            <button
+              type="button"
+              onClick={() => setPreviewDoc(null)}
+              className="absolute top-5 right-5 p-2.5 rounded-full bg-white/20 text-white hover:bg-white/30 active:scale-95 transition-all cursor-pointer z-10"
+              title="Close Preview"
+            >
+              <X size={24} />
+            </button>
+            <div
+              className="max-w-3xl max-h-[85vh] overflow-hidden rounded-2xl shadow-2xl border border-white/10"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img
+                src={previewDoc}
+                alt="Enlarged Photo"
+                className="w-full h-full object-contain max-h-[85vh] select-none"
+              />
+            </div>
+          </div>,
+          document.body
+        )}
+
+      {/* Signature Modal */}
+      <SignatureModal
+        isOpen={isSignatureModalOpen}
+        onClose={() => setIsSignatureModalOpen(false)}
+        onSubmit={handleTransferToUnderwriting}
+      />
+    </div>
+  );
+}
+
+export { OriginationMobileViewApplications };
