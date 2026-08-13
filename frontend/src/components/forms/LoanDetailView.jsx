@@ -129,10 +129,10 @@ const FieldDivider = () => <div className="border-b border-slate-100" />;
 const SectionCard = ({ number, title, children }) => (
   <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
     <div className="flex items-center gap-1.5 px-5 pt-5 pb-3">
-      <span className="text-sm font-bold text-slate-800 shrink-0">
+      <span className="text-base font-bold text-slate-800 shrink-0">
         {number}.
       </span>
-      <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide">
+      <h3 className="text-base font-bold text-slate-800 uppercase tracking-wide">
         {title}
       </h3>
     </div>
@@ -560,7 +560,7 @@ function MobileDetailView({
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
-                G{gIdx}{shortName}
+                Guarantor {gIdx}{shortName}
               </button>
             );
           })}
@@ -838,8 +838,8 @@ function DesktopPaperView({
         {/* ================= 1. APPLICANT PERSONAL DETAILS ================= */}
         <section className="space-y-3">
           <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
-            <span className="w-5 h-5 rounded bg-blue-600 text-white flex items-center justify-center text-[11px] font-bold">1</span>
-            <h2 className="text-sm sm:text-base font-bold text-slate-900 uppercase tracking-wide">
+            <span className="text-base sm:text-lg font-bold text-slate-900 shrink-0">1.</span>
+            <h2 className="text-base sm:text-lg font-bold text-slate-900 uppercase tracking-wide">
               Applicant Personal Details
             </h2>
           </div>
@@ -878,8 +878,8 @@ function DesktopPaperView({
         {/* ================= 2. APPLICANT RESIDENTIAL ADDRESS DETAILS ================= */}
         <section className="space-y-4">
           <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
-            <span className="w-5 h-5 rounded bg-blue-600 text-white flex items-center justify-center text-[11px] font-bold">2</span>
-            <h2 className="text-sm sm:text-base font-bold text-slate-900 uppercase tracking-wide">
+            <span className="text-base sm:text-lg font-bold text-slate-900 shrink-0">2.</span>
+            <h2 className="text-base sm:text-lg font-bold text-slate-900 uppercase tracking-wide">
               Applicant Residential Address Details
             </h2>
           </div>
@@ -916,8 +916,8 @@ function DesktopPaperView({
         {/* ================= 3. APPLICANT OCCUPATION & INCOME ================= */}
         <section className="space-y-3">
           <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
-            <span className="w-5 h-5 rounded bg-blue-600 text-white flex items-center justify-center text-[11px] font-bold">3</span>
-            <h2 className="text-sm sm:text-base font-bold text-slate-900 uppercase tracking-wide">
+            <span className="text-base sm:text-lg font-bold text-slate-900 shrink-0">3.</span>
+            <h2 className="text-base sm:text-lg font-bold text-slate-900 uppercase tracking-wide">
               Applicant Occupation & Income Details
             </h2>
           </div>
@@ -959,8 +959,8 @@ function DesktopPaperView({
         {/* ================= 4. CO-APPLICANT DETAILS ================= */}
         <section className="space-y-4">
           <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
-            <span className="w-5 h-5 rounded bg-blue-600 text-white flex items-center justify-center text-[11px] font-bold">4</span>
-            <h2 className="text-sm sm:text-base font-bold text-slate-900 uppercase tracking-wide">
+            <span className="text-base sm:text-lg font-bold text-slate-900 shrink-0">4.</span>
+            <h2 className="text-base sm:text-lg font-bold text-slate-900 uppercase tracking-wide">
               Co-Applicant Details
             </h2>
           </div>
@@ -974,7 +974,7 @@ function DesktopPaperView({
                 <div className="text-xs font-bold text-blue-950 uppercase tracking-wider border-b border-slate-200 pb-1 mb-2">
                   A. Co-Applicant Personal Details
                 </div>
-                <div className="flex flex-row items-start justify-between gap-4 print:flex-row print:items-start">
+                <div className="flex flex-row items-start justify-between gap-4 print:flex-row print:items-start pt-1">
                   <div className="flex-1 space-y-1 w-full">
                     <PaperLine label="Co-Applicant Name" value={formData.co_applicant_name} />
                     <PaperLine label="Relation with Applicant" value={formData.co_relation_with_applicant} />
@@ -1076,37 +1076,43 @@ function DesktopPaperView({
           )}
         </section>
 
-        {/* ================= 5. GUARANTOR DETAILS ================= */}
+        {/* ================= 5. GUARANTOR DETAILS (3 REQUIRED) ================= */}
         <section className="space-y-4">
-          <div className="flex flex-row items-center justify-between gap-4 border-b border-slate-200 pb-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-2 print:hidden">
             <div className="flex items-center gap-2">
-              <span className="w-5 h-5 rounded bg-blue-600 text-white flex items-center justify-center text-[11px] font-bold">5</span>
-              <h2 className="text-sm sm:text-base font-bold text-slate-900 uppercase tracking-wide">
-                Guarantor Details (3 Required)
+              <span className="text-base sm:text-lg font-bold text-slate-900 shrink-0">5.</span>
+              <h2 className="text-base sm:text-lg font-bold text-slate-900 uppercase tracking-wide">
+                Guarantors Details (3 Required)
               </h2>
             </div>
 
-            {/* Guarantor Tab Selectors (Hidden in Print) */}
-            <div className="flex items-center gap-1.5 print:hidden">
-              {[1, 2, 3].map((gIdx) => (
-                <button
-                  key={gIdx}
-                  type="button"
-                  onClick={() => setActiveGuarantorTab(gIdx)}
-                  className={`inline-flex items-center justify-center rounded-md text-xs font-semibold h-7 px-3 transition-colors cursor-pointer ${
-                    activeGuarantorTab === gIdx
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  Guarantor {gIdx}
-                </button>
-              ))}
+            {/* Guarantor Tabs Styled Like Add Lead Button */}
+            <div className="flex flex-wrap items-center gap-2 print:hidden">
+              {[1, 2, 3].map((gIdx) => {
+                const isActive = activeGuarantorTab === gIdx;
+                const gName = formData[`guarantor_${gIdx}_name`];
+                const shortName = gName ? ` (${gName.split(' ')[0]})` : '';
+
+                return (
+                  <button
+                    key={gIdx}
+                    type="button"
+                    onClick={() => setActiveGuarantorTab(gIdx)}
+                    className={`inline-flex items-center justify-center rounded-md text-xs sm:text-sm font-medium h-9 px-3.5 transition-colors gap-1.5 cursor-pointer shadow-xs ${
+                      isActive
+                        ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm'
+                        : 'bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 border border-slate-300'
+                    }`}
+                  >
+                    Guarantor {gIdx}{shortName}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {/* Interactive Screen View: Shows Active Tab (Hidden in Print) */}
-          <div className="print:hidden">
+          {/* Active Guarantor Form in Screen View (Hidden in Print to prevent duplication) */}
+          <div className="p-4 sm:p-5 rounded-md border border-slate-200 bg-slate-50/50 print:hidden">
             {renderGuarantorPaper(activeGuarantorTab)}
           </div>
 
@@ -1114,24 +1120,24 @@ function DesktopPaperView({
           <div className="hidden print:block space-y-6">
             <div className="space-y-4 print:p-0 print:m-0">
               <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
-                <span className="w-5 h-5 rounded bg-blue-600 text-white flex items-center justify-center text-[11px] font-bold">5</span>
-                <h2 className="text-sm sm:text-base font-bold text-slate-900 uppercase tracking-wide">Guarantor 1 Details</h2>
+                <span className="text-base sm:text-lg font-bold text-slate-900 shrink-0">5.</span>
+                <h2 className="text-base sm:text-lg font-bold text-slate-900 uppercase tracking-wide">Guarantor 1 Details</h2>
               </div>
               {renderGuarantorPaper(1)}
             </div>
 
             <div className="space-y-4 print-break-before print:p-0 print:m-0">
               <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
-                <span className="w-5 h-5 rounded bg-blue-600 text-white flex items-center justify-center text-[11px] font-bold">6</span>
-                <h2 className="text-sm sm:text-base font-bold text-slate-900 uppercase tracking-wide">Guarantor 2 Details</h2>
+                <span className="text-base sm:text-lg font-bold text-slate-900 shrink-0">6.</span>
+                <h2 className="text-base sm:text-lg font-bold text-slate-900 uppercase tracking-wide">Guarantor 2 Details</h2>
               </div>
               {renderGuarantorPaper(2)}
             </div>
 
             <div className="space-y-4 print-break-before print:p-0 print:m-0">
               <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
-                <span className="w-5 h-5 rounded bg-blue-600 text-white flex items-center justify-center text-[11px] font-bold">7</span>
-                <h2 className="text-sm sm:text-base font-bold text-slate-900 uppercase tracking-wide">Guarantor 3 Details</h2>
+                <span className="text-base sm:text-lg font-bold text-slate-900 shrink-0">7.</span>
+                <h2 className="text-base sm:text-lg font-bold text-slate-900 uppercase tracking-wide">Guarantor 3 Details</h2>
               </div>
               {renderGuarantorPaper(3)}
             </div>
@@ -1141,8 +1147,8 @@ function DesktopPaperView({
         {/* ================= 6. APPLICATION TIMELINE ================= */}
         <section className="space-y-4 print:hidden">
           <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
-            <span className="w-5 h-5 rounded bg-blue-600 text-white flex items-center justify-center text-[11px] font-bold">6</span>
-            <h2 className="text-sm sm:text-base font-bold text-slate-900 uppercase tracking-wide">
+            <span className="text-base sm:text-lg font-bold text-slate-900 shrink-0">6.</span>
+            <h2 className="text-base sm:text-lg font-bold text-slate-900 uppercase tracking-wide">
               Application Timeline
             </h2>
           </div>
