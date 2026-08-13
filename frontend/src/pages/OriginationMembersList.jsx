@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getLeads } from '../services/loanServices';
+import { getLeads, getLoanApplications } from '../services/loanServices';
 import { motion } from 'framer-motion';
 import { Search, CheckCircle2, Users, Loader2, MoreVertical } from 'lucide-react';
 import { format } from 'date-fns';
@@ -21,6 +21,12 @@ const OriginationMembersList = () => {
   const { data: response, isLoading, error } = useQuery({
     queryKey: ['origination', 'leads', 'list', debouncedSearch],
     queryFn: getLeads,
+  });
+
+  // Pre-fetch applications list so member details and sidebar load status instantly without flicker
+  useQuery({
+    queryKey: ['origination', 'applications', 'list'],
+    queryFn: getLoanApplications,
   });
 
   // Filter only converted leads and group by phone

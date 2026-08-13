@@ -10,7 +10,6 @@ const OriginationMobileMemberDetails = ({ member: propMember }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { phone } = useParams();
-  const [submittedLeadIds, setSubmittedLeadIds] = useState(new Set());
 
   // Fetch leads if propMember or location.state.member is missing
   const { data: response, isLoading: isLoadingLeads } = useQuery({
@@ -41,26 +40,19 @@ const OriginationMobileMemberDetails = ({ member: propMember }) => {
     return null;
   }, [propMember, location.state?.member, response, phone]);
 
-  useEffect(() => {
-    const fetchSubmittedApplications = async () => {
-      try {
-        const res = await getLoanApplications();
-        if (res && res.applications) {
-          const submittedSet = new Set(
-            res.applications
-              .filter(app => app.status === 'Submitted' && app.lead_id)
-              .map(app => String(app.lead_id))
-          );
-          setSubmittedLeadIds(submittedSet);
-        }
-      } catch (err) {
-        console.error('Error fetching loan applications:', err);
-      }
-    };
-    if (member) {
-      fetchSubmittedApplications();
-    }
-  }, [member]);
+  const { data: appsResponse, isLoading: isLoadingApps } = useQuery({
+    queryKey: ['origination', 'applications', 'list'],
+    queryFn: getLoanApplications,
+  });
+
+  const submittedLeadIds = React.useMemo(() => {
+    if (!appsResponse?.applications) return new Set();
+    return new Set(
+      appsResponse.applications
+        .filter(app => app.status !== 'Draft' && app.lead_id)
+        .map(app => String(app.lead_id))
+    );
+  }, [appsResponse]);
 
   if (isLoadingLeads && !member) {
     return (
@@ -210,14 +202,20 @@ const OriginationMobileMemberDetails = ({ member: propMember }) => {
                     <div className="font-semibold text-slate-800">
                       {loan.loan_type || 'Personal Loan'}
                     </div>
-                    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                      isSubmitted ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-                    }`}>
-                      <CheckCircle2 size={12} /> {isSubmitted ? 'Submitted' : (loan.status || 'Draft')}
-                    </span>
+                    {isLoadingApps && !appsResponse ? (
+                      <div className="h-5 w-16 bg-slate-200 animate-pulse rounded-full" />
+                    ) : (
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                        isSubmitted ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                      }`}>
+                        <CheckCircle2 size={12} /> {isSubmitted ? 'Submitted' : (loan.status || 'Draft')}
+                      </span>
+                    )}
                   </div>
                   
-                  {isSubmitted ? (
+                  {isLoadingApps && !appsResponse ? (
+                    <div className="h-8 w-36 bg-slate-200 animate-pulse rounded-md" />
+                  ) : isSubmitted ? (
                     <div className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-md bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed select-none">
                       <Lock size={12} className="text-slate-400" /> Application Submitted
                     </div>
@@ -237,7 +235,9 @@ const OriginationMobileMemberDetails = ({ member: propMember }) => {
             {(!member.loans || member.loans.length === 0) && (
               <div className="text-center p-4 text-slate-500 text-sm bg-slate-50 rounded-lg border border-slate-100 space-y-2">
                 <p>No loan history available.</p>
-                {isMemberDefaultSubmitted ? (
+                {isLoadingApps && !appsResponse ? (
+                  <div className="h-8 w-36 bg-slate-200 animate-pulse rounded-md mx-auto" />
+                ) : isMemberDefaultSubmitted ? (
                   <div className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-md bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed select-none">
                     <Lock size={12} className="text-slate-400" /> Application Submitted
                   </div>
