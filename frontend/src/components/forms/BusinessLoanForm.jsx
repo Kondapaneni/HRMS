@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../../contexts/AuthContext';
 import {
   FormGrid,
@@ -21,6 +22,7 @@ export function BusinessLoanForm() {
   const { profile } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   // Extract default values from React Router state (passed quietly without query parameters) or user profile from DB
   const initialName = 
