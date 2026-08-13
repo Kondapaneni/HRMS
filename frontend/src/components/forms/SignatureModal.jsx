@@ -67,6 +67,7 @@ export function SignatureModal({ isOpen, onClose, onSubmit, title = "Employee Si
 
   const getCoordinates = (e) => {
     const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
     const rect = canvas.getBoundingClientRect();
     const touch =
       e.touches && e.touches.length > 0
@@ -78,15 +79,19 @@ export function SignatureModal({ isOpen, onClose, onSubmit, title = "Employee Si
     const clientY = touch ? touch.clientY : e.clientY;
 
     if (isPortrait) {
-      // Rotated -90deg
+      // Rotated -90deg: screen Y is canvas X, screen X is canvas Y
+      const scaleX = rect.height > 0 ? canvas.width / rect.height : 1;
+      const scaleY = rect.width > 0 ? canvas.height / rect.width : 1;
       return {
-        x: rect.bottom - clientY,
-        y: clientX - rect.left
+        x: (rect.bottom - clientY) * scaleX,
+        y: (clientX - rect.left) * scaleY
       };
     } else {
+      const scaleX = rect.width > 0 ? canvas.width / rect.width : 1;
+      const scaleY = rect.height > 0 ? canvas.height / rect.height : 1;
       return {
-        x: clientX - rect.left,
-        y: clientY - rect.top
+        x: (clientX - rect.left) * scaleX,
+        y: (clientY - rect.top) * scaleY
       };
     }
   };
@@ -101,11 +106,15 @@ export function SignatureModal({ isOpen, onClose, onSubmit, title = "Employee Si
     
     const { x, y } = getCoordinates(e);
     
+    // 1. Draw a filled circular dot immediately (iOS Safari WebKit drops zero-length line strokes, but arc+fill is 100% reliable)
+    ctx.fillStyle = '#0f172a';
+    ctx.beginPath();
+    ctx.arc(x, y, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 2. Begin path for continuous strokes if the user drags
     ctx.beginPath();
     ctx.moveTo(x, y);
-    // Draw immediately so single taps/clicks render a clean dot (e.g. dots on i, j, or periods)
-    ctx.lineTo(x, y);
-    ctx.stroke();
     setIsDrawing(true);
     setIsEmpty(false);
   };
@@ -121,6 +130,10 @@ export function SignatureModal({ isOpen, onClose, onSubmit, title = "Employee Si
     
     const { x, y } = getCoordinates(e);
     
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
     ctx.lineTo(x, y);
     ctx.stroke();
   };
@@ -129,7 +142,8 @@ export function SignatureModal({ isOpen, onClose, onSubmit, title = "Employee Si
     if (isDrawing) {
       const canvas = canvasRef.current;
       if (canvas) {
-        canvas.getContext('2d').closePath();
+        const ctx = canvas.getContext('2d');
+        ctx.closePath();
       }
       setIsDrawing(false);
     }
