@@ -92,7 +92,7 @@ const MemberDetailsSidebar = ({ isOpen, onClose, member }) => {
                       <div key={loan.id} className="bg-slate-50 border border-slate-100 rounded-lg p-4 transition-all hover:shadow-md hover:border-slate-200">
                         <div className="flex justify-between items-start mb-3">
                           <div className="font-semibold text-slate-800">
-                            {loan.loan_type || 'Personal Loan'}
+                            {loan.loan_type}
                           </div>
                           {isLoadingApps && !appsResponse ? (
                             <div className="h-5 w-16 bg-slate-200 animate-pulse rounded-full" />
@@ -113,8 +113,8 @@ const MemberDetailsSidebar = ({ isOpen, onClose, member }) => {
                           </div>
                         ) : (
                           <Link 
-                            to="/employee/loans/business-loan"
-                            state={{ name: member.name, phone: member.phone, lead_id: currentLeadId }}
+                            to="/employee/loans/form"
+                            state={{ name: member.name, phone: member.phone, lead_id: currentLeadId, loan_type: loan.loan_type }}
                             className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline transition-all"
                           >
                             Fill Loan Form <ArrowRight size={14} />
@@ -135,7 +135,7 @@ const MemberDetailsSidebar = ({ isOpen, onClose, member }) => {
                         </div>
                       ) : (
                         <Link 
-                          to="/employee/loans/business-loan"
+                          to="/employee/loans/form"
                           state={{ name: member.name, phone: member.phone, lead_id: member.lead_id }}
                           className="inline-flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-700 hover:underline"
                         >

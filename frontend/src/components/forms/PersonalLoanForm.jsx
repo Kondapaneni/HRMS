@@ -1186,11 +1186,16 @@ export function PersonalLoanForm() {
             name="employment"
             label="Employment"
             value={formData.employment || 'Job'}
-            onChange={(val) => updateField('employment', val)}
+            onChange={(val) => {
+              if (val !== 'Business') {
+                updateField('employment', val);
+              }
+            }}
             required
             direction="horizontal"
             options={[
-              { label: 'Job', value: 'Job' }
+              { label: 'Job', value: 'Job' },
+              { label: 'Business', value: 'Business', disabled: true }
             ]}
             error={errors.employment}
           />

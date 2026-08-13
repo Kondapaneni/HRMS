@@ -656,25 +656,8 @@ export const validateHomeLoanForm = (formData = {}) => {
  * Validate Personal Loan Form Data
  */
 export const validatePersonalLoanForm = (formData = {}) => {
-  const errors = {};
-
-  const nameErr = validateApplicantName(formData.applicant_name);
-  if (nameErr) errors.applicant_name = nameErr;
-
-  if (!formData.phone_number || !validateLeadPhone(formData.phone_number)) {
-    errors.phone_number = 'Please enter a valid 10-digit mobile number.';
-  }
-
-  const ageErr = validateAge(formData.age);
-  if (ageErr) errors.age = ageErr;
-
-  const amountErr = validateLoanAmount(formData.requested_amount);
-  if (amountErr) errors.requested_amount = amountErr;
-
-  return {
-    isValid: Object.keys(errors).length === 0,
-    errors
-  };
+  // Personal Loan uses the exact same exhaustive validation rules as Business Loan
+  return validateBusinessLoanForm(formData);
 };
 
 /**

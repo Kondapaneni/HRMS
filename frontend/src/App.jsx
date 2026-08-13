@@ -171,7 +171,7 @@ function App() {
                 <Route path="performance" element={<AdminPerformance />} />
                 <Route path="recruitment" element={<AdminRecruitment />} />
                 <Route path="recruitment/verify-documents/:id" element={<AdminVerifyDocuments />} />
-                <Route path="business-loan" element={<OriginationLoanForms />} />
+                <Route path="form" element={<OriginationLoanForms />} />
                 <Route path="view-application" element={<OriginationViewApplication />} />
               </Route>
 
@@ -250,7 +250,7 @@ function App() {
                 <Route path="origination/members" element={<OriginationMembersList />} />
                 <Route path="origination/members/:phone/details" element={<OriginationMobileMemberDetails />} />
                 <Route path="origination/applications" element={<OriginationApplicationsList />} />
-                <Route path="business-loan" element={<OriginationLoanForms />} />
+                <Route path="form" element={<OriginationLoanForms />} />
                 <Route path="view-application" element={<OriginationViewApplication />} />
               </Route>
 

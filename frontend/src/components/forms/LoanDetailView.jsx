@@ -894,6 +894,7 @@ function DesktopPaperView({ formData = {}, application = {}, onBack, userRole = 
 
   const formattedDate = formatDateSafe(application.created_at || application.updated_at) || format(new Date(), 'dd MMM yyyy');
   const appId = application.application_id || formData.application_id || 'LA-DRAFT';
+  const loanType = application.loan_type || formData.loan_type || 'Business Loan';
   const dbId = application.id || formData.id;
   const appStatus = String(localStatus);
   const isSubmitted = appStatus.toLowerCase() === 'submitted' || appStatus.toLowerCase() === 'approved' || appStatus.toLowerCase() === 'under_review';
@@ -1197,10 +1198,10 @@ function DesktopPaperView({ formData = {}, application = {}, onBack, userRole = 
                 <Building2 className="w-4 h-4 text-blue-600 print:w-3.5 print:h-3.5" /> Acme Financial Services • Credit Origination
               </div>
               <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 uppercase print:text-lg">
-                Business Loan Application Form
+                {loanType} Application Form
               </h1>
               <p className="text-xs text-slate-500 print:text-[10px]">
-                Official Commercial Credit Record • Form Code: BL-ORIG-2026
+                Official Commercial Credit Record • Form Code: {loanType === 'Personal Loan' ? 'PL-ORIG-2026' : 'BL-ORIG-2026'}
               </p>
             </div>
 

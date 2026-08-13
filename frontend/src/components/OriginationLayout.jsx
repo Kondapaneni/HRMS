@@ -14,7 +14,7 @@ const OriginationLayout = () => {
   const [showBackModal, setShowBackModal] = useState(false);
 
   const hideBottomNavPatterns = [
-    '/employee/loans/business-loan',
+    '/employee/loans/form',
     '/employee/loans/view-application',
     '/employee/loans/origination/leads/add',
     /\/employee\/loans\/origination\/leads\/[^/]+\/details/,
@@ -135,15 +135,15 @@ const OriginationLayout = () => {
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 px-2 whitespace-nowrap">Loan Modules</p>
           <nav className="space-y-1">
             {navItems.filter(item => !item.feature || profile?.featureAccess?.[item.feature]).map((item, idx) => {
-              const isBusinessLoanPage = location.pathname === '/employee/loans/business-loan' || location.pathname.startsWith('/employee/loans/business-loan/');
+              const isFormPage = location.pathname === '/employee/loans/form' || location.pathname.startsWith('/employee/loans/form/');
               const isViewApplicationPage = location.pathname === '/employee/loans/view-application' || location.pathname.startsWith('/employee/loans/view-application/');
 
               let isActive;
-              if (isBusinessLoanPage && item.label === 'Members') {
+              if (isFormPage && item.label === 'Members') {
                 isActive = true;
               } else if (isViewApplicationPage && item.label === 'Applications') {
                 isActive = true;
-              } else if (isBusinessLoanPage || isViewApplicationPage) {
+              } else if (isFormPage || isViewApplicationPage) {
                 isActive = false;
               } else if (item.path === '/employee/loans/origination') {
                 isActive = location.pathname === item.path;
