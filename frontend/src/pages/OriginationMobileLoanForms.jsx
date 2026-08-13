@@ -2,29 +2,22 @@ import React from 'react';
 import { ArrowLeft, Briefcase } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { BusinessLoanForm, BusinessLoanDetailView } from '../components/forms';
+import { BusinessLoanForm } from '../components/forms';
 
-const OriginationMobileBusinessLoan = () => {
+const OriginationMobileLoanForms = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const isReadOnly = Boolean(location.state?.readOnly || location.state?.isReadOnly);
-  const fromPath = location.state?.from || '/employee/loans/origination/applications';
+  const fromPath = location.state?.from || '/employee/loans/origination/members';
+  const loanType = location.state?.loan_type || location.state?.loanType || 'Business Loan';
 
-  // ── Read-Only Mode: Use the spacious mobile detail view ──
-  if (isReadOnly) {
-    const application = location.state?.application || {};
-    const formData = location.state?.form_data || application.form_data || {};
+  const renderForm = () => {
+    switch (loanType) {
+      case 'Business Loan':
+      default:
+        return <BusinessLoanForm />;
+    }
+  };
 
-    return (
-      <BusinessLoanDetailView
-        formData={formData}
-        application={application}
-        onBack={() => navigate(fromPath)}
-      />
-    );
-  }
-
-  // ── Edit Mode: Keep the original form layout ──
   return (
     <div className="w-full pb-8">
       {/* Animated Hero Header - Matched from Member Page */}
@@ -72,7 +65,7 @@ const OriginationMobileBusinessLoan = () => {
           <div className="text-center">
             <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">Origination Module</p>
             <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-1.5 justify-center drop-shadow-sm">
-              <Briefcase className="w-4 h-4 text-blue-300" /> Business Loan Form
+              <Briefcase className="w-4 h-4 text-blue-300" /> {loanType} Form
             </h2>
           </div>
           <div className="w-10 h-10" />
@@ -82,11 +75,12 @@ const OriginationMobileBusinessLoan = () => {
       {/* Main Floating Form Container */}
       <div className="relative z-20 -mt-12 mx-4">
         <div className="bg-white p-5 rounded-[28px] shadow-xl border border-slate-100">
-          <BusinessLoanForm />
+          {renderForm()}
         </div>
       </div>
     </div>
   );
 };
 
-export default OriginationMobileBusinessLoan;
+export { OriginationMobileLoanForms as OriginationMobileBusinessLoan };
+export default OriginationMobileLoanForms;

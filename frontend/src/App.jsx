@@ -36,6 +36,7 @@ import OriginationMobileLeadDetails from './pages/OriginationMobileLeadDetails'
 import OriginationMobileMemberDetails from './pages/OriginationMobileMemberDetails'
 import OriginationMembersList from './pages/OriginationMembersList'
 import OriginationApplicationsList from './pages/OriginationApplicationsList'
+import OriginationViewApplication from './pages/OriginationViewApplication'
 import AssessmentWorkspaceLayout from './components/AssessmentWorkspaceLayout'
 import AssessmentManagement from './pages/AssessmentManagement'
 import DepartmentQuestionBank from './pages/DepartmentQuestionBank'
@@ -66,7 +67,7 @@ import AdminPerformance from './pages/AdminPerformance'
 import AdminExpenses from './pages/AdminExpenses'
 
 import AdminRecruitment from './pages/AdminRecruitment'
-import OriginationBusinessLoan from './pages/OriginationBusinessLoan'
+import OriginationLoanForms from './pages/OriginationLoanForms'
 import EmployeeAssessments from './pages/EmployeeAssessments'
 import EmployeeAssessmentInstructions from './pages/EmployeeAssessmentInstructions'
 import EmployeeAssessmentEngine from './pages/EmployeeAssessmentEngine'
@@ -170,7 +171,8 @@ function App() {
                 <Route path="performance" element={<AdminPerformance />} />
                 <Route path="recruitment" element={<AdminRecruitment />} />
                 <Route path="recruitment/verify-documents/:id" element={<AdminVerifyDocuments />} />
-                <Route path="business-loan" element={<OriginationBusinessLoan />} />
+                <Route path="business-loan" element={<OriginationLoanForms />} />
+                <Route path="view-application" element={<OriginationViewApplication />} />
               </Route>
 
               {/* Acme Assessment Hub Workspace (Admin Only) */}
@@ -248,7 +250,8 @@ function App() {
                 <Route path="origination/members" element={<OriginationMembersList />} />
                 <Route path="origination/members/:phone/details" element={<OriginationMobileMemberDetails />} />
                 <Route path="origination/applications" element={<OriginationApplicationsList />} />
-                <Route path="business-loan" element={<OriginationBusinessLoan />} />
+                <Route path="business-loan" element={<OriginationLoanForms />} />
+                <Route path="view-application" element={<OriginationViewApplication />} />
               </Route>
 
               <Route

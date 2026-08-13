@@ -44,15 +44,13 @@ const OriginationApplicationsList = () => {
   };
 
   const handleViewDetails = (app) => {
-    navigate('/employee/loans/business-loan', {
+    navigate('/employee/loans/view-application', {
       state: {
         application: app,
         form_data: app.form_data,
         lead_id: app.lead_id,
         name: app.applicant_name || app.form_data?.applicant_name,
         phone: app.phone_number || app.form_data?.phone_number,
-        readOnly: true,
-        isReadOnly: true,
         from: '/employee/loans/origination/applications',
       },
     });

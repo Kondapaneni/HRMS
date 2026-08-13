@@ -15,6 +15,7 @@ const OriginationLayout = () => {
 
   const hideBottomNavPatterns = [
     '/employee/loans/business-loan',
+    '/employee/loans/view-application',
     '/employee/loans/origination/leads/add',
     /\/employee\/loans\/origination\/leads\/[^/]+\/details/,
     /\/employee\/loans\/origination\/members\/[^/]+\/details/,
@@ -135,14 +136,14 @@ const OriginationLayout = () => {
           <nav className="space-y-1">
             {navItems.filter(item => !item.feature || profile?.featureAccess?.[item.feature]).map((item, idx) => {
               const isBusinessLoanPage = location.pathname === '/employee/loans/business-loan' || location.pathname.startsWith('/employee/loans/business-loan/');
-              const isReadOnly = Boolean(location.state?.readOnly || location.state?.isReadOnly);
+              const isViewApplicationPage = location.pathname === '/employee/loans/view-application' || location.pathname.startsWith('/employee/loans/view-application/');
 
               let isActive;
               if (isBusinessLoanPage && item.label === 'Members') {
-                isActive = !isReadOnly;
-              } else if (isBusinessLoanPage && item.label === 'Applications') {
-                isActive = isReadOnly;
-              } else if (isBusinessLoanPage) {
+                isActive = true;
+              } else if (isViewApplicationPage && item.label === 'Applications') {
+                isActive = true;
+              } else if (isBusinessLoanPage || isViewApplicationPage) {
                 isActive = false;
               } else if (item.path === '/employee/loans/origination') {
                 isActive = location.pathname === item.path;

@@ -1608,14 +1608,14 @@ function DesktopPaperView({ formData = {}, application = {}, onBack, userRole = 
 // 3. UNIFIED RESPONSIVE BUSINESS LOAN DETAIL VIEW EXPORT
 // ============================================================================
 
-export function BusinessLoanDetailView({ formData = {}, application = {}, onBack, userRole = 'origination' }) {
+export function LoanDetailView({ formData = {}, application = {}, onBack, userRole = 'origination' }) {
   const appId = application.application_id || formData.application_id || 'LA-DRAFT';
-  const showOriginationActions = !application.hasTransferred && userRole === 'origination';
+  const loanType = application.loan_type || formData.loan_type || 'Business Loan';
 
   useEffect(() => {
     const originalTitle = document.title;
     const handleBeforePrint = () => {
-      const documentName = appId && appId !== 'LA-DRAFT' ? appId : 'Business-Loan-Application';
+      const documentName = appId && appId !== 'LA-DRAFT' ? appId : `${loanType.replace(/\s+/g, '-')}-Application`;
       document.title = documentName;
     };
     const handleAfterPrint = () => {
@@ -1629,7 +1629,7 @@ export function BusinessLoanDetailView({ formData = {}, application = {}, onBack
       window.removeEventListener('beforeprint', handleBeforePrint);
       window.removeEventListener('afterprint', handleAfterPrint);
     };
-  }, [appId]);
+  }, [appId, loanType]);
 
   return (
     <>
@@ -1654,5 +1654,5 @@ export function BusinessLoanDetailView({ formData = {}, application = {}, onBack
   );
 }
 
-export { MobileDetailView as BusinessLoanMobileDetailView, DesktopPaperView as BusinessLoanPaperView };
-export default BusinessLoanDetailView;
+export { LoanDetailView as BusinessLoanDetailView, MobileDetailView as BusinessLoanMobileDetailView, DesktopPaperView as BusinessLoanPaperView };
+export default LoanDetailView;
