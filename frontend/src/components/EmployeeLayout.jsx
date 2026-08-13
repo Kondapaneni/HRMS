@@ -160,7 +160,8 @@ const EmployeeLayout = () => {
       const res = await api.get('/news');
       return res.data;
     },
-    refetchInterval: 5000, // Poll every 5 seconds
+    refetchInterval: 180000, // Poll every 3 minutes (180 seconds)
+    staleTime: 180000,
     refetchOnWindowFocus: true,
   });
   const newsHeadlines = newsData?.news_headlines || profile?.news_headlines || [];

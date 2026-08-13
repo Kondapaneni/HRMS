@@ -14,7 +14,8 @@ export default function UpdateOverlay() {
       const res = await api.get('/news');
       return res.data;
     },
-    refetchInterval: 5000,
+    refetchInterval: 180000, // Poll every 3 minutes (180 seconds)
+    staleTime: 180000,
     refetchOnWindowFocus: true,
   });
 
