@@ -94,7 +94,8 @@ export default function OriginationViewApplication() {
   const dbId = application?.id || formData?.id;
   const loanType = application?.loan_type || formData?.loan_type || 'Business Loan';
   const appStatus = String(localStatus);
-  const isSubmitted =
+  const isCreated =
+    appStatus.toLowerCase() === 'created' ||
     appStatus.toLowerCase() === 'submitted' ||
     appStatus.toLowerCase() === 'approved' ||
     appStatus.toLowerCase() === 'under_review';
@@ -152,14 +153,14 @@ export default function OriginationViewApplication() {
 
         const fileName = `${dbId}/employee-signature-${Date.now()}.png`;
         const { error: uploadError } = await supabase.storage
-          .from('loan_documents')
+          .from('loan_signatures')
           .upload(fileName, fileToUpload, {
             cacheControl: '3600',
             upsert: true,
           });
 
         if (uploadError) throw new Error(uploadError.message);
-        signatureUrl = window.location.origin + '/Loan-Document/' + fileName;
+        signatureUrl = window.location.origin + '/Loan-Signature/' + fileName;
       }
 
       const timelineEvent = {
@@ -171,6 +172,7 @@ export default function OriginationViewApplication() {
       await updateLoanApplicationStatus(dbId, 'Branch Operations', timelineEvent, signatureData);
 
       setLocalTimeline((prev) => [...prev, timelineEvent]);
+      setLocalStatus('Branch Operations');
       queryClient.invalidateQueries({ queryKey: ['origination', 'applications', 'list'] });
       toast.success('Application transferred to Branch Operations successfully.');
     } catch (err) {

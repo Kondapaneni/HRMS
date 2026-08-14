@@ -32,7 +32,12 @@ const OriginationMobileApplicationsList = () => {
       appId.toLowerCase().includes(searchTerm.toLowerCase()) ||
       String(leadId).includes(searchTerm);
 
-    const matchesStatus = statusFilter === 'All' ? true : app.status === statusFilter;
+    const matchesStatus =
+      statusFilter === 'All'
+        ? true
+        : statusFilter === 'Created'
+        ? app.status === 'Created' || app.status === 'Submitted'
+        : app.status === statusFilter;
     const matchesLoanType = loanTypeFilter === 'All' ? true : appLoanType === loanTypeFilter;
 
     return matchesSearch && matchesStatus && matchesLoanType;
@@ -150,7 +155,7 @@ const OriginationMobileApplicationsList = () => {
 
         {/* Status Tabs */}
         <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-          {['All', 'Submitted', 'Draft'].map((st) => (
+          {['All', 'Created', 'Draft'].map((st) => (
             <button
               key={st}
               type="button"
@@ -161,7 +166,7 @@ const OriginationMobileApplicationsList = () => {
                   : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
               }`}
             >
-              {st} {st === 'All' ? `(${applications.length})` : `(${applications.filter(a => a.status === st).length})`}
+              {st} {st === 'All' ? `(${applications.length})` : `(${applications.filter(a => st === 'Created' ? (a.status === 'Created' || a.status === 'Submitted') : a.status === st).length})`}
             </button>
           ))}
         </div>
@@ -184,7 +189,7 @@ const OriginationMobileApplicationsList = () => {
             {filteredApps.map((app) => {
               const name = app.applicant_name || app.form_data?.applicant_name || 'N/A';
               const phone = app.phone_number || app.form_data?.phone_number || 'N/A';
-              const isSubmitted = app.status === 'Submitted';
+              const isCreated = app.status === 'Created' || app.status === 'Submitted';
 
               return (
                 <div
@@ -200,9 +205,9 @@ const OriginationMobileApplicationsList = () => {
                       <h3 className="font-bold text-slate-900 text-lg mt-1.5 leading-tight">{name}</h3>
                     </div>
                     <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-                      isSubmitted ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-amber-100 text-amber-700 border border-amber-200'
+                      isCreated ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-amber-100 text-amber-700 border border-amber-200'
                     }`}>
-                      {isSubmitted ? <CheckCircle2 size={12} /> : <Clock size={12} />} {app.status}
+                      {isCreated ? <CheckCircle2 size={12} /> : <Clock size={12} />} {app.status}
                     </span>
                   </div>
 

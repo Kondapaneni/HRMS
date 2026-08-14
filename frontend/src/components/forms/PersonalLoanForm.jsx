@@ -311,10 +311,10 @@ export function PersonalLoanForm() {
           app.loan_type === 'Personal Loan' && 
           passingLeadId && 
           String(app.lead_id) === String(passingLeadId) &&
-          (app.status === 'Draft' || app.status === 'Submitted')
+          (app.status === 'Draft' || app.status === 'Created' || app.status === 'Submitted')
         );
 
-        if (existingApp && existingApp.status === 'Submitted') {
+        if (existingApp && (existingApp.status === 'Created' || existingApp.status === 'Submitted')) {
           setIsAlreadySubmitted(true);
         }
 
@@ -351,7 +351,7 @@ export function PersonalLoanForm() {
       setLoadedAppId(location.state.application.id || location.state.application.application_id);
     }
 
-    if (location.state?.application?.status === 'Submitted') {
+    if (location.state?.application?.status === 'Created' || location.state?.application?.status === 'Submitted') {
       setIsAlreadySubmitted(true);
     }
 
@@ -453,9 +453,9 @@ export function PersonalLoanForm() {
     try {
       setIsSubmitting(true);
       const cleanData = getCleanFormData();
-      // Submit full form data to public.loan_applications in JSON format as Submitted
-      await submitLoanApplication('Personal Loan', cleanData, 'Submitted');
-      toast.success('Personal Loan Application Submitted Successfully!');
+      // Submit full form data to public.loan_applications in JSON format as Created
+      await submitLoanApplication('Personal Loan', cleanData, 'Created');
+      toast.success('Personal Loan Application Created Successfully!');
       setTimeout(() => {
         navigate('/employee/loans/origination/members');
       }, 1000);

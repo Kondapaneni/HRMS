@@ -208,7 +208,7 @@ const OriginationMobileMemberDetails = ({ member: propMember }) => {
                       <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                         isSubmitted ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
                       }`}>
-                        <CheckCircle2 size={12} /> {isSubmitted ? 'Submitted' : (loan.status || 'Draft')}
+                        <CheckCircle2 size={12} /> {isSubmitted ? 'Created' : (loan.status || 'Draft')}
                       </span>
                     )}
                   </div>
@@ -217,7 +217,7 @@ const OriginationMobileMemberDetails = ({ member: propMember }) => {
                     <div className="h-8 w-36 bg-slate-200 animate-pulse rounded-md" />
                   ) : isSubmitted ? (
                     <div className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-md bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed select-none">
-                      <Lock size={12} className="text-slate-400" /> Application Submitted
+                      <Lock size={12} className="text-slate-400" /> Application Created
                     </div>
                   ) : (
                     <Link 

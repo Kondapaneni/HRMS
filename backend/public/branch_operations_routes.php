@@ -207,7 +207,7 @@ $app->get('/api/branch-operations/dashboard', function (Request $request, Respon
             SELECT 
                 COUNT(*) as total_applications,
                 COALESCE(SUM(CASE WHEN a.status = 'Draft' THEN 1 ELSE 0 END), 0) as draft_applications,
-                COALESCE(SUM(CASE WHEN a.status = 'Submitted' THEN 1 ELSE 0 END), 0) as submitted_applications,
+                COALESCE(SUM(CASE WHEN a.status = 'Created' OR a.status = 'Submitted' THEN 1 ELSE 0 END), 0) as submitted_applications,
                 COALESCE(SUM(CASE WHEN a.status = 'Branch Operations' THEN 1 ELSE 0 END), 0) as transferred_applications,
                 COALESCE(SUM(CASE WHEN a.status = 'Approved' THEN 1 ELSE 0 END), 0) as approved_applications,
                 COALESCE(SUM(CASE WHEN a.status = 'Rejected' THEN 1 ELSE 0 END), 0) as rejected_applications
@@ -341,7 +341,7 @@ $app->get('/api/branch-operations/dashboard', function (Request $request, Respon
             $oAppStmt = $conn->prepare("
                 SELECT 
                     COUNT(*) as total_apps,
-                    COALESCE(SUM(CASE WHEN status = 'Submitted' THEN 1 ELSE 0 END), 0) as submitted_apps,
+                    COALESCE(SUM(CASE WHEN status = 'Created' OR status = 'Submitted' THEN 1 ELSE 0 END), 0) as submitted_apps,
                     COALESCE(SUM(CASE WHEN status = 'Branch Operations' THEN 1 ELSE 0 END), 0) as transferred_apps
                 FROM public.loan_applications a
                 WHERE (a.created_by::text = ? OR a.created_by::text = ?)

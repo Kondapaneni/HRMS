@@ -108,6 +108,7 @@ const BranchOperationsDashboard = () => {
     switch (status) {
       case 'Branch Operations':
         return 'bg-indigo-50 text-indigo-700 border-indigo-200 font-semibold';
+      case 'Created':
       case 'Submitted':
         return 'bg-blue-50 text-blue-700 border-blue-200';
       case 'Approved':

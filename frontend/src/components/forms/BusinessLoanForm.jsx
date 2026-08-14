@@ -311,10 +311,10 @@ export function BusinessLoanForm() {
           app.loan_type === 'Business Loan' && 
           passingLeadId && 
           String(app.lead_id) === String(passingLeadId) &&
-          (app.status === 'Draft' || app.status === 'Submitted')
+          (app.status === 'Draft' || app.status === 'Created' || app.status === 'Submitted')
         );
 
-        if (existingApp && existingApp.status === 'Submitted') {
+        if (existingApp && (existingApp.status === 'Created' || existingApp.status === 'Submitted')) {
           setIsAlreadySubmitted(true);
         }
 
@@ -351,7 +351,7 @@ export function BusinessLoanForm() {
       setLoadedAppId(location.state.application.id || location.state.application.application_id);
     }
 
-    if (location.state?.application?.status === 'Submitted') {
+    if (location.state?.application?.status === 'Created' || location.state?.application?.status === 'Submitted') {
       setIsAlreadySubmitted(true);
     }
 
@@ -453,9 +453,9 @@ export function BusinessLoanForm() {
     try {
       setIsSubmitting(true);
       const cleanData = getCleanFormData();
-      // Submit full form data to public.loan_applications in JSON format as Submitted
-      await submitLoanApplication('Business Loan', cleanData, 'Submitted');
-      toast.success('Business Loan Application Submitted Successfully!');
+      // Submit full form data to public.loan_applications in JSON format as Created
+      await submitLoanApplication('Business Loan', cleanData, 'Created');
+      toast.success('Business Loan Application Created Successfully!');
       setTimeout(() => {
         navigate('/employee/loans/origination/members');
       }, 1000);

@@ -70,7 +70,7 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
     $loanType = trim($data['loan_type'] ?? 'Business Loan');
     $applicantName = trim($data['applicant_name'] ?? '');
     $phoneNumber = trim($data['phone_number'] ?? '');
-    $status = trim($data['status'] ?? 'Submitted');
+    $status = trim($data['status'] ?? 'Created');
     $formData = $data['form_data'] ?? $data;
     $leadId = $data['lead_id'] ?? $formData['lead_id'] ?? null;
     $documents = $data['documents'] ?? $formData['documents'] ?? [];
@@ -144,7 +144,7 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
                 UPDATE public.loan_applications
                 SET status = ?, form_data = ?::jsonb, updated_at = NOW()
                 WHERE id = ?
-                RETURNING id, application_id, lead_id, loan_type, status, form_data, created_at, updated_at
+                RETURNING id, application_id, lead_id, loan_type, status, form_data, signatures, created_at, updated_at
             ');
             $stmt->execute([
                 $status,
@@ -156,7 +156,7 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
             $stmt = $conn->prepare('
                 INSERT INTO public.loan_applications (application_id, lead_id, loan_type, status, form_data, created_by, created_at, updated_at)
                 VALUES (?, ?, ?, ?, ?::jsonb, ?, NOW(), NOW())
-                RETURNING id, application_id, lead_id, loan_type, status, form_data, created_at, updated_at
+                RETURNING id, application_id, lead_id, loan_type, status, form_data, signatures, created_at, updated_at
             ');
             
             $stmt->execute([
@@ -175,6 +175,9 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
             if (isset($application['form_data']) && is_string($application['form_data'])) {
                 $application['form_data'] = json_decode($application['form_data'], true);
             }
+            if (isset($application['signatures']) && is_string($application['signatures'])) {
+                $application['signatures'] = json_decode($application['signatures'], true);
+            }
 
             $appId = $application['application_id'] ?: $application['id'];
             if (is_array($documents) && !empty($documents)) {
@@ -185,7 +188,7 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
 
         $response->getBody()->write(json_encode([
             'success' => true,
-            'message' => $status === 'Draft' ? 'Loan application draft saved to database' : 'Loan application submitted successfully',
+            'message' => $status === 'Draft' ? 'Loan application draft saved to database' : 'Loan application created successfully',
             'application' => $application
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
@@ -222,7 +225,7 @@ $app->get('/api/loans/applications', function (Request $request, Response $respo
         }
 
         $stmt = $conn->prepare('
-            SELECT id, application_id, lead_id, loan_type, status, form_data, created_at, updated_at
+            SELECT id, application_id, lead_id, loan_type, status, form_data, signatures, created_at, updated_at
             FROM public.loan_applications
             WHERE created_by = ? OR ? = \'admin\'
             ORDER BY created_at DESC
@@ -234,6 +237,9 @@ $app->get('/api/loans/applications', function (Request $request, Response $respo
         foreach ($rows as &$row) {
             if (isset($row['form_data']) && is_string($row['form_data'])) {
                 $row['form_data'] = json_decode($row['form_data'], true);
+            }
+            if (isset($row['signatures']) && is_string($row['signatures'])) {
+                $row['signatures'] = json_decode($row['signatures'], true);
             }
             $row['documents'] = getLoanDocumentsFromTable($conn, $row['application_id'], $row['id'], $row['lead_id']);
         }
@@ -418,13 +424,13 @@ $app->patch('/api/loans/applications/{id}/status', function (Request $request, R
 
         $jsonPayload = json_encode($formData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         
-        $updateQuery = 'UPDATE public.loan_applications SET form_data = ?::jsonb, updated_at = NOW()';
-        $updateParams = [$jsonPayload];
+        $updateQuery = 'UPDATE public.loan_applications SET status = ?, form_data = ?::jsonb, updated_at = NOW()';
+        $updateParams = [$status, $jsonPayload];
         
         if ($signatureData && is_array($signatureData)) {
             $signaturePayload = json_encode($signatureData);
-            $updateQuery = 'UPDATE public.loan_applications SET form_data = ?::jsonb, signatures = COALESCE(signatures, \'{}\'::jsonb) || ?::jsonb, updated_at = NOW()';
-            $updateParams[] = $signaturePayload;
+            $updateQuery = 'UPDATE public.loan_applications SET status = ?, form_data = ?::jsonb, signatures = COALESCE(signatures, \'{}\'::jsonb) || ?::jsonb, updated_at = NOW()';
+            $updateParams = [$status, $jsonPayload, $signaturePayload];
         }
         
         $updateQuery .= ' WHERE id = ?';

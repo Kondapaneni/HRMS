@@ -45,10 +45,10 @@ export const updateLeadStatus = async (id, status) => {
  * Submits or saves draft for a loan application to backend DB in JSON format.
  * @param {string} loanType - Type of loan ('Business Loan', 'Personal Loan', etc.)
  * @param {Object} formData - Complete form data object
- * @param {string} status - 'Submitted' or 'Draft'
+ * @param {string} status - 'Created' or 'Draft'
  * @returns {Promise<Object>}
  */
-export const submitLoanApplication = async (loanType, formData, status = 'Submitted') => {
+export const submitLoanApplication = async (loanType, formData, status = 'Created') => {
   const payload = {
     loan_type: loanType,
     applicant_name: formData.applicant_name || formData.name || '',

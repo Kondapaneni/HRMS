@@ -113,7 +113,8 @@ export default function OriginationMobileViewApplications({
   const dbId = application?.id || formData?.id;
   const loanType = application?.loan_type || formData?.loan_type || 'Business Loan';
   const appStatus = String(localStatus);
-  const isSubmitted =
+  const isCreated =
+    appStatus.toLowerCase() === 'created' ||
     appStatus.toLowerCase() === 'submitted' ||
     appStatus.toLowerCase() === 'approved' ||
     appStatus.toLowerCase() === 'under_review';
@@ -160,14 +161,14 @@ export default function OriginationMobileViewApplications({
 
         const fileName = `${dbId}/employee-signature-${Date.now()}.png`;
         const { error: uploadError } = await supabase.storage
-          .from('loan_documents')
+          .from('loan_signatures')
           .upload(fileName, fileToUpload, {
             cacheControl: '3600',
             upsert: true,
           });
 
         if (uploadError) throw new Error(uploadError.message);
-        signatureUrl = window.location.origin + '/Loan-Document/' + fileName;
+        signatureUrl = window.location.origin + '/Loan-Signature/' + fileName;
       }
 
       const timelineEvent = {
@@ -179,6 +180,7 @@ export default function OriginationMobileViewApplications({
       await updateLoanApplicationStatus(dbId, 'Branch Operations', timelineEvent, signatureData);
 
       setLocalTimeline((prev) => [...prev, timelineEvent]);
+      setLocalStatus('Branch Operations');
       queryClient.invalidateQueries({ queryKey: ['origination', 'applications', 'list'] });
       toast.success('Application transferred to Branch Operations successfully.');
     } catch (err) {
@@ -266,17 +268,17 @@ export default function OriginationMobileViewApplications({
             </span>
             <span
               className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                isSubmitted
+                isCreated
                   ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
                   : 'bg-amber-100 text-amber-700 border border-amber-200'
               }`}
             >
-              {isSubmitted ? <CheckCircle2 size={10} /> : <Clock size={10} />} {appStatus}
+              {isCreated ? <CheckCircle2 size={10} /> : <Clock size={10} />} {appStatus}
             </span>
           </div>
           <p className="text-xs font-semibold text-slate-500">{loanType}</p>
           <p className="text-[11px] text-slate-400 mt-0.5 mb-3">
-            {isSubmitted ? `Submitted on ${formattedDate}` : `Draft saved on ${formattedDate}`}
+            {isCreated ? `Created on ${formattedDate}` : `Draft saved on ${formattedDate}`}
           </p>
 
           {!hasTransferred && (

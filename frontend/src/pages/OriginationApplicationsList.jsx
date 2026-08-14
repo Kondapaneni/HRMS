@@ -32,7 +32,12 @@ const OriginationApplicationsList = () => {
       appId.toLowerCase().includes(searchTerm.toLowerCase()) ||
       String(leadId).includes(searchTerm);
 
-    const matchesStatus = statusFilter === 'All' ? true : app.status === statusFilter;
+    const matchesStatus =
+      statusFilter === 'All'
+        ? true
+        : statusFilter === 'Created'
+        ? app.status === 'Created' || app.status === 'Submitted'
+        : app.status === statusFilter;
     const matchesLoanType = loanTypeFilter === 'All' ? true : appLoanType === loanTypeFilter;
 
     return matchesSearch && matchesStatus && matchesLoanType;
@@ -99,34 +104,30 @@ const OriginationApplicationsList = () => {
                   <div className="relative w-full sm:w-56 shrink-0">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <input
-                      type="search"
-                      className="w-full pl-9 pr-4 py-2 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
+                      type="text"
                       placeholder="Search applications..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 focus:bg-white"
                     />
                   </div>
 
                   {/* Loan Type Filter */}
-                  <div className="flex items-center bg-slate-100/90 p-1 rounded-lg border border-slate-200 gap-1 shrink-0">
+                  <div className="flex gap-1.5 shrink-0">
                     {['All', 'Personal Loan', 'Business Loan'].map((type) => {
-                      const count = type === 'All'
-                        ? applications.length
-                        : applications.filter(a => (a.loan_type || a.form_data?.loan_type || 'Personal Loan') === type).length;
-                      const isActive = loanTypeFilter === type;
-
+                      const count = type === 'All' ? applications.length : applications.filter(a => (a.loan_type || a.form_data?.loan_type) === type).length;
                       return (
                         <button
                           key={type}
                           type="button"
                           onClick={() => setLoanTypeFilter(type)}
-                          className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-                            isActive
-                              ? 'bg-blue-600 text-white shadow-xs'
-                              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                          className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                            loanTypeFilter === type
+                              ? 'bg-blue-600 text-white shadow-sm'
+                              : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
                           }`}
                         >
-                          {type === 'All' ? 'All Loans' : type} ({count})
+                          {type === 'All' ? 'All Types' : type} ({count})
                         </button>
                       );
                     })}
@@ -134,7 +135,7 @@ const OriginationApplicationsList = () => {
 
                   {/* Status Filter */}
                   <div className="flex gap-1.5 shrink-0">
-                    {['All', 'Submitted', 'Draft'].map((st) => (
+                    {['All', 'Created', 'Draft'].map((st) => (
                       <button
                         key={st}
                         type="button"
@@ -145,7 +146,7 @@ const OriginationApplicationsList = () => {
                             : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
                         }`}
                       >
-                        {st} {st === 'All' ? `(${applications.length})` : `(${applications.filter(a => a.status === st).length})`}
+                        {st} {st === 'All' ? `(${applications.length})` : `(${applications.filter(a => st === 'Created' ? (a.status === 'Created' || a.status === 'Submitted') : a.status === st).length})`}
                       </button>
                     ))}
                   </div>
@@ -162,7 +163,7 @@ const OriginationApplicationsList = () => {
                         <th className="p-3">Contact</th>
                         <th className="p-3">Loan Type</th>
                         <th className="p-3">Status</th>
-                        <th className="p-3">Submitted Date</th>
+                        <th className="p-3">Date</th>
                         <th className="p-3 text-center whitespace-nowrap">Action</th>
                       </tr>
                     </thead>
@@ -184,7 +185,7 @@ const OriginationApplicationsList = () => {
                         filteredApps.map((app) => {
                           const name = app.applicant_name || app.form_data?.applicant_name || 'N/A';
                           const phone = app.phone_number || app.form_data?.phone_number || 'N/A';
-                          const isSubmitted = app.status === 'Submitted';
+                          const isCreated = app.status === 'Created' || app.status === 'Submitted';
 
                           return (
                             <tr key={app.id || app.application_id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
@@ -204,9 +205,9 @@ const OriginationApplicationsList = () => {
                               </td>
                               <td className="p-3 text-slate-700 whitespace-nowrap">
                                 <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border ${
-                                  isSubmitted ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'
+                                  isCreated ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'
                                 }`}>
-                                  {isSubmitted ? <CheckCircle2 size={12} /> : <Clock size={12} />} {app.status}
+                                  {isCreated ? <CheckCircle2 size={12} /> : <Clock size={12} />} {app.status}
                                 </span>
                               </td>
                               <td className="p-3 text-slate-700 text-xs whitespace-nowrap">

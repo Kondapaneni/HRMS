@@ -79,6 +79,7 @@ const BranchOperationsMobileDashboard = ({
     switch (status) {
       case 'Branch Operations':
         return 'bg-indigo-500/15 text-indigo-700 border-indigo-200/60 font-semibold';
+      case 'Created':
       case 'Submitted':
         return 'bg-blue-500/15 text-blue-700 border-blue-200/60';
       case 'Approved':

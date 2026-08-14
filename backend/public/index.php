@@ -686,6 +686,14 @@ $app->get('/Loan-Document/{filename:.+}', function (Request $request, Response $
     return streamSupabaseFile($supabaseUrl, $response, $filename, 'inline');
 });
 
+// Loan Signature proxy route
+$app->get('/Loan-Signature/{filename:.+}', function (Request $request, Response $response, $args) {
+    $filename = $args['filename'];
+    $encodedFilename = implode('/', array_map('rawurlencode', explode('/', $filename)));
+    $supabaseUrl = $_ENV['VITE_SUPABASE_URL'] . "/storage/v1/object/public/loan_signatures/" . $encodedFilename;
+    return streamSupabaseFile($supabaseUrl, $response, $filename, 'inline');
+});
+
 // Training Video proxy route (redirect to Supabase for native video caching and range requests)
 $app->get('/Training-Video/{filename:.+}', function (Request $request, Response $response, $args) {
     $filename = $args['filename'];
