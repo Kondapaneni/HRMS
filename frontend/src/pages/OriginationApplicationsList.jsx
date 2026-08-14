@@ -107,44 +107,35 @@ const OriginationApplicationsList = () => {
                     />
                   </div>
 
-                  {/* Loan Type Filter */}
-                  <div className="flex gap-1.5 shrink-0">
-                    {['All', 'Personal Loan', 'Business Loan'].map((type) => {
-                      const count = type === 'All' ? applications.length : applications.filter(a => (a.loan_type || a.form_data?.loan_type) === type).length;
-                      return (
-                        <button
-                          key={type}
-                          type="button"
-                          onClick={() => setLoanTypeFilter(type)}
-                          className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-                            loanTypeFilter === type
-                              ? 'bg-blue-600 text-white shadow-sm'
-                              : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
-                          }`}
-                        >
-                          {type === 'All' ? 'All Types' : type} ({count})
-                        </button>
-                      );
-                    })}
-                  </div>
+                  {/* Loan Type Filter Dropdown */}
+                  <select
+                    value={loanTypeFilter}
+                    onChange={(e) => setLoanTypeFilter(e.target.value)}
+                    className="h-10 w-full sm:w-auto rounded-md border border-slate-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700 font-medium cursor-pointer"
+                  >
+                    <option value="All">All Types ({applications.length})</option>
+                    <option value="Personal Loan">
+                      Personal Loan ({applications.filter(a => (a.loan_type || a.form_data?.loan_type) === 'Personal Loan').length})
+                    </option>
+                    <option value="Business Loan">
+                      Business Loan ({applications.filter(a => (a.loan_type || a.form_data?.loan_type) === 'Business Loan').length})
+                    </option>
+                  </select>
 
-                  {/* Status Filter */}
-                  <div className="flex gap-1.5 shrink-0">
-                    {['All', 'Created', 'Draft'].map((st) => (
-                      <button
-                        key={st}
-                        type="button"
-                        onClick={() => setStatusFilter(st)}
-                        className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-                          statusFilter === st
-                            ? 'bg-slate-900 text-white shadow-sm'
-                            : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
-                        }`}
-                      >
-                        {st} {st === 'All' ? `(${applications.length})` : `(${applications.filter(a => a.status === st).length})`}
-                      </button>
-                    ))}
-                  </div>
+                  {/* Status Filter Dropdown */}
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="h-10 w-full sm:w-auto rounded-md border border-slate-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700 font-medium cursor-pointer"
+                  >
+                    <option value="All">All Status ({applications.length})</option>
+                    <option value="Created">
+                      Created ({applications.filter(a => a.status === 'Created').length})
+                    </option>
+                    <option value="Draft">
+                      Draft ({applications.filter(a => a.status === 'Draft').length})
+                    </option>
+                  </select>
                 </div>
               </div>
 

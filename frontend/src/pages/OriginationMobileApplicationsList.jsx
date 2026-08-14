@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getLoanApplications } from '../services/loanServices';
 import { motion } from 'framer-motion';
-import { Search, CheckCircle2, Clock, Phone, Briefcase, Eye, Loader2 } from 'lucide-react';
+import { Search, CheckCircle2, Clock, Phone, Briefcase, Eye, Loader2, ChevronDown } from 'lucide-react';
 import { format } from 'date-fns';
 
 const OriginationMobileApplicationsList = () => {
@@ -122,48 +122,41 @@ const OriginationMobileApplicationsList = () => {
           </div>
         </div>
 
-        {/* Loan Type Filter Pills */}
-        <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-          {['All', 'Personal Loan', 'Business Loan'].map((type) => {
-            const count = type === 'All'
-              ? applications.length
-              : applications.filter(a => (a.loan_type || a.form_data?.loan_type || 'Personal Loan') === type).length;
-            const isActive = loanTypeFilter === type;
-
-            return (
-              <button
-                key={type}
-                type="button"
-                onClick={() => setLoanTypeFilter(type)}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
-                  isActive
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
-                }`}
-              >
-                <Briefcase size={12} className={isActive ? 'text-white' : 'text-blue-500'} />
-                {type === 'All' ? 'All Types' : type} ({count})
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Status Tabs */}
-        <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-          {['All', 'Created', 'Draft'].map((st) => (
-            <button
-              key={st}
-              type="button"
-              onClick={() => setStatusFilter(st)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
-                statusFilter === st
-                  ? 'bg-slate-900 text-white shadow-md'
-                  : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-              }`}
+        {/* Filter Dropdowns Grid */}
+        <div className="grid grid-cols-2 gap-2.5">
+          <div className="relative">
+            <select
+              value={loanTypeFilter}
+              onChange={(e) => setLoanTypeFilter(e.target.value)}
+              className="w-full h-11 pl-3 pr-8 rounded-xl bg-white border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 font-semibold text-slate-700 shadow-xs appearance-none cursor-pointer"
             >
-              {st} {st === 'All' ? `(${applications.length})` : `(${applications.filter(a => a.status === st).length})`}
-            </button>
-          ))}
+              <option value="All">All Types ({applications.length})</option>
+              <option value="Personal Loan">
+                Personal ({applications.filter(a => (a.loan_type || a.form_data?.loan_type || 'Personal Loan') === 'Personal Loan').length})
+              </option>
+              <option value="Business Loan">
+                Business ({applications.filter(a => (a.loan_type || a.form_data?.loan_type) === 'Business Loan').length})
+              </option>
+            </select>
+            <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          </div>
+
+          <div className="relative">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full h-11 pl-3 pr-8 rounded-xl bg-white border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 font-semibold text-slate-700 shadow-xs appearance-none cursor-pointer"
+            >
+              <option value="All">All Status ({applications.length})</option>
+              <option value="Created">
+                Created ({applications.filter(a => a.status === 'Created').length})
+              </option>
+              <option value="Draft">
+                Draft ({applications.filter(a => a.status === 'Draft').length})
+              </option>
+            </select>
+            <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+          </div>
         </div>
 
         {/* List Content */}
