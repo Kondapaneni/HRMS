@@ -64,22 +64,31 @@ const BranchOperationsDashboard = () => {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'Created':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      case 'Approved':
+        return 'bg-emerald-100 text-emerald-700 border-emerald-200';
       case 'Under Review':
-        return 'bg-blue-50 text-blue-700 border-blue-200';
+        return 'bg-blue-100 text-blue-700 border-blue-200';
       case 'Draft':
-        return 'bg-amber-50 text-amber-700 border-amber-200';
-      case 'Converted':
-        return 'bg-purple-50 text-purple-700 border-purple-200';
       case 'Follow Up':
       case 'In Progress':
-        return 'bg-amber-50 text-amber-700 border-amber-200';
+        return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+      case 'Converted':
+        return 'bg-purple-100 text-purple-700 border-purple-200';
       case 'Not Interested':
       case 'Rejected':
-        return 'bg-rose-50 text-rose-700 border-rose-200';
+        return 'bg-red-100 text-red-700 border-red-200';
       default:
-        return 'bg-slate-50 text-slate-700 border-slate-200';
+        return 'bg-slate-100 text-slate-700 border-slate-200';
     }
+  };
+
+  const formatDateStr = (dateString) => {
+    if (!dateString) return '—';
+    const d = new Date(dateString);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
   };
 
   return (
@@ -225,21 +234,21 @@ const BranchOperationsDashboard = () => {
 
         </motion.div>
 
-        {/* Recent Records Section (Last 10 Leads & Applications) */}
-        <motion.div variants={itemVariants} className="space-y-4 pt-4">
-          <div className="flex items-center justify-between">
+        {/* Attendance-styled Activity Card & Table */}
+        <motion.div variants={itemVariants} className="rounded-lg border border-slate-200 bg-white shadow-sm">
+          <div className="p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h2 className="text-xl font-bold text-slate-900">Recent Branch Activity</h2>
-              <p className="text-xs text-slate-500">Latest 10 leads and loan applications recorded for this branch.</p>
+              <h3 className="text-lg font-semibold text-slate-900">Recent Branch Activity</h3>
+              <p className="text-sm text-slate-500 mt-0.5">Latest 10 leads and loan applications recorded for this branch.</p>
             </div>
             
             {/* Table Tabs */}
-            <div className="flex bg-slate-100/80 p-1 rounded-xl border border-slate-200">
+            <div className="flex bg-slate-100 p-1 rounded-md border border-slate-200">
               <button
                 onClick={() => setActiveTableTab('leads')}
-                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
                   activeTableTab === 'leads'
-                    ? 'bg-white text-indigo-700 shadow-xs'
+                    ? 'bg-white text-blue-600 shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
@@ -247,9 +256,9 @@ const BranchOperationsDashboard = () => {
               </button>
               <button
                 onClick={() => setActiveTableTab('applications')}
-                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
                   activeTableTab === 'applications'
-                    ? 'bg-white text-indigo-700 shadow-xs'
+                    ? 'bg-white text-blue-600 shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
@@ -258,117 +267,88 @@ const BranchOperationsDashboard = () => {
             </div>
           </div>
 
-          {/* Table Container */}
-          <div className="bg-white/70 backdrop-blur-xl rounded-2xl border border-white/80 shadow-sm overflow-hidden">
-            {activeTableTab === 'leads' ? (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-slate-50/80 border-b border-slate-100 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                      <th className="py-3 px-4">Applicant Name</th>
-                      <th className="py-3 px-4">Phone Number</th>
-                      <th className="py-3 px-4">Loan Type</th>
-                      <th className="py-3 px-4">Created By</th>
-                      <th className="py-3 px-4">Status</th>
-                      <th className="py-3 px-4 text-right">Created Date</th>
+          <div className="px-6 pb-6">
+            <div className="rounded-md border border-slate-200 overflow-x-auto">
+              {activeTableTab === 'leads' ? (
+                <table className="w-full text-sm text-left">
+                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-medium">
+                    <tr>
+                      <th className="p-3">Applicant Name</th>
+                      <th className="p-3">Phone Number</th>
+                      <th className="p-3">Loan Type</th>
+                      <th className="p-3">Created By</th>
+                      <th className="p-3">Status</th>
+                      <th className="p-3">Created Date</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 text-sm">
+                  <tbody>
                     {isLoading ? (
                       <tr>
-                        <td colSpan={6} className="py-8 text-center text-slate-400 font-medium">
-                          Loading recent leads...
-                        </td>
+                        <td colSpan="6" className="text-center py-8 text-slate-500">Loading recent records...</td>
                       </tr>
                     ) : recentLeads.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="py-8 text-center text-slate-400 font-medium">
-                          No leads found for this branch.
-                        </td>
+                        <td colSpan="6" className="text-center py-8 text-slate-500">No leads found for this branch.</td>
                       </tr>
                     ) : (
                       recentLeads.map((lead) => (
-                        <tr key={lead.id} className="hover:bg-slate-50/50 transition-colors">
-                          <td className="py-3.5 px-4 font-semibold text-slate-900">
-                            {lead.name}
-                          </td>
-                          <td className="py-3.5 px-4 text-slate-600 text-xs font-mono">
-                            {lead.phone}
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-700">
-                              {lead.loan_type}
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-4 text-slate-600 text-xs font-medium">
-                            {lead.creator_name || 'Branch Officer'}
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border whitespace-nowrap ${getStatusBadge(lead.status)}`}>
+                        <tr key={lead.id} className="border-b border-slate-100 hover:bg-slate-50 last:border-0">
+                          <td className="p-3 font-medium text-slate-800">{lead.name}</td>
+                          <td className="p-3 text-slate-600 font-mono text-xs">{lead.phone}</td>
+                          <td className="p-3 text-slate-600">{lead.loan_type}</td>
+                          <td className="p-3 text-slate-600">{lead.creator_name || 'Branch Officer'}</td>
+                          <td className="p-3">
+                            <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${getStatusBadge(lead.status)}`}>
                               {lead.status}
                             </span>
                           </td>
-                          <td className="py-3.5 px-4 text-right text-xs text-slate-500 font-medium">
-                            {lead.created_at ? format(new Date(lead.created_at), 'MMM d, yyyy') : '-'}
+                          <td className="p-3 text-slate-600">
+                            {formatDateStr(lead.created_at)}
                           </td>
                         </tr>
                       ))
                     )}
                   </tbody>
                 </table>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-slate-50/80 border-b border-slate-100 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                      <th className="py-3 px-4">Application ID</th>
-                      <th className="py-3 px-4">Applicant Name</th>
-                      <th className="py-3 px-4">Loan Type</th>
-                      <th className="py-3 px-4">Created By</th>
-                      <th className="py-3 px-4">Status</th>
-                      <th className="py-3 px-4 text-right">Created Date</th>
+              ) : (
+                <table className="w-full text-sm text-left">
+                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-medium">
+                    <tr>
+                      <th className="p-3">Application ID</th>
+                      <th className="p-3">Applicant Name</th>
+                      <th className="p-3">Loan Type</th>
+                      <th className="p-3">Created By</th>
+                      <th className="p-3">Status</th>
+                      <th className="p-3">Created Date</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 text-sm">
+                  <tbody>
                     {isLoading ? (
                       <tr>
-                        <td colSpan={6} className="py-8 text-center text-slate-400 font-medium">
-                          Loading recent applications...
-                        </td>
+                        <td colSpan="6" className="text-center py-8 text-slate-500">Loading recent records...</td>
                       </tr>
                     ) : recentApplications.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="py-8 text-center text-slate-400 font-medium">
-                          No loan applications found for this branch.
-                        </td>
+                        <td colSpan="6" className="text-center py-8 text-slate-500">No loan applications found for this branch.</td>
                       </tr>
                     ) : (
                       recentApplications.map((app) => {
                         const applicantName = app.form_data?.applicant_name || app.form_data?.name || 'Applicant';
                         return (
-                          <tr key={app.id} className="hover:bg-slate-50/50 transition-colors">
-                            <td className="py-3.5 px-4 font-mono font-bold text-xs text-indigo-600">
+                          <tr key={app.id} className="border-b border-slate-100 hover:bg-slate-50 last:border-0">
+                            <td className="p-3 font-mono font-semibold text-xs text-blue-600">
                               {app.application_id || 'LA-PENDING'}
                             </td>
-                            <td className="py-3.5 px-4 font-semibold text-slate-900">
-                              {applicantName}
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-700">
-                                {app.loan_type || app.form_data?.loan_type || 'Personal Loan'}
-                              </span>
-                            </td>
-                            <td className="py-3.5 px-4 text-slate-600 text-xs font-medium">
-                              {app.creator_name || 'Branch Officer'}
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border whitespace-nowrap ${getStatusBadge(app.status)}`}>
+                            <td className="p-3 font-medium text-slate-800">{applicantName}</td>
+                            <td className="p-3 text-slate-600">{app.loan_type || app.form_data?.loan_type || 'Personal Loan'}</td>
+                            <td className="p-3 text-slate-600">{app.creator_name || 'Branch Officer'}</td>
+                            <td className="p-3">
+                              <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${getStatusBadge(app.status)}`}>
                                 {app.status}
                               </span>
                             </td>
-                            <td className="py-3.5 px-4 text-right text-xs text-slate-500 font-medium">
-                              {app.created_at ? format(new Date(app.created_at), 'MMM d, yyyy') : '-'}
+                            <td className="p-3 text-slate-600">
+                              {formatDateStr(app.created_at)}
                             </td>
                           </tr>
                         );
@@ -376,8 +356,8 @@ const BranchOperationsDashboard = () => {
                     )}
                   </tbody>
                 </table>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </motion.div>
       </motion.div>
