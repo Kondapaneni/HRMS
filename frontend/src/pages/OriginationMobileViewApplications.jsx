@@ -138,12 +138,12 @@ export default function OriginationMobileViewApplications({
 
   const isAllUploaded = requiredSlots > 0 && uploadedCount === requiredSlots;
   const hasTransferred =
-    localStatus === 'Underwriting' ||
+    localStatus === 'Branch Operations' ||
     localStatus === 'Approved' ||
     localStatus === 'Rejected' ||
-    localTimeline.some((e) => e.stage === 'Transferred to Underwriting');
+    localTimeline.some((e) => e.stage === 'Transferred to Branch Operations');
 
-  const handleTransferToUnderwriting = async (signatureDataUrl) => {
+  const handleTransferToBranchOperations = async (signatureDataUrl) => {
     if (!dbId) {
       toast.error('Application ID not found, cannot transfer.');
       return;
@@ -171,16 +171,16 @@ export default function OriginationMobileViewApplications({
       }
 
       const timelineEvent = {
-        stage: 'Transferred to Underwriting',
+        stage: 'Transferred to Branch Operations',
         timestamp: new Date().toISOString(),
         signature: signatureUrl,
       };
       const signatureData = signatureUrl ? { Origination: signatureUrl } : null;
-      await updateLoanApplicationStatus(dbId, 'Underwriting', timelineEvent, signatureData);
+      await updateLoanApplicationStatus(dbId, 'Branch Operations', timelineEvent, signatureData);
 
       setLocalTimeline((prev) => [...prev, timelineEvent]);
       queryClient.invalidateQueries({ queryKey: ['origination', 'applications', 'list'] });
-      toast.success('Application transferred to Underwriting successfully.');
+      toast.success('Application transferred to Branch Operations successfully.');
     } catch (err) {
       console.error(err);
       toast.error('Failed to transfer application.');
@@ -301,7 +301,7 @@ export default function OriginationMobileViewApplications({
                       <Loader2 size={16} className="animate-spin" /> Transferring...
                     </>
                   ) : (
-                    <>Transfer to Underwriting</>
+                    <>Transfer to Branch Operations</>
                   )}
                 </button>
               )}
@@ -372,7 +372,7 @@ export default function OriginationMobileViewApplications({
       <SignatureModal
         isOpen={isSignatureModalOpen}
         onClose={() => setIsSignatureModalOpen(false)}
-        onSubmit={handleTransferToUnderwriting}
+        onSubmit={handleTransferToBranchOperations}
       />
     </div>
   );

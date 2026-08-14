@@ -37,6 +37,8 @@ import OriginationMobileMemberDetails from './pages/OriginationMobileMemberDetai
 import OriginationMembersList from './pages/OriginationMembersList'
 import OriginationApplicationsList from './pages/OriginationApplicationsList'
 import OriginationViewApplication from './pages/OriginationViewApplication'
+import BranchOperationsLayout from './components/BranchOperationsLayout'
+import BranchOperationsDashboard from './pages/BranchOperationsDashboard'
 import AssessmentWorkspaceLayout from './components/AssessmentWorkspaceLayout'
 import AssessmentManagement from './pages/AssessmentManagement'
 import DepartmentQuestionBank from './pages/DepartmentQuestionBank'
@@ -252,6 +254,18 @@ function App() {
                 <Route path="origination/applications" element={<OriginationApplicationsList />} />
                 <Route path="form" element={<OriginationLoanForms />} />
                 <Route path="view-application" element={<OriginationViewApplication />} />
+              </Route>
+
+              {/* Acme Loans Branch Operations Workspace (Employee Only) */}
+              <Route
+                path="/employee/loans/branch-operations"
+                element={
+                  <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
+                    <BranchOperationsLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<BranchOperationsDashboard />} />
               </Route>
 
               <Route

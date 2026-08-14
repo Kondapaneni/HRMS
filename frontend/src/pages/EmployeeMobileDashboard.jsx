@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PageLoader from '../components/PageLoader';
-import { LogIn, LogOut, Clock, Calendar, Bell, Shield, ChevronRight, Receipt, Briefcase, Megaphone, Play } from 'lucide-react';
+import { LogIn, LogOut, Clock, Calendar, Bell, Shield, ChevronRight, Receipt, Briefcase, Megaphone, Play, ShieldCheck, Building2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -332,7 +332,7 @@ const EmployeeMobileDashboard = () => {
       </section>
 
       {/* Business Apps Entry */}
-      {(profile?.featureAccess?.canLoanOrigination || hasTrainingVideos) && (
+      {(profile?.featureAccess?.canLoanOrigination || profile?.featureAccess?.canLoanBranchOperations || hasTrainingVideos) && (
         <section className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
           <div className="px-6 pt-6 pb-4 border-b border-slate-100">
             <h2 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">Business Apps</h2>
@@ -349,10 +349,25 @@ const EmployeeMobileDashboard = () => {
                   </div>
                   <div className="text-left">
                     <div className="text-base">Loans Origination</div>
-                    <div className="text-xs text-emerald-200 font-normal mt-0.5">Apply for a business loan</div>
+                    <div className="text-xs text-emerald-200 font-normal mt-0.5">Originate and manage loan files</div>
                   </div>
                 </div>
                 <ChevronRight className="w-5 h-5 text-emerald-200" />
+              </Link>
+            )}
+
+            {profile?.featureAccess?.canLoanBranchOperations && (
+              <Link to="/employee/loans/branch-operations" className="flex items-center justify-between w-full rounded-xl bg-indigo-600 text-white font-semibold text-sm px-6 py-4 hover:bg-indigo-700 active:scale-[0.98] transition-all shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="bg-white/20 p-2 rounded-lg">
+                    <Building2 className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <div className="text-base">Loan Branch Operations</div>
+                    <div className="text-xs text-indigo-200 font-normal mt-0.5">Branch loan processing & operations</div>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-indigo-200" />
               </Link>
             )}
 
