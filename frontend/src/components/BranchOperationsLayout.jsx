@@ -1,17 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { useQuery } from '@tanstack/react-query';
-import api from '../api/axios';
-import { LogOut, Home, Building2, ArrowLeft, Megaphone } from 'lucide-react';
+import { Building2, ArrowLeft, Smartphone } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const BranchOperationsLayout = () => {
-  const { profile, signOut } = useAuth();
+  const { profile } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [swipePath, setSwipePath] = useState(null);
   const [showBackModal, setShowBackModal] = useState(false);
+
+  const hideBottomNavPatterns = [];
+  const shouldHideBottomNav = hideBottomNavPatterns.some((pattern) =>
+    typeof pattern === 'string'
+      ? location.pathname === pattern || location.pathname.startsWith(`${pattern}/`)
+      : pattern.test(location.pathname)
+  );
 
   const scrollContainerRef = useRef(null);
 
@@ -46,187 +51,291 @@ const BranchOperationsLayout = () => {
     setSwipePath(null);
   };
 
-  // Fetch live news headlines
-  const { data: newsData } = useQuery({
-    queryKey: ['newsHeadlines'],
-    queryFn: async () => {
-      const res = await api.get('/news');
-      return res.data;
-    },
-    refetchInterval: 180000,
-    staleTime: 180000,
-    refetchOnWindowFocus: true,
-  });
-  const newsHeadlines = newsData?.news_headlines || profile?.news_headlines || [];
-
-  const handleLogout = async () => {
-    try {
-      await signOut();
-      navigate('/');
-    } catch (e) {
-      console.error("Logout failed", e);
-    }
-  };
-
   const navItems = [
-    { icon: Building2, label: 'Branch Operations', path: '/employee/branch-operations', feature: 'canBranchOperations' },
+    { icon: Building2, label: 'Operations', path: '/employee/branch-operations', feature: 'canBranchOperations' },
   ];
 
+  const shapeVariants = {
+    animate: (i) => ({
+      y: [0, -20, 0],
+      x: [0, 15, 0],
+      rotate: [0, 10, -10, 0],
+      transition: {
+        duration: 5 + i * 2,
+        repeat: Infinity,
+        ease: "easeInOut"
+      }
+    })
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
-      {/* Top Header - Desktop & Tablet */}
-      <header className="hidden md:flex h-16 bg-white border-b border-slate-200 items-center justify-between px-6 sticky top-0 z-30 shadow-xs">
-        <div className="flex items-center gap-4">
+    <>
+    <div className="h-[100dvh] w-full overflow-hidden bg-slate-50 flex font-sans text-slate-800 relative z-0">
+      
+      {/* Global Animated Background Graphics */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden fixed md:absolute print:hidden">
+        <motion.div custom={1} variants={shapeVariants} animate="animate" className="absolute w-64 h-64 bg-[#6366F1] rounded-full opacity-10 -top-20 -right-20" />
+        <motion.div custom={2} variants={shapeVariants} animate="animate" className="absolute w-48 h-48 bg-[#10B981] rounded-3xl opacity-10 bottom-[-40px] left-1/4 rotate-12" />
+        <motion.div custom={3} variants={shapeVariants} animate="animate" className="absolute w-96 h-96 bg-[#3B82F6] rounded-full opacity-5 top-1/2 left-1/3" />
+        <motion.div custom={4} variants={shapeVariants} animate="animate" className="absolute w-32 h-32 bg-[#8B5CF6] rounded-xl opacity-10 top-20 left-10 -rotate-12" />
+        <motion.div custom={5} variants={shapeVariants} animate="animate" className="absolute w-72 h-72 bg-[#EC4899] rounded-full opacity-10 bottom-20 right-1/4" />
+
+        {/* Additional top-left boxes */}
+        <motion.div custom={6} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-40 h-40 bg-[#14B8A6] rounded-2xl opacity-10 top-[-20px] left-[18rem] rotate-45" />
+        <motion.div custom={7} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-28 h-28 bg-[#F43F5E] rounded-3xl opacity-10 top-32 left-[24rem] -rotate-12" />
+        <motion.div custom={8} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-56 h-56 bg-[#4F46E5] rounded-full opacity-[0.06] top-10 left-[35%]" />
+
+        {/* Additional bottom-right boxes */}
+        <motion.div custom={9} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-36 h-36 bg-[#EAB308] rounded-2xl opacity-10 bottom-10 right-10 -rotate-12" />
+        <motion.div custom={10} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-24 h-24 bg-[#06B6D4] rounded-full opacity-10 bottom-40 right-28 rotate-45" />
+      </div>
+
+      {/* Sidebar - Clean, Professional */}
+      <aside className="w-[260px] h-screen sticky top-0 bg-white/80 backdrop-blur-md border-r border-slate-200 hidden md:flex flex-col z-20 shadow-sm shrink-0">
+        <div className="h-14 flex items-center px-4 border-b border-slate-200 shrink-0">
+          <div className="w-8 h-8 bg-indigo-600 rounded flex items-center justify-center text-white mr-3 shrink-0">
+            <Building2 size={18} strokeWidth={2.5} />
+          </div>
+          <span className="text-lg font-semibold tracking-tight text-slate-900 whitespace-nowrap">Branch Operations</span>
+        </div>
+
+        <div className="p-4 overflow-y-auto flex-1">
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 px-2 whitespace-nowrap">Operations Modules</p>
+          <nav className="space-y-1">
+            {navItems.filter(item => !item.feature || profile?.featureAccess?.[item.feature]).map((item, idx) => {
+              const isActive = location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={idx}
+                  to={item.path}
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive
+                    ? 'bg-indigo-50 text-indigo-700'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    }`}
+                >
+                  <span className={`shrink-0 ${isActive ? 'text-indigo-600' : 'text-slate-400'}`}>
+                    <Icon size={18} />
+                  </span>
+                  <span className="flex-1 whitespace-nowrap truncate">{item.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+        
+        <div className="p-4 border-t border-slate-200 mt-auto shrink-0">
           <Link
-            to="/employee/dashboard"
-            className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors text-sm font-semibold group bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100"
+            to="/employee"
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
           >
-            <ArrowLeft size={16} className="group-hover:-translate-x-0.5 transition-transform" />
-            <span>Employee Portal</span>
+            <span className="text-slate-400 shrink-0"><ArrowLeft size={18} /></span>
+            <span className="flex-1 whitespace-nowrap">Back to HRMS</span>
           </Link>
-          <div className="h-5 w-px bg-slate-200" />
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-xs">
-              <Building2 size={18} />
-            </div>
-            <div>
-              <h1 className="font-bold text-slate-900 leading-tight text-sm">Branch Operations</h1>
-              <p className="text-[10px] text-slate-500 font-medium">Enterprise Management</p>
-            </div>
-          </div>
         </div>
+      </aside>
 
-        {/* Center Desktop Navigation Tabs */}
-        <nav className="flex items-center gap-1 bg-slate-100/80 p-1 rounded-xl border border-slate-200/60">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = location.pathname === item.path;
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                  isActive
-                    ? 'bg-white text-indigo-700 shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
-                }`}
-              >
-                <Icon size={14} className={isActive ? 'text-indigo-600' : 'text-slate-400'} />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
-        </nav>
+      {/* Main Content Wrapper */}
+      <main className="flex-1 flex flex-col h-[100dvh] overflow-hidden relative z-30 bg-transparent">
 
-        {/* Right Header User Profile */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2.5 pl-3 border-l border-slate-200">
-            <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold ring-2 ring-indigo-50">
-              {profile?.avatar ? (
-                <img src={profile.avatar} alt="Profile" className="w-full h-full rounded-full object-cover" />
-              ) : (
-                profile?.name?.charAt(0) || 'U'
-              )}
-            </div>
-            <div className="hidden lg:block text-left">
-              <p className="text-xs font-bold text-slate-900 leading-tight">{profile?.name || 'User'}</p>
-              <p className="text-[10px] text-slate-500 font-medium">{profile?.position || 'Operations Officer'}</p>
-            </div>
-          </div>
-
-          <button
-            onClick={handleLogout}
-            title="Sign Out"
-            className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-          >
-            <LogOut size={16} />
-          </button>
-        </div>
-      </header>
-
-      {/* Breaking News Ticker Bar */}
-      {newsHeadlines && newsHeadlines.length > 0 && (
-        <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white text-xs py-1.5 px-4 overflow-hidden flex items-center shrink-0 border-b border-indigo-900/50 shadow-xs z-20">
-          <div className="flex items-center gap-1.5 font-bold uppercase tracking-wider text-[10px] text-indigo-400 shrink-0 mr-3 pr-3 border-r border-slate-700">
-            <Megaphone size={12} className="animate-pulse text-indigo-400" />
-            <span>Notice</span>
-          </div>
-          <div className="flex-1 overflow-hidden relative whitespace-nowrap">
-            <div className="inline-block animate-marquee pl-[100%]">
-              {newsHeadlines.join('  •  ')}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Main Outlet Container */}
-      <main ref={scrollContainerRef} className="flex-1 overflow-y-auto w-full">
-        <Outlet />
-      </main>
-
-      {/* Mobile Top Header */}
-      <header className="md:hidden flex items-center justify-between p-4 bg-white border-b border-slate-200 sticky top-0 z-30">
-        <button
-          onClick={() => setShowBackModal(true)}
-          className="p-2 bg-slate-100 rounded-full text-slate-600 hover:bg-slate-200 transition-colors"
-        >
-          <ArrowLeft size={18} />
-        </button>
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-md bg-indigo-600 flex items-center justify-center text-white font-bold text-xs">
-            <Building2 size={14} />
-          </div>
-          <span className="font-bold text-slate-900 text-sm">Branch Operations</span>
-        </div>
-        <button
-          onClick={handleLogout}
-          className="p-2 text-slate-400 hover:text-rose-600 transition-colors"
-        >
-          <LogOut size={18} />
-        </button>
-      </header>
-
-      {/* Mobile Back Modal */}
-      <AnimatePresence>
-        {showBackModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs md:hidden">
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl text-center space-y-4"
+        {/* Top Header */}
+        <header className="h-14 shrink-0 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 hidden md:flex items-center justify-between sticky top-0 z-40 md:relative md:z-10 overflow-hidden">
+          <div className="flex items-center gap-4 shrink-0">
+            {/* Mobile Back Button */}
+            <button
+              onClick={() => navigate('/employee')}
+              className="md:hidden flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-colors"
             >
-              <div className="w-12 h-12 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto">
-                <Home size={24} />
+              <ArrowLeft size={18} strokeWidth={2.5} />
+            </button>
+          </div>
+
+          <div className="flex items-center gap-5 shrink-0">
+            {/* Mobile Profile Avatar */}
+            <div className="md:hidden flex items-center gap-3">
+              <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-700 font-semibold text-sm overflow-hidden border border-slate-200">
+                {profile?.avatar ? (
+                  <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  (profile?.email || 'E').charAt(0).toUpperCase()
+                )}
               </div>
-              <div>
-                <h3 className="text-lg font-bold text-slate-900">Return to Portal?</h3>
-                <p className="text-xs text-slate-500 mt-1">Navigate back to the standard employee dashboard.</p>
+            </div>
+
+            {/* Desktop Profile Header Block */}
+            <div className="hidden md:flex items-center gap-5">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-700 font-semibold text-sm overflow-hidden border border-slate-200">
+                  {profile?.avatar ? (
+                    <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    (profile?.email || 'E').charAt(0).toUpperCase()
+                  )}
+                </div>
+                <div className="hidden sm:block text-left">
+                  <p className="text-sm font-medium text-slate-700 leading-none">
+                    {profile?.email?.split('@')[0] || 'Employee'}
+                  </p>
+                  <p className="text-xs text-slate-500 mt-1 capitalize">{profile?.role || 'Employee'}</p>
+                </div>
               </div>
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowBackModal(false)}
-                  className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-semibold text-xs hover:bg-slate-50 transition-colors"
-                >
-                  Stay
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowBackModal(false);
-                    navigate('/employee/dashboard');
-                  }}
-                  className="flex-1 py-2.5 rounded-xl bg-indigo-600 text-white font-semibold text-xs hover:bg-indigo-700 transition-colors shadow-xs"
-                >
-                  Return
-                </button>
-              </div>
-            </motion.div>
+            </div>
+          </div>
+        </header>
+
+        {/* Dynamic Page Content */}
+        <div
+          ref={scrollContainerRef}
+          className={`flex-1 overflow-y-auto overscroll-y-contain bg-transparent ${shouldHideBottomNav ? 'pb-6' : 'pb-24'} md:pb-0`}
+          style={{ WebkitOverflowScrolling: 'touch' }}
+        >
+          <Outlet />
+        </div>
+        
+        {/* Mobile Bottom Navigation (iOS Liquid Glass) */}
+        {!shouldHideBottomNav && (
+          <div
+            data-mobile-nav="true"
+            className="mobile-bottom-nav md:hidden fixed bottom-6 left-4 right-4 z-50 pointer-events-none touch-none select-none transition-all duration-200"
+            onTouchStart={handleTouchMove}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onTouchCancel={handleTouchEnd}
+          >
+            <div className="bg-white/50 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-full p-1.5 flex justify-around items-center pointer-events-auto">
+              {/* Back to HRMS Button */}
+              <button
+                onClick={() => setShowBackModal(true)}
+                className="relative flex flex-col items-center justify-center w-[72px] h-[58px] z-10 group"
+              >
+                <ArrowLeft className="relative z-10 w-6 h-6 mb-0.5 transition-all duration-300 text-slate-500 group-hover:text-slate-600 group-active:scale-95" strokeWidth={2} />
+                <span className="relative z-10 text-[10px] font-medium tracking-wide transition-all duration-300 text-slate-500">Back</span>
+              </button>
+
+              {navItems.filter(item => !item.feature || profile?.featureAccess?.[item.feature]).map((item, idx) => {
+                const currentPath = swipePath || location.pathname;
+                const isActive = currentPath === item.path || currentPath.startsWith(`${item.path}/`);
+                const Icon = item.icon;
+                
+                return (
+                  <Link
+                    key={item.path || idx}
+                    to={item.path}
+                    data-nav-path={item.path}
+                    onClick={(e) => {
+                      if (swipePath) e.preventDefault();
+                    }}
+                    className="relative flex flex-col items-center justify-center w-[72px] h-[58px] z-10 group"
+                  >
+                    {isActive && (
+                      <motion.div
+                        layoutId="branchOpsMobileNavBubble"
+                        className="absolute inset-0 z-[-1] rounded-full shadow-[inset_0_1px_3px_rgba(255,255,255,0.8),0_4px_16px_rgba(0,0,0,0.06)] bg-white/40 backdrop-blur-xl border border-white/80 overflow-hidden"
+                        transition={{ type: 'spring', bounce: 0.25, duration: 0.5 }}
+                      />
+                    )}
+                    <Icon className={`relative z-10 w-6 h-6 mb-0.5 transition-all duration-300 ${isActive ? 'text-indigo-600 scale-105' : 'text-slate-500 group-hover:text-slate-600 group-active:scale-95'}`} strokeWidth={isActive ? 2.5 : 2} />
+                    <span className={`relative z-10 text-[10px] font-medium tracking-wide transition-all duration-300 ${isActive ? 'text-indigo-600' : 'text-slate-500'}`}>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         )}
-      </AnimatePresence>
+      </main>
     </div>
+
+    {/* Back to HRMS Confirmation Modal */}
+    <AnimatePresence>
+      {showBackModal && (
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 sm:p-0">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowBackModal(false)}
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm cursor-pointer"
+          />
+          <motion.div
+            initial={{ opacity: 0, y: '100%', scale: 1 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: '100%', scale: 0.95 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            drag="y"
+            dragConstraints={{ top: 0 }}
+            dragElastic={{ top: 0, bottom: 0.6 }}
+            onDragEnd={(e, info) => {
+              if (info.offset.y > 80 || info.velocity.y > 400) {
+                setShowBackModal(false);
+              }
+            }}
+            className="bg-white w-full max-w-sm rounded-[24px] sm:rounded-2xl p-6 shadow-2xl relative z-10 mb-4 sm:mb-0"
+          >
+            <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6 sm:hidden"></div>
+            <div className="flex flex-col items-center text-center">
+              <div className="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mb-4 ring-4 ring-indigo-50">
+                <ArrowLeft size={28} />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-2">Back to HRMS</h3>
+              <p className="text-slate-500 text-sm mb-6 px-2">
+                Are you sure you want to return to the main HRMS application?
+              </p>
+
+              <div className="flex w-full gap-3">
+                <button
+                  onClick={() => setShowBackModal(false)}
+                  className="flex-1 py-3.5 px-4 rounded-xl font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setShowBackModal(false);
+                    navigate('/employee');
+                  }}
+                  className="flex-1 py-3.5 px-4 rounded-xl font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-sm shadow-indigo-500/20"
+                >
+                  Continue
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+
+    <style>{`
+      .orientation-warning {
+        display: none;
+      }
+      @media (orientation: landscape) and (max-width: 1024px) {
+        .orientation-warning {
+          display: flex;
+        }
+      }
+    `}</style>
+
+    {/* Landscape Orientation Warning Overlay for Mobile/Tablet */}
+    <div className="orientation-warning fixed inset-0 z-[9999] flex-col items-center justify-center bg-slate-50 p-6 text-center select-none">
+      <div className="relative mb-6">
+        <div className="w-20 h-20 border border-dashed border-slate-300 rounded-full flex items-center justify-center animate-[spin_8s_linear_infinite]">
+          <Smartphone className="w-8 h-8 text-indigo-500 opacity-20" />
+        </div>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <motion.div
+            animate={{ rotate: [0, -90, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <Smartphone className="w-10 h-10 text-slate-800" />
+          </motion.div>
+        </div>
+      </div>
+      <h3 className="text-xl font-black text-slate-900 mb-2 uppercase tracking-wide">Rotate your device</h3>
+      <p className="text-slate-500 text-sm max-w-xs font-medium leading-relaxed">
+        Please rotate your screen back to portrait orientation for the best Acme HRMS experience.
+      </p>
+    </div>
+    </>
   );
 };
 
