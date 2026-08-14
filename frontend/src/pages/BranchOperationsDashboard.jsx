@@ -89,7 +89,7 @@ const BranchOperationsDashboard = () => {
       </div>
 
       <motion.div 
-        className="hidden md:block p-6 space-y-6 pb-12 max-w-7xl mx-auto"
+        className="hidden md:block p-6 space-y-6 pb-6"
         variants={containerVariants}
         initial="hidden"
         animate="visible"

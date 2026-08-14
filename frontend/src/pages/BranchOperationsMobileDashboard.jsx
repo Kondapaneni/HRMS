@@ -80,7 +80,7 @@ const BranchOperationsMobileDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen pb-24">
+    <div className="min-h-screen">
       {/* Animated Hero Header */}
       <section className="relative px-6 pt-12 pb-20 rounded-b-[40px] overflow-hidden bg-slate-900 shadow-md">
         {/* Animated Background Blobs */}
