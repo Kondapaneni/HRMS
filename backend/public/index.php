@@ -447,6 +447,7 @@ require __DIR__ . '/origination_dashboard_routes.php';
 require __DIR__ . '/origination_leads_routes.php';
 require __DIR__ . '/origination_member_routes.php';
 require __DIR__ . '/origination_loan_application_routes.php';
+require __DIR__ . '/branch_operations_dashboard_routes.php';
 
 // Request Password Reset
 $app->post('/api/forgot-password', function (Request $request, Response $response) {
