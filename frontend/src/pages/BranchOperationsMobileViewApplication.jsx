@@ -9,10 +9,8 @@ import {
   CheckCircle2,
   Loader2,
   X,
-  FileText,
-  Building2
+  FileText
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { getBranchLoanApplications } from '../services/branchOperationsServices';
 import { LoanDetailView } from '../components/forms';
@@ -130,24 +128,12 @@ export default function BranchOperationsMobileViewApplication({
 
   return (
     <div className="w-full pb-8">
-      {/* ━━━ Hero Header — matching Origination Module Mobile Design ━━━ */}
+      {/* Hero Header */}
       <section className="relative px-6 pt-12 pb-24 rounded-b-[40px] overflow-hidden bg-slate-900 shadow-md">
-        {/* Animated Background Blobs */}
-        <motion.div
-          animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
-          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute -top-20 -left-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.4, 1], x: [0, -40, 0], y: [0, 50, 0] }}
-          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-          className="absolute -top-10 -right-10 w-64 h-64 bg-indigo-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.3, 1], x: [0, 30, 0], y: [0, -40, 0] }}
-          transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-          className="absolute bottom-0 left-20 w-80 h-80 bg-emerald-500 rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
-        />
+        {/* Background Blobs (Static) */}
+        <div className="absolute -top-20 -left-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none" />
+        <div className="absolute -top-10 -right-10 w-64 h-64 bg-indigo-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none" />
+        <div className="absolute bottom-0 left-20 w-80 h-80 bg-emerald-500 rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none" />
 
         {/* Subtle Glass Overlay */}
         <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none" />
@@ -172,7 +158,7 @@ export default function BranchOperationsMobileViewApplication({
         </div>
       </section>
 
-      {/* ━━━ Mobile Content Cards ━━━ */}
+      {/* Mobile Content Cards */}
       <div className="relative z-20 -mt-12 px-4 space-y-4">
         {/* Application Overview & Status Card */}
         <div className="bg-white p-5 rounded-[24px] shadow-lg border border-slate-100/80">
@@ -205,7 +191,7 @@ export default function BranchOperationsMobileViewApplication({
           </p>
         </div>
 
-        {/* ━━━ Loan Details Content rendered from LoanDetailView ━━━ */}
+        {/* Loan Details Content rendered from LoanDetailView */}
         <LoanDetailView
           formData={formData || {}}
           application={application || {}}
@@ -214,7 +200,7 @@ export default function BranchOperationsMobileViewApplication({
           localTimeline={localTimeline}
         />
 
-        {/* ━━━ Bottom Back Button ━━━ */}
+        {/* Bottom Back Button */}
         <div className="flex justify-center pt-2 pb-2">
           <button
             type="button"
