@@ -237,7 +237,7 @@ const BranchOperationsDashboard = () => {
 
         {/* Directory-styled Activity Card & Table (Matching Origination Leads) */}
         <motion.div variants={itemVariants} className="rounded-lg border border-slate-200 bg-white shadow-sm mb-6">
-          <div className="p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="p-6 pb-2 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <h3 className="text-lg font-semibold flex items-center gap-2 text-slate-900">
                 <Users className="h-5 w-5 text-slate-500" />
@@ -245,25 +245,27 @@ const BranchOperationsDashboard = () => {
               </h3>
               <p className="text-sm text-slate-500 mt-1">A comprehensive list of latest 10 leads and loan applications recorded for this branch.</p>
             </div>
-            
-            {/* Table Tabs */}
-            <div className="flex bg-slate-100 p-1 rounded-md border border-slate-200">
+          </div>
+
+          {/* Underline Tabs Header */}
+          <div className="px-6">
+            <div className="flex overflow-x-auto hide-scrollbar space-x-2 border-b border-slate-200 pb-px">
               <button
                 onClick={() => setActiveTableTab('leads')}
-                className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                className={`whitespace-nowrap px-4 py-2.5 text-sm font-medium transition-colors ${
                   activeTableTab === 'leads'
-                    ? 'bg-white text-blue-600 shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'border-b-2 border-blue-600 text-blue-600 font-semibold'
+                    : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
                 }`}
               >
                 Recent Leads ({recentLeads.length})
               </button>
               <button
                 onClick={() => setActiveTableTab('applications')}
-                className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                className={`whitespace-nowrap px-4 py-2.5 text-sm font-medium transition-colors ${
                   activeTableTab === 'applications'
-                    ? 'bg-white text-blue-600 shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'border-b-2 border-blue-600 text-blue-600 font-semibold'
+                    : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
                 }`}
               >
                 Recent Applications ({recentApplications.length})
@@ -271,7 +273,7 @@ const BranchOperationsDashboard = () => {
             </div>
           </div>
 
-          <div className="p-6 pt-0">
+          <div className="p-6 pt-4">
             <div className="rounded-md border border-slate-200 overflow-x-auto">
               {activeTableTab === 'leads' ? (
                 <table className="w-full text-sm text-left">
