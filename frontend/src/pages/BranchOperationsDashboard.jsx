@@ -88,7 +88,7 @@ const BranchOperationsDashboard = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
           <div>
             <div className="flex items-center gap-2.5 mb-1">
-              <h1 className="text-3xl font-bold tracking-tight text-slate-900">Branch Operations</h1>
+              <h1 className="text-3xl font-bold tracking-tight text-slate-900">Branch Operations Dashboard</h1>
               <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
                 <Building2 size={13} className="text-indigo-600" />
                 {branch.name}

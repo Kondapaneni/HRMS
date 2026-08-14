@@ -83,7 +83,7 @@ const BranchOperationsMobileDashboard = () => {
             <Building2 size={12} className="text-indigo-300" />
             <span>{branch.name}</span>
           </div>
-          <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">Branch Operations</h2>
+          <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">Branch Operations Dashboard</h2>
           <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">Branch performance overview & operations</p>
         </div>
       </section>
