@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axios';
-import { Building2, ArrowLeft, Smartphone, Activity } from 'lucide-react';
+import { Building2, ArrowLeft, Smartphone, Activity, Briefcase } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -77,6 +77,7 @@ const BranchOperationsLayout = () => {
 
   const navItems = [
     { icon: Activity, label: 'Dashboard', path: '/employee/branch-operations', feature: 'canBranchOperations' },
+    { icon: Briefcase, label: 'Applications', path: '/employee/branch-operations/applications', feature: 'canBranchOperations' },
   ];
 
   const shapeVariants = {

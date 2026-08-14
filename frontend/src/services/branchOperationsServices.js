@@ -13,3 +13,12 @@ export const getBranchDashboardData = async ({ queryKey }) => {
   const response = await api.get(url);
   return response.data;
 };
+
+/**
+ * Fetches loan applications belonging to the user's branch that have reached Branch Operations stage.
+ * @returns {Promise<Object>}
+ */
+export const getBranchLoanApplications = async () => {
+  const response = await api.get('/branch-operations/applications');
+  return response.data;
+};
