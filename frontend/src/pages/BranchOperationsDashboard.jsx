@@ -109,7 +109,6 @@ const BranchOperationsDashboard = () => {
       case 'Branch Operations':
         return 'bg-indigo-50 text-indigo-700 border-indigo-200 font-semibold';
       case 'Created':
-      case 'Submitted':
         return 'bg-blue-50 text-blue-700 border-blue-200';
       case 'Approved':
         return 'bg-emerald-50 text-emerald-700 border-emerald-200';
@@ -415,7 +414,7 @@ const BranchOperationsDashboard = () => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
                 <h3 className="text-base font-bold text-slate-900">Activity & Production Trends</h3>
-                <p className="text-xs text-slate-500">Leads generated vs converted vs files submitted</p>
+                <p className="text-xs text-slate-500">Leads generated vs converted vs files created</p>
               </div>
 
               {/* Loan Type Filter Buttons */}
@@ -485,7 +484,7 @@ const BranchOperationsDashboard = () => {
                   <Area
                     type="monotone"
                     dataKey="applications"
-                    name="Applications Submitted"
+                    name="Applications Created"
                     stroke="#6366f1"
                     strokeWidth={2.5}
                     strokeDasharray="4 4"
@@ -539,7 +538,7 @@ const BranchOperationsDashboard = () => {
             {/* Quick summary footer */}
             <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
               <span>Active Officers: <strong className="text-slate-800">{officers.length}</strong></span>
-              <span>Total Submitted: <strong className="text-indigo-600">{stats.total_applications}</strong></span>
+              <span>Total Created: <strong className="text-indigo-600">{stats.total_applications}</strong></span>
             </div>
           </div>
         </motion.div>
@@ -575,7 +574,7 @@ const BranchOperationsDashboard = () => {
                   <th className="pb-3 px-3 text-center">Active Opps</th>
                   <th className="pb-3 px-3 text-center">Converted</th>
                   <th className="pb-3 px-3 text-center">Conv. Rate</th>
-                  <th className="pb-3 px-3 text-center">Submitted Apps</th>
+                  <th className="pb-3 px-3 text-center">Created Apps</th>
                   <th className="pb-3 px-3 text-center">Transferred</th>
                   <th className="pb-3 px-3 text-right">Actions</th>
                 </tr>
@@ -690,7 +689,7 @@ const BranchOperationsDashboard = () => {
                 {recentApplications.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="py-8 text-center text-slate-400 text-xs">
-                      No loan applications submitted yet for this selection.
+                      No loan applications created yet for this selection.
                     </td>
                   </tr>
                 ) : (

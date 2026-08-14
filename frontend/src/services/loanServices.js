@@ -61,7 +61,7 @@ export const submitLoanApplication = async (loanType, formData, status = 'Create
 };
 
 /**
- * Fetches submitted and draft loan applications.
+ * Fetches created and draft loan applications.
  * @returns {Promise<Object>}
  */
 export const getLoanApplications = async () => {

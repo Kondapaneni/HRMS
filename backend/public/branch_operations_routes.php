@@ -207,7 +207,7 @@ $app->get('/api/branch-operations/dashboard', function (Request $request, Respon
             SELECT 
                 COUNT(*) as total_applications,
                 COALESCE(SUM(CASE WHEN a.status = 'Draft' THEN 1 ELSE 0 END), 0) as draft_applications,
-                COALESCE(SUM(CASE WHEN a.status = 'Created' OR a.status = 'Submitted' THEN 1 ELSE 0 END), 0) as submitted_applications,
+                COALESCE(SUM(CASE WHEN a.status = 'Created' THEN 1 ELSE 0 END), 0) as created_applications,
                 COALESCE(SUM(CASE WHEN a.status = 'Branch Operations' THEN 1 ELSE 0 END), 0) as transferred_applications,
                 COALESCE(SUM(CASE WHEN a.status = 'Approved' THEN 1 ELSE 0 END), 0) as approved_applications,
                 COALESCE(SUM(CASE WHEN a.status = 'Rejected' THEN 1 ELSE 0 END), 0) as rejected_applications
@@ -222,7 +222,7 @@ $app->get('/api/branch-operations/dashboard', function (Request $request, Respon
 
         $totalApplications = (int)($appStats['total_applications'] ?? 0);
         $draftApplications = (int)($appStats['draft_applications'] ?? 0);
-        $submittedApplications = (int)($appStats['submitted_applications'] ?? 0);
+        $createdApplications = (int)($appStats['created_applications'] ?? 0);
         $transferredApplications = (int)($appStats['transferred_applications'] ?? 0);
         $approvedApplications = (int)($appStats['approved_applications'] ?? 0);
         $rejectedApplications = (int)($appStats['rejected_applications'] ?? 0);
@@ -341,7 +341,7 @@ $app->get('/api/branch-operations/dashboard', function (Request $request, Respon
             $oAppStmt = $conn->prepare("
                 SELECT 
                     COUNT(*) as total_apps,
-                    COALESCE(SUM(CASE WHEN status = 'Created' OR status = 'Submitted' THEN 1 ELSE 0 END), 0) as submitted_apps,
+                    COALESCE(SUM(CASE WHEN status = 'Created' THEN 1 ELSE 0 END), 0) as created_apps,
                     COALESCE(SUM(CASE WHEN status = 'Branch Operations' THEN 1 ELSE 0 END), 0) as transferred_apps
                 FROM public.loan_applications a
                 WHERE (a.created_by::text = ? OR a.created_by::text = ?)
@@ -367,7 +367,8 @@ $app->get('/api/branch-operations/dashboard', function (Request $request, Respon
                 'active_leads' => (int)($oLead['active_leads'] ?? 0),
                 'conversion_rate' => $oConvRate,
                 'total_applications' => (int)($oApp['total_apps'] ?? 0),
-                'submitted_applications' => (int)($oApp['submitted_apps'] ?? 0),
+                'created_applications' => (int)($oApp['created_apps'] ?? 0),
+                'submitted_applications' => (int)($oApp['created_apps'] ?? 0),
                 'transferred_applications' => (int)($oApp['transferred_apps'] ?? 0),
             ];
         }
@@ -436,7 +437,8 @@ $app->get('/api/branch-operations/dashboard', function (Request $request, Respon
                 'conversion_rate' => $conversionRate,
                 'total_applications' => $totalApplications,
                 'draft_applications' => $draftApplications,
-                'submitted_applications' => $submittedApplications,
+                'created_applications' => $createdApplications,
+                'submitted_applications' => $createdApplications,
                 'transferred_applications' => $transferredApplications,
                 'approved_applications' => $approvedApplications,
                 'rejected_applications' => $rejectedApplications,

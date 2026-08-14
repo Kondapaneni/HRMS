@@ -80,7 +80,6 @@ const BranchOperationsMobileDashboard = ({
       case 'Branch Operations':
         return 'bg-indigo-500/15 text-indigo-700 border-indigo-200/60 font-semibold';
       case 'Created':
-      case 'Submitted':
         return 'bg-blue-500/15 text-blue-700 border-blue-200/60';
       case 'Approved':
         return 'bg-emerald-500/15 text-emerald-700 border-emerald-200/60';
@@ -301,10 +300,10 @@ const BranchOperationsMobileDashboard = ({
               </div>
             </div>
 
-            {/* Total Applications Submitted */}
+            {/* Total Applications Created */}
             <div className="bg-white/80 backdrop-blur-xl p-4 rounded-2xl border border-white/80 shadow-sm relative overflow-hidden">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Submitted</span>
+                <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Created</span>
                 <div className="w-7 h-7 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
                   <FileText size={14} />
                 </div>
@@ -500,7 +499,7 @@ const BranchOperationsMobileDashboard = ({
                       <div className="text-sm font-bold text-blue-600 mt-0.5">{officer.conversion_rate}%</div>
                     </div>
                     <div className="bg-slate-50/80 p-2 rounded-xl">
-                      <div className="text-[10px] text-slate-400 font-medium">Submitted</div>
+                      <div className="text-[10px] text-slate-400 font-medium">Created</div>
                       <div className="text-sm font-bold text-indigo-600 mt-0.5">{officer.total_applications}</div>
                     </div>
                   </div>

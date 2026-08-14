@@ -11,7 +11,7 @@ const MemberDetailsSidebar = ({ isOpen, onClose, member }) => {
     queryFn: getLoanApplications,
   });
 
-  const submittedLeadIds = React.useMemo(() => {
+  const createdLeadIds = React.useMemo(() => {
     if (!appsResponse?.applications) return new Set();
     return new Set(
       appsResponse.applications
@@ -23,7 +23,7 @@ const MemberDetailsSidebar = ({ isOpen, onClose, member }) => {
   if (!member) return null;
 
   const defaultLeadId = String(member.lead_id || member.id || '');
-  const isMemberDefaultSubmitted = submittedLeadIds.has(defaultLeadId);
+  const isMemberDefaultCreated = createdLeadIds.has(defaultLeadId);
 
   return (
     <AnimatePresence>
@@ -86,7 +86,7 @@ const MemberDetailsSidebar = ({ isOpen, onClose, member }) => {
                 <div className="grid gap-3">
                   {member.loans && member.loans.map((loan) => {
                     const currentLeadId = String(loan.id || loan.lead_id || member.lead_id || '');
-                    const isSubmitted = submittedLeadIds.has(currentLeadId);
+                    const isCreated = createdLeadIds.has(currentLeadId);
 
                     return (
                       <div key={loan.id} className="bg-slate-50 border border-slate-100 rounded-lg p-4 transition-all hover:shadow-md hover:border-slate-200">
@@ -98,16 +98,16 @@ const MemberDetailsSidebar = ({ isOpen, onClose, member }) => {
                             <div className="h-5 w-16 bg-slate-200 animate-pulse rounded-full" />
                           ) : (
                             <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                              isSubmitted ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                              isCreated ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
                             }`}>
-                              <CheckCircle2 size={12} /> {isSubmitted ? 'Created' : (loan.status || 'Draft')}
+                              <CheckCircle2 size={12} /> {isCreated ? 'Created' : (loan.status || 'Draft')}
                             </span>
                           )}
                         </div>
                         
                         {isLoadingApps && !appsResponse ? (
                           <div className="h-8 w-36 bg-slate-200 animate-pulse rounded-md" />
-                        ) : isSubmitted ? (
+                        ) : isCreated ? (
                           <div className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-md bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed select-none">
                             <Lock size={12} className="text-slate-400" /> Application Created
                           </div>
@@ -129,9 +129,9 @@ const MemberDetailsSidebar = ({ isOpen, onClose, member }) => {
                       <p>No loan history available.</p>
                       {isLoadingApps && !appsResponse ? (
                         <div className="h-8 w-36 bg-slate-200 animate-pulse rounded-md mx-auto" />
-                      ) : isMemberDefaultSubmitted ? (
+                      ) : isMemberDefaultCreated ? (
                         <div className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-md bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed select-none">
-                          <Lock size={12} className="text-slate-400" /> Application Submitted
+                          <Lock size={12} className="text-slate-400" /> Application Created
                         </div>
                       ) : (
                         <Link 

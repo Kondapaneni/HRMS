@@ -32,12 +32,7 @@ const OriginationMobileApplicationsList = () => {
       appId.toLowerCase().includes(searchTerm.toLowerCase()) ||
       String(leadId).includes(searchTerm);
 
-    const matchesStatus =
-      statusFilter === 'All'
-        ? true
-        : statusFilter === 'Created'
-        ? app.status === 'Created' || app.status === 'Submitted'
-        : app.status === statusFilter;
+    const matchesStatus = statusFilter === 'All' ? true : app.status === statusFilter;
     const matchesLoanType = loanTypeFilter === 'All' ? true : appLoanType === loanTypeFilter;
 
     return matchesSearch && matchesStatus && matchesLoanType;
@@ -106,7 +101,7 @@ const OriginationMobileApplicationsList = () => {
           <div>
             <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">Origination Module</p>
             <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">Applications</h2>
-            <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">Submitted & draft loans</p>
+            <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">Created & draft loans</p>
           </div>
         </div>
       </section>
@@ -166,7 +161,7 @@ const OriginationMobileApplicationsList = () => {
                   : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
               }`}
             >
-              {st} {st === 'All' ? `(${applications.length})` : `(${applications.filter(a => st === 'Created' ? (a.status === 'Created' || a.status === 'Submitted') : a.status === st).length})`}
+              {st} {st === 'All' ? `(${applications.length})` : `(${applications.filter(a => a.status === st).length})`}
             </button>
           ))}
         </div>
@@ -189,7 +184,7 @@ const OriginationMobileApplicationsList = () => {
             {filteredApps.map((app) => {
               const name = app.applicant_name || app.form_data?.applicant_name || 'N/A';
               const phone = app.phone_number || app.form_data?.phone_number || 'N/A';
-              const isCreated = app.status === 'Created' || app.status === 'Submitted';
+              const isCreated = app.status === 'Created';
 
               return (
                 <div

@@ -311,10 +311,10 @@ export function BusinessLoanForm() {
           app.loan_type === 'Business Loan' && 
           passingLeadId && 
           String(app.lead_id) === String(passingLeadId) &&
-          (app.status === 'Draft' || app.status === 'Created' || app.status === 'Submitted')
+          (app.status === 'Draft' || app.status === 'Created')
         );
 
-        if (existingApp && (existingApp.status === 'Created' || existingApp.status === 'Submitted')) {
+        if (existingApp && existingApp.status === 'Created') {
           setIsAlreadySubmitted(true);
         }
 
@@ -351,7 +351,7 @@ export function BusinessLoanForm() {
       setLoadedAppId(location.state.application.id || location.state.application.application_id);
     }
 
-    if (location.state?.application?.status === 'Created' || location.state?.application?.status === 'Submitted') {
+    if (location.state?.application?.status === 'Created') {
       setIsAlreadySubmitted(true);
     }
 

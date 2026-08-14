@@ -115,7 +115,6 @@ export default function OriginationMobileViewApplications({
   const appStatus = String(localStatus);
   const isCreated =
     appStatus.toLowerCase() === 'created' ||
-    appStatus.toLowerCase() === 'submitted' ||
     appStatus.toLowerCase() === 'approved' ||
     appStatus.toLowerCase() === 'under_review';
 

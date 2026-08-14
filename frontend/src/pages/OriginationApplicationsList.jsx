@@ -32,12 +32,7 @@ const OriginationApplicationsList = () => {
       appId.toLowerCase().includes(searchTerm.toLowerCase()) ||
       String(leadId).includes(searchTerm);
 
-    const matchesStatus =
-      statusFilter === 'All'
-        ? true
-        : statusFilter === 'Created'
-        ? app.status === 'Created' || app.status === 'Submitted'
-        : app.status === statusFilter;
+    const matchesStatus = statusFilter === 'All' ? true : app.status === statusFilter;
     const matchesLoanType = loanTypeFilter === 'All' ? true : appLoanType === loanTypeFilter;
 
     return matchesSearch && matchesStatus && matchesLoanType;
@@ -79,7 +74,7 @@ const OriginationApplicationsList = () => {
         <div className="flex justify-between items-center mb-2">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-slate-900">Applications</h1>
-            <p className="text-sm text-slate-500 mt-1">View and manage all submitted and draft loan applications.</p>
+            <p className="text-sm text-slate-500 mt-1">View and manage all created and draft loan applications.</p>
           </div>
         </div>
 
@@ -98,7 +93,7 @@ const OriginationApplicationsList = () => {
                     <Briefcase className="h-5 w-5 text-slate-500" />
                     Applications Directory
                   </h3>
-                  <p className="text-sm text-slate-500 mt-1">A comprehensive list of all your submitted and draft loan applications.</p>
+                  <p className="text-sm text-slate-500 mt-1">A comprehensive list of all your created and draft loan applications.</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                   <div className="relative w-full sm:w-56 shrink-0">
@@ -146,7 +141,7 @@ const OriginationApplicationsList = () => {
                             : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-200'
                         }`}
                       >
-                        {st} {st === 'All' ? `(${applications.length})` : `(${applications.filter(a => st === 'Created' ? (a.status === 'Created' || a.status === 'Submitted') : a.status === st).length})`}
+                        {st} {st === 'All' ? `(${applications.length})` : `(${applications.filter(a => a.status === st).length})`}
                       </button>
                     ))}
                   </div>
@@ -185,7 +180,7 @@ const OriginationApplicationsList = () => {
                         filteredApps.map((app) => {
                           const name = app.applicant_name || app.form_data?.applicant_name || 'N/A';
                           const phone = app.phone_number || app.form_data?.phone_number || 'N/A';
-                          const isCreated = app.status === 'Created' || app.status === 'Submitted';
+                          const isCreated = app.status === 'Created';
 
                           return (
                             <tr key={app.id || app.application_id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">

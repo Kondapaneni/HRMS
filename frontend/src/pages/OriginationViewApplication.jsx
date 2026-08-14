@@ -96,7 +96,6 @@ export default function OriginationViewApplication() {
   const appStatus = String(localStatus);
   const isCreated =
     appStatus.toLowerCase() === 'created' ||
-    appStatus.toLowerCase() === 'submitted' ||
     appStatus.toLowerCase() === 'approved' ||
     appStatus.toLowerCase() === 'under_review';
 
@@ -231,7 +230,7 @@ export default function OriginationViewApplication() {
               </span>
             </div>
             <p className="text-xs sm:text-sm text-slate-500">
-              View and manage submitted loan application records, documents, and print copies.
+              View and manage created loan application records, documents, and print copies.
             </p>
           </div>
 
