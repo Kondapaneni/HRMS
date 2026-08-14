@@ -132,12 +132,9 @@ const BranchOperationsMobileDashboard = () => {
         <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
 
         <div className="relative z-10 px-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 border border-white/20 text-indigo-200 text-xs font-semibold uppercase tracking-wider mb-2 backdrop-blur-md">
-            <Building2 size={12} className="text-indigo-300" />
-            <span>{branch.name}</span>
-          </div>
+          <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">Operations Module</p>
           <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">Branch Operations</h2>
-          <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">Performance overview & operations</p>
+          <p className="text-sm font-medium text-white drop-shadow-sm opacity-90">{branch.name}</p>
         </div>
       </section>
 

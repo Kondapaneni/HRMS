@@ -161,13 +161,15 @@ export default function BranchOperationsMobileViewApplication({
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="text-center">
-            <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/15 border border-white/20 text-indigo-200 text-[10px] font-bold uppercase tracking-wider mb-1 backdrop-blur-md">
-              <Building2 size={10} className="text-indigo-300" />
-              <span>{branchName}</span>
-            </div>
+            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">
+              OPERATIONS MODULE
+            </p>
             <h2 className="text-xl font-bold text-white tracking-tight drop-shadow-sm">
               Application Details
             </h2>
+            <p className="text-xs font-medium text-white drop-shadow-sm opacity-90 mt-0.5">
+              {branchName}
+            </p>
           </div>
           <div className="w-10 h-10" />
         </div>
