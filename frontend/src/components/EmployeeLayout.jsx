@@ -94,7 +94,7 @@ const EmployeeLayout = () => {
 
   const businessApps = [
     { icon: <Briefcase size={18} />, label: 'Loans Origination', path: '/employee/loans/origination', feature: 'canLoanOrigination' },
-    { icon: <Building2 size={18} />, label: 'Loan Branch Operations', path: '/employee/loans/branch-operations', feature: 'canLoanBranchOperations' },
+    { icon: <Building2 size={18} />, label: 'Branch Operations', path: '/employee/branch-operations', feature: 'canBranchOperations' },
     { icon: <Award size={18} />, label: 'Assessments', path: '/employee/assessments', isAssessment: true },
     { icon: <Play size={18} />, label: 'Training Videos', path: '/employee/training', isTraining: true },
   ];

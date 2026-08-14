@@ -332,7 +332,7 @@ const EmployeeMobileDashboard = () => {
       </section>
 
       {/* Business Apps Entry */}
-      {(profile?.featureAccess?.canLoanOrigination || profile?.featureAccess?.canLoanBranchOperations || hasTrainingVideos) && (
+      {(profile?.featureAccess?.canLoanOrigination || profile?.featureAccess?.canBranchOperations || hasTrainingVideos) && (
         <section className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
           <div className="px-6 pt-6 pb-4 border-b border-slate-100">
             <h2 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">Business Apps</h2>
@@ -356,14 +356,14 @@ const EmployeeMobileDashboard = () => {
               </Link>
             )}
 
-            {profile?.featureAccess?.canLoanBranchOperations && (
-              <Link to="/employee/loans/branch-operations" className="flex items-center justify-between w-full rounded-xl bg-indigo-600 text-white font-semibold text-sm px-6 py-4 hover:bg-indigo-700 active:scale-[0.98] transition-all shadow-sm">
+            {profile?.featureAccess?.canBranchOperations && (
+              <Link to="/employee/branch-operations" className="flex items-center justify-between w-full rounded-xl bg-indigo-600 text-white font-semibold text-sm px-6 py-4 hover:bg-indigo-700 active:scale-[0.98] transition-all shadow-sm">
                 <div className="flex items-center gap-3">
                   <div className="bg-white/20 p-2 rounded-lg">
                     <Building2 className="w-5 h-5 text-white" />
                   </div>
                   <div className="text-left">
-                    <div className="text-base">Loan Branch Operations</div>
+                    <div className="text-base">Branch Operations</div>
                     <div className="text-xs text-indigo-200 font-normal mt-0.5">Branch loan processing & operations</div>
                   </div>
                 </div>

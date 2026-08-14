@@ -256,9 +256,9 @@ function App() {
                 <Route path="view-application" element={<OriginationViewApplication />} />
               </Route>
 
-              {/* Acme Loans Branch Operations Workspace (Employee Only) */}
+              {/* Branch Operations Workspace (Employee Only) */}
               <Route
-                path="/employee/loans/branch-operations"
+                path="/employee/branch-operations"
                 element={
                   <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
                     <BranchOperationsLayout />

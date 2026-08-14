@@ -99,7 +99,7 @@ export const ProtectedRoute = ({ children, allowedRoles }) => {
         return <Navigate to={getRoleHomePath(profile.role)} replace />;
       }
 
-      if (path.startsWith('/employee/loans/branch-operations') && !profile.featureAccess.canLoanBranchOperations) {
+      if (path.startsWith('/employee/branch-operations') && !profile.featureAccess.canBranchOperations) {
         return <Navigate to={getRoleHomePath(profile.role)} replace />;
       }
     }
