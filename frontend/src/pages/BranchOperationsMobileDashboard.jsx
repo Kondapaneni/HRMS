@@ -44,6 +44,21 @@ const BranchOperationsMobileDashboard = () => {
   const dailyData = data?.dailyData || [];
   const monthlyData = data?.monthlyData || [];
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 15 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } }
+  };
+
   const getLeadStatusBadge = (status) => {
     switch (status) {
       case 'New':
@@ -65,7 +80,8 @@ const BranchOperationsMobileDashboard = () => {
   const getAppStatusBadge = (status) => {
     switch (status) {
       case 'Created':
-        return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-700 whitespace-nowrap"><CheckCircle2 size={10} /> Created</span>;
+      case 'Approved':
+        return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-700 whitespace-nowrap"><CheckCircle2 size={10} /> {status}</span>;
       case 'Under Review':
         return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-700 whitespace-nowrap"><Clock size={10} /> Under Review</span>;
       case 'Draft':
@@ -80,27 +96,64 @@ const BranchOperationsMobileDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen">
-      {/* Hero Header */}
-      <section className="relative px-6 pt-12 pb-20 rounded-b-[40px] overflow-hidden bg-slate-900 shadow-md">
+    <div className="min-h-screen pb-6">
+      {/* Animated Hero Header — matching Origination Module Mobile Design */}
+      <section className="relative px-6 pt-12 pb-24 rounded-b-[40px] overflow-hidden bg-slate-900 shadow-md">
+        {/* Animated Background Blobs */}
+        <motion.div
+          animate={{
+            scale: [1, 1.2, 1],
+            x: [0, 50, 0],
+            y: [0, 30, 0],
+          }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -top-20 -left-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+        />
+        <motion.div
+          animate={{
+            scale: [1, 1.4, 1],
+            x: [0, -40, 0],
+            y: [0, 50, 0],
+          }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute -top-10 -right-10 w-64 h-64 bg-indigo-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+        />
+        <motion.div
+          animate={{
+            scale: [1, 1.3, 1],
+            x: [0, 30, 0],
+            y: [0, -40, 0],
+          }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          className="absolute bottom-0 left-20 w-80 h-80 bg-emerald-500 rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
+        />
+
+        {/* Subtle Glass Overlay */}
+        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
+
         <div className="relative z-10 px-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 border border-white/20 text-indigo-200 text-xs font-semibold uppercase tracking-wider mb-2 backdrop-blur-md">
             <Building2 size={12} className="text-indigo-300" />
             <span>{branch.name}</span>
           </div>
-          <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">Branch Operations Dashboard</h2>
-          <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">Branch performance overview & operations</p>
+          <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">Branch Operations</h2>
+          <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">Performance overview & operations</p>
         </div>
       </section>
 
-      <div className="relative z-20 -mt-20">
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="relative z-20 -mt-16"
+      >
         {/* Dynamic Employee Filter Control (Mobile) */}
         <div className="px-4 mb-3">
           <div className="relative">
             <select
               value={selectedEmployee}
               onChange={(e) => setSelectedEmployee(e.target.value)}
-              className="w-full h-11 pl-3 pr-8 rounded-xl bg-white border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 font-semibold text-slate-700 shadow-xs appearance-none cursor-pointer"
+              className="w-full h-11 pl-3 pr-8 rounded-xl bg-white border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 font-semibold text-slate-700 shadow-sm appearance-none cursor-pointer"
             >
               <option value="all">All Employees ({creators.length})</option>
               {creators.map((c) => (
@@ -114,7 +167,7 @@ const BranchOperationsMobileDashboard = () => {
         </div>
 
         {/* Summary Carousel */}
-        <div className="flex overflow-x-auto gap-4 px-4 py-2 hide-scrollbar snap-x">
+        <motion.div variants={itemVariants} className="flex overflow-x-auto gap-4 px-4 py-2 hide-scrollbar snap-x">
           <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm min-w-[200px] snap-center shrink-0">
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs font-medium text-slate-500">Total Leads (Month)</p>
@@ -122,7 +175,7 @@ const BranchOperationsMobileDashboard = () => {
             </div>
             <div className="flex items-end gap-2">
               <h3 className="text-2xl font-bold text-slate-800">
-                {isLoading ? '...' : stats.total_leads_month}
+                {stats.total_leads_month}
               </h3>
               <span className={`flex items-center text-[10px] font-bold mb-1 ${stats.percent_change_total >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                 <ArrowUpRight size={12} className={`mr-0.5 ${stats.percent_change_total < 0 ? 'rotate-90' : ''}`} />
@@ -138,7 +191,7 @@ const BranchOperationsMobileDashboard = () => {
             </div>
             <div className="flex items-end gap-2">
               <h3 className="text-2xl font-bold text-slate-800">
-                {isLoading ? '...' : stats.active_opportunities}
+                {stats.active_opportunities}
               </h3>
               <span className={`flex items-center text-[10px] font-bold mb-1 ${stats.percent_change_active >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                 <ArrowUpRight size={12} className={`mr-0.5 ${stats.percent_change_active < 0 ? 'rotate-90' : ''}`} />
@@ -154,7 +207,7 @@ const BranchOperationsMobileDashboard = () => {
             </div>
             <div className="flex items-end gap-2">
               <h3 className="text-2xl font-bold text-slate-800">
-                {isLoading ? '...' : stats.converted_leads}
+                {stats.converted_leads}
               </h3>
               <span className={`flex items-center text-[10px] font-bold mb-1 ${stats.percent_change_converted >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                 <ArrowUpRight size={12} className={`mr-0.5 ${stats.percent_change_converted < 0 ? 'rotate-90' : ''}`} />
@@ -162,13 +215,13 @@ const BranchOperationsMobileDashboard = () => {
               </span>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Charts Content */}
         <div className="px-4 space-y-4 pb-4 mt-4">
 
           {/* Daily Trends Chart */}
-          <div className="bg-white rounded-[24px] shadow-lg border border-slate-100/50 overflow-hidden p-6">
+          <motion.div variants={itemVariants} className="bg-white rounded-[24px] shadow-lg border border-slate-100/50 overflow-hidden p-6">
             <h3 className="text-base font-bold text-slate-800 mb-4">Daily Leads (Last 7 Days)</h3>
             <div className="h-[250px] w-full -ml-3">
               <ResponsiveContainer width="100%" height="100%">
@@ -180,15 +233,15 @@ const BranchOperationsMobileDashboard = () => {
                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }}
                   />
                   <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
-                  <Line type="monotone" dataKey="leads" name="Leads" stroke="#6366f1" strokeWidth={2} dot={{ r: 3, fill: '#fff', strokeWidth: 2 }} activeDot={{ r: 5, strokeWidth: 0 }} />
+                  <Line type="monotone" dataKey="leads" name="Leads" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3, fill: '#fff', strokeWidth: 2 }} activeDot={{ r: 5, strokeWidth: 0 }} />
                   <Line type="monotone" dataKey="converted" name="Converted" stroke="#10b981" strokeWidth={2} dot={{ r: 3, fill: '#fff', strokeWidth: 2 }} activeDot={{ r: 5, strokeWidth: 0 }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
-          </div>
+          </motion.div>
 
           {/* Monthly Trends Chart */}
-          <div className="bg-white rounded-[24px] shadow-lg border border-slate-100/50 overflow-hidden p-6 mt-6">
+          <motion.div variants={itemVariants} className="bg-white rounded-[24px] shadow-lg border border-slate-100/50 overflow-hidden p-6 mt-6">
             <h3 className="text-base font-bold text-slate-800 mb-4">Monthly Trends</h3>
             <div className="h-[250px] w-full -ml-3">
               <ResponsiveContainer width="100%" height="100%">
@@ -201,17 +254,17 @@ const BranchOperationsMobileDashboard = () => {
                     cursor={{ fill: '#f1f5f9' }}
                   />
                   <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
-                  <Bar dataKey="leads" name="Leads" fill="#6366f1" radius={[4, 4, 0, 0]} barSize={16} />
+                  <Bar dataKey="leads" name="Leads" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={16} />
                   <Bar dataKey="converted" name="Converted" fill="#10b981" radius={[4, 4, 0, 0]} barSize={16} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
-          </div>
+          </motion.div>
 
         </div>
 
         {/* Mobile Recent Records (Last 10 Leads & Applications) */}
-        <div className="px-4 space-y-3 pt-2">
+        <motion.div variants={itemVariants} className="px-4 space-y-3 pt-2">
           <div>
             <h3 className="text-base font-bold text-slate-900 tracking-tight mb-2">Recent Activity</h3>
             <div className="flex overflow-x-auto hide-scrollbar space-x-2 border-b border-slate-200 pb-px">
@@ -219,7 +272,7 @@ const BranchOperationsMobileDashboard = () => {
                 onClick={() => setActiveTab('leads')}
                 className={`whitespace-nowrap px-3 py-2 text-xs font-semibold transition-colors ${
                   activeTab === 'leads'
-                    ? 'border-b-2 border-blue-600 text-blue-600'
+                    ? 'text-blue-600 border-b-2 border-blue-600'
                     : 'text-slate-500 hover:text-slate-700'
                 }`}
               >
@@ -229,83 +282,70 @@ const BranchOperationsMobileDashboard = () => {
                 onClick={() => setActiveTab('applications')}
                 className={`whitespace-nowrap px-3 py-2 text-xs font-semibold transition-colors ${
                   activeTab === 'applications'
-                    ? 'border-b-2 border-blue-600 text-blue-600'
+                    ? 'text-blue-600 border-b-2 border-blue-600'
                     : 'text-slate-500 hover:text-slate-700'
                 }`}
               >
-                Recent Applications ({recentApplications.length})
+                Applications ({recentApplications.length})
               </button>
             </div>
           </div>
 
-          <div className="space-y-2.5">
-            {activeTab === 'leads' ? (
-              isLoading ? (
-                <div className="text-center py-6 text-xs text-slate-400">Loading leads...</div>
-              ) : recentLeads.length === 0 ? (
-                <div className="text-center py-6 text-xs text-slate-400 bg-white rounded-2xl border border-slate-100">
-                  No recent leads in this branch.
+          {activeTab === 'leads' ? (
+            <div className="space-y-3">
+              {recentLeads.length === 0 ? (
+                <div className="py-8 text-center text-xs text-slate-500 bg-white rounded-2xl border border-slate-100">
+                  No recent leads for this branch.
                 </div>
               ) : (
                 recentLeads.map((lead) => (
-                  <div key={lead.id} className="bg-white rounded-2xl p-3.5 border border-slate-100 shadow-xs">
-                    <div className="flex items-start justify-between gap-2 mb-1.5">
-                      <h4 className="font-bold text-slate-900 text-sm">{lead.name}</h4>
+                  <div key={lead.id} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-2">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="font-bold text-slate-900 text-sm">{lead.name}</h4>
+                        <p className="text-xs text-slate-500 font-mono">{lead.phone}</p>
+                      </div>
                       {getLeadStatusBadge(lead.status)}
                     </div>
-                    <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
-                      <span>{lead.loan_type} • {lead.phone}</span>
-                      <span className="text-[11px] text-slate-400">
-                        {lead.created_at ? format(new Date(lead.created_at), 'MMM d, yyyy') : '-'}
-                      </span>
+                    <div className="flex justify-between items-center text-[11px] text-slate-400 pt-1 border-t border-slate-50">
+                      <span className="font-medium text-slate-600">{lead.loan_type}</span>
+                      <span>{lead.created_at ? format(new Date(lead.created_at), 'dd MMM, hh:mm a') : 'N/A'}</span>
                     </div>
-                    {lead.creator_name && (
-                      <div className="mt-1 text-[11px] text-slate-400">
-                        By {lead.creator_name}
-                      </div>
-                    )}
                   </div>
                 ))
-              )
-            ) : (
-              isLoading ? (
-                <div className="text-center py-6 text-xs text-slate-400">Loading applications...</div>
-              ) : recentApplications.length === 0 ? (
-                <div className="text-center py-6 text-xs text-slate-400 bg-white rounded-2xl border border-slate-100">
-                  No recent applications in this branch.
+              )}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {recentApplications.length === 0 ? (
+                <div className="py-8 text-center text-xs text-slate-500 bg-white rounded-2xl border border-slate-100">
+                  No recent loan applications for this branch.
                 </div>
               ) : (
-                recentApplications.map((app) => {
-                  const applicantName = app.form_data?.applicant_name || app.form_data?.name || 'Applicant';
-                  return (
-                    <div key={app.id} className="bg-white rounded-2xl p-3.5 border border-slate-100 shadow-xs">
-                      <div className="flex items-start justify-between gap-2 mb-1.5">
-                        <div>
-                          <h4 className="font-bold text-slate-900 text-sm">{applicantName}</h4>
-                          <span className="text-[10px] font-mono text-indigo-600 font-bold">{app.application_id}</span>
-                        </div>
-                        {getAppStatusBadge(app.status)}
-                      </div>
-                      <div className="flex items-center justify-between text-xs text-slate-500 font-medium mt-1">
-                        <span>{app.loan_type || app.form_data?.loan_type || 'Personal Loan'}</span>
-                        <span className="text-[11px] text-slate-400">
-                          {app.created_at ? format(new Date(app.created_at), 'MMM d, yyyy') : '-'}
+                recentApplications.map((app) => (
+                  <div key={app.id} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-2">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <span className="font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded text-[10px] border border-blue-100 font-mono">
+                          {app.application_id || 'LA-PENDING'}
                         </span>
+                        <h4 className="font-bold text-slate-900 text-sm mt-1">
+                          {app.form_data?.applicant_name || 'Loan Applicant'}
+                        </h4>
                       </div>
-                      {app.creator_name && (
-                        <div className="mt-1 text-[11px] text-slate-400">
-                          By {app.creator_name}
-                        </div>
-                      )}
+                      {getAppStatusBadge(app.status)}
                     </div>
-                  );
-                })
-              )
-            )}
-          </div>
-        </div>
-
-      </div>
+                    <div className="flex justify-between items-center text-[11px] text-slate-400 pt-1 border-t border-slate-50">
+                      <span className="font-medium text-slate-600">{app.loan_type}</span>
+                      <span>{app.created_at ? format(new Date(app.created_at), 'dd MMM, hh:mm a') : 'N/A'}</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+        </motion.div>
+      </motion.div>
     </div>
   );
 };

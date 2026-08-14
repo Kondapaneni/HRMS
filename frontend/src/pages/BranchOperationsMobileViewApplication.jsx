@@ -98,10 +98,16 @@ export default function BranchOperationsMobileViewApplication({
     };
   }, [previewDoc]);
 
+  const formattedDate =
+    formatDateSafe(application?.created_at || application?.updated_at) ||
+    format(new Date(), 'dd MMM yyyy');
   const appId = application?.application_id || formData?.application_id || 'LA-PENDING';
   const loanType = application?.loan_type || formData?.loan_type || 'Personal Loan';
-  const applicantName = formData?.applicant_name || formData?.name || application?.applicant_name || 'N/A';
-  const applicantPhone = formData?.phone_number || formData?.phone || application?.phone_number || 'N/A';
+  const appStatus = String(localStatus);
+  const isCreated =
+    appStatus.toLowerCase() === 'created' ||
+    appStatus.toLowerCase() === 'approved' ||
+    appStatus.toLowerCase() === 'under_review';
   const branchName = response?.branch?.name || application?.branch_name || 'Branch Operations';
 
   const handlePrint = () => {
@@ -131,7 +137,7 @@ export default function BranchOperationsMobileViewApplication({
           onClick={() => navigate(fromPath)}
           className="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm"
         >
-          Back to Applications List
+          Back to Applications
         </button>
       </div>
     );
@@ -139,88 +145,107 @@ export default function BranchOperationsMobileViewApplication({
 
   return (
     <div className="w-full pb-8">
-      {/* Animated Hero Header */}
+      {/* ━━━ Hero Header — matching Origination Module Mobile Design ━━━ */}
       <section className="relative px-6 pt-12 pb-24 rounded-b-[40px] overflow-hidden bg-slate-900 shadow-md">
         {/* Animated Background Blobs */}
         <motion.div
-          animate={{
-            scale: [1, 1.2, 1],
-            x: [0, 50, 0],
-            y: [0, 30, 0],
-          }}
+          animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
           transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
           className="absolute -top-20 -left-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
         />
         <motion.div
-          animate={{
-            scale: [1, 1.4, 1],
-            x: [0, -40, 0],
-            y: [0, 50, 0],
-          }}
+          animate={{ scale: [1, 1.4, 1], x: [0, -40, 0], y: [0, 50, 0] }}
           transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
           className="absolute -top-10 -right-10 w-64 h-64 bg-indigo-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
         />
+        <motion.div
+          animate={{ scale: [1, 1.3, 1], x: [0, 30, 0], y: [0, -40, 0] }}
+          transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+          className="absolute bottom-0 left-20 w-80 h-80 bg-emerald-500 rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
+        />
 
-        {/* Glass Overlay */}
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
+        {/* Subtle Glass Overlay */}
+        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none" />
 
-        <div className="relative z-10 px-2">
-          <div className="flex items-center justify-between mb-3">
-            <button
-              type="button"
-              onClick={() => navigate(fromPath)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/20 hover:bg-white/30 text-white text-xs font-semibold backdrop-blur-md transition-all active:scale-95 cursor-pointer"
-            >
-              <ArrowLeft size={14} /> Back
-            </button>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 border border-white/20 text-indigo-200 text-xs font-semibold uppercase tracking-wider backdrop-blur-md">
-              <Building2 size={12} className="text-indigo-300" />
-              <span>{branchName}</span>
-            </div>
-          </div>
-
-          <span className="text-[11px] font-bold text-blue-300 bg-blue-900/60 px-2.5 py-0.5 rounded-full border border-blue-400/30 uppercase tracking-wider">
-            {appId}
-          </span>
-          <h2 className="text-2xl font-black text-white tracking-tight mt-2 mb-0.5 drop-shadow-sm truncate">
-            {applicantName}
-          </h2>
-          <p className="text-xs font-medium text-slate-200 drop-shadow-sm opacity-90">
-            {loanType} • {applicantPhone}
-          </p>
-        </div>
-      </section>
-
-      {/* Main Content Form - Render LoanDetailView */}
-      <div className="relative z-20 -mt-16 px-4 space-y-4">
-        {/* Floating Quick Action Bar */}
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-3 flex items-center justify-between gap-2">
-          <button
-            type="button"
-            onClick={handlePrint}
-            className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2.5 bg-slate-900 text-white hover:bg-slate-800 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
-          >
-            <Printer size={14} /> Print Application Form
-          </button>
-        </div>
-
-        {/* Loan Details View */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-          <LoanDetailView
-            formData={formData || {}}
-            application={application || {}}
-            currentDocs={currentDocs}
-            onPreviewDoc={setPreviewDoc}
-            localTimeline={localTimeline}
-          />
-        </div>
-
-        {/* Back Button */}
-        <div className="pt-2">
+        <div className="relative z-10 flex items-center justify-between px-2">
           <button
             type="button"
             onClick={() => navigate(fromPath)}
-            className="w-full inline-flex items-center justify-center rounded-xl text-sm font-semibold bg-slate-900 text-white hover:bg-slate-800 h-12 px-6 transition-all gap-2 shadow-sm cursor-pointer active:scale-[0.98]"
+            className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center backdrop-blur-md transition-transform active:scale-95 border border-white/20 cursor-pointer shadow-xs"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div className="text-center">
+            <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/15 border border-white/20 text-indigo-200 text-[10px] font-bold uppercase tracking-wider mb-1 backdrop-blur-md">
+              <Building2 size={10} className="text-indigo-300" />
+              <span>{branchName}</span>
+            </div>
+            <h2 className="text-xl font-bold text-white tracking-tight drop-shadow-sm">
+              Application Details
+            </h2>
+          </div>
+          <div className="w-10 h-10" />
+        </div>
+      </section>
+
+      {/* ━━━ Mobile Content Cards ━━━ */}
+      <div className="relative z-20 -mt-12 px-4 space-y-4">
+        {/* Application Overview & Status Card */}
+        <div className="bg-white p-5 rounded-[24px] shadow-lg border border-slate-100/80">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-lg font-bold text-slate-900 tracking-tight font-sans">
+              {appId}
+            </span>
+            <span
+              className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider whitespace-nowrap shrink-0 ${
+                appStatus === 'Created' || appStatus === 'Approved'
+                  ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                  : appStatus === 'Under Review'
+                  ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                  : appStatus === 'Rejected'
+                  ? 'bg-rose-100 text-rose-700 border border-rose-200'
+                  : 'bg-amber-100 text-amber-700 border border-amber-200'
+              }`}
+            >
+              {appStatus === 'Created' || appStatus === 'Approved' ? (
+                <CheckCircle2 size={10} />
+              ) : (
+                <Clock size={10} />
+              )}{' '}
+              {appStatus}
+            </span>
+          </div>
+          <p className="text-xs font-semibold text-slate-500">{loanType}</p>
+          <p className="text-[11px] text-slate-400 mt-0.5 mb-3">
+            Processed on {formattedDate}
+          </p>
+
+          <div className="flex flex-col gap-2.5 pt-1">
+            <button
+              type="button"
+              onClick={handlePrint}
+              className="w-full flex items-center justify-center gap-2 bg-slate-900 text-white rounded-xl py-3 px-4 font-bold text-sm shadow-md shadow-slate-900/10 active:scale-[0.98] transition-transform cursor-pointer"
+            >
+              <Printer size={16} /> Print Application Form
+            </button>
+          </div>
+        </div>
+
+        {/* ━━━ Loan Details Content rendered from LoanDetailView ━━━ */}
+        <LoanDetailView
+          formData={formData || {}}
+          application={application || {}}
+          currentDocs={currentDocs}
+          onPreviewDoc={setPreviewDoc}
+          localTimeline={localTimeline}
+        />
+
+        {/* ━━━ Bottom Back Button ━━━ */}
+        <div className="flex justify-center pt-2 pb-2">
+          <button
+            type="button"
+            onClick={() => navigate(fromPath)}
+            className="inline-flex items-center justify-center rounded-xl text-sm font-semibold bg-slate-900 text-white h-11 px-6 transition-colors gap-2 shadow-sm cursor-pointer active:scale-[0.98]"
           >
             <ArrowLeft className="w-4 h-4" /> Back to Applications
           </button>

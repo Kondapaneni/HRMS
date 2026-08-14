@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getBranchLoanApplications } from '../services/branchOperationsServices';
 import PageLoader from '../components/PageLoader';
 import { motion } from 'framer-motion';
-import { Search, CheckCircle2, Clock, Phone, Briefcase, Eye, ChevronDown, Building2, XCircle } from 'lucide-react';
+import { Search, CheckCircle2, Clock, Phone, Briefcase, Eye, ChevronDown, Building2, XCircle, MoreVertical } from 'lucide-react';
 import { format } from 'date-fns';
 
 const BranchOperationsMobileApplicationsList = () => {
@@ -69,7 +69,7 @@ const BranchOperationsMobileApplicationsList = () => {
 
   return (
     <div className="w-full pb-5">
-      {/* Animated Hero Header */}
+      {/* Animated Hero Header — matching Origination Module Mobile Design */}
       <section className="relative px-6 pt-12 pb-24 rounded-b-[40px] overflow-hidden bg-slate-900 shadow-md">
         {/* Animated Background Blobs */}
         <motion.div
@@ -100,7 +100,7 @@ const BranchOperationsMobileApplicationsList = () => {
           className="absolute bottom-0 left-20 w-80 h-80 bg-emerald-500 rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
         />
 
-        {/* Glass Overlay */}
+        {/* Subtle Glass Overlay */}
         <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
 
         <div className="relative z-10 px-2 flex justify-between items-center">
@@ -234,9 +234,6 @@ const BranchOperationsMobileApplicationsList = () => {
 
                   <div className="pt-3 border-t border-slate-100 flex justify-between items-center text-xs">
                     <span className="text-slate-400">{formatDateSafe(app.created_at || app.updated_at)}</span>
-                    <span className="flex items-center gap-1 text-blue-600 font-semibold">
-                      <Eye size={14} /> View Details
-                    </span>
                   </div>
                 </div>
               );
