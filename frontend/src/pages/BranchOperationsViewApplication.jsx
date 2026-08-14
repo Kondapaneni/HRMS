@@ -4,7 +4,6 @@ import { useQuery } from '@tanstack/react-query';
 import { createPortal } from 'react-dom';
 import {
   Lock,
-  Camera,
   Printer,
   ArrowLeft,
   Loader2,
@@ -13,7 +12,6 @@ import {
 } from 'lucide-react';
 import { getBranchLoanApplications } from '../services/branchOperationsServices';
 import { LoanDetailView } from '../components/forms';
-import { LoanDocumentsSidebar } from '../components/forms/LoanDocumentsSidebar';
 import BranchOperationsMobileViewApplication from './BranchOperationsMobileViewApplication';
 
 export default function BranchOperationsViewApplication() {
@@ -49,7 +47,6 @@ export default function BranchOperationsViewApplication() {
     }
   }
 
-  const [isDocsOpen, setIsDocsOpen] = useState(false);
   const [previewDoc, setPreviewDoc] = useState(null);
 
   const [currentDocs, setCurrentDocs] = useState(
@@ -157,14 +154,6 @@ export default function BranchOperationsViewApplication() {
           <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 shrink-0">
             <button
               type="button"
-              onClick={() => setIsDocsOpen(true)}
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 transition-colors gap-2 shadow-sm cursor-pointer"
-            >
-              <Camera className="w-4 h-4" /> Upload Photos
-            </button>
-
-            <button
-              type="button"
               onClick={handlePrint}
               className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-slate-900 text-white hover:bg-slate-800 h-10 px-4 transition-colors gap-2 shadow-sm cursor-pointer"
             >
@@ -192,15 +181,6 @@ export default function BranchOperationsViewApplication() {
             <ArrowLeft className="w-4 h-4" /> Back to Applications List
           </button>
         </div>
-
-        {/* Loan Documents Sidebar */}
-        <LoanDocumentsSidebar
-          isOpen={isDocsOpen}
-          onClose={() => setIsDocsOpen(false)}
-          formData={{ ...(formData || {}), documents: currentDocs }}
-          application={application}
-          onDocumentsUpdated={(newDocs) => setCurrentDocs(newDocs)}
-        />
 
         {/* Fullscreen Photo Lightbox Preview Portal */}
         {previewDoc &&

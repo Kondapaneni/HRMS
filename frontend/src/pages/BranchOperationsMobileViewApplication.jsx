@@ -7,7 +7,6 @@ import {
   Calendar,
   Clock,
   CheckCircle2,
-  Camera,
   Loader2,
   X,
   FileText,
@@ -18,7 +17,6 @@ import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { getBranchLoanApplications } from '../services/branchOperationsServices';
 import { LoanDetailView } from '../components/forms';
-import { LoanDocumentsSidebar } from '../components/forms/LoanDocumentsSidebar';
 
 const formatDateSafe = (dateStr) => {
   if (!dateStr) return null;
@@ -67,7 +65,6 @@ export default function BranchOperationsMobileViewApplication({
     }
   }
 
-  const [isDocsOpen, setIsDocsOpen] = useState(false);
   const [previewDoc, setPreviewDoc] = useState(null);
 
   const [currentDocs, setCurrentDocs] = useState(
@@ -200,17 +197,10 @@ export default function BranchOperationsMobileViewApplication({
         <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-3 flex items-center justify-between gap-2">
           <button
             type="button"
-            onClick={() => setIsDocsOpen(true)}
-            className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2.5 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
-          >
-            <Camera size={14} /> Photos
-          </button>
-          <button
-            type="button"
             onClick={handlePrint}
-            className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2.5 bg-slate-900 text-white hover:bg-slate-800 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+            className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2.5 bg-slate-900 text-white hover:bg-slate-800 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
           >
-            <Printer size={14} /> Print
+            <Printer size={14} /> Print Application Form
           </button>
         </div>
 
@@ -236,15 +226,6 @@ export default function BranchOperationsMobileViewApplication({
           </button>
         </div>
       </div>
-
-      {/* Loan Documents Sidebar */}
-      <LoanDocumentsSidebar
-        isOpen={isDocsOpen}
-        onClose={() => setIsDocsOpen(false)}
-        formData={{ ...(formData || {}), documents: currentDocs }}
-        application={application}
-        onDocumentsUpdated={(newDocs) => setCurrentDocs(newDocs)}
-      />
 
       {/* Fullscreen Photo Lightbox Preview Portal */}
       {previewDoc &&
