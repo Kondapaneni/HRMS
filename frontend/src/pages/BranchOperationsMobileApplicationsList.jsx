@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getBranchLoanApplications } from '../services/branchOperationsServices';
 import PageLoader from '../components/PageLoader';
-import { Search, CheckCircle2, Clock, Phone, Briefcase, Eye, Loader2, ChevronDown, Building2, XCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Search, CheckCircle2, Clock, Phone, Briefcase, Eye, ChevronDown, Building2, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 
 const BranchOperationsMobileApplicationsList = () => {
@@ -62,50 +63,46 @@ const BranchOperationsMobileApplicationsList = () => {
     });
   };
 
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 'Created':
-      case 'Approved':
-        return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-700 whitespace-nowrap">
-            <CheckCircle2 size={10} /> {status}
-          </span>
-        );
-      case 'Under Review':
-        return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-700 whitespace-nowrap">
-            <Clock size={10} /> Under Review
-          </span>
-        );
-      case 'Draft':
-        return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-700 whitespace-nowrap">
-            <Clock size={10} /> Draft
-          </span>
-        );
-      case 'Rejected':
-        return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-100 text-rose-700 whitespace-nowrap">
-            <XCircle size={10} /> Rejected
-          </span>
-        );
-      default:
-        return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700 whitespace-nowrap">
-            {status}
-          </span>
-        );
-    }
-  };
-
   if (isLoading) {
     return <PageLoader message="Loading Applications..." />;
   }
 
   return (
     <div className="w-full pb-5">
-      {/* Hero Header */}
-      <section className="relative px-6 pt-12 pb-20 rounded-b-[40px] overflow-hidden bg-slate-900 shadow-md">
+      {/* Animated Hero Header */}
+      <section className="relative px-6 pt-12 pb-24 rounded-b-[40px] overflow-hidden bg-slate-900 shadow-md">
+        {/* Animated Background Blobs */}
+        <motion.div
+          animate={{
+            scale: [1, 1.2, 1],
+            x: [0, 50, 0],
+            y: [0, 30, 0],
+          }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -top-20 -left-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+        />
+        <motion.div
+          animate={{
+            scale: [1, 1.4, 1],
+            x: [0, -40, 0],
+            y: [0, 50, 0],
+          }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute -top-10 -right-10 w-64 h-64 bg-indigo-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+        />
+        <motion.div
+          animate={{
+            scale: [1, 1.3, 1],
+            x: [0, 30, 0],
+            y: [0, -40, 0],
+          }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          className="absolute bottom-0 left-20 w-80 h-80 bg-emerald-500 rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
+        />
+
+        {/* Glass Overlay */}
+        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
+
         <div className="relative z-10 px-2 flex justify-between items-center">
           <div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 border border-white/20 text-indigo-200 text-xs font-semibold uppercase tracking-wider mb-2 backdrop-blur-md">
@@ -119,7 +116,7 @@ const BranchOperationsMobileApplicationsList = () => {
       </section>
 
       {/* Main Content Area */}
-      <div className="relative z-20 -mt-14 px-4 space-y-4">
+      <div className="relative z-20 -mt-16 px-4 space-y-4">
         {/* Search Bar */}
         <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-3 flex items-center">
           <div className="relative w-full">
@@ -187,43 +184,56 @@ const BranchOperationsMobileApplicationsList = () => {
           </div>
         ) : filteredApps.length === 0 ? (
           <div className="py-20 text-center text-slate-500 bg-white rounded-2xl p-6 border border-slate-100 shadow-sm mt-4">
-            No applications found for this branch.
+            No applications found matching criteria.
           </div>
         ) : (
           <div className="space-y-4 mt-2">
             {filteredApps.map((app) => {
               const name = app.applicant_name || app.form_data?.applicant_name || 'N/A';
               const phone = app.phone_number || app.form_data?.phone_number || 'N/A';
+              const isCreated = app.status === 'Created' || app.status === 'Approved';
+              const isUnderReview = app.status === 'Under Review';
+              const isRejected = app.status === 'Rejected';
 
               return (
                 <div
                   key={app.id || app.application_id}
                   onClick={() => handleViewDetails(app)}
-                  className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 space-y-3 active:scale-[0.99] transition-transform cursor-pointer"
+                  className="bg-white rounded-2xl shadow-sm border border-slate-200/70 p-5 space-y-3.5 hover:shadow-md transition-all active:scale-[0.98] active:bg-slate-50 cursor-pointer"
                 >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <span className="font-semibold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-md text-xs border border-blue-100">
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="min-w-0 flex-1">
+                      <span className="text-[11px] font-bold text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-100 uppercase tracking-wider whitespace-nowrap">
                         {app.application_id || 'LA-PENDING'}
                       </span>
-                      <h3 className="font-bold text-slate-900 text-base mt-2">{name}</h3>
+                      <h3 className="font-bold text-slate-900 text-lg mt-1.5 leading-tight truncate">{name}</h3>
                     </div>
-                    {getStatusBadge(app.status)}
+                    <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider whitespace-nowrap shrink-0 ${
+                      isCreated
+                        ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                        : isUnderReview
+                        ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                        : isRejected
+                        ? 'bg-rose-100 text-rose-700 border border-rose-200'
+                        : 'bg-amber-100 text-amber-700 border border-amber-200'
+                    }`}>
+                      {isCreated ? <CheckCircle2 size={12} /> : isRejected ? <XCircle size={12} /> : <Clock size={12} />} {app.status}
+                    </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 text-xs text-slate-500 border-t border-b border-slate-50 py-2">
-                    <div className="flex items-center gap-1.5">
+                  <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 pt-1">
+                    <div className="flex items-center gap-2">
                       <Phone size={13} className="text-slate-400" />
                       <span>{phone}</span>
                     </div>
-                    <div className="flex items-center gap-1.5 justify-end">
+                    <div className="flex items-center gap-2">
                       <Briefcase size={13} className="text-slate-400" />
-                      <span className="truncate">{app.loan_type}</span>
+                      <span className="font-medium text-slate-800">{app.loan_type}</span>
                     </div>
                   </div>
 
-                  <div className="flex justify-between items-center text-xs text-slate-400 pt-0.5">
-                    <span>{formatDateSafe(app.created_at || app.updated_at)}</span>
+                  <div className="pt-3 border-t border-slate-100 flex justify-between items-center text-xs">
+                    <span className="text-slate-400">{formatDateSafe(app.created_at || app.updated_at)}</span>
                     <span className="flex items-center gap-1 text-blue-600 font-semibold">
                       <Eye size={14} /> View Details
                     </span>

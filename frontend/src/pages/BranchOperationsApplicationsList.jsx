@@ -64,39 +64,36 @@ const BranchOperationsApplicationsList = () => {
   };
 
   const getStatusBadge = (status) => {
-    switch (status) {
-      case 'Created':
-      case 'Approved':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap">
-            <CheckCircle2 size={12} /> {status}
-          </span>
-        );
-      case 'Under Review':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 whitespace-nowrap">
-            <Clock size={12} /> Under Review
-          </span>
-        );
-      case 'Draft':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 whitespace-nowrap">
-            <Clock size={12} /> Draft
-          </span>
-        );
-      case 'Rejected':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200 whitespace-nowrap">
-            <XCircle size={12} /> Rejected
-          </span>
-        );
-      default:
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-medium bg-slate-50 text-slate-700 border border-slate-200 whitespace-nowrap">
-            {status}
-          </span>
-        );
+    const isCreated = status === 'Created' || status === 'Approved';
+    const isUnderReview = status === 'Under Review';
+    const isRejected = status === 'Rejected';
+
+    if (isCreated) {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap">
+          <CheckCircle2 size={12} /> {status}
+        </span>
+      );
     }
+    if (isUnderReview) {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 whitespace-nowrap">
+          <Clock size={12} /> Under Review
+        </span>
+      );
+    }
+    if (isRejected) {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200 whitespace-nowrap">
+          <XCircle size={12} /> Rejected
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 whitespace-nowrap">
+        <Clock size={12} /> {status}
+      </span>
+    );
   };
 
   if (isLoading) {
@@ -122,14 +119,14 @@ const BranchOperationsApplicationsList = () => {
                 {branch.name}
               </span>
             </div>
-            <p className="text-sm text-slate-500">View and manage all loan applications processed through this branch.</p>
+            <p className="text-sm text-slate-500 mt-1">View and manage all loan applications processed through this branch.</p>
           </div>
         </div>
 
         {/* Data State */}
         {error ? (
           <div className="bg-red-50 text-red-600 p-4 rounded-xl text-center border border-red-100">
-            Failed to load loan applications. Please try again.
+            Failed to load applications. Please try again.
           </div>
         ) : (
           <div>
@@ -159,7 +156,7 @@ const BranchOperationsApplicationsList = () => {
                   <select
                     value={loanTypeFilter}
                     onChange={(e) => setLoanTypeFilter(e.target.value)}
-                    className="h-10 w-full sm:w-auto rounded-md border border-slate-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700 font-medium cursor-pointer shadow-xs"
+                    className="h-10 w-full sm:w-auto rounded-md border border-slate-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700 font-medium cursor-pointer"
                   >
                     <option value="All">All Types ({applications.length})</option>
                     <option value="Personal Loan">
@@ -174,7 +171,7 @@ const BranchOperationsApplicationsList = () => {
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    className="h-10 w-full sm:w-auto rounded-md border border-slate-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700 font-medium cursor-pointer shadow-xs"
+                    className="h-10 w-full sm:w-auto rounded-md border border-slate-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700 font-medium cursor-pointer"
                   >
                     <option value="All">All Status ({applications.length})</option>
                     <option value="Created">
@@ -215,7 +212,7 @@ const BranchOperationsApplicationsList = () => {
                       {filteredApps.length === 0 ? (
                         <tr>
                           <td colSpan="8" className="text-center py-12 text-slate-500">
-                            No loan applications found for this branch.
+                            No applications found for this branch.
                           </td>
                         </tr>
                       ) : (
@@ -226,14 +223,14 @@ const BranchOperationsApplicationsList = () => {
                           return (
                             <tr key={app.id || app.application_id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
                               <td className="p-3 text-slate-700 whitespace-nowrap">
-                                <span className="font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded text-xs border border-blue-100 font-mono">
+                                <span className="font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded text-xs border border-blue-100">
                                   {app.application_id || 'LA-PENDING'}
                                 </span>
                               </td>
                               <td className="p-3 text-slate-700 whitespace-nowrap">
                                 <div className="font-medium text-slate-900">{name}</div>
                               </td>
-                              <td className="p-3 text-slate-700 whitespace-nowrap font-mono text-xs">{phone}</td>
+                              <td className="p-3 text-slate-700 whitespace-nowrap">{phone}</td>
                               <td className="p-3 text-slate-700 whitespace-nowrap">
                                 <span className="inline-flex px-2 py-1 bg-slate-100 text-slate-700 rounded text-xs font-medium border border-slate-200">
                                   {app.loan_type}
@@ -251,7 +248,7 @@ const BranchOperationsApplicationsList = () => {
                               <td className="p-3 text-center whitespace-nowrap">
                                 <button 
                                   onClick={() => handleViewDetails(app)}
-                                  className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors cursor-pointer"
+                                  className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md transition-colors cursor-pointer"
                                   title="View Application Details"
                                 >
                                   <Eye size={16} />
