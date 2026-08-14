@@ -239,6 +239,13 @@ $app->get('/api/branch-operations/dashboard', function (Request $request, Respon
             if (isset($app['form_data']) && is_string($app['form_data'])) {
                 $app['form_data'] = json_decode($app['form_data'], true);
             }
+            if (function_exists('getBranchLoanDocumentsFromTable')) {
+                $appDocs = getBranchLoanDocumentsFromTable($conn, $app['application_id'] ?? null, $app['id'] ?? null, $app['lead_id'] ?? null);
+                if (is_array($app['form_data'])) {
+                    $app['form_data']['documents'] = $appDocs;
+                }
+                $app['documents'] = $appDocs;
+            }
         }
 
         $response->getBody()->write(json_encode([

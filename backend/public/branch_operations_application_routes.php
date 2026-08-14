@@ -6,6 +6,33 @@ use App\Middleware\AuthMiddleware;
 use App\Config\Database;
 
 /**
+ * Helper function to fetch all documents for a loan application from public.loan_documents table.
+ */
+if (!function_exists('getBranchLoanDocumentsFromTable')) {
+    function getBranchLoanDocumentsFromTable($conn, $appId, $uuidId = null, $leadId = null) {
+        if (empty($appId) && empty($uuidId) && empty($leadId)) return [];
+
+        $stmt = $conn->prepare('
+            SELECT slot_key, url
+            FROM public.loan_documents
+            WHERE application_id = ? OR application_id = ? OR application_id = ?
+            ORDER BY created_at ASC
+        ');
+        $stmt->execute([(string)$appId, (string)$uuidId, (string)$leadId]);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        $docsMap = [];
+        foreach ($rows as $r) {
+            $docsMap[$r['slot_key']] = [
+                'url' => $r['url'],
+                'slot_key' => $r['slot_key']
+            ];
+        }
+        return $docsMap;
+    }
+}
+
+/**
  * Branch Operations Loan Applications Routes
  * Scoped strictly to the logged-in employee's branch.
  * Displays applications that have reached the Branch Operations stage at any point in their stage transition history.
@@ -129,6 +156,17 @@ $app->get('/api/branch-operations/applications', function (Request $request, Res
                 continue;
             }
 
+            // Fetch documents from public.loan_documents table
+            $docs = getBranchLoanDocumentsFromTable($conn, $row['application_id'], $row['id'], $row['lead_id']);
+            if (isset($formData['documents']) && is_array($formData['documents'])) {
+                foreach ($formData['documents'] as $k => $v) {
+                    if (!isset($docs[$k]) && !empty($v)) {
+                        $docs[$k] = is_array($v) ? $v : ['url' => $v, 'slot_key' => $k];
+                    }
+                }
+            }
+            $formData['documents'] = $docs;
+
             $applicantName = $formData['applicant_name'] ?? $formData['name'] ?? 'N/A';
             $phoneNumber = $formData['phone_number'] ?? $formData['phone'] ?? 'N/A';
 
@@ -147,6 +185,7 @@ $app->get('/api/branch-operations/applications', function (Request $request, Res
                 'updated_at' => $row['updated_at'],
                 'form_data' => $formData,
                 'signatures' => $signatures,
+                'documents' => $docs,
                 'stage_history' => $timeline
             ];
         }
