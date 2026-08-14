@@ -128,14 +128,26 @@ const BranchOperationsLayout = () => {
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 px-2 whitespace-nowrap">Operations Modules</p>
           <nav className="space-y-1">
             {navItems.filter(item => !item.feature || profile?.featureAccess?.[item.feature]).map((item, idx) => {
-              const isActive = location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
+              const isViewAppPage = location.pathname === '/employee/branch-operations/view-application' || location.pathname.startsWith('/employee/branch-operations/view-application/');
+
+              let isActive;
+              if (isViewAppPage && item.label === 'Applications') {
+                isActive = true;
+              } else if (isViewAppPage) {
+                isActive = false;
+              } else if (item.path === '/employee/branch-operations') {
+                isActive = location.pathname === '/employee/branch-operations' || location.pathname === '/employee/branch-operations/dashboard';
+              } else {
+                isActive = location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
+              }
+
               const Icon = item.icon;
               return (
                 <Link
                   key={idx}
                   to={item.path}
                   className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive
-                    ? 'bg-blue-50 text-blue-700'
+                    ? 'bg-blue-50 text-blue-700 font-semibold'
                     : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                     }`}
                 >
@@ -239,7 +251,19 @@ const BranchOperationsLayout = () => {
 
               {navItems.filter(item => !item.feature || profile?.featureAccess?.[item.feature]).map((item, idx) => {
                 const currentPath = swipePath || location.pathname;
-                const isActive = currentPath === item.path || currentPath.startsWith(`${item.path}/`);
+                const isMobileViewAppPage = currentPath === '/employee/branch-operations/view-application' || currentPath.startsWith('/employee/branch-operations/view-application/');
+
+                let isActive;
+                if (isMobileViewAppPage && item.label === 'Applications') {
+                  isActive = true;
+                } else if (isMobileViewAppPage) {
+                  isActive = false;
+                } else if (item.path === '/employee/branch-operations') {
+                  isActive = currentPath === '/employee/branch-operations' || currentPath === '/employee/branch-operations/dashboard';
+                } else {
+                  isActive = currentPath === item.path || currentPath.startsWith(`${item.path}/`);
+                }
+
                 const Icon = item.icon;
                 
                 return (
