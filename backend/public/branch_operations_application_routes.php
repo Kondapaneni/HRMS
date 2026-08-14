@@ -59,8 +59,8 @@ $app->get('/api/branch-operations/applications', function (Request $request, Res
             return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
         }
 
-        // Query applications for this branch that have reached Branch Operations stage in their history
-        $sql = "
+        // Query all applications associated with this employee's branch
+        $sql = '
             SELECT 
                 a.id,
                 a.application_id,
@@ -73,34 +73,12 @@ $app->get('/api/branch-operations/applications', function (Request $request, Res
                 a.created_by,
                 a.created_at,
                 a.updated_at,
-                TRIM(CONCAT(e.\"firstName\", ' ', e.\"lastName\")) as creator_name
+                TRIM(CONCAT(e."firstName", \' \', e."lastName")) as creator_name
             FROM public.loan_applications a
-            LEFT JOIN public.employee e ON a.created_by::uuid = e.\"userId\"
+            LEFT JOIN public.employee e ON a.created_by::uuid = e."userId"
             WHERE a.branch = :branch
-              AND (
-                -- 1. Check if timeline has an event for Branch Operations
-                EXISTS (
-                    SELECT 1 
-                    FROM jsonb_array_elements(COALESCE(a.form_data->'timeline', '[]'::jsonb)) AS elem
-                    WHERE elem->>'stage' ILIKE '%Branch Operations%' OR elem->>'stage' ILIKE '%branch%'
-                )
-                -- 2. Or form_data stage is Branch Operations
-                OR a.form_data->>'stage' ILIKE '%Branch Operations%'
-                -- 3. Or status is Under Review (transferred to branch operations)
-                OR a.status = 'Under Review'
-                -- 4. Or signatures indicate transfer from Origination
-                OR COALESCE(a.signatures ? 'Origination', false) = true
-                -- 5. Or stage history includes subsequent stages (Credit, Operations Review, Sanctioned, Disbursed)
-                OR EXISTS (
-                    SELECT 1 
-                    FROM jsonb_array_elements(COALESCE(a.form_data->'timeline', '[]'::jsonb)) AS elem
-                    WHERE elem->>'stage' IN ('Branch Operations', 'Credit', 'Operations Review', 'Sanctioned', 'Disbursed')
-                )
-                -- 6. Or non-draft applications in this branch
-                OR (a.branch IS NOT NULL AND a.status IN ('Created', 'Under Review', 'Approved', 'Rejected'))
-              )
             ORDER BY a.created_at DESC
-        ";
+        ';
 
         $stmt = $conn->prepare($sql);
         $stmt->execute([':branch' => $userBranch]);
@@ -111,9 +89,48 @@ $app->get('/api/branch-operations/applications', function (Request $request, Res
             $formData = is_string($row['form_data']) ? json_decode($row['form_data'], true) : ($row['form_data'] ?: []);
             $signatures = is_string($row['signatures']) ? json_decode($row['signatures'], true) : ($row['signatures'] ?: []);
             
+            $timeline = $formData['timeline'] ?? [];
+            $currentStage = $formData['stage'] ?? '';
+            
+            // Check if the application has passed through Branch Operations stage in its stage history
+            $hasReachedBranchOps = false;
+
+            // 1. Current stage
+            if (stripos($currentStage, 'Branch') !== false || stripos($currentStage, 'Operations') !== false) {
+                $hasReachedBranchOps = true;
+            }
+
+            // 2. Timeline history
+            if (is_array($timeline)) {
+                foreach ($timeline as $event) {
+                    $stageName = $event['stage'] ?? $event['title'] ?? '';
+                    if (
+                        stripos($stageName, 'Branch') !== false || 
+                        stripos($stageName, 'Operations') !== false || 
+                        in_array($stageName, ['Branch Operations', 'Credit', 'Operations Review', 'Sanctioned', 'Disbursed'])
+                    ) {
+                        $hasReachedBranchOps = true;
+                        break;
+                    }
+                }
+            }
+
+            // 3. Signatures or status
+            if (isset($signatures['Origination']) || isset($signatures['Branch Operations']) || isset($signatures['Credit'])) {
+                $hasReachedBranchOps = true;
+            }
+
+            if (in_array($row['status'], ['Under Review', 'Approved', 'Rejected', 'Created'])) {
+                $hasReachedBranchOps = true;
+            }
+
+            // If it hasn't reached Branch Operations stage yet (e.g. pure unsaved draft), skip
+            if (!$hasReachedBranchOps) {
+                continue;
+            }
+
             $applicantName = $formData['applicant_name'] ?? $formData['name'] ?? 'N/A';
             $phoneNumber = $formData['phone_number'] ?? $formData['phone'] ?? 'N/A';
-            $timeline = $formData['timeline'] ?? [];
 
             $applications[] = [
                 'id' => $row['id'],
@@ -147,11 +164,11 @@ $app->get('/api/branch-operations/applications', function (Request $request, Res
 
     } catch (\PDOException $e) {
         error_log("Database error fetching branch operations applications: " . $e->getMessage());
-        $response->getBody()->write(json_encode(['error' => 'Database error while fetching branch applications']));
+        $response->getBody()->write(json_encode(['error' => 'Database error while fetching branch applications: ' . $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     } catch (\Exception $e) {
         error_log("Error fetching branch operations applications: " . $e->getMessage());
-        $response->getBody()->write(json_encode(['error' => 'An error occurred while fetching branch applications']));
+        $response->getBody()->write(json_encode(['error' => 'An error occurred while fetching branch applications: ' . $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware());
