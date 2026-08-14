@@ -304,7 +304,7 @@ $app->post('/api/logout', function (Request $request, Response $response, $args)
         ->withStatus(200);
 });
 
-// Get global news headlines (Protected)
+// Get global news headlines & maintenance status (Public)
 $app->get('/api/news', function (Request $request, Response $response, $args) {
     $db = new Database();
     $conn = $db->getConnection();
@@ -321,7 +321,7 @@ $app->get('/api/news', function (Request $request, Response $response, $args) {
         'maintenance_message' => $maintenanceMessage
     ]));
     return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
-})->add(new AuthMiddleware());
+});
 
 // Get current user profile endpoint (Protected)
 $app->get('/api/me', function (Request $request, Response $response, $args) {

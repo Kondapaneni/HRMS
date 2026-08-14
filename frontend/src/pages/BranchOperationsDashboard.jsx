@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getBranchDashboardData } from '../services/branchOperationsServices';
+import PageLoader from '../components/PageLoader';
 import { Users, TrendingUp, CheckCircle, CheckCircle2, RefreshCw, XCircle, ArrowUpRight, Building2, User, FileText, Calendar, Clock, Layers } from 'lucide-react';
 import {
   LineChart,
@@ -76,6 +77,10 @@ const BranchOperationsDashboard = () => {
         return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 whitespace-nowrap">{status}</span>;
     }
   };
+
+  if (isLoading) {
+    return <PageLoader message="Loading Dashboard..." />;
+  }
 
   return (
     <>

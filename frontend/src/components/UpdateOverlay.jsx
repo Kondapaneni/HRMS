@@ -11,12 +11,17 @@ export default function UpdateOverlay() {
   const { data: newsData } = useQuery({
     queryKey: ['newsHeadlines'],
     queryFn: async () => {
-      const res = await api.get('/news');
-      return res.data;
+      try {
+        const res = await api.get('/news');
+        return res.data;
+      } catch (e) {
+        return { news_headlines: [], maintenance_mode: false, maintenance_message: '' };
+      }
     },
     refetchInterval: 180000, // Poll every 3 minutes (180 seconds)
     staleTime: 180000,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
+    retry: false,
   });
 
   const rawMaintMode = newsData?.maintenance_mode;
