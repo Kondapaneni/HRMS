@@ -445,6 +445,7 @@ require __DIR__ . '/candidate_auth_routes.php';
 require __DIR__ . '/candidate_recruitment_routes.php';
 require __DIR__ . '/origination_dashboard_routes.php';
 require __DIR__ . '/origination_leads_routes.php';
+require __DIR__ . '/origination_member_routes.php';
 require __DIR__ . '/loan_applications_routes.php';
 
 // Request Password Reset
