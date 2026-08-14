@@ -2,12 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axios';
-import { Building2, ArrowLeft, Smartphone, Megaphone } from 'lucide-react';
+import { Building2, ArrowLeft, Smartphone } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const BranchOperationsLayout = () => {
-  const { profile } = useAuth();
+  const { profile, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [swipePath, setSwipePath] = useState(null);
@@ -66,6 +66,15 @@ const BranchOperationsLayout = () => {
   });
   const newsHeadlines = newsData?.news_headlines || profile?.news_headlines || [];
 
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate('/');
+    } catch (e) {
+      console.error("Logout failed", e);
+    }
+  };
+
   const navItems = [
     { icon: Building2, label: 'Operations', path: '/employee/branch-operations', feature: 'canBranchOperations' },
   ];
@@ -89,16 +98,16 @@ const BranchOperationsLayout = () => {
       
       {/* Global Animated Background Graphics */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden fixed md:absolute print:hidden">
-        <motion.div custom={1} variants={shapeVariants} animate="animate" className="absolute w-64 h-64 bg-[#6366F1] rounded-full opacity-10 -top-20 -right-20" />
+        <motion.div custom={1} variants={shapeVariants} animate="animate" className="absolute w-64 h-64 bg-[#F59E0B] rounded-full opacity-10 -top-20 -right-20" />
         <motion.div custom={2} variants={shapeVariants} animate="animate" className="absolute w-48 h-48 bg-[#10B981] rounded-3xl opacity-10 bottom-[-40px] left-1/4 rotate-12" />
         <motion.div custom={3} variants={shapeVariants} animate="animate" className="absolute w-96 h-96 bg-[#3B82F6] rounded-full opacity-5 top-1/2 left-1/3" />
-        <motion.div custom={4} variants={shapeVariants} animate="animate" className="absolute w-32 h-32 bg-[#8B5CF6] rounded-xl opacity-10 top-20 left-10 -rotate-12" />
-        <motion.div custom={5} variants={shapeVariants} animate="animate" className="absolute w-72 h-72 bg-[#EC4899] rounded-full opacity-10 bottom-20 right-1/4" />
+        <motion.div custom={4} variants={shapeVariants} animate="animate" className="absolute w-32 h-32 bg-[#EC4899] rounded-xl opacity-10 top-20 left-10 -rotate-12" />
+        <motion.div custom={5} variants={shapeVariants} animate="animate" className="absolute w-72 h-72 bg-[#8B5CF6] rounded-full opacity-10 bottom-20 right-1/4" />
 
         {/* Additional top-left boxes */}
         <motion.div custom={6} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-40 h-40 bg-[#14B8A6] rounded-2xl opacity-10 top-[-20px] left-[18rem] rotate-45" />
         <motion.div custom={7} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-28 h-28 bg-[#F43F5E] rounded-3xl opacity-10 top-32 left-[24rem] -rotate-12" />
-        <motion.div custom={8} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-56 h-56 bg-[#4F46E5] rounded-full opacity-[0.06] top-10 left-[35%]" />
+        <motion.div custom={8} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-56 h-56 bg-[#6366F1] rounded-full opacity-[0.06] top-10 left-[35%]" />
 
         {/* Additional bottom-right boxes */}
         <motion.div custom={9} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-36 h-36 bg-[#EAB308] rounded-2xl opacity-10 bottom-10 right-10 -rotate-12" />
@@ -108,7 +117,7 @@ const BranchOperationsLayout = () => {
       {/* Sidebar - Clean, Professional */}
       <aside className="w-[260px] h-screen sticky top-0 bg-white/80 backdrop-blur-md border-r border-slate-200 hidden md:flex flex-col z-20 shadow-sm shrink-0">
         <div className="h-14 flex items-center px-4 border-b border-slate-200 shrink-0">
-          <div className="w-8 h-8 bg-indigo-600 rounded flex items-center justify-center text-white mr-3 shrink-0">
+          <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white mr-3 shrink-0">
             <Building2 size={18} strokeWidth={2.5} />
           </div>
           <span className="text-lg font-semibold tracking-tight text-slate-900 whitespace-nowrap">Branch Operations</span>
@@ -125,11 +134,11 @@ const BranchOperationsLayout = () => {
                   key={idx}
                   to={item.path}
                   className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive
-                    ? 'bg-indigo-50 text-indigo-700'
+                    ? 'bg-blue-50 text-blue-700'
                     : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                     }`}
                 >
-                  <span className={`shrink-0 ${isActive ? 'text-indigo-600' : 'text-slate-400'}`}>
+                  <span className={`shrink-0 ${isActive ? 'text-blue-600' : 'text-slate-400'}`}>
                     <Icon size={18} />
                   </span>
                   <span className="flex-1 whitespace-nowrap truncate">{item.label}</span>
@@ -168,7 +177,7 @@ const BranchOperationsLayout = () => {
           <div className="flex items-center gap-5 shrink-0">
             {/* Mobile Profile Avatar */}
             <div className="md:hidden flex items-center gap-3">
-              <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-700 font-semibold text-sm overflow-hidden border border-slate-200">
+              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-semibold text-sm overflow-hidden border border-slate-200">
                 {profile?.avatar ? (
                   <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
@@ -180,7 +189,7 @@ const BranchOperationsLayout = () => {
             {/* Desktop Profile Header Block */}
             <div className="hidden md:flex items-center gap-5">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-700 font-semibold text-sm overflow-hidden border border-slate-200">
+                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-semibold text-sm overflow-hidden border border-slate-200">
                   {profile?.avatar ? (
                     <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
                   ) : (
@@ -197,21 +206,6 @@ const BranchOperationsLayout = () => {
             </div>
           </div>
         </header>
-
-        {/* Breaking News Ticker Bar (if present) */}
-        {newsHeadlines && newsHeadlines.length > 0 && (
-          <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white text-xs py-1.5 px-4 overflow-hidden flex items-center shrink-0 border-b border-indigo-900/50 shadow-xs z-20">
-            <div className="flex items-center gap-1.5 font-bold uppercase tracking-wider text-[10px] text-indigo-400 shrink-0 mr-3 pr-3 border-r border-slate-700">
-              <Megaphone size={12} className="animate-pulse text-indigo-400" />
-              <span>Notice</span>
-            </div>
-            <div className="flex-1 overflow-hidden relative whitespace-nowrap">
-              <div className="inline-block animate-marquee pl-[100%]">
-                {newsHeadlines.join('  •  ')}
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Dynamic Page Content */}
         <div
@@ -264,8 +258,8 @@ const BranchOperationsLayout = () => {
                         transition={{ type: 'spring', bounce: 0.25, duration: 0.5 }}
                       />
                     )}
-                    <Icon className={`relative z-10 w-6 h-6 mb-0.5 transition-all duration-300 ${isActive ? 'text-indigo-600 scale-105' : 'text-slate-500 group-hover:text-slate-600 group-active:scale-95'}`} strokeWidth={isActive ? 2.5 : 2} />
-                    <span className={`relative z-10 text-[10px] font-medium tracking-wide transition-all duration-300 ${isActive ? 'text-indigo-600' : 'text-slate-500'}`}>{item.label}</span>
+                    <Icon className={`relative z-10 w-6 h-6 mb-0.5 transition-all duration-300 ${isActive ? 'text-[#ff2d55] scale-105' : 'text-slate-500 group-hover:text-slate-600 group-active:scale-95'}`} strokeWidth={isActive ? 2.5 : 2} />
+                    <span className={`relative z-10 text-[10px] font-medium tracking-wide transition-all duration-300 ${isActive ? 'text-[#ff2d55]' : 'text-slate-500'}`}>{item.label}</span>
                   </Link>
                 );
               })}
@@ -303,7 +297,7 @@ const BranchOperationsLayout = () => {
           >
             <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6 sm:hidden"></div>
             <div className="flex flex-col items-center text-center">
-              <div className="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mb-4 ring-4 ring-indigo-50">
+              <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4 ring-4 ring-blue-50">
                 <ArrowLeft size={28} />
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-2">Back to HRMS</h3>
@@ -323,7 +317,7 @@ const BranchOperationsLayout = () => {
                     setShowBackModal(false);
                     navigate('/employee');
                   }}
-                  className="flex-1 py-3.5 px-4 rounded-xl font-semibold text-white bg-indigo-600 hover:bg-indigo-700 transition-colors shadow-sm shadow-indigo-500/20"
+                  className="flex-1 py-3.5 px-4 rounded-xl font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm shadow-blue-500/20"
                 >
                   Continue
                 </button>
@@ -348,9 +342,11 @@ const BranchOperationsLayout = () => {
     {/* Landscape Orientation Warning Overlay for Mobile/Tablet */}
     <div className="orientation-warning fixed inset-0 z-[9999] flex-col items-center justify-center bg-slate-50 p-6 text-center select-none">
       <div className="relative mb-6">
+        {/* Animated phone rotation container */}
         <div className="w-20 h-20 border border-dashed border-slate-300 rounded-full flex items-center justify-center animate-[spin_8s_linear_infinite]">
-          <Smartphone className="w-8 h-8 text-indigo-500 opacity-20" />
+          <Smartphone className="w-8 h-8 text-[#ff2d55] opacity-20" />
         </div>
+        {/* Main phone rotation icon */}
         <div className="absolute inset-0 flex items-center justify-center">
           <motion.div
             animate={{ rotate: [0, -90, 0] }}
