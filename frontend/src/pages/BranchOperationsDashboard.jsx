@@ -68,7 +68,7 @@ const BranchOperationsDashboard = () => {
     conversion_rate: 0,
     total_applications: 0,
     draft_applications: 0,
-    submitted_applications: 0,
+    created_applications: 0,
     transferred_applications: 0,
     approved_applications: 0,
     rejected_applications: 0

@@ -368,7 +368,6 @@ $app->get('/api/branch-operations/dashboard', function (Request $request, Respon
                 'conversion_rate' => $oConvRate,
                 'total_applications' => (int)($oApp['total_apps'] ?? 0),
                 'created_applications' => (int)($oApp['created_apps'] ?? 0),
-                'submitted_applications' => (int)($oApp['created_apps'] ?? 0),
                 'transferred_applications' => (int)($oApp['transferred_apps'] ?? 0),
             ];
         }
@@ -438,7 +437,6 @@ $app->get('/api/branch-operations/dashboard', function (Request $request, Respon
                 'total_applications' => $totalApplications,
                 'draft_applications' => $draftApplications,
                 'created_applications' => $createdApplications,
-                'submitted_applications' => $createdApplications,
                 'transferred_applications' => $transferredApplications,
                 'approved_applications' => $approvedApplications,
                 'rejected_applications' => $rejectedApplications,
