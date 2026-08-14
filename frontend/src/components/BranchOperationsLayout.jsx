@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Building2, ArrowLeft, Smartphone } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import api from '../api/axios';
+import { Building2, ArrowLeft, Smartphone, Megaphone } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -50,6 +52,19 @@ const BranchOperationsLayout = () => {
     }
     setSwipePath(null);
   };
+
+  // Fetch live news headlines
+  const { data: newsData } = useQuery({
+    queryKey: ['newsHeadlines'],
+    queryFn: async () => {
+      const res = await api.get('/news');
+      return res.data;
+    },
+    refetchInterval: 180000, // Poll every 3 minutes (180 seconds)
+    staleTime: 180000,
+    refetchOnWindowFocus: true,
+  });
+  const newsHeadlines = newsData?.news_headlines || profile?.news_headlines || [];
 
   const navItems = [
     { icon: Building2, label: 'Operations', path: '/employee/branch-operations', feature: 'canBranchOperations' },
@@ -182,6 +197,21 @@ const BranchOperationsLayout = () => {
             </div>
           </div>
         </header>
+
+        {/* Breaking News Ticker Bar (if present) */}
+        {newsHeadlines && newsHeadlines.length > 0 && (
+          <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white text-xs py-1.5 px-4 overflow-hidden flex items-center shrink-0 border-b border-indigo-900/50 shadow-xs z-20">
+            <div className="flex items-center gap-1.5 font-bold uppercase tracking-wider text-[10px] text-indigo-400 shrink-0 mr-3 pr-3 border-r border-slate-700">
+              <Megaphone size={12} className="animate-pulse text-indigo-400" />
+              <span>Notice</span>
+            </div>
+            <div className="flex-1 overflow-hidden relative whitespace-nowrap">
+              <div className="inline-block animate-marquee pl-[100%]">
+                {newsHeadlines.join('  •  ')}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Dynamic Page Content */}
         <div
