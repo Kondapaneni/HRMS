@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getBranchDashboardData } from '../services/branchOperationsServices';
-import { Users, TrendingUp, CheckCircle, ArrowUpRight, Building2, ChevronDown, User, FileText, Calendar } from 'lucide-react';
+import { Users, TrendingUp, CheckCircle, CheckCircle2, RefreshCw, XCircle, Clock, ArrowUpRight, Building2, ChevronDown, User, FileText, Calendar } from 'lucide-react';
 import {
   LineChart,
   Line,
@@ -58,24 +58,34 @@ const BranchOperationsMobileDashboard = () => {
     visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } }
   };
 
-  const getStatusBadge = (status) => {
+  const getLeadStatusBadge = (status) => {
+    switch (status) {
+      case 'New':
+        return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-700 whitespace-nowrap"><Clock size={10} /> New</span>;
+      case 'Follow Up':
+        return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-violet-100 text-violet-700 whitespace-nowrap"><RefreshCw size={10} /> Follow Up</span>;
+      case 'Active':
+      case 'In Progress':
+        return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-700 whitespace-nowrap"><Clock size={10} /> {status}</span>;
+      case 'Converted':
+        return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-700 whitespace-nowrap"><CheckCircle2 size={10} /> Converted</span>;
+      case 'Not Interested':
+        return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-100 text-rose-700 whitespace-nowrap"><XCircle size={10} /> Not Interested</span>;
+      default:
+        return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700 whitespace-nowrap">{status}</span>;
+    }
+  };
+
+  const getAppStatusBadge = (status) => {
     switch (status) {
       case 'Created':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+        return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-700 whitespace-nowrap"><CheckCircle2 size={10} /> Created</span>;
       case 'Under Review':
-        return 'bg-blue-50 text-blue-700 border-blue-200';
+        return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-700 whitespace-nowrap"><Clock size={10} /> Under Review</span>;
       case 'Draft':
-        return 'bg-amber-50 text-amber-700 border-amber-200';
-      case 'Converted':
-        return 'bg-purple-50 text-purple-700 border-purple-200';
-      case 'Follow Up':
-      case 'In Progress':
-        return 'bg-amber-50 text-amber-700 border-amber-200';
-      case 'Not Interested':
-      case 'Rejected':
-        return 'bg-rose-50 text-rose-700 border-rose-200';
+        return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-700 whitespace-nowrap"><Clock size={10} /> Draft</span>;
       default:
-        return 'bg-slate-50 text-slate-700 border-slate-200';
+        return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700 whitespace-nowrap">{status}</span>;
     }
   };
 
@@ -282,14 +292,12 @@ const BranchOperationsMobileDashboard = () => {
                   <div key={lead.id} className="bg-white rounded-2xl p-3.5 border border-slate-100 shadow-xs">
                     <div className="flex items-start justify-between gap-2 mb-1.5">
                       <h4 className="font-bold text-slate-900 text-sm">{lead.name}</h4>
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap shrink-0 ${getStatusBadge(lead.status)}`}>
-                        {lead.status}
-                      </span>
+                      {getLeadStatusBadge(lead.status)}
                     </div>
                     <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
                       <span>{lead.loan_type} • {lead.phone}</span>
                       <span className="text-[11px] text-slate-400">
-                        {lead.created_at ? format(new Date(lead.created_at), 'MMM d') : '-'}
+                        {lead.created_at ? format(new Date(lead.created_at), 'MMM d, yyyy') : '-'}
                       </span>
                     </div>
                     {lead.creator_name && (
@@ -317,14 +325,12 @@ const BranchOperationsMobileDashboard = () => {
                           <h4 className="font-bold text-slate-900 text-sm">{applicantName}</h4>
                           <span className="text-[10px] font-mono text-indigo-600 font-bold">{app.application_id}</span>
                         </div>
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap shrink-0 ${getStatusBadge(app.status)}`}>
-                          {app.status}
-                        </span>
+                        {getAppStatusBadge(app.status)}
                       </div>
                       <div className="flex items-center justify-between text-xs text-slate-500 font-medium mt-1">
                         <span>{app.loan_type || app.form_data?.loan_type || 'Personal Loan'}</span>
                         <span className="text-[11px] text-slate-400">
-                          {app.created_at ? format(new Date(app.created_at), 'MMM d') : '-'}
+                          {app.created_at ? format(new Date(app.created_at), 'MMM d, yyyy') : '-'}
                         </span>
                       </div>
                       {app.creator_name && (

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getBranchDashboardData } from '../services/branchOperationsServices';
-import { Users, TrendingUp, CheckCircle, ArrowUpRight, Building2, User, FileText, Calendar, Clock, Layers } from 'lucide-react';
+import { Users, TrendingUp, CheckCircle, CheckCircle2, RefreshCw, XCircle, ArrowUpRight, Building2, User, FileText, Calendar, Clock, Layers } from 'lucide-react';
 import {
   LineChart,
   Line,
@@ -61,34 +61,35 @@ const BranchOperationsDashboard = () => {
     visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
   };
 
-  const getStatusBadge = (status) => {
+  const getLeadStatusBadge = (status) => {
     switch (status) {
-      case 'Created':
-      case 'Approved':
-        return 'bg-emerald-100 text-emerald-700 border-emerald-200';
-      case 'Under Review':
-        return 'bg-blue-100 text-blue-700 border-blue-200';
-      case 'Draft':
+      case 'New':
+        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 whitespace-nowrap"><Clock size={12} /> New</span>;
       case 'Follow Up':
+        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-violet-100 text-violet-700 whitespace-nowrap"><RefreshCw size={12} /> Follow Up</span>;
+      case 'Active':
       case 'In Progress':
-        return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 whitespace-nowrap"><Clock size={12} /> {status}</span>;
       case 'Converted':
-        return 'bg-purple-100 text-purple-700 border-purple-200';
+        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 whitespace-nowrap"><CheckCircle2 size={12} /> Converted</span>;
       case 'Not Interested':
-      case 'Rejected':
-        return 'bg-red-100 text-red-700 border-red-200';
+        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-100 text-rose-700 whitespace-nowrap"><XCircle size={12} /> Not Interested</span>;
       default:
-        return 'bg-slate-100 text-slate-700 border-slate-200';
+        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 whitespace-nowrap">{status}</span>;
     }
   };
 
-  const formatDateStr = (dateString) => {
-    if (!dateString) return '—';
-    const d = new Date(dateString);
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const year = d.getFullYear();
-    return `${day}/${month}/${year}`;
+  const getAppStatusBadge = (status) => {
+    switch (status) {
+      case 'Created':
+        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 whitespace-nowrap"><CheckCircle2 size={12} /> Created</span>;
+      case 'Under Review':
+        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 whitespace-nowrap"><Clock size={12} /> Under Review</span>;
+      case 'Draft':
+        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 whitespace-nowrap"><Clock size={12} /> Draft</span>;
+      default:
+        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 whitespace-nowrap">{status}</span>;
+    }
   };
 
   return (
@@ -234,12 +235,15 @@ const BranchOperationsDashboard = () => {
 
         </motion.div>
 
-        {/* Attendance-styled Activity Card & Table */}
-        <motion.div variants={itemVariants} className="rounded-lg border border-slate-200 bg-white shadow-sm">
-          <div className="p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        {/* Directory-styled Activity Card & Table (Matching Origination Leads) */}
+        <motion.div variants={itemVariants} className="rounded-lg border border-slate-200 bg-white shadow-sm mb-6">
+          <div className="p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h3 className="text-lg font-semibold text-slate-900">Recent Branch Activity</h3>
-              <p className="text-sm text-slate-500 mt-0.5">Latest 10 leads and loan applications recorded for this branch.</p>
+              <h3 className="text-lg font-semibold flex items-center gap-2 text-slate-900">
+                <Users className="h-5 w-5 text-slate-500" />
+                Recent Branch Activity
+              </h3>
+              <p className="text-sm text-slate-500 mt-1">A comprehensive list of latest 10 leads and loan applications recorded for this branch.</p>
             </div>
             
             {/* Table Tabs */}
@@ -267,14 +271,15 @@ const BranchOperationsDashboard = () => {
             </div>
           </div>
 
-          <div className="px-6 pb-6">
+          <div className="p-6 pt-0">
             <div className="rounded-md border border-slate-200 overflow-x-auto">
               {activeTableTab === 'leads' ? (
                 <table className="w-full text-sm text-left">
                   <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-medium">
                     <tr>
-                      <th className="p-3">Applicant Name</th>
-                      <th className="p-3">Phone Number</th>
+                      <th className="p-3">Name</th>
+                      <th className="p-3">Contact</th>
+                      <th className="p-3">Location</th>
                       <th className="p-3">Loan Type</th>
                       <th className="p-3">Created By</th>
                       <th className="p-3">Status</th>
@@ -284,26 +289,35 @@ const BranchOperationsDashboard = () => {
                   <tbody>
                     {isLoading ? (
                       <tr>
-                        <td colSpan="6" className="text-center py-8 text-slate-500">Loading recent records...</td>
+                        <td colSpan="7" className="p-12 text-center text-slate-500">Loading recent records...</td>
                       </tr>
                     ) : recentLeads.length === 0 ? (
                       <tr>
-                        <td colSpan="6" className="text-center py-8 text-slate-500">No leads found for this branch.</td>
+                        <td colSpan="7" className="text-center py-12 text-slate-500">No leads found for this branch.</td>
                       </tr>
                     ) : (
                       recentLeads.map((lead) => (
-                        <tr key={lead.id} className="border-b border-slate-100 hover:bg-slate-50 last:border-0">
-                          <td className="p-3 font-medium text-slate-800">{lead.name}</td>
-                          <td className="p-3 text-slate-600 font-mono text-xs">{lead.phone}</td>
-                          <td className="p-3 text-slate-600">{lead.loan_type}</td>
-                          <td className="p-3 text-slate-600">{lead.creator_name || 'Branch Officer'}</td>
-                          <td className="p-3">
-                            <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${getStatusBadge(lead.status)}`}>
-                              {lead.status}
-                            </span>
+                        <tr key={lead.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
+                          <td className="p-3 text-slate-700">
+                            <div className="font-medium text-slate-900">{lead.name}</div>
                           </td>
-                          <td className="p-3 text-slate-600">
-                            {formatDateStr(lead.created_at)}
+                          <td className="p-3 text-slate-700">
+                            {lead.phone}
+                          </td>
+                          <td className="p-3 text-slate-700 max-w-[200px] truncate" title={lead.address}>
+                            {lead.address || '—'}
+                          </td>
+                          <td className="p-3 text-slate-700">
+                            <span className="font-medium text-slate-800">{lead.loan_type || 'Personal Loan'}</span>
+                          </td>
+                          <td className="p-3 text-slate-700">
+                            {lead.creator_name || 'Branch Officer'}
+                          </td>
+                          <td className="p-3">
+                            {getLeadStatusBadge(lead.status)}
+                          </td>
+                          <td className="p-3 text-slate-700">
+                            {lead.created_at ? format(new Date(lead.created_at), 'MMM d, yyyy h:mm a') : '—'}
                           </td>
                         </tr>
                       ))
@@ -325,30 +339,34 @@ const BranchOperationsDashboard = () => {
                   <tbody>
                     {isLoading ? (
                       <tr>
-                        <td colSpan="6" className="text-center py-8 text-slate-500">Loading recent records...</td>
+                        <td colSpan="6" className="p-12 text-center text-slate-500">Loading recent records...</td>
                       </tr>
                     ) : recentApplications.length === 0 ? (
                       <tr>
-                        <td colSpan="6" className="text-center py-8 text-slate-500">No loan applications found for this branch.</td>
+                        <td colSpan="6" className="text-center py-12 text-slate-500">No loan applications found for this branch.</td>
                       </tr>
                     ) : (
                       recentApplications.map((app) => {
                         const applicantName = app.form_data?.applicant_name || app.form_data?.name || 'Applicant';
                         return (
-                          <tr key={app.id} className="border-b border-slate-100 hover:bg-slate-50 last:border-0">
-                            <td className="p-3 font-mono font-semibold text-xs text-blue-600">
-                              {app.application_id || 'LA-PENDING'}
+                          <tr key={app.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
+                            <td className="p-3 text-slate-700">
+                              <span className="font-mono font-medium text-blue-600">{app.application_id || 'LA-PENDING'}</span>
                             </td>
-                            <td className="p-3 font-medium text-slate-800">{applicantName}</td>
-                            <td className="p-3 text-slate-600">{app.loan_type || app.form_data?.loan_type || 'Personal Loan'}</td>
-                            <td className="p-3 text-slate-600">{app.creator_name || 'Branch Officer'}</td>
+                            <td className="p-3 text-slate-700">
+                              <div className="font-medium text-slate-900">{applicantName}</div>
+                            </td>
+                            <td className="p-3 text-slate-700">
+                              <span className="font-medium text-slate-800">{app.loan_type || app.form_data?.loan_type || 'Personal Loan'}</span>
+                            </td>
+                            <td className="p-3 text-slate-700">
+                              {app.creator_name || 'Branch Officer'}
+                            </td>
                             <td className="p-3">
-                              <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${getStatusBadge(app.status)}`}>
-                                {app.status}
-                              </span>
+                              {getAppStatusBadge(app.status)}
                             </td>
-                            <td className="p-3 text-slate-600">
-                              {formatDateStr(app.created_at)}
+                            <td className="p-3 text-slate-700">
+                              {app.created_at ? format(new Date(app.created_at), 'MMM d, yyyy h:mm a') : '—'}
                             </td>
                           </tr>
                         );
