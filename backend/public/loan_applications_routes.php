@@ -127,6 +127,12 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
             $createdById = isset($user['id']) ? (string)$user['id'] : (isset($user['user_id']) ? (string)$user['user_id'] : (isset($user['sub']) ? (string)$user['sub'] : null));
         }
 
+        // Fetch user's branch from employee table
+        $branchStmt = $conn->prepare('SELECT branch FROM public.employee WHERE "userId" = ? LIMIT 1');
+        $branchStmt->execute([$createdById]);
+        $emp = $branchStmt->fetch(PDO::FETCH_ASSOC);
+        $userBranch = $emp['branch'] ?? null;
+
         $existingDraft = null;
         if (!empty($leadId)) {
             $checkStmt = $conn->prepare('
@@ -142,21 +148,22 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
         if ($existingDraft) {
             $stmt = $conn->prepare('
                 UPDATE public.loan_applications
-                SET status = ?, form_data = ?::jsonb, updated_at = NOW()
+                SET status = ?, form_data = ?::jsonb, branch = COALESCE(branch, ?), updated_at = NOW()
                 WHERE id = ?
-                RETURNING id, application_id, lead_id, loan_type, status, form_data, signatures, created_at, updated_at
+                RETURNING id, application_id, lead_id, loan_type, status, form_data, branch, signatures, created_at, updated_at
             ');
             $stmt->execute([
                 $status,
                 $jsonPayload,
+                $userBranch,
                 $existingDraft['id']
             ]);
         } else {
             $applicationId = 'LA' . random_int(100000, 999999);
             $stmt = $conn->prepare('
-                INSERT INTO public.loan_applications (application_id, lead_id, loan_type, status, form_data, created_by, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?::jsonb, ?, NOW(), NOW())
-                RETURNING id, application_id, lead_id, loan_type, status, form_data, signatures, created_at, updated_at
+                INSERT INTO public.loan_applications (application_id, lead_id, loan_type, status, form_data, branch, created_by, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?::jsonb, ?, ?, NOW(), NOW())
+                RETURNING id, application_id, lead_id, loan_type, status, form_data, branch, signatures, created_at, updated_at
             ');
             
             $stmt->execute([
@@ -165,6 +172,7 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
                 $loanType,
                 $status,
                 $jsonPayload,
+                $userBranch,
                 $createdById
             ]);
         }
@@ -225,7 +233,7 @@ $app->get('/api/loans/applications', function (Request $request, Response $respo
         }
 
         $stmt = $conn->prepare('
-            SELECT id, application_id, lead_id, loan_type, status, form_data, signatures, created_at, updated_at
+            SELECT id, application_id, lead_id, loan_type, status, form_data, branch, signatures, created_at, updated_at
             FROM public.loan_applications
             WHERE created_by = ? OR ? = \'admin\'
             ORDER BY created_at DESC

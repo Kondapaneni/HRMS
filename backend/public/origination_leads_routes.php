@@ -27,13 +27,19 @@ $app->post('/api/leads', function (Request $request, Response $response, $args) 
             throw new Exception("Database connection failed");
         }
 
+        // Resolve creator employee's branch
+        $branchStmt = $conn->prepare('SELECT branch FROM public.employee WHERE "userId" = ? LIMIT 1');
+        $branchStmt->execute([$user->id]);
+        $emp = $branchStmt->fetch(PDO::FETCH_ASSOC);
+        $userBranch = $emp['branch'] ?? null;
+
         $stmt = $conn->prepare('
-            INSERT INTO public.loan_leads (name, phone, address, loan_type, status, created_by, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-            RETURNING id, name, phone, address, loan_type, status, created_at
+            INSERT INTO public.loan_leads (name, phone, address, loan_type, status, branch, created_by, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            RETURNING id, name, phone, address, loan_type, status, branch, created_at
         ');
         
-        $stmt->execute([$name, $phone, $address, $loan_type, 'New', $user->id, date('Y-m-d H:i:s')]);
+        $stmt->execute([$name, $phone, $address, $loan_type, 'New', $userBranch, $user->id, date('Y-m-d H:i:s')]);
         $lead = $stmt->fetch(PDO::FETCH_ASSOC);
 
         $response->getBody()->write(json_encode([
@@ -67,7 +73,7 @@ $app->get('/api/leads/list', function (Request $request, Response $response, $ar
         }
 
         $sql = "
-            SELECT id, name, phone, address, loan_type, status, created_at
+            SELECT id, name, phone, address, loan_type, status, branch, created_at
             FROM public.loan_leads
             WHERE created_by = :uid
         ";
