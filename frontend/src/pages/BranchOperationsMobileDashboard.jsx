@@ -106,25 +106,20 @@ const BranchOperationsMobileDashboard = () => {
       >
         {/* Dynamic Employee Filter Control (Mobile) */}
         <div className="px-4 mb-3">
-          <div className="relative bg-white p-2.5 rounded-2xl shadow-lg border border-slate-100/90 flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
-              <User size={16} />
-            </div>
-            <div className="relative flex-1">
-              <select
-                value={selectedEmployee}
-                onChange={(e) => setSelectedEmployee(e.target.value)}
-                className="w-full h-9 pl-2 pr-8 rounded-lg bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none cursor-pointer"
-              >
-                <option value="all">All Employees ({creators.length})</option>
-                {creators.map((c) => (
-                  <option key={c.userId} value={c.userId}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-            </div>
+          <div className="relative">
+            <select
+              value={selectedEmployee}
+              onChange={(e) => setSelectedEmployee(e.target.value)}
+              className="w-full h-11 pl-3 pr-8 rounded-xl bg-white border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 font-semibold text-slate-700 shadow-xs appearance-none cursor-pointer"
+            >
+              <option value="all">All Employees ({creators.length})</option>
+              {creators.map((c) => (
+                <option key={c.userId} value={c.userId}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+            <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
           </div>
         </div>
 

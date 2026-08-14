@@ -79,21 +79,18 @@ const BranchOperationsDashboard = () => {
           </div>
 
           {/* Dynamic Employee Filter Dropdown */}
-          <div className="flex items-center gap-2 bg-white/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-200 shadow-xs">
-            <User size={16} className="text-slate-400 shrink-0" />
-            <select
-              value={selectedEmployee}
-              onChange={(e) => setSelectedEmployee(e.target.value)}
-              className="h-9 rounded-lg border-0 bg-transparent text-sm font-medium text-slate-700 focus:outline-none focus:ring-0 cursor-pointer pr-4"
-            >
-              <option value="all">All Employees ({creators.length})</option>
-              {creators.map((c) => (
-                <option key={c.userId} value={c.userId}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          <select
+            value={selectedEmployee}
+            onChange={(e) => setSelectedEmployee(e.target.value)}
+            className="h-10 w-full sm:w-auto rounded-md border border-slate-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700 font-medium cursor-pointer shadow-xs"
+          >
+            <option value="all">All Employees ({creators.length})</option>
+            {creators.map((c) => (
+              <option key={c.userId} value={c.userId}>
+                {c.name}
+              </option>
+            ))}
+          </select>
         </motion.div>
 
         {/* Summary Cards */}
