@@ -41,18 +41,18 @@ const OriginationMobileLeadDetails = () => {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'New':
-        return <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700"><Clock size={14} /> New</span>;
+        return <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 whitespace-nowrap shrink-0"><Clock size={14} /> New</span>;
       case 'Follow Up':
-        return <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-violet-100 text-violet-700"><RefreshCw size={14} /> Follow Up</span>;
+        return <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-violet-100 text-violet-700 whitespace-nowrap shrink-0"><RefreshCw size={14} /> Follow Up</span>;
       case 'Active':
       case 'In Progress':
-        return <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700"><Clock size={14} /> {status}</span>;
+        return <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 whitespace-nowrap shrink-0"><Clock size={14} /> {status}</span>;
       case 'Converted':
-        return <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700"><CheckCircle2 size={14} /> Converted</span>;
+        return <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 whitespace-nowrap shrink-0"><CheckCircle2 size={14} /> Converted</span>;
       case 'Not Interested':
-        return <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-700"><XCircle size={14} /> Not Interested</span>;
+        return <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-700 whitespace-nowrap shrink-0"><XCircle size={14} /> Not Interested</span>;
       default:
-        return <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">{status}</span>;
+        return <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 whitespace-nowrap shrink-0">{status}</span>;
     }
   };
 

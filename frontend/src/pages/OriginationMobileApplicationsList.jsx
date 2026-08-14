@@ -189,14 +189,14 @@ const OriginationMobileApplicationsList = () => {
                   onClick={() => handleViewDetails(app)}
                   className="bg-white rounded-2xl shadow-sm border border-slate-200/70 p-5 space-y-3.5 hover:shadow-md transition-all active:scale-[0.98] active:bg-slate-50 cursor-pointer"
                 >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <span className="text-[11px] font-bold text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-100 uppercase tracking-wider">
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="min-w-0 flex-1">
+                      <span className="text-[11px] font-bold text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-100 uppercase tracking-wider whitespace-nowrap">
                         {app.application_id || 'LA-DRAFT'}
                       </span>
-                      <h3 className="font-bold text-slate-900 text-lg mt-1.5 leading-tight">{name}</h3>
+                      <h3 className="font-bold text-slate-900 text-lg mt-1.5 leading-tight truncate">{name}</h3>
                     </div>
-                    <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                    <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider whitespace-nowrap shrink-0 ${
                       isCreated
                         ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
                         : isUnderReview
