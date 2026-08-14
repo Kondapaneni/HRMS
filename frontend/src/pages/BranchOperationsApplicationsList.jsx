@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getBranchLoanApplications } from '../services/branchOperationsServices';
 import PageLoader from '../components/PageLoader';
-import { Search, CheckCircle2, Briefcase, Clock, Building2, XCircle, Eye } from 'lucide-react';
+import { Search, CheckCircle2, Briefcase, Clock, Building2, XCircle, MoreVertical } from 'lucide-react';
 import { format } from 'date-fns';
 import BranchOperationsMobileApplicationsList from './BranchOperationsMobileApplicationsList';
 
@@ -251,7 +251,7 @@ const BranchOperationsApplicationsList = () => {
                                   className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md transition-colors cursor-pointer"
                                   title="View Application Details"
                                 >
-                                  <Eye size={16} />
+                                  <MoreVertical size={16} />
                                 </button>
                               </td>
                             </tr>
