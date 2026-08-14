@@ -38,7 +38,6 @@ import OriginationMembersList from './pages/OriginationMembersList'
 import OriginationApplicationsList from './pages/OriginationApplicationsList'
 import OriginationViewApplication from './pages/OriginationViewApplication'
 import BranchOperationsLayout from './components/BranchOperationsLayout'
-import BranchOperationsDashboard from './pages/BranchOperationsDashboard'
 import AssessmentWorkspaceLayout from './components/AssessmentWorkspaceLayout'
 import AssessmentManagement from './pages/AssessmentManagement'
 import DepartmentQuestionBank from './pages/DepartmentQuestionBank'
@@ -264,9 +263,7 @@ function App() {
                     <BranchOperationsLayout />
                   </ProtectedRoute>
                 }
-              >
-                <Route index element={<BranchOperationsDashboard />} />
-              </Route>
+              />
 
               <Route
                 path="/employee/attendance/map"
