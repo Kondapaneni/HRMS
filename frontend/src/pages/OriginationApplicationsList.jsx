@@ -132,6 +132,9 @@ const OriginationApplicationsList = () => {
                     <option value="Created">
                       Created ({applications.filter(a => a.status === 'Created').length})
                     </option>
+                    <option value="Under Review">
+                      Under Review ({applications.filter(a => a.status === 'Under Review').length})
+                    </option>
                     <option value="Draft">
                       Draft ({applications.filter(a => a.status === 'Draft').length})
                     </option>
@@ -149,14 +152,14 @@ const OriginationApplicationsList = () => {
                         <th className="p-3">Contact</th>
                         <th className="p-3">Loan Type</th>
                         <th className="p-3">Status</th>
-                        <th className="p-3">Date</th>
-                        <th className="p-3 text-center whitespace-nowrap">Action</th>
+                        <th className="p-3">Created At</th>
+                        <th className="p-3 text-center">Action</th>
                       </tr>
                     </thead>
-                    <tbody className="whitespace-nowrap">
+                    <tbody>
                       {isLoading ? (
                         <tr>
-                          <td colSpan="7" className="p-12 text-center">
+                          <td colSpan="7" className="text-center py-12">
                             <Loader2 className="animate-spin h-8 w-8 text-blue-600 mx-auto" />
                             <p className="text-slate-500 mt-4">Searching applications...</p>
                           </td>
@@ -172,6 +175,7 @@ const OriginationApplicationsList = () => {
                           const name = app.applicant_name || app.form_data?.applicant_name || 'N/A';
                           const phone = app.phone_number || app.form_data?.phone_number || 'N/A';
                           const isCreated = app.status === 'Created';
+                          const isUnderReview = app.status === 'Under Review';
 
                           return (
                             <tr key={app.id || app.application_id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
@@ -191,7 +195,11 @@ const OriginationApplicationsList = () => {
                               </td>
                               <td className="p-3 text-slate-700 whitespace-nowrap">
                                 <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border ${
-                                  isCreated ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'
+                                  isCreated
+                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                    : isUnderReview
+                                    ? 'bg-blue-50 text-blue-700 border-blue-200'
+                                    : 'bg-amber-50 text-amber-700 border-amber-200'
                                 }`}>
                                   {isCreated ? <CheckCircle2 size={12} /> : <Clock size={12} />} {app.status}
                                 </span>

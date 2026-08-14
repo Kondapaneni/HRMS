@@ -119,10 +119,10 @@ export default function OriginationViewApplication() {
 
   const isAllUploaded = requiredSlots > 0 && uploadedCount === requiredSlots;
   const hasTransferred =
-    localStatus === 'Branch Operations' ||
+    localStatus === 'Under Review' ||
     localStatus === 'Approved' ||
     localStatus === 'Rejected' ||
-    localTimeline.some((e) => e.stage === 'Transferred to Branch Operations');
+    localTimeline.some((e) => e.stage === 'Branch Operations');
 
   const handlePrint = () => {
     const originalTitle = document.title;
@@ -163,15 +163,15 @@ export default function OriginationViewApplication() {
       }
 
       const timelineEvent = {
-        stage: 'Transferred to Branch Operations',
+        stage: 'Branch Operations',
         timestamp: new Date().toISOString(),
         signature: signatureUrl,
       };
       const signatureData = signatureUrl ? { Origination: signatureUrl } : null;
-      await updateLoanApplicationStatus(dbId, 'Branch Operations', timelineEvent, signatureData);
+      await updateLoanApplicationStatus(dbId, 'Under Review', timelineEvent, signatureData);
 
       setLocalTimeline((prev) => [...prev, timelineEvent]);
-      setLocalStatus('Branch Operations');
+      setLocalStatus('Under Review');
       queryClient.invalidateQueries({ queryKey: ['origination', 'applications', 'list'] });
       toast.success('Application transferred to Branch Operations successfully.');
     } catch (err) {
