@@ -2,6 +2,7 @@
 
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
+use App\Middleware\AuthMiddleware;
 use App\Config\Database;
 
 /**
@@ -9,7 +10,7 @@ use App\Config\Database;
  * Scoped strictly to the logged-in employee's branch stored on leads & applications
  */
 $app->get('/api/branch-operations/dashboard', function (Request $request, Response $response, $args) {
-    $user = $request->getAttribute('user');
+    $decodedToken = $request->getAttribute('user');
     
     try {
         $db = new Database();
@@ -19,22 +20,31 @@ $app->get('/api/branch-operations/dashboard', function (Request $request, Respon
             throw new Exception("Database connection failed");
         }
 
-        $userId = null;
-        if (is_object($user)) {
-            $userId = isset($user->id) ? (string)$user->id : (isset($user->user_id) ? (string)$user->user_id : null);
-        } elseif (is_array($user)) {
-            $userId = isset($user['id']) ? (string)$user['id'] : (isset($user['user_id']) ? (string)$user['user_id'] : null);
+        $userId = is_object($decodedToken) 
+            ? ($decodedToken->id ?? $decodedToken->user_id ?? null) 
+            : ($decodedToken['id'] ?? $decodedToken['user_id'] ?? null);
+
+        if (!$userId) {
+            $response->getBody()->write(json_encode(['error' => 'Unauthorized user']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(401);
         }
 
-        // Fetch user's assigned branch
+        // Fetch user's assigned branch matching employee_profile_routes.php
         $empStmt = $conn->prepare('
-            SELECT e.branch, b.name as branch_name 
+            SELECT e.id, e."employeeId", e."userId", e."firstName", e."lastName", e.email, e.department, e.position, e.branch,
+                   b.name as branch_name 
             FROM employee e 
             LEFT JOIN branches b ON e.branch::uuid = b.id 
             WHERE e."userId" = ? LIMIT 1
         ');
         $empStmt->execute([$userId]);
         $emp = $empStmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$emp) {
+            $response->getBody()->write(json_encode(['error' => 'Employee profile not found']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+        }
+
         $userBranch = $emp['branch'] ?? null;
         $userBranchName = $emp['branch_name'] ?? 'Assigned Branch';
 
@@ -50,6 +60,8 @@ $app->get('/api/branch-operations/dashboard', function (Request $request, Respon
                     'percent_change_converted' => 0,
                 ],
                 'creators' => [],
+                'recentLeads' => [],
+                'recentApplications' => [],
                 'dailyData' => [],
                 'monthlyData' => []
             ]));
@@ -173,6 +185,14 @@ $app->get('/api/branch-operations/dashboard', function (Request $request, Respon
             $empFilter
         ");
         $stmtLastMonth->execute($params);
+        $lastMonthTotal = $stmtLastMonth->fetchColumn() ?: 0;
+        $percentChangeTotal = 0;
+        if ($lastMonthTotal > 0) {
+            $percentChangeTotal = round((($totalLeadsMonth - $lastMonthTotal) / $lastMonthTotal) * 100);
+        } elseif ($totalLeadsMonth > 0) {
+            $percentChangeTotal = 100;
+        }
+
         // 7. Recent 10 Leads
         $recentLeadsStmt = $conn->prepare("
             SELECT 
@@ -263,4 +283,4 @@ $app->get('/api/branch-operations/dashboard', function (Request $request, Respon
         $response->getBody()->write(json_encode(['error' => 'An error occurred while fetching branch dashboard data']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new \App\Middleware\AuthMiddleware());
+})->add(new AuthMiddleware());
