@@ -162,14 +162,11 @@ export default function BranchOperationsMobileViewApplication({
           </button>
           <div className="text-center">
             <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">
-              OPERATIONS MODULE
+              Branch Operation Module • {branchName}
             </p>
             <h2 className="text-xl font-bold text-white tracking-tight drop-shadow-sm">
               Application Details
             </h2>
-            <p className="text-xs font-medium text-white drop-shadow-sm opacity-90 mt-0.5">
-              {branchName}
-            </p>
           </div>
           <div className="w-10 h-10" />
         </div>

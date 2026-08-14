@@ -105,9 +105,9 @@ const BranchOperationsMobileApplicationsList = () => {
 
         <div className="relative z-10 px-2 flex justify-between items-center">
           <div>
-            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">Operations Module</p>
+            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">Branch Operation Module • {branch.name}</p>
             <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">Applications</h2>
-            <p className="text-sm font-medium text-white drop-shadow-sm opacity-90">{branch.name}</p>
+            <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">Branch processed applications</p>
           </div>
         </div>
       </section>
