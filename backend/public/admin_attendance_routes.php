@@ -549,7 +549,7 @@ $app->get('/api/admin/shifttimes', function (Request $request, Response $respons
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
-})->add(new AuthMiddleware(['admin'], 'attendance'));
+})->add(new AuthMiddleware(['admin'], ['attendance', 'employees']));
 
 // POST /api/admin/shifttimes
 $app->post('/api/admin/shifttimes', function (Request $request, Response $response, $args) {

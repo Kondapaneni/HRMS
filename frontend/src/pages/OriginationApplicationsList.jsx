@@ -10,6 +10,7 @@ const OriginationApplicationsList = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
+  const [loanTypeFilter, setLoanTypeFilter] = useState('All');
 
   const { data: response, isLoading, error } = useQuery({
     queryKey: ['origination', 'applications', 'list'],
@@ -23,6 +24,8 @@ const OriginationApplicationsList = () => {
     const phone = app.phone_number || app.form_data?.phone_number || '';
     const appId = app.application_id || '';
     const leadId = app.lead_id || '';
+    const appLoanType = app.loan_type || app.form_data?.loan_type || 'Personal Loan';
+
     const matchesSearch = 
       name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       phone.includes(searchTerm) ||
@@ -30,7 +33,9 @@ const OriginationApplicationsList = () => {
       String(leadId).includes(searchTerm);
 
     const matchesStatus = statusFilter === 'All' ? true : app.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesLoanType = loanTypeFilter === 'All' ? true : appLoanType === loanTypeFilter;
+
+    return matchesSearch && matchesStatus && matchesLoanType;
   });
 
   const formatDateSafe = (dateStr) => {
@@ -90,8 +95,8 @@ const OriginationApplicationsList = () => {
                   </h3>
                   <p className="text-sm text-slate-500 mt-1">A comprehensive list of all your submitted and draft loan applications.</p>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="relative w-full sm:w-64 shrink-0">
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="relative w-full sm:w-56 shrink-0">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <input
                       type="search"
@@ -101,10 +106,38 @@ const OriginationApplicationsList = () => {
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
                   </div>
+
+                  {/* Loan Type Filter */}
+                  <div className="flex items-center bg-slate-100/90 p-1 rounded-lg border border-slate-200 gap-1 shrink-0">
+                    {['All', 'Personal Loan', 'Business Loan'].map((type) => {
+                      const count = type === 'All'
+                        ? applications.length
+                        : applications.filter(a => (a.loan_type || a.form_data?.loan_type || 'Personal Loan') === type).length;
+                      const isActive = loanTypeFilter === type;
+
+                      return (
+                        <button
+                          key={type}
+                          type="button"
+                          onClick={() => setLoanTypeFilter(type)}
+                          className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                            isActive
+                              ? 'bg-blue-600 text-white shadow-xs'
+                              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                          }`}
+                        >
+                          {type === 'All' ? 'All Loans' : type} ({count})
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Status Filter */}
                   <div className="flex gap-1.5 shrink-0">
                     {['All', 'Submitted', 'Draft'].map((st) => (
                       <button
                         key={st}
+                        type="button"
                         onClick={() => setStatusFilter(st)}
                         className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
                           statusFilter === st

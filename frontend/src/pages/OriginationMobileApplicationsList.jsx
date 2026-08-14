@@ -10,6 +10,7 @@ const OriginationMobileApplicationsList = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
+  const [loanTypeFilter, setLoanTypeFilter] = useState('All');
 
   const { data: response, isLoading, error } = useQuery({
     queryKey: ['origination', 'applications', 'list'],
@@ -23,6 +24,8 @@ const OriginationMobileApplicationsList = () => {
     const phone = app.phone_number || app.form_data?.phone_number || '';
     const appId = app.application_id || '';
     const leadId = app.lead_id || '';
+    const appLoanType = app.loan_type || app.form_data?.loan_type || 'Personal Loan';
+
     const matchesSearch = 
       name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       phone.includes(searchTerm) ||
@@ -30,7 +33,9 @@ const OriginationMobileApplicationsList = () => {
       String(leadId).includes(searchTerm);
 
     const matchesStatus = statusFilter === 'All' ? true : app.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesLoanType = loanTypeFilter === 'All' ? true : appLoanType === loanTypeFilter;
+
+    return matchesSearch && matchesStatus && matchesLoanType;
   });
 
   const formatDateSafe = (dateStr) => {
@@ -117,13 +122,40 @@ const OriginationMobileApplicationsList = () => {
           </div>
         </div>
 
+        {/* Loan Type Filter Pills */}
+        <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+          {['All', 'Personal Loan', 'Business Loan'].map((type) => {
+            const count = type === 'All'
+              ? applications.length
+              : applications.filter(a => (a.loan_type || a.form_data?.loan_type || 'Personal Loan') === type).length;
+            const isActive = loanTypeFilter === type;
+
+            return (
+              <button
+                key={type}
+                type="button"
+                onClick={() => setLoanTypeFilter(type)}
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+                  isActive
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                <Briefcase size={12} className={isActive ? 'text-white' : 'text-blue-500'} />
+                {type === 'All' ? 'All Types' : type} ({count})
+              </button>
+            );
+          })}
+        </div>
+
         {/* Status Tabs */}
         <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
           {['All', 'Submitted', 'Draft'].map((st) => (
             <button
               key={st}
+              type="button"
               onClick={() => setStatusFilter(st)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
                 statusFilter === st
                   ? 'bg-slate-900 text-white shadow-md'
                   : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
