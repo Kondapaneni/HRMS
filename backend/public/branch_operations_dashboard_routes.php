@@ -173,10 +173,53 @@ $app->get('/api/branch-operations/dashboard', function (Request $request, Respon
             $empFilter
         ");
         $stmtLastMonth->execute($params);
-        $totalLeadsLastMonth = $stmtLastMonth->fetchColumn() ?: 0;
-        $percentChangeTotal = $totalLeadsLastMonth > 0 
-            ? round((($totalLeadsMonth - $totalLeadsLastMonth) / $totalLeadsLastMonth) * 100) 
-            : ($totalLeadsMonth > 0 ? 100 : 0);
+        // 7. Recent 10 Leads
+        $recentLeadsStmt = $conn->prepare("
+            SELECT 
+                l.id, 
+                l.name, 
+                l.phone, 
+                l.address, 
+                l.loan_type, 
+                l.status, 
+                l.branch, 
+                l.created_at,
+                TRIM(CONCAT(e.\"firstName\", ' ', e.\"lastName\")) as creator_name
+            FROM public.loan_leads l
+            LEFT JOIN public.employee e ON l.created_by::uuid = e.\"userId\"
+            WHERE l.branch = :branch $empFilter
+            ORDER BY l.created_at DESC
+            LIMIT 10
+        ");
+        $recentLeadsStmt->execute($params);
+        $recentLeads = $recentLeadsStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // 8. Recent 10 Loan Applications
+        $recentAppsStmt = $conn->prepare("
+            SELECT 
+                a.id, 
+                a.application_id, 
+                a.lead_id, 
+                a.loan_type, 
+                a.status, 
+                a.form_data, 
+                a.branch, 
+                a.created_at,
+                TRIM(CONCAT(e.\"firstName\", ' ', e.\"lastName\")) as creator_name
+            FROM public.loan_applications a
+            LEFT JOIN public.employee e ON a.created_by::uuid = e.\"userId\"
+            WHERE a.branch = :branch $empFilter
+            ORDER BY a.created_at DESC
+            LIMIT 10
+        ");
+        $recentAppsStmt->execute($params);
+        $recentApps = $recentAppsStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($recentApps as &$app) {
+            if (isset($app['form_data']) && is_string($app['form_data'])) {
+                $app['form_data'] = json_decode($app['form_data'], true);
+            }
+        }
 
         $response->getBody()->write(json_encode([
             'branch' => [
@@ -192,6 +235,8 @@ $app->get('/api/branch-operations/dashboard', function (Request $request, Respon
                 'percent_change_converted' => 12
             ],
             'creators' => $creators,
+            'recentLeads' => $recentLeads,
+            'recentApplications' => $recentApps,
             'dailyData' => array_map(function($row) {
                 return [
                     'name' => $row['name'],

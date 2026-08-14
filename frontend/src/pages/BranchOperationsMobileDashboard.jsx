@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getBranchDashboardData } from '../services/branchOperationsServices';
-import { Users, TrendingUp, CheckCircle, ArrowUpRight, Building2, ChevronDown, User } from 'lucide-react';
+import { Users, TrendingUp, CheckCircle, ArrowUpRight, Building2, ChevronDown, User, FileText, Calendar } from 'lucide-react';
 import {
   LineChart,
   Line,
@@ -15,9 +15,11 @@ import {
   Legend
 } from 'recharts';
 import { motion } from 'framer-motion';
+import { format } from 'date-fns';
 
 const BranchOperationsMobileDashboard = () => {
   const [selectedEmployee, setSelectedEmployee] = useState('all');
+  const [activeTab, setActiveTab] = useState('leads'); // 'leads' | 'applications'
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['branchOperationsDashboard', selectedEmployee],
@@ -26,6 +28,8 @@ const BranchOperationsMobileDashboard = () => {
 
   const branch = data?.branch || { name: 'Branch Operations' };
   const creators = data?.creators || [];
+  const recentLeads = data?.recentLeads || [];
+  const recentApplications = data?.recentApplications || [];
 
   const stats = data?.stats || {
     total_leads_month: 0,
@@ -54,8 +58,29 @@ const BranchOperationsMobileDashboard = () => {
     visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } }
   };
 
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'Created':
+        return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      case 'Under Review':
+        return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'Draft':
+        return 'bg-amber-50 text-amber-700 border-amber-200';
+      case 'Converted':
+        return 'bg-purple-50 text-purple-700 border-purple-200';
+      case 'Follow Up':
+      case 'In Progress':
+        return 'bg-amber-50 text-amber-700 border-amber-200';
+      case 'Not Interested':
+      case 'Rejected':
+        return 'bg-rose-50 text-rose-700 border-rose-200';
+      default:
+        return 'bg-slate-50 text-slate-700 border-slate-200';
+    }
+  };
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pb-24">
       {/* Animated Hero Header */}
       <section className="relative px-6 pt-12 pb-20 rounded-b-[40px] overflow-hidden bg-slate-900 shadow-md">
         {/* Animated Background Blobs */}
@@ -175,7 +200,7 @@ const BranchOperationsMobileDashboard = () => {
         </motion.div>
 
         {/* Charts Content */}
-        <div className="px-4 space-y-4 pb-6 mt-4">
+        <div className="px-4 space-y-4 pb-4 mt-4">
 
           {/* Daily Trends Chart */}
           <motion.div variants={itemVariants} className="bg-white rounded-[24px] shadow-lg border border-slate-100/50 overflow-hidden p-6">
@@ -219,6 +244,102 @@ const BranchOperationsMobileDashboard = () => {
           </motion.div>
 
         </div>
+
+        {/* Mobile Recent Records (Last 10 Leads & Applications) */}
+        <motion.div variants={itemVariants} className="px-4 space-y-3 pt-2">
+          <div className="flex items-center justify-between">
+            <h3 className="text-base font-bold text-slate-900 tracking-tight">Recent Activity</h3>
+            <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+              <button
+                onClick={() => setActiveTab('leads')}
+                className={`px-3 py-1 rounded-md text-[11px] font-bold transition-all ${
+                  activeTab === 'leads' ? 'bg-white text-indigo-700 shadow-xs' : 'text-slate-500'
+                }`}
+              >
+                Leads ({recentLeads.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('applications')}
+                className={`px-3 py-1 rounded-md text-[11px] font-bold transition-all ${
+                  activeTab === 'applications' ? 'bg-white text-indigo-700 shadow-xs' : 'text-slate-500'
+                }`}
+              >
+                Apps ({recentApplications.length})
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-2.5">
+            {activeTab === 'leads' ? (
+              isLoading ? (
+                <div className="text-center py-6 text-xs text-slate-400">Loading leads...</div>
+              ) : recentLeads.length === 0 ? (
+                <div className="text-center py-6 text-xs text-slate-400 bg-white rounded-2xl border border-slate-100">
+                  No recent leads in this branch.
+                </div>
+              ) : (
+                recentLeads.map((lead) => (
+                  <div key={lead.id} className="bg-white rounded-2xl p-3.5 border border-slate-100 shadow-xs">
+                    <div className="flex items-start justify-between gap-2 mb-1.5">
+                      <h4 className="font-bold text-slate-900 text-sm">{lead.name}</h4>
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap shrink-0 ${getStatusBadge(lead.status)}`}>
+                        {lead.status}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
+                      <span>{lead.loan_type} • {lead.phone}</span>
+                      <span className="text-[11px] text-slate-400">
+                        {lead.created_at ? format(new Date(lead.created_at), 'MMM d') : '-'}
+                      </span>
+                    </div>
+                    {lead.creator_name && (
+                      <div className="mt-1 text-[11px] text-slate-400">
+                        By {lead.creator_name}
+                      </div>
+                    )}
+                  </div>
+                ))
+              )
+            ) : (
+              isLoading ? (
+                <div className="text-center py-6 text-xs text-slate-400">Loading applications...</div>
+              ) : recentApplications.length === 0 ? (
+                <div className="text-center py-6 text-xs text-slate-400 bg-white rounded-2xl border border-slate-100">
+                  No recent applications in this branch.
+                </div>
+              ) : (
+                recentApplications.map((app) => {
+                  const applicantName = app.form_data?.applicant_name || app.form_data?.name || 'Applicant';
+                  return (
+                    <div key={app.id} className="bg-white rounded-2xl p-3.5 border border-slate-100 shadow-xs">
+                      <div className="flex items-start justify-between gap-2 mb-1.5">
+                        <div>
+                          <h4 className="font-bold text-slate-900 text-sm">{applicantName}</h4>
+                          <span className="text-[10px] font-mono text-indigo-600 font-bold">{app.application_id}</span>
+                        </div>
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border whitespace-nowrap shrink-0 ${getStatusBadge(app.status)}`}>
+                          {app.status}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs text-slate-500 font-medium mt-1">
+                        <span>{app.loan_type || app.form_data?.loan_type || 'Personal Loan'}</span>
+                        <span className="text-[11px] text-slate-400">
+                          {app.created_at ? format(new Date(app.created_at), 'MMM d') : '-'}
+                        </span>
+                      </div>
+                      {app.creator_name && (
+                        <div className="mt-1 text-[11px] text-slate-400">
+                          By {app.creator_name}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )
+            )}
+          </div>
+        </motion.div>
+
       </motion.div>
     </div>
   );
