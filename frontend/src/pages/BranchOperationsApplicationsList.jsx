@@ -51,7 +51,7 @@ const BranchOperationsApplicationsList = () => {
   };
 
   const handleViewDetails = (app) => {
-    navigate('/employee/loans/view-application', {
+    navigate('/employee/branch-operations/view-application', {
       state: {
         application: app,
         form_data: app.form_data,
