@@ -10,8 +10,7 @@ import {
   Loader2,
   X,
   FileText,
-  Building2,
-  Printer
+  Building2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
@@ -104,21 +103,7 @@ export default function BranchOperationsMobileViewApplication({
   const appId = application?.application_id || formData?.application_id || 'LA-PENDING';
   const loanType = application?.loan_type || formData?.loan_type || 'Personal Loan';
   const appStatus = String(localStatus);
-  const isCreated =
-    appStatus.toLowerCase() === 'created' ||
-    appStatus.toLowerCase() === 'approved' ||
-    appStatus.toLowerCase() === 'under_review';
   const branchName = response?.branch?.name || application?.branch_name || 'Branch Operations';
-
-  const handlePrint = () => {
-    const originalTitle = document.title;
-    const documentName = appId && appId !== 'LA-PENDING' ? appId : `${loanType.replace(/\s+/g, '-')}-Application`;
-    document.title = documentName;
-    window.print();
-    setTimeout(() => {
-      document.title = originalTitle;
-    }, 1000);
-  };
 
   if (!application && isLoading) {
     return (
@@ -216,19 +201,9 @@ export default function BranchOperationsMobileViewApplication({
             </span>
           </div>
           <p className="text-xs font-semibold text-slate-500">{loanType}</p>
-          <p className="text-[11px] text-slate-400 mt-0.5 mb-3">
+          <p className="text-[11px] text-slate-400 mt-0.5">
             Processed on {formattedDate}
           </p>
-
-          <div className="flex flex-col gap-2.5 pt-1">
-            <button
-              type="button"
-              onClick={handlePrint}
-              className="w-full flex items-center justify-center gap-2 bg-slate-900 text-white rounded-xl py-3 px-4 font-bold text-sm shadow-md shadow-slate-900/10 active:scale-[0.98] transition-transform cursor-pointer"
-            >
-              <Printer size={16} /> Print Application Form
-            </button>
-          </div>
         </div>
 
         {/* ━━━ Loan Details Content rendered from LoanDetailView ━━━ */}
