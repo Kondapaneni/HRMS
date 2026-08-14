@@ -43,21 +43,6 @@ const BranchOperationsMobileDashboard = () => {
   const dailyData = data?.dailyData || [];
   const monthlyData = data?.monthlyData || [];
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 15 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } }
-  };
-
   const getLeadStatusBadge = (status) => {
     switch (status) {
       case 'New':
@@ -91,40 +76,8 @@ const BranchOperationsMobileDashboard = () => {
 
   return (
     <div className="min-h-screen">
-      {/* Animated Hero Header */}
+      {/* Hero Header */}
       <section className="relative px-6 pt-12 pb-20 rounded-b-[40px] overflow-hidden bg-slate-900 shadow-md">
-        {/* Animated Background Blobs */}
-        <motion.div
-          animate={{
-            scale: [1, 1.2, 1],
-            x: [0, 50, 0],
-            y: [0, 30, 0],
-          }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-20 -left-10 w-72 h-72 bg-indigo-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.4, 1],
-            x: [0, -40, 0],
-            y: [0, 50, 0],
-          }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute -top-10 -right-10 w-64 h-64 bg-blue-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.3, 1],
-            x: [0, 30, 0],
-            y: [0, -40, 0],
-          }}
-          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-0 left-20 w-80 h-80 bg-emerald-500 rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
-        />
-
-        {/* Subtle Glass Overlay */}
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
-
         <div className="relative z-10 px-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 border border-white/20 text-indigo-200 text-xs font-semibold uppercase tracking-wider mb-2 backdrop-blur-md">
             <Building2 size={12} className="text-indigo-300" />
@@ -135,10 +88,7 @@ const BranchOperationsMobileDashboard = () => {
         </div>
       </section>
 
-      <motion.div
-        variants={containerVariants}
-        className="relative z-20 -mt-20"
-      >
+      <div className="relative z-20 -mt-20">
         {/* Dynamic Employee Filter Control (Mobile) */}
         <div className="px-4 mb-3">
           <div className="relative">
@@ -159,7 +109,7 @@ const BranchOperationsMobileDashboard = () => {
         </div>
 
         {/* Summary Carousel */}
-        <motion.div variants={itemVariants} className="flex overflow-x-auto gap-4 px-4 py-2 hide-scrollbar snap-x">
+        <div className="flex overflow-x-auto gap-4 px-4 py-2 hide-scrollbar snap-x">
           <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm min-w-[200px] snap-center shrink-0">
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs font-medium text-slate-500">Total Leads (Month)</p>
@@ -207,13 +157,13 @@ const BranchOperationsMobileDashboard = () => {
               </span>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Charts Content */}
         <div className="px-4 space-y-4 pb-4 mt-4">
 
           {/* Daily Trends Chart */}
-          <motion.div variants={itemVariants} className="bg-white rounded-[24px] shadow-lg border border-slate-100/50 overflow-hidden p-6">
+          <div className="bg-white rounded-[24px] shadow-lg border border-slate-100/50 overflow-hidden p-6">
             <h3 className="text-base font-bold text-slate-800 mb-4">Daily Leads (Last 7 Days)</h3>
             <div className="h-[250px] w-full -ml-3">
               <ResponsiveContainer width="100%" height="100%">
@@ -230,10 +180,10 @@ const BranchOperationsMobileDashboard = () => {
                 </LineChart>
               </ResponsiveContainer>
             </div>
-          </motion.div>
+          </div>
 
           {/* Monthly Trends Chart */}
-          <motion.div variants={itemVariants} className="bg-white rounded-[24px] shadow-lg border border-slate-100/50 overflow-hidden p-6 mt-6">
+          <div className="bg-white rounded-[24px] shadow-lg border border-slate-100/50 overflow-hidden p-6 mt-6">
             <h3 className="text-base font-bold text-slate-800 mb-4">Monthly Trends</h3>
             <div className="h-[250px] w-full -ml-3">
               <ResponsiveContainer width="100%" height="100%">
@@ -251,12 +201,12 @@ const BranchOperationsMobileDashboard = () => {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-          </motion.div>
+          </div>
 
         </div>
 
         {/* Mobile Recent Records (Last 10 Leads & Applications) */}
-        <motion.div variants={itemVariants} className="px-4 space-y-3 pt-2">
+        <div className="px-4 space-y-3 pt-2">
           <div>
             <h3 className="text-base font-bold text-slate-900 tracking-tight mb-2">Recent Activity</h3>
             <div className="flex overflow-x-auto hide-scrollbar space-x-2 border-b border-slate-200 pb-px">
@@ -348,9 +298,9 @@ const BranchOperationsMobileDashboard = () => {
               )
             )}
           </div>
-        </motion.div>
+        </div>
 
-      </motion.div>
+      </div>
     </div>
   );
 };

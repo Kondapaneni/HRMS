@@ -46,21 +46,6 @@ const BranchOperationsDashboard = () => {
   const dailyData = data?.dailyData || [];
   const monthlyData = data?.monthlyData || [];
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
-  };
-
   const getLeadStatusBadge = (status) => {
     switch (status) {
       case 'New':
@@ -98,14 +83,9 @@ const BranchOperationsDashboard = () => {
         <BranchOperationsMobileDashboard />
       </div>
 
-      <motion.div 
-        className="hidden md:block p-6 space-y-6 pb-6"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
+      <div className="hidden md:block p-6 space-y-6 pb-6">
         {/* Header Section */}
-        <motion.div variants={itemVariants} className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
           <div>
             <div className="flex items-center gap-2.5 mb-1">
               <h1 className="text-3xl font-bold tracking-tight text-slate-900">Branch Operations</h1>
@@ -130,10 +110,10 @@ const BranchOperationsDashboard = () => {
               </option>
             ))}
           </select>
-        </motion.div>
+        </div>
 
         {/* Summary Cards */}
-        <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white/60 backdrop-blur-xl p-6 rounded-2xl border border-white/80 shadow-sm flex items-center justify-between group hover:border-blue-200 transition-colors">
             <div>
               <p className="text-sm font-medium text-slate-500 mb-1">Total Leads (This Month)</p>
@@ -187,10 +167,10 @@ const BranchOperationsDashboard = () => {
               <CheckCircle size={28} />
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Charts Section */}
-        <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
           
           {/* Daily Trends Chart */}
           <div className="bg-white/60 backdrop-blur-xl rounded-2xl border border-white/80 shadow-sm p-6">
@@ -233,10 +213,10 @@ const BranchOperationsDashboard = () => {
             </div>
           </div>
 
-        </motion.div>
+        </div>
 
         {/* Directory-styled Activity Card & Table (Matching Origination Leads) */}
-        <motion.div variants={itemVariants} className="rounded-lg border border-slate-200 bg-white shadow-sm mb-6">
+        <div className="rounded-lg border border-slate-200 bg-white shadow-sm mb-6">
           <div className="p-6 pb-2 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <h3 className="text-lg font-semibold flex items-center gap-2 text-slate-900">
@@ -345,7 +325,7 @@ const BranchOperationsDashboard = () => {
                       </tr>
                     ) : recentApplications.length === 0 ? (
                       <tr>
-                        <td colSpan="6" className="text-center py-12 text-slate-500">No loan applications found for this branch.</td>
+                        <td colSpan="6" className="text-center py-8 text-slate-500">No loan applications found for this branch.</td>
                       </tr>
                     ) : (
                       recentApplications.map((app) => {
@@ -379,8 +359,8 @@ const BranchOperationsDashboard = () => {
               )}
             </div>
           </div>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     </>
   );
 };
