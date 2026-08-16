@@ -40,7 +40,7 @@ const SYSTEM_IGNORED_FIELDS = [
 
 /**
  * Compact Audit Log Diff Viewer for edited loan applications
- * Displays only the modified fields (old value vs new value) and editor details.
+ * Displays only the modified fields (old value vs new value) and editor details, matching the applications table styling.
  */
 const AuditLogChangesViewer = ({ event }) => {
   const [isOpen, setIsOpen] = useState(true);
@@ -53,51 +53,51 @@ const AuditLogChangesViewer = ({ event }) => {
   if (changes.length === 0) return null;
 
   return (
-    <div className="mt-2 rounded-lg border border-blue-200/80 bg-blue-50/40 p-3 space-y-2.5">
+    <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50/60 p-3.5 space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5 text-xs text-slate-700 font-medium">
-          <div className="p-1 rounded-md bg-blue-100 text-blue-700">
-            <UserCheck className="w-3.5 h-3.5" />
+        <div className="flex items-center gap-2 text-sm text-slate-700">
+          <div className="p-1.5 rounded-md bg-blue-50 text-blue-700 border border-blue-100 flex items-center justify-center">
+            <UserCheck className="w-4 h-4" />
           </div>
           <span>
-            Edited by <strong className="text-slate-900 font-semibold">{editorName}</strong>
+            Edited by <strong className="font-semibold text-slate-900">{editorName}</strong>
           </span>
         </div>
         {changes.length > 0 && (
           <button
             type="button"
             onClick={() => setIsOpen(!isOpen)}
-            className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-800 cursor-pointer bg-white px-2 py-0.5 rounded border border-blue-200 shadow-2xs"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700 hover:text-blue-600 bg-white px-2.5 py-1 rounded-md border border-slate-200 shadow-2xs hover:bg-slate-50 transition-colors cursor-pointer"
           >
-            {isOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-            {isOpen ? 'Hide' : 'View'} Changes ({changes.length})
+            {isOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+            <span>{isOpen ? 'Hide Changes' : 'View Changes'} ({changes.length})</span>
           </button>
         )}
       </div>
 
       {isOpen && changes.length > 0 && (
-        <div className="overflow-x-auto rounded-md border border-slate-200 bg-white shadow-2xs mt-1.5">
-          <table className="min-w-full divide-y divide-slate-200 text-xs">
-            <thead className="bg-slate-50/80 text-slate-600 font-semibold">
+        <div className="rounded-md border border-slate-200 overflow-x-auto bg-white shadow-2xs">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-medium whitespace-nowrap text-xs">
               <tr>
-                <th className="px-3 py-1.5 text-left font-semibold">Modified Field</th>
-                <th className="px-3 py-1.5 text-left font-semibold">Old Value</th>
-                <th className="px-3 py-1.5 text-left font-semibold">New Value</th>
+                <th className="p-3 font-semibold text-slate-700">Modified Field</th>
+                <th className="p-3 font-semibold text-slate-700">Old Value</th>
+                <th className="p-3 font-semibold text-slate-700">New Value</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-slate-700">
+            <tbody className="divide-y divide-slate-100">
               {changes.map((ch, cIdx) => (
-                <tr key={cIdx} className="hover:bg-slate-50/50">
-                  <td className="px-3 py-1.5 font-medium text-slate-900 whitespace-nowrap">
+                <tr key={cIdx} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/80 transition-colors">
+                  <td className="p-3 font-medium text-slate-900 whitespace-nowrap text-sm">
                     {ch.label || ch.field}
                   </td>
-                  <td className="px-3 py-1.5 whitespace-nowrap">
-                    <span className="line-through text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200 inline-block font-mono text-[11px]">
+                  <td className="p-3 whitespace-nowrap text-sm text-slate-700">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200 line-through">
                       {ch.old_value || '—'}
                     </span>
                   </td>
-                  <td className="px-3 py-1.5 whitespace-nowrap">
-                    <span className="font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-block font-mono text-[11px]">
+                  <td className="p-3 whitespace-nowrap text-sm text-slate-700">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                       {ch.new_value || '—'}
                     </span>
                   </td>
