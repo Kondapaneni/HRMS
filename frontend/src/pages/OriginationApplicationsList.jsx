@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getLoanApplications } from '../services/loanServices';
-import { Search, CheckCircle2, Briefcase, Loader2, Clock, MoreVertical } from 'lucide-react';
+import { Search, CheckCircle2, Briefcase, Loader2, Clock, MoreVertical, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import OriginationMobileApplicationsList from './OriginationMobileApplicationsList';
 
@@ -135,6 +135,12 @@ const OriginationApplicationsList = () => {
                     <option value="Under Review">
                       Under Review ({applications.filter(a => a.status === 'Under Review').length})
                     </option>
+                    <option value="Approved">
+                      Approved ({applications.filter(a => a.status === 'Approved').length})
+                    </option>
+                    <option value="Rejected">
+                      Rejected ({applications.filter(a => a.status === 'Rejected').length})
+                    </option>
                     <option value="Draft">
                       Draft ({applications.filter(a => a.status === 'Draft').length})
                     </option>
@@ -174,6 +180,8 @@ const OriginationApplicationsList = () => {
                         filteredApps.map((app) => {
                           const name = app.applicant_name || app.form_data?.applicant_name || 'N/A';
                           const phone = app.phone_number || app.form_data?.phone_number || 'N/A';
+                          const isApproved = app.status === 'Approved';
+                          const isRejected = app.status === 'Rejected';
                           const isCreated = app.status === 'Created';
                           const isUnderReview = app.status === 'Under Review';
 
@@ -195,13 +203,15 @@ const OriginationApplicationsList = () => {
                               </td>
                               <td className="p-3 text-slate-700 whitespace-nowrap">
                                 <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border ${
-                                  isCreated
+                                  isCreated || isApproved
                                     ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                                     : isUnderReview
                                     ? 'bg-blue-50 text-blue-700 border-blue-200'
+                                    : isRejected
+                                    ? 'bg-rose-50 text-rose-700 border-rose-200'
                                     : 'bg-amber-50 text-amber-700 border-amber-200'
                                 }`}>
-                                  {isCreated ? <CheckCircle2 size={12} /> : <Clock size={12} />} {app.status}
+                                  {isCreated || isApproved ? <CheckCircle2 size={12} /> : isRejected ? <XCircle size={12} /> : <Clock size={12} />} {app.status}
                                 </span>
                               </td>
                               <td className="p-3 text-slate-700 text-xs whitespace-nowrap">

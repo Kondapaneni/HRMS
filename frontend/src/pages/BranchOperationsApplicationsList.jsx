@@ -180,9 +180,6 @@ const BranchOperationsApplicationsList = () => {
                     <option value="Under Review">
                       Under Review ({applications.filter(a => a.status === 'Under Review').length})
                     </option>
-                    <option value="Draft">
-                      Draft ({applications.filter(a => a.status === 'Draft').length})
-                    </option>
                     <option value="Approved">
                       Approved ({applications.filter(a => a.status === 'Approved').length})
                     </option>

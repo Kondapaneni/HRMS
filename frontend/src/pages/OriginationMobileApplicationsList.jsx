@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getLoanApplications } from '../services/loanServices';
 import { motion } from 'framer-motion';
-import { Search, CheckCircle2, Clock, Phone, Briefcase, Eye, Loader2, ChevronDown } from 'lucide-react';
+import { Search, CheckCircle2, Clock, Phone, Briefcase, Eye, Loader2, ChevronDown, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 
 const OriginationMobileApplicationsList = () => {
@@ -154,6 +154,12 @@ const OriginationMobileApplicationsList = () => {
               <option value="Under Review">
                 Under Review ({applications.filter(a => a.status === 'Under Review').length})
               </option>
+              <option value="Approved">
+                Approved ({applications.filter(a => a.status === 'Approved').length})
+              </option>
+              <option value="Rejected">
+                Rejected ({applications.filter(a => a.status === 'Rejected').length})
+              </option>
               <option value="Draft">
                 Draft ({applications.filter(a => a.status === 'Draft').length})
               </option>
@@ -180,6 +186,8 @@ const OriginationMobileApplicationsList = () => {
             {filteredApps.map((app) => {
               const name = app.applicant_name || app.form_data?.applicant_name || 'N/A';
               const phone = app.phone_number || app.form_data?.phone_number || 'N/A';
+              const isApproved = app.status === 'Approved';
+              const isRejected = app.status === 'Rejected';
               const isCreated = app.status === 'Created';
               const isUnderReview = app.status === 'Under Review';
 
@@ -197,13 +205,15 @@ const OriginationMobileApplicationsList = () => {
                       <h3 className="font-bold text-slate-900 text-lg mt-1.5 leading-tight truncate">{name}</h3>
                     </div>
                     <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider whitespace-nowrap shrink-0 ${
-                      isCreated
+                      isCreated || isApproved
                         ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
                         : isUnderReview
                         ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                        : isRejected
+                        ? 'bg-rose-100 text-rose-700 border border-rose-200'
                         : 'bg-amber-100 text-amber-700 border border-amber-200'
                     }`}>
-                      {isCreated ? <CheckCircle2 size={12} /> : <Clock size={12} />} {app.status}
+                      {isCreated || isApproved ? <CheckCircle2 size={12} /> : isRejected ? <XCircle size={12} /> : <Clock size={12} />} {app.status}
                     </span>
                   </div>
 
