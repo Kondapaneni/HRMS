@@ -5,7 +5,6 @@ import { createPortal } from 'react-dom';
 import {
   Lock,
   Printer,
-  ArrowLeft,
   Loader2,
   X,
   Building2
@@ -170,17 +169,6 @@ export default function BranchOperationsViewApplication() {
           onPreviewDoc={setPreviewDoc}
           localTimeline={localTimeline}
         />
-
-        {/* Bottom Back to Applications List Button (Hidden in Print) */}
-        <div className="flex justify-center pt-2 print:hidden">
-          <button
-            type="button"
-            onClick={() => navigate(fromPath)}
-            className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-slate-900 text-white hover:bg-slate-800 h-10 px-6 transition-colors gap-2 shadow-sm cursor-pointer"
-          >
-            <ArrowLeft className="w-4 h-4" /> Back to Applications List
-          </button>
-        </div>
 
         {/* Fullscreen Photo Lightbox Preview Portal */}
         {previewDoc &&
