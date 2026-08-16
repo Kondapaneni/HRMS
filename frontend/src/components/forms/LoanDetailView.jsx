@@ -77,26 +77,26 @@ const AuditLogChangesViewer = ({ event }) => {
 
       {isOpen && changes.length > 0 && (
         <div className="rounded-md border border-slate-200 overflow-x-auto bg-white shadow-2xs">
-          <table className="w-full text-sm text-left">
+          <table className="w-full text-sm text-left table-fixed min-w-[500px]">
             <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-medium whitespace-nowrap text-xs">
               <tr>
-                <th className="p-3 font-semibold text-slate-700">Modified Field</th>
-                <th className="p-3 font-semibold text-slate-700">Old Value</th>
-                <th className="p-3 font-semibold text-slate-700">New Value</th>
+                <th className="p-3 font-semibold text-slate-700 w-[40%]">Modified Field</th>
+                <th className="p-3 font-semibold text-slate-700 w-[30%]">Old Value</th>
+                <th className="p-3 font-semibold text-slate-700 w-[30%]">New Value</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {changes.map((ch, cIdx) => (
                 <tr key={cIdx} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/80 transition-colors">
-                  <td className="p-3 font-medium text-slate-900 whitespace-nowrap text-sm">
+                  <td className="p-3 font-medium text-slate-900 text-sm break-words">
                     {ch.label || ch.field}
                   </td>
-                  <td className="p-3 whitespace-nowrap text-sm text-slate-700">
+                  <td className="p-3 text-sm text-slate-700">
                     <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200 line-through">
                       {ch.old_value || '—'}
                     </span>
                   </td>
-                  <td className="p-3 whitespace-nowrap text-sm text-slate-700">
+                  <td className="p-3 text-sm text-slate-700">
                     <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                       {ch.new_value || '—'}
                     </span>
@@ -269,26 +269,29 @@ function MobileDetailView({
     application.documents ||
     application.form_data?.documents ||
     {};
-  const baseTimeline =
-    externalTimeline ||
-    formData.timeline ||
-    application.form_data?.timeline ||
-    [];
+  const resolveTimeline = () => {
+    if (externalTimeline && Array.isArray(externalTimeline) && externalTimeline.length > 0) {
+      return externalTimeline;
+    }
+    const raw = formData.timeline || application.form_data?.timeline || application.stage_history || [];
+    const base = raw.filter(
+      (ev) => ev.stage !== 'Application Updated' && !String(ev.action || '').includes('Modified')
+    );
+    const auditEvents = (application.audit_logs || []).map((al) => ({
+      id: al.id,
+      stage: 'Application Updated',
+      action: 'Application Details Modified',
+      timestamp: al.created_at,
+      editor_name: al.editor_name,
+      changes: al.changes,
+      changes_count: al.changes_count
+    }));
+    return [...base, ...auditEvents].sort((a, b) => {
+      return new Date(a.timestamp || 0).getTime() - new Date(b.timestamp || 0).getTime();
+    });
+  };
 
-  const auditLogsAsEvents = (application.audit_logs || []).map((al) => ({
-    stage: 'Application Updated',
-    action: 'Application Details Modified',
-    timestamp: al.created_at,
-    editor_name: al.editor_name,
-    changes: al.changes,
-    changes_count: al.changes_count
-  }));
-
-  const localTimeline = [...baseTimeline, ...auditLogsAsEvents].sort((a, b) => {
-    const tA = new Date(a.timestamp || 0).getTime();
-    const tB = new Date(b.timestamp || 0).getTime();
-    return tA - tB;
-  });
+  const localTimeline = resolveTimeline();
 
   const formattedDate =
     formatDateSafe(application.created_at || application.updated_at) ||
@@ -769,26 +772,29 @@ function DesktopPaperView({
     application.documents ||
     application.form_data?.documents ||
     {};
-  const baseTimeline =
-    externalTimeline ||
-    formData.timeline ||
-    application.form_data?.timeline ||
-    [];
+  const resolveTimeline = () => {
+    if (externalTimeline && Array.isArray(externalTimeline) && externalTimeline.length > 0) {
+      return externalTimeline;
+    }
+    const raw = formData.timeline || application.form_data?.timeline || application.stage_history || [];
+    const base = raw.filter(
+      (ev) => ev.stage !== 'Application Updated' && !String(ev.action || '').includes('Modified')
+    );
+    const auditEvents = (application.audit_logs || []).map((al) => ({
+      id: al.id,
+      stage: 'Application Updated',
+      action: 'Application Details Modified',
+      timestamp: al.created_at,
+      editor_name: al.editor_name,
+      changes: al.changes,
+      changes_count: al.changes_count
+    }));
+    return [...base, ...auditEvents].sort((a, b) => {
+      return new Date(a.timestamp || 0).getTime() - new Date(b.timestamp || 0).getTime();
+    });
+  };
 
-  const auditLogsAsEvents = (application.audit_logs || []).map((al) => ({
-    stage: 'Application Updated',
-    action: 'Application Details Modified',
-    timestamp: al.created_at,
-    editor_name: al.editor_name,
-    changes: al.changes,
-    changes_count: al.changes_count
-  }));
-
-  const localTimeline = [...baseTimeline, ...auditLogsAsEvents].sort((a, b) => {
-    const tA = new Date(a.timestamp || 0).getTime();
-    const tB = new Date(b.timestamp || 0).getTime();
-    return tA - tB;
-  });
+  const localTimeline = resolveTimeline();
 
   const formattedDate =
     formatDateSafe(application.created_at || application.updated_at) ||

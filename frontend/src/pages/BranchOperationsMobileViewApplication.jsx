@@ -71,17 +71,12 @@ export default function BranchOperationsMobileViewApplication({
   const [localStatus, setLocalStatus] = useState(
     application?.status || formData?.status || 'Under Review'
   );
-  const [localTimeline, setLocalTimeline] = useState(
-    formData?.timeline || application?.form_data?.timeline || []
-  );
 
   useEffect(() => {
     if (application) {
       if (application.status) setLocalStatus(application.status);
       const docs = formData?.documents || application.documents || application.form_data?.documents || {};
       setCurrentDocs(docs);
-      const timeline = formData?.timeline || application.form_data?.timeline || [];
-      setLocalTimeline(timeline);
     }
   }, [application, formData]);
 
@@ -104,8 +99,9 @@ export default function BranchOperationsMobileViewApplication({
   const appStatus = String(localStatus);
   const branchName = response?.branch?.name || application?.branch_name || 'Branch Operations';
 
+  const timelineEvents = application?.stage_history || formData?.timeline || application?.form_data?.timeline || [];
   const hasBranchOpsStage = 
-    localTimeline.some(e => e.stage === 'Branch Operations' || e.action?.includes('Branch Operations')) ||
+    timelineEvents.some(e => e.stage === 'Branch Operations' || e.action?.includes('Branch Operations')) ||
     application?.stage === 'Branch Operations' ||
     formData?.stage === 'Branch Operations' ||
     ['Under Review', 'Created'].includes(localStatus);
@@ -225,7 +221,6 @@ export default function BranchOperationsMobileViewApplication({
           application={application || {}}
           currentDocs={currentDocs}
           onPreviewDoc={setPreviewDoc}
-          localTimeline={localTimeline}
         />
 
         {/* Bottom Back Button */}

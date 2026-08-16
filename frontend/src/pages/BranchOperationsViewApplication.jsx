@@ -56,28 +56,12 @@ export default function BranchOperationsViewApplication() {
   const [localStatus, setLocalStatus] = useState(
     application?.status || formData?.status || 'Under Review'
   );
-  const [localTimeline, setLocalTimeline] = useState([]);
 
   useEffect(() => {
     if (application) {
       if (application.status) setLocalStatus(application.status);
       const docs = formData?.documents || application.documents || application.form_data?.documents || {};
       setCurrentDocs(docs);
-
-      const baseTimeline = formData?.timeline || application.form_data?.timeline || application.stage_history || [];
-      const auditLogsAsEvents = (application.audit_logs || []).map((al) => ({
-        stage: 'Application Updated',
-        action: 'Application Details Modified',
-        timestamp: al.created_at,
-        editor_name: al.editor_name,
-        changes: al.changes,
-        changes_count: al.changes_count
-      }));
-
-      const combined = [...baseTimeline, ...auditLogsAsEvents].sort((a, b) => {
-        return new Date(a.timestamp || 0).getTime() - new Date(b.timestamp || 0).getTime();
-      });
-      setLocalTimeline(combined);
     }
   }, [application, formData]);
 
@@ -96,8 +80,9 @@ export default function BranchOperationsViewApplication() {
   const loanType = application?.loan_type || formData?.loan_type || 'Personal Loan';
   const branchName = response?.branch?.name || application?.branch_name || 'Branch Operations';
 
+  const timelineEvents = application?.stage_history || formData?.timeline || application?.form_data?.timeline || [];
   const hasBranchOpsStage = 
-    localTimeline.some(e => e.stage === 'Branch Operations' || e.action?.includes('Branch Operations')) ||
+    timelineEvents.some(e => e.stage === 'Branch Operations' || e.action?.includes('Branch Operations')) ||
     application?.stage === 'Branch Operations' ||
     formData?.stage === 'Branch Operations' ||
     ['Under Review', 'Created'].includes(localStatus);
@@ -199,7 +184,6 @@ export default function BranchOperationsViewApplication() {
           application={application || {}}
           currentDocs={currentDocs}
           onPreviewDoc={setPreviewDoc}
-          localTimeline={localTimeline}
         />
 
         {/* Fullscreen Photo Lightbox Preview Portal */}
