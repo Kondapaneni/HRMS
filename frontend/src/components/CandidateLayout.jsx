@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import {
-  LogOut, Home, Briefcase, FileText, User, Menu, X, Bell, Folder
+  LogOut, Home, Briefcase, FileText, User, Bell, Folder
 } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -14,7 +14,17 @@ const CandidateLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const scrollContainerRef = useRef(null);
+
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      scrollContainerRef.current.scrollTop = 0;
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [location.pathname, location.search]);
 
   const { data: profileData } = useQuery({
     queryKey: ['candidate', 'profile', profile?.id],
@@ -72,11 +82,11 @@ const CandidateLayout = () => {
   }, [isHired, profile?.id, profileData]);
 
   const navItems = [
-    { label: 'Dashboard', icon: <Home size={18} />, path: '/candidate/dashboard' },
-    { label: 'Jobs', icon: <Briefcase size={18} />, path: '/candidate/jobs' },
-    { label: 'Applications', icon: <FileText size={18} />, path: '/candidate/applications' },
-    ...(isHired ? [{ label: 'Documents', icon: <Folder size={18} />, path: '/candidate/documents', isNew: showDocumentsNewBadge }] : []),
-    { label: 'Profile', icon: <User size={18} />, path: '/candidate/profile' }
+    { label: 'Dashboard', icon: Home, path: '/candidate/dashboard' },
+    { label: 'Jobs', icon: Briefcase, path: '/candidate/jobs' },
+    { label: 'Applications', icon: FileText, path: '/candidate/applications' },
+    ...(isHired ? [{ label: 'Documents', icon: Folder, path: '/candidate/documents', isNew: showDocumentsNewBadge }] : []),
+    { label: 'Profile', icon: User, path: '/candidate/profile' }
   ];
 
   const shapeVariants = {
@@ -93,92 +103,137 @@ const CandidateLayout = () => {
   };
 
   return (
-    <div className="h-[100dvh] w-full overflow-hidden bg-slate-50 flex flex-col font-sans text-slate-800 relative z-0">
+    <div className="h-[100dvh] w-full overflow-hidden bg-slate-50 flex font-sans text-slate-800 relative z-0">
       
       {/* Global Animated Background Graphics */}
-      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden fixed md:absolute print:hidden">
         <motion.div custom={1} variants={shapeVariants} animate="animate" className="absolute w-64 h-64 bg-[#F59E0B] rounded-full opacity-10 -top-20 -right-20" />
         <motion.div custom={2} variants={shapeVariants} animate="animate" className="absolute w-48 h-48 bg-[#10B981] rounded-3xl opacity-10 bottom-[-40px] left-1/4 rotate-12" />
         <motion.div custom={3} variants={shapeVariants} animate="animate" className="absolute w-96 h-96 bg-[#3B82F6] rounded-full opacity-5 top-1/2 left-1/3" />
         <motion.div custom={4} variants={shapeVariants} animate="animate" className="absolute w-32 h-32 bg-[#EC4899] rounded-xl opacity-10 top-20 left-10 -rotate-12" />
         <motion.div custom={5} variants={shapeVariants} animate="animate" className="absolute w-72 h-72 bg-[#8B5CF6] rounded-full opacity-10 bottom-20 right-1/4" />
+
+        {/* Additional geometric shapes */}
+        <motion.div custom={6} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-40 h-40 bg-[#14B8A6] rounded-2xl opacity-10 top-[-20px] left-[18rem] rotate-45" />
+        <motion.div custom={7} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-28 h-28 bg-[#F43F5E] rounded-3xl opacity-10 top-32 left-[24rem] -rotate-12" />
+        <motion.div custom={8} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-56 h-56 bg-[#6366F1] rounded-full opacity-[0.06] top-10 left-[35%]" />
+        <motion.div custom={9} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-36 h-36 bg-[#EAB308] rounded-2xl opacity-10 bottom-10 right-10 -rotate-12" />
+        <motion.div custom={10} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-24 h-24 bg-[#06B6D4] rounded-full opacity-10 bottom-40 right-28 rotate-45" />
       </div>
 
-      {/* Top Floating Navigation (Desktop) */}
-      <header className="hidden md:flex fixed top-6 left-0 right-0 z-50 justify-center pointer-events-none">
-        <div className="bg-white/50 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-full p-2 px-4 flex items-center pointer-events-auto">
-          
-          {/* Logo */}
-          <div className="flex items-center gap-3 pr-6 border-r border-slate-300/40 mr-2">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-md bg-white overflow-hidden p-0.5 border border-slate-100">
-              <img src="/pwa-192x192.png" alt="Acme Logo" className="w-full h-full object-contain rounded-full" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-base font-bold tracking-tight text-slate-800 leading-tight">Acme</span>
-              <span className="text-[10px] font-semibold tracking-wider text-blue-600 uppercase leading-none">Careers</span>
-            </div>
+      {/* Sidebar (Desktop) - Clean & Professional matching Employee Layout */}
+      <aside className="w-[260px] h-screen sticky top-0 bg-white/80 backdrop-blur-md border-r border-slate-200 hidden md:flex flex-col z-20 shadow-sm shrink-0">
+        <div className="h-14 flex items-center px-4 border-b border-slate-200 shrink-0">
+          <div className="w-8 h-8 rounded-full flex items-center justify-center shadow-xs bg-white overflow-hidden p-0.5 border border-slate-200 mr-3 shrink-0">
+            <img src="/pwa-192x192.png" alt="Acme Logo" className="w-full h-full object-contain rounded-full" />
           </div>
+          <div className="flex flex-col">
+            <span className="text-base font-bold tracking-tight text-slate-800 leading-tight">Acme</span>
+            <span className="text-[10px] font-semibold tracking-wider text-blue-600 uppercase leading-none">Careers</span>
+          </div>
+        </div>
 
-          {/* Navigation Links */}
-          <nav className="flex items-center gap-2 px-2">
-            {navItems.map((item) => {
+        <div className="p-4 overflow-y-auto flex-1">
+          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 px-2 whitespace-nowrap">Candidate Portal</p>
+          <nav className="space-y-1">
+            {navItems.map((item, idx) => {
               const isActive = location.pathname.startsWith(item.path);
-              const Icon = item.icon.type;
+              const Icon = item.icon;
               return (
                 <Link
-                  key={item.path}
+                  key={idx}
                   to={item.path}
-                  className="relative flex flex-col items-center justify-center w-[86px] h-[66px] z-10 group"
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors relative ${
+                    isActive
+                      ? 'bg-blue-50 text-blue-700'
+                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                  }`}
                 >
-                  {isActive && (
-                    <motion.div
-                      layoutId="candidateTopNavBubble"
-                      className="absolute inset-0 z-[-1] rounded-2xl shadow-[inset_0_1px_3px_rgba(255,255,255,0.8),0_4px_16px_rgba(0,0,0,0.06)] bg-white/60 backdrop-blur-xl border border-white/80 overflow-hidden"
-                      transition={{ type: 'spring', bounce: 0.25, duration: 0.5 }}
-                    />
-                  )}
+                  <span className={`shrink-0 ${isActive ? 'text-blue-600' : 'text-slate-400'}`}>
+                    <Icon size={18} strokeWidth={isActive ? 2.5 : 2} />
+                  </span>
+                  <span className="flex-1 whitespace-nowrap truncate">{item.label}</span>
                   {item.isNew && (
-                    <span className="absolute top-1 right-1.5 bg-rose-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full z-20 shadow-sm animate-pulse">
+                    <span className="bg-rose-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-xs animate-pulse">
                       NEW
                     </span>
                   )}
-                  <Icon className={`relative z-10 w-6 h-6 mb-1 transition-all duration-300 ${isActive ? 'text-blue-600 scale-110' : 'text-slate-500 group-hover:text-slate-600 group-active:scale-95'}`} strokeWidth={isActive ? 2.5 : 2} />
-                  <span className={`relative z-10 text-[11px] font-semibold tracking-wide transition-all duration-300 ${isActive ? 'text-blue-600' : 'text-slate-500'}`}>
-                    {item.label}
-                  </span>
                 </Link>
               );
             })}
           </nav>
-
-          {/* Right Side Actions */}
-          <div className="flex items-center gap-4 pl-6 border-l border-slate-300/40 ml-2">
-            <button className="p-2.5 text-slate-500 hover:text-slate-700 transition-colors relative rounded-full hover:bg-white/80">
-              <Bell size={22} />
-              <span className="absolute top-2 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
-            </button>
-            
-            <div className="w-10 h-10 rounded-full overflow-hidden bg-indigo-100 border-2 border-white shadow-sm flex items-center justify-center text-indigo-700 font-bold text-base">
-              {profileData?.avatar_url ? (
-                <img src={profileData.avatar_url} alt="Profile" className="w-full h-full object-cover" />
-              ) : (
-                profile?.firstName?.charAt(0) || profile?.email?.charAt(0).toUpperCase() || 'C'
-              )}
-            </div>
-
-            <button
-              onClick={() => setShowLogoutModal(true)}
-              className="p-2.5 text-rose-500 hover:text-rose-600 hover:bg-rose-50/80 rounded-full transition-colors"
-            >
-              <LogOut size={22} />
-            </button>
-          </div>
         </div>
-      </header>
+
+        <div className="p-4 border-t border-slate-200">
+          <button
+            onClick={() => setShowLogoutModal(true)}
+            className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-600 rounded-md hover:bg-slate-50 hover:text-red-600 transition-colors cursor-pointer"
+          >
+            <LogOut size={18} className="text-slate-400" />
+            Sign Out
+          </button>
+        </div>
+      </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 md:pt-32 pb-24 md:pb-8 overflow-y-auto overscroll-y-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
-        <Outlet />
+      <main className="flex-1 flex flex-col h-[100dvh] overflow-hidden relative z-30 bg-transparent">
+        
+        {/* Top Header - Matching Employee Layout */}
+        <header className="h-14 shrink-0 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 flex items-center justify-between sticky top-0 z-40 md:relative md:z-10 overflow-hidden">
+          <div className="flex items-center gap-3">
+            {/* Mobile Logo/Title */}
+            <div className="md:hidden flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-full flex items-center justify-center shadow-xs bg-white overflow-hidden p-0.5 border border-slate-200">
+                <img src="/pwa-192x192.png" alt="Acme Logo" className="w-full h-full object-contain rounded-full" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-sm font-bold tracking-tight text-slate-800 leading-tight">Acme</span>
+                <span className="text-[9px] font-semibold tracking-wider text-blue-600 uppercase leading-none">Careers</span>
+              </div>
+            </div>
+            <div className="hidden md:block">
+              <span className="text-sm font-semibold text-slate-600">Candidate Portal</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-700 font-bold text-sm overflow-hidden border border-slate-200">
+                {profileData?.avatar_url ? (
+                  <img src={profileData.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  profile?.firstName?.charAt(0) || profile?.email?.charAt(0).toUpperCase() || 'C'
+                )}
+              </div>
+              <div className="hidden sm:block text-left">
+                <p className="text-sm font-medium text-slate-700 leading-none">
+                  {profile?.firstName ? `${profile.firstName} ${profile.lastName || ''}`.trim() : profile?.email?.split('@')[0] || 'Candidate'}
+                </p>
+                <p className="text-xs text-slate-500 mt-1 capitalize">Candidate</p>
+              </div>
+            </div>
+
+            {/* Mobile Sign Out Button */}
+            <div className="flex md:hidden items-center">
+              <button
+                onClick={() => setShowLogoutModal(true)}
+                className="flex items-center justify-center text-rose-500 hover:text-rose-600 transition-colors bg-rose-50/50 hover:bg-rose-50 p-2 rounded-full cursor-pointer"
+                title="Sign Out"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {/* Page Content Body */}
+        <div
+          ref={scrollContainerRef}
+          className="flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 md:pb-8 overflow-y-auto overscroll-y-contain"
+          style={{ WebkitOverflowScrolling: 'touch' }}
+        >
+          <Outlet />
+        </div>
       </main>
 
       {/* Mobile Bottom Navigation (iOS Liquid Glass) */}
@@ -186,7 +241,7 @@ const CandidateLayout = () => {
         <div className="bg-white/50 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-full p-1.5 flex justify-around items-center pointer-events-auto">
           {navItems.map((item) => {
             const isActive = location.pathname.startsWith(item.path);
-            const Icon = item.icon.type;
+            const Icon = item.icon;
             
             return (
               <Link 
