@@ -390,11 +390,16 @@ $app->put('/api/branch-operations/applications/{id}', function (Request $request
 
         // Compute field-by-field diff between old and new form data
         $changes = [];
-        $ignoreKeys = ['timeline', 'documents', 'edit_logs', 'stage_history', 'signatures', 'created_at', 'updated_at'];
+        $ignoreKeys = [
+            'timeline', 'documents', 'edit_logs', 'stage_history', 'signatures',
+            'created_at', 'updated_at', 'id', 'application_id', 'lead_id',
+            'loan_type', 'status', 'stage', 'branch', 'branch_name',
+            'created_by', 'creator_name', 'from'
+        ];
         $allKeys = array_unique(array_merge(array_keys($oldFormData), array_keys($submittedFormData)));
 
         foreach ($allKeys as $key) {
-            if (in_array($key, $ignoreKeys)) continue;
+            if (in_array(strtolower($key), $ignoreKeys)) continue;
             
             $oldVal = isset($oldFormData[$key]) ? (string)$oldFormData[$key] : '';
             $newVal = isset($submittedFormData[$key]) ? (string)$submittedFormData[$key] : '';
@@ -428,7 +433,7 @@ $app->put('/api/branch-operations/applications/{id}', function (Request $request
         $existingEditLogs = $oldFormData['edit_logs'] ?? [];
         if (!is_array($existingEditLogs)) $existingEditLogs = [];
 
-        // If changes were detected, add an audit log event
+        // If changes were detected, add an audit log event and insert into loan_application_audit_logs table
         if (!empty($changes)) {
             $editEvent = [
                 'stage' => 'Application Updated',
@@ -441,6 +446,25 @@ $app->put('/api/branch-operations/applications/{id}', function (Request $request
 
             $existingTimeline[] = $editEvent;
             $existingEditLogs[] = $editEvent;
+
+            // Save to dedicated public.loan_application_audit_logs table
+            try {
+                $auditStmt = $conn->prepare('
+                    INSERT INTO public.loan_application_audit_logs (
+                        application_id, loan_application_id, editor_name, editor_user_id, changes, changes_count, created_at
+                    ) VALUES (?, ?, ?, ?, ?::jsonb, ?, NOW())
+                ');
+                $auditStmt->execute([
+                    $existingApp['application_id'] ?: (string)$existingApp['id'],
+                    $existingApp['id'],
+                    $editorName,
+                    $userId ? (string)$userId : null,
+                    json_encode($changes, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+                    count($changes)
+                ]);
+            } catch (\Exception $e) {
+                error_log("Error saving loan application audit log to table: " . $e->getMessage());
+            }
         }
 
         $cleanedFormData['timeline'] = $existingTimeline;

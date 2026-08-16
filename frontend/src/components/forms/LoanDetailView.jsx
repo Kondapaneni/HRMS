@@ -18,14 +18,39 @@ import { format } from 'date-fns';
 // HELPER UTILITIES
 // ============================================================================
 
+const SYSTEM_IGNORED_FIELDS = [
+  'loan_type',
+  'application_id',
+  'id',
+  'lead_id',
+  'status',
+  'stage',
+  'branch',
+  'branch_name',
+  'created_by',
+  'creator_name',
+  'created_at',
+  'updated_at',
+  'timeline',
+  'documents',
+  'signatures',
+  'edit_logs',
+  'from'
+];
+
 /**
  * Compact Audit Log Diff Viewer for edited loan applications
  * Displays only the modified fields (old value vs new value) and editor details.
  */
 const AuditLogChangesViewer = ({ event }) => {
   const [isOpen, setIsOpen] = useState(true);
-  const changes = event.changes || [];
+  const rawChanges = event.changes || [];
+  const changes = rawChanges.filter(
+    (ch) => !SYSTEM_IGNORED_FIELDS.includes(String(ch.field || '').toLowerCase())
+  );
   const editorName = event.editor_name || 'Branch Officer';
+
+  if (changes.length === 0) return null;
 
   return (
     <div className="mt-2 rounded-lg border border-blue-200/80 bg-blue-50/40 p-3 space-y-2.5">
