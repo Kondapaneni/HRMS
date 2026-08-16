@@ -235,7 +235,7 @@ export default function OriginationViewApplication() {
 
           {/* Right-aligned action buttons */}
           <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 shrink-0">
-            {!hasTransferred && (
+            {isCreated && !hasTransferred && (
               <button
                 type="button"
                 onClick={() => setIsDocsOpen(true)}
@@ -245,7 +245,7 @@ export default function OriginationViewApplication() {
               </button>
             )}
 
-            {!hasTransferred && isAllUploaded && (
+            {isCreated && !hasTransferred && isAllUploaded && (
               <button
                 type="button"
                 onClick={() => setIsSignatureModalOpen(true)}

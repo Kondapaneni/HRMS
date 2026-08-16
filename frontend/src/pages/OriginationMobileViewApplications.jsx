@@ -282,7 +282,7 @@ export default function OriginationMobileViewApplications({
             {isCreated ? `Created on ${formattedDate}` : `Draft saved on ${formattedDate}`}
           </p>
 
-          {!hasTransferred && (
+          {isCreated && !hasTransferred && (
             <div className="flex flex-col gap-2.5 pt-1">
               <button
                 type="button"
