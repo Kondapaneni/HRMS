@@ -7,9 +7,10 @@ import {
   Printer,
   Loader2,
   X,
-  Building2
+  Building2,
+  Edit3
 } from 'lucide-react';
-import { getBranchLoanApplications } from '../services/branchOperationsServices';
+import { getBranchLoanApplications } from '../services/loanServices';
 import { LoanDetailView } from '../components/forms';
 import BranchOperationsMobileViewApplication from './BranchOperationsMobileViewApplication';
 
@@ -83,6 +84,12 @@ export default function BranchOperationsViewApplication() {
   const loanType = application?.loan_type || formData?.loan_type || 'Personal Loan';
   const branchName = response?.branch?.name || application?.branch_name || 'Branch Operations';
 
+  const hasBranchOpsStage = 
+    localTimeline.some(e => e.stage === 'Branch Operations' || e.action?.includes('Branch Operations')) ||
+    application?.stage === 'Branch Operations' ||
+    formData?.stage === 'Branch Operations' ||
+    ['Under Review', 'Created'].includes(localStatus);
+
   const handlePrint = () => {
     const originalTitle = document.title;
     const documentName = appId && appId !== 'LA-PENDING' ? appId : `${loanType.replace(/\s+/g, '-')}-Application`;
@@ -140,9 +147,6 @@ export default function BranchOperationsViewApplication() {
                 <Building2 className="w-3.5 h-3.5 text-indigo-600" />
                 {branchName}
               </span>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-                <Lock className="w-3.5 h-3.5 text-blue-600" /> Read-Only Mode
-              </span>
             </div>
             <p className="text-xs sm:text-sm text-slate-500">
               View complete loan application details, applicant information, documents, and stage history.
@@ -151,6 +155,22 @@ export default function BranchOperationsViewApplication() {
 
           {/* Right-aligned action buttons */}
           <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 shrink-0">
+            {hasBranchOpsStage && (
+              <button
+                type="button"
+                onClick={() => navigate('/employee/branch-operations/edit-application', {
+                  state: {
+                    application,
+                    form_data: formData,
+                    loan_type: loanType,
+                    from: '/employee/branch-operations/view-application'
+                  }
+                })}
+                className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 transition-colors gap-2 shadow-sm cursor-pointer"
+              >
+                <Edit3 className="w-4 h-4" /> Edit Application
+              </button>
+            )}
             <button
               type="button"
               onClick={handlePrint}

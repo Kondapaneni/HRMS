@@ -211,3 +211,297 @@ $app->get('/api/branch-operations/applications', function (Request $request, Res
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware());
+
+/**
+ * Helper to map form keys to friendly labels for Audit Logs.
+ */
+if (!function_exists('getLoanFieldFriendlyLabel')) {
+    function getLoanFieldFriendlyLabel($key) {
+        $labels = [
+            'applicant_name' => 'Applicant Name',
+            'phone_number' => 'Phone Number',
+            'age' => 'Age',
+            'gender' => 'Gender',
+            'marital_status' => 'Marital Status',
+            'father_name' => 'Father Name',
+            'mother_name' => 'Mother Name',
+            'husband_name' => 'Husband Name',
+            'aadhaar_number' => 'Aadhaar Number',
+            'own_house' => 'Own House',
+            'current_address' => 'Current Address',
+            'current_street' => 'Current Street',
+            'current_city' => 'Current City',
+            'current_state' => 'Current State',
+            'current_postal_code' => 'Current PIN Code',
+            'permanent_address' => 'Permanent Address',
+            'permanent_street' => 'Permanent Street',
+            'permanent_city' => 'Permanent City',
+            'permanent_state' => 'Permanent State',
+            'permanent_postal_code' => 'Permanent PIN Code',
+            'employment' => 'Employment Type',
+            'job_name' => 'Company / Employer Name',
+            'job_address' => 'Employer Address',
+            'job_income_per_month' => 'Monthly Salary / Job Income',
+            'business_name' => 'Business Name',
+            'business_address' => 'Business Address',
+            'business_income_per_month' => 'Monthly Business Income',
+            'has_co_applicant' => 'Has Co-Applicant',
+            'co_applicant_name' => 'Co-Applicant Name',
+            'co_relation_with_applicant' => 'Co-Applicant Relation',
+            'co_phone_number' => 'Co-Applicant Phone',
+            'co_aadhaar_number' => 'Co-Applicant Aadhaar',
+            'co_age' => 'Co-Applicant Age',
+            'co_gender' => 'Co-Applicant Gender',
+            'co_marital_status' => 'Co-Applicant Marital Status',
+            'co_father_name' => 'Co-Applicant Father Name',
+            'co_mother_name' => 'Co-Applicant Mother Name',
+            'co_husband_name' => 'Co-Applicant Husband Name',
+            'co_own_house' => 'Co-Applicant Own House',
+            'co_current_address' => 'Co-Applicant Current Address',
+            'co_current_street' => 'Co-Applicant Current Street',
+            'co_current_city' => 'Co-Applicant Current City',
+            'co_current_state' => 'Co-Applicant Current State',
+            'co_current_postal_code' => 'Co-Applicant PIN Code',
+            'co_permanent_address' => 'Co-Applicant Permanent Address',
+            'co_permanent_street' => 'Co-Applicant Permanent Street',
+            'co_permanent_city' => 'Co-Applicant Permanent City',
+            'co_permanent_state' => 'Co-Applicant Permanent State',
+            'co_permanent_postal_code' => 'Co-Applicant Permanent PIN Code',
+            'co_employment' => 'Co-Applicant Employment',
+            'co_job_name' => 'Co-Applicant Employer Name',
+            'co_job_address' => 'Co-Applicant Employer Address',
+            'co_job_income_per_month' => 'Co-Applicant Monthly Salary',
+            'co_business_name' => 'Co-Applicant Business Name',
+            'co_business_address' => 'Co-Applicant Business Address',
+            'co_business_income_per_month' => 'Co-Applicant Monthly Business Income',
+        ];
+
+        foreach ([1, 2, 3] as $gIdx) {
+            $pfx = "guarantor_{$gIdx}_";
+            $labels[$pfx . 'name'] = "Guarantor {$gIdx} Name";
+            $labels[$pfx . 'phone_number'] = "Guarantor {$gIdx} Phone";
+            $labels[$pfx . 'aadhaar_number'] = "Guarantor {$gIdx} Aadhaar";
+            $labels[$pfx . 'age'] = "Guarantor {$gIdx} Age";
+            $labels[$pfx . 'gender'] = "Guarantor {$gIdx} Gender";
+            $labels[$pfx . 'marital_status'] = "Guarantor {$gIdx} Marital Status";
+            $labels[$pfx . 'father_name'] = "Guarantor {$gIdx} Father Name";
+            $labels[$pfx . 'mother_name'] = "Guarantor {$gIdx} Mother Name";
+            $labels[$pfx . 'husband_name'] = "Guarantor {$gIdx} Husband Name";
+            $labels[$pfx . 'own_house'] = "Guarantor {$gIdx} Own House";
+            $labels[$pfx . 'current_address'] = "Guarantor {$gIdx} Current Address";
+            $labels[$pfx . 'current_street'] = "Guarantor {$gIdx} Current Street";
+            $labels[$pfx . 'current_city'] = "Guarantor {$gIdx} Current City";
+            $labels[$pfx . 'current_state'] = "Guarantor {$gIdx} Current State";
+            $labels[$pfx . 'current_postal_code'] = "Guarantor {$gIdx} Current PIN Code";
+            $labels[$pfx . 'permanent_address'] = "Guarantor {$gIdx} Permanent Address";
+            $labels[$pfx . 'permanent_street'] = "Guarantor {$gIdx} Permanent Street";
+            $labels[$pfx . 'permanent_city'] = "Guarantor {$gIdx} Permanent City";
+            $labels[$pfx . 'permanent_state'] = "Guarantor {$gIdx} Permanent State";
+            $labels[$pfx . 'permanent_postal_code'] = "Guarantor {$gIdx} Permanent PIN Code";
+            $labels[$pfx . 'employment'] = "Guarantor {$gIdx} Employment";
+            $labels[$pfx . 'job_name'] = "Guarantor {$gIdx} Employer Name";
+            $labels[$pfx . 'job_address'] = "Guarantor {$gIdx} Employer Address";
+            $labels[$pfx . 'job_income_per_month'] = "Guarantor {$gIdx} Monthly Salary";
+            $labels[$pfx . 'business_name'] = "Guarantor {$gIdx} Business Name";
+            $labels[$pfx . 'business_address'] = "Guarantor {$gIdx} Business Address";
+            $labels[$pfx . 'business_income_per_month'] = "Guarantor {$gIdx} Monthly Business Income";
+        }
+
+        if (isset($labels[$key])) {
+            return $labels[$key];
+        }
+
+        return ucwords(str_replace('_', ' ', $key));
+    }
+}
+
+/**
+ * PUT /api/branch-operations/applications/{id}
+ * Update an existing application's details in Branch Operations and generate an Audit Log of changes.
+ */
+$app->put('/api/branch-operations/applications/{id}', function (Request $request, Response $response, $args) {
+    $identifier = $args['id'];
+    $decodedToken = $request->getAttribute('user');
+    $data = $request->getParsedBody();
+
+    if (!is_array($data)) {
+        $raw = (string)$request->getBody();
+        $data = json_decode($raw, true) ?: [];
+    }
+
+    $submittedFormData = $data['form_data'] ?? [];
+    $loanType = $data['loan_type'] ?? null;
+
+    if (empty($submittedFormData) || !is_array($submittedFormData)) {
+        $response->getBody()->write(json_encode(['error' => 'Form data is required']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+
+    try {
+        $db = new Database();
+        $conn = $db->getConnection();
+
+        $userId = is_object($decodedToken) 
+            ? ($decodedToken->id ?? $decodedToken->user_id ?? null) 
+            : ($decodedToken['id'] ?? $decodedToken['user_id'] ?? null);
+
+        if (!$userId) {
+            $response->getBody()->write(json_encode(['error' => 'Unauthorized user']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(401);
+        }
+
+        // Fetch editor employee details for the audit log
+        $empStmt = $conn->prepare('
+            SELECT e.id, e."employeeId", e."userId", e."firstName", e."lastName", e.email, e.department, e.position,
+                   b.name as branch_name 
+            FROM employee e 
+            LEFT JOIN branches b ON e.branch::uuid = b.id 
+            WHERE e."userId" = ? LIMIT 1
+        ');
+        $empStmt->execute([$userId]);
+        $editorEmp = $empStmt->fetch(PDO::FETCH_ASSOC);
+
+        $editorName = 'Branch Officer';
+        if ($editorEmp) {
+            $editorName = trim(($editorEmp['firstName'] ?? '') . ' ' . ($editorEmp['lastName'] ?? ''));
+            if (empty($editorName)) $editorName = $editorEmp['email'] ?? 'Branch Officer';
+        }
+        $editorRole = $editorEmp['position'] ?? 'Branch Operations';
+
+        // Fetch existing application
+        $findStmt = $conn->prepare('
+            SELECT id, application_id, lead_id, loan_type, status, form_data, branch, signatures, created_by, created_at, updated_at
+            FROM public.loan_applications
+            WHERE id::text = ? OR application_id = ? OR lead_id = ?
+            ORDER BY created_at DESC
+            LIMIT 1
+        ');
+        $findStmt->execute([$identifier, $identifier, $identifier]);
+        $existingApp = $findStmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$existingApp) {
+            $response->getBody()->write(json_encode(['error' => 'Loan application not found']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+        }
+
+        $oldFormData = is_string($existingApp['form_data']) 
+            ? json_decode($existingApp['form_data'], true) 
+            : ($existingApp['form_data'] ?: []);
+
+        // Compute field-by-field diff between old and new form data
+        $changes = [];
+        $ignoreKeys = ['timeline', 'documents', 'edit_logs', 'stage_history', 'signatures', 'created_at', 'updated_at'];
+        $allKeys = array_unique(array_merge(array_keys($oldFormData), array_keys($submittedFormData)));
+
+        foreach ($allKeys as $key) {
+            if (in_array($key, $ignoreKeys)) continue;
+            
+            $oldVal = isset($oldFormData[$key]) ? (string)$oldFormData[$key] : '';
+            $newVal = isset($submittedFormData[$key]) ? (string)$submittedFormData[$key] : '';
+
+            $oldTrim = trim($oldVal);
+            $newTrim = trim($newVal);
+
+            if ($oldTrim !== $newTrim) {
+                $changes[] = [
+                    'field' => $key,
+                    'label' => getLoanFieldFriendlyLabel($key),
+                    'old_value' => $oldTrim !== '' ? $oldTrim : '—',
+                    'new_value' => $newTrim !== '' ? $newTrim : '—'
+                ];
+            }
+        }
+
+        // Clean new form data (removing nulls or empty strings)
+        $cleanedFormData = [];
+        foreach ($submittedFormData as $k => $v) {
+            if ($k === 'documents') continue;
+            if ($v !== null && !(is_string($v) && trim($v) === '')) {
+                $cleanedFormData[$k] = $v;
+            }
+        }
+
+        // Preserve timeline from old form data
+        $existingTimeline = $oldFormData['timeline'] ?? [];
+        if (!is_array($existingTimeline)) $existingTimeline = [];
+
+        $existingEditLogs = $oldFormData['edit_logs'] ?? [];
+        if (!is_array($existingEditLogs)) $existingEditLogs = [];
+
+        // If changes were detected, add an audit log event
+        if (!empty($changes)) {
+            $editEvent = [
+                'stage' => 'Application Updated',
+                'action' => 'Application Details Modified',
+                'timestamp' => (new \DateTime('now', new \DateTimeZone('UTC')))->format('c'),
+                'editor_name' => $editorName,
+                'changes_count' => count($changes),
+                'changes' => $changes
+            ];
+
+            $existingTimeline[] = $editEvent;
+            $existingEditLogs[] = $editEvent;
+        }
+
+        $cleanedFormData['timeline'] = $existingTimeline;
+        $cleanedFormData['edit_logs'] = $existingEditLogs;
+
+        // Preserve application ID & loan type
+        if (!empty($existingApp['application_id'])) {
+            $cleanedFormData['application_id'] = $existingApp['application_id'];
+        }
+        if ($loanType) {
+            $cleanedFormData['loan_type'] = $loanType;
+        }
+
+        $newApplicantName = $cleanedFormData['applicant_name'] ?? $oldFormData['applicant_name'] ?? $existingApp['applicant_name'] ?? '';
+        $newPhone = $cleanedFormData['phone_number'] ?? $oldFormData['phone_number'] ?? $existingApp['phone_number'] ?? '';
+        $newLoanType = $loanType ?: ($existingApp['loan_type'] ?: 'Personal Loan');
+
+        $jsonPayload = json_encode($cleanedFormData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+
+        $updateStmt = $conn->prepare('
+            UPDATE public.loan_applications
+            SET form_data = ?::jsonb,
+                loan_type = ?,
+                updated_at = NOW()
+            WHERE id = ?
+            RETURNING id, application_id, lead_id, loan_type, status, form_data, branch, signatures, created_at, updated_at
+        ');
+        $updateStmt->execute([
+            $jsonPayload,
+            $newLoanType,
+            $existingApp['id']
+        ]);
+        $updatedRecord = $updateStmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($updatedRecord) {
+            if (isset($updatedRecord['form_data']) && is_string($updatedRecord['form_data'])) {
+                $updatedRecord['form_data'] = json_decode($updatedRecord['form_data'], true);
+            }
+            if (isset($updatedRecord['signatures']) && is_string($updatedRecord['signatures'])) {
+                $updatedRecord['signatures'] = json_decode($updatedRecord['signatures'], true);
+            }
+            $updatedRecord['documents'] = getBranchLoanDocumentsFromTable($conn, $updatedRecord['application_id'], $updatedRecord['id'], $updatedRecord['lead_id']);
+        }
+
+        $response->getBody()->write(json_encode([
+            'success' => true,
+            'message' => !empty($changes) ? 'Application updated successfully with audit trail' : 'Application saved (no changes detected)',
+            'application' => $updatedRecord,
+            'changes_count' => count($changes),
+            'changes' => $changes
+        ]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+
+    } catch (\PDOException $e) {
+        error_log("Database error updating loan application: " . $e->getMessage());
+        $response->getBody()->write(json_encode(['error' => 'Database error while updating application: ' . $e->getMessage()]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    } catch (\Exception $e) {
+        error_log("Error updating loan application: " . $e->getMessage());
+        $response->getBody()->write(json_encode(['error' => 'An error occurred while updating application: ' . $e->getMessage()]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    }
+})->add(new AuthMiddleware());
+

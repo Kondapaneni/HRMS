@@ -115,3 +115,64 @@ export const updateLoanApplicationStatus = async (appId, status, timelineEvent, 
   return response.data;
 };
 
+/**
+ * Updates an existing loan application in Branch Operations with audit logging.
+ * @param {string|number} appId - Application ID or UUID
+ * @param {Object} formData - Updated form data object
+ * @param {string} loanType - Loan type ('Personal Loan' or 'Business Loan')
+ * @returns {Promise<Object>}
+ */
+export const updateLoanApplicationDetails = async (appId, formData, loanType) => {
+  const payload = {
+    loan_type: loanType,
+    applicant_name: formData.applicant_name || formData.name || '',
+    phone_number: formData.phone_number || formData.phone || '',
+    form_data: formData
+  };
+  const response = await api.put(`/branch-operations/applications/${encodeURIComponent(appId)}`, payload);
+  return response.data;
+};
+
+/**
+ * Fetches dashboard statistics and charts data for branch operations.
+ * @param {Object} context - React Query query context
+ * @returns {Promise<Object>}
+ */
+export const getBranchDashboardData = async ({ queryKey } = {}) => {
+  const employeeId = queryKey?.[1] || '';
+  const url = employeeId && employeeId !== 'all'
+    ? `/branch-operations/dashboard?employee_id=${encodeURIComponent(employeeId)}`
+    : '/branch-operations/dashboard';
+  const response = await api.get(url);
+  return response.data;
+};
+
+/**
+ * Fetches loan applications belonging to the user's branch that have reached Branch Operations stage.
+ * @returns {Promise<Object>}
+ */
+export const getBranchLoanApplications = async () => {
+  const response = await api.get('/branch-operations/applications');
+  return response.data;
+};
+
+/**
+ * Updates an existing loan application in Branch Operations with audit logging.
+ * @param {string|number} appId - Application ID or UUID
+ * @param {Object} formData - Updated form data object
+ * @param {string} loanType - Loan type ('Personal Loan' or 'Business Loan')
+ * @returns {Promise<Object>}
+ */
+export const updateBranchLoanApplication = async (appId, formData, loanType) => {
+  const payload = {
+    loan_type: loanType,
+    applicant_name: formData.applicant_name || formData.name || '',
+    phone_number: formData.phone_number || formData.phone || '',
+    form_data: formData
+  };
+  const response = await api.put(`/branch-operations/applications/${encodeURIComponent(appId)}`, payload);
+  return response.data;
+};
+
+
+

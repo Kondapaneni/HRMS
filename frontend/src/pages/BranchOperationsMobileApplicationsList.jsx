@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { getBranchLoanApplications } from '../services/branchOperationsServices';
+import { getBranchLoanApplications } from '../services/loanServices';
 import PageLoader from '../components/PageLoader';
 import { Search, CheckCircle2, Clock, Phone, Briefcase, ChevronDown, XCircle } from 'lucide-react';
 import { format } from 'date-fns';

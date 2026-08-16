@@ -41,6 +41,7 @@ import BranchOperationsLayout from './components/BranchOperationsLayout'
 import BranchOperationsDashboard from './pages/BranchOperationsDashboard'
 import BranchOperationsApplicationsList from './pages/BranchOperationsApplicationsList'
 import BranchOperationsViewApplication from './pages/BranchOperationsViewApplication'
+import BranchOperationsEditApplication from './pages/BranchOperationsEditApplication'
 import AssessmentWorkspaceLayout from './components/AssessmentWorkspaceLayout'
 import AssessmentManagement from './pages/AssessmentManagement'
 import DepartmentQuestionBank from './pages/DepartmentQuestionBank'
@@ -271,6 +272,7 @@ function App() {
                 <Route path="dashboard" element={<BranchOperationsDashboard />} />
                 <Route path="applications" element={<BranchOperationsApplicationsList />} />
                 <Route path="view-application" element={<BranchOperationsViewApplication />} />
+                <Route path="edit-application" element={<BranchOperationsEditApplication />} />
               </Route>
 
               <Route

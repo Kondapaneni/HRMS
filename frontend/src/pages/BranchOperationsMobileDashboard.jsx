@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getBranchDashboardData } from '../services/branchOperationsServices';
+import { getBranchDashboardData } from '../services/loanServices';
 import PageLoader from '../components/PageLoader';
 import { Users, TrendingUp, CheckCircle, CheckCircle2, RefreshCw, XCircle, Clock, ArrowUpRight, ChevronDown } from 'lucide-react';
 import {

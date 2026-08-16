@@ -4,13 +4,88 @@ import {
   User,
   Users,
   Shield,
-  Calendar
+  Calendar,
+  UserCheck,
+  Edit3,
+  ChevronDown,
+  ChevronUp,
+  History,
+  FileEdit
 } from 'lucide-react';
 import { format } from 'date-fns';
 
 // ============================================================================
 // HELPER UTILITIES
 // ============================================================================
+
+/**
+ * Compact Audit Log Diff Viewer for edited loan applications
+ * Displays only the modified fields (old value vs new value) and editor details.
+ */
+const AuditLogChangesViewer = ({ event }) => {
+  const [isOpen, setIsOpen] = useState(true);
+  const changes = event.changes || [];
+  const editorName = event.editor_name || 'Branch Officer';
+
+  return (
+    <div className="mt-2 rounded-lg border border-blue-200/80 bg-blue-50/40 p-3 space-y-2.5">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5 text-xs text-slate-700 font-medium">
+          <div className="p-1 rounded-md bg-blue-100 text-blue-700">
+            <UserCheck className="w-3.5 h-3.5" />
+          </div>
+          <span>
+            Edited by <strong className="text-slate-900 font-semibold">{editorName}</strong>
+          </span>
+        </div>
+        {changes.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setIsOpen(!isOpen)}
+            className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600 hover:text-blue-800 cursor-pointer bg-white px-2 py-0.5 rounded border border-blue-200 shadow-2xs"
+          >
+            {isOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            {isOpen ? 'Hide' : 'View'} Changes ({changes.length})
+          </button>
+        )}
+      </div>
+
+      {isOpen && changes.length > 0 && (
+        <div className="overflow-x-auto rounded-md border border-slate-200 bg-white shadow-2xs mt-1.5">
+          <table className="min-w-full divide-y divide-slate-200 text-xs">
+            <thead className="bg-slate-50/80 text-slate-600 font-semibold">
+              <tr>
+                <th className="px-3 py-1.5 text-left font-semibold">Modified Field</th>
+                <th className="px-3 py-1.5 text-left font-semibold">Old Value</th>
+                <th className="px-3 py-1.5 text-left font-semibold">New Value</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 text-slate-700">
+              {changes.map((ch, cIdx) => (
+                <tr key={cIdx} className="hover:bg-slate-50/50">
+                  <td className="px-3 py-1.5 font-medium text-slate-900 whitespace-nowrap">
+                    {ch.label || ch.field}
+                  </td>
+                  <td className="px-3 py-1.5 whitespace-nowrap">
+                    <span className="line-through text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200 inline-block font-mono text-[11px]">
+                      {ch.old_value || '—'}
+                    </span>
+                  </td>
+                  <td className="px-3 py-1.5 whitespace-nowrap">
+                    <span className="font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-block font-mono text-[11px]">
+                      {ch.new_value || '—'}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+};
+
 
 const formatDateSafe = (dateStr) => {
   if (!dateStr) return null;
@@ -579,11 +654,32 @@ function MobileDetailView({
             </div>
             {localTimeline.map((event, idx) => {
               const isLast = idx === localTimeline.length - 1;
+              const isUpdateEvent = Boolean(event.changes && event.changes.length > 0) || event.stage === 'Application Updated';
+
               return (
                 <div key={idx} className="relative pl-6">
-                  <div className={`absolute -left-[9px] top-1 w-4 h-4 rounded-full border-2 ${isLast ? 'bg-emerald-100 border-emerald-600' : 'bg-blue-100 border-blue-600'}`} />
-                  <p className="text-sm font-bold text-slate-800">{event.stage}</p>
+                  <div
+                    className={`absolute -left-[9px] top-1 w-4 h-4 rounded-full border-2 ${
+                      isUpdateEvent
+                        ? 'bg-amber-100 border-amber-600'
+                        : isLast
+                        ? 'bg-emerald-100 border-emerald-600'
+                        : 'bg-blue-100 border-blue-600'
+                    }`}
+                  />
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-bold text-slate-800">
+                      {event.stage || event.action || 'Application Updated'}
+                    </p>
+                    {isUpdateEvent && (
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                        <FileEdit className="w-2.5 h-2.5" /> Edited
+                      </span>
+                    )}
+                  </div>
                   <p className="text-[11px] text-slate-500 mt-0.5">{formatDateSafe(event.timestamp)}</p>
+
+                  {isUpdateEvent && <AuditLogChangesViewer event={event} />}
                 </div>
               );
             })}
@@ -1165,11 +1261,32 @@ function DesktopPaperView({
               {/* Dynamic Events from localTimeline */}
               {localTimeline.map((event, idx) => {
                 const isLast = idx === localTimeline.length - 1;
+                const isUpdateEvent = Boolean(event.changes && event.changes.length > 0) || event.stage === 'Application Updated';
+
                 return (
                   <div key={idx} className="relative pl-6">
-                    <div className={`absolute -left-[9px] top-1 w-4 h-4 rounded-full border-2 ${isLast ? 'bg-emerald-100 border-emerald-600' : 'bg-blue-100 border-blue-600'}`} />
-                    <p className="text-sm font-bold text-slate-800">{event.stage}</p>
+                    <div
+                      className={`absolute -left-[9px] top-1 w-4 h-4 rounded-full border-2 ${
+                        isUpdateEvent
+                          ? 'bg-amber-100 border-amber-600'
+                          : isLast
+                          ? 'bg-emerald-100 border-emerald-600'
+                          : 'bg-blue-100 border-blue-600'
+                      }`}
+                    />
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-bold text-slate-800">
+                        {event.stage || event.action || 'Application Updated'}
+                      </p>
+                      {isUpdateEvent && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                          <FileEdit className="w-3 h-3" /> Edited
+                        </span>
+                      )}
+                    </div>
                     <p className="text-[11px] text-slate-500 mt-0.5">{formatDateSafe(event.timestamp)}</p>
+
+                    {isUpdateEvent && <AuditLogChangesViewer event={event} />}
                   </div>
                 );
               })}

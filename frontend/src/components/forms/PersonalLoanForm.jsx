@@ -12,12 +12,11 @@ import {
   AadhaarField,
   useFormState
 } from './index';
-import { validatePersonalLoanForm, capitalizeWords, capitalizeText } from '../../utils/loanValidations';
-import { submitLoanApplication, getLoanApplications, deleteLoanApplication } from '../../services/loanServices';
+import { submitLoanApplication, getLoanApplications, deleteLoanApplication, updateLoanApplicationDetails } from '../../services/loanServices';
 import { Send, Save, Loader2, Download, CheckCircle2, Lock, ArrowLeft, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-export function PersonalLoanForm() {
+export function PersonalLoanForm({ isEditMode: propEditMode, application: propApplication, onSaved }) {
   const { profile } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -340,18 +339,21 @@ export function PersonalLoanForm() {
     }
   };
 
+  const isEditMode = propEditMode || location.state?.mode === 'edit' || location.state?.isEdit;
+  const targetAppId = propApplication?.id || propApplication?.application_id || location.state?.application?.id || location.state?.application?.application_id || location.state?.id || loadedAppId;
+
   // Auto-populate when profile data or navigation state resolves or on mount
   useEffect(() => {
-    const directData = location.state?.application?.form_data || location.state?.form_data;
+    const directData = propApplication?.form_data || location.state?.application?.form_data || location.state?.form_data;
     if (directData) {
       populateFromData(directData);
     }
     
-    if (location.state?.application?.id || location.state?.application?.application_id) {
-      setLoadedAppId(location.state.application.id || location.state.application.application_id);
+    if (propApplication?.id || location.state?.application?.id || location.state?.application?.application_id) {
+      setLoadedAppId(propApplication?.id || location.state?.application?.id || location.state?.application?.application_id);
     }
 
-    if (location.state?.application?.status === 'Created') {
+    if (!isEditMode && location.state?.application?.status === 'Created') {
       setIsAlreadySubmitted(true);
     }
 
@@ -359,6 +361,7 @@ export function PersonalLoanForm() {
       location.state?.name || 
       location.state?.applicant_name || 
       location.state?.application?.applicant_name ||
+      propApplication?.applicant_name ||
       profile?.full_name || 
       profile?.name || 
       '';
@@ -367,12 +370,13 @@ export function PersonalLoanForm() {
       location.state?.phone || 
       location.state?.phone_number || 
       location.state?.application?.phone_number ||
+      propApplication?.phone_number ||
       profile?.phone || 
       profile?.phone_number || 
       profile?.mobile || 
       '';
 
-    const leadIdFromSource = location.state?.lead_id || location.state?.id || location.state?.application?.lead_id || '';
+    const leadIdFromSource = location.state?.lead_id || location.state?.id || location.state?.application?.lead_id || propApplication?.lead_id || '';
 
     if (nameFromSource && !formData.applicant_name) {
       updateField('applicant_name', capitalizeWords(nameFromSource));
@@ -385,10 +389,10 @@ export function PersonalLoanForm() {
     }
 
     // Load database application data if not populated directly
-    if (!directData) {
+    if (!directData && !isEditMode) {
       loadSavedDataFromDB(false);
     }
-  }, [profile, location.state]);
+  }, [profile, location.state, propApplication, isEditMode]);
 
   const getCleanFormData = () => {
     const cleaned = {};
@@ -447,6 +451,39 @@ export function PersonalLoanForm() {
     if (!isValid) {
       setFormErrors(validationErrors);
       toast.error('Please resolve validation errors in the form.');
+      return;
+    }
+
+    if (isEditMode) {
+      if (!targetAppId) {
+        toast.error('Application ID not found for update.');
+        return;
+      }
+      try {
+        setIsSubmitting(true);
+        const cleanData = getCleanFormData();
+        await updateLoanApplicationDetails(targetAppId, cleanData, 'Personal Loan');
+        toast.success('Application updated successfully with audit trail!');
+        queryClient.invalidateQueries({ queryKey: ['branchOperations'] });
+        queryClient.invalidateQueries({ queryKey: ['origination'] });
+        if (onSaved) {
+          onSaved();
+        } else {
+          const fromPath = location.state?.from || '/employee/branch-operations/view-application';
+          navigate(fromPath, {
+            state: {
+              application: { ...(propApplication || location.state?.application || {}), form_data: cleanData },
+              id: targetAppId,
+              from: '/employee/branch-operations/applications'
+            }
+          });
+        }
+      } catch (err) {
+        console.error('Error updating application:', err);
+        toast.error(err.response?.data?.error || 'Failed to update application.');
+      } finally {
+        setIsSubmitting(false);
+      }
       return;
     }
 
@@ -1700,39 +1737,69 @@ export function PersonalLoanForm() {
       </div>
 
       <div className="pt-6 border-t border-slate-100 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3">
-        {loadedAppId && !isAlreadySubmitted && (
-          <button
-            type="button"
-            onClick={handleDeleteDraft}
-            disabled={isDeleting || isDrafting || isSubmitting}
-            className="w-full sm:w-auto inline-flex items-center justify-center rounded-md text-sm font-medium bg-red-50 text-red-600 hover:bg-red-100 h-10 px-4 py-2 transition-colors cursor-pointer border border-red-200 gap-2 disabled:opacity-50 shadow-xs mr-auto"
-          >
-            {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />} Delete Draft
-          </button>
+        {isEditMode ? (
+          <>
+            <button
+              type="button"
+              onClick={() => navigate(location.state?.from || '/employee/branch-operations/view-application', { state: location.state })}
+              disabled={isSubmitting}
+              className="w-full sm:w-auto inline-flex items-center justify-center rounded-md text-sm font-medium bg-white text-slate-700 hover:bg-slate-50 h-10 px-5 py-2 transition-colors cursor-pointer border border-slate-300 gap-2 disabled:opacity-50 shadow-xs"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full sm:w-auto inline-flex items-center justify-center rounded-md text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 h-10 px-6 py-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50 gap-2"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" /> Updating...
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="h-4 w-4" /> Update Application
+                </>
+              )}
+            </button>
+          </>
+        ) : (
+          <>
+            {loadedAppId && !isAlreadySubmitted && (
+              <button
+                type="button"
+                onClick={handleDeleteDraft}
+                disabled={isDeleting || isDrafting || isSubmitting}
+                className="w-full sm:w-auto inline-flex items-center justify-center rounded-md text-sm font-medium bg-red-50 text-red-600 hover:bg-red-100 h-10 px-4 py-2 transition-colors cursor-pointer border border-red-200 gap-2 disabled:opacity-50 shadow-xs mr-auto"
+              >
+                {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />} Delete Draft
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={handleSaveDraft}
+              disabled={isDrafting || isSubmitting || isLoadingData || isAlreadySubmitted}
+              className="w-full sm:w-auto inline-flex items-center justify-center rounded-md text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 h-10 px-4 py-2 transition-colors cursor-pointer border border-slate-300 gap-2 disabled:opacity-50 shadow-xs"
+            >
+              {isDrafting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save Draft
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting || isDrafting || isLoadingData || isAlreadySubmitted}
+              className="w-full sm:w-auto inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50 gap-2"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" /> Submitting...
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4" /> {isAlreadySubmitted ? 'Application Submitted' : 'Submit Application'}
+                </>
+              )}
+            </button>
+          </>
         )}
-        <button
-          type="button"
-          onClick={handleSaveDraft}
-          disabled={isDrafting || isSubmitting || isLoadingData || isAlreadySubmitted}
-          className="w-full sm:w-auto inline-flex items-center justify-center rounded-md text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 h-10 px-4 py-2 transition-colors cursor-pointer border border-slate-300 gap-2 disabled:opacity-50 shadow-xs"
-        >
-          {isDrafting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save Draft
-        </button>
-        <button
-          type="submit"
-          disabled={isSubmitting || isDrafting || isLoadingData || isAlreadySubmitted}
-          className="w-full sm:w-auto inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50 gap-2"
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" /> Submitting...
-            </>
-          ) : (
-            <>
-              <Send className="h-4 w-4" /> {isAlreadySubmitted ? 'Application Submitted' : 'Submit Application'}
-            </>
-          )}
-        </button>
       </div>
     </form>
   );
