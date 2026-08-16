@@ -269,11 +269,26 @@ function MobileDetailView({
     application.documents ||
     application.form_data?.documents ||
     {};
-  const localTimeline =
+  const baseTimeline =
     externalTimeline ||
     formData.timeline ||
     application.form_data?.timeline ||
     [];
+
+  const auditLogsAsEvents = (application.audit_logs || []).map((al) => ({
+    stage: 'Application Updated',
+    action: 'Application Details Modified',
+    timestamp: al.created_at,
+    editor_name: al.editor_name,
+    changes: al.changes,
+    changes_count: al.changes_count
+  }));
+
+  const localTimeline = [...baseTimeline, ...auditLogsAsEvents].sort((a, b) => {
+    const tA = new Date(a.timestamp || 0).getTime();
+    const tB = new Date(b.timestamp || 0).getTime();
+    return tA - tB;
+  });
 
   const formattedDate =
     formatDateSafe(application.created_at || application.updated_at) ||
@@ -754,11 +769,26 @@ function DesktopPaperView({
     application.documents ||
     application.form_data?.documents ||
     {};
-  const localTimeline =
+  const baseTimeline =
     externalTimeline ||
     formData.timeline ||
     application.form_data?.timeline ||
     [];
+
+  const auditLogsAsEvents = (application.audit_logs || []).map((al) => ({
+    stage: 'Application Updated',
+    action: 'Application Details Modified',
+    timestamp: al.created_at,
+    editor_name: al.editor_name,
+    changes: al.changes,
+    changes_count: al.changes_count
+  }));
+
+  const localTimeline = [...baseTimeline, ...auditLogsAsEvents].sort((a, b) => {
+    const tA = new Date(a.timestamp || 0).getTime();
+    const tB = new Date(b.timestamp || 0).getTime();
+    return tA - tB;
+  });
 
   const formattedDate =
     formatDateSafe(application.created_at || application.updated_at) ||

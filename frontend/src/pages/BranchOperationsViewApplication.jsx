@@ -23,26 +23,27 @@ export default function BranchOperationsViewApplication() {
   const stateApplication = location.state?.application;
   const stateFormData = location.state?.form_data || stateApplication?.form_data;
   const fromPath = location.state?.from || '/employee/branch-operations/applications';
+  const targetId = stateApplication?.id || stateApplication?.application_id || paramAppId;
 
-  // Fallback query if page is refreshed or visited with a query parameter/missing state
+  // Query fresh applications list from server
   const { data: response, isLoading } = useQuery({
     queryKey: ['branchOperations', 'applications', 'list'],
     queryFn: getBranchLoanApplications,
-    enabled: !stateApplication,
   });
 
+  // Pick freshest data from query response if available, fallback to router state
   let application = stateApplication;
   let formData = stateFormData;
 
-  if (!application && response?.applications) {
-    if (paramAppId) {
-      application = response.applications.find(
-        (a) => String(a.id) === String(paramAppId) || String(a.application_id) === String(paramAppId)
-      );
-    } else if (response.applications.length > 0) {
+  if (response?.applications) {
+    const found = response.applications.find(
+      (a) => String(a.id) === String(targetId) || String(a.application_id) === String(targetId)
+    );
+    if (found) {
+      application = found;
+      formData = found.form_data;
+    } else if (!application && response.applications.length > 0) {
       application = response.applications[0];
-    }
-    if (application) {
       formData = application.form_data;
     }
   }
@@ -55,17 +56,28 @@ export default function BranchOperationsViewApplication() {
   const [localStatus, setLocalStatus] = useState(
     application?.status || formData?.status || 'Under Review'
   );
-  const [localTimeline, setLocalTimeline] = useState(
-    formData?.timeline || application?.form_data?.timeline || []
-  );
+  const [localTimeline, setLocalTimeline] = useState([]);
 
   useEffect(() => {
     if (application) {
       if (application.status) setLocalStatus(application.status);
       const docs = formData?.documents || application.documents || application.form_data?.documents || {};
       setCurrentDocs(docs);
-      const timeline = formData?.timeline || application.form_data?.timeline || [];
-      setLocalTimeline(timeline);
+
+      const baseTimeline = formData?.timeline || application.form_data?.timeline || application.stage_history || [];
+      const auditLogsAsEvents = (application.audit_logs || []).map((al) => ({
+        stage: 'Application Updated',
+        action: 'Application Details Modified',
+        timestamp: al.created_at,
+        editor_name: al.editor_name,
+        changes: al.changes,
+        changes_count: al.changes_count
+      }));
+
+      const combined = [...baseTimeline, ...auditLogsAsEvents].sort((a, b) => {
+        return new Date(a.timestamp || 0).getTime() - new Date(b.timestamp || 0).getTime();
+      });
+      setLocalTimeline(combined);
     }
   }, [application, formData]);
 

@@ -170,6 +170,29 @@ $app->get('/api/branch-operations/applications', function (Request $request, Res
             $applicantName = $formData['applicant_name'] ?? $formData['name'] ?? 'N/A';
             $phoneNumber = $formData['phone_number'] ?? $formData['phone'] ?? 'N/A';
 
+            // Fetch audit logs from dedicated public.loan_application_audit_logs table
+            $auditLogs = [];
+            try {
+                $auditStmt = $conn->prepare('
+                    SELECT id, application_id, loan_application_id, editor_name, editor_user_id, changes, changes_count, created_at
+                    FROM public.loan_application_audit_logs
+                    WHERE application_id = ? OR loan_application_id = ?
+                    ORDER BY created_at ASC
+                ');
+                $auditStmt->execute([$row['application_id'] ?: (string)$row['id'], $row['id']]);
+                $auditLogs = $auditStmt->fetchAll(PDO::FETCH_ASSOC);
+                foreach ($auditLogs as &$al) {
+                    if (is_string($al['changes'])) {
+                        $al['changes'] = json_decode($al['changes'], true) ?: [];
+                    }
+                }
+            } catch (\Exception $e) {
+                error_log("Error fetching loan audit logs: " . $e->getMessage());
+            }
+
+            // Strip any legacy edit_logs from form_data
+            unset($formData['edit_logs']);
+
             $applications[] = [
                 'id' => $row['id'],
                 'application_id' => $row['application_id'] ?: 'LA-PENDING',
@@ -186,7 +209,8 @@ $app->get('/api/branch-operations/applications', function (Request $request, Res
                 'form_data' => $formData,
                 'signatures' => $signatures,
                 'documents' => $docs,
-                'stage_history' => $timeline
+                'stage_history' => $timeline,
+                'audit_logs' => $auditLogs
             ];
         }
 
@@ -417,36 +441,30 @@ $app->put('/api/branch-operations/applications/{id}', function (Request $request
             }
         }
 
-        // Clean new form data (removing nulls or empty strings)
+        // Clean new form data (removing nulls, empty strings, and audit logs)
         $cleanedFormData = [];
+        $keysToStrip = ['documents', 'edit_logs'];
         foreach ($submittedFormData as $k => $v) {
-            if ($k === 'documents') continue;
+            if (in_array($k, $keysToStrip)) continue;
             if ($v !== null && !(is_string($v) && trim($v) === '')) {
                 $cleanedFormData[$k] = $v;
             }
         }
 
-        // Preserve timeline from old form data
+        // Preserve original stage timeline only (excluding any edit events)
         $existingTimeline = $oldFormData['timeline'] ?? [];
         if (!is_array($existingTimeline)) $existingTimeline = [];
+        $cleanTimeline = [];
+        foreach ($existingTimeline as $ev) {
+            if (isset($ev['stage']) && $ev['stage'] === 'Application Updated') continue;
+            if (isset($ev['action']) && stripos($ev['action'], 'Modified') !== false) continue;
+            $cleanTimeline[] = $ev;
+        }
+        $cleanedFormData['timeline'] = $cleanTimeline;
+        unset($cleanedFormData['edit_logs']);
 
-        $existingEditLogs = $oldFormData['edit_logs'] ?? [];
-        if (!is_array($existingEditLogs)) $existingEditLogs = [];
-
-        // If changes were detected, add an audit log event and insert into loan_application_audit_logs table
+        // If changes were detected, save ONLY to dedicated public.loan_application_audit_logs table
         if (!empty($changes)) {
-            $editEvent = [
-                'stage' => 'Application Updated',
-                'action' => 'Application Details Modified',
-                'timestamp' => (new \DateTime('now', new \DateTimeZone('UTC')))->format('c'),
-                'editor_name' => $editorName,
-                'changes_count' => count($changes),
-                'changes' => $changes
-            ];
-
-            $existingTimeline[] = $editEvent;
-            $existingEditLogs[] = $editEvent;
-
             // Save to dedicated public.loan_application_audit_logs table
             try {
                 $auditStmt = $conn->prepare('
@@ -466,9 +484,6 @@ $app->put('/api/branch-operations/applications/{id}', function (Request $request
                 error_log("Error saving loan application audit log to table: " . $e->getMessage());
             }
         }
-
-        $cleanedFormData['timeline'] = $existingTimeline;
-        $cleanedFormData['edit_logs'] = $existingEditLogs;
 
         // Preserve application ID & loan type
         if (!empty($existingApp['application_id'])) {
@@ -507,6 +522,27 @@ $app->put('/api/branch-operations/applications/{id}', function (Request $request
                 $updatedRecord['signatures'] = json_decode($updatedRecord['signatures'], true);
             }
             $updatedRecord['documents'] = getBranchLoanDocumentsFromTable($conn, $updatedRecord['application_id'], $updatedRecord['id'], $updatedRecord['lead_id']);
+
+            // Fetch audit logs from dedicated table
+            $auditLogs = [];
+            try {
+                $auditStmt = $conn->prepare('
+                    SELECT id, application_id, loan_application_id, editor_name, editor_user_id, changes, changes_count, created_at
+                    FROM public.loan_application_audit_logs
+                    WHERE application_id = ? OR loan_application_id = ?
+                    ORDER BY created_at ASC
+                ');
+                $auditStmt->execute([$existingApp['application_id'] ?: (string)$existingApp['id'], $existingApp['id']]);
+                $auditLogs = $auditStmt->fetchAll(PDO::FETCH_ASSOC);
+                foreach ($auditLogs as &$al) {
+                    if (is_string($al['changes'])) {
+                        $al['changes'] = json_decode($al['changes'], true) ?: [];
+                    }
+                }
+            } catch (\Exception $e) {
+                error_log("Error fetching loan audit logs: " . $e->getMessage());
+            }
+            $updatedRecord['audit_logs'] = $auditLogs;
         }
 
         $response->getBody()->write(json_encode([

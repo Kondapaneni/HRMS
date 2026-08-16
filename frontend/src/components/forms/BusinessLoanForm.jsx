@@ -463,20 +463,33 @@ export function BusinessLoanForm({ isEditMode: propEditMode, application: propAp
       try {
         setIsSubmitting(true);
         const cleanData = getCleanFormData();
-        await updateLoanApplicationDetails(targetAppId, cleanData, 'Business Loan');
+        const res = await updateLoanApplicationDetails(targetAppId, cleanData, 'Business Loan');
         toast.success('Application updated successfully with audit trail!');
-        queryClient.invalidateQueries({ queryKey: ['branchOperations'] });
-        queryClient.invalidateQueries({ queryKey: ['origination'] });
+        
+        await queryClient.invalidateQueries({ queryKey: ['branchOperations'] });
+        await queryClient.refetchQueries({ queryKey: ['branchOperations', 'applications', 'list'] });
+
+        const updatedApp = res?.application ? {
+          ...res.application,
+          form_data: cleanData,
+          audit_logs: res?.application?.audit_logs || res?.audit_logs || []
+        } : {
+          ...(propApplication || location.state?.application || {}),
+          form_data: cleanData
+        };
+
         if (onSaved) {
-          onSaved();
+          onSaved(updatedApp);
         } else {
           const fromPath = location.state?.from || '/employee/branch-operations/view-application';
           navigate(fromPath, {
             state: {
-              application: { ...(propApplication || location.state?.application || {}), form_data: cleanData },
+              application: updatedApp,
+              form_data: cleanData,
               id: targetAppId,
               from: '/employee/branch-operations/applications'
-            }
+            },
+            replace: true
           });
         }
       } catch (err) {
