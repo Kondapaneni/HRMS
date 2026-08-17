@@ -20,7 +20,7 @@ if (!function_exists('getBranchLoanDocumentsFromTable')) {
         ');
         $stmt->execute([(string)$appId, (string)$uuidId, (string)$leadId]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
+
         $docsMap = [];
         foreach ($rows as $r) {
             $docsMap[$r['slot_key']] = [
@@ -33,23 +33,157 @@ if (!function_exists('getBranchLoanDocumentsFromTable')) {
 }
 
 /**
+ * OPTIMIZATION: batched version of getBranchLoanDocumentsFromTable for listing
+ * endpoints. The branch applications list previously called
+ * getBranchLoanDocumentsFromTable() once per row — for a branch with 50
+ * applications that's 50 extra queries. This fetches every matching document
+ * for the whole result set in one query; resolveBranchLoanDocumentsForRow()
+ * then reproduces the exact same OR-across-3-ids + created_at ASC overwrite
+ * behaviour per row from the batch result.
+ */
+if (!function_exists('getBranchLoanDocumentsBatch')) {
+    function getBranchLoanDocumentsBatch($conn, array $rows) {
+        $allIds = [];
+        foreach ($rows as $r) {
+            foreach ([$r['application_id'] ?? null, $r['id'] ?? null, $r['lead_id'] ?? null] as $v) {
+                if (!empty($v)) $allIds[(string)$v] = true;
+            }
+        }
+        $allIds = array_keys($allIds);
+        if (empty($allIds)) return [];
+
+        $placeholders = implode(',', array_fill(0, count($allIds), '?'));
+        $stmt = $conn->prepare("
+            SELECT application_id, slot_key, url, created_at
+            FROM public.loan_documents
+            WHERE application_id IN ($placeholders)
+            ORDER BY created_at ASC
+        ");
+        $stmt->execute($allIds);
+        $allDocs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $docsByAppId = [];
+        foreach ($allDocs as $d) {
+            $docsByAppId[$d['application_id']][] = $d;
+        }
+        return $docsByAppId;
+    }
+}
+
+if (!function_exists('resolveBranchLoanDocumentsForRow')) {
+    function resolveBranchLoanDocumentsForRow(array $docsByAppId, $appId, $uuidId = null, $leadId = null) {
+        $matched = [];
+        foreach ([$appId, $uuidId, $leadId] as $key) {
+            if (!empty($key) && isset($docsByAppId[(string)$key])) {
+                foreach ($docsByAppId[(string)$key] as $d) {
+                    $matched[] = $d;
+                }
+            }
+        }
+        usort($matched, fn($a, $b) => strtotime($a['created_at']) <=> strtotime($b['created_at']));
+
+        $docsMap = [];
+        foreach ($matched as $d) {
+            $docsMap[$d['slot_key']] = [
+                'url' => $d['url'],
+                'slot_key' => $d['slot_key']
+            ];
+        }
+        return $docsMap;
+    }
+}
+
+/**
+ * OPTIMIZATION: batched audit-log fetch. The branch applications list
+ * previously ran one SELECT against loan_application_audit_logs per row
+ * inside a try/catch. Batched into a single query matching on either
+ * application_id or loan_application_id across the whole result set, then
+ * resolved per row (same ORDER BY created_at ASC as before).
+ */
+if (!function_exists('getBranchLoanAuditLogsBatch')) {
+    function getBranchLoanAuditLogsBatch($conn, array $rows) {
+        $appIds = [];
+        $rowIds = [];
+        foreach ($rows as $r) {
+            $appIds[(string)($r['application_id'] ?: $r['id'])] = true;
+            $rowIds[(string)$r['id']] = true;
+        }
+        $appIds = array_keys($appIds);
+        $rowIds = array_keys($rowIds);
+        if (empty($appIds) && empty($rowIds)) return [];
+
+        $conds = [];
+        $params = [];
+        if (!empty($appIds)) {
+            $conds[] = 'application_id IN (' . implode(',', array_fill(0, count($appIds), '?')) . ')';
+            $params = array_merge($params, $appIds);
+        }
+        if (!empty($rowIds)) {
+            $conds[] = 'loan_application_id IN (' . implode(',', array_fill(0, count($rowIds), '?')) . ')';
+            $params = array_merge($params, $rowIds);
+        }
+
+        $stmt = $conn->prepare('
+            SELECT id, application_id, loan_application_id, editor_name, editor_user_id, changes, changes_count, created_at
+            FROM public.loan_application_audit_logs
+            WHERE ' . implode(' OR ', $conds) . '
+            ORDER BY created_at ASC
+        ');
+        $stmt->execute($params);
+        $allLogs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $logsByKey = [];
+        foreach ($allLogs as $log) {
+            if (!empty($log['application_id'])) $logsByKey['app:' . $log['application_id']][] = $log;
+            if (!empty($log['loan_application_id'])) $logsByKey['row:' . $log['loan_application_id']][] = $log;
+        }
+        return $logsByKey;
+    }
+}
+
+if (!function_exists('resolveBranchLoanAuditLogsForRow')) {
+    function resolveBranchLoanAuditLogsForRow(array $logsByKey, $appId, $rowId) {
+        $matchKey1 = 'app:' . ($appId ?: (string)$rowId);
+        $matchKey2 = 'row:' . $rowId;
+
+        $seen = [];
+        $logs = [];
+        foreach (array_merge($logsByKey[$matchKey1] ?? [], $logsByKey[$matchKey2] ?? []) as $log) {
+            if (isset($seen[$log['id']])) continue;
+            $seen[$log['id']] = true;
+            $logs[] = $log;
+        }
+        usort($logs, fn($a, $b) => strtotime($a['created_at']) <=> strtotime($b['created_at']));
+
+        foreach ($logs as &$al) {
+            if (is_string($al['changes'])) {
+                $al['changes'] = json_decode($al['changes'], true) ?: [];
+            }
+        }
+        unset($al);
+
+        return $logs;
+    }
+}
+
+/**
  * Branch Operations Loan Applications Routes
  * Scoped strictly to the logged-in employee's branch.
  * Displays applications that have reached the Branch Operations stage at any point in their stage transition history.
  */
 $app->get('/api/branch-operations/applications', function (Request $request, Response $response, $args) {
     $decodedToken = $request->getAttribute('user');
-    
+
     try {
         $db = new Database();
         $conn = $db->getConnection();
-        
+
         if (!$conn) {
             throw new Exception("Database connection failed");
         }
 
-        $userId = is_object($decodedToken) 
-            ? ($decodedToken->id ?? $decodedToken->user_id ?? null) 
+        $userId = is_object($decodedToken)
+            ? ($decodedToken->id ?? $decodedToken->user_id ?? null)
             : ($decodedToken['id'] ?? $decodedToken['user_id'] ?? null);
 
         if (!$userId) {
@@ -60,9 +194,9 @@ $app->get('/api/branch-operations/applications', function (Request $request, Res
         // Fetch user's assigned branch matching employee_profile_routes.php
         $empStmt = $conn->prepare('
             SELECT e.id, e."employeeId", e."userId", e."firstName", e."lastName", e.email, e.department, e.position, e.branch,
-                   b.name as branch_name 
-            FROM employee e 
-            LEFT JOIN branches b ON e.branch::uuid = b.id 
+                   b.name as branch_name
+            FROM employee e
+            LEFT JOIN branches b ON e.branch::uuid = b.id
             WHERE e."userId" = ? LIMIT 1
         ');
         $empStmt->execute([$userId]);
@@ -88,7 +222,7 @@ $app->get('/api/branch-operations/applications', function (Request $request, Res
 
         // Query all applications associated with this employee's branch
         $sql = '
-            SELECT 
+            SELECT
                 a.id,
                 a.application_id,
                 a.lead_id,
@@ -111,14 +245,20 @@ $app->get('/api/branch-operations/applications', function (Request $request, Res
         $stmt->execute([':branch' => $userBranch]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+        // OPTIMIZATION: batch-fetch documents and audit logs for every row in
+        // this branch's result set up front (2 queries total) instead of doing
+        // it inside the per-row loop below (was up to 2 queries per row).
+        $docsByAppId = getBranchLoanDocumentsBatch($conn, $rows);
+        $auditLogsByKey = getBranchLoanAuditLogsBatch($conn, $rows);
+
         $applications = [];
         foreach ($rows as $row) {
             $formData = is_string($row['form_data']) ? json_decode($row['form_data'], true) : ($row['form_data'] ?: []);
             $signatures = is_string($row['signatures']) ? json_decode($row['signatures'], true) : ($row['signatures'] ?: []);
-            
+
             $timeline = $formData['timeline'] ?? [];
             $currentStage = $formData['stage'] ?? '';
-            
+
             // Check if the application has passed through Branch Operations stage in its stage history
             $hasReachedBranchOps = false;
 
@@ -132,8 +272,8 @@ $app->get('/api/branch-operations/applications', function (Request $request, Res
                 foreach ($timeline as $event) {
                     $stageName = $event['stage'] ?? $event['title'] ?? '';
                     if (
-                        stripos($stageName, 'Branch') !== false || 
-                        stripos($stageName, 'Operations') !== false || 
+                        stripos($stageName, 'Branch') !== false ||
+                        stripos($stageName, 'Operations') !== false ||
                         in_array($stageName, ['Branch Operations', 'Credit', 'Operations Review', 'Sanctioned', 'Disbursed'])
                     ) {
                         $hasReachedBranchOps = true;
@@ -156,8 +296,8 @@ $app->get('/api/branch-operations/applications', function (Request $request, Res
                 continue;
             }
 
-            // Fetch documents from public.loan_documents table
-            $docs = getBranchLoanDocumentsFromTable($conn, $row['application_id'], $row['id'], $row['lead_id']);
+            // Resolve documents from the batch fetched above
+            $docs = resolveBranchLoanDocumentsForRow($docsByAppId, $row['application_id'], $row['id'], $row['lead_id']);
             if (isset($formData['documents']) && is_array($formData['documents'])) {
                 foreach ($formData['documents'] as $k => $v) {
                     if (!isset($docs[$k]) && !empty($v)) {
@@ -170,25 +310,8 @@ $app->get('/api/branch-operations/applications', function (Request $request, Res
             $applicantName = $formData['applicant_name'] ?? $formData['name'] ?? 'N/A';
             $phoneNumber = $formData['phone_number'] ?? $formData['phone'] ?? 'N/A';
 
-            // Fetch audit logs from dedicated public.loan_application_audit_logs table
-            $auditLogs = [];
-            try {
-                $auditStmt = $conn->prepare('
-                    SELECT id, application_id, loan_application_id, editor_name, editor_user_id, changes, changes_count, created_at
-                    FROM public.loan_application_audit_logs
-                    WHERE application_id = ? OR loan_application_id = ?
-                    ORDER BY created_at ASC
-                ');
-                $auditStmt->execute([$row['application_id'] ?: (string)$row['id'], $row['id']]);
-                $auditLogs = $auditStmt->fetchAll(PDO::FETCH_ASSOC);
-                foreach ($auditLogs as &$al) {
-                    if (is_string($al['changes'])) {
-                        $al['changes'] = json_decode($al['changes'], true) ?: [];
-                    }
-                }
-            } catch (\Exception $e) {
-                error_log("Error fetching loan audit logs: " . $e->getMessage());
-            }
+            // Resolve audit logs from the batch fetched above
+            $auditLogs = resolveBranchLoanAuditLogsForRow($auditLogsByKey, $row['application_id'], $row['id']);
 
             // Strip any legacy edit_logs from form_data
             unset($formData['edit_logs']);
@@ -342,6 +465,9 @@ if (!function_exists('getLoanFieldFriendlyLabel')) {
 /**
  * PUT /api/branch-operations/applications/{id}
  * Update an existing application's details in Branch Operations and generate an Audit Log of changes.
+ *
+ * (Unchanged — this endpoint touches exactly one application, so there is no
+ * N+1 pattern here to optimize.)
  */
 $app->put('/api/branch-operations/applications/{id}', function (Request $request, Response $response, $args) {
     $identifier = $args['id'];
@@ -365,8 +491,8 @@ $app->put('/api/branch-operations/applications/{id}', function (Request $request
         $db = new Database();
         $conn = $db->getConnection();
 
-        $userId = is_object($decodedToken) 
-            ? ($decodedToken->id ?? $decodedToken->user_id ?? null) 
+        $userId = is_object($decodedToken)
+            ? ($decodedToken->id ?? $decodedToken->user_id ?? null)
             : ($decodedToken['id'] ?? $decodedToken['user_id'] ?? null);
 
         if (!$userId) {
@@ -377,9 +503,9 @@ $app->put('/api/branch-operations/applications/{id}', function (Request $request
         // Fetch editor employee details for the audit log
         $empStmt = $conn->prepare('
             SELECT e.id, e."employeeId", e."userId", e."firstName", e."lastName", e.email, e.department, e.position,
-                   b.name as branch_name 
-            FROM employee e 
-            LEFT JOIN branches b ON e.branch::uuid = b.id 
+                   b.name as branch_name
+            FROM employee e
+            LEFT JOIN branches b ON e.branch::uuid = b.id
             WHERE e."userId" = ? LIMIT 1
         ');
         $empStmt->execute([$userId]);
@@ -408,8 +534,8 @@ $app->put('/api/branch-operations/applications/{id}', function (Request $request
             return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
         }
 
-        $oldFormData = is_string($existingApp['form_data']) 
-            ? json_decode($existingApp['form_data'], true) 
+        $oldFormData = is_string($existingApp['form_data'])
+            ? json_decode($existingApp['form_data'], true)
             : ($existingApp['form_data'] ?: []);
 
         // Compute field-by-field diff between old and new form data
@@ -424,7 +550,7 @@ $app->put('/api/branch-operations/applications/{id}', function (Request $request
 
         foreach ($allKeys as $key) {
             if (in_array(strtolower($key), $ignoreKeys)) continue;
-            
+
             $oldVal = isset($oldFormData[$key]) ? (string)$oldFormData[$key] : '';
             $newVal = isset($submittedFormData[$key]) ? (string)$submittedFormData[$key] : '';
 
@@ -564,4 +690,3 @@ $app->put('/api/branch-operations/applications/{id}', function (Request $request
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware());
-

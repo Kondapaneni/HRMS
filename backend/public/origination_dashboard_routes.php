@@ -6,51 +6,46 @@ use App\Config\Database;
 
 // Protect these routes with AuthMiddleware if needed
 $app->group('/api/leads', function (\Slim\Routing\RouteCollectorProxy $group) {
-    
+
     // Get dashboard stats
     $group->get('/dashboard', function (Request $request, Response $response, $args) {
         $user = $request->getAttribute('user');
         try {
             $db = new Database();
             $conn = $db->getConnection();
-            
+
             if (!$conn) {
                 throw new Exception("Database connection failed");
             }
 
+            // OPTIMIZATION: the original code ran 4 separate COUNT queries
+            // (total this month, active, converted, total last month) that
+            // all scan the same table filtered by the same created_by.
+            // Combined into a single query using conditional aggregation —
+            // same 4 numbers, 1 round trip instead of 4.
             $stmt = $conn->prepare("
-                SELECT COUNT(*) as total 
-                FROM public.loan_leads 
-                WHERE date_trunc('month', created_at) = date_trunc('month', CURRENT_DATE)
-                AND created_by = :uid
+                SELECT
+                    COALESCE(SUM(CASE WHEN date_trunc('month', created_at) = date_trunc('month', CURRENT_DATE) THEN 1 ELSE 0 END), 0) AS total_leads_month,
+                    COALESCE(SUM(CASE WHEN date_trunc('month', created_at) = date_trunc('month', CURRENT_DATE - INTERVAL '1 month') THEN 1 ELSE 0 END), 0) AS total_leads_last_month,
+                    COALESCE(SUM(CASE WHEN status IN ('New', 'Active', 'In Progress') THEN 1 ELSE 0 END), 0) AS active_opportunities,
+                    COALESCE(SUM(CASE WHEN status = 'Converted' THEN 1 ELSE 0 END), 0) AS converted_leads
+                FROM public.loan_leads
+                WHERE created_by = :uid
             ");
             $stmt->execute([':uid' => $user->id]);
-            $totalLeadsMonth = $stmt->fetchColumn() ?: 0;
+            $counts = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            $stmt = $conn->prepare("
-                SELECT COUNT(*) as active 
-                FROM public.loan_leads 
-                WHERE status IN ('New', 'Active', 'In Progress')
-                AND created_by = :uid
-            ");
-            $stmt->execute([':uid' => $user->id]);
-            $activeOpportunities = $stmt->fetchColumn() ?: 0;
-
-            $stmt = $conn->prepare("
-                SELECT COUNT(*) as converted 
-                FROM public.loan_leads 
-                WHERE status = 'Converted'
-                AND created_by = :uid
-            ");
-            $stmt->execute([':uid' => $user->id]);
-            $convertedLeads = $stmt->fetchColumn() ?: 0;
+            $totalLeadsMonth = $counts['total_leads_month'] ?? 0;
+            $totalLeadsLastMonth = $counts['total_leads_last_month'] ?? 0;
+            $activeOpportunities = $counts['active_opportunities'] ?? 0;
+            $convertedLeads = $counts['converted_leads'] ?? 0;
 
             // Daily Trends (Last 7 Days)
             $stmt = $conn->prepare("
                 WITH last_7_days AS (
                     SELECT generate_series(CURRENT_DATE - INTERVAL '6 days', CURRENT_DATE, '1 day'::interval)::date AS d
                 )
-                SELECT 
+                SELECT
                     to_char(d, 'Dy') as name,
                     COALESCE(SUM(CASE WHEN status != 'Converted' THEN 1 ELSE 0 END), 0) as leads,
                     COALESCE(SUM(CASE WHEN status = 'Converted' THEN 1 ELSE 0 END), 0) as converted
@@ -67,7 +62,7 @@ $app->group('/api/leads', function (\Slim\Routing\RouteCollectorProxy $group) {
                 WITH last_6_months AS (
                     SELECT generate_series(date_trunc('month', CURRENT_DATE) - INTERVAL '5 months', date_trunc('month', CURRENT_DATE), '1 month'::interval)::date AS m
                 )
-                SELECT 
+                SELECT
                     to_char(m, 'Mon') as name,
                     COALESCE(SUM(CASE WHEN status != 'Converted' THEN 1 ELSE 0 END), 0) as leads,
                     COALESCE(SUM(CASE WHEN status = 'Converted' THEN 1 ELSE 0 END), 0) as converted
@@ -79,16 +74,8 @@ $app->group('/api/leads', function (\Slim\Routing\RouteCollectorProxy $group) {
             $stmt->execute([':uid' => $user->id]);
             $monthlyData = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            $stmtLastMonth = $conn->prepare("
-                SELECT COUNT(*) as total 
-                FROM public.loan_leads 
-                WHERE date_trunc('month', created_at) = date_trunc('month', CURRENT_DATE - INTERVAL '1 month')
-                AND created_by = :uid
-            ");
-            $stmtLastMonth->execute([':uid' => $user->id]);
-            $totalLeadsLastMonth = $stmtLastMonth->fetchColumn() ?: 0;
-            $percentChangeTotal = $totalLeadsLastMonth > 0 
-                ? round((($totalLeadsMonth - $totalLeadsLastMonth) / $totalLeadsLastMonth) * 100) 
+            $percentChangeTotal = $totalLeadsLastMonth > 0
+                ? round((($totalLeadsMonth - $totalLeadsLastMonth) / $totalLeadsLastMonth) * 100)
                 : ($totalLeadsMonth > 0 ? 100 : 0);
 
             $response->getBody()->write(json_encode([
@@ -116,7 +103,7 @@ $app->group('/api/leads', function (\Slim\Routing\RouteCollectorProxy $group) {
                 }, $monthlyData)
             ]));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
-            
+
         } catch (\PDOException $e) {
             error_log("Database error fetching dashboard data: " . $e->getMessage());
             $response->getBody()->write(json_encode(['error' => 'Database error while fetching dashboard data']));

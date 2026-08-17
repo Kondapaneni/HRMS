@@ -18,12 +18,71 @@ function getLoanDocumentsFromTable($conn, $appId, $uuidId = null, $leadId = null
     ');
     $stmt->execute([(string)$appId, (string)$uuidId, (string)$leadId]);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
+
     $docsMap = [];
     foreach ($rows as $r) {
         $docsMap[$r['slot_key']] = [
             'url' => $r['url'],
             'slot_key' => $r['slot_key']
+        ];
+    }
+    return $docsMap;
+}
+
+/**
+ * OPTIMIZATION: batched version of getLoanDocumentsFromTable for listing endpoints.
+ * The original list endpoint called getLoanDocumentsFromTable() once per row (N+1
+ * queries). This fetches every matching document in a single query, then resolves
+ * per-row maps in PHP — same OR-across-3-ids matching, same created_at ASC
+ * overwrite-order behaviour, just one round trip for the whole list.
+ */
+function getLoanDocumentsBatch($conn, array $rows) {
+    $allIds = [];
+    foreach ($rows as $r) {
+        foreach ([$r['application_id'] ?? null, $r['id'] ?? null, $r['lead_id'] ?? null] as $v) {
+            if (!empty($v)) $allIds[(string)$v] = true;
+        }
+    }
+    $allIds = array_keys($allIds);
+    if (empty($allIds)) return [];
+
+    $placeholders = implode(',', array_fill(0, count($allIds), '?'));
+    $stmt = $conn->prepare("
+        SELECT application_id, slot_key, url, created_at
+        FROM public.loan_documents
+        WHERE application_id IN ($placeholders)
+        ORDER BY created_at ASC
+    ");
+    $stmt->execute($allIds);
+    $allDocs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $docsByAppId = [];
+    foreach ($allDocs as $d) {
+        $docsByAppId[$d['application_id']][] = $d;
+    }
+    return $docsByAppId;
+}
+
+/**
+ * Resolves the per-row documents map from the batch result, preserving the
+ * original OR-across-3-ids matching + created_at ASC overwrite order.
+ */
+function resolveLoanDocumentsForRow(array $docsByAppId, $appId, $uuidId = null, $leadId = null) {
+    $matched = [];
+    foreach ([$appId, $uuidId, $leadId] as $key) {
+        if (!empty($key) && isset($docsByAppId[(string)$key])) {
+            foreach ($docsByAppId[(string)$key] as $d) {
+                $matched[] = $d;
+            }
+        }
+    }
+    usort($matched, fn($a, $b) => strtotime($a['created_at']) <=> strtotime($b['created_at']));
+
+    $docsMap = [];
+    foreach ($matched as $d) {
+        $docsMap[$d['slot_key']] = [
+            'url' => $d['url'],
+            'slot_key' => $d['slot_key']
         ];
     }
     return $docsMap;
@@ -103,7 +162,7 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
     try {
         $db = new Database();
         $conn = $db->getConnection();
-        
+
         if (!$conn) {
             throw new Exception("Database connection failed");
         }
@@ -118,7 +177,7 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
         }
 
         $jsonPayload = json_encode($cleanedFormData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        
+
         // Resolve user ID safely as string (supports both UUID strings and integer IDs)
         $createdById = null;
         if (is_object($user)) {
@@ -165,7 +224,7 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
                 VALUES (?, ?, ?, ?, ?::jsonb, ?, ?, NOW(), NOW())
                 RETURNING id, application_id, lead_id, loan_type, status, form_data, branch, signatures, created_at, updated_at
             ');
-            
+
             $stmt->execute([
                 $applicationId,
                 $leadId,
@@ -200,7 +259,7 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
             'application' => $application
         ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
-        
+
     } catch (\PDOException $e) {
         error_log("Database error submitting loan application: " . $e->getMessage());
         $response->getBody()->write(json_encode(['error' => 'Database error while saving to DB: ' . $e->getMessage()]));
@@ -217,7 +276,7 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
  */
 $app->get('/api/loans/applications', function (Request $request, Response $response, $args) {
     $user = $request->getAttribute('user');
-    
+
     try {
         $db = new Database();
         $conn = $db->getConnection();
@@ -238,9 +297,13 @@ $app->get('/api/loans/applications', function (Request $request, Response $respo
             WHERE created_by = ? OR ? = \'admin\'
             ORDER BY created_at DESC
         ');
-        
+
         $stmt->execute([$userId, $userRole]);
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // OPTIMIZATION: fetch documents for every row in one query instead of
+        // one query per row (was N+1 — a list of 50 applications meant 51 queries).
+        $docsByAppId = getLoanDocumentsBatch($conn, $rows);
 
         foreach ($rows as &$row) {
             if (isset($row['form_data']) && is_string($row['form_data'])) {
@@ -249,8 +312,9 @@ $app->get('/api/loans/applications', function (Request $request, Response $respo
             if (isset($row['signatures']) && is_string($row['signatures'])) {
                 $row['signatures'] = json_decode($row['signatures'], true);
             }
-            $row['documents'] = getLoanDocumentsFromTable($conn, $row['application_id'], $row['id'], $row['lead_id']);
+            $row['documents'] = resolveLoanDocumentsForRow($docsByAppId, $row['application_id'], $row['id'], $row['lead_id']);
         }
+        unset($row);
 
         $response->getBody()->write(json_encode([
             'success' => true,
@@ -422,7 +486,7 @@ $app->patch('/api/loans/applications/{id}/status', function (Request $request, R
         }
 
         $formData = is_string($appRow['form_data']) ? json_decode($appRow['form_data'], true) : ($appRow['form_data'] ?: []);
-        
+
         if ($timelineEvent) {
             if (!isset($formData['timeline']) || !is_array($formData['timeline'])) {
                 $formData['timeline'] = [];
@@ -431,16 +495,16 @@ $app->patch('/api/loans/applications/{id}/status', function (Request $request, R
         }
 
         $jsonPayload = json_encode($formData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-        
+
         $updateQuery = 'UPDATE public.loan_applications SET status = ?, form_data = ?::jsonb, updated_at = NOW()';
         $updateParams = [$status, $jsonPayload];
-        
+
         if ($signatureData && is_array($signatureData)) {
             $signaturePayload = json_encode($signatureData);
             $updateQuery = 'UPDATE public.loan_applications SET status = ?, form_data = ?::jsonb, signatures = COALESCE(signatures, \'{}\'::jsonb) || ?::jsonb, updated_at = NOW()';
             $updateParams = [$status, $jsonPayload, $signaturePayload];
         }
-        
+
         $updateQuery .= ' WHERE id = ?';
         $updateParams[] = $appRow['id'];
 
@@ -465,14 +529,14 @@ $app->patch('/api/loans/applications/{id}/status', function (Request $request, R
  */
 $app->delete('/api/loans/applications/{id}', function (Request $request, Response $response, $args) {
     $identifier = $args['id'];
-    
+
     try {
         $db = new Database();
         $conn = $db->getConnection();
-        
+
         $stmt = $conn->prepare('DELETE FROM public.loan_applications WHERE id::text = ? OR application_id = ? OR lead_id = ?');
         $stmt->execute([$identifier, $identifier, $identifier]);
-        
+
         if ($stmt->rowCount() > 0) {
             $response->getBody()->write(json_encode(['success' => true, 'message' => 'Loan application deleted successfully']));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
