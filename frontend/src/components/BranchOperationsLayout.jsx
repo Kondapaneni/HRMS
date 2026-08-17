@@ -246,7 +246,7 @@ const BranchOperationsLayout = () => {
                 className="relative flex flex-col items-center justify-center w-[72px] h-[58px] z-10 group"
               >
                 <ArrowLeft className="relative z-10 w-6 h-6 mb-0.5 transition-all duration-300 text-slate-500 group-hover:text-slate-600 group-active:scale-95" strokeWidth={2} />
-                <span className="relative z-10 text-[10px] font-medium tracking-wide transition-all duration-300 text-slate-500">Back</span>
+                <span className="relative z-10 text-[10px] text-center leading-tight font-medium tracking-wide transition-all duration-300 text-slate-500">Back</span>
               </button>
 
               {navItems.filter(item => !item.feature || profile?.featureAccess?.[item.feature]).map((item, idx) => {
@@ -284,7 +284,7 @@ const BranchOperationsLayout = () => {
                       />
                     )}
                     <Icon className={`relative z-10 w-6 h-6 mb-0.5 transition-all duration-300 ${isActive ? 'text-[#ff2d55] scale-105' : 'text-slate-500 group-hover:text-slate-600 group-active:scale-95'}`} strokeWidth={isActive ? 2.5 : 2} />
-                    <span className={`relative z-10 text-[10px] font-medium tracking-wide transition-all duration-300 ${isActive ? 'text-[#ff2d55]' : 'text-slate-500'}`}>{item.label}</span>
+                    <span className={`relative z-10 text-[10px] text-center leading-tight font-medium tracking-wide transition-all duration-300 ${isActive ? 'text-[#ff2d55]' : 'text-slate-500'}`}>{item.label}</span>
                   </Link>
                 );
               })}
