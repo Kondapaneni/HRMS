@@ -254,7 +254,7 @@ const BranchOperationsLayout = () => {
                 const isMobileViewAppPage = currentPath === '/employee/branch-operations/loans-view-applications' || currentPath.startsWith('/employee/branch-operations/loans-view-applications/');
 
                 let isActive;
-                if (isMobileViewAppPage && item.label === 'Applications') {
+                if (isMobileViewAppPage && (item.label === 'Loan Applications' || item.label === 'Applications')) {
                   isActive = true;
                 } else if (isMobileViewAppPage) {
                   isActive = false;
@@ -284,7 +284,7 @@ const BranchOperationsLayout = () => {
                       />
                     )}
                     <Icon className={`relative z-10 w-6 h-6 mb-0.5 transition-all duration-300 ${isActive ? 'text-[#ff2d55] scale-105' : 'text-slate-500 group-hover:text-slate-600 group-active:scale-95'}`} strokeWidth={isActive ? 2.5 : 2} />
-                    <span className={`relative z-10 text-[10px] text-center leading-tight font-medium tracking-wide transition-all duration-300 ${isActive ? 'text-[#ff2d55]' : 'text-slate-500'}`}>{item.label}</span>
+                    <span className={`relative z-10 text-[10px] text-center leading-tight font-medium tracking-wide transition-all duration-300 max-w-[62px] w-full truncate block ${isActive ? 'text-[#ff2d55]' : 'text-slate-500'}`} title={item.label}>{item.label}</span>
                   </Link>
                 );
               })}
