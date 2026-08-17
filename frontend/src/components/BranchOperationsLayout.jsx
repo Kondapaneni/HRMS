@@ -77,7 +77,7 @@ const BranchOperationsLayout = () => {
 
   const navItems = [
     { icon: Activity, label: 'Dashboard', path: '/employee/branch-operations', feature: 'canBranchOperations' },
-    { icon: Briefcase, label: 'Applications', path: '/employee/branch-operations/loans-applications', feature: 'canBranchOperations' },
+    { icon: Briefcase, label: 'Loan Applications', path: '/employee/branch-operations/loans-applications', feature: 'canBranchOperations' },
   ];
 
   const shapeVariants = {

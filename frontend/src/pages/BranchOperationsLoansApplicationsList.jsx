@@ -113,7 +113,7 @@ const BranchOperationsLoansApplicationsList = () => {
         <div className="flex justify-between items-center mb-2">
           <div>
             <div className="flex items-center gap-2.5 mb-1">
-              <h1 className="text-3xl font-bold tracking-tight text-slate-900">Applications</h1>
+              <h1 className="text-3xl font-bold tracking-tight text-slate-900">Loan Applications</h1>
               <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
                 <Building2 size={13} className="text-indigo-600" />
                 {branch.name}
@@ -136,7 +136,7 @@ const BranchOperationsLoansApplicationsList = () => {
                 <div>
                   <h3 className="text-lg font-semibold flex items-center gap-2 text-slate-900">
                     <Briefcase className="h-5 w-5 text-slate-500" />
-                    Applications Directory
+                    Loan Applications Directory
                   </h3>
                   <p className="text-sm text-slate-500 mt-1">A comprehensive list of all loan applications handled by this branch.</p>
                 </div>
