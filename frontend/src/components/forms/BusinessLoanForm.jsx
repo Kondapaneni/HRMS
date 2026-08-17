@@ -481,13 +481,13 @@ export function BusinessLoanForm({ isEditMode: propEditMode, application: propAp
         if (onSaved) {
           onSaved(updatedApp);
         } else {
-          const fromPath = location.state?.from || '/employee/branch-operations/view-application';
+          const fromPath = location.state?.from || '/employee/branch-operations/loans-view-applications';
           navigate(fromPath, {
             state: {
               application: updatedApp,
               form_data: cleanData,
               id: targetAppId,
-              from: '/employee/branch-operations/applications'
+              from: '/employee/branch-operations/loans-applications'
             },
             replace: true
           });
@@ -1755,7 +1755,7 @@ export function BusinessLoanForm({ isEditMode: propEditMode, application: propAp
           <>
             <button
               type="button"
-              onClick={() => navigate(location.state?.from || '/employee/branch-operations/view-application', { state: location.state })}
+              onClick={() => navigate(location.state?.from || '/employee/branch-operations/loans-view-applications', { state: location.state })}
               disabled={isSubmitting}
               className="w-full sm:w-auto inline-flex items-center justify-center rounded-md text-sm font-medium bg-white text-slate-700 hover:bg-slate-50 h-10 px-5 py-2 transition-colors cursor-pointer border border-slate-300 gap-2 disabled:opacity-50 shadow-xs"
             >

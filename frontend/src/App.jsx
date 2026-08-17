@@ -39,9 +39,9 @@ import OriginationApplicationsList from './pages/OriginationApplicationsList'
 import OriginationViewApplication from './pages/OriginationViewApplication'
 import BranchOperationsLayout from './components/BranchOperationsLayout'
 import BranchOperationsDashboard from './pages/BranchOperationsDashboard'
-import BranchOperationsApplicationsList from './pages/BranchOperationsApplicationsList'
-import BranchOperationsViewApplication from './pages/BranchOperationsViewApplication'
-import BranchOperationsEditApplication from './pages/BranchOperationsEditApplication'
+import BranchOperationsLoansApplicationsList from './pages/BranchOperationsLoansApplicationsList'
+import BranchOperationsLoansViewApplication from './pages/BranchOperationsLoansViewApplication'
+import BranchOperationsLoansEditApplication from './pages/BranchOperationsLoansEditApplication'
 import AssessmentWorkspaceLayout from './components/AssessmentWorkspaceLayout'
 import AssessmentManagement from './pages/AssessmentManagement'
 import DepartmentQuestionBank from './pages/DepartmentQuestionBank'
@@ -177,7 +177,7 @@ function App() {
                 <Route path="recruitment" element={<AdminRecruitment />} />
                 <Route path="recruitment/verify-documents/:id" element={<AdminVerifyDocuments />} />
                 <Route path="form" element={<OriginationLoanForms />} />
-                <Route path="view-application" element={<OriginationViewApplication />} />
+                <Route path="loans-view-applications" element={<OriginationViewApplication />} />
               </Route>
 
               {/* Acme Assessment Hub Workspace (Admin Only) */}
@@ -256,7 +256,7 @@ function App() {
                 <Route path="origination/members/:phone/details" element={<OriginationMobileMemberDetails />} />
                 <Route path="origination/applications" element={<OriginationApplicationsList />} />
                 <Route path="form" element={<OriginationLoanForms />} />
-                <Route path="view-application" element={<OriginationViewApplication />} />
+                <Route path="loans-view-applications" element={<OriginationViewApplication />} />
               </Route>
 
               {/* Branch Operations Workspace (Employee Only) */}
@@ -270,9 +270,9 @@ function App() {
               >
                 <Route index element={<BranchOperationsDashboard />} />
                 <Route path="dashboard" element={<BranchOperationsDashboard />} />
-                <Route path="applications" element={<BranchOperationsApplicationsList />} />
-                <Route path="view-application" element={<BranchOperationsViewApplication />} />
-                <Route path="edit-application" element={<BranchOperationsEditApplication />} />
+                <Route path="loans-applications" element={<BranchOperationsLoansApplicationsList />} />
+                <Route path="loans-view-applications" element={<BranchOperationsLoansViewApplication />} />
+                <Route path="loans-edit-application" element={<BranchOperationsLoansEditApplication />} />
               </Route>
 
               <Route
@@ -330,7 +330,7 @@ function App() {
               >
                 <Route path="dashboard" element={<CandidateDashboard />} />
                 <Route path="jobs" element={<CandidateJobs />} />
-                <Route path="applications" element={<CandidateApplications />} />
+                <Route path="loans-applications" element={<CandidateApplications />} />
                 <Route path="documents" element={<CandidateDocuments />} />
                 <Route path="profile" element={<CandidateProfile />} />
               </Route>

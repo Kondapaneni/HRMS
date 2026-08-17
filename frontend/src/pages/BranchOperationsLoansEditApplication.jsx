@@ -2,13 +2,13 @@ import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { BusinessLoanForm, PersonalLoanForm } from '../components/forms';
 import { Edit3, ArrowLeft, ShieldAlert } from 'lucide-react';
-import BranchOperationsMobileEditApplication from './BranchOperationsMobileEditApplication';
+import BranchOperationsMobileLoansEditApplication from './BranchOperationsMobileLoansEditApplication';
 
-export default function BranchOperationsEditApplication() {
+export default function BranchOperationsLoansEditApplication() {
   const location = useLocation();
   const navigate = useNavigate();
   const application = location.state?.application || {};
-  const fromPath = location.state?.from || '/employee/branch-operations/view-application';
+  const fromPath = location.state?.from || '/employee/branch-operations/loans-view-applications';
   const loanType = location.state?.loan_type || application?.loan_type || application?.form_data?.loan_type || 'Personal Loan';
   const appId = application?.application_id || application?.id || 'Application';
 
@@ -31,7 +31,7 @@ export default function BranchOperationsEditApplication() {
     <>
       {/* Mobile View */}
       <div className="md:hidden">
-        <BranchOperationsMobileEditApplication />
+        <BranchOperationsMobileLoansEditApplication />
       </div>
 
       {/* Desktop View */}

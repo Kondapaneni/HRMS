@@ -5,9 +5,9 @@ import { getBranchLoanApplications } from '../services/loanServices';
 import PageLoader from '../components/PageLoader';
 import { Search, CheckCircle2, Briefcase, Clock, Building2, XCircle, MoreVertical } from 'lucide-react';
 import { format } from 'date-fns';
-import BranchOperationsMobileApplicationsList from './BranchOperationsMobileApplicationsList';
+import BranchOperationsMobileLoansApplicationsList from './BranchOperationsMobileLoansApplicationsList';
 
-const BranchOperationsApplicationsList = () => {
+const BranchOperationsLoansApplicationsList = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
@@ -51,14 +51,14 @@ const BranchOperationsApplicationsList = () => {
   };
 
   const handleViewDetails = (app) => {
-    navigate('/employee/branch-operations/view-application', {
+    navigate('/employee/branch-operations/loans-view-applications', {
       state: {
         application: app,
         form_data: app.form_data,
         lead_id: app.lead_id,
         name: app.applicant_name || app.form_data?.applicant_name,
         phone: app.phone_number || app.form_data?.phone_number,
-        from: '/employee/branch-operations/applications',
+        from: '/employee/branch-operations/loans-applications',
       },
     });
   };
@@ -104,7 +104,7 @@ const BranchOperationsApplicationsList = () => {
     <>
       {/* Mobile Screen View */}
       <div className="md:hidden">
-        <BranchOperationsMobileApplicationsList />
+        <BranchOperationsMobileLoansApplicationsList />
       </div>
 
       {/* Desktop Screen View */}
@@ -267,4 +267,4 @@ const BranchOperationsApplicationsList = () => {
   );
 };
 
-export default BranchOperationsApplicationsList;
+export default BranchOperationsLoansApplicationsList;

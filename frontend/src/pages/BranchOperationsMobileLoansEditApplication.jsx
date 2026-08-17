@@ -4,11 +4,11 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { BusinessLoanForm, PersonalLoanForm } from '../components/forms';
 
-const BranchOperationsMobileEditApplication = () => {
+const BranchOperationsMobileLoansEditApplication = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const application = location.state?.application || {};
-  const fromPath = location.state?.from || '/employee/branch-operations/view-application';
+  const fromPath = location.state?.from || '/employee/branch-operations/loans-view-applications';
   const loanType = location.state?.loan_type || application?.loan_type || application?.form_data?.loan_type || 'Personal Loan';
   const appId = application?.application_id || application?.id || 'Application';
 
@@ -86,4 +86,4 @@ const BranchOperationsMobileEditApplication = () => {
   );
 };
 
-export default BranchOperationsMobileEditApplication;
+export default BranchOperationsMobileLoansEditApplication;

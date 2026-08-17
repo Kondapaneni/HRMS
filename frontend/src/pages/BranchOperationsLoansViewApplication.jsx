@@ -12,9 +12,9 @@ import {
 } from 'lucide-react';
 import { getBranchLoanApplications } from '../services/loanServices';
 import { LoanDetailView } from '../components/forms';
-import BranchOperationsMobileViewApplication from './BranchOperationsMobileViewApplication';
+import BranchOperationsMobileLoansViewApplication from './BranchOperationsMobileLoansViewApplication';
 
-export default function BranchOperationsViewApplication() {
+export default function BranchOperationsLoansViewApplication() {
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -22,7 +22,7 @@ export default function BranchOperationsViewApplication() {
 
   const stateApplication = location.state?.application;
   const stateFormData = location.state?.form_data || stateApplication?.form_data;
-  const fromPath = location.state?.from || '/employee/branch-operations/applications';
+  const fromPath = location.state?.from || '/employee/branch-operations/loans-applications';
   const targetId = stateApplication?.id || stateApplication?.application_id || paramAppId;
 
   // Query fresh applications list from server
@@ -124,7 +124,7 @@ export default function BranchOperationsViewApplication() {
     <>
       {/* Mobile View Component (Visible ONLY on Mobile < 768px) */}
       <div className="block md:hidden print:hidden">
-        <BranchOperationsMobileViewApplication
+        <BranchOperationsMobileLoansViewApplication
           application={application}
           formData={formData}
           fromPath={fromPath}
@@ -155,12 +155,12 @@ export default function BranchOperationsViewApplication() {
             {hasBranchOpsStage && (
               <button
                 type="button"
-                onClick={() => navigate('/employee/branch-operations/edit-application', {
+                onClick={() => navigate('/employee/branch-operations/loans-edit-application', {
                   state: {
                     application,
                     form_data: formData,
                     loan_type: loanType,
-                    from: '/employee/branch-operations/view-application'
+                    from: '/employee/branch-operations/loans-view-applications'
                   }
                 })}
                 className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 transition-colors gap-2 shadow-sm cursor-pointer"

@@ -26,7 +26,7 @@ const formatDateSafe = (dateStr) => {
   }
 };
 
-export default function BranchOperationsMobileViewApplication({
+export default function BranchOperationsMobileLoansViewApplication({
   application: propApplication,
   formData: propFormData,
   fromPath: propFromPath
@@ -38,7 +38,7 @@ export default function BranchOperationsMobileViewApplication({
 
   const stateApplication = propApplication || location.state?.application;
   const stateFormData = propFormData || location.state?.form_data || stateApplication?.form_data;
-  const fromPath = propFromPath || location.state?.from || '/employee/branch-operations/applications';
+  const fromPath = propFromPath || location.state?.from || '/employee/branch-operations/loans-applications';
 
   // Fallback query if page is refreshed or visited with a query parameter/missing state
   const { data: response, isLoading } = useQuery({
@@ -199,12 +199,12 @@ export default function BranchOperationsMobileViewApplication({
             {hasBranchOpsStage && (
               <button
                 type="button"
-                onClick={() => navigate('/employee/branch-operations/edit-application', {
+                onClick={() => navigate('/employee/branch-operations/loans-edit-application', {
                   state: {
                     application,
                     form_data: formData,
                     loan_type: loanType,
-                    from: '/employee/branch-operations/view-application'
+                    from: '/employee/branch-operations/loans-view-applications'
                   }
                 })}
                 className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white hover:bg-blue-700 active:scale-95 transition-all shadow-md shadow-blue-500/20 shrink-0 cursor-pointer"

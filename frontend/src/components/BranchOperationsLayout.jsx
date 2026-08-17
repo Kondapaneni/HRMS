@@ -77,7 +77,7 @@ const BranchOperationsLayout = () => {
 
   const navItems = [
     { icon: Activity, label: 'Dashboard', path: '/employee/branch-operations', feature: 'canBranchOperations' },
-    { icon: Briefcase, label: 'Applications', path: '/employee/branch-operations/applications', feature: 'canBranchOperations' },
+    { icon: Briefcase, label: 'Applications', path: '/employee/branch-operations/loans-applications', feature: 'canBranchOperations' },
   ];
 
   const shapeVariants = {
@@ -128,7 +128,7 @@ const BranchOperationsLayout = () => {
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 px-2 whitespace-nowrap">Operations Modules</p>
           <nav className="space-y-1">
             {navItems.filter(item => !item.feature || profile?.featureAccess?.[item.feature]).map((item, idx) => {
-              const isViewAppPage = location.pathname === '/employee/branch-operations/view-application' || location.pathname.startsWith('/employee/branch-operations/view-application/');
+              const isViewAppPage = location.pathname === '/employee/branch-operations/loans-view-applications' || location.pathname.startsWith('/employee/branch-operations/loans-view-applications/');
 
               let isActive;
               if (isViewAppPage && item.label === 'Applications') {
@@ -251,7 +251,7 @@ const BranchOperationsLayout = () => {
 
               {navItems.filter(item => !item.feature || profile?.featureAccess?.[item.feature]).map((item, idx) => {
                 const currentPath = swipePath || location.pathname;
-                const isMobileViewAppPage = currentPath === '/employee/branch-operations/view-application' || currentPath.startsWith('/employee/branch-operations/view-application/');
+                const isMobileViewAppPage = currentPath === '/employee/branch-operations/loans-view-applications' || currentPath.startsWith('/employee/branch-operations/loans-view-applications/');
 
                 let isActive;
                 if (isMobileViewAppPage && item.label === 'Applications') {

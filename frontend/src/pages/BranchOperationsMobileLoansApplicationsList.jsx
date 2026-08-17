@@ -6,7 +6,7 @@ import PageLoader from '../components/PageLoader';
 import { Search, CheckCircle2, Clock, Phone, Briefcase, ChevronDown, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 
-const BranchOperationsMobileApplicationsList = () => {
+const BranchOperationsMobileLoansApplicationsList = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
@@ -50,14 +50,14 @@ const BranchOperationsMobileApplicationsList = () => {
   };
 
   const handleViewDetails = (app) => {
-    navigate('/employee/branch-operations/view-application', {
+    navigate('/employee/branch-operations/loans-view-applications', {
       state: {
         application: app,
         form_data: app.form_data,
         lead_id: app.lead_id,
         name: app.applicant_name || app.form_data?.applicant_name,
         phone: app.phone_number || app.form_data?.phone_number,
-        from: '/employee/branch-operations/applications',
+        from: '/employee/branch-operations/loans-applications',
       },
     });
   };
@@ -214,4 +214,4 @@ const BranchOperationsMobileApplicationsList = () => {
   );
 };
 
-export default BranchOperationsMobileApplicationsList;
+export default BranchOperationsMobileLoansApplicationsList;
