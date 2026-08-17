@@ -13,7 +13,12 @@ const BranchOperationsLayout = () => {
   const [swipePath, setSwipePath] = useState(null);
   const [showBackModal, setShowBackModal] = useState(false);
 
-  const hideBottomNavPatterns = [];
+  const hideBottomNavPatterns = [
+    '/employee/branch-operations/loans-view-applications',
+    '/employee/branch-operations/loans-edit-application',
+    '/employee/branch-operations/view-application',
+    '/employee/branch-operations/edit-application',
+  ];
   const shouldHideBottomNav = hideBottomNavPatterns.some((pattern) =>
     typeof pattern === 'string'
       ? location.pathname === pattern || location.pathname.startsWith(`${pattern}/`)
