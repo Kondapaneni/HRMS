@@ -26,7 +26,7 @@ export default function OriginationViewApplication() {
 
   const stateApplication = location.state?.application;
   const stateFormData = location.state?.form_data || stateApplication?.form_data;
-  const fromPath = location.state?.from || '/employee/origination/applications';
+  const fromPath = location.state?.from || '/employee/loans/origination/applications';
 
   // Fallback query if page is refreshed or visited with a query parameter/missing state
   const { data: response, isLoading } = useQuery({

@@ -7,7 +7,7 @@ import OriginationMobileLoanForms from './OriginationMobileLoanForms';
 export default function OriginationLoanForms() {
   const location = useLocation();
   const navigate = useNavigate();
-  const fromPath = location.state?.from || '/employee/origination/members';
+  const fromPath = location.state?.from || '/employee/loans/origination/members';
   const loanType = location.state?.loan_type || location.state?.loanType || 'Business Loan';
 
   const renderForm = () => {

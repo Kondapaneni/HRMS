@@ -95,7 +95,7 @@ export const ProtectedRoute = ({ children, allowedRoles }) => {
     if (profile.featureAccess) {
       const path = location.pathname;
 
-      if (path.startsWith('/employee/origination') && !profile.featureAccess.canLoanOrigination) {
+      if (path.startsWith('/employee/loans/origination') && !profile.featureAccess.canLoanOrigination) {
         return <Navigate to={getRoleHomePath(profile.role)} replace />;
       }
 

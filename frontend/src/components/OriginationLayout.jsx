@@ -14,11 +14,11 @@ const OriginationLayout = () => {
   const [showBackModal, setShowBackModal] = useState(false);
 
   const hideBottomNavPatterns = [
-    '/employee/origination/form',
-    '/employee/origination/view-application',
-    '/employee/origination/leads/add',
-    /\/employee\/origination\/leads\/[^/]+\/details/,
-    /\/employee\/origination\/members\/[^/]+\/details/,
+    '/employee/loans/form',
+    '/employee/loans/view-application',
+    '/employee/loans/origination/leads/add',
+    /\/employee\/loans\/origination\/leads\/[^/]+\/details/,
+    /\/employee\/loans\/origination\/members\/[^/]+\/details/,
   ];
   const shouldHideBottomNav = hideBottomNavPatterns.some((pattern) =>
     typeof pattern === 'string'
@@ -82,10 +82,10 @@ const OriginationLayout = () => {
   };
 
   const navItems = [
-    { icon: Activity, label: 'Dashboard', path: '/employee/origination', feature: 'canLoanOrigination' },
-    { icon: FileText, label: 'Leads', path: '/employee/origination/leads', feature: 'canLoanOrigination' },
-    { icon: Users, label: 'Members', path: '/employee/origination/members', feature: 'canLoanOrigination' },
-    { icon: Briefcase, label: 'Applications', path: '/employee/origination/applications', feature: 'canLoanOrigination' },
+    { icon: Activity, label: 'Dashboard', path: '/employee/loans/origination', feature: 'canLoanOrigination' },
+    { icon: FileText, label: 'Leads', path: '/employee/loans/origination/leads', feature: 'canLoanOrigination' },
+    { icon: Users, label: 'Members', path: '/employee/loans/origination/members', feature: 'canLoanOrigination' },
+    { icon: Briefcase, label: 'Applications', path: '/employee/loans/origination/applications', feature: 'canLoanOrigination' },
   ];
 
   const shapeVariants = {
@@ -136,8 +136,8 @@ const OriginationLayout = () => {
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 px-2 whitespace-nowrap">Loan Modules</p>
           <nav className="space-y-1">
             {navItems.filter(item => !item.feature || profile?.featureAccess?.[item.feature]).map((item, idx) => {
-              const isFormPage = location.pathname === '/employee/origination/form' || location.pathname.startsWith('/employee/origination/form/');
-              const isViewApplicationPage = location.pathname === '/employee/origination/view-application' || location.pathname.startsWith('/employee/origination/view-application/');
+              const isFormPage = location.pathname === '/employee/loans/form' || location.pathname.startsWith('/employee/loans/form/');
+              const isViewApplicationPage = location.pathname === '/employee/loans/view-application' || location.pathname.startsWith('/employee/loans/view-application/');
 
               let isActive;
               if (isFormPage && item.label === 'Members') {
@@ -146,7 +146,7 @@ const OriginationLayout = () => {
                 isActive = true;
               } else if (isFormPage || isViewApplicationPage) {
                 isActive = false;
-              } else if (item.path === '/employee/origination') {
+              } else if (item.path === '/employee/loans/origination') {
                 isActive = location.pathname === item.path;
               } else {
                 isActive = location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
@@ -260,7 +260,7 @@ const OriginationLayout = () => {
 
               {navItems.filter(item => !item.feature || profile?.featureAccess?.[item.feature]).map((item, idx) => {
                 const currentPath = swipePath || location.pathname;
-                const isActive = item.path === '/employee/origination'
+                const isActive = item.path === '/employee/loans/origination'
                   ? currentPath === item.path
                   : (currentPath === item.path || currentPath.startsWith(`${item.path}/`));
                 

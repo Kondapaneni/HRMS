@@ -434,7 +434,7 @@ export function BusinessLoanForm({ isEditMode: propEditMode, application: propAp
       toast.success('Draft deleted successfully!');
       queryClient.invalidateQueries({ queryKey: ['origination', 'applications', 'list'] });
       queryClient.invalidateQueries({ queryKey: ['leadsDashboard'] });
-      navigate('/employee/origination/applications');
+      navigate('/employee/loans/origination/applications');
     } catch (err) {
       console.error('Error deleting draft:', err);
       toast.error(err.response?.data?.error || 'Failed to delete draft.');
@@ -508,7 +508,7 @@ export function BusinessLoanForm({ isEditMode: propEditMode, application: propAp
       await submitLoanApplication('Business Loan', cleanData, 'Created');
       toast.success('Business Loan Application Created Successfully!');
       setTimeout(() => {
-        navigate('/employee/origination/members');
+        navigate('/employee/loans/origination/members');
       }, 1000);
       resetForm({
         applicant_name: '',

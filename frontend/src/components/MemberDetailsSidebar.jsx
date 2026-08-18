@@ -113,7 +113,7 @@ const MemberDetailsSidebar = ({ isOpen, onClose, member }) => {
                           </div>
                         ) : (
                           <Link 
-                            to="/employee/origination/form"
+                            to="/employee/loans/form"
                             state={{ name: member.name, phone: member.phone, lead_id: currentLeadId, loan_type: loan.loan_type }}
                             className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline transition-all"
                           >
@@ -135,7 +135,7 @@ const MemberDetailsSidebar = ({ isOpen, onClose, member }) => {
                         </div>
                       ) : (
                         <Link 
-                          to="/employee/origination/form"
+                          to="/employee/loans/form"
                           state={{ name: member.name, phone: member.phone, lead_id: member.lead_id }}
                           className="inline-flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-700 hover:underline"
                         >

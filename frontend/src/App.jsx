@@ -237,23 +237,22 @@ function App() {
                 }
               />
 
-              {/* Origination Workspace (Employee Only) */}
+              {/* Origination Loans Workspace (Employee Only) */}
               <Route
-                path="/employee/origination"
+                path="/employee/loans"
                 element={
                   <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
                     <OriginationLayout />
                   </ProtectedRoute>
                 }
               >
-                <Route index element={<OriginationDashboard />} />
-                <Route path="dashboard" element={<OriginationDashboard />} />
-                <Route path="leads" element={<OriginationLeadsList />} />
-                <Route path="leads/add" element={<OriginationMobileAddLead />} />
-                <Route path="leads/:id/details" element={<OriginationMobileLeadDetails />} />
-                <Route path="members" element={<OriginationMembersList />} />
-                <Route path="members/:phone/details" element={<OriginationMobileMemberDetails />} />
-                <Route path="applications" element={<OriginationApplicationsList />} />
+                <Route path="origination" element={<OriginationDashboard />} />
+                <Route path="origination/leads" element={<OriginationLeadsList />} />
+                <Route path="origination/leads/add" element={<OriginationMobileAddLead />} />
+                <Route path="origination/leads/:id/details" element={<OriginationMobileLeadDetails />} />
+                <Route path="origination/members" element={<OriginationMembersList />} />
+                <Route path="origination/members/:phone/details" element={<OriginationMobileMemberDetails />} />
+                <Route path="origination/applications" element={<OriginationApplicationsList />} />
                 <Route path="form" element={<OriginationLoanForms />} />
                 <Route path="view-application" element={<OriginationViewApplication />} />
               </Route>

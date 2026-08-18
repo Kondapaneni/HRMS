@@ -15,7 +15,7 @@ const OriginationMobileLeadDetails = () => {
 
   // If no lead in state, bounce back
   if (!lead) {
-    navigate('/employee/origination/leads', { replace: true });
+    navigate('/employee/loans/origination/leads', { replace: true });
     return null;
   }
 
@@ -97,7 +97,7 @@ const OriginationMobileLeadDetails = () => {
         <div className="relative z-10 flex items-center justify-between px-2">
           <button 
             type="button" 
-            onClick={() => navigate('/employee/origination/leads')} 
+            onClick={() => navigate('/employee/loans/origination/leads')} 
             className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center backdrop-blur-md transition-transform active:scale-95 border border-white/20 cursor-pointer"
           >
             <ArrowLeft className="w-5 h-5" />

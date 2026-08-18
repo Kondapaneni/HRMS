@@ -60,7 +60,7 @@ const OriginationMobileAddLead = () => {
       setIsSubmitting(true);
       await createLead(formData);
       toast.success('Lead added successfully!');
-      navigate('/employee/origination/leads');
+      navigate('/employee/loans/origination/leads');
     } catch (error) {
       console.error('Error adding lead:', error);
       toast.error(error.response?.data?.error || 'Failed to add lead');
@@ -106,7 +106,7 @@ const OriginationMobileAddLead = () => {
         <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
 
         <div className="relative z-10 flex items-center justify-between px-2">
-          <button type="button" onClick={() => navigate('/employee/origination/leads')} className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center backdrop-blur-md transition-transform active:scale-95 border border-white/20">
+          <button type="button" onClick={() => navigate('/employee/loans/origination/leads')} className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center backdrop-blur-md transition-transform active:scale-95 border border-white/20">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="text-center">
@@ -175,7 +175,7 @@ const OriginationMobileAddLead = () => {
           <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
             <button
               type="button"
-              onClick={() => navigate('/employee/origination/leads')}
+              onClick={() => navigate('/employee/loans/origination/leads')}
               className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 h-10 px-4 py-2 transition-colors cursor-pointer border border-slate-200"
             >
               Cancel

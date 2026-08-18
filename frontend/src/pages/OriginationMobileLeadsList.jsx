@@ -97,7 +97,7 @@ const OriginationMobileLeadsList = () => {
           </div>
           <button
             className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white px-3 py-2 rounded-xl backdrop-blur-md border border-white/30 text-sm font-semibold transition-all active:scale-95"
-            onClick={() => navigate('/employee/origination/leads/add')}
+            onClick={() => navigate('/employee/loans/origination/leads/add')}
           >
             <Plus size={16} />
             Add Lead
@@ -142,7 +142,7 @@ const OriginationMobileLeadsList = () => {
               <motion.div 
                 key={lead.id} 
                 variants={itemVariants} 
-                onClick={() => navigate(`/employee/origination/leads/${lead.id}/details`, { state: { lead } })}
+                onClick={() => navigate(`/employee/loans/origination/leads/${lead.id}/details`, { state: { lead } })}
                 className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5 hover:shadow-md transition-shadow active:scale-[0.98] active:bg-slate-50 cursor-pointer"
               >
                 <div className="flex justify-between items-start mb-4">
