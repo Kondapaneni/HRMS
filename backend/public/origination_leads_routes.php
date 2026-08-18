@@ -12,7 +12,7 @@ $app->post('/api/leads', function (Request $request, Response $response, $args) 
     $name = trim($data['name'] ?? '');
     $phone = trim($data['phone'] ?? '');
     $address = trim($data['address'] ?? '');
-    $loan_type = trim($data['loan_type'] ?? 'Personal Loan');
+    $loan_type = !empty($data['loan_type']) ? trim($data['loan_type']) : null;
 
     if (empty($name) || empty($phone) || empty($address)) {
         $response->getBody()->write(json_encode(['error' => 'Name, Phone, and Address are Required']));

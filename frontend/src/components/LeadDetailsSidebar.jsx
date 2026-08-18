@@ -130,7 +130,7 @@ const LeadDetailsSidebar = ({ isOpen, onClose, lead }) => {
                   <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Loan Type</span>
                   <div className="flex items-center gap-2 text-slate-700">
                     <Briefcase size={16} className="text-slate-400" />
-                    <span className="font-medium">{lead.loan_type || 'Assigned on conversion'}</span>
+                    <span className="font-medium">{lead.loan_type || '—'}</span>
                   </div>
                 </div>
 

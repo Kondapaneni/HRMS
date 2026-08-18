@@ -142,7 +142,9 @@ const OriginationMobileLeadDetails = () => {
               </div>
               <div>
                 <h3 className="text-lg font-bold text-slate-900 leading-tight">{lead.name}</h3>
-                <p className="text-xs text-slate-500 font-medium mt-0.5">{lead.loan_type || 'Assigned on conversion'}</p>
+                {lead.loan_type && (
+                  <p className="text-xs text-slate-500 font-medium mt-0.5">{lead.loan_type}</p>
+                )}
               </div>
             </div>
             <div>
@@ -166,7 +168,7 @@ const OriginationMobileLeadDetails = () => {
               <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center shrink-0">
                 <Briefcase size={18} className="text-amber-600" />
               </div>
-              <span className="font-medium text-lg">{lead.loan_type || 'Assigned on conversion'}</span>
+              <span className="font-medium text-lg">{lead.loan_type || '—'}</span>
             </div>
           </div>
 
