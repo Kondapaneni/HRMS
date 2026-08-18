@@ -176,8 +176,6 @@ function App() {
                 <Route path="performance" element={<AdminPerformance />} />
                 <Route path="recruitment" element={<AdminRecruitment />} />
                 <Route path="recruitment/verify-documents/:id" element={<AdminVerifyDocuments />} />
-                <Route path="form" element={<OriginationLoanForms />} />
-                <Route path="view-application" element={<OriginationViewApplication />} />
               </Route>
 
               {/* Acme Assessment Hub Workspace (Admin Only) */}
@@ -239,7 +237,7 @@ function App() {
                 }
               />
 
-              {/* Acme Loans Workspace (Employee Only) */}
+              {/* Origination Loans Workspace (Employee Only) */}
               <Route
                 path="/employee/loans"
                 element={
