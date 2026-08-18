@@ -257,24 +257,26 @@ $app->get('/api/branch-operations/applications', function (Request $request, Res
             $signatures = is_string($row['signatures']) ? json_decode($row['signatures'], true) : ($row['signatures'] ?: []);
 
             $timeline = $formData['timeline'] ?? [];
-            $currentStage = $formData['stage'] ?? '';
+            $currentStage = trim($formData['stage'] ?? ($formData['current_stage'] ?? ''));
 
-            // Check if the application has passed through Branch Operations stage in its stage history
+            // Check if the application has reached Branch Operations stage
             $hasReachedBranchOps = false;
 
             // 1. Current stage
-            if (stripos($currentStage, 'Branch') !== false || stripos($currentStage, 'Operations') !== false) {
+            if (
+                strcasecmp($currentStage, 'Branch Operations') === 0 ||
+                stripos($currentStage, 'Branch Operations') !== false
+            ) {
                 $hasReachedBranchOps = true;
             }
 
             // 2. Timeline history
-            if (is_array($timeline)) {
+            if (!$hasReachedBranchOps && is_array($timeline)) {
                 foreach ($timeline as $event) {
-                    $stageName = $event['stage'] ?? $event['title'] ?? '';
+                    $stageName = trim($event['stage'] ?? ($event['title'] ?? ''));
                     if (
-                        stripos($stageName, 'Branch') !== false ||
-                        stripos($stageName, 'Operations') !== false ||
-                        in_array($stageName, ['Branch Operations', 'Credit', 'Operations Review', 'Sanctioned', 'Disbursed'])
+                        strcasecmp($stageName, 'Branch Operations') === 0 ||
+                        stripos($stageName, 'Branch Operations') !== false
                     ) {
                         $hasReachedBranchOps = true;
                         break;
@@ -282,16 +284,7 @@ $app->get('/api/branch-operations/applications', function (Request $request, Res
                 }
             }
 
-            // 3. Signatures or status
-            if (isset($signatures['Origination']) || isset($signatures['Branch Operations']) || isset($signatures['Credit'])) {
-                $hasReachedBranchOps = true;
-            }
-
-            if (in_array($row['status'], ['Under Review', 'Approved', 'Rejected', 'Created'])) {
-                $hasReachedBranchOps = true;
-            }
-
-            // If it hasn't reached Branch Operations stage yet (e.g. pure unsaved draft), skip
+            // If it hasn't reached Branch Operations stage yet, skip
             if (!$hasReachedBranchOps) {
                 continue;
             }
