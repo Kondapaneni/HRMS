@@ -378,7 +378,7 @@ const EmployeeMobileDashboard = () => {
                   </div>
                   <div className="text-left">
                     <div className="text-base">Branch Operations</div>
-                    <div className="text-xs text-amber-100 font-normal mt-0.5">Loans, sales & branch operations</div>
+                    <div className="text-xs text-amber-100 font-normal mt-0.5">Loans, Sales & Branch Operations</div>
                   </div>
                 </div>
                 <ChevronRight className="w-5 h-5 text-amber-200" />

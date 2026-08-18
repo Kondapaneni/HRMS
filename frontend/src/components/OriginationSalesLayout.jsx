@@ -272,8 +272,8 @@ const OriginationSalesLayout = () => {
                         transition={{ type: 'spring', bounce: 0.25, duration: 0.5 }}
                       />
                     )}
-                    <Icon className={`relative z-10 w-6 h-6 mb-0.5 transition-all duration-300 ${isActive ? 'text-[#ff2d55] scale-105' : 'text-slate-500 group-hover:text-slate-600 group-active:scale-95'}`} strokeWidth={isActive ? 2.5 : 2} />
-                    <span className={`relative z-10 text-[10px] text-center leading-tight font-medium tracking-wide transition-all duration-300 max-w-[62px] w-full truncate block ${isActive ? 'text-[#ff2d55]' : 'text-slate-500'}`} title={item.label}>{item.label}</span>
+                    <Icon className={`relative z-10 w-6 h-6 mb-0.5 transition-all duration-300 ${isActive ? 'text-emerald-600 scale-105' : 'text-slate-500 group-hover:text-slate-600 group-active:scale-95'}`} strokeWidth={isActive ? 2.5 : 2} />
+                    <span className={`relative z-10 text-[10px] text-center leading-tight font-medium tracking-wide transition-all duration-300 max-w-[62px] w-full truncate block ${isActive ? 'text-emerald-600 font-semibold' : 'text-slate-500'}`} title={item.label}>{item.label}</span>
                   </Link>
                 );
               })}
@@ -311,7 +311,7 @@ const OriginationSalesLayout = () => {
           >
             <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6 sm:hidden"></div>
             <div className="flex flex-col items-center text-center">
-              <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4 ring-4 ring-blue-50">
+              <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-4 ring-4 ring-emerald-50">
                 <ArrowLeft size={28} />
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-2">Back to HRMS</h3>
@@ -331,7 +331,7 @@ const OriginationSalesLayout = () => {
                     setShowBackModal(false);
                     navigate('/employee');
                   }}
-                  className="flex-1 py-3.5 px-4 rounded-xl font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm shadow-blue-500/20"
+                  className="flex-1 py-3.5 px-4 rounded-xl font-semibold text-white bg-emerald-600 hover:bg-emerald-700 transition-colors shadow-sm shadow-emerald-500/20"
                 >
                   Continue
                 </button>

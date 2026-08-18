@@ -283,8 +283,8 @@ const OriginationLoansLayout = () => {
                         transition={{ type: 'spring', bounce: 0.25, duration: 0.5 }}
                       />
                     )}
-                    <Icon className={`relative z-10 w-6 h-6 mb-0.5 transition-all duration-300 ${isActive ? 'text-[#ff2d55] scale-105' : 'text-slate-500 group-hover:text-slate-600 group-active:scale-95'}`} strokeWidth={isActive ? 2.5 : 2} />
-                    <span className={`relative z-10 text-[10px] text-center leading-tight font-medium tracking-wide transition-all duration-300 max-w-[62px] w-full truncate block ${isActive ? 'text-[#ff2d55]' : 'text-slate-500'}`} title={item.label}>{item.label}</span>
+                    <Icon className={`relative z-10 w-6 h-6 mb-0.5 transition-all duration-300 ${isActive ? 'text-blue-600 scale-105' : 'text-slate-500 group-hover:text-slate-600 group-active:scale-95'}`} strokeWidth={isActive ? 2.5 : 2} />
+                    <span className={`relative z-10 text-[10px] text-center leading-tight font-medium tracking-wide transition-all duration-300 max-w-[62px] w-full truncate block ${isActive ? 'text-blue-600 font-semibold' : 'text-slate-500'}`} title={item.label}>{item.label}</span>
                   </Link>
                 );
               })}
