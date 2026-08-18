@@ -16,13 +16,21 @@ const OriginationMobileLoanLeadDetails = () => {
   const [showConvertModal, setShowConvertModal] = useState(false);
   const [selectedLoanType, setSelectedLoanType] = useState(lead?.loan_type || 'Personal Loan');
   const [currentStatus, setCurrentStatus] = useState(lead?.status || 'New');
+  const [currentLoanType, setCurrentLoanType] = useState(lead?.loan_type || '');
 
   const statusMutation = useMutation({
     mutationFn: ({ id, status, loan_type }) => updateLeadStatus(id, status, loan_type),
     onSuccess: (data, variables) => {
-      toast.success('Lead status updated successfully!');
+      toast.success(variables.status === 'Converted' ? 'Lead converted to Member successfully!' : 'Lead status updated successfully!');
       setCurrentStatus(variables.status);
-      queryClient.invalidateQueries(['origination', 'leads', 'list']);
+      if (variables.loan_type) {
+        setCurrentLoanType(variables.loan_type);
+        if (lead) lead.loan_type = variables.loan_type;
+      }
+      if (lead) lead.status = variables.status;
+      queryClient.invalidateQueries({ queryKey: ['origination', 'leads'] });
+      queryClient.invalidateQueries({ queryKey: ['origination', 'leads', 'list'] });
+      queryClient.invalidateQueries({ queryKey: ['leadsDashboard'] });
       setShowConvertModal(false);
     },
     onError: (error) => {
@@ -39,7 +47,7 @@ const OriginationMobileLoanLeadDetails = () => {
   const handleUpdateStatus = (status) => {
     if (!lead) return;
     if (status === 'Converted') {
-      setSelectedLoanType(lead.loan_type || 'Personal Loan');
+      setSelectedLoanType(currentLoanType || lead.loan_type || 'Personal Loan');
       setShowConvertModal(true);
       return;
     }
@@ -142,8 +150,8 @@ const OriginationMobileLoanLeadDetails = () => {
               </div>
               <div>
                 <h3 className="text-lg font-bold text-slate-900 leading-tight">{lead.name}</h3>
-                {lead.loan_type && (
-                  <p className="text-xs text-slate-500 font-medium mt-0.5">{lead.loan_type}</p>
+                {(currentLoanType || lead.loan_type) && (
+                  <p className="text-xs text-slate-500 font-medium mt-0.5">{currentLoanType || lead.loan_type}</p>
                 )}
               </div>
             </div>
@@ -168,7 +176,7 @@ const OriginationMobileLoanLeadDetails = () => {
               <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center shrink-0">
                 <Briefcase size={18} className="text-amber-600" />
               </div>
-              <span className="font-medium text-lg">{lead.loan_type || '—'}</span>
+              <span className="font-medium text-lg">{currentLoanType || lead.loan_type || '—'}</span>
             </div>
           </div>
 
@@ -213,7 +221,7 @@ const OriginationMobileLoanLeadDetails = () => {
             className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-sm shadow-emerald-600/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {statusMutation.isPending && statusMutation.variables?.status === 'Converted' ? <Loader2 size={18} className="animate-spin" /> : <UserPlus size={18} />}
-            Convert to Member
+            {isConverted ? 'Converted to Member' : 'Convert to Member'}
           </button>
 
           <button 
@@ -227,7 +235,7 @@ const OriginationMobileLoanLeadDetails = () => {
         </div>
       </div>
 
-      {/* Convert to Member Mobile Bottom Sheet / Modal */}
+      {/* Convert to Member Modal for Mobile */}
       <AnimatePresence>
         {showConvertModal && (
           <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
@@ -252,36 +260,36 @@ const OriginationMobileLoanLeadDetails = () => {
                 </div>
                 <button 
                   onClick={() => setShowConvertModal(false)}
-                  className="p-1 rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+                  className="p-1 rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors cursor-pointer"
                 >
                   <X size={18} />
                 </button>
               </div>
 
-              <p className="text-xs text-slate-600">
+              <p className="text-xs text-slate-600 leading-relaxed">
                 Select the loan product for <span className="font-semibold text-slate-900">{lead.name}</span> to convert them into an active member.
               </p>
 
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 {loanTypeOptions.map((opt) => {
                   const isSelected = selectedLoanType === opt.value;
                   return (
                     <div
                       key={opt.value}
                       onClick={() => setSelectedLoanType(opt.value)}
-                      className={`p-3 rounded-2xl border flex items-center justify-between cursor-pointer transition-all ${
+                      className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
                         isSelected 
-                          ? 'border-emerald-500 bg-emerald-50/60 shadow-xs' 
-                          : 'border-slate-200 hover:border-slate-300 bg-slate-50/40'
+                          ? 'border-emerald-500 bg-emerald-50/50 shadow-xs' 
+                          : 'border-slate-200 hover:border-slate-300 bg-white'
                       }`}
                     >
                       <div>
-                        <p className={`text-sm font-semibold ${isSelected ? 'text-emerald-900' : 'text-slate-800'}`}>
+                        <p className={`text-sm font-semibold ${isSelected ? 'text-emerald-900 font-bold' : 'text-slate-800'}`}>
                           {opt.label}
                         </p>
                         <p className="text-[11px] text-slate-500">{opt.desc}</p>
                       </div>
-                      <div className={`w-5 h-5 rounded-full flex items-center justify-center border ${
+                      <div className={`w-5 h-5 rounded-full flex items-center justify-center border transition-colors ${
                         isSelected ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-slate-300 bg-white'
                       }`}>
                         {isSelected && <Check size={12} strokeWidth={3} />}
@@ -291,11 +299,11 @@ const OriginationMobileLoanLeadDetails = () => {
                 })}
               </div>
 
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setShowConvertModal(false)}
-                  className="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors"
+                  className="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -303,7 +311,7 @@ const OriginationMobileLoanLeadDetails = () => {
                   type="button"
                   onClick={handleConfirmConvert}
                   disabled={statusMutation.isPending}
-                  className="px-5 py-2.5 rounded-xl text-sm font-semibold bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm transition-colors flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+                  className="px-4 py-2.5 rounded-xl text-sm font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition-colors flex items-center gap-2 disabled:opacity-50 shadow-sm shadow-emerald-600/20 cursor-pointer"
                 >
                   {statusMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <UserPlus size={16} />}
                   Confirm &amp; Convert
