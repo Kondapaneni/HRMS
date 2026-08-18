@@ -174,9 +174,6 @@ const BranchOperationsLoansApplicationsList = () => {
                     className="h-10 w-full sm:w-auto rounded-md border border-slate-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700 font-medium cursor-pointer"
                   >
                     <option value="All">All Status ({applications.length})</option>
-                    <option value="Created">
-                      Created ({applications.filter(a => a.status === 'Created').length})
-                    </option>
                     <option value="Under Review">
                       Under Review ({applications.filter(a => a.status === 'Under Review').length})
                     </option>
