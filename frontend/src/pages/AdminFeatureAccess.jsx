@@ -51,7 +51,7 @@ const featuresList = [
   {
     key: 'canBranchOperations',
     title: 'Branch Operations Access',
-    description: 'Grant access to the Branch Operations module in Acme Loans.'
+    description: 'Grant access to the Branch Operations module for loans and sales operations.'
   },
   {
     key: 'canAdminAssessments',

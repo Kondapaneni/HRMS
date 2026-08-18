@@ -371,17 +371,17 @@ const EmployeeMobileDashboard = () => {
             )}
 
             {profile?.featureAccess?.canBranchOperations && (
-              <Link to="/employee/branch-operations" className="flex items-center justify-between w-full rounded-xl bg-indigo-600 text-white font-semibold text-sm px-6 py-4 hover:bg-indigo-700 active:scale-[0.98] transition-all shadow-sm">
+              <Link to="/employee/branch-operations" className="flex items-center justify-between w-full rounded-xl bg-amber-600 text-white font-semibold text-sm px-6 py-4 hover:bg-amber-700 active:scale-[0.98] transition-all shadow-sm">
                 <div className="flex items-center gap-3">
                   <div className="bg-white/20 p-2 rounded-lg">
                     <Building2 className="w-5 h-5 text-white" />
                   </div>
                   <div className="text-left">
                     <div className="text-base">Branch Operations</div>
-                    <div className="text-xs text-indigo-200 font-normal mt-0.5">Branch loan processing & operations</div>
+                    <div className="text-xs text-amber-100 font-normal mt-0.5">Loans, sales & branch operations</div>
                   </div>
                 </div>
-                <ChevronRight className="w-5 h-5 text-indigo-200" />
+                <ChevronRight className="w-5 h-5 text-amber-200" />
               </Link>
             )}
 
