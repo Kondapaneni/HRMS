@@ -153,7 +153,7 @@ const OriginationLeadsList = () => {
                             {lead.address}
                           </td>
                           <td className="p-3 text-slate-700">
-                            <span className="font-medium text-slate-800">{lead.loan_type || 'Personal Loan'}</span>
+                            <span className="font-medium text-slate-800">{lead.loan_type || '—'}</span>
                           </td>
                           <td className="p-3">
                             {getStatusBadge(lead.status)}

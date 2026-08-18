@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, ChevronLeft, MapPin, Calendar, Clock, CheckCircle2, Phone, Mail, UserPlus, XCircle, Loader2, RefreshCw, Briefcase } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { ArrowLeft, MapPin, Calendar, Clock, CheckCircle2, Phone, UserPlus, XCircle, Loader2, RefreshCw, Briefcase, X, Check } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateLeadStatus } from '../services/loanServices';
@@ -13,29 +13,42 @@ const OriginationMobileLeadDetails = () => {
   const queryClient = useQueryClient();
   const lead = location.state?.lead;
 
-  // If no lead in state, bounce back
-  if (!lead) {
-    navigate('/employee/loans/origination/leads', { replace: true });
-    return null;
-  }
-
-  const [currentStatus, setCurrentStatus] = useState(lead.status);
+  const [showConvertModal, setShowConvertModal] = useState(false);
+  const [selectedLoanType, setSelectedLoanType] = useState(lead?.loan_type || 'Personal Loan');
+  const [currentStatus, setCurrentStatus] = useState(lead?.status || 'New');
 
   const statusMutation = useMutation({
-    mutationFn: ({ id, status }) => updateLeadStatus(id, status),
+    mutationFn: ({ id, status, loan_type }) => updateLeadStatus(id, status, loan_type),
     onSuccess: (data, variables) => {
-      toast.success('Lead status updated!');
+      toast.success('Lead status updated successfully!');
       setCurrentStatus(variables.status);
       queryClient.invalidateQueries(['origination', 'leads', 'list']);
+      setShowConvertModal(false);
     },
     onError: (error) => {
       toast.error(error.response?.data?.error || 'Failed to update status');
     }
   });
 
+  // If no lead in state, bounce back
+  if (!lead) {
+    navigate('/employee/loans/origination/leads', { replace: true });
+    return null;
+  }
+
   const handleUpdateStatus = (status) => {
     if (!lead) return;
+    if (status === 'Converted') {
+      setSelectedLoanType(lead.loan_type || 'Personal Loan');
+      setShowConvertModal(true);
+      return;
+    }
     statusMutation.mutate({ id: lead.id, status });
+  };
+
+  const handleConfirmConvert = () => {
+    if (!lead) return;
+    statusMutation.mutate({ id: lead.id, status: 'Converted', loan_type: selectedLoanType });
   };
 
   const getStatusBadge = (status) => {
@@ -57,6 +70,14 @@ const OriginationMobileLeadDetails = () => {
   };
 
   const isConverted = currentStatus === 'Converted';
+
+  const loanTypeOptions = [
+    { label: 'Personal Loan', value: 'Personal Loan', desc: 'Unsecured individual personal loan' },
+    { label: 'Business Loan', value: 'Business Loan', desc: 'Commercial enterprise loan' },
+    { label: 'Home Loan', value: 'Home Loan', desc: 'Residential property mortgage' },
+    { label: 'Vehicle Loan', value: 'Vehicle Loan', desc: 'Automobile & vehicle loan' },
+    { label: 'Education Loan', value: 'Education Loan', desc: 'Education funding' }
+  ];
 
   return (
     <div className="w-full pb-8">
@@ -121,7 +142,7 @@ const OriginationMobileLeadDetails = () => {
               </div>
               <div>
                 <h3 className="text-lg font-bold text-slate-900 leading-tight">{lead.name}</h3>
-                <p className="text-xs text-slate-500 font-medium mt-0.5">{lead.loan_type || 'Personal Loan'}</p>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">{lead.loan_type || 'Assigned on conversion'}</p>
               </div>
             </div>
             <div>
@@ -145,7 +166,7 @@ const OriginationMobileLeadDetails = () => {
               <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center shrink-0">
                 <Briefcase size={18} className="text-amber-600" />
               </div>
-              <span className="font-medium text-lg">{lead.loan_type || 'Personal Loan'}</span>
+              <span className="font-medium text-lg">{lead.loan_type || 'Assigned on conversion'}</span>
             </div>
           </div>
 
@@ -178,7 +199,7 @@ const OriginationMobileLeadDetails = () => {
           <button 
             onClick={() => handleUpdateStatus('Follow Up')}
             disabled={statusMutation.isPending || isConverted}
-            className="w-full flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors border border-blue-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors border border-blue-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {statusMutation.isPending && statusMutation.variables?.status === 'Follow Up' ? <Loader2 size={18} className="animate-spin" /> : <RefreshCw size={18} />}
             Followup
@@ -187,7 +208,7 @@ const OriginationMobileLeadDetails = () => {
           <button 
             onClick={() => handleUpdateStatus('Converted')}
             disabled={statusMutation.isPending || isConverted}
-            className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm shadow-emerald-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-sm shadow-emerald-600/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {statusMutation.isPending && statusMutation.variables?.status === 'Converted' ? <Loader2 size={18} className="animate-spin" /> : <UserPlus size={18} />}
             Convert to Member
@@ -196,7 +217,7 @@ const OriginationMobileLeadDetails = () => {
           <button 
             onClick={() => handleUpdateStatus('Not Interested')}
             disabled={statusMutation.isPending || isConverted}
-            className="w-full flex items-center justify-center gap-2 bg-white hover:bg-red-50 text-red-600 border border-red-200 px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-2 bg-white hover:bg-red-50 text-red-600 border border-red-200 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {statusMutation.isPending && statusMutation.variables?.status === 'Not Interested' ? <Loader2 size={18} className="animate-spin" /> : <XCircle size={18} />}
             Not Interested
@@ -204,6 +225,92 @@ const OriginationMobileLeadDetails = () => {
         </div>
       </div>
 
+      {/* Convert to Member Mobile Bottom Sheet / Modal */}
+      <AnimatePresence>
+        {showConvertModal && (
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm"
+              onClick={() => setShowConvertModal(false)}
+            />
+            <motion.div 
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="relative bg-white rounded-t-[32px] sm:rounded-2xl max-w-md w-full p-6 shadow-2xl z-10 border border-slate-100 space-y-4 max-h-[85vh] overflow-y-auto"
+            >
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2 text-emerald-600 font-bold text-lg">
+                  <UserPlus size={22} />
+                  <span>Convert to Member</span>
+                </div>
+                <button 
+                  onClick={() => setShowConvertModal(false)}
+                  className="p-1 rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <p className="text-xs text-slate-600">
+                Select the loan product for <span className="font-semibold text-slate-900">{lead.name}</span> to convert them into an active member.
+              </p>
+
+              <div className="space-y-2">
+                {loanTypeOptions.map((opt) => {
+                  const isSelected = selectedLoanType === opt.value;
+                  return (
+                    <div
+                      key={opt.value}
+                      onClick={() => setSelectedLoanType(opt.value)}
+                      className={`p-3 rounded-2xl border flex items-center justify-between cursor-pointer transition-all ${
+                        isSelected 
+                          ? 'border-emerald-500 bg-emerald-50/60 shadow-xs' 
+                          : 'border-slate-200 hover:border-slate-300 bg-slate-50/40'
+                      }`}
+                    >
+                      <div>
+                        <p className={`text-sm font-semibold ${isSelected ? 'text-emerald-900' : 'text-slate-800'}`}>
+                          {opt.label}
+                        </p>
+                        <p className="text-[11px] text-slate-500">{opt.desc}</p>
+                      </div>
+                      <div className={`w-5 h-5 rounded-full flex items-center justify-center border ${
+                        isSelected ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-slate-300 bg-white'
+                      }`}>
+                        {isSelected && <Check size={12} strokeWidth={3} />}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setShowConvertModal(false)}
+                  className="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmConvert}
+                  disabled={statusMutation.isPending}
+                  className="px-5 py-2.5 rounded-xl text-sm font-semibold bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm transition-colors flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+                >
+                  {statusMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <UserPlus size={16} />}
+                  Confirm &amp; Convert
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

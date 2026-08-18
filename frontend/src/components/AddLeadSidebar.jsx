@@ -16,8 +16,7 @@ const AddLeadSidebar = ({ isOpen, onClose }) => {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
-    address: '',
-    loan_type: 'Personal Loan'
+    address: ''
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,11 +37,6 @@ const AddLeadSidebar = ({ isOpen, onClose }) => {
     if (errors.address) setErrors((prev) => ({ ...prev, address: null }));
   };
 
-  const handleLoanTypeChange = (val) => {
-    setFormData((prev) => ({ ...prev, loan_type: val }));
-    if (errors.loan_type) setErrors((prev) => ({ ...prev, loan_type: null }));
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -61,7 +55,7 @@ const AddLeadSidebar = ({ isOpen, onClose }) => {
       await createLead(formData);
       queryClient.invalidateQueries(['origination', 'leads', 'list']);
       toast.success('Lead added successfully!');
-      setFormData({ name: '', phone: '', address: '', loan_type: 'Personal Loan' });
+      setFormData({ name: '', phone: '', address: '' });
       setErrors({});
       onClose();
     } catch (error) {
@@ -139,23 +133,6 @@ const AddLeadSidebar = ({ isOpen, onClose }) => {
                   placeholder="Enter full address"
                   rows={3}
                   error={errors.address}
-                />
-
-                <SelectField
-                  name="loan_type"
-                  label="Loan Type"
-                  value={formData.loan_type}
-                  onChange={handleLoanTypeChange}
-                  required
-                  placeholder="Select loan type"
-                  error={errors.loan_type}
-                  options={[
-                    { label: 'Personal Loan', value: 'Personal Loan' },
-                    { label: 'Home Loan', value: 'Home Loan' },
-                    { label: 'Business Loan', value: 'Business Loan' },
-                    { label: 'Vehicle Loan', value: 'Vehicle Loan' },
-                    { label: 'Education Loan', value: 'Education Loan' }
-                  ]}
                 />
 
                 <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3 mt-6">

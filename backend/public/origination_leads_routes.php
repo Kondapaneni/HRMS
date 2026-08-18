@@ -113,6 +113,7 @@ $app->put('/api/leads/{id}/status', function (Request $request, Response $respon
     $leadId = $args['id'];
     $data = $request->getParsedBody();
     $status = trim($data['status'] ?? '');
+    $loan_type = trim($data['loan_type'] ?? '');
 
     if (empty($status)) {
         $response->getBody()->write(json_encode(['error' => 'Status is Required']));
@@ -135,12 +136,21 @@ $app->put('/api/leads/{id}/status', function (Request $request, Response $respon
             return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
         }
 
-        $stmt = $conn->prepare('
-            UPDATE public.loan_leads 
-            SET status = ? 
-            WHERE id = ?
-        ');
-        $stmt->execute([$status, $leadId]);
+        if (!empty($loan_type)) {
+            $stmt = $conn->prepare('
+                UPDATE public.loan_leads 
+                SET status = ?, loan_type = ?
+                WHERE id = ?
+            ');
+            $stmt->execute([$status, $loan_type, $leadId]);
+        } else {
+            $stmt = $conn->prepare('
+                UPDATE public.loan_leads 
+                SET status = ? 
+                WHERE id = ?
+            ');
+            $stmt->execute([$status, $leadId]);
+        }
 
         $response->getBody()->write(json_encode([
             'message' => 'Status updated successfully'

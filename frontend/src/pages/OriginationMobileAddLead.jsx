@@ -18,8 +18,7 @@ const OriginationMobileAddLead = () => {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
-    address: '',
-    loan_type: 'Personal Loan'
+    address: ''
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -37,11 +36,6 @@ const OriginationMobileAddLead = () => {
   const handleAddressChange = (val) => {
     setFormData((prev) => ({ ...prev, address: capitalizeWords(val) }));
     if (errors.address) setErrors((prev) => ({ ...prev, address: null }));
-  };
-
-  const handleLoanTypeChange = (val) => {
-    setFormData((prev) => ({ ...prev, loan_type: val }));
-    if (errors.loan_type) setErrors((prev) => ({ ...prev, loan_type: null }));
   };
 
   const handleSubmit = async (e) => {
@@ -144,21 +138,6 @@ const OriginationMobileAddLead = () => {
             placeholder="10-digit mobile number"
             error={errors.phone}
             prefix={<Phone size={16} className="text-slate-400" />}
-          />
-
-          <RadioGroup
-            name="loan_type"
-            label="Loan Type"
-            value={formData.loan_type}
-            onChange={handleLoanTypeChange}
-            required
-            error={errors.loan_type}
-            options={[
-              { label: 'Personal Loan', value: 'Personal Loan' },
-              { label: 'Business Loan', value: 'Business Loan' },
-              { label: 'Home Loan', value: 'Home Loan' }
-            ]}
-            direction="horizontal"
           />
 
           <TextareaField

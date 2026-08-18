@@ -721,10 +721,6 @@ export const validateAddLeadForm = (formData = {}) => {
     errors.address = 'Please enter lead address.';
   }
 
-  if (!formData.loan_type) {
-    errors.loan_type = 'Please select a loan type.';
-  }
-
   return {
     isValid: Object.keys(errors).length === 0,
     errors

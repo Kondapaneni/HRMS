@@ -36,8 +36,10 @@ export const getLeads = async ({ queryKey }) => {
  * @param {string} status - New status ('Follow Up', 'Not Interested', 'Converted')
  * @returns {Promise<Object>}
  */
-export const updateLeadStatus = async (id, status) => {
-  const response = await api.put(`/leads/${id}/status`, { status });
+export const updateLeadStatus = async (id, status, loan_type = null) => {
+  const payload = { status };
+  if (loan_type) payload.loan_type = loan_type;
+  const response = await api.put(`/leads/${id}/status`, payload);
   return response.data;
 };
 
