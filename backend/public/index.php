@@ -450,7 +450,7 @@ require __DIR__ . '/candidate_recruitment_routes.php';
 require __DIR__ . '/origination_loans_dashboard_routes.php';
 require __DIR__ . '/origination_loans_leads_routes.php';
 require __DIR__ . '/origination_loans_member_routes.php';
-require __DIR__ . '/origination_loans_loan_application_routes.php';
+require __DIR__ . '/origination_loans_application_routes.php';
 require __DIR__ . '/branch_operations_dashboard_routes.php';
 require __DIR__ . '/branch_operations_application_routes.php';
 
