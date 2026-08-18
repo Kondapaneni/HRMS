@@ -237,71 +237,43 @@ const OriginationSalesLayout = () => {
             onTouchEnd={handleTouchEnd}
             onTouchCancel={handleTouchEnd}
           >
-            <div className="relative mx-auto max-w-sm rounded-[32px] bg-slate-900/90 backdrop-blur-2xl border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.4)] px-3 py-2 flex items-center justify-around pointer-events-auto overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-tr from-white/10 via-transparent to-white/5 pointer-events-none" />
-
-              {/* Back to Employee HRMS button */}
+            <div className="bg-white/50 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-full p-1.5 flex justify-around items-center pointer-events-auto">
+              {/* Back to HRMS Button */}
               <button
-                type="button"
                 onClick={() => setShowBackModal(true)}
-                className="relative flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl transition-all duration-300 group cursor-pointer text-slate-400 hover:text-white"
+                className="relative flex flex-col items-center justify-center w-[72px] h-[58px] z-10 group"
               >
-                <div className="p-1 rounded-xl group-active:scale-90 transition-transform">
-                  <ArrowLeft size={20} className="stroke-[2.25]" />
-                </div>
-                <span className="text-[10px] font-semibold tracking-tight transition-colors">
-                  HRMS
-                </span>
+                <ArrowLeft className="relative z-10 w-6 h-6 mb-0.5 transition-all duration-300 text-slate-500 group-hover:text-slate-600 group-active:scale-95" strokeWidth={2} />
+                <span className="relative z-10 text-[10px] font-medium tracking-wide transition-all duration-300 text-slate-500">Back</span>
               </button>
 
               {navItems.filter(item => !item.feature || profile?.featureAccess?.[item.feature]).map((item, idx) => {
-                const isActive = location.pathname === item.path || (item.path !== '/employee/sales/origination' && location.pathname.startsWith(`${item.path}/`));
-                const isHovered = swipePath === item.path;
-
+                const currentPath = swipePath || location.pathname;
+                const isActive = item.path === '/employee/sales/origination'
+                  ? currentPath === item.path
+                  : (currentPath === item.path || currentPath.startsWith(`${item.path}/`));
+                
+                const Icon = item.icon;
+                
                 return (
                   <Link
-                    key={idx}
+                    key={item.path || idx}
                     to={item.path}
                     data-nav-path={item.path}
-                    className={`relative flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl transition-all duration-300 group cursor-pointer ${
-                      isActive ? 'text-white' : 'text-slate-400 hover:text-slate-200'
-                    }`}
+                    onClick={(e) => {
+                      if (swipePath) e.preventDefault();
+                    }}
+                    className="relative flex flex-col items-center justify-center w-[72px] h-[58px] z-10 group"
                   >
                     {isActive && (
                       <motion.div
-                        layoutId="active-pill-sales"
-                        className="absolute inset-0 bg-emerald-500/20 border border-emerald-400/30 rounded-2xl shadow-[0_0_15px_rgba(16,185,129,0.3)]"
-                        transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                        layoutId="salesMobileNavBubble"
+                        className="absolute inset-0 z-[-1] rounded-full shadow-[inset_0_1px_3px_rgba(255,255,255,0.8),0_4px_16px_rgba(0,0,0,0.06)] bg-white/40 backdrop-blur-xl border border-white/80 overflow-hidden"
+                        transition={{ type: 'spring', bounce: 0.25, duration: 0.5 }}
                       />
                     )}
-
-                    <div
-                      className={`relative z-10 p-1 rounded-xl transition-all duration-300 ${
-                        isActive
-                          ? 'scale-110 text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.6)]'
-                          : isHovered
-                          ? 'scale-125 text-white'
-                          : 'group-active:scale-95'
-                      }`}
-                    >
-                      <item.icon size={20} className="stroke-[2.25]" />
-                    </div>
-
-                    <span
-                      className={`relative z-10 text-[10px] font-semibold tracking-tight transition-colors ${
-                        isActive ? 'text-white font-bold' : isHovered ? 'text-white' : 'text-slate-400'
-                      }`}
-                    >
-                      {item.label}
-                    </span>
-
-                    {isActive && (
-                      <motion.div
-                        layoutId="active-dot-sales"
-                        className="absolute -bottom-1 w-1 h-1 bg-emerald-400 rounded-full shadow-[0_0_6px_#34d399]"
-                        transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                      />
-                    )}
+                    <Icon className={`relative z-10 w-6 h-6 mb-0.5 transition-all duration-300 ${isActive ? 'text-[#ff2d55] scale-105' : 'text-slate-500 group-hover:text-slate-600 group-active:scale-95'}`} strokeWidth={isActive ? 2.5 : 2} />
+                    <span className={`relative z-10 text-[10px] text-center leading-tight font-medium tracking-wide transition-all duration-300 max-w-[62px] w-full truncate block ${isActive ? 'text-[#ff2d55]' : 'text-slate-500'}`} title={item.label}>{item.label}</span>
                   </Link>
                 );
               })}
@@ -314,42 +286,56 @@ const OriginationSalesLayout = () => {
     {/* Confirmation Modal for Back to HRMS */}
     <AnimatePresence>
       {showBackModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 sm:p-0">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
             onClick={() => setShowBackModal(false)}
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm cursor-pointer"
           />
           <motion.div
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.95, opacity: 0 }}
-            className="relative bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-slate-100 z-10"
+            initial={{ opacity: 0, y: '100%', scale: 1 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: '100%', scale: 0.95 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            drag="y"
+            dragConstraints={{ top: 0 }}
+            dragElastic={{ top: 0, bottom: 0.6 }}
+            onDragEnd={(e, info) => {
+              if (info.offset.y > 80 || info.velocity.y > 400) {
+                setShowBackModal(false);
+              }
+            }}
+            className="bg-white w-full max-w-sm rounded-[24px] sm:rounded-2xl p-6 shadow-2xl relative z-10 mb-4 sm:mb-0"
           >
-            <h3 className="text-lg font-bold text-slate-900 mb-2">Back to Main HRMS?</h3>
-            <p className="text-sm text-slate-600 mb-6 leading-relaxed">
-              Are you sure you want to exit Sales Origination and return to the main Employee dashboard?
-            </p>
-            <div className="flex items-center justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setShowBackModal(false)}
-                className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowBackModal(false);
-                  navigate('/employee');
-                }}
-                className="px-4 py-2 text-sm font-medium text-white bg-slate-900 hover:bg-slate-800 rounded-xl transition-colors shadow-sm"
-              >
-                Exit to HRMS
-              </button>
+            <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6 sm:hidden"></div>
+            <div className="flex flex-col items-center text-center">
+              <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4 ring-4 ring-blue-50">
+                <ArrowLeft size={28} />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 mb-2">Back to HRMS</h3>
+              <p className="text-slate-500 text-sm mb-6 px-2">
+                Are you sure you want to return to the main HRMS application?
+              </p>
+
+              <div className="flex w-full gap-3">
+                <button
+                  onClick={() => setShowBackModal(false)}
+                  className="flex-1 py-3.5 px-4 rounded-xl font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setShowBackModal(false);
+                    navigate('/employee');
+                  }}
+                  className="flex-1 py-3.5 px-4 rounded-xl font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm shadow-blue-500/20"
+                >
+                  Continue
+                </button>
+              </div>
             </div>
           </motion.div>
         </div>
