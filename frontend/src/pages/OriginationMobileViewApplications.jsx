@@ -44,7 +44,7 @@ export default function OriginationMobileViewApplications({
 
   const stateApplication = propApplication || location.state?.application;
   const stateFormData = propFormData || location.state?.form_data || stateApplication?.form_data;
-  const fromPath = propFromPath || location.state?.from || '/employee/loans/origination/applications';
+  const fromPath = propFromPath || location.state?.from || '/employee/origination/applications';
 
   // Fallback query if page is refreshed or visited with a query parameter/missing state
   const { data: response, isLoading } = useQuery({

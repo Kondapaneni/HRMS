@@ -7,7 +7,7 @@ import { BusinessLoanForm, PersonalLoanForm } from '../components/forms';
 const OriginationMobileLoanForms = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const fromPath = location.state?.from || '/employee/loans/origination/members';
+  const fromPath = location.state?.from || '/employee/origination/members';
   const loanType = location.state?.loan_type || location.state?.loanType || 'Business Loan';
 
   const renderForm = () => {

@@ -342,7 +342,7 @@ const EmployeeMobileDashboard = () => {
 
 
             {profile?.featureAccess?.canLoanOrigination && (
-              <Link to="/employee/loans/origination" className="flex items-center justify-between w-full rounded-xl bg-emerald-600 text-white font-semibold text-sm px-6 py-4 hover:bg-emerald-700 active:scale-[0.98] transition-all shadow-sm">
+              <Link to="/employee/origination" className="flex items-center justify-between w-full rounded-xl bg-emerald-600 text-white font-semibold text-sm px-6 py-4 hover:bg-emerald-700 active:scale-[0.98] transition-all shadow-sm">
                 <div className="flex items-center gap-3">
                   <div className="bg-white/20 p-2 rounded-lg">
                     <Briefcase className="w-5 h-5 text-white" />

@@ -69,7 +69,7 @@ const OriginationMobileMemberDetails = ({ member: propMember }) => {
         <p className="text-base font-semibold text-slate-700">Member profile not found.</p>
         <button
           type="button"
-          onClick={() => navigate('/employee/loans/origination/members')}
+          onClick={() => navigate('/employee/origination/members')}
           className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-slate-900 rounded-xl shadow-sm cursor-pointer"
         >
           <ArrowLeft size={16} /> Back to Members
@@ -120,7 +120,7 @@ const OriginationMobileMemberDetails = ({ member: propMember }) => {
         <div className="relative z-10 flex items-center justify-between px-2">
           <button 
             type="button" 
-            onClick={() => navigate('/employee/loans/origination/members')} 
+            onClick={() => navigate('/employee/origination/members')} 
             className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center backdrop-blur-md transition-transform active:scale-95 border border-white/20 cursor-pointer"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -221,7 +221,7 @@ const OriginationMobileMemberDetails = ({ member: propMember }) => {
                     </div>
                   ) : (
                     <Link 
-                      to="/employee/loans/form"
+                      to="/employee/origination/form"
                       state={{ name: member.name, phone: member.phone, lead_id: currentLeadId, loan_type: loan.loan_type }}
                       className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 transition-all"
                     >
@@ -243,7 +243,7 @@ const OriginationMobileMemberDetails = ({ member: propMember }) => {
                   </div>
                 ) : (
                   <Link 
-                    to="/employee/loans/form"
+                    to="/employee/origination/form"
                     state={{ name: member.name, phone: member.phone, lead_id: member.lead_id }}
                     className="inline-flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-700"
                   >
