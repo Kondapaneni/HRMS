@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PageLoader from '../components/PageLoader';
-import { LogIn, LogOut, Clock, Calendar, Bell, Shield, ChevronRight, Receipt, Briefcase, Megaphone, Play, ShieldCheck, Building2 } from 'lucide-react';
+import { LogIn, LogOut, Clock, Calendar, Bell, Shield, ChevronRight, Receipt, Briefcase, Megaphone, Play, ShieldCheck, Building2, ShoppingBag } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -332,7 +332,7 @@ const EmployeeMobileDashboard = () => {
       </section>
 
       {/* Business Apps Entry */}
-      {(profile?.featureAccess?.canLoanOrigination || profile?.featureAccess?.canBranchOperations || hasTrainingVideos) && (
+      {(profile?.featureAccess?.canLoanOrigination || profile?.featureAccess?.canSalesOrigination || profile?.featureAccess?.canBranchOperations || hasTrainingVideos) && (
         <section className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
           <div className="px-6 pt-6 pb-4 border-b border-slate-100">
             <h2 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">Business Apps</h2>
@@ -340,16 +340,30 @@ const EmployeeMobileDashboard = () => {
           </div>
           <div className="p-6 space-y-4">
 
-
             {profile?.featureAccess?.canLoanOrigination && (
-              <Link to="/employee/loans/origination" className="flex items-center justify-between w-full rounded-xl bg-emerald-600 text-white font-semibold text-sm px-6 py-4 hover:bg-emerald-700 active:scale-[0.98] transition-all shadow-sm">
+              <Link to="/employee/loans/origination" className="flex items-center justify-between w-full rounded-xl bg-blue-600 text-white font-semibold text-sm px-6 py-4 hover:bg-blue-700 active:scale-[0.98] transition-all shadow-sm">
                 <div className="flex items-center gap-3">
                   <div className="bg-white/20 p-2 rounded-lg">
                     <Briefcase className="w-5 h-5 text-white" />
                   </div>
                   <div className="text-left">
                     <div className="text-base">Loans Origination</div>
-                    <div className="text-xs text-emerald-200 font-normal mt-0.5">Originate and manage loan files</div>
+                    <div className="text-xs text-blue-200 font-normal mt-0.5">Originate and manage loan files</div>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-blue-200" />
+              </Link>
+            )}
+
+            {profile?.featureAccess?.canSalesOrigination && (
+              <Link to="/employee/sales/origination" className="flex items-center justify-between w-full rounded-xl bg-emerald-600 text-white font-semibold text-sm px-6 py-4 hover:bg-emerald-700 active:scale-[0.98] transition-all shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="bg-white/20 p-2 rounded-lg">
+                    <ShoppingBag className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <div className="text-base">Sales Origination</div>
+                    <div className="text-xs text-emerald-200 font-normal mt-0.5">Originate and manage sales deals</div>
                   </div>
                 </div>
                 <ChevronRight className="w-5 h-5 text-emerald-200" />

@@ -6,7 +6,7 @@ import { LogOut, Home, Briefcase, FileText, Activity, ArrowLeft, Smartphone, Use
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const OriginationLayout = () => {
+const OriginationLoansLayout = () => {
   const { profile, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -390,4 +390,4 @@ const OriginationLayout = () => {
   );
 };
 
-export default OriginationLayout;
+export default OriginationLoansLayout;

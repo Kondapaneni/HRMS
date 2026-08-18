@@ -28,7 +28,9 @@ import EmployeeMobileCamera from './pages/EmployeeMobileCamera'
 
 import EmployeeMobileHolidays from './pages/EmployeeMobileHolidays'
 import EmployeeMobileBirthdays from './pages/EmployeeMobileBirthdays'
-import OriginationLayout from './components/OriginationLayout'
+import OriginationLoansLayout from './components/OriginationLoansLayout'
+import OriginationSalesLayout from './components/OriginationSalesLayout'
+import OriginationSalesDashboard from './pages/OriginationSalesDashboard'
 import OriginationLoanDashboard from './pages/OriginationLoanDashboard'
 import OriginationLoanLeadsList from './pages/OriginationLoanLeadsList'
 import OriginationMobileLoanAddLead from './pages/OriginationMobileLoanAddLead'
@@ -242,7 +244,7 @@ function App() {
                 path="/employee/loans"
                 element={
                   <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
-                    <OriginationLayout />
+                    <OriginationLoansLayout />
                   </ProtectedRoute>
                 }
               >
@@ -255,6 +257,21 @@ function App() {
                 <Route path="origination/applications" element={<OriginationLoanApplicationsList />} />
                 <Route path="form" element={<OriginationLoanForms />} />
                 <Route path="view-application" element={<OriginationLoanViewApplication />} />
+              </Route>
+
+              {/* Origination Sales Workspace (Employee Only) */}
+              <Route
+                path="/employee/sales"
+                element={
+                  <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
+                    <OriginationSalesLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route path="origination" element={<OriginationSalesDashboard />} />
+                <Route path="origination/leads" element={<OriginationSalesDashboard />} />
+                <Route path="origination/customers" element={<OriginationSalesDashboard />} />
+                <Route path="origination/deals" element={<OriginationSalesDashboard />} />
               </Route>
 
               {/* Branch Operations Workspace (Employee Only) */}

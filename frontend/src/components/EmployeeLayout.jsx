@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import {
   LogOut, User, Calendar, Users, Briefcase, Monitor,
   Home, Clock, BarChart2, DollarSign, Activity, Bell, Search, Menu, Wallet,
-  Smartphone, Award, Megaphone, Play, Palmtree, Terminal, ShieldCheck, Building2
+  Smartphone, Award, Megaphone, Play, Palmtree, Terminal, ShieldCheck, Building2, ShoppingBag
 } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -94,6 +94,7 @@ const EmployeeLayout = () => {
 
   const businessApps = [
     { icon: <Briefcase size={18} />, label: 'Loans Origination', path: '/employee/loans/origination', feature: 'canLoanOrigination' },
+    { icon: <ShoppingBag size={18} />, label: 'Sales Origination', path: '/employee/sales/origination', feature: 'canSalesOrigination' },
     { icon: <Building2 size={18} />, label: 'Branch Operations', path: '/employee/branch-operations', feature: 'canBranchOperations' },
     { icon: <Award size={18} />, label: 'Assessments', path: '/employee/assessments', isAssessment: true },
     { icon: <Play size={18} />, label: 'Training Videos', path: '/employee/training', isTraining: true },
