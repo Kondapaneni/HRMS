@@ -59,7 +59,7 @@ class AuthMiddleware
                 if ($conn) {
                     $features = is_array($this->requiredFeature) ? $this->requiredFeature : [$this->requiredFeature];
                     foreach ($features as $feature) {
-                        $featureCol = 'can' . ucfirst($feature);
+                        $featureCol = str_starts_with($feature, 'can') ? $feature : ('can' . ucfirst($feature));
                         // Check if column exists to prevent SQL errors, but we know the schema.
                         $stmtCheck = $conn->prepare("SELECT \"$featureCol\" FROM user_feature_access WHERE \"userId\" = :uid");
                         $stmtCheck->execute([':uid' => $decoded->id]);

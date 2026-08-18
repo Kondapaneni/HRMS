@@ -4,6 +4,7 @@ import { Play, Plus, Trash2, X, Upload, Users, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../api/axios';
 import { supabase } from '../lib/supabase';
+import PageLoader from '../components/PageLoader';
 
 const AdminTrainingVideos = () => {
   const queryClient = useQueryClient();
@@ -122,11 +123,7 @@ const AdminTrainingVideos = () => {
   };
 
   if (videosLoading) {
-    return (
-      <div className="flex-1 p-8 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-      </div>
-    );
+    return <PageLoader message="Loading Training Videos..." />;
   }
 
   return (

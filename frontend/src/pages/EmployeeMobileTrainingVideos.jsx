@@ -4,6 +4,7 @@ import { Play, ArrowLeft } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import api from '../api/axios';
+import PageLoader from '../components/PageLoader';
 
 const EmployeeMobileTrainingVideos = () => {
   const navigate = useNavigate();
@@ -23,11 +24,7 @@ const EmployeeMobileTrainingVideos = () => {
   });
 
   if (isLoading) {
-    return (
-      <div className="flex-1 p-8 flex items-center justify-center min-h-[50vh]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-      </div>
-    );
+    return <PageLoader message="Loading Training Videos..." />;
   }
 
   return (

@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Play } from 'lucide-react';
 import api from '../api/axios';
 import EmployeeMobileTrainingVideos from './EmployeeMobileTrainingVideos';
+import PageLoader from '../components/PageLoader';
 
 const EmployeeTrainingVideos = () => {
   const { data: videos = [], isLoading } = useQuery({
@@ -14,11 +15,7 @@ const EmployeeTrainingVideos = () => {
   });
 
   if (isLoading) {
-    return (
-      <div className="flex-1 p-8 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-      </div>
-    );
+    return <PageLoader message="Loading Training Videos..." />;
   }
 
   return (
