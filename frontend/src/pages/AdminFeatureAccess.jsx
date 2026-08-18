@@ -46,7 +46,7 @@ const featuresList = [
   {
     key: 'canSalesOrigination',
     title: 'Sales Origination Access',
-    description: 'Grant access to the Sales Origination module in Acme HRMS.'
+    description: 'Grant access to the Sales Origination module in Acme Sales.'
   },
   {
     key: 'canBranchOperations',
