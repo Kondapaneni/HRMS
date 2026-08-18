@@ -29,14 +29,15 @@ import EmployeeMobileCamera from './pages/EmployeeMobileCamera'
 import EmployeeMobileHolidays from './pages/EmployeeMobileHolidays'
 import EmployeeMobileBirthdays from './pages/EmployeeMobileBirthdays'
 import OriginationLayout from './components/OriginationLayout'
-import OriginationDashboard from './pages/OriginationDashboard'
-import OriginationLeadsList from './pages/OriginationLeadsList'
-import OriginationMobileAddLead from './pages/OriginationMobileAddLead'
-import OriginationMobileLeadDetails from './pages/OriginationMobileLeadDetails'
-import OriginationMobileMemberDetails from './pages/OriginationMobileMemberDetails'
-import OriginationMembersList from './pages/OriginationMembersList'
-import OriginationApplicationsList from './pages/OriginationApplicationsList'
-import OriginationViewApplication from './pages/OriginationViewApplication'
+import OriginationLoanDashboard from './pages/OriginationLoanDashboard'
+import OriginationLoanLeadsList from './pages/OriginationLoanLeadsList'
+import OriginationMobileLoanAddLead from './pages/OriginationMobileLoanAddLead'
+import OriginationMobileLoanLeadDetails from './pages/OriginationMobileLoanLeadDetails'
+import OriginationMobileLoanMemberDetails from './pages/OriginationMobileLoanMemberDetails'
+import OriginationLoanMembersList from './pages/OriginationLoanMembersList'
+import OriginationLoanApplicationsList from './pages/OriginationLoanApplicationsList'
+import OriginationLoanForms from './pages/OriginationLoanForms'
+import OriginationLoanViewApplication from './pages/OriginationLoanViewApplication'
 import BranchOperationsLayout from './components/BranchOperationsLayout'
 import BranchOperationsDashboard from './pages/BranchOperationsDashboard'
 import BranchOperationsLoansApplicationsList from './pages/BranchOperationsLoansApplicationsList'
@@ -72,7 +73,6 @@ import AdminPerformance from './pages/AdminPerformance'
 import AdminExpenses from './pages/AdminExpenses'
 
 import AdminRecruitment from './pages/AdminRecruitment'
-import OriginationLoanForms from './pages/OriginationLoanForms'
 import EmployeeAssessments from './pages/EmployeeAssessments'
 import EmployeeAssessmentInstructions from './pages/EmployeeAssessmentInstructions'
 import EmployeeAssessmentEngine from './pages/EmployeeAssessmentEngine'
@@ -246,15 +246,15 @@ function App() {
                   </ProtectedRoute>
                 }
               >
-                <Route path="origination" element={<OriginationDashboard />} />
-                <Route path="origination/leads" element={<OriginationLeadsList />} />
-                <Route path="origination/leads/add" element={<OriginationMobileAddLead />} />
-                <Route path="origination/leads/:id/details" element={<OriginationMobileLeadDetails />} />
-                <Route path="origination/members" element={<OriginationMembersList />} />
-                <Route path="origination/members/:phone/details" element={<OriginationMobileMemberDetails />} />
-                <Route path="origination/applications" element={<OriginationApplicationsList />} />
+                <Route path="origination" element={<OriginationLoanDashboard />} />
+                <Route path="origination/leads" element={<OriginationLoanLeadsList />} />
+                <Route path="origination/leads/add" element={<OriginationMobileLoanAddLead />} />
+                <Route path="origination/leads/:id/details" element={<OriginationMobileLoanLeadDetails />} />
+                <Route path="origination/members" element={<OriginationLoanMembersList />} />
+                <Route path="origination/members/:phone/details" element={<OriginationMobileLoanMemberDetails />} />
+                <Route path="origination/applications" element={<OriginationLoanApplicationsList />} />
                 <Route path="form" element={<OriginationLoanForms />} />
-                <Route path="view-application" element={<OriginationViewApplication />} />
+                <Route path="view-application" element={<OriginationLoanViewApplication />} />
               </Route>
 
               {/* Branch Operations Workspace (Employee Only) */}

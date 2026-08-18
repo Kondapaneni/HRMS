@@ -12,7 +12,7 @@ import {
   RadioGroup
 } from '../components/forms';
 
-const OriginationMobileAddLead = () => {
+const OriginationMobileLoanAddLead = () => {
   const navigate = useNavigate();
   
   const [formData, setFormData] = useState({
@@ -104,7 +104,7 @@ const OriginationMobileAddLead = () => {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="text-center">
-            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">Origination Module</p>
+            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">Origination Loan Module</p>
             <h2 className="text-xl font-bold text-white tracking-tight drop-shadow-sm">Add New Lead</h2>
           </div>
           <button onClick={handleSubmit} disabled={isSubmitting} className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-lg disabled:opacity-50 transition-transform active:scale-95">
@@ -175,4 +175,4 @@ const OriginationMobileAddLead = () => {
   );
 };
 
-export default OriginationMobileAddLead;
+export default OriginationMobileLoanAddLead;

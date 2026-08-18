@@ -5,9 +5,9 @@ import { motion } from 'framer-motion';
 import { Search, CheckCircle2, Users, Loader2, MoreVertical } from 'lucide-react';
 import { format } from 'date-fns';
 import MemberDetailsSidebar from '../components/MemberDetailsSidebar';
-import OriginationMobileMemberList from './OriginationMobileMemberList';
+import OriginationMobileLoanMemberList from './OriginationMobileLoanMemberList';
 
-const OriginationMembersList = () => {
+const OriginationLoanMembersList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedMember, setSelectedMember] = useState(null);
@@ -72,7 +72,7 @@ const OriginationMembersList = () => {
   return (
     <>
       <div className="md:hidden">
-        <OriginationMobileMemberList />
+        <OriginationMobileLoanMemberList />
       </div>
       <div className="hidden md:block p-4 md:p-6 space-y-6 md:pb-6">
         
@@ -191,4 +191,4 @@ const OriginationMembersList = () => {
   );
 };
 
-export default OriginationMembersList;
+export default OriginationLoanMembersList;

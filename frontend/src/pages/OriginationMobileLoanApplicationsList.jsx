@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { Search, CheckCircle2, Clock, Phone, Briefcase, Eye, Loader2, ChevronDown, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 
-const OriginationMobileApplicationsList = () => {
+const OriginationMobileLoanApplicationsList = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
@@ -99,7 +99,7 @@ const OriginationMobileApplicationsList = () => {
 
         <div className="relative z-10 px-2 flex justify-between items-center">
           <div>
-            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">Origination Module</p>
+            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">Origination Loan Module</p>
             <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">Applications</h2>
             <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">Created & draft loans</p>
           </div>
@@ -241,4 +241,4 @@ const OriginationMobileApplicationsList = () => {
   );
 };
 
-export default OriginationMobileApplicationsList;
+export default OriginationMobileLoanApplicationsList;

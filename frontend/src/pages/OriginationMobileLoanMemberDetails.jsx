@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { getLoanApplications, getLeads } from '../services/loanServices';
 
-const OriginationMobileMemberDetails = ({ member: propMember }) => {
+const OriginationMobileLoanMemberDetails = ({ member: propMember }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { phone } = useParams();
@@ -126,7 +126,7 @@ const OriginationMobileMemberDetails = ({ member: propMember }) => {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="text-center">
-            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">Origination Module</p>
+            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">Origination Loan Module</p>
             <h2 className="text-xl font-bold text-white tracking-tight drop-shadow-sm">Member Profile</h2>
           </div>
           <div className="w-10 h-10" />
@@ -259,4 +259,4 @@ const OriginationMobileMemberDetails = ({ member: propMember }) => {
   );
 };
 
-export default OriginationMobileMemberDetails;
+export default OriginationMobileLoanMemberDetails;

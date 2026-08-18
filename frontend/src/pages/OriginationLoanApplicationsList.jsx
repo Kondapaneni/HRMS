@@ -4,9 +4,9 @@ import { useQuery } from '@tanstack/react-query';
 import { getLoanApplications } from '../services/loanServices';
 import { Search, CheckCircle2, Briefcase, Loader2, Clock, MoreVertical, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
-import OriginationMobileApplicationsList from './OriginationMobileApplicationsList';
+import OriginationMobileLoanApplicationsList from './OriginationMobileLoanApplicationsList';
 
-const OriginationApplicationsList = () => {
+const OriginationLoanApplicationsList = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
@@ -65,7 +65,7 @@ const OriginationApplicationsList = () => {
     <>
       {/* Mobile Screen View */}
       <div className="md:hidden">
-        <OriginationMobileApplicationsList />
+        <OriginationMobileLoanApplicationsList />
       </div>
 
       {/* Desktop Screen View */}
@@ -241,4 +241,4 @@ const OriginationApplicationsList = () => {
   );
 };
 
-export default OriginationApplicationsList;
+export default OriginationLoanApplicationsList;

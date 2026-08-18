@@ -15,9 +15,9 @@ import {
   Legend
 } from 'recharts';
 import { motion } from 'framer-motion';
-import OriginationMobileDashboard from './OriginationMobileDashboard';
+import OriginationMobileLoanDashboard from './OriginationMobileLoanDashboard';
 
-const OriginationDashboard = () => {
+const OriginationLoanDashboard = () => {
   const { data, isLoading, error } = useQuery({
     queryKey: ['leadsDashboard'],
     queryFn: getDashboardData
@@ -53,7 +53,7 @@ const OriginationDashboard = () => {
   return (
     <>
       <div className="md:hidden">
-        <OriginationMobileDashboard />
+        <OriginationMobileLoanDashboard />
       </div>
 
       <motion.div 
@@ -63,7 +63,7 @@ const OriginationDashboard = () => {
         {/* Header Section */}
         <motion.div variants={itemVariants} className="flex justify-between items-center mb-2">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900">Origination Dashboard</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900">Origination Loan Dashboard</h1>
             <p className="text-sm text-slate-500 mt-1">Overview of lead generation and conversion trends.</p>
           </div>
         </motion.div>
@@ -175,4 +175,4 @@ const OriginationDashboard = () => {
   );
 };
 
-export default OriginationDashboard;
+export default OriginationLoanDashboard;

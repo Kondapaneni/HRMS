@@ -15,9 +15,9 @@ import { getLoanApplications, updateLoanApplicationStatus } from '../services/lo
 import { LoanDetailView } from '../components/forms';
 import { LoanDocumentsSidebar } from '../components/forms/LoanDocumentsSidebar';
 import { SignatureModal } from '../components/forms/SignatureModal';
-import OriginationMobileViewApplications from './OriginationMobileViewApplications';
+import OriginationMobileLoanViewApplications from './OriginationMobileLoanViewApplications';
 
-export default function OriginationViewApplication() {
+export default function OriginationLoanViewApplication() {
   const location = useLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -208,7 +208,7 @@ export default function OriginationViewApplication() {
     <>
       {/* Mobile View Component (Visible ONLY on Mobile < 768px) */}
       <div className="block md:hidden print:hidden">
-        <OriginationMobileViewApplications
+        <OriginationMobileLoanViewApplications
           application={application}
           formData={formData}
           fromPath={fromPath}

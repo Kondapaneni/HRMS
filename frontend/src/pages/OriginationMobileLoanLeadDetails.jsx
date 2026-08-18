@@ -7,7 +7,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateLeadStatus } from '../services/loanServices';
 import toast from 'react-hot-toast';
 
-const OriginationMobileLeadDetails = () => {
+const OriginationMobileLoanLeadDetails = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
@@ -124,7 +124,7 @@ const OriginationMobileLeadDetails = () => {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="text-center">
-            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">Origination Module</p>
+            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">Origination Loan Module</p>
             <h2 className="text-xl font-bold text-white tracking-tight drop-shadow-sm">Lead Details</h2>
           </div>
           <div className="w-10 h-10" />
@@ -317,4 +317,4 @@ const OriginationMobileLeadDetails = () => {
   );
 };
 
-export default OriginationMobileLeadDetails;
+export default OriginationMobileLoanLeadDetails;

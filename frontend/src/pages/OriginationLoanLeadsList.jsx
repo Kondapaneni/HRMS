@@ -4,11 +4,11 @@ import { getLeads } from '../services/loanServices';
 import { motion } from 'framer-motion';
 import { Search, Filter, Phone, MapPin, Calendar, CheckCircle2, Clock, FileText, Loader2, Plus, MoreVertical, XCircle, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
-import OriginationMobileLeadsList from './OriginationMobileLeadsList';
+import OriginationMobileLoanLeadsList from './OriginationMobileLoanLeadsList';
 import AddLeadSidebar from '../components/AddLeadSidebar';
 import LeadDetailsSidebar from '../components/LeadDetailsSidebar';
 
-const OriginationLeadsList = () => {
+const OriginationLoanLeadsList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [isAddLeadOpen, setIsAddLeadOpen] = useState(false);
@@ -58,7 +58,7 @@ const OriginationLeadsList = () => {
   return (
     <>
       <div className="md:hidden">
-        <OriginationMobileLeadsList />
+        <OriginationMobileLoanLeadsList />
       </div>
 
       <motion.div 
@@ -193,4 +193,4 @@ const OriginationLeadsList = () => {
   );
 };
 
-export default OriginationLeadsList;
+export default OriginationLoanLeadsList;

@@ -31,7 +31,7 @@ const formatDateSafe = (dateStr) => {
   }
 };
 
-export default function OriginationMobileViewApplications({
+export default function OriginationMobileLoanViewApplications({
   application: propApplication,
   formData: propFormData,
   fromPath: propFromPath
@@ -247,7 +247,7 @@ export default function OriginationMobileViewApplications({
           </button>
           <div className="text-center">
             <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">
-              ORIGINATION MODULE
+              ORIGINATION LOAN MODULE
             </p>
             <h2 className="text-xl font-bold text-white tracking-tight drop-shadow-sm">
               Application Details
@@ -381,4 +381,4 @@ export default function OriginationMobileViewApplications({
   );
 }
 
-export { OriginationMobileViewApplications };
+export { OriginationMobileLoanViewApplications };
