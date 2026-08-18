@@ -178,7 +178,6 @@ function App() {
                 <Route path="recruitment/verify-documents/:id" element={<AdminVerifyDocuments />} />
                 <Route path="form" element={<OriginationLoanForms />} />
                 <Route path="view-application" element={<OriginationViewApplication />} />
-                <Route path="loans-view-applications" element={<OriginationViewApplication />} />
               </Route>
 
               {/* Acme Assessment Hub Workspace (Admin Only) */}
@@ -258,7 +257,6 @@ function App() {
                 <Route path="origination/applications" element={<OriginationApplicationsList />} />
                 <Route path="form" element={<OriginationLoanForms />} />
                 <Route path="view-application" element={<OriginationViewApplication />} />
-                <Route path="loans-view-applications" element={<OriginationViewApplication />} />
               </Route>
 
               {/* Branch Operations Workspace (Employee Only) */}
