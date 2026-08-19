@@ -49,6 +49,9 @@ const AddLeadSidebar = ({ isOpen, onClose, type = 'loan' }) => {
     setErrors({});
   };
 
+  /* ========================================================================== */
+  /* ==================== LOANS & SALES SUBMIT LOGIC START ==================== */
+  /* ========================================================================== */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -64,12 +67,14 @@ const AddLeadSidebar = ({ isOpen, onClose, type = 'loan' }) => {
     try {
       setIsSubmitting(true);
       if (isSale) {
+        // --- SALES LEAD SUBMIT ---
         await createSalesLead(formData);
         queryClient.invalidateQueries(['sales', 'leads']);
         queryClient.invalidateQueries(['sales', 'leads', 'list']);
         queryClient.invalidateQueries(['salesDashboard']);
         toast.success('Sales lead added successfully!');
       } else {
+        // --- LOANS LEAD SUBMIT ---
         await createLead(formData);
         queryClient.invalidateQueries(['origination', 'leads']);
         queryClient.invalidateQueries(['origination', 'leads', 'list']);
@@ -85,6 +90,9 @@ const AddLeadSidebar = ({ isOpen, onClose, type = 'loan' }) => {
       setIsSubmitting(false);
     }
   };
+  /* ========================================================================== */
+  /* ==================== LOANS & SALES SUBMIT LOGIC END ====================== */
+  /* ========================================================================== */
 
   return (
     <AnimatePresence>
@@ -121,6 +129,10 @@ const AddLeadSidebar = ({ isOpen, onClose, type = 'loan' }) => {
             {/* Form */}
             <div className="flex-1 overflow-y-auto p-6 hide-scrollbar">
               <form onSubmit={handleSubmit} className="space-y-4">
+                
+                {/* ========================================================================== */}
+                {/* ==================== LOANS & SALES FORM FIELDS START ===================== */}
+                {/* ========================================================================== */}
                 <TextField
                   name="name"
                   label="Lead Name"
@@ -153,7 +165,13 @@ const AddLeadSidebar = ({ isOpen, onClose, type = 'loan' }) => {
                   rows={3}
                   error={errors.address}
                 />
+                {/* ========================================================================== */}
+                {/* ==================== LOANS & SALES FORM FIELDS END ======================= */}
+                {/* ========================================================================== */}
 
+                {/* ========================================================================== */}
+                {/* ==================== LOANS & SALES BUTTONS START ========================= */}
+                {/* ========================================================================== */}
                 <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3 mt-6">
                   <button
                     type="button"
@@ -174,6 +192,10 @@ const AddLeadSidebar = ({ isOpen, onClose, type = 'loan' }) => {
                     {isSubmitting ? 'Saving...' : 'Save Lead'}
                   </button>
                 </div>
+                {/* ========================================================================== */}
+                {/* ==================== LOANS & SALES BUTTONS END =========================== */}
+                {/* ========================================================================== */}
+
               </form>
             </div>
           </motion.div>
