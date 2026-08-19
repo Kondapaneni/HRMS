@@ -100,7 +100,7 @@ export default function BranchOperationsLoansViewApplication() {
   if (!application && isLoading) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-slate-500">
-        <Loader2 className="animate-spin h-8 w-8 text-blue-600 mb-3" />
+        <Loader2 className="animate-spin h-8 w-8 text-[#7C4DFF] mb-3" />
         <p className="text-sm font-medium">Loading application details...</p>
       </div>
     );
@@ -112,7 +112,7 @@ export default function BranchOperationsLoansViewApplication() {
         <p className="text-sm font-medium mb-4">No application details found.</p>
         <button
           onClick={() => navigate(fromPath)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-semibold hover:bg-blue-700 transition-colors"
+          className="px-4 py-2 bg-[#7C4DFF] text-white rounded-md text-sm font-semibold hover:bg-[#6a3ae8] transition-colors cursor-pointer"
         >
           Back to Applications List
         </button>
@@ -136,14 +136,10 @@ export default function BranchOperationsLoansViewApplication() {
         {/* Top Page Header & Action Buttons (Hidden in Print) */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden">
           <div>
-            <div className="flex items-center gap-3 mb-1">
+            <div className="mb-1">
               <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
                 Application Details
               </h1>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                <Building2 className="w-3.5 h-3.5 text-indigo-600" />
-                {branchName}
-              </span>
             </div>
             <p className="text-xs sm:text-sm text-slate-500">
               View complete loan application details, applicant information, documents, and stage history.
@@ -163,7 +159,7 @@ export default function BranchOperationsLoansViewApplication() {
                     from: '/employee/branch-operations/loans-view-applications'
                   }
                 })}
-                className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 transition-colors gap-2 shadow-sm cursor-pointer"
+                className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-[#7C4DFF] text-white hover:bg-[#6a3ae8] h-10 px-4 transition-colors gap-2 shadow-sm cursor-pointer"
               >
                 <Edit3 className="w-4 h-4" /> Edit Application
               </button>
@@ -171,7 +167,7 @@ export default function BranchOperationsLoansViewApplication() {
             <button
               type="button"
               onClick={handlePrint}
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-slate-900 text-white hover:bg-slate-800 h-10 px-4 transition-colors gap-2 shadow-sm cursor-pointer"
+              className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-[#7C4DFF] text-white hover:bg-[#6a3ae8] h-10 px-4 transition-colors gap-2 shadow-sm shadow-[#7C4DFF]/20 cursor-pointer"
             >
               <Printer className="w-4 h-4" /> Print Application Form
             </button>

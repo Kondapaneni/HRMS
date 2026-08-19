@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getBranchLoanApplications } from '../services/loanServices';
 import PageLoader from '../components/PageLoader';
 import { Search, CheckCircle2, Clock, Phone, Briefcase, ChevronDown, XCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 
 const BranchOperationsMobileLoansApplicationsList = () => {
@@ -70,17 +71,41 @@ const BranchOperationsMobileLoansApplicationsList = () => {
     <div className="w-full pb-5">
       {/* Hero Header */}
       <section className="relative px-6 pt-12 pb-24 rounded-b-[40px] overflow-hidden bg-slate-900 shadow-md">
-        {/* Background Blobs (Static) */}
-        <div className="absolute -top-20 -left-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none" />
-        <div className="absolute -top-10 -right-10 w-64 h-64 bg-indigo-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none" />
-        <div className="absolute bottom-0 left-20 w-80 h-80 bg-emerald-500 rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none" />
+        {/* Animated Background Blobs (#7C4DFF) */}
+        <motion.div
+          animate={{
+            scale: [1, 1.2, 1],
+            x: [0, 50, 0],
+            y: [0, 30, 0],
+          }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -top-20 -left-10 w-72 h-72 bg-[#7C4DFF] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+        />
+        <motion.div
+          animate={{
+            scale: [1, 1.4, 1],
+            x: [0, -40, 0],
+            y: [0, 50, 0],
+          }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute -top-10 -right-10 w-64 h-64 bg-[#9575FF] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+        />
+        <motion.div
+          animate={{
+            scale: [1, 1.3, 1],
+            x: [0, 30, 0],
+            y: [0, -40, 0],
+          }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          className="absolute bottom-0 left-20 w-80 h-80 bg-[#B388FF] rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
+        />
 
         {/* Subtle Glass Overlay */}
         <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
 
         <div className="relative z-10 px-2 flex justify-between items-center">
           <div>
-            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">Branch Operation Module • {branch.name}</p>
+            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">Branch Operation Module</p>
             <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">Loan Applications</h2>
             <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">Branch processed applications</p>
           </div>
@@ -98,7 +123,7 @@ const BranchOperationsMobileLoansApplicationsList = () => {
               placeholder="Search by name, phone, App ID..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              className="w-full pl-10 pr-4 py-3 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#7C4DFF] focus:border-transparent transition-all"
             />
           </div>
         </div>
@@ -109,7 +134,7 @@ const BranchOperationsMobileLoansApplicationsList = () => {
             <select
               value={loanTypeFilter}
               onChange={(e) => setLoanTypeFilter(e.target.value)}
-              className="w-full h-11 pl-3 pr-8 rounded-xl bg-white border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 font-semibold text-slate-700 shadow-xs appearance-none cursor-pointer"
+              className="w-full h-11 pl-3 pr-8 rounded-xl bg-white border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#7C4DFF] font-semibold text-slate-700 shadow-xs appearance-none cursor-pointer"
             >
               <option value="All">All Types ({applications.length})</option>
               <option value="Personal Loan">
@@ -126,7 +151,7 @@ const BranchOperationsMobileLoansApplicationsList = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full h-11 pl-3 pr-8 rounded-xl bg-white border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 font-semibold text-slate-700 shadow-xs appearance-none cursor-pointer"
+              className="w-full h-11 pl-3 pr-8 rounded-xl bg-white border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#7C4DFF] font-semibold text-slate-700 shadow-xs appearance-none cursor-pointer"
             >
               <option value="All">All Status ({applications.length})</option>
               <option value="Under Review">
@@ -169,7 +194,7 @@ const BranchOperationsMobileLoansApplicationsList = () => {
                 >
                   <div className="flex justify-between items-start gap-2">
                     <div className="min-w-0 flex-1">
-                      <span className="text-[11px] font-bold text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-100 uppercase tracking-wider whitespace-nowrap">
+                      <span className="text-[11px] font-bold text-[#7C4DFF] bg-[#7C4DFF]/10 px-2.5 py-0.5 rounded-full border border-[#7C4DFF]/20 uppercase tracking-wider whitespace-nowrap">
                         {app.application_id || 'LA-PENDING'}
                       </span>
                       <h3 className="font-bold text-slate-900 text-lg mt-1.5 leading-tight truncate">{name}</h3>

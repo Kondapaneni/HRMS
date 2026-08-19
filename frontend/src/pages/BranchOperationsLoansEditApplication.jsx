@@ -39,19 +39,11 @@ export default function BranchOperationsLoansEditApplication() {
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-                <Edit3 className="w-3.5 h-3.5" /> Branch Operations Edit Mode
-              </span>
-              <span className="text-xs font-semibold text-slate-500">
-                ID: {appId}
-              </span>
-            </div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900 mt-1">
-              Edit {loanType} Application
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900 font-sans">
+              {appId}
             </h1>
-            <p className="text-sm text-slate-500 mt-1">
-              Update details or correct mistakes in the application. Any changes made will be automatically tracked in the audit trail.
+            <p className="text-sm font-medium text-slate-500 mt-1">
+              Edit {loanType} Application • Update details or correct mistakes in the application.
             </p>
           </div>
 
@@ -68,7 +60,7 @@ export default function BranchOperationsLoansEditApplication() {
         <div className="rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden">
           <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
             <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-blue-100 text-blue-700">
+              <div className="p-2 rounded-lg bg-[#7C4DFF]/10 text-[#7C4DFF]">
                 <Edit3 className="w-5 h-5" />
               </div>
               <div>

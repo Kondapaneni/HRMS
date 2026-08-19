@@ -133,15 +133,16 @@ const BranchOperationsLayout = () => {
           <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 px-2 whitespace-nowrap">Operations Modules</p>
           <nav className="space-y-1">
             {navItems.filter(item => !item.feature || profile?.featureAccess?.[item.feature]).map((item, idx) => {
-              const isViewAppPage = location.pathname === '/employee/branch-operations/loans-view-applications' || location.pathname.startsWith('/employee/branch-operations/loans-view-applications/');
+              const isLoansAppPage = 
+                location.pathname.startsWith('/employee/branch-operations/loans-applications') ||
+                location.pathname.startsWith('/employee/branch-operations/loans-view-applications') ||
+                location.pathname.startsWith('/employee/branch-operations/loans-edit-application');
 
               let isActive;
-              if (isViewAppPage && item.label === 'Applications') {
-                isActive = true;
-              } else if (isViewAppPage) {
-                isActive = false;
+              if (item.path === '/employee/branch-operations/loans-applications') {
+                isActive = isLoansAppPage;
               } else if (item.path === '/employee/branch-operations') {
-                isActive = location.pathname === '/employee/branch-operations' || location.pathname === '/employee/branch-operations/dashboard';
+                isActive = (location.pathname === '/employee/branch-operations' || location.pathname === '/employee/branch-operations/dashboard') && !isLoansAppPage;
               } else {
                 isActive = location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
               }
@@ -256,15 +257,16 @@ const BranchOperationsLayout = () => {
 
               {navItems.filter(item => !item.feature || profile?.featureAccess?.[item.feature]).map((item, idx) => {
                 const currentPath = swipePath || location.pathname;
-                const isMobileViewAppPage = currentPath === '/employee/branch-operations/loans-view-applications' || currentPath.startsWith('/employee/branch-operations/loans-view-applications/');
+                const isMobileLoansAppPage = 
+                  currentPath.startsWith('/employee/branch-operations/loans-applications') ||
+                  currentPath.startsWith('/employee/branch-operations/loans-view-applications') ||
+                  currentPath.startsWith('/employee/branch-operations/loans-edit-application');
 
                 let isActive;
-                if (isMobileViewAppPage && (item.label === 'Loan Applications' || item.label === 'Applications')) {
-                  isActive = true;
-                } else if (isMobileViewAppPage) {
-                  isActive = false;
+                if (item.path === '/employee/branch-operations/loans-applications') {
+                  isActive = isMobileLoansAppPage;
                 } else if (item.path === '/employee/branch-operations') {
-                  isActive = currentPath === '/employee/branch-operations' || currentPath === '/employee/branch-operations/dashboard';
+                  isActive = (currentPath === '/employee/branch-operations' || currentPath === '/employee/branch-operations/dashboard') && !isMobileLoansAppPage;
                 } else {
                   isActive = currentPath === item.path || currentPath.startsWith(`${item.path}/`);
                 }

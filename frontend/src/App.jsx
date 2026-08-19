@@ -269,9 +269,6 @@ function App() {
                 }
               >
                 <Route path="origination" element={<OriginationSalesDashboard />} />
-                <Route path="origination/leads" element={<OriginationSalesDashboard />} />
-                <Route path="origination/customers" element={<OriginationSalesDashboard />} />
-                <Route path="origination/deals" element={<OriginationSalesDashboard />} />
               </Route>
 
               {/* Branch Operations Workspace (Employee Only) */}

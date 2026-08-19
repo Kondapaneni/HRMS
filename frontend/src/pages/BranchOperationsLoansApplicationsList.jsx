@@ -112,12 +112,8 @@ const BranchOperationsLoansApplicationsList = () => {
         {/* Header */}
         <div className="flex justify-between items-center mb-2">
           <div>
-            <div className="flex items-center gap-2.5 mb-1">
+            <div className="mb-1">
               <h1 className="text-3xl font-bold tracking-tight text-slate-900">Loan Applications</h1>
-              <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                <Building2 size={13} className="text-indigo-600" />
-                {branch.name}
-              </span>
             </div>
             <p className="text-sm text-slate-500 mt-1">View and manage all loan applications processed through this branch.</p>
           </div>
@@ -148,7 +144,7 @@ const BranchOperationsLoansApplicationsList = () => {
                       placeholder="Search applications..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 focus:bg-white"
+                      className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#7C4DFF] bg-slate-50 focus:bg-white"
                     />
                   </div>
 
@@ -156,7 +152,7 @@ const BranchOperationsLoansApplicationsList = () => {
                   <select
                     value={loanTypeFilter}
                     onChange={(e) => setLoanTypeFilter(e.target.value)}
-                    className="h-10 w-full sm:w-auto rounded-md border border-slate-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700 font-medium cursor-pointer"
+                    className="h-10 w-full sm:w-auto rounded-md border border-slate-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#7C4DFF] bg-white text-slate-700 font-medium cursor-pointer"
                   >
                     <option value="All">All Types ({applications.length})</option>
                     <option value="Personal Loan">
@@ -171,7 +167,7 @@ const BranchOperationsLoansApplicationsList = () => {
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    className="h-10 w-full sm:w-auto rounded-md border border-slate-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700 font-medium cursor-pointer"
+                    className="h-10 w-full sm:w-auto rounded-md border border-slate-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#7C4DFF] bg-white text-slate-700 font-medium cursor-pointer"
                   >
                     <option value="All">All Status ({applications.length})</option>
                     <option value="Under Review">
@@ -217,7 +213,7 @@ const BranchOperationsLoansApplicationsList = () => {
                           return (
                             <tr key={app.id || app.application_id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
                               <td className="p-3 text-slate-700 whitespace-nowrap">
-                                <span className="font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded text-xs border border-blue-100">
+                                <span className="font-semibold text-[#7C4DFF] bg-[#7C4DFF]/10 px-2 py-0.5 rounded text-xs border border-[#7C4DFF]/20">
                                   {app.application_id || 'LA-PENDING'}
                                 </span>
                               </td>

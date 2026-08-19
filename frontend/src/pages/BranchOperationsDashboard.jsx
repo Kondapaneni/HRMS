@@ -92,12 +92,8 @@ const BranchOperationsDashboard = () => {
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
           <div>
-            <div className="flex items-center gap-2.5 mb-1">
+            <div className="mb-1">
               <h1 className="text-3xl font-bold tracking-tight text-slate-900">Branch Operations Dashboard</h1>
-              <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                <Building2 size={13} className="text-indigo-600" />
-                {branch.name}
-              </span>
             </div>
             <p className="text-sm text-slate-500">Overview of branch lead generation, loan applications, and operations.</p>
           </div>
@@ -106,7 +102,7 @@ const BranchOperationsDashboard = () => {
           <select
             value={selectedEmployee}
             onChange={(e) => setSelectedEmployee(e.target.value)}
-            className="h-10 w-full sm:w-auto rounded-md border border-slate-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-slate-700 font-medium cursor-pointer shadow-xs"
+            className="h-10 w-full sm:w-auto rounded-md border border-slate-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#7C4DFF] bg-white text-slate-700 font-medium cursor-pointer shadow-xs"
           >
             <option value="all">All Employees ({creators.length})</option>
             {creators.map((c) => (
@@ -119,7 +115,7 @@ const BranchOperationsDashboard = () => {
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white/60 backdrop-blur-xl p-6 rounded-2xl border border-white/80 shadow-sm flex items-center justify-between group hover:border-blue-200 transition-colors">
+          <div className="bg-white/60 backdrop-blur-xl p-6 rounded-2xl border border-white/80 shadow-sm flex items-center justify-between group hover:border-[#7C4DFF]/30 transition-colors">
             <div>
               <p className="text-sm font-medium text-slate-500 mb-1">Total Leads (This Month)</p>
               <div className="flex items-end gap-3">
@@ -132,12 +128,12 @@ const BranchOperationsDashboard = () => {
                 </span>
               </div>
             </div>
-            <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform">
+            <div className="w-14 h-14 bg-[#7C4DFF]/10 rounded-2xl flex items-center justify-center text-[#7C4DFF] group-hover:scale-110 transition-transform">
               <Users size={28} />
             </div>
           </div>
           
-          <div className="bg-white/60 backdrop-blur-xl p-6 rounded-2xl border border-white/80 shadow-sm flex items-center justify-between group hover:border-indigo-200 transition-colors">
+          <div className="bg-white/60 backdrop-blur-xl p-6 rounded-2xl border border-white/80 shadow-sm flex items-center justify-between group hover:border-[#9575FF]/30 transition-colors">
             <div>
               <p className="text-sm font-medium text-slate-500 mb-1">Active Opportunities</p>
               <div className="flex items-end gap-3">
@@ -150,12 +146,12 @@ const BranchOperationsDashboard = () => {
                 </span>
               </div>
             </div>
-            <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-transform">
+            <div className="w-14 h-14 bg-[#9575FF]/10 rounded-2xl flex items-center justify-center text-[#9575FF] group-hover:scale-110 transition-transform">
               <TrendingUp size={28} />
             </div>
           </div>
           
-          <div className="bg-white/60 backdrop-blur-xl p-6 rounded-2xl border border-white/80 shadow-sm flex items-center justify-between group hover:border-emerald-200 transition-colors">
+          <div className="bg-white/60 backdrop-blur-xl p-6 rounded-2xl border border-white/80 shadow-sm flex items-center justify-between group hover:border-[#7C4DFF]/30 transition-colors">
             <div>
               <p className="text-sm font-medium text-slate-500 mb-1">Converted Leads</p>
               <div className="flex items-end gap-3">
@@ -168,7 +164,7 @@ const BranchOperationsDashboard = () => {
                 </span>
               </div>
             </div>
-            <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
+            <div className="w-14 h-14 bg-[#7C4DFF]/10 rounded-2xl flex items-center justify-center text-[#7C4DFF] group-hover:scale-110 transition-transform">
               <CheckCircle size={28} />
             </div>
           </div>
@@ -190,8 +186,8 @@ const BranchOperationsDashboard = () => {
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                   />
                   <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
-                  <Line type="monotone" dataKey="leads" name="Total Leads" stroke="#6366f1" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6, strokeWidth: 0, fill: '#6366f1' }} />
-                  <Line type="monotone" dataKey="converted" name="Converted" stroke="#10b981" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6, strokeWidth: 0, fill: '#10b981' }} />
+                  <Line type="monotone" dataKey="leads" name="Total Leads" stroke="#7C4DFF" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6, strokeWidth: 0, fill: '#7C4DFF' }} />
+                  <Line type="monotone" dataKey="converted" name="Converted" stroke="#9575FF" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6, strokeWidth: 0, fill: '#9575FF' }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -211,8 +207,8 @@ const BranchOperationsDashboard = () => {
                     cursor={{ fill: '#f1f5f9' }}
                   />
                   <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px' }} />
-                  <Bar dataKey="leads" name="Total Leads" fill="#6366f1" radius={[4, 4, 0, 0]} barSize={32} />
-                  <Bar dataKey="converted" name="Converted" fill="#10b981" radius={[4, 4, 0, 0]} barSize={32} />
+                  <Bar dataKey="leads" name="Total Leads" fill="#7C4DFF" radius={[4, 4, 0, 0]} barSize={32} />
+                  <Bar dataKey="converted" name="Converted" fill="#9575FF" radius={[4, 4, 0, 0]} barSize={32} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -220,7 +216,7 @@ const BranchOperationsDashboard = () => {
 
         </div>
 
-        {/* Directory-styled Activity Card & Table (Matching Origination Leads) */}
+        {/* Directory-styled Activity Card & Table */}
         <div className="rounded-lg border border-slate-200 bg-white shadow-sm mb-6">
           <div className="p-6 pb-2 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
@@ -239,7 +235,7 @@ const BranchOperationsDashboard = () => {
                 onClick={() => setActiveTableTab('leads')}
                 className={`whitespace-nowrap px-4 py-2.5 text-sm font-medium transition-colors ${
                   activeTableTab === 'leads'
-                    ? 'border-b-2 border-blue-600 text-blue-600 font-semibold'
+                    ? 'border-b-2 border-[#7C4DFF] text-[#7C4DFF] font-semibold'
                     : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
                 }`}
               >
@@ -249,7 +245,7 @@ const BranchOperationsDashboard = () => {
                 onClick={() => setActiveTableTab('applications')}
                 className={`whitespace-nowrap px-4 py-2.5 text-sm font-medium transition-colors ${
                   activeTableTab === 'applications'
-                    ? 'border-b-2 border-blue-600 text-blue-600 font-semibold'
+                    ? 'border-b-2 border-[#7C4DFF] text-[#7C4DFF] font-semibold'
                     : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
                 }`}
               >
@@ -338,7 +334,7 @@ const BranchOperationsDashboard = () => {
                         return (
                           <tr key={app.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
                             <td className="p-3 text-slate-700">
-                              <span className="font-mono font-medium text-blue-600">{app.application_id || 'LA-PENDING'}</span>
+                              <span className="font-mono font-medium text-[#7C4DFF]">{app.application_id || 'LA-PENDING'}</span>
                             </td>
                             <td className="p-3 text-slate-700">
                               <div className="font-medium text-slate-900">{applicantName}</div>

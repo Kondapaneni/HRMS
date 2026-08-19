@@ -15,6 +15,7 @@ import {
   ResponsiveContainer,
   Legend
 } from 'recharts';
+import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 
 const BranchOperationsMobileDashboard = () => {
@@ -83,16 +84,40 @@ const BranchOperationsMobileDashboard = () => {
     <div className="min-h-screen pb-6">
       {/* Hero Header */}
       <section className="relative px-6 pt-12 pb-24 rounded-b-[40px] overflow-hidden bg-slate-900 shadow-md">
-        {/* Background Blobs (Static) */}
-        <div className="absolute -top-20 -left-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none" />
-        <div className="absolute -top-10 -right-10 w-64 h-64 bg-indigo-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none" />
-        <div className="absolute bottom-0 left-20 w-80 h-80 bg-emerald-500 rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none" />
+        {/* Background Blobs (#7C4DFF Palette) */}
+        <motion.div
+          animate={{
+            scale: [1, 1.2, 1],
+            x: [0, 50, 0],
+            y: [0, 30, 0],
+          }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -top-20 -left-10 w-72 h-72 bg-[#7C4DFF] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+        />
+        <motion.div
+          animate={{
+            scale: [1, 1.4, 1],
+            x: [0, -40, 0],
+            y: [0, 50, 0],
+          }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute -top-10 -right-10 w-64 h-64 bg-[#9575FF] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+        />
+        <motion.div
+          animate={{
+            scale: [1, 1.3, 1],
+            x: [0, 30, 0],
+            y: [0, -40, 0],
+          }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          className="absolute bottom-0 left-20 w-80 h-80 bg-[#B388FF] rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
+        />
 
         {/* Subtle Glass Overlay */}
         <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
 
         <div className="relative z-10 px-2">
-          <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">Branch Operation Module • {branch.name}</p>
+          <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">Branch Operation Module</p>
           <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">Branch Operations Dashboard</h2>
           <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">Performance overview & operations</p>
         </div>
@@ -105,7 +130,7 @@ const BranchOperationsMobileDashboard = () => {
             <select
               value={selectedEmployee}
               onChange={(e) => setSelectedEmployee(e.target.value)}
-              className="w-full h-11 pl-3 pr-8 rounded-xl bg-white border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 font-semibold text-slate-700 shadow-sm appearance-none cursor-pointer"
+              className="w-full h-11 pl-3 pr-8 rounded-xl bg-white border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#7C4DFF] font-semibold text-slate-700 shadow-sm appearance-none cursor-pointer"
             >
               <option value="all">All Employees ({creators.length})</option>
               {creators.map((c) => (
@@ -123,7 +148,7 @@ const BranchOperationsMobileDashboard = () => {
           <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm min-w-[200px] snap-center shrink-0">
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs font-medium text-slate-500">Total Leads (Month)</p>
-              <Users size={16} className="text-blue-500" />
+              <Users size={16} className="text-[#7C4DFF]" />
             </div>
             <div className="flex items-end gap-2">
               <h3 className="text-2xl font-bold text-slate-800">
@@ -139,7 +164,7 @@ const BranchOperationsMobileDashboard = () => {
           <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm min-w-[180px] snap-center shrink-0">
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs font-medium text-slate-500">Active</p>
-              <TrendingUp size={16} className="text-indigo-500" />
+              <TrendingUp size={16} className="text-[#9575FF]" />
             </div>
             <div className="flex items-end gap-2">
               <h3 className="text-2xl font-bold text-slate-800">
@@ -155,7 +180,7 @@ const BranchOperationsMobileDashboard = () => {
           <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm min-w-[180px] snap-center shrink-0 pr-6">
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs font-medium text-slate-500">Converted</p>
-              <CheckCircle size={16} className="text-emerald-500" />
+              <CheckCircle size={16} className="text-[#7C4DFF]" />
             </div>
             <div className="flex items-end gap-2">
               <h3 className="text-2xl font-bold text-slate-800">
@@ -185,8 +210,8 @@ const BranchOperationsMobileDashboard = () => {
                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }}
                   />
                   <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
-                  <Line type="monotone" dataKey="leads" name="Leads" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3, fill: '#fff', strokeWidth: 2 }} activeDot={{ r: 5, strokeWidth: 0 }} />
-                  <Line type="monotone" dataKey="converted" name="Converted" stroke="#10b981" strokeWidth={2} dot={{ r: 3, fill: '#fff', strokeWidth: 2 }} activeDot={{ r: 5, strokeWidth: 0 }} />
+                  <Line type="monotone" dataKey="leads" name="Leads" stroke="#7C4DFF" strokeWidth={2} dot={{ r: 3, fill: '#fff', strokeWidth: 2 }} activeDot={{ r: 5, strokeWidth: 0 }} />
+                  <Line type="monotone" dataKey="converted" name="Converted" stroke="#9575FF" strokeWidth={2} dot={{ r: 3, fill: '#fff', strokeWidth: 2 }} activeDot={{ r: 5, strokeWidth: 0 }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -206,8 +231,8 @@ const BranchOperationsMobileDashboard = () => {
                     cursor={{ fill: '#f1f5f9' }}
                   />
                   <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
-                  <Bar dataKey="leads" name="Leads" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={16} />
-                  <Bar dataKey="converted" name="Converted" fill="#10b981" radius={[4, 4, 0, 0]} barSize={16} />
+                  <Bar dataKey="leads" name="Leads" fill="#7C4DFF" radius={[4, 4, 0, 0]} barSize={16} />
+                  <Bar dataKey="converted" name="Converted" fill="#9575FF" radius={[4, 4, 0, 0]} barSize={16} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -224,7 +249,7 @@ const BranchOperationsMobileDashboard = () => {
                 onClick={() => setActiveTab('leads')}
                 className={`whitespace-nowrap px-3 py-2 text-xs font-semibold transition-colors ${
                   activeTab === 'leads'
-                    ? 'text-blue-600 border-b-2 border-blue-600'
+                    ? 'text-[#7C4DFF] border-b-2 border-[#7C4DFF]'
                     : 'text-slate-500 hover:text-slate-700'
                 }`}
               >
@@ -234,7 +259,7 @@ const BranchOperationsMobileDashboard = () => {
                 onClick={() => setActiveTab('applications')}
                 className={`whitespace-nowrap px-3 py-2 text-xs font-semibold transition-colors ${
                   activeTab === 'applications'
-                    ? 'text-blue-600 border-b-2 border-blue-600'
+                    ? 'text-[#7C4DFF] border-b-2 border-[#7C4DFF]'
                     : 'text-slate-500 hover:text-slate-700'
                 }`}
               >
@@ -278,7 +303,7 @@ const BranchOperationsMobileDashboard = () => {
                   <div key={app.id} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-2">
                     <div className="flex justify-between items-start">
                       <div>
-                        <span className="font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded text-[10px] border border-blue-100 font-mono">
+                        <span className="font-semibold text-[#7C4DFF] bg-[#7C4DFF]/10 px-2 py-0.5 rounded text-[10px] border border-[#7C4DFF]/20 font-mono">
                           {app.application_id || 'LA-PENDING'}
                         </span>
                         <h4 className="font-bold text-slate-900 text-sm mt-1">
