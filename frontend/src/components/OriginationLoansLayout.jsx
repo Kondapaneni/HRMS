@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axios';
-import { LogOut, Home, Briefcase, FileText, Activity, ArrowLeft, Smartphone, Users, Megaphone } from 'lucide-react';
+import { LogOut, Home, Briefcase, Activity, ArrowLeft, Smartphone, Users, Megaphone, TrendingUp } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -83,7 +83,7 @@ const OriginationLoansLayout = () => {
 
   const navItems = [
     { icon: Activity, label: 'Dashboard', path: '/employee/loans/origination', feature: 'canLoanOrigination' },
-    { icon: FileText, label: 'Leads', path: '/employee/loans/origination/leads', feature: 'canLoanOrigination' },
+    { icon: TrendingUp, label: 'Leads', path: '/employee/loans/origination/leads', feature: 'canLoanOrigination' },
     { icon: Users, label: 'Members', path: '/employee/loans/origination/members', feature: 'canLoanOrigination' },
     { icon: Briefcase, label: 'Applications', path: '/employee/loans/origination/applications', feature: 'canLoanOrigination' },
   ];
