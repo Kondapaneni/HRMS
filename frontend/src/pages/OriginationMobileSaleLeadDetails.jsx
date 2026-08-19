@@ -1,11 +1,19 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, MapPin, Calendar, Clock, CheckCircle2, Phone, XCircle, Loader2, RefreshCw } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { ArrowLeft, MapPin, Calendar, Clock, CheckCircle2, Phone, UserPlus, XCircle, Loader2, RefreshCw, Briefcase, X, Check } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateSalesLeadStatus } from '../services/salesServices';
 import toast from 'react-hot-toast';
+
+const saleProductTypeOptions = [
+  { label: 'Current Account / Corporate Banking', value: 'Current Account / Corporate Banking', desc: 'Commercial operational accounts & business liquidity' },
+  { label: 'Merchant POS & Payment Solutions', value: 'Merchant POS & Payment Solutions', desc: 'Point of sale terminals, QR, & digital collections' },
+  { label: 'Fixed Deposit & Term Investment', value: 'Fixed Deposit & Term Investment', desc: 'High-yield corporate deposits & term investments' },
+  { label: 'Insurance & Group Coverage Plans', value: 'Insurance & Group Coverage Plans', desc: 'Group health, life, asset & liability protection' },
+  { label: 'Trade Finance & Working Capital', value: 'Trade Finance & Working Capital', desc: 'Working capital limits, letter of credit & trade credit' }
+];
 
 const OriginationMobileSaleLeadDetails = () => {
   const navigate = useNavigate();
@@ -13,17 +21,25 @@ const OriginationMobileSaleLeadDetails = () => {
   const queryClient = useQueryClient();
   const lead = location.state?.lead;
 
+  const [showConvertModal, setShowConvertModal] = useState(false);
+  const [selectedProductType, setSelectedProductType] = useState(lead?.product_type || 'Current Account / Corporate Banking');
   const [currentStatus, setCurrentStatus] = useState(lead?.status || 'New');
+  const [currentProductType, setCurrentProductType] = useState(lead?.product_type || '');
 
   const statusMutation = useMutation({
-    mutationFn: ({ id, status }) => updateSalesLeadStatus(id, status),
+    mutationFn: ({ id, status, product_type }) => updateSalesLeadStatus(id, status, product_type),
     onSuccess: (data, variables) => {
-      toast.success(variables.status === 'Won' || variables.status === 'Converted' ? 'Lead converted successfully!' : 'Lead status updated!');
+      toast.success(variables.status === 'Converted' ? 'Lead converted to Member successfully!' : 'Lead status updated successfully!');
       setCurrentStatus(variables.status);
+      if (variables.product_type) {
+        setCurrentProductType(variables.product_type);
+        if (lead) lead.product_type = variables.product_type;
+      }
       if (lead) lead.status = variables.status;
       queryClient.invalidateQueries({ queryKey: ['sales', 'leads'] });
       queryClient.invalidateQueries({ queryKey: ['sales', 'leads', 'list'] });
       queryClient.invalidateQueries({ queryKey: ['salesDashboard'] });
+      setShowConvertModal(false);
     },
     onError: (error) => {
       toast.error(error.response?.data?.error || 'Failed to update status');
@@ -38,7 +54,17 @@ const OriginationMobileSaleLeadDetails = () => {
 
   const handleUpdateStatus = (status) => {
     if (!lead) return;
+    if (status === 'Converted') {
+      setSelectedProductType(currentProductType || lead.product_type || 'Current Account / Corporate Banking');
+      setShowConvertModal(true);
+      return;
+    }
     statusMutation.mutate({ id: lead.id, status });
+  };
+
+  const handleConfirmConvert = () => {
+    if (!lead) return;
+    statusMutation.mutate({ id: lead.id, status: 'Converted', product_type: selectedProductType });
   };
 
   const getStatusBadge = (status) => {
@@ -64,13 +90,13 @@ const OriginationMobileSaleLeadDetails = () => {
     }
   };
 
-  const isConverted = currentStatus === 'Converted' || currentStatus === 'Won';
+  const isConverted = currentStatus === 'Converted';
 
   return (
     <div className="w-full pb-8">
       {/* Animated Hero Header */}
       <section className="relative px-6 pt-12 pb-24 rounded-b-[40px] overflow-hidden bg-slate-900 shadow-md">
-        {/* Animated Background Blobs (Emerald / Teal) */}
+        {/* Animated Background Blobs */}
         <motion.div
           animate={{
             scale: [1, 1.2, 1],
@@ -133,6 +159,9 @@ const OriginationMobileSaleLeadDetails = () => {
               </div>
               <div>
                 <h3 className="text-lg font-bold text-slate-900 leading-tight">{lead.name}</h3>
+                {(currentProductType || lead.product_type) && (
+                  <p className="text-xs text-slate-500 font-medium mt-0.5">{currentProductType || lead.product_type}</p>
+                )}
               </div>
             </div>
             <div>
@@ -148,6 +177,17 @@ const OriginationMobileSaleLeadDetails = () => {
                 <Phone size={18} className="text-emerald-600" />
               </div>
               <span className="font-medium text-lg">{lead.phone}</span>
+            </div>
+          </div>
+
+          {/* Product Type */}
+          <div className="space-y-1">
+            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Product Type</h3>
+            <div className="flex items-center gap-3 text-slate-700">
+              <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center shrink-0">
+                <Briefcase size={18} className="text-amber-600" />
+              </div>
+              <span className="font-medium text-sm sm:text-base">{currentProductType || lead.product_type || '—'}</span>
             </div>
           </div>
 
@@ -193,8 +233,8 @@ const OriginationMobileSaleLeadDetails = () => {
             disabled={statusMutation.isPending || isConverted}
             className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-sm shadow-emerald-600/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
-            {statusMutation.isPending && statusMutation.variables?.status === 'Converted' ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle2 size={18} />}
-            Convert Lead
+            {statusMutation.isPending && statusMutation.variables?.status === 'Converted' ? <Loader2 size={18} className="animate-spin" /> : <UserPlus size={18} />}
+            {isConverted ? 'Converted to Member' : 'Convert to Member'}
           </button>
 
           <button 
@@ -207,6 +247,97 @@ const OriginationMobileSaleLeadDetails = () => {
           </button>
         </div>
       </div>
+
+      {/* Convert to Member Modal for Mobile */}
+      <AnimatePresence>
+        {showConvertModal && (
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm cursor-pointer"
+              onClick={() => setShowConvertModal(false)}
+            />
+            <motion.div 
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="relative w-full max-w-lg bg-white rounded-t-[32px] sm:rounded-[32px] p-6 shadow-2xl z-10 max-h-[85vh] flex flex-col"
+            >
+              <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+                <div className="flex items-center gap-2.5 text-emerald-600 font-bold text-lg">
+                  <UserPlus size={22} />
+                  <span>Convert to Member</span>
+                </div>
+                <button 
+                  onClick={() => setShowConvertModal(false)} 
+                  className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition-colors cursor-pointer"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="py-4 overflow-y-auto space-y-4 flex-1">
+                <p className="text-xs text-slate-500 font-medium">
+                  Select the product type for <strong className="text-slate-800">{lead.name}</strong> to convert them into an active member:
+                </p>
+
+                <div className="space-y-2.5">
+                  {saleProductTypeOptions.map((opt) => {
+                    const isSelected = selectedProductType === opt.value;
+                    return (
+                      <div 
+                        key={opt.value}
+                        onClick={() => setSelectedProductType(opt.value)}
+                        className={`p-3.5 rounded-2xl border flex items-center justify-between cursor-pointer transition-all ${
+                          isSelected 
+                            ? 'border-emerald-500 bg-emerald-50/50 shadow-xs' 
+                            : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/60 bg-white'
+                        }`}
+                      >
+                        <div>
+                          <p className={`text-sm font-semibold ${isSelected ? 'text-emerald-900 font-bold' : 'text-slate-800'}`}>
+                            {opt.label}
+                          </p>
+                          <p className="text-[11px] text-slate-500 mt-0.5">{opt.desc}</p>
+                        </div>
+                        <div className={`w-5 h-5 rounded-full flex items-center justify-center border shrink-0 transition-colors ${
+                          isSelected 
+                            ? 'bg-emerald-600 border-emerald-600 text-white' 
+                            : 'border-slate-300 bg-white'
+                        }`}>
+                          {isSelected && <Check size={12} strokeWidth={3} />}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowConvertModal(false)}
+                  className="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmConvert}
+                  disabled={statusMutation.isPending}
+                  className="px-5 py-2.5 rounded-xl text-sm font-semibold bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm shadow-emerald-600/20 transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer active:scale-95"
+                >
+                  {statusMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <UserPlus size={16} />}
+                  Confirm &amp; Convert
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

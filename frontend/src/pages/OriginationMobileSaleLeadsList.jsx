@@ -156,7 +156,12 @@ const OriginationMobileSaleLeadsList = () => {
                 className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5 hover:shadow-md transition-shadow active:scale-[0.98] active:bg-slate-50 cursor-pointer"
               >
                 <div className="flex justify-between items-start mb-4">
-                  <h3 className="font-bold text-slate-900 text-lg leading-tight">{lead.name}</h3>
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-lg leading-tight">{lead.name}</h3>
+                    {lead.product_type && (
+                      <p className="text-xs text-slate-500 font-medium mt-0.5">{lead.product_type}</p>
+                    )}
+                  </div>
                   <div className="shrink-0 ml-3">
                     {getStatusBadge(lead.status)}
                   </div>

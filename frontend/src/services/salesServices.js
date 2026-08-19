@@ -36,15 +36,15 @@ export const createSalesLead = async (leadData) => {
 };
 
 /**
- * Updates a sales lead's status and optional deal value.
+ * Updates a sales lead's status and optional product type / deal value.
  * @param {string} id - Lead UUID
- * @param {string} status - 'New' | 'Contacted' | 'Proposal Sent' | 'Negotiation' | 'Won' | 'Lost'
- * @param {number} deal_value - Optional new deal value
+ * @param {string} status - 'New' | 'Follow Up' | 'Converted' | 'Not Interested'
+ * @param {string} product_type - Selected product type
  * @returns {Promise<Object>}
  */
-export const updateSalesLeadStatus = async (id, status, deal_value = null) => {
+export const updateSalesLeadStatus = async (id, status, product_type = null) => {
   const payload = { status };
-  if (deal_value !== null) payload.deal_value = deal_value;
+  if (product_type) payload.product_type = product_type;
   const response = await api.put(`/sales/leads/${id}/status`, payload);
   return response.data;
 };

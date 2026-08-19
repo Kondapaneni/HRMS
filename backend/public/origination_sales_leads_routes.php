@@ -22,7 +22,7 @@ $app->group('/api/sales', function (\Slim\Routing\RouteCollectorProxy $group) {
             }
 
             $sql = "
-                SELECT id, name, phone, address, status, branch, created_at, created_by
+                SELECT id, name, phone, address, status, product_type, branch, created_at, created_by
                 FROM public.sale_leads
                 WHERE created_by = :uid
             ";
@@ -34,7 +34,7 @@ $app->group('/api/sales', function (\Slim\Routing\RouteCollectorProxy $group) {
             }
 
             if ($search !== '') {
-                $sql .= " AND (name ILIKE :search OR phone ILIKE :search OR address ILIKE :search)";
+                $sql .= " AND (name ILIKE :search OR phone ILIKE :search OR address ILIKE :search OR product_type ILIKE :search)";
                 $bindings[':search'] = '%' . $search . '%';
             }
 
@@ -61,7 +61,7 @@ $app->group('/api/sales', function (\Slim\Routing\RouteCollectorProxy $group) {
     $group->get('/leads', $getLeadsHandler);
     $group->get('/leads/list', $getLeadsHandler);
 
-    // Create a new sales lead (exact same columns as loan leads)
+    // Create a new sales lead (name, phone, address)
     $group->post('/leads', function (Request $request, Response $response, $args) {
         $user = $request->getAttribute('user');
         $data = $request->getParsedBody() ?? json_decode($request->getBody()->getContents(), true) ?? [];
@@ -70,6 +70,7 @@ $app->group('/api/sales', function (\Slim\Routing\RouteCollectorProxy $group) {
         $phone = trim($data['phone'] ?? '');
         $address = trim($data['address'] ?? '');
         $status = trim($data['status'] ?? 'New');
+        $productType = isset($data['product_type']) && !empty(trim($data['product_type'])) ? trim($data['product_type']) : null;
         $branch = trim($data['branch'] ?? ($user->branch ?? ''));
 
         if (empty($name) || empty($phone) || empty($address)) {
@@ -95,9 +96,9 @@ $app->group('/api/sales', function (\Slim\Routing\RouteCollectorProxy $group) {
 
             $stmt = $conn->prepare("
                 INSERT INTO public.sale_leads (
-                    name, phone, address, status, branch, created_by
+                    name, phone, address, status, product_type, branch, created_by
                 ) VALUES (
-                    :name, :phone, :address, :status, :branch, :created_by
+                    :name, :phone, :address, :status, :product_type, :branch, :created_by
                 ) RETURNING *
             ");
 
@@ -106,6 +107,7 @@ $app->group('/api/sales', function (\Slim\Routing\RouteCollectorProxy $group) {
                 ':phone' => $phone,
                 ':address' => $address,
                 ':status' => $status,
+                ':product_type' => $productType,
                 ':branch' => $branch,
                 ':created_by' => $user->id
             ]);
@@ -127,13 +129,14 @@ $app->group('/api/sales', function (\Slim\Routing\RouteCollectorProxy $group) {
         }
     });
 
-    // Update sales lead status
+    // Update sales lead status & product_type
     $group->put('/leads/{id}/status', function (Request $request, Response $response, $args) {
         $user = $request->getAttribute('user');
         $id = $args['id'];
         $data = $request->getParsedBody() ?? json_decode($request->getBody()->getContents(), true) ?? [];
 
         $status = trim($data['status'] ?? '');
+        $productType = trim($data['product_type'] ?? '');
 
         if (empty($status)) {
             $response->getBody()->write(json_encode(['error' => 'Status is required']));
@@ -148,12 +151,22 @@ $app->group('/api/sales', function (\Slim\Routing\RouteCollectorProxy $group) {
                 throw new Exception("Database connection failed");
             }
 
-            $stmt = $conn->prepare("UPDATE public.sale_leads SET status = :status WHERE id = :id AND created_by = :uid RETURNING *");
-            $stmt->execute([
-                ':status' => $status,
-                ':id' => $id,
-                ':uid' => $user->id
-            ]);
+            if (!empty($productType)) {
+                $stmt = $conn->prepare("UPDATE public.sale_leads SET status = :status, product_type = :product_type WHERE id = :id AND created_by = :uid RETURNING *");
+                $stmt->execute([
+                    ':status' => $status,
+                    ':product_type' => $productType,
+                    ':id' => $id,
+                    ':uid' => $user->id
+                ]);
+            } else {
+                $stmt = $conn->prepare("UPDATE public.sale_leads SET status = :status WHERE id = :id AND created_by = :uid RETURNING *");
+                $stmt->execute([
+                    ':status' => $status,
+                    ':id' => $id,
+                    ':uid' => $user->id
+                ]);
+            }
 
             $updatedLead = $stmt->fetch(PDO::FETCH_ASSOC);
 
