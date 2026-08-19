@@ -11,7 +11,20 @@ const OriginationMobileLoanLeadDetails = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
-  const lead = location.state?.lead;
+  const [lead] = useState(() => {
+    if (location.state?.lead) {
+      try {
+        sessionStorage.setItem('current_loan_lead', JSON.stringify(location.state.lead));
+      } catch (e) {}
+      return location.state.lead;
+    }
+    try {
+      const saved = sessionStorage.getItem('current_loan_lead');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  });
 
   const [showConvertModal, setShowConvertModal] = useState(false);
   const [selectedLoanType, setSelectedLoanType] = useState(lead?.loan_type || 'Personal Loan');

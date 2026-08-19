@@ -256,9 +256,9 @@ function App() {
                 <Route path="origination" element={<OriginationLoanDashboard />} />
                 <Route path="origination/leads" element={<OriginationLoanLeadsList />} />
                 <Route path="origination/leads/add" element={<OriginationMobileLoanAddLead />} />
-                <Route path="origination/leads/:id/details" element={<OriginationMobileLoanLeadDetails />} />
+                <Route path="origination/leads/details" element={<OriginationMobileLoanLeadDetails />} />
                 <Route path="origination/members" element={<OriginationLoanMembersList />} />
-                <Route path="origination/members/:phone/details" element={<OriginationMobileLoanMemberDetails />} />
+                <Route path="origination/members/details" element={<OriginationMobileLoanMemberDetails />} />
                 <Route path="origination/applications" element={<OriginationLoanApplicationsList />} />
                 <Route path="form" element={<OriginationLoanForms />} />
                 <Route path="view-application" element={<OriginationLoanViewApplication />} />
@@ -276,9 +276,9 @@ function App() {
                 <Route path="origination" element={<OriginationSaleDashboard />} />
                 <Route path="origination/leads" element={<OriginationSaleLeadsList />} />
                 <Route path="origination/leads/add" element={<OriginationMobileSaleAddLead />} />
-                <Route path="origination/leads/:id/details" element={<OriginationMobileSaleLeadDetails />} />
+                <Route path="origination/leads/details" element={<OriginationMobileSaleLeadDetails />} />
                 <Route path="origination/members" element={<OriginationSaleMembersList />} />
-                <Route path="origination/members/:phone/details" element={<OriginationMobileSaleMemberDetails />} />
+                <Route path="origination/members/details" element={<OriginationMobileSaleMemberDetails />} />
               </Route>
 
               {/* Branch Operations Workspace (Employee Only) */}

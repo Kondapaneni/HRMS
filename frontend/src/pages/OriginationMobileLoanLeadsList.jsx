@@ -142,7 +142,7 @@ const OriginationMobileLoanLeadsList = () => {
               <motion.div 
                 key={lead.id} 
                 variants={itemVariants} 
-                onClick={() => navigate(`/employee/loans/origination/leads/${lead.id}/details`, { state: { lead } })}
+                onClick={() => navigate('/employee/loans/origination/leads/details', { state: { lead } })}
                 className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5 hover:shadow-md transition-shadow active:scale-[0.98] active:bg-slate-50 cursor-pointer"
               >
                 <div className="flex justify-between items-start mb-4">

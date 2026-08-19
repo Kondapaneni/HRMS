@@ -19,7 +19,20 @@ const OriginationMobileSaleLeadDetails = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
-  const lead = location.state?.lead;
+  const [lead] = useState(() => {
+    if (location.state?.lead) {
+      try {
+        sessionStorage.setItem('current_sale_lead', JSON.stringify(location.state.lead));
+      } catch (e) {}
+      return location.state.lead;
+    }
+    try {
+      const saved = sessionStorage.getItem('current_sale_lead');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  });
 
   const [showConvertModal, setShowConvertModal] = useState(false);
   const [selectedProductType, setSelectedProductType] = useState(lead?.product_type || 'Current Account / Corporate Banking');

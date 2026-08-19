@@ -17,8 +17,8 @@ const OriginationLoansLayout = () => {
     '/employee/loans/form',
     '/employee/loans/view-application',
     '/employee/loans/origination/leads/add',
-    /\/employee\/loans\/origination\/leads\/[^/]+\/details/,
-    /\/employee\/loans\/origination\/members\/[^/]+\/details/,
+    '/employee/loans/origination/leads/details',
+    '/employee/loans/origination/members/details',
   ];
   const shouldHideBottomNav = hideBottomNavPatterns.some((pattern) =>
     typeof pattern === 'string'

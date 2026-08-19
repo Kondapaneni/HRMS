@@ -20,8 +20,17 @@ const OriginationMobileSaleMemberDetails = ({ member: propMember }) => {
 
   const member = React.useMemo(() => {
     if (propMember) return propMember;
-    if (location.state?.member) return location.state.member;
-    if (response?.leads || response?.data) {
+    if (location.state?.member) {
+      try {
+        sessionStorage.setItem('current_sale_member', JSON.stringify(location.state.member));
+      } catch (e) {}
+      return location.state.member;
+    }
+    try {
+      const saved = sessionStorage.getItem('current_sale_member');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    if ((response?.leads || response?.data) && phone) {
       const leads = response?.leads || response?.data || [];
       const converted = leads.filter(l => l.status === 'Converted' && String(l.phone) === String(phone));
       if (converted.length > 0) {

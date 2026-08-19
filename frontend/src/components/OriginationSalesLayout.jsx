@@ -14,11 +14,9 @@ const OriginationSalesLayout = () => {
   const [showBackModal, setShowBackModal] = useState(false);
 
   const hideBottomNavPatterns = [
-    '/employee/sales/form',
-    '/employee/sales/view-order',
     '/employee/sales/origination/leads/add',
-    /\/employee\/sales\/origination\/leads\/[^/]+\/details/,
-    /\/employee\/sales\/origination\/members\/[^/]+\/details/,
+    '/employee/sales/origination/leads/details',
+    '/employee/sales/origination/members/details',
   ];
   const shouldHideBottomNav = hideBottomNavPatterns.some((pattern) =>
     typeof pattern === 'string'

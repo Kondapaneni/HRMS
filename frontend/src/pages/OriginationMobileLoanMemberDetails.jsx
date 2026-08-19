@@ -20,8 +20,17 @@ const OriginationMobileLoanMemberDetails = ({ member: propMember }) => {
 
   const member = React.useMemo(() => {
     if (propMember) return propMember;
-    if (location.state?.member) return location.state.member;
-    if (response?.leads) {
+    if (location.state?.member) {
+      try {
+        sessionStorage.setItem('current_loan_member', JSON.stringify(location.state.member));
+      } catch (e) {}
+      return location.state.member;
+    }
+    try {
+      const saved = sessionStorage.getItem('current_loan_member');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    if (response?.leads && phone) {
       const converted = response.leads.filter(l => l.status === 'Converted' && String(l.phone) === String(phone));
       if (converted.length > 0) {
         const lead = converted[0];
