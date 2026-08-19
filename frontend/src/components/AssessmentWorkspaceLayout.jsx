@@ -93,10 +93,7 @@ const AssessmentWorkspaceLayout = () => {
 
           <div className="flex items-center gap-5">
             <div className="hidden md:flex items-center gap-5">
-              <div
-                className="flex items-center gap-3 cursor-pointer group"
-                onClick={() => navigate('/admin/profile')}
-              >
+              <div className="flex items-center gap-3 select-none">
                 <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-semibold text-sm overflow-hidden border border-slate-200">
                   {profile?.avatar ? (
                     <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
@@ -105,7 +102,7 @@ const AssessmentWorkspaceLayout = () => {
                   )}
                 </div>
                 <div className="hidden sm:block text-left">
-                  <p className="text-sm font-medium text-slate-700 leading-none group-hover:text-blue-600 transition-colors">
+                  <p className="text-sm font-medium text-slate-700 leading-none">
                     {profile?.email?.split('@')[0] || 'Administrator'}
                   </p>
                   <p className="text-xs text-slate-500 mt-1 capitalize">{profile?.role || 'Admin'}</p>

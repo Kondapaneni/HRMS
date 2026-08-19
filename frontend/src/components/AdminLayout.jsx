@@ -170,11 +170,7 @@ const AdminLayout = () => {
             
             <div className="h-6 w-px bg-slate-200"></div>
 
-            <div 
-              className="flex items-center gap-3 cursor-pointer group"
-              onClick={() => navigate('/admin/profile')}
-              title="View Profile & Settings"
-            >
+            <div className="flex items-center gap-3 select-none">
               <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-semibold text-sm overflow-hidden border border-slate-200">
                 {profile?.avatar ? (
                   <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
@@ -183,7 +179,7 @@ const AdminLayout = () => {
                 )}
               </div>
               <div className="hidden sm:block text-left">
-                <p className="text-sm font-medium text-slate-700 leading-none group-hover:text-blue-600 transition-colors">
+                <p className="text-sm font-medium text-slate-700 leading-none">
                   {profile?.email?.split('@')[0] || 'Admin User'}
                 </p>
                 <p className="text-xs text-slate-500 mt-1">{profile?.role || 'Administrator'}</p>
