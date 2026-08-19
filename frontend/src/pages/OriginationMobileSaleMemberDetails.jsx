@@ -132,8 +132,9 @@ const OriginationMobileSaleMemberDetails = ({ member: propMember }) => {
               </div>
               <div>
                 <h3 className="text-lg font-bold text-slate-900 leading-tight">{member.name}</h3>
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-700 mt-1">
-                  <CheckCircle2 size={10} /> Converted Member
+                <span className="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider leading-none bg-emerald-100 text-emerald-700 mt-1.5">
+                  <CheckCircle2 size={12} className="shrink-0" />
+                  <span>Converted Member</span>
                 </span>
               </div>
             </div>
@@ -165,10 +166,10 @@ const OriginationMobileSaleMemberDetails = ({ member: propMember }) => {
           <div className="space-y-1">
             <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Member Since</h3>
             <div className="flex items-center gap-3 text-slate-700">
-              <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
-                <Calendar size={18} className="text-slate-600" />
+              <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
+                <Calendar size={18} className="text-emerald-600" />
               </div>
-              <span className="font-medium">{member.created_at ? format(new Date(member.created_at), 'MMMM d, yyyy') : '—'}</span>
+              <span className="font-medium">{member.created_at ? format(new Date(member.created_at), 'MMMM d, yyyy - h:mm a') : '—'}</span>
             </div>
           </div>
 

@@ -142,7 +142,10 @@ const OriginationMobileLoanMemberDetails = ({ member: propMember }) => {
             </div>
             <div>
               <h2 className="text-2xl font-bold text-slate-900">{member.name}</h2>
-              <p className="text-xs font-semibold text-slate-400 mt-0.5 uppercase tracking-wider">Active Member</p>
+              <span className="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider leading-none bg-blue-100 text-blue-700 mt-1.5">
+                <CheckCircle2 size={12} className="shrink-0" />
+                <span>Converted Member</span>
+              </span>
             </div>
           </div>
 
