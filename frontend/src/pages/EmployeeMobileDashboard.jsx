@@ -341,17 +341,17 @@ const EmployeeMobileDashboard = () => {
           <div className="p-6 space-y-4">
 
             {profile?.featureAccess?.canLoanOrigination && (
-              <Link to="/employee/loans/origination" className="flex items-center justify-between w-full rounded-xl bg-blue-600 text-white font-semibold text-sm px-6 py-4 hover:bg-blue-700 active:scale-[0.98] transition-all shadow-sm">
+              <Link to="/employee/loans/origination" className="flex items-center justify-between w-full rounded-xl bg-[#0066FF] text-[#FFFFFF] font-semibold text-sm px-6 py-4 hover:brightness-95 active:scale-[0.98] transition-all shadow-sm shadow-[#0066FF]/20">
                 <div className="flex items-center gap-3">
-                  <div className="bg-white/20 p-2 rounded-lg">
-                    <Briefcase className="w-5 h-5 text-white" />
+                  <div className="bg-[#3385FF] p-2 rounded-lg">
+                    <Briefcase className="w-5 h-5 text-[#FFFFFF]" />
                   </div>
                   <div className="text-left">
-                    <div className="text-base">Loans Origination</div>
-                    <div className="text-xs text-blue-200 font-normal mt-0.5">Originate and manage loan files</div>
+                    <div className="text-base text-[#FFFFFF]">Loans Origination</div>
+                    <div className="text-xs text-[#FFFFFF]/90 font-normal mt-0.5">Originate and Manage Loans</div>
                   </div>
                 </div>
-                <ChevronRight className="w-5 h-5 text-blue-200" />
+                <ChevronRight className="w-5 h-5 text-[#FFFFFF]" />
               </Link>
             )}
 
@@ -363,7 +363,7 @@ const EmployeeMobileDashboard = () => {
                   </div>
                   <div className="text-left">
                     <div className="text-base">Sales Origination</div>
-                    <div className="text-xs text-emerald-200 font-normal mt-0.5">Originate and manage sales deals</div>
+                    <div className="text-xs text-emerald-200 font-normal mt-0.5">Originate and Manage Sales</div>
                   </div>
                 </div>
                 <ChevronRight className="w-5 h-5 text-emerald-200" />
@@ -371,17 +371,17 @@ const EmployeeMobileDashboard = () => {
             )}
 
             {profile?.featureAccess?.canBranchOperations && (
-              <Link to="/employee/branch-operations" className="flex items-center justify-between w-full rounded-xl bg-amber-600 text-white font-semibold text-sm px-6 py-4 hover:bg-amber-700 active:scale-[0.98] transition-all shadow-sm">
+              <Link to="/employee/branch-operations" className="flex items-center justify-between w-full rounded-xl bg-[#7C4DFF] text-[#FFFFFF] font-semibold text-sm px-6 py-4 hover:brightness-95 active:scale-[0.98] transition-all shadow-sm shadow-[#7C4DFF]/20">
                 <div className="flex items-center gap-3">
-                  <div className="bg-white/20 p-2 rounded-lg">
-                    <Building2 className="w-5 h-5 text-white" />
+                  <div className="bg-[#9575FF] p-2 rounded-lg">
+                    <Building2 className="w-5 h-5 text-[#FFFFFF]" />
                   </div>
                   <div className="text-left">
-                    <div className="text-base">Branch Operations</div>
-                    <div className="text-xs text-amber-100 font-normal mt-0.5">Loans, Sales & Branch Operations</div>
+                    <div className="text-base text-[#FFFFFF]">Branch Operations</div>
+                    <div className="text-xs text-[#FFFFFF]/90 font-normal mt-0.5">Loans, Sales & Branch Operations</div>
                   </div>
                 </div>
-                <ChevronRight className="w-5 h-5 text-amber-200" />
+                <ChevronRight className="w-5 h-5 text-[#FFFFFF]" />
               </Link>
             )}
 

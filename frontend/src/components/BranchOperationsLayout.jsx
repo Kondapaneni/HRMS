@@ -123,7 +123,7 @@ const BranchOperationsLayout = () => {
       {/* Sidebar - Clean, Professional */}
       <aside className="w-[260px] h-screen sticky top-0 bg-white/80 backdrop-blur-md border-r border-slate-200 hidden md:flex flex-col z-20 shadow-sm shrink-0">
         <div className="h-14 flex items-center px-4 border-b border-slate-200 shrink-0">
-          <div className="w-8 h-8 bg-amber-600 rounded flex items-center justify-center text-white mr-3 shrink-0 shadow-sm shadow-amber-600/20">
+          <div className="w-8 h-8 bg-[#7C4DFF] rounded flex items-center justify-center text-white mr-3 shrink-0 shadow-sm shadow-[#7C4DFF]/20">
             <Building2 size={18} strokeWidth={2.5} />
           </div>
           <span className="text-lg font-semibold tracking-tight text-slate-900 whitespace-nowrap">Branch Operations</span>
@@ -152,11 +152,11 @@ const BranchOperationsLayout = () => {
                   key={idx}
                   to={item.path}
                   className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive
-                    ? 'bg-amber-50 text-amber-700 font-semibold'
+                    ? 'bg-[#7C4DFF]/10 text-[#7C4DFF] font-semibold'
                     : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                     }`}
                 >
-                  <span className={`shrink-0 ${isActive ? 'text-amber-600' : 'text-slate-400'}`}>
+                  <span className={`shrink-0 ${isActive ? 'text-[#7C4DFF]' : 'text-slate-400'}`}>
                     <Icon size={18} />
                   </span>
                   <span className="flex-1 whitespace-nowrap truncate">{item.label}</span>
@@ -195,7 +195,7 @@ const BranchOperationsLayout = () => {
           <div className="flex items-center gap-5 shrink-0">
             {/* Mobile Profile Avatar */}
             <div className="md:hidden flex items-center gap-3">
-              <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center text-amber-700 font-semibold text-sm overflow-hidden border border-slate-200">
+              <div className="w-8 h-8 bg-[#7C4DFF]/10 rounded-full flex items-center justify-center text-[#7C4DFF] font-semibold text-sm overflow-hidden border border-slate-200">
                 {profile?.avatar ? (
                   <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
@@ -207,7 +207,7 @@ const BranchOperationsLayout = () => {
             {/* Desktop Profile Header Block */}
             <div className="hidden md:flex items-center gap-5">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center text-amber-700 font-semibold text-sm overflow-hidden border border-slate-200">
+                <div className="w-8 h-8 bg-[#7C4DFF]/10 rounded-full flex items-center justify-center text-[#7C4DFF] font-semibold text-sm overflow-hidden border border-slate-200">
                   {profile?.avatar ? (
                     <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
                   ) : (
@@ -288,8 +288,8 @@ const BranchOperationsLayout = () => {
                         transition={{ type: 'spring', bounce: 0.25, duration: 0.5 }}
                       />
                     )}
-                    <Icon className={`relative z-10 w-6 h-6 mb-0.5 transition-all duration-300 ${isActive ? 'text-amber-600 scale-105' : 'text-slate-500 group-hover:text-slate-600 group-active:scale-95'}`} strokeWidth={isActive ? 2.5 : 2} />
-                    <span className={`relative z-10 text-[10px] text-center leading-tight font-medium tracking-wide transition-all duration-300 max-w-[62px] w-full truncate block ${isActive ? 'text-amber-600 font-semibold' : 'text-slate-500'}`} title={item.label}>{item.label}</span>
+                    <Icon className={`relative z-10 w-6 h-6 mb-0.5 transition-all duration-300 ${isActive ? 'text-[#7C4DFF] scale-105' : 'text-slate-500 group-hover:text-slate-600 group-active:scale-95'}`} strokeWidth={isActive ? 2.5 : 2} />
+                    <span className={`relative z-10 text-[10px] text-center leading-tight font-medium tracking-wide transition-all duration-300 max-w-[62px] w-full truncate block ${isActive ? 'text-[#7C4DFF] font-semibold' : 'text-slate-500'}`} title={item.label}>{item.label}</span>
                   </Link>
                 );
               })}
@@ -327,7 +327,7 @@ const BranchOperationsLayout = () => {
           >
             <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6 sm:hidden"></div>
             <div className="flex flex-col items-center text-center">
-              <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mb-4 ring-4 ring-amber-50">
+              <div className="w-16 h-16 bg-[#7C4DFF]/10 text-[#7C4DFF] rounded-full flex items-center justify-center mb-4 ring-4 ring-[#7C4DFF]/20">
                 <ArrowLeft size={28} />
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-2">Back to HRMS</h3>
@@ -347,7 +347,7 @@ const BranchOperationsLayout = () => {
                     setShowBackModal(false);
                     navigate('/employee');
                   }}
-                  className="flex-1 py-3.5 px-4 rounded-xl font-semibold text-white bg-amber-600 hover:bg-amber-700 transition-colors shadow-sm shadow-amber-500/20"
+                  className="flex-1 py-3.5 px-4 rounded-xl font-semibold text-white bg-[#7C4DFF] hover:bg-[#6a3ae8] transition-colors shadow-sm shadow-[#7C4DFF]/20"
                 >
                   Continue
                 </button>
