@@ -451,6 +451,8 @@ require __DIR__ . '/origination_loans_dashboard_routes.php';
 require __DIR__ . '/origination_loans_leads_routes.php';
 require __DIR__ . '/origination_loans_member_routes.php';
 require __DIR__ . '/origination_loans_application_routes.php';
+require __DIR__ . '/origination_sales_dashboard_routes.php';
+require __DIR__ . '/origination_sales_leads_routes.php';
 require __DIR__ . '/branch_operations_dashboard_routes.php';
 require __DIR__ . '/branch_operations_application_routes.php';
 
