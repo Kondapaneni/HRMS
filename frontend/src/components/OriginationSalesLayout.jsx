@@ -18,7 +18,7 @@ const OriginationSalesLayout = () => {
     '/employee/sales/view-order',
     '/employee/sales/origination/leads/add',
     /\/employee\/sales\/origination\/leads\/[^/]+\/details/,
-    /\/employee\/sales\/origination\/customers\/[^/]+\/details/,
+    /\/employee\/sales\/origination\/members\/[^/]+\/details/,
   ];
   const shouldHideBottomNav = hideBottomNavPatterns.some((pattern) =>
     typeof pattern === 'string'
@@ -83,7 +83,8 @@ const OriginationSalesLayout = () => {
 
   const navItems = [
     { icon: Activity, label: 'Dashboard', path: '/employee/sales/origination', feature: 'canSalesOrigination' },
-    { icon: Users, label: 'Leads', path: '/employee/sales/origination/leads', feature: 'canSalesOrigination' },
+    { icon: TrendingUp, label: 'Leads', path: '/employee/sales/origination/leads', feature: 'canSalesOrigination' },
+    { icon: Users, label: 'Members', path: '/employee/sales/origination/members', feature: 'canSalesOrigination' },
   ];
 
   const shapeVariants = {
