@@ -83,6 +83,7 @@ const OriginationSalesLayout = () => {
 
   const navItems = [
     { icon: Activity, label: 'Dashboard', path: '/employee/sales/origination', feature: 'canSalesOrigination' },
+    { icon: Users, label: 'Leads', path: '/employee/sales/origination/leads', feature: 'canSalesOrigination' },
   ];
 
   const shapeVariants = {

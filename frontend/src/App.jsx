@@ -30,7 +30,10 @@ import EmployeeMobileHolidays from './pages/EmployeeMobileHolidays'
 import EmployeeMobileBirthdays from './pages/EmployeeMobileBirthdays'
 import OriginationLoansLayout from './components/OriginationLoansLayout'
 import OriginationSalesLayout from './components/OriginationSalesLayout'
-import OriginationSalesDashboard from './pages/OriginationSalesDashboard'
+import OriginationSaleDashboard from './pages/OriginationSaleDashboard'
+import OriginationSaleLeadsList from './pages/OriginationSaleLeadsList'
+import OriginationMobileSaleAddLead from './pages/OriginationMobileSaleAddLead'
+import OriginationMobileSaleLeadDetails from './pages/OriginationMobileSaleLeadDetails'
 import OriginationLoanDashboard from './pages/OriginationLoanDashboard'
 import OriginationLoanLeadsList from './pages/OriginationLoanLeadsList'
 import OriginationMobileLoanAddLead from './pages/OriginationMobileLoanAddLead'
@@ -268,7 +271,10 @@ function App() {
                   </ProtectedRoute>
                 }
               >
-                <Route path="origination" element={<OriginationSalesDashboard />} />
+                <Route path="origination" element={<OriginationSaleDashboard />} />
+                <Route path="origination/leads" element={<OriginationSaleLeadsList />} />
+                <Route path="origination/leads/add" element={<OriginationMobileSaleAddLead />} />
+                <Route path="origination/leads/:id/details" element={<OriginationMobileSaleLeadDetails />} />
               </Route>
 
               {/* Branch Operations Workspace (Employee Only) */}

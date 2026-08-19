@@ -25,7 +25,7 @@ $app->group('/api/sales', function (\Slim\Routing\RouteCollectorProxy $group) {
                     COALESCE(SUM(CASE WHEN date_trunc('month', created_at) = date_trunc('month', CURRENT_DATE - INTERVAL '1 month') THEN 1 ELSE 0 END), 0) AS total_leads_last_month,
                     COALESCE(SUM(CASE WHEN status IN ('New', 'Active', 'In Progress', 'Contacted', 'Proposal Sent', 'Negotiation') THEN 1 ELSE 0 END), 0) AS active_opportunities,
                     COALESCE(SUM(CASE WHEN status IN ('Converted', 'Won') THEN 1 ELSE 0 END), 0) AS converted_leads
-                FROM public.sales_leads
+                FROM public.sale_leads
                 WHERE created_by = :uid
             ");
             $stmt->execute([':uid' => $user->id]);
@@ -46,7 +46,7 @@ $app->group('/api/sales', function (\Slim\Routing\RouteCollectorProxy $group) {
                     COALESCE(SUM(CASE WHEN status NOT IN ('Converted', 'Won') THEN 1 ELSE 0 END), 0) as leads,
                     COALESCE(SUM(CASE WHEN status IN ('Converted', 'Won') THEN 1 ELSE 0 END), 0) as converted
                 FROM last_7_days
-                LEFT JOIN public.sales_leads ON date(created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata') = d AND created_by = :uid
+                LEFT JOIN public.sale_leads ON date(created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata') = d AND created_by = :uid
                 GROUP BY d
                 ORDER BY d ASC;
             ");
@@ -63,7 +63,7 @@ $app->group('/api/sales', function (\Slim\Routing\RouteCollectorProxy $group) {
                     COALESCE(SUM(CASE WHEN status NOT IN ('Converted', 'Won') THEN 1 ELSE 0 END), 0) as leads,
                     COALESCE(SUM(CASE WHEN status IN ('Converted', 'Won') THEN 1 ELSE 0 END), 0) as converted
                 FROM last_6_months
-                LEFT JOIN public.sales_leads ON date_trunc('month', created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata') = m AND created_by = :uid
+                LEFT JOIN public.sale_leads ON date_trunc('month', created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata') = m AND created_by = :uid
                 GROUP BY m
                 ORDER BY m ASC;
             ");

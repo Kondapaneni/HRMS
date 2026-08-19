@@ -16,7 +16,7 @@ import {
 } from 'recharts';
 import { motion } from 'framer-motion';
 
-const OriginationMobileSalesDashboard = () => {
+const OriginationMobileSaleDashboard = () => {
   const { data, isLoading, error } = useQuery({
     queryKey: ['salesDashboard'],
     queryFn: getSalesDashboardData
@@ -197,4 +197,4 @@ const OriginationMobileSalesDashboard = () => {
   );
 };
 
-export default OriginationMobileSalesDashboard;
+export default OriginationMobileSaleDashboard;

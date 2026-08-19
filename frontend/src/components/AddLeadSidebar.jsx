@@ -4,23 +4,26 @@ import { X, User, Phone, MapPin } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { capitalizeWords, validateAddLeadForm } from '../utils/loanValidations';
 import { createLead } from '../services/loanServices';
+import { createSalesLead } from '../services/salesServices';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   TextField,
   PhoneField,
-  TextareaField,
-  SelectField
+  TextareaField
 } from './forms';
 
-const AddLeadSidebar = ({ isOpen, onClose }) => {
+const AddLeadSidebar = ({ isOpen, onClose, type = 'loan' }) => {
+  const isSale = type === 'sale';
+  const queryClient = useQueryClient();
+
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
     address: ''
   });
+
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const queryClient = useQueryClient();
 
   const handleNameChange = (val) => {
     setFormData((prev) => ({ ...prev, name: capitalizeWords(val) }));
@@ -37,10 +40,18 @@ const AddLeadSidebar = ({ isOpen, onClose }) => {
     if (errors.address) setErrors((prev) => ({ ...prev, address: null }));
   };
 
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      phone: '',
+      address: ''
+    });
+    setErrors({});
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Centralized validation from src/utils/loanValidations.js
+
     const { isValid, errors: validationErrors } = validateAddLeadForm(formData);
 
     if (!isValid) {
@@ -52,11 +63,20 @@ const AddLeadSidebar = ({ isOpen, onClose }) => {
 
     try {
       setIsSubmitting(true);
-      await createLead(formData);
-      queryClient.invalidateQueries(['origination', 'leads', 'list']);
-      toast.success('Lead added successfully!');
-      setFormData({ name: '', phone: '', address: '' });
-      setErrors({});
+      if (isSale) {
+        await createSalesLead(formData);
+        queryClient.invalidateQueries(['sales', 'leads']);
+        queryClient.invalidateQueries(['sales', 'leads', 'list']);
+        queryClient.invalidateQueries(['salesDashboard']);
+        toast.success('Sales lead added successfully!');
+      } else {
+        await createLead(formData);
+        queryClient.invalidateQueries(['origination', 'leads']);
+        queryClient.invalidateQueries(['origination', 'leads', 'list']);
+        queryClient.invalidateQueries(['leadsDashboard']);
+        toast.success('Lead added successfully!');
+      }
+      resetForm();
       onClose();
     } catch (error) {
       console.error('Error adding lead:', error);
@@ -79,7 +99,7 @@ const AddLeadSidebar = ({ isOpen, onClose }) => {
             className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-50 cursor-pointer"
           />
 
-          {/* Sidebar */}
+          {/* Sidebar Drawer */}
           <motion.div
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
@@ -101,7 +121,6 @@ const AddLeadSidebar = ({ isOpen, onClose }) => {
             {/* Form */}
             <div className="flex-1 overflow-y-auto p-6 hide-scrollbar">
               <form onSubmit={handleSubmit} className="space-y-4">
-
                 <TextField
                   name="name"
                   label="Lead Name"
@@ -146,12 +165,15 @@ const AddLeadSidebar = ({ isOpen, onClose }) => {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50"
+                    className={`inline-flex items-center justify-center rounded-md text-sm font-medium text-white h-10 px-4 py-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50 ${
+                      isSale
+                        ? 'bg-emerald-600 hover:bg-emerald-700'
+                        : 'bg-blue-600 hover:bg-blue-700'
+                    }`}
                   >
                     {isSubmitting ? 'Saving...' : 'Save Lead'}
                   </button>
                 </div>
-
               </form>
             </div>
           </motion.div>

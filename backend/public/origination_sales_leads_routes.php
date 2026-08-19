@@ -7,7 +7,7 @@ use App\Config\Database;
 $app->group('/api/sales', function (\Slim\Routing\RouteCollectorProxy $group) {
 
     // List sales leads with optional search and filter
-    $group->get('/leads', function (Request $request, Response $response, $args) {
+    $getLeadsHandler = function (Request $request, Response $response, $args) {
         $user = $request->getAttribute('user');
         $params = $request->getQueryParams();
         $search = trim($params['search'] ?? '');
@@ -22,19 +22,19 @@ $app->group('/api/sales', function (\Slim\Routing\RouteCollectorProxy $group) {
             }
 
             $sql = "
-                SELECT id, lead_number, name, company_name, phone, email, product_interest, deal_value, status, notes, branch, created_at, updated_at
-                FROM public.sales_leads
+                SELECT id, name, phone, address, status, branch, created_at, created_by
+                FROM public.sale_leads
                 WHERE created_by = :uid
             ";
             $bindings = [':uid' => $user->id];
 
-            if ($status && $status !== 'all') {
+            if ($status && $status !== 'all' && $status !== 'All') {
                 $sql .= " AND status = :status";
                 $bindings[':status'] = $status;
             }
 
             if ($search !== '') {
-                $sql .= " AND (name ILIKE :search OR company_name ILIKE :search OR phone ILIKE :search OR email ILIKE :search OR product_interest ILIKE :search OR lead_number ILIKE :search)";
+                $sql .= " AND (name ILIKE :search OR phone ILIKE :search OR address ILIKE :search)";
                 $bindings[':search'] = '%' . $search . '%';
             }
 
@@ -46,7 +46,8 @@ $app->group('/api/sales', function (\Slim\Routing\RouteCollectorProxy $group) {
 
             $response->getBody()->write(json_encode([
                 'success' => true,
-                'data' => $leads
+                'data' => $leads,
+                'leads' => $leads
             ]));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
 
@@ -55,29 +56,24 @@ $app->group('/api/sales', function (\Slim\Routing\RouteCollectorProxy $group) {
             $response->getBody()->write(json_encode(['error' => 'Failed to fetch sales leads']));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
         }
-    });
+    };
 
-    // Create a new sales lead
+    $group->get('/leads', $getLeadsHandler);
+    $group->get('/leads/list', $getLeadsHandler);
+
+    // Create a new sales lead (exact same columns as loan leads)
     $group->post('/leads', function (Request $request, Response $response, $args) {
         $user = $request->getAttribute('user');
         $data = $request->getParsedBody() ?? json_decode($request->getBody()->getContents(), true) ?? [];
 
         $name = trim($data['name'] ?? '');
-        $companyName = trim($data['company_name'] ?? '');
         $phone = trim($data['phone'] ?? '');
-        $email = trim($data['email'] ?? '');
-        $productInterest = trim($data['product_interest'] ?? 'Enterprise Suite');
-        $dealValue = (float)($data['deal_value'] ?? 0);
+        $address = trim($data['address'] ?? '');
         $status = trim($data['status'] ?? 'New');
-        $notes = trim($data['notes'] ?? '');
         $branch = trim($data['branch'] ?? ($user->branch ?? ''));
 
-        if (empty($name)) {
-            $response->getBody()->write(json_encode(['error' => 'Client / Contact Name is required']));
-            return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
-        }
-        if (empty($phone)) {
-            $response->getBody()->write(json_encode(['error' => 'Phone number is required']));
+        if (empty($name) || empty($phone) || empty($address)) {
+            $response->getBody()->write(json_encode(['error' => 'Name, Phone, and Address are Required']));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
         }
 
@@ -89,26 +85,27 @@ $app->group('/api/sales', function (\Slim\Routing\RouteCollectorProxy $group) {
                 throw new Exception("Database connection failed");
             }
 
-            $leadNumber = 'SL-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -4));
+            // Resolve branch from employee record if missing
+            if (empty($branch)) {
+                $branchStmt = $conn->prepare('SELECT branch FROM public.employee WHERE "userId" = ? LIMIT 1');
+                $branchStmt->execute([$user->id]);
+                $emp = $branchStmt->fetch(PDO::FETCH_ASSOC);
+                $branch = $emp['branch'] ?? 'Main Branch';
+            }
 
             $stmt = $conn->prepare("
-                INSERT INTO public.sales_leads (
-                    lead_number, name, company_name, phone, email, product_interest, deal_value, status, notes, branch, created_by
+                INSERT INTO public.sale_leads (
+                    name, phone, address, status, branch, created_by
                 ) VALUES (
-                    :lead_number, :name, :company_name, :phone, :email, :product_interest, :deal_value, :status, :notes, :branch, :created_by
+                    :name, :phone, :address, :status, :branch, :created_by
                 ) RETURNING *
             ");
 
             $stmt->execute([
-                ':lead_number' => $leadNumber,
                 ':name' => $name,
-                ':company_name' => $companyName,
                 ':phone' => $phone,
-                ':email' => $email,
-                ':product_interest' => $productInterest,
-                ':deal_value' => $dealValue,
+                ':address' => $address,
                 ':status' => $status,
-                ':notes' => $notes,
                 ':branch' => $branch,
                 ':created_by' => $user->id
             ]);
@@ -117,8 +114,9 @@ $app->group('/api/sales', function (\Slim\Routing\RouteCollectorProxy $group) {
 
             $response->getBody()->write(json_encode([
                 'success' => true,
-                'message' => 'Sales lead originated successfully',
-                'data' => $newLead
+                'message' => 'Sales lead added successfully',
+                'data' => $newLead,
+                'lead' => $newLead
             ]));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
 
@@ -129,14 +127,13 @@ $app->group('/api/sales', function (\Slim\Routing\RouteCollectorProxy $group) {
         }
     });
 
-    // Update sales lead status / deal stage
+    // Update sales lead status
     $group->put('/leads/{id}/status', function (Request $request, Response $response, $args) {
         $user = $request->getAttribute('user');
         $id = $args['id'];
         $data = $request->getParsedBody() ?? json_decode($request->getBody()->getContents(), true) ?? [];
 
         $status = trim($data['status'] ?? '');
-        $dealValue = isset($data['deal_value']) ? (float)$data['deal_value'] : null;
 
         if (empty($status)) {
             $response->getBody()->write(json_encode(['error' => 'Status is required']));
@@ -151,23 +148,12 @@ $app->group('/api/sales', function (\Slim\Routing\RouteCollectorProxy $group) {
                 throw new Exception("Database connection failed");
             }
 
-            if ($dealValue !== null) {
-                $stmt = $conn->prepare("
-                    UPDATE public.sales_leads
-                    SET status = :status, deal_value = :deal_value, updated_at = timezone('utc'::text, now())
-                    WHERE id = :id AND created_by = :uid
-                    RETURNING *
-                ");
-                $stmt->execute([':status' => $status, ':deal_value' => $dealValue, ':id' => $id, ':uid' => $user->id]);
-            } else {
-                $stmt = $conn->prepare("
-                    UPDATE public.sales_leads
-                    SET status = :status, updated_at = timezone('utc'::text, now())
-                    WHERE id = :id AND created_by = :uid
-                    RETURNING *
-                ");
-                $stmt->execute([':status' => $status, ':id' => $id, ':uid' => $user->id]);
-            }
+            $stmt = $conn->prepare("UPDATE public.sale_leads SET status = :status WHERE id = :id AND created_by = :uid RETURNING *");
+            $stmt->execute([
+                ':status' => $status,
+                ':id' => $id,
+                ':uid' => $user->id
+            ]);
 
             $updatedLead = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -179,7 +165,8 @@ $app->group('/api/sales', function (\Slim\Routing\RouteCollectorProxy $group) {
             $response->getBody()->write(json_encode([
                 'success' => true,
                 'message' => 'Sales lead updated successfully',
-                'data' => $updatedLead
+                'data' => $updatedLead,
+                'lead' => $updatedLead
             ]));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
 

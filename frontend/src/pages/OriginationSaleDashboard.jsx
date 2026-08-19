@@ -15,9 +15,9 @@ import {
   Legend
 } from 'recharts';
 import { motion } from 'framer-motion';
-import OriginationMobileSalesDashboard from './OriginationMobileSalesDashboard';
+import OriginationMobileSaleDashboard from './OriginationMobileSaleDashboard';
 
-const OriginationSalesDashboard = () => {
+const OriginationSaleDashboard = () => {
   const { data, isLoading, error } = useQuery({
     queryKey: ['salesDashboard'],
     queryFn: getSalesDashboardData
@@ -53,7 +53,7 @@ const OriginationSalesDashboard = () => {
   return (
     <>
       <div className="md:hidden">
-        <OriginationMobileSalesDashboard />
+        <OriginationMobileSaleDashboard />
       </div>
 
       <motion.div 
@@ -175,4 +175,4 @@ const OriginationSalesDashboard = () => {
   );
 };
 
-export default OriginationSalesDashboard;
+export default OriginationSaleDashboard;
