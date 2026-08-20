@@ -6,6 +6,7 @@ import PageLoader from '../components/PageLoader';
 import { Search, CheckCircle2, Briefcase, Clock, Building2, XCircle, MoreVertical } from 'lucide-react';
 import { format } from 'date-fns';
 import BranchOperationsMobileLoansApplicationsList from './BranchOperationsMobileLoansApplicationsList';
+import { maskPhoneNumber } from '../utils/phoneUtils';
 
 const BranchOperationsLoansApplicationsList = () => {
   const navigate = useNavigate();
@@ -220,7 +221,7 @@ const BranchOperationsLoansApplicationsList = () => {
                               <td className="p-3 text-slate-700 whitespace-nowrap">
                                 <div className="font-medium text-slate-900">{name}</div>
                               </td>
-                              <td className="p-3 text-slate-700 whitespace-nowrap">{phone}</td>
+                              <td className="p-3 text-slate-700 whitespace-nowrap">{maskPhoneNumber(phone)}</td>
                               <td className="p-3 text-slate-700 whitespace-nowrap">
                                 <span className="inline-flex px-2 py-1 bg-slate-100 text-slate-700 rounded text-xs font-medium border border-slate-200">
                                   {app.loan_type}

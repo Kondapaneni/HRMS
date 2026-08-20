@@ -215,7 +215,7 @@ const OriginationMobileSaleMemberDetails = ({ member: propMember }) => {
                 <div key={prod.id} className="bg-slate-50 border border-slate-100 rounded-2xl p-4 space-y-2">
                   <div className="flex justify-between items-start">
                     <h4 className="font-semibold text-slate-900 text-sm">{prod.product_type || 'General Member Product'}</h4>
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-700">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700">
                       <CheckCircle2 size={11} /> Converted
                     </span>
                   </div>

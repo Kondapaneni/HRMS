@@ -6,6 +6,7 @@ import PageLoader from '../components/PageLoader';
 import { Search, CheckCircle2, Clock, Phone, Briefcase, ChevronDown, XCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
+import { maskPhoneNumber } from '../utils/phoneUtils';
 
 const BranchOperationsMobileLoansApplicationsList = () => {
   const navigate = useNavigate();
@@ -215,7 +216,7 @@ const BranchOperationsMobileLoansApplicationsList = () => {
                   <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 pt-1">
                     <div className="flex items-center gap-2">
                       <Phone size={13} className="text-slate-400" />
-                      <span>{phone}</span>
+                      <span>{maskPhoneNumber(phone)}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Briefcase size={13} className="text-slate-400" />
