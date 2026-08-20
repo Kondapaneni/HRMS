@@ -6,6 +6,7 @@ import { Search, Users, Loader2, MoreVertical, Briefcase } from 'lucide-react';
 import { format } from 'date-fns';
 import MemberDetailsSidebar from '../components/MemberDetailsSidebar';
 import OriginationMobileSaleMemberList from './OriginationMobileSaleMemberList';
+import { maskPhoneNumber } from '../utils/phoneUtils';
 
 const OriginationSaleMembersList = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -145,7 +146,7 @@ const OriginationSaleMembersList = () => {
                               <div className="font-medium text-slate-900">{member.name}</div>
                             </td>
                             <td className="p-3 text-slate-700">
-                              {member.phone}
+                              {maskPhoneNumber(member.phone)}
                             </td>
                             <td className="p-3 text-slate-700 max-w-[200px] truncate" title={member.address}>
                               {member.address || '—'}

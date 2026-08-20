@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateLeadStatus } from '../services/loanServices';
+import { maskPhoneNumber } from '../utils/phoneUtils';
 import toast from 'react-hot-toast';
 
 const OriginationMobileLoanLeadDetails = () => {
@@ -175,12 +176,29 @@ const OriginationMobileLoanLeadDetails = () => {
           
           <div className="space-y-1">
             <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Contact Phone</h3>
-            <div className="flex items-center gap-3 text-slate-700">
-              <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
-                <Phone size={18} className="text-blue-600" />
+            {lead.phone ? (
+              <a 
+                href={`tel:${lead.phone}`}
+                className="flex items-center justify-between p-2.5 -mx-2 rounded-2xl bg-blue-50/50 hover:bg-blue-50 border border-blue-100/60 active:scale-[0.98] transition-all cursor-pointer group"
+              >
+                <div className="flex items-center gap-3 text-slate-800">
+                  <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                    <Phone size={18} />
+                  </div>
+                  <span className="font-bold text-lg text-slate-900 tracking-wide">{maskPhoneNumber(lead.phone)}</span>
+                </div>
+                <span className="text-xs font-bold text-blue-600 bg-white px-2.5 py-1 rounded-full border border-blue-200 shadow-xs flex items-center gap-1">
+                  <Phone size={12} className="fill-blue-600 text-blue-600" /> Call
+                </span>
+              </a>
+            ) : (
+              <div className="flex items-center gap-3 text-slate-400">
+                <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                  <Phone size={18} />
+                </div>
+                <span className="font-medium text-lg">—</span>
               </div>
-              <span className="font-medium text-lg">{lead.phone}</span>
-            </div>
+            )}
           </div>
 
           <div className="space-y-1">

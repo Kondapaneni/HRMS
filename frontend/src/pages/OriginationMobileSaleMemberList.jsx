@@ -4,6 +4,7 @@ import { getSalesLeads } from '../services/salesServices';
 import { motion } from 'framer-motion';
 import { Search, Phone, MapPin, Calendar, CheckCircle2, Users, Loader2, Briefcase } from 'lucide-react';
 import { format } from 'date-fns';
+import { maskPhoneNumber } from '../utils/phoneUtils';
 import { useNavigate } from 'react-router-dom';
 
 const OriginationMobileSaleMemberList = () => {
@@ -167,7 +168,7 @@ const OriginationMobileSaleMemberList = () => {
                     <div className="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
                       <Phone size={12} className="text-blue-500" />
                     </div>
-                    <span>{member.phone}</span>
+                    <span>{maskPhoneNumber(member.phone)}</span>
                   </div>
 
                   <div className="flex items-center gap-3">

@@ -4,6 +4,7 @@ import { X, Phone, Briefcase, CheckCircle2, ArrowRight, Lock, MapPin, Calendar }
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getLoanApplications } from '../services/loanServices';
+import { maskPhoneNumber } from '../utils/phoneUtils';
 import { format } from 'date-fns';
 
 const MemberDetailsSidebar = ({ isOpen, onClose, member, type = 'loan' }) => {
@@ -77,7 +78,7 @@ const MemberDetailsSidebar = ({ isOpen, onClose, member, type = 'loan' }) => {
                   <h3 className="text-xl font-bold text-slate-900">{member.name}</h3>
                   <div className="flex items-center gap-2 text-slate-500 mt-1">
                     <Phone size={14} />
-                    <span className="text-sm font-medium">{member.phone}</span>
+                    <span className="text-sm font-medium">{maskPhoneNumber(member.phone)}</span>
                   </div>
                   {member.address && (
                     <div className="flex items-center gap-2 text-slate-500 mt-1 text-xs">

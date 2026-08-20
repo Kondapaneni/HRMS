@@ -6,6 +6,7 @@ import { Search, CheckCircle2, Users, Loader2, MoreVertical } from 'lucide-react
 import { format } from 'date-fns';
 import MemberDetailsSidebar from '../components/MemberDetailsSidebar';
 import OriginationMobileLoanMemberList from './OriginationMobileLoanMemberList';
+import { maskPhoneNumber } from '../utils/phoneUtils';
 
 const OriginationLoanMembersList = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -147,7 +148,7 @@ const OriginationLoanMembersList = () => {
                             <div className="font-medium text-slate-900">{member.name}</div>
                           </td>
                           <td className="p-3 text-slate-700">
-                            {member.phone}
+                            {maskPhoneNumber(member.phone)}
                           </td>
                           <td className="p-3 text-slate-700 max-w-[200px] truncate" title={member.address}>
                             {member.address}

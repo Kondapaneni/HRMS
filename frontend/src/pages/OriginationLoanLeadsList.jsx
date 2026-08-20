@@ -7,6 +7,7 @@ import { format } from 'date-fns';
 import OriginationMobileLoanLeadsList from './OriginationMobileLoanLeadsList';
 import AddLeadSidebar from '../components/AddLeadSidebar';
 import LeadDetailsSidebar from '../components/LeadDetailsSidebar';
+import { maskPhoneNumber } from '../utils/phoneUtils';
 
 const OriginationLoanLeadsList = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -147,7 +148,7 @@ const OriginationLoanLeadsList = () => {
                             <div className="font-medium text-slate-900">{lead.name}</div>
                           </td>
                           <td className="p-3 text-slate-700">
-                            {lead.phone}
+                            {maskPhoneNumber(lead.phone)}
                           </td>
                           <td className="p-3 text-slate-700 max-w-[200px] truncate" title={lead.address}>
                             {lead.address}

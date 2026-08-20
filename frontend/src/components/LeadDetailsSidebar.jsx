@@ -5,6 +5,7 @@ import { format } from 'date-fns';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateLeadStatus } from '../services/loanServices';
 import { updateSalesLeadStatus } from '../services/salesServices';
+import { maskPhoneNumber } from '../utils/phoneUtils';
 import toast from 'react-hot-toast';
 
 const loanTypeOptions = [
@@ -265,7 +266,7 @@ const LeadDetailsSidebar = ({ isOpen, onClose, lead, type = 'loan' }) => {
                       <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Contact</span>
                       <div className="flex items-center gap-2 text-slate-700">
                         <Phone size={16} className="text-slate-400" />
-                        <span className="font-medium">{lead.phone}</span>
+                        <span className="font-medium">{maskPhoneNumber(lead.phone)}</span>
                       </div>
                     </div>
 
