@@ -63,7 +63,7 @@ const OriginationLoanDashboard = () => {
         {/* Header Section */}
         <motion.div variants={itemVariants} className="flex justify-between items-center mb-2">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900">Origination Loan Dashboard</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-slate-900">Origination Loans Dashboard</h1>
             <p className="text-sm text-slate-500 mt-1">Overview of lead generation and conversion trends.</p>
           </div>
         </motion.div>

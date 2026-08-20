@@ -86,8 +86,8 @@ const OriginationMobileLoanDashboard = () => {
         <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
 
         <div className="relative z-10 px-2">
-          <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">Origination Loan Module</p>
-          <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">Origination Loan Dashboard</h2>
+          <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">Origination Loans Module</p>
+          <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">Origination Loans Dashboard</h2>
           <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">Performance overview & conversions</p>
         </div>
       </section>

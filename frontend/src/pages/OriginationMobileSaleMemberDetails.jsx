@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft, Phone, MapPin, Calendar, Briefcase, CheckCircle2, Loader2 } from 'lucide-react';
+import { ArrowLeft, Phone, MapPin, Calendar, Briefcase, CheckCircle2, Loader2, ArrowRight } from 'lucide-react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
@@ -204,6 +204,11 @@ const OriginationMobileSaleMemberDetails = ({ member: propMember }) => {
                   <div className="flex items-center gap-1.5 text-xs text-slate-400">
                     <Calendar size={12} />
                     <span>{prod.created_at ? format(new Date(prod.created_at), 'MMM d, yyyy h:mm a') : '—'}</span>
+                  </div>
+                  <div className="pt-1">
+                    <span className="inline-flex items-center gap-1 text-sm font-medium text-emerald-600 hover:text-emerald-700 transition-all cursor-pointer">
+                      Fill Application <ArrowRight size={14} />
+                    </span>
                   </div>
                 </div>
               ))

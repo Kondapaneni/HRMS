@@ -112,6 +112,11 @@ const MemberDetailsSidebar = ({ isOpen, onClose, member, type = 'loan' }) => {
                             <Calendar size={12} />
                             <span>{item.created_at ? format(new Date(item.created_at), 'MMM d, yyyy') : '—'}</span>
                           </div>
+                          <div className="pt-1">
+                            <span className="inline-flex items-center gap-1 text-sm font-medium text-emerald-600 hover:text-emerald-700 hover:underline transition-all cursor-pointer">
+                              Fill Application <ArrowRight size={14} />
+                            </span>
+                          </div>
                         </div>
                       ))
                     ) : (
@@ -153,7 +158,7 @@ const MemberDetailsSidebar = ({ isOpen, onClose, member, type = 'loan' }) => {
                               state={{ name: member.name, phone: member.phone, lead_id: currentLeadId, loan_type: loan.loan_type }}
                               className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline transition-all"
                             >
-                              Fill Loan Form <ArrowRight size={14} />
+                              Fill Application <ArrowRight size={14} />
                             </Link>
                           )}
                         </div>

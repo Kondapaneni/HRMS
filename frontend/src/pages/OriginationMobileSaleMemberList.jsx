@@ -108,7 +108,7 @@ const OriginationMobileSaleMemberList = () => {
             Members
           </h2>
           <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">
-            Converted clients &amp; accounts
+            Converted lead directory
           </p>
         </div>
       </section>
@@ -155,38 +155,40 @@ const OriginationMobileSaleMemberList = () => {
               >
                 <div className="flex justify-between items-start mb-4">
                   <h3 className="font-bold text-slate-900 text-lg leading-tight">{member.name}</h3>
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 whitespace-nowrap">
-                    <CheckCircle2 size={12} /> Converted
-                  </span>
+                  <div className="shrink-0 ml-3">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-700">
+                      <CheckCircle2 size={10} /> Member
+                    </span>
+                  </div>
                 </div>
 
                 <div className="space-y-2.5 text-sm text-slate-600">
                   <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
-                      <Phone size={12} className="text-emerald-500" />
+                    <div className="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+                      <Phone size={12} className="text-blue-500" />
                     </div>
                     <span>{member.phone}</span>
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full bg-amber-50 flex items-center justify-center shrink-0">
-                      <Briefcase size={12} className="text-amber-500" />
-                    </div>
-                    <span className="truncate">{formatProductTypes(member.products)}</span>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full bg-teal-50 flex items-center justify-center shrink-0">
-                      <MapPin size={12} className="text-teal-500" />
+                    <div className="w-6 h-6 rounded-full bg-indigo-50 flex items-center justify-center shrink-0">
+                      <MapPin size={12} className="text-indigo-500" />
                     </div>
                     <span className="truncate">{member.address || '—'}</span>
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full bg-cyan-50 flex items-center justify-center shrink-0">
-                      <Calendar size={12} className="text-cyan-500" />
+                    <div className="w-6 h-6 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
+                      <Calendar size={12} className="text-emerald-500" />
                     </div>
-                    <span>{member.created_at ? format(new Date(member.created_at), 'MMM d, yyyy') : '—'}</span>
+                    <span>Joined on {member.created_at ? format(new Date(member.created_at), 'MMM d, yyyy') : '—'}</span>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-100 mt-3 flex justify-between items-center text-xs">
+                    <span className="text-slate-500 font-medium">
+                      {(member.products?.length || 1)} Product{(member.products?.length || 1) !== 1 ? 's' : ''}
+                    </span>
+                    <span className="text-slate-700 font-semibold">{formatProductTypes(member.products)}</span>
                   </div>
                 </div>
               </motion.div>
