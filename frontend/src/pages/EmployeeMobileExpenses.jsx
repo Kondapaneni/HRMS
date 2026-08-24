@@ -1,17 +1,30 @@
 import React, { useState, useEffect, useRef } from 'react';
-import PageLoader from '../components/PageLoader';
 import { createPortal } from 'react-dom';
-import { Plus, Upload, FileText, CheckCircle, XCircle, Clock, ArrowLeft, Receipt } from 'lucide-react';
+import PageLoader from '../components/PageLoader';
+import { 
+  Plus, 
+  Upload, 
+  FileText, 
+  CheckCircle2, 
+  XCircle, 
+  Clock, 
+  ArrowLeft, 
+  Receipt,
+  X,
+  Sparkles,
+  DollarSign,
+  AlertCircle,
+  ExternalLink,
+  Send,
+  Loader2
+} from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
 
 const EmployeeMobileExpenses = () => {
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -19,18 +32,17 @@ const EmployeeMobileExpenses = () => {
   const [category, setCategory] = useState('Travel');
   const [billFile, setBillFile] = useState(null);
   const [selectedBillUrl, setSelectedBillUrl] = useState(null);
-  const controls = useDragControls();
 
   const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (selectedBillUrl || isFormOpen) {
-      document.body.classList.add('hide-mobile-nav');
+      document.body.style.overflow = 'hidden';
     } else {
-      document.body.classList.remove('hide-mobile-nav');
+      document.body.style.overflow = '';
     }
     return () => {
-      document.body.classList.remove('hide-mobile-nav');
+      document.body.style.overflow = '';
     };
   }, [selectedBillUrl, isFormOpen]);
 
@@ -52,7 +64,7 @@ const EmployeeMobileExpenses = () => {
           .from('expenses')
           .upload(fileName, billFile);
 
-        if (uploadError) throw new Error('Failed to upload bill');
+        if (uploadError) throw new Error('Failed to upload bill receipt');
         bill_url = window.location.origin + "/Bills/" + fileName;
       }
 
@@ -66,12 +78,12 @@ const EmployeeMobileExpenses = () => {
       return res.data;
     },
     onSuccess: () => {
-      toast.success('Expense submitted');
+      toast.success('Expense claim submitted successfully');
       queryClient.invalidateQueries({ queryKey: ['employee', 'expenses'] });
       handleCloseForm();
     },
     onError: (err) => {
-      toast.error(err.response?.data?.error || 'Failed to submit expense');
+      toast.error(err.response?.data?.error || 'Failed to submit expense claim');
     }
   });
 
@@ -93,253 +105,411 @@ const EmployeeMobileExpenses = () => {
     submitExpenseMutation.mutate();
   };
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'Approved': return <CheckCircle className="w-5 h-5 text-green-500" />;
-      case 'Rejected': return <XCircle className="w-5 h-5 text-red-500" />;
-      default: return <Clock className="w-5 h-5 text-yellow-500" />;
+  const formatCurrency = (val) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 2
+    }).format(val || 0);
+  };
+
+  const approvedExpenses = expensesData.filter(e => (e.status || '').toLowerCase() === 'approved');
+  const pendingExpenses = expensesData.filter(e => (e.status || '').toLowerCase() === 'pending');
+  const rejectedExpenses = expensesData.filter(e => (e.status || '').toLowerCase() === 'rejected');
+
+  const totalApproved = approvedExpenses.reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
+  const totalPending = pendingExpenses.reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
+  const totalRejected = rejectedExpenses.reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
+
+  const getStatusBadge = (status) => {
+    const s = (status || '').toLowerCase();
+    if (s === 'approved') {
+      return {
+        bg: 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]',
+        icon: <CheckCircle2 className="w-3.5 h-3.5 text-[#137333]" />,
+        label: 'Approved'
+      };
     }
+    if (s === 'rejected') {
+      return {
+        bg: 'bg-[#fce8e6] text-[#c5221f] border-[#fad2cf]',
+        icon: <XCircle className="w-3.5 h-3.5 text-[#c5221f]" />,
+        label: 'Rejected'
+      };
+    }
+    return {
+      bg: 'bg-[#fef7e0] text-[#b06000] border-[#feefc3]',
+      icon: <Clock className="w-3.5 h-3.5 text-[#b06000]" />,
+      label: 'Pending'
+    };
   };
 
   if (isLoading) return <PageLoader message="Loading Expenses..." />;
 
-  if (isFormOpen) {
-    return createPortal(
-      <div className="fixed inset-0 z-[9999] bg-white flex flex-col h-[100dvh] overflow-hidden">
-        <div className="bg-white px-5 py-4 border-b border-slate-100 flex items-center justify-between shrink-0">
-          <button onClick={handleCloseForm} className="p-2 -ml-2 text-slate-600 bg-slate-50 rounded-full active:bg-slate-100 transition-colors">
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <h1 className="text-lg font-bold text-slate-800">New Expense</h1>
-          <div className="w-10"></div>
-        </div>
-
-        <div className="p-5 bg-white flex-1 overflow-y-auto overscroll-contain">
-          <form id="mobileExpenseForm" onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Title</label>
-              <input type="text" required value={title} onChange={(e) => setTitle(e.target.value)} className="w-full px-4 py-3.5 bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all outline-none" placeholder="E.g. Taxi to Airport" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Amount (₹)</label>
-              <input type="number" step="0.01" min="0" required value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full px-4 py-3.5 bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all outline-none" placeholder="0.00" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Category</label>
-              <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full px-4 py-3.5 bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all outline-none appearance-none">
-                <option>Travel</option>
-                <option>Meals</option>
-                <option>Supplies</option>
-                <option>Software</option>
-                <option>Hardware</option>
-                <option>Other</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Description</label>
-              <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="w-full px-4 py-3.5 bg-slate-50/50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500 transition-all outline-none" rows="3" placeholder="Optional details..."></textarea>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Bill / Receipt</label>
-              <input type="file" ref={fileInputRef} onChange={(e) => setBillFile(e.target.files[0])} className="hidden" accept="image/*,.pdf" />
-              <div onClick={() => fileInputRef.current?.click()} className="w-full p-5 border-2 border-dashed border-blue-200 bg-blue-50/50 rounded-xl text-center active:bg-blue-100 transition-colors">
-                <Upload className="w-7 h-7 text-blue-500 mx-auto mb-3" />
-                <span className="text-sm font-medium text-blue-700">{billFile ? billFile.name : 'Upload Document'}</span>
-              </div>
-            </div>
-          </form>
-        </div>
-
-        <div className="p-5 bg-white border-t border-slate-100 shrink-0 pb-safe">
-          <button type="submit" form="mobileExpenseForm" disabled={submitExpenseMutation.isPending} className="w-full py-4 bg-[#000] text-white rounded-xl font-bold active:bg-slate-800 disabled:opacity-70 transition-all flex justify-center items-center shadow-lg shadow-black/20 text-[15px]">
-            {submitExpenseMutation.isPending ? 'Submitting...' : 'Submit Expense'}
-          </button>
-        </div>
-      </div>,
-      document.body
-    );
-  }
-
   return (
-    <div className="relative pb-6">
-      {/* Top Header Section with Animated Motion Graphics */}
-      <div className="-mx-4 -mt-4 px-4 pt-8 pb-20 relative overflow-hidden bg-slate-900">
-        {/* Animated Liquid Orbs */}
-        <motion.div
-          animate={{
-            scale: [1, 1.2, 1],
-            x: [0, 50, 0],
-            y: [0, 30, 0],
-          }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-20 -left-10 w-72 h-72 bg-[#ff928b] rounded-full mix-blend-screen filter blur-[40px] opacity-60"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.4, 1],
-            x: [0, -40, 0],
-            y: [0, 50, 0],
-          }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute -top-10 -right-10 w-64 h-64 bg-[#7bdff2] rounded-full mix-blend-screen filter blur-[40px] opacity-60"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.3, 1],
-            x: [0, 30, 0],
-            y: [0, -40, 0],
-          }}
-          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-0 left-20 w-80 h-80 bg-[#84dcc6] rounded-full mix-blend-screen filter blur-[50px] opacity-50"
-        />
+    <div className="space-y-4 pb-8">
 
-        {/* Subtle Glass Overlay */}
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
-
-        <div className="relative z-10 px-2 flex justify-between items-start">
-          <div>
-            <div className="flex items-center gap-2 mb-1.5">
-              <button onClick={() => navigate('/employee')} className="text-white/80 active:text-white transition-colors p-1 -ml-1">
-                <ArrowLeft className="w-5 h-5" />
-              </button>
-              <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest drop-shadow-md">My Finances</p>
+      {/* Header Card */}
+      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <div className="flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368] ml-1">
+                Reimbursements Hub
+              </span>
             </div>
-
-            <h1 className="text-3xl font-black text-white tracking-tight drop-shadow-sm mb-0.5">Expenses</h1>
+            <h1 className="text-xl font-bold text-[#1f1f1f] tracking-tight">
+              My Expenses
+            </h1>
+            <p className="text-xs text-[#5f6368]">
+              Submit business claims and track reimbursement approvals
+            </p>
           </div>
-          <button
-            onClick={() => setIsFormOpen(true)}
-            className="flex items-center justify-center w-10 h-10 bg-white/20 hover:bg-white/30 text-white rounded-full backdrop-blur-md transition-colors shadow-md active:scale-95"
-          >
-            <Plus className="w-6 h-6" />
-          </button>
+
+          <div className="p-3 rounded-2xl bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
+            <Receipt className="w-5 h-5" />
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setIsFormOpen(true)}
+          className="w-full flex items-center justify-center gap-2 py-3 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold shadow-xs transition-all cursor-pointer active:scale-98"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Claim New Expense</span>
+        </button>
+      </div>
+
+      {/* KPI Stats Grid (3 Cards) */}
+      <div className="grid grid-cols-3 gap-2.5">
+        {/* Approved */}
+        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3 shadow-xs space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[9px] font-bold uppercase tracking-wider text-[#5f6368]">Approved</span>
+            <div className="p-1 rounded-md bg-[#e6f4ea] text-[#137333]">
+              <CheckCircle2 className="w-3 h-3" />
+            </div>
+          </div>
+          <p className="text-sm font-bold text-[#137333] truncate">{formatCurrency(totalApproved)}</p>
+          <p className="text-[9px] text-[#5f6368]">{approvedExpenses.length} Claims</p>
+        </div>
+
+        {/* Pending */}
+        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3 shadow-xs space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[9px] font-bold uppercase tracking-wider text-[#5f6368]">Pending</span>
+            <div className="p-1 rounded-md bg-[#fef7e0] text-[#b06000]">
+              <Clock className="w-3 h-3" />
+            </div>
+          </div>
+          <p className="text-sm font-bold text-[#b06000] truncate">{formatCurrency(totalPending)}</p>
+          <p className="text-[9px] text-[#5f6368]">{pendingExpenses.length} Claims</p>
+        </div>
+
+        {/* Rejected */}
+        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3 shadow-xs space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[9px] font-bold uppercase tracking-wider text-[#5f6368]">Rejected</span>
+            <div className="p-1 rounded-md bg-[#fce8e6] text-[#c5221f]">
+              <XCircle className="w-3 h-3" />
+            </div>
+          </div>
+          <p className="text-sm font-bold text-[#c5221f] truncate">{formatCurrency(totalRejected)}</p>
+          <p className="text-[9px] text-[#5f6368]">{rejectedExpenses.length} Claims</p>
         </div>
       </div>
 
-      {/* Main Content Card overlapping header */}
-      <div className="bg-white rounded-[24px] shadow-lg p-5 -mt-12 relative z-20 mx-1 border border-slate-100/50 min-h-[300px]">
-        <div className="space-y-4">
-          {isLoading ? (
-            <div className="animate-pulse space-y-4">
-              {[1, 2, 3].map(i => <div key={i} className="h-24 bg-slate-100 rounded-2xl"></div>)}
-            </div>
-          ) : expensesData.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-slate-100">
-                <Receipt className="w-8 h-8 text-slate-300" />
-              </div>
-              <p className="text-slate-500 font-medium">No expenses submitted yet</p>
-            </div>
-          ) : (
-            expensesData.map((exp) => (
-              <div key={exp.id} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm active:bg-slate-50 transition-colors">
-                <div className="flex justify-between items-start mb-3">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                      {getStatusIcon(exp.status)}
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-slate-900 leading-tight">{exp.title}</h3>
-                      <p className="text-[11px] font-medium text-slate-500 mt-0.5">{new Date(exp.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <span className="font-black text-slate-900 text-lg">₹{parseFloat(exp.amount).toFixed(2)}</span>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{exp.category}</p>
-                  </div>
-                </div>
+      {/* Expense Records Feed */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between px-1">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-[#1f1f1f]">Claim History</h3>
+          <span className="text-[10px] text-[#5f6368]">{expensesData.length} Total Submitted</span>
+        </div>
 
-                <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-50">
-                  <span className={`text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-md ${exp.status === 'Approved' ? 'bg-[#25d366]/10 text-[#25d366]' :
-                      exp.status === 'Rejected' ? 'bg-[#ff2d55]/10 text-[#ff2d55]' :
-                        'bg-[#ff9500]/10 text-[#ff9500]'
-                    }`}>
-                    {exp.status}
-                  </span>
+        {expensesData.length === 0 ? (
+          <div className="bg-white p-8 rounded-3xl text-center border border-[#e0e3e7] shadow-xs space-y-2">
+            <AlertCircle className="w-8 h-8 text-[#5f6368] mx-auto opacity-50" />
+            <p className="text-xs font-semibold text-[#1f1f1f]">No expense claims found</p>
+            <p className="text-[11px] text-[#5f6368]">You have not submitted any reimbursement requests yet.</p>
+          </div>
+        ) : (
+          <div className="space-y-2.5">
+            {expensesData.map((exp) => {
+              const badge = getStatusBadge(exp.status);
+              const formattedDate = new Date(exp.created_at || exp.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+              return (
+                <div key={exp.id} className="bg-white p-4 rounded-2xl border border-[#e0e3e7] shadow-xs space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-1.5">
+                        <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]">
+                          {exp.category}
+                        </span>
+                        <span className="text-[10px] font-semibold text-[#5f6368]">{formattedDate}</span>
+                      </div>
+                      <h4 className="text-xs font-bold text-[#1f1f1f]">{exp.title}</h4>
+                    </div>
+
+                    <div className="text-right shrink-0">
+                      <span className="text-sm font-bold text-[#1f1f1f]">{formatCurrency(exp.amount)}</span>
+                      <div className="mt-1">
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${badge.bg}`}>
+                          {badge.icon}
+                          <span>{badge.label}</span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {exp.description && (
+                    <p className="text-xs text-[#5f6368] line-clamp-2">
+                      {exp.description}
+                    </p>
+                  )}
+
+                  {exp.remarks && (
+                    <div className="p-2.5 rounded-xl bg-[#fce8e6]/50 border border-[#fad2cf] text-[11px] text-[#c5221f]">
+                      <span className="font-bold uppercase tracking-wider mr-1">Admin Note:</span> {exp.remarks}
+                    </div>
+                  )}
+
                   {exp.bill_url && (
-                    <button onClick={() => setSelectedBillUrl(exp.bill_url)} className="text-xs font-bold text-blue-600 hover:text-blue-700 active:text-blue-800 transition-colors flex items-center gap-1 bg-blue-50 px-2 py-1 rounded-md">
-                      <FileText className="w-3.5 h-3.5" />
-                      View Bill
-                    </button>
+                    <div className="pt-2 border-t border-[#f1f3f4] flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedBillUrl(exp.bill_url)}
+                        className="flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-semibold text-[#1a73e8] bg-[#e8f0fe] hover:bg-[#d2e3fc] transition-all cursor-pointer"
+                      >
+                        <FileText className="w-3.5 h-3.5" />
+                        <span>View Bill Receipt</span>
+                      </button>
+                    </div>
                   )}
                 </div>
-                {exp.remarks && (
-                  <div className="mt-3 bg-rose-50/50 p-3 rounded-xl border border-rose-100 text-[11px] text-rose-700 font-medium leading-relaxed">
-                    <span className="font-bold uppercase tracking-wider mr-1">Note:</span> {exp.remarks}
-                  </div>
-                )}
-              </div>
-            ))
-          )}
-        </div>
-      </div>
-
-      {/* Bill View Slide-Over Modal */}
-      <AnimatePresence>
-        {selectedBillUrl && (
-          <div className="fixed inset-x-0 top-0 bottom-0 z-[100] flex flex-col justify-end overflow-hidden">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setSelectedBillUrl(null)}
-              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              drag="y"
-              dragControls={controls}
-              dragListener={false}
-              dragConstraints={{ top: 0 }}
-              dragElastic={{ top: 0, bottom: 0.6 }}
-              onDragEnd={(e, info) => {
-                if (info.offset.y > 100 || info.velocity.y > 400) {
-                  setSelectedBillUrl(null);
-                }
-              }}
-              className="absolute bottom-0 left-0 right-0 bg-white rounded-t-[32px] shadow-2xl h-[85dvh] flex flex-col"
-            >
-              <div
-                className="shrink-0 pt-3 pb-4 flex flex-col items-center cursor-grab active:cursor-grabbing"
-                onPointerDown={(e) => controls.start(e)}
-                style={{ touchAction: 'none' }}
-              >
-                <div className="w-12 h-1.5 bg-slate-200 rounded-full mb-4 pointer-events-none"></div>
-                <div className="px-6 w-full flex items-center justify-between">
-                  <h3 className="text-xl font-bold text-slate-900">Expense Bill</h3>
-                  <button
-                    onClick={() => setSelectedBillUrl(null)}
-                    className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"
-                  >
-                    <XCircle className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex-1 overflow-hidden bg-slate-50 relative pb-safe">
-                {selectedBillUrl.toLowerCase().endsWith('.pdf') ? (
-                  <iframe src={selectedBillUrl} className="w-full h-full border-0" title="Bill PDF" />
-                ) : (
-                  <div className="w-full h-full overflow-y-auto flex flex-col items-center p-4">
-                    <img src={selectedBillUrl} alt="Bill" className="w-full h-auto object-contain rounded-xl shadow-sm" />
-                  </div>
-                )}
-                
-                {selectedBillUrl.toLowerCase().endsWith('.pdf') && (
-                  <div className="absolute bottom-6 left-0 right-0 flex justify-center pb-safe">
-                     <a href={selectedBillUrl} target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-slate-800 text-white rounded-full text-sm font-bold shadow-lg shadow-slate-800/30">
-                       Open PDF in new tab
-                     </a>
-                  </div>
-                )}
-              </div>
-            </motion.div>
+              );
+            })}
           </div>
         )}
-      </AnimatePresence>
+      </div>
+
+      {/* New Expense Modal (Mounted via createPortal) */}
+      {isFormOpen && createPortal(
+        <div 
+          onClick={(e) => { if (e.target === e.currentTarget) handleCloseForm(); }}
+          className="fixed inset-0 z-[10000] flex flex-col justify-end bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200"
+        >
+          <div className="bg-white rounded-t-3xl shadow-2xl border-t border-[#e0e3e7] w-full max-w-md mx-auto max-h-[90vh] flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-300">
+            
+            {/* Top 4-Color Gradient Line */}
+            <div className="h-1 bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853]" />
+
+            {/* Modal Header */}
+            <div className="p-4 border-b border-[#e0e3e7] flex items-center justify-between bg-[#f8fafd] shrink-0">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-xl bg-[#e8f0fe] text-[#1a73e8]">
+                  <Receipt className="w-4 h-4" />
+                </div>
+                <h3 className="text-xs font-bold text-[#1f1f1f]">
+                  Submit New Expense Claim
+                </h3>
+              </div>
+              <button
+                onClick={handleCloseForm}
+                className="p-1.5 rounded-full hover:bg-[#e0e3e7]/60 text-[#5f6368] transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Modal Form Content */}
+            <div className="p-5 overflow-y-auto space-y-4 flex-1">
+              <form id="mobileExpenseForm" onSubmit={handleSubmit} className="space-y-4">
+                
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-[#5f6368] uppercase">Expense Title *</label>
+                  <input 
+                    type="text" 
+                    required 
+                    value={title} 
+                    onChange={(e) => setTitle(e.target.value)} 
+                    className="w-full bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl px-3.5 py-2.5 text-xs text-[#1f1f1f] font-medium focus:bg-white focus:ring-1 focus:ring-[#1a73e8] outline-none" 
+                    placeholder="e.g. Travel Taxi to Client Office" 
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-[#5f6368] uppercase">Amount (₹) *</label>
+                    <input 
+                      type="number" 
+                      step="0.01" 
+                      min="0" 
+                      required 
+                      value={amount} 
+                      onChange={(e) => setAmount(e.target.value)} 
+                      className="w-full bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl px-3.5 py-2.5 text-xs text-[#1f1f1f] font-medium focus:bg-white focus:ring-1 focus:ring-[#1a73e8] outline-none" 
+                      placeholder="0.00" 
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-[#5f6368] uppercase">Category *</label>
+                    <select 
+                      value={category} 
+                      onChange={(e) => setCategory(e.target.value)} 
+                      className="w-full bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl px-3.5 py-2.5 text-xs text-[#1f1f1f] font-medium focus:bg-white focus:ring-1 focus:ring-[#1a73e8] outline-none cursor-pointer"
+                    >
+                      <option value="Travel">Travel</option>
+                      <option value="Meals">Meals</option>
+                      <option value="Supplies">Supplies</option>
+                      <option value="Software">Software</option>
+                      <option value="Hardware">Hardware</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-[#5f6368] uppercase">Description &amp; Purpose</label>
+                  <textarea 
+                    value={description} 
+                    onChange={(e) => setDescription(e.target.value)} 
+                    rows={2} 
+                    className="w-full bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl p-3 text-xs text-[#1f1f1f] font-medium focus:bg-white focus:ring-1 focus:ring-[#1a73e8] outline-none resize-none" 
+                    placeholder="Provide additional details regarding this expenditure..."
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-[#5f6368] uppercase">Bill / Receipt Document</label>
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    onChange={(e) => setBillFile(e.target.files[0])} 
+                    className="hidden" 
+                    accept="image/*,.pdf" 
+                  />
+                  <div 
+                    onClick={() => fileInputRef.current?.click()} 
+                    className="w-full p-4 border-2 border-dashed border-[#dadce0] hover:border-[#1a73e8] bg-[#f8fafd] rounded-2xl text-center cursor-pointer active:scale-98 transition-all"
+                  >
+                    <Upload className="w-5 h-5 text-[#1a73e8] mx-auto mb-1.5" />
+                    <span className="text-xs font-semibold text-[#1a73e8] block">
+                      {billFile ? billFile.name : 'Tap to Upload Bill / Invoice (Image or PDF)'}
+                    </span>
+                    <span className="text-[10px] text-[#5f6368] block mt-0.5">Supports PNG, JPG, JPEG, and PDF documents</span>
+                  </div>
+                </div>
+
+              </form>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex items-center gap-2.5 shrink-0">
+              <button
+                type="button"
+                onClick={handleCloseForm}
+                className="flex-1 py-2.5 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-xs font-semibold text-[#1f1f1f] transition-all cursor-pointer shadow-2xs"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                form="mobileExpenseForm"
+                disabled={submitExpenseMutation.isPending}
+                className="flex-1 py-2.5 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs disabled:opacity-50"
+              >
+                {submitExpenseMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Submitting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-3.5 h-3.5" />
+                    <span>Submit Claim</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Bill Viewer Modal (Mounted via createPortal) */}
+      {selectedBillUrl && createPortal(
+        <div 
+          onClick={(e) => { if (e.target === e.currentTarget) setSelectedBillUrl(null); }}
+          className="fixed inset-0 z-[10000] flex flex-col justify-end bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200"
+        >
+          <div className="bg-white rounded-t-3xl shadow-2xl border-t border-[#e0e3e7] w-full max-w-md mx-auto h-[80vh] flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-300">
+            
+            {/* Top 4-Color Gradient Line */}
+            <div className="h-1 bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853]" />
+
+            {/* Header */}
+            <div className="p-4 border-b border-[#e0e3e7] flex items-center justify-between bg-[#f8fafd] shrink-0">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-xl bg-[#e8f0fe] text-[#1a73e8]">
+                  <FileText className="w-4 h-4" />
+                </div>
+                <h3 className="text-xs font-bold text-[#1f1f1f]">Attached Receipt Document</h3>
+              </div>
+              <button
+                onClick={() => setSelectedBillUrl(null)}
+                className="p-1.5 rounded-full hover:bg-[#e0e3e7]/60 text-[#5f6368] transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Content Preview */}
+            <div className="flex-1 overflow-hidden bg-[#f8fafd] p-4 flex flex-col items-center justify-center">
+              {selectedBillUrl.toLowerCase().endsWith('.pdf') ? (
+                <div className="w-full h-full flex flex-col items-center justify-center space-y-4">
+                  <FileText className="w-16 h-16 text-[#1a73e8] opacity-80" />
+                  <p className="text-xs text-[#5f6368] text-center font-medium">PDF Document Receipt</p>
+                  <a 
+                    href={selectedBillUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="flex items-center gap-1.5 px-4 py-2 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-full text-xs font-semibold shadow-xs"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    <span>Open PDF in New Window</span>
+                  </a>
+                </div>
+              ) : (
+                <div className="w-full h-full overflow-y-auto flex flex-col items-center">
+                  <img src={selectedBillUrl} alt="Receipt Document" className="w-full h-auto object-contain rounded-2xl shadow-sm border border-[#e0e3e7]" />
+                </div>
+              )}
+            </div>
+
+            {/* Bottom Actions */}
+            <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] shrink-0">
+              <button
+                type="button"
+                onClick={() => setSelectedBillUrl(null)}
+                className="w-full py-2.5 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-xs font-semibold text-[#1f1f1f] transition-all cursor-pointer shadow-2xs"
+              >
+                Close Viewer
+              </button>
+            </div>
+
+          </div>
+        </div>,
+        document.body
+      )}
+
     </div>
   );
 };
