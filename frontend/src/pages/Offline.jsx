@@ -62,13 +62,13 @@ const Offline = () => {
           <div className="relative z-10 flex flex-col items-center max-w-md w-full text-center">
             
             {/* Animated Large OFFLINE text */}
-            <div className="h-40 sm:h-48 mb-2 relative flex items-center justify-center w-full">
+            <div className="h-28 sm:h-36 mb-3 relative flex items-center justify-center w-full">
               <FuzzyText
                 baseIntensity={0.15}
                 hoverIntensity={0.4}
                 enableHover
                 color="#EA4335"
-                fontSize="clamp(3.5rem, 10vw, 5.5rem)"
+                fontSize="4.2rem"
                 fontWeight={900}
               >
                 OFFLINE

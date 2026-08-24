@@ -29,13 +29,13 @@ const NotFound = () => {
       <div className="relative z-10 flex flex-col items-center max-w-md w-full text-center">
         
         {/* Large 404 Text */}
-        <div className="h-44 sm:h-52 mb-2 relative flex items-center justify-center w-full">
+        <div className="h-36 sm:h-48 mb-3 relative flex items-center justify-center w-full">
           <FuzzyText 
             baseIntensity={0.15}
             hoverIntensity={0.4}
             enableHover
             color="#1a73e8"
-            fontSize="clamp(6rem, 15vw, 9rem)"
+            fontSize="7.5rem"
             fontWeight={900}
           >
             404
