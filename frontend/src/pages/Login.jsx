@@ -354,28 +354,28 @@ const Login = () => {
               {/* Action Buttons Section */}
               <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
                 {/* Secondary Actions: Contact HR Admin & Candidate Portal */}
-                <div className="flex items-center gap-1.5 flex-wrap w-full sm:w-auto justify-center sm:justify-start">
+                <div className="flex items-center gap-1 sm:gap-1.5 whitespace-nowrap shrink-0 w-full sm:w-auto justify-center sm:justify-start">
                   <a
                     href="mailto:gowthamkondapaneni2003@gmail.com"
-                    className="text-xs font-semibold text-[#d93025] hover:bg-[#fce8e6] px-3 py-1.5 rounded-full transition-colors text-center"
+                    className="text-xs font-semibold text-[#d93025] hover:bg-[#fce8e6] px-2.5 sm:px-3 py-1.5 rounded-full transition-colors text-center whitespace-nowrap"
                   >
                     Contact HR Admin
                   </a>
-                  <span className="text-[#dadce0] hidden sm:inline">•</span>
+                  <span className="text-[#dadce0]">•</span>
                   <Link
                     to="/candidate/login"
-                    className="text-xs font-semibold text-[#1a73e8] hover:bg-[#e8f0fe] px-3 py-1.5 rounded-full transition-colors text-center"
+                    className="text-xs font-semibold text-[#1a73e8] hover:bg-[#e8f0fe] px-2.5 sm:px-3 py-1.5 rounded-full transition-colors text-center whitespace-nowrap"
                   >
                     Candidate Portal
                   </Link>
                 </div>
 
                 {/* Primary Action Button */}
-                <div className="w-full sm:w-auto flex flex-col items-center sm:items-end">
+                <div className="w-full sm:w-auto flex flex-col items-center sm:items-end shrink-0">
                   {loginMethod === 'face' && !email && (
-                    <div className="mb-2 px-2.5 py-1 bg-[#fce8e6] border border-[#f28b82] rounded-full text-[11px] font-semibold text-[#d93025] flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-                      Please enter your email first.
+                    <div className="mb-2 px-3 py-1 bg-[#fce8e6] border border-[#f28b82] rounded-full text-[11px] font-semibold text-[#d93025] flex items-center gap-1.5 whitespace-nowrap">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335] shrink-0" />
+                      <span>Please enter your email first.</span>
                     </div>
                   )}
 
