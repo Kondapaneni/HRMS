@@ -1,7 +1,18 @@
 import React from 'react';
 import PageLoader from '../components/PageLoader';
-import { Calendar as CalendarIcon, Plus, Clock, CheckCircle, XCircle, AlertCircle, FileText } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { 
+  Calendar as CalendarIcon, 
+  Plus, 
+  Clock, 
+  CheckCircle2, 
+  XCircle, 
+  AlertCircle, 
+  CalendarDays,
+  Sparkles,
+  ChevronRight,
+  TrendingUp,
+  FileText
+} from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
@@ -25,153 +36,229 @@ const EmployeeMobileLeaves = () => {
       return res.data;
     },
     onSuccess: () => {
-      toast.success('Leave cancelled successfully');
+      toast.success('Leave request cancelled successfully');
       queryClient.invalidateQueries({ queryKey: ['employee', 'leaves'] });
     },
     onError: (err) => {
-      toast.error(err.response?.data?.error || 'Failed to cancel leave');
+      toast.error(err.response?.data?.error || 'Failed to cancel leave request');
     },
   });
 
   const balance = leavesData?.balance || { paidTotal: 12, paidUsed: 0, unpaidUsed: 0, totalApproved: 0 };
   const history = leavesData?.history || [];
   const paidRemaining = Math.max(0, balance.paidTotal - balance.paidUsed);
+  const percentUsed = Math.min(100, Math.round((balance.paidUsed / (balance.paidTotal || 12)) * 100));
   const error = queryError ? 'Failed to load leaves data.' : null;
 
-  const getStatusConfig = (status) => {
+  const getStatusBadge = (status) => {
     const s = (status || '').toLowerCase();
-    if (s === 'approved') return { color: 'bg-emerald-100 text-emerald-700 border-emerald-200', icon: <CheckCircle className="w-4 h-4 text-emerald-500" /> };
-    if (s === 'rejected') return { color: 'bg-red-100 text-red-700 border-red-200', icon: <XCircle className="w-4 h-4 text-red-500" /> };
-    if (s === 'cancelled') return { color: 'bg-slate-100 text-slate-700 border-slate-200', icon: <XCircle className="w-4 h-4 text-slate-500" /> };
-    return { color: 'bg-amber-100 text-amber-700 border-amber-200', icon: <Clock className="w-4 h-4 text-amber-500" /> };
+    if (s === 'approved') {
+      return {
+        bg: 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]',
+        label: 'Approved'
+      };
+    }
+    if (s === 'rejected') {
+      return {
+        bg: 'bg-[#fce8e6] text-[#c5221f] border-[#fad2cf]',
+        label: 'Rejected'
+      };
+    }
+    if (s === 'cancelled') {
+      return {
+        bg: 'bg-[#f1f3f4] text-[#5f6368] border-[#dadce0]',
+        label: 'Cancelled'
+      };
+    }
+    return {
+      bg: 'bg-[#fef7e0] text-[#b06000] border-[#feefc3]',
+      label: 'Pending'
+    };
   };
 
-  if (loading) return <PageLoader message="Loading Leaves..." />;
+  if (loading) return <PageLoader message="Loading Leaves Data..." />;
 
   return (
-    <div className="space-y-6 pb-2">
-      {/* Hero Section with Animated Motion Graphics */}
-      <section className="-mx-4 -mt-4 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900">
-        {/* Animated Liquid Orbs */}
-        <motion.div
-          animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-20 -left-10 w-72 h-72 bg-[#ff928b] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.4, 1], x: [0, -40, 0], y: [0, 50, 0] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute -top-10 -right-10 w-64 h-64 bg-[#7bdff2] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.3, 1], x: [0, 30, 0], y: [0, -40, 0] }}
-          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-0 left-20 w-80 h-80 bg-[#84dcc6] rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
-        />
+    <div className="space-y-4 pb-8">
 
-        {/* Subtle Glass Overlay */}
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
+      {/* Header Card with Apply Button */}
+      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <div className="flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368] ml-1">
+                Time Off Hub
+              </span>
+            </div>
+            <h1 className="text-xl font-bold text-[#1f1f1f] tracking-tight">
+              My Leaves
+            </h1>
+            <p className="text-xs text-[#5f6368]">
+              Annual leave balance and request records
+            </p>
+          </div>
 
-        <div className="relative z-10 px-2 mb-2">
-          <div className="flex justify-between items-start mb-6">
-            <div>
-              <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">My Leaves</p>
-              <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">Balance & History</h2>
-              <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">Manage your time off</p>
+          <div className="p-3 rounded-2xl bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
+            <CalendarDays className="w-5 h-5" />
+          </div>
+        </div>
+
+        <Link
+          to="/employee/leaves/apply"
+          className="w-full flex items-center justify-center gap-2 py-3 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold shadow-xs transition-all cursor-pointer active:scale-98"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Apply for New Leave</span>
+        </Link>
+      </div>
+
+      {/* Paid Leave Quota Progress Card */}
+      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-4 shadow-xs space-y-2.5">
+        <div className="flex items-center justify-between text-xs">
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-[#1f1f1f]">Annual Paid Leave Quota</span>
+            <span className="text-[10px] text-[#5f6368]">({balance.paidTotal || 12} Days Total)</span>
+          </div>
+          <span className="font-bold text-[#1a73e8]">{percentUsed}% Used</span>
+        </div>
+
+        <div className="w-full bg-[#f1f3f4] h-2.5 rounded-full overflow-hidden">
+          <div 
+            className="bg-[#1a73e8] h-full rounded-full transition-all duration-500"
+            style={{ width: `${percentUsed}%` }}
+          />
+        </div>
+
+        <div className="flex items-center justify-between text-[11px] text-[#5f6368] pt-0.5">
+          <span>{balance.paidUsed || 0} Days Consumed</span>
+          <span className="font-semibold text-[#137333]">{paidRemaining} Days Remaining</span>
+        </div>
+      </div>
+
+      {/* KPI Stats Grid (4 Cards) */}
+      <div className="grid grid-cols-2 gap-3">
+        {/* Paid Left */}
+        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3.5 shadow-xs space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Paid Left</span>
+            <div className="p-1.5 rounded-lg bg-[#e6f4ea] text-[#137333]">
+              <CheckCircle2 className="w-3.5 h-3.5" />
             </div>
           </div>
-
-          <Link
-            to="/employee/leaves/apply"
-            className="w-full rounded-xl bg-white text-slate-900 font-bold text-sm py-3.5 flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-md"
-          >
-            <Plus className="w-5 h-5" />
-            Apply for Leave
-          </Link>
+          <p className="text-xl font-bold text-[#137333]">{paidRemaining} Days</p>
+          <p className="text-[10px] text-[#5f6368]">Available to book</p>
         </div>
-      </section>
 
-      {/* Stats Cards */}
-      <section className="grid grid-cols-2 gap-4 relative z-20 -mt-10 mx-1">
-        <div className="bg-white rounded-[1.5rem] p-5 flex flex-col items-center justify-center border border-slate-100 shadow-lg relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-16 h-16 bg-blue-50 rounded-full -mr-8 -mt-8 opacity-50"></div>
-          <span className="text-3xl font-black text-slate-800 tracking-tight">{paidRemaining}</span>
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Paid Left</span>
-        </div>
-        <div className="bg-white rounded-[1.5rem] p-5 flex flex-col items-center justify-center border border-slate-100 shadow-lg relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-16 h-16 bg-rose-50 rounded-full -ml-8 -mt-8 opacity-50"></div>
-          <span className="text-3xl font-black text-slate-800 tracking-tight">{balance?.unpaidUsed || 0}</span>
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Unpaid Used</span>
-        </div>
-      </section>
-
-      {/* Leave History */}
-      <section className="space-y-4">
-        <h3 className="text-lg font-black text-slate-900 tracking-tight px-2">Recent Applications</h3>
-
-        {loading ? (
-          <div className="text-center py-10">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#ff686b] mx-auto"></div>
+        {/* Paid Used */}
+        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3.5 shadow-xs space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Paid Used</span>
+            <div className="p-1.5 rounded-lg bg-[#e8f0fe] text-[#1a73e8]">
+              <Clock className="w-3.5 h-3.5" />
+            </div>
           </div>
-        ) : error ? (
-          <div className="bg-red-50 p-4 rounded-2xl text-red-600 text-sm font-medium text-center border border-red-100">
+          <p className="text-xl font-bold text-[#1a73e8]">{balance.paidUsed || 0} Days</p>
+          <p className="text-[10px] text-[#5f6368]">Quota deducted</p>
+        </div>
+
+        {/* Unpaid / LOP */}
+        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3.5 shadow-xs space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Unpaid (LOP)</span>
+            <div className="p-1.5 rounded-lg bg-[#fef7e0] text-[#b06000]">
+              <AlertCircle className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <p className="text-xl font-bold text-[#b06000]">{balance.unpaidUsed || 0} Days</p>
+          <p className="text-[10px] text-[#5f6368]">Loss of pay</p>
+        </div>
+
+        {/* Total Approved */}
+        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3.5 shadow-xs space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Approved</span>
+            <div className="p-1.5 rounded-lg bg-[#f3e8fd] text-[#8430ce]">
+              <CalendarDays className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <p className="text-xl font-bold text-[#8430ce]">{balance.totalApproved || 0} Days</p>
+          <p className="text-[10px] text-[#5f6368]">Lifetime approved</p>
+        </div>
+      </div>
+
+      {/* Leave Application History Feed */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between px-1">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-[#1f1f1f]">Recent Applications</h3>
+          <span className="text-[10px] text-[#5f6368]">{history.length} Total Requests</span>
+        </div>
+
+        {error ? (
+          <div className="bg-[#fce8e6] p-4 rounded-2xl text-[#c5221f] text-xs font-medium text-center border border-[#fad2cf]">
             {error}
           </div>
         ) : history.length === 0 ? (
-          <div className="bg-white p-8 rounded-[2rem] text-center border border-slate-200 shadow-sm">
-            <AlertCircle className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-500 font-medium">No leave records found.</p>
+          <div className="bg-white p-8 rounded-3xl text-center border border-[#e0e3e7] shadow-xs space-y-2">
+            <AlertCircle className="w-8 h-8 text-[#5f6368] mx-auto opacity-50" />
+            <p className="text-xs font-semibold text-[#1f1f1f]">No leave history found</p>
+            <p className="text-[11px] text-[#5f6368]">You have not submitted any leave requests yet.</p>
           </div>
         ) : (
-          <div className="space-y-3">
-            {history.slice(0, 10).map((record, index) => {
+          <div className="space-y-2.5">
+            {history.slice(0, 15).map((record, index) => {
               const start = new Date(record.startDate);
               const end = new Date(record.endDate);
-              const conf = getStatusConfig(record.status);
+              const badge = getStatusBadge(record.status);
+              const isPending = (record.status || '').toLowerCase() === 'pending';
 
               return (
-                <div key={record.id || index} className="bg-white p-5 rounded-[1.5rem] border border-slate-200 shadow-sm flex flex-col gap-4">
-                  <div className="flex justify-between items-start">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${conf.color.split(' ')[0]}`}>
-                        {conf.icon}
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-black text-slate-900 uppercase tracking-wider">
-                          {record.leaveType} LEAVE
-                        </h4>
-                        <p className="text-[11px] font-bold text-slate-400 mt-0.5">
-                          {start.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-                          {record.startDate !== record.endDate && ` - ${end.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`}
-                        </p>
-                      </div>
+                <div key={record.id || index} className="bg-white p-4 rounded-2xl border border-[#e0e3e7] shadow-xs space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-sm font-bold text-[#1f1f1f] capitalize">
+                        {record.leaveType} Leave
+                      </h4>
+                      <p className="text-[10px] font-semibold text-[#5f6368] mt-0.5">
+                        {start.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        {record.startDate !== record.endDate && ` – ${end.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`}
+                      </p>
                     </div>
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${conf.color}`}>
-                      {record.status || 'Pending'}
+                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${badge.bg}`}>
+                      {badge.label}
                     </span>
                   </div>
 
                   {record.reason && (
-                    <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
-                      <p className="text-xs text-slate-600 line-clamp-2">"{record.reason}"</p>
+                    <div className="bg-[#f8fafd] rounded-xl p-2.5 border border-[#e0e3e7]">
+                      <p className="text-xs text-[#5f6368] italic line-clamp-2">
+                        &ldquo;{record.reason}&rdquo;
+                      </p>
                     </div>
                   )}
 
-                  {(record.status || 'pending').toLowerCase() === 'pending' && (
-                    <button
-                      onClick={() => cancelLeaveMutation.mutate(record.id)}
-                      disabled={cancelLeaveMutation.isPending}
-                      className="mt-2 w-full py-2.5 rounded-xl border border-red-200 text-red-600 font-bold text-xs uppercase tracking-wider active:bg-red-50 transition-colors disabled:opacity-50"
-                    >
-                      {cancelLeaveMutation.isPending ? 'Cancelling...' : 'Cancel Leave'}
-                    </button>
+                  {isPending && (
+                    <div className="pt-1">
+                      <button
+                        type="button"
+                        onClick={() => cancelLeaveMutation.mutate(record.id)}
+                        disabled={cancelLeaveMutation.isPending}
+                        className="w-full py-2 rounded-full border border-[#fad2cf] bg-[#fce8e6]/50 hover:bg-[#fce8e6] text-[#c5221f] font-semibold text-xs transition-all cursor-pointer disabled:opacity-50"
+                      >
+                        {cancelLeaveMutation.isPending ? 'Cancelling Request...' : 'Cancel Leave Request'}
+                      </button>
+                    </div>
                   )}
                 </div>
               );
             })}
           </div>
         )}
-      </section>
+      </div>
+
     </div>
   );
 };

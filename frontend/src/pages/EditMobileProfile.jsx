@@ -1,12 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import PageLoader from '../components/PageLoader';
-import { ArrowLeft, Loader2, Save, X } from 'lucide-react';
+import { ArrowLeft, Loader2, Save, X, Sparkles, User, Mail, Phone, MapPin, Heart, HeartHandshake, Globe, CalendarDays, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
+
+const GENDER_OPTIONS = ['Male', 'Female', 'Other', 'Prefer not to say'];
+const MARITAL_OPTIONS = ['Single', 'Married', 'Divorced', 'Widowed', 'Separated'];
+const NATIONALITY_OPTIONS = ['Indian', 'American', 'British', 'Canadian', 'Australian', 'Other'];
+const BLOOD_OPTIONS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+
+const matchOption = (val, options) => {
+  if (!val) return '';
+  const found = options.find(opt => opt.toLowerCase() === String(val).toLowerCase());
+  return found || val;
+};
 
 const EditMobileProfile = () => {
   const navigate = useNavigate();
@@ -46,11 +56,11 @@ const EditMobileProfile = () => {
         email: profileData.email || '',
         phone: profileData.phone || '',
         address: profileData.address || '',
-        gender: profileData.gender || '',
-        maritalStatus: profileData.maritalStatus || '',
-        nationality: profileData.nationality || '',
+        gender: matchOption(profileData.gender, GENDER_OPTIONS),
+        maritalStatus: matchOption(profileData.maritalStatus, MARITAL_OPTIONS),
+        nationality: matchOption(profileData.nationality, NATIONALITY_OPTIONS),
         dateOfBirth: profileData.dateOfBirth ? new Date(profileData.dateOfBirth).toISOString().split('T')[0] : '',
-        bloodGroup: profileData.bloodGroup || '',
+        bloodGroup: matchOption(profileData.bloodGroup, BLOOD_OPTIONS),
         emergencyContact: profileData.emergencyContact || '',
         emergencyPhone: profileData.emergencyPhone || ''
       });
@@ -72,7 +82,8 @@ const EditMobileProfile = () => {
     }
   });
 
-  const handleSaveProfile = () => {
+  const handleSaveProfile = (e) => {
+    e.preventDefault();
     if (!formData.firstName || !formData.lastName || !formData.email) {
        toast.error('First name, last name, and email are required');
        return;
@@ -82,155 +93,236 @@ const EditMobileProfile = () => {
 
   const isSaving = updateProfileMutation.isPending;
 
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-slate-50">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
-      </div>
-    );
-  }
-
-  if (loading) return <PageLoader message="Loading Profile..." />;
+  if (loading) return <PageLoader message="Loading Profile Form..." />;
 
   return (
-    <div className="relative pb-6">
-      {/* Header */}
-      <div className="-mx-4 -mt-4 px-4 pt-8 pb-20 relative overflow-hidden bg-slate-900">
-        {/* Animated Liquid Orbs */}
-        <motion.div
-          animate={{
-            scale: [1, 1.2, 1],
-            x: [0, 50, 0],
-            y: [0, 30, 0],
-          }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-20 -left-10 w-72 h-72 bg-[#ff928b] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.4, 1],
-            x: [0, -40, 0],
-            y: [0, 50, 0],
-          }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute -top-10 -right-10 w-64 h-64 bg-[#7bdff2] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.3, 1],
-            x: [0, 30, 0],
-            y: [0, -40, 0],
-          }}
-          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-0 left-20 w-80 h-80 bg-[#84dcc6] rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
-        />
-        
-        {/* Subtle Glass Overlay */}
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
+    <div className="space-y-4 pb-8">
 
-        <div className="relative z-10 flex items-center justify-between px-2">
-          <button onClick={() => navigate('/employee/profile')} className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center backdrop-blur-md">
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <h2 className="text-xl font-bold text-white tracking-tight">Edit Profile</h2>
-          <button onClick={handleSaveProfile} disabled={isSaving} className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center shadow-lg disabled:opacity-50">
-            {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+      {/* Header Card */}
+      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => navigate('/employee/profile')}
+              className="p-2 rounded-full border border-[#dadce0] bg-[#f8fafd] hover:bg-[#e8f0fe] text-[#1f1f1f] transition-all cursor-pointer shadow-2xs active:scale-95"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </button>
+            <div>
+              <div className="flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368] ml-1">
+                  Profile Editor
+                </span>
+              </div>
+              <h1 className="text-xl font-bold text-[#1f1f1f] tracking-tight mt-0.5">
+                Edit Profile
+              </h1>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleSaveProfile}
+            disabled={isSaving}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold shadow-xs transition-all cursor-pointer disabled:opacity-50 active:scale-95"
+          >
+            {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+            <span>Save</span>
           </button>
         </div>
       </div>
 
-      {/* Form Content */}
-      <div className="space-y-6 relative z-20 -mt-12 mx-1">
+      {/* Edit Form */}
+      <form onSubmit={handleSaveProfile} className="space-y-4">
         
-        {/* Personal Section */}
-        <div className="bg-white p-5 rounded-[24px] shadow-lg border border-slate-100/50 space-y-4">
-          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">Personal Details</h3>
-          
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-slate-500 uppercase">First Name *</label>
-              <input type="text" value={formData.firstName} onChange={(e) => setFormData({...formData, firstName: e.target.value})} disabled className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-500 cursor-not-allowed outline-none transition-all" />
-            </div>
-            <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-slate-500 uppercase">Last Name *</label>
-              <input type="text" value={formData.lastName} onChange={(e) => setFormData({...formData, lastName: e.target.value})} disabled className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-500 cursor-not-allowed outline-none transition-all" />
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-[11px] font-semibold text-slate-500 uppercase">Email *</label>
-            <input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} disabled className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-500 cursor-not-allowed outline-none transition-all" />
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-[11px] font-semibold text-slate-500 uppercase">Phone</label>
-            <input type="tel" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-[11px] font-semibold text-slate-500 uppercase">Date of Birth</label>
-            <input type="date" value={formData.dateOfBirth} onChange={(e) => setFormData({...formData, dateOfBirth: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
-          </div>
+        {/* Personal Details Card */}
+        <div className="bg-white p-5 rounded-3xl border border-[#e0e3e7] shadow-xs space-y-4">
+          <h3 className="text-xs font-bold text-[#1f1f1f] uppercase tracking-wider">
+            Personal Information
+          </h3>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-slate-500 uppercase">Gender</label>
-              <select value={formData.gender} onChange={(e) => setFormData({...formData, gender: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all appearance-none">
-                <option value="">Select</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-[#5f6368] uppercase">First Name *</label>
+              <input
+                type="text"
+                required
+                value={formData.firstName}
+                onChange={e => setFormData({ ...formData, firstName: e.target.value })}
+                className="w-full bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl px-3.5 py-2.5 text-xs text-[#1f1f1f] font-medium focus:bg-white focus:ring-1 focus:ring-[#1a73e8] outline-none"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-[#5f6368] uppercase">Last Name *</label>
+              <input
+                type="text"
+                required
+                value={formData.lastName}
+                onChange={e => setFormData({ ...formData, lastName: e.target.value })}
+                className="w-full bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl px-3.5 py-2.5 text-xs text-[#1f1f1f] font-medium focus:bg-white focus:ring-1 focus:ring-[#1a73e8] outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold text-[#5f6368] uppercase">Email Address *</label>
+            <input
+              type="email"
+              required
+              value={formData.email}
+              onChange={e => setFormData({ ...formData, email: e.target.value })}
+              className="w-full bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl px-3.5 py-2.5 text-xs text-[#1f1f1f] font-medium focus:bg-white focus:ring-1 focus:ring-[#1a73e8] outline-none"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold text-[#5f6368] uppercase">Phone Number</label>
+            <input
+              type="tel"
+              value={formData.phone}
+              placeholder="+91 98765 43210"
+              onChange={e => setFormData({ ...formData, phone: e.target.value })}
+              className="w-full bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl px-3.5 py-2.5 text-xs text-[#1f1f1f] font-medium focus:bg-white focus:ring-1 focus:ring-[#1a73e8] outline-none"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-[#5f6368] uppercase">Gender</label>
+              <select
+                value={formData.gender}
+                onChange={e => setFormData({ ...formData, gender: e.target.value })}
+                className="w-full bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl px-3.5 py-2.5 text-xs text-[#1f1f1f] font-medium focus:bg-white focus:ring-1 focus:ring-[#1a73e8] outline-none cursor-pointer"
+              >
+                <option value="">Select Gender</option>
+                {GENDER_OPTIONS.map(opt => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
               </select>
             </div>
-            <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-slate-500 uppercase">Blood Group</label>
-              <select value={formData.bloodGroup} onChange={(e) => setFormData({...formData, bloodGroup: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all appearance-none">
-                <option value="">Select</option>
-                <option value="A+">A+</option><option value="A-">A-</option>
-                <option value="B+">B+</option><option value="B-">B-</option>
-                <option value="AB+">AB+</option><option value="AB-">AB-</option>
-                <option value="O+">O+</option><option value="O-">O-</option>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-[#5f6368] uppercase">Marital Status</label>
+              <select
+                value={formData.maritalStatus}
+                onChange={e => setFormData({ ...formData, maritalStatus: e.target.value })}
+                className="w-full bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl px-3.5 py-2.5 text-xs text-[#1f1f1f] font-medium focus:bg-white focus:ring-1 focus:ring-[#1a73e8] outline-none cursor-pointer"
+              >
+                <option value="">Select Status</option>
+                {MARITAL_OPTIONS.map(opt => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
               </select>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-slate-500 uppercase">Marital Status</label>
-              <select value={formData.maritalStatus} onChange={(e) => setFormData({...formData, maritalStatus: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all appearance-none">
-                <option value="">Select</option>
-                <option value="Single">Single</option>
-                <option value="Married">Married</option>
-                <option value="Divorced">Divorced</option>
-                <option value="Widowed">Widowed</option>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-[#5f6368] uppercase">Nationality</label>
+              <select
+                value={formData.nationality}
+                onChange={e => setFormData({ ...formData, nationality: e.target.value })}
+                className="w-full bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl px-3.5 py-2.5 text-xs text-[#1f1f1f] font-medium focus:bg-white focus:ring-1 focus:ring-[#1a73e8] outline-none cursor-pointer"
+              >
+                <option value="">Select Nationality</option>
+                {NATIONALITY_OPTIONS.map(opt => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
               </select>
             </div>
-            <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-slate-500 uppercase">Nationality</label>
-              <input type="text" value={formData.nationality} onChange={(e) => setFormData({...formData, nationality: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-[#5f6368] uppercase">Blood Group</label>
+              <select
+                value={formData.bloodGroup}
+                onChange={e => setFormData({ ...formData, bloodGroup: e.target.value })}
+                className="w-full bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl px-3.5 py-2.5 text-xs text-[#1f1f1f] font-medium focus:bg-white focus:ring-1 focus:ring-[#1a73e8] outline-none cursor-pointer"
+              >
+                <option value="">Select Blood Group</option>
+                {BLOOD_OPTIONS.map(opt => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
             </div>
           </div>
 
-          <div className="space-y-1">
-            <label className="text-[11px] font-semibold text-slate-500 uppercase">Address</label>
-            <textarea value={formData.address} onChange={(e) => setFormData({...formData, address: e.target.value})} rows="3" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none"></textarea>
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold text-[#5f6368] uppercase">Date of Birth</label>
+            <input
+              type="date"
+              value={formData.dateOfBirth}
+              onChange={e => setFormData({ ...formData, dateOfBirth: e.target.value })}
+              className="w-full bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl px-3.5 py-2.5 text-xs text-[#1f1f1f] font-medium focus:bg-white focus:ring-1 focus:ring-[#1a73e8] outline-none"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold text-[#5f6368] uppercase">Residential Address</label>
+            <textarea
+              rows={2}
+              value={formData.address}
+              onChange={e => setFormData({ ...formData, address: e.target.value })}
+              placeholder="Street, City, State, PIN Code"
+              className="w-full bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl p-3 text-xs text-[#1f1f1f] font-medium focus:bg-white focus:ring-1 focus:ring-[#1a73e8] outline-none resize-none"
+            />
           </div>
         </div>
 
-        {/* Emergency Section */}
-        <div className="bg-white p-5 rounded-[24px] shadow-lg border border-slate-100/50 space-y-4">
-          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-2 text-rose-500">Emergency Contact</h3>
-          <div className="space-y-1">
-            <label className="text-[11px] font-semibold text-slate-500 uppercase">Contact Name</label>
-            <input type="text" value={formData.emergencyContact} onChange={(e) => setFormData({...formData, emergencyContact: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
+        {/* Emergency Contact Card */}
+        <div className="bg-white p-5 rounded-3xl border border-[#e0e3e7] shadow-xs space-y-4">
+          <h3 className="text-xs font-bold text-[#1f1f1f] uppercase tracking-wider">
+            Emergency Contact Information
+          </h3>
+
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold text-[#5f6368] uppercase">Contact Person Name</label>
+            <input
+              type="text"
+              value={formData.emergencyContact}
+              onChange={e => setFormData({ ...formData, emergencyContact: e.target.value })}
+              placeholder="e.g. Spouse / Parent / Relative"
+              className="w-full bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl px-3.5 py-2.5 text-xs text-[#1f1f1f] font-medium focus:bg-white focus:ring-1 focus:ring-[#1a73e8] outline-none"
+            />
           </div>
-          <div className="space-y-1">
-            <label className="text-[11px] font-semibold text-slate-500 uppercase">Contact Phone</label>
-            <input type="tel" value={formData.emergencyPhone} onChange={(e) => setFormData({...formData, emergencyPhone: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" />
+
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold text-[#5f6368] uppercase">Emergency Phone Number</label>
+            <input
+              type="tel"
+              value={formData.emergencyPhone}
+              onChange={e => setFormData({ ...formData, emergencyPhone: e.target.value })}
+              placeholder="e.g. +91 98765 43210"
+              className="w-full bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl px-3.5 py-2.5 text-xs text-[#1f1f1f] font-medium focus:bg-white focus:ring-1 focus:ring-[#1a73e8] outline-none"
+            />
           </div>
         </div>
 
-      </div>
+        {/* Action Button */}
+        <div className="pt-2">
+          <button
+            type="submit"
+            disabled={isSaving}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold shadow-xs transition-all cursor-pointer disabled:opacity-50 active:scale-98"
+          >
+            {isSaving ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Saving Profile...</span>
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4" />
+                <span>Save Profile Changes</span>
+              </>
+            )}
+          </button>
+        </div>
+
+      </form>
+
     </div>
   );
 };

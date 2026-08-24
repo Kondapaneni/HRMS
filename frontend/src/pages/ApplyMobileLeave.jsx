@@ -1,11 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import PageLoader from '../components/PageLoader';
-import { ArrowLeft, Loader2, Calendar as CalendarIcon } from 'lucide-react';
+import { 
+  ArrowLeft, 
+  Loader2, 
+  Calendar as CalendarIcon, 
+  ChevronLeft, 
+  ChevronRight, 
+  AlertCircle, 
+  CheckCircle2,
+  CalendarDays,
+  Sparkles,
+  Send
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
-import { motion } from 'framer-motion';
 
 const ApplyMobileLeave = () => {
   const navigate = useNavigate();
@@ -67,7 +77,7 @@ const ApplyMobileLeave = () => {
     },
     onSuccess: () => {
       toast.success('Leave request submitted successfully.');
-      queryClient.invalidateQueries(['employee', 'leaves']);
+      queryClient.invalidateQueries({ queryKey: ['employee', 'leaves'] });
       navigate('/employee/leaves');
     },
     onError: (err) => {
@@ -79,7 +89,7 @@ const ApplyMobileLeave = () => {
 
   const handleApplyLeave = (e) => {
     e.preventDefault();
-    if (!startDate) return toast.error('Please select a start date');
+    if (!startDate) return toast.error('Please select a start date on the calendar');
     if (reason.length < 10) return toast.error('Reason must be at least 10 characters long.');
     
     setError('');
@@ -124,20 +134,20 @@ const ApplyMobileLeave = () => {
       const isSelectedEnd = endDate === dateStr;
       const isInRange = startDate && endDate && dateStr > startDate && dateStr < endDate;
 
-      let btnClass = "rounded-xl border py-2.5 text-sm transition-all ";
+      let btnClass = "rounded-xl py-2 text-xs font-semibold transition-all ";
 
       if (isSelectedStart || isSelectedEnd) {
-        btnClass += "bg-blue-600 text-white font-bold border-blue-600 shadow-md ";
+        btnClass += "bg-[#1a73e8] text-white shadow-xs ";
       } else if (isInRange) {
-        btnClass += "bg-blue-50 text-blue-800 border-blue-200 ";
+        btnClass += "bg-[#e8f0fe] text-[#1a73e8] font-bold ";
       } else if (isDisabled) {
-        btnClass += "bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed opacity-60 ";
+        btnClass += "bg-[#f8fafd] text-[#bdc1c6] cursor-not-allowed opacity-50 ";
       } else {
-        btnClass += "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 active:scale-95 ";
+        btnClass += "bg-white border border-[#e0e3e7] text-[#1f1f1f] hover:bg-[#f1f3f4] active:scale-95 ";
       }
 
       if (isApproved) {
-        btnClass += "line-through opacity-70 bg-emerald-50 text-emerald-700 border-emerald-200";
+        btnClass += "line-through opacity-70 bg-[#e6f4ea] text-[#137333] border-[#ceead6]";
       }
 
       days.push(
@@ -170,138 +180,187 @@ const ApplyMobileLeave = () => {
   if (loading) return <PageLoader message="Loading Leave Form..." />;
 
   return (
-    <div className="relative pb-6">
-      
-      {/* Mobile Header Hero */}
-      <div className="-mx-4 -mt-4 px-4 pt-8 pb-20 relative overflow-hidden bg-slate-900">
-        <motion.div
-          animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-20 -left-10 w-72 h-72 bg-[#ff928b] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.4, 1], x: [0, -40, 0], y: [0, 50, 0] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute -top-10 -right-10 w-64 h-64 bg-[#7bdff2] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
+    <div className="space-y-4 pb-8">
 
-        <div className="relative z-10 flex items-center justify-between mb-2">
-          <button onClick={() => navigate('/employee/leaves')} className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white active:scale-95 transition-all border border-white/20 shadow-lg">
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <h2 className="text-xl font-bold text-white tracking-tight">Apply Leave</h2>
-          <div className="w-10 h-10"></div>
+      {/* Header Card */}
+      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => navigate('/employee/leaves')}
+              className="p-2 rounded-full border border-[#dadce0] bg-[#f8fafd] hover:bg-[#e8f0fe] text-[#1f1f1f] transition-all cursor-pointer shadow-2xs active:scale-95"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </button>
+            <div>
+              <div className="flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368] ml-1">
+                  New Application
+                </span>
+              </div>
+              <h1 className="text-xl font-bold text-[#1f1f1f] tracking-tight mt-0.5">
+                Apply for Leave
+              </h1>
+            </div>
+          </div>
+
+          <div className="p-3 rounded-2xl bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
+            <CalendarDays className="w-5 h-5" />
+          </div>
         </div>
       </div>
 
-      <div className="relative z-20 -mt-12 mx-1 space-y-6">
-        <form onSubmit={handleApplyLeave} className="bg-white p-5 rounded-[24px] shadow-lg border border-slate-100/50 space-y-6">
+      {/* Leave Application Form Card */}
+      <form onSubmit={handleApplyLeave} className="bg-white p-5 rounded-3xl border border-[#e0e3e7] shadow-xs space-y-5">
+        
+        {/* Leave Type Selector */}
+        <div className="space-y-2">
+          <label className="text-xs font-bold text-[#1f1f1f] uppercase tracking-wider">Leave Type *</label>
           
-          <div className="space-y-2">
-            <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Leave Type *</label>
-            {paidRemaining === 0 ? (
+          {paidRemaining === 0 ? (
+            <div className="space-y-2">
+              <div className="rounded-2xl border border-[#fad2cf] bg-[#fce8e6] p-3 text-xs text-[#c5221f] font-medium flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>Paid leave quota is fully exhausted. This request will be submitted as Unpaid (LOP).</span>
+              </div>
+              <select 
+                name="leaveType" 
+                value={leaveType} 
+                onChange={e => setLeaveType(e.target.value)} 
+                required 
+                className="w-full bg-[#f8fafd] border border-[#e0e3e7] rounded-full px-4 py-2.5 text-xs font-semibold text-[#1f1f1f] focus:ring-1 focus:ring-[#1a73e8] outline-none appearance-none"
+              >
+                <option value="unpaid">Unpaid Leave (Loss of Pay)</option>
+              </select>
+            </div>
+          ) : hasPaidLeaveThisMonth() ? (
+            <div className="space-y-2">
+              <div className="rounded-2xl border border-[#feefc3] bg-[#fef7e0] p-3 text-xs text-[#b06000] font-medium flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>You already have a Paid Leave in this calendar month. Additional days are Unpaid.</span>
+              </div>
+              <select 
+                name="leaveType" 
+                value={leaveType} 
+                onChange={e => setLeaveType(e.target.value)} 
+                required 
+                className="w-full bg-[#f8fafd] border border-[#e0e3e7] rounded-full px-4 py-2.5 text-xs font-semibold text-[#1f1f1f] focus:ring-1 focus:ring-[#1a73e8] outline-none appearance-none"
+              >
+                <option value="unpaid">Unpaid Leave (Loss of Pay)</option>
+              </select>
+            </div>
+          ) : (
+            <select 
+              name="leaveType" 
+              value={leaveType} 
+              onChange={e => setLeaveType(e.target.value)} 
+              required 
+              className="w-full bg-[#f8fafd] border border-[#e0e3e7] rounded-full px-4 py-2.5 text-xs font-semibold text-[#1f1f1f] focus:ring-1 focus:ring-[#1a73e8] outline-none appearance-none cursor-pointer"
+            >
+              <option value="paid">Paid Leave ({paidRemaining} Days Remaining)</option>
+              <option value="unpaid">Unpaid Leave (Loss of Pay)</option>
+            </select>
+          )}
+        </div>
+
+        {/* Interactive Calendar Date Picker */}
+        <div className="space-y-2.5">
+          <label className="text-xs font-bold text-[#1f1f1f] uppercase tracking-wider">Select Dates on Calendar *</label>
+          
+          <div className="rounded-2xl border border-[#e0e3e7] bg-[#f8fafd] p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => {
+                  const newDate = new Date(calendarDate);
+                  newDate.setMonth(newDate.getMonth() - 1);
+                  setCalendarDate(newDate);
+                }}
+                className="w-8 h-8 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#5f6368] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+
+              <span className="text-xs font-bold text-[#1f1f1f]">
+                {calendarDate.toLocaleString(undefined, { month: 'long', year: 'numeric' })}
+              </span>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const newDate = new Date(calendarDate);
+                  newDate.setMonth(newDate.getMonth() + 1);
+                  setCalendarDate(newDate);
+                }}
+                className="w-8 h-8 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#5f6368] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-[#5f6368] uppercase pb-1 border-b border-[#e0e3e7]">
+              <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
+            </div>
+            
+            <div className="grid grid-cols-7 gap-1">
+              {renderCalendar()}
+            </div>
+          </div>
+
+          {/* Date Summary Chips */}
+          <div className="grid grid-cols-2 gap-2.5">
+            <div className="rounded-2xl border border-[#e0e3e7] bg-white p-3 shadow-2xs">
+              <p className="text-[10px] uppercase font-bold text-[#5f6368]">Start Date</p>
+              <p className="font-bold text-[#1f1f1f] text-xs mt-0.5">{startDate || 'Tap calendar date'}</p>
+            </div>
+            <div className="rounded-2xl border border-[#e0e3e7] bg-white p-3 shadow-2xs">
+              <p className="text-[10px] uppercase font-bold text-[#5f6368]">End Date</p>
+              <p className="font-bold text-[#1f1f1f] text-xs mt-0.5">{endDate || startDate || 'Tap calendar date'}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Reason Textarea */}
+        <div className="space-y-2">
+          <label className="text-xs font-bold text-[#1f1f1f] uppercase tracking-wider">Reason for Leave *</label>
+          <textarea
+            name="reason"
+            rows="3"
+            required
+            minLength={10}
+            value={reason}
+            onChange={e => setReason(e.target.value)}
+            placeholder="Please provide details for the leave application (minimum 10 characters)..."
+            className="w-full bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl p-3.5 text-xs text-[#1f1f1f] focus:bg-white focus:ring-1 focus:ring-[#1a73e8] outline-none transition-all resize-none min-h-[90px]"
+          />
+        </div>
+
+        {/* Action Button */}
+        <div className="pt-2">
+          <button
+            type="submit"
+            disabled={submitting || loading}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold shadow-xs transition-all cursor-pointer disabled:opacity-50 active:scale-98"
+          >
+            {submitting ? (
               <>
-                <div className="rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm text-rose-700 font-medium">
-                  Paid leave exhausted. You cannot apply for another paid leave.
-                </div>
-                <select name="leaveType" value={leaveType} onChange={e => setLeaveType(e.target.value)} required className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all appearance-none">
-                  <option value="unpaid">Unpaid Leave</option>
-                </select>
-              </>
-            ) : hasPaidLeaveThisMonth() ? (
-              <>
-                <div className="rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 text-sm text-amber-700 font-medium">
-                  You already have an approved or pending Paid Leave for this month. Additional leaves must be Unpaid.
-                </div>
-                <select name="leaveType" value={leaveType} onChange={e => setLeaveType(e.target.value)} required className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all appearance-none">
-                  <option value="unpaid">Unpaid Leave</option>
-                </select>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Submitting Request...</span>
               </>
             ) : (
-              <select name="leaveType" value={leaveType} onChange={e => setLeaveType(e.target.value)} required className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all appearance-none">
-                <option value="paid">Paid Leave ({paidRemaining} remaining)</option>
-                <option value="unpaid">Unpaid Leave</option>
-              </select>
+              <>
+                <Send className="w-4 h-4" />
+                <span>Submit Leave Request</span>
+              </>
             )}
-          </div>
-
-          <div className="space-y-3">
-            <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Select Dates *</label>
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-inner">
-              <div className="flex items-center justify-between mb-4">
-                <button
-                  type="button"
-                  onClick={() => {
-                    const newDate = new Date(calendarDate);
-                    newDate.setMonth(newDate.getMonth() - 1);
-                    setCalendarDate(newDate);
-                  }}
-                  className="rounded-xl bg-white border border-slate-200 px-4 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 active:scale-95 transition-all shadow-sm"
-                >
-                  Prev
-                </button>
-                <div className="text-base font-bold text-slate-800">
-                  {calendarDate.toLocaleString(undefined, { month: 'long', year: 'numeric' })}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const newDate = new Date(calendarDate);
-                    newDate.setMonth(newDate.getMonth() + 1);
-                    setCalendarDate(newDate);
-                  }}
-                  className="rounded-xl bg-white border border-slate-200 px-4 py-1.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 active:scale-95 transition-all shadow-sm"
-                >
-                  Next
-                </button>
-              </div>
-
-              <div className="grid grid-cols-7 gap-2 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">
-                <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
-              </div>
-              <div className="grid grid-cols-7 gap-1.5">
-                {renderCalendar()}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 mt-4">
-              <div className="rounded-xl border border-slate-200 bg-white p-3.5 shadow-sm">
-                <p className="text-slate-400 text-[10px] uppercase font-bold tracking-widest mb-1">Start Date</p>
-                <p className="font-black text-slate-800 text-sm">{startDate || 'Not selected'}</p>
-              </div>
-              <div className="rounded-xl border border-slate-200 bg-white p-3.5 shadow-sm">
-                <p className="text-slate-400 text-[10px] uppercase font-bold tracking-widest mb-1">End Date</p>
-                <p className="font-black text-slate-800 text-sm">{endDate || startDate || 'Not selected'}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Reason *</label>
-            <textarea
-              name="reason"
-              rows="3"
-              required
-              minLength="10"
-              value={reason}
-              onChange={e => setReason(e.target.value)}
-              placeholder="Describe the reason for your leave... (min 10 chars)"
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-none min-h-[100px]"
-            ></textarea>
-          </div>
-
-          <div className="pt-2">
-            <button
-              type="submit"
-              disabled={submitting || loading}
-              className="w-full rounded-xl bg-blue-600 text-white font-bold text-sm py-4 flex items-center justify-center gap-2 hover:bg-blue-700 active:scale-[0.98] transition-all shadow-md disabled:opacity-60 disabled:active:scale-100"
-            >
-              {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Submit Leave Request'}
-            </button>
-          </div>
-        </form>
-      </div>
+          </button>
+        </div>
+      </form>
 
     </div>
   );

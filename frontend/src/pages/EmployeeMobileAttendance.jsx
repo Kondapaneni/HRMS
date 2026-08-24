@@ -1,13 +1,23 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import PageLoader from '../components/PageLoader';
-import { Search, Calendar as CalendarIcon, Clock, Shield, AlertCircle, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { 
+  Calendar as CalendarIcon, 
+  Clock, 
+  LogIn, 
+  LogOut, 
+  Filter, 
+  ChevronLeft, 
+  ChevronRight, 
+  CheckCircle2, 
+  AlertCircle,
+  CalendarDays,
+  CalendarCheck2
+} from 'lucide-react';
 import { format } from 'date-fns';
-import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axios';
 
 const EmployeeMobileAttendance = () => {
-  const controls = useDragControls();
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
@@ -25,40 +35,10 @@ const EmployeeMobileAttendance = () => {
   const error = queryError ? 'Failed to load attendance history.' : null;
   const presentCount = history.filter(r => r.status?.toLowerCase().startsWith('present')).length;
   const leaveCount = history.filter(r => r.status?.toLowerCase().includes('leave')).length;
-
-  const [showMonthPicker, setShowMonthPicker] = useState(false);
-  const [pickerYear, setPickerYear] = useState(() => {
-    return parseInt(selectedMonth.split('-')[0], 10);
-  });
-  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-  const handleMonthSelect = (monthIndex) => {
-    const newMonth = `${pickerYear}-${String(monthIndex + 1).padStart(2, '0')}`;
-    setSelectedMonth(newMonth);
-    setShowMonthPicker(false);
-  };
-
-  useEffect(() => {
-    const scrollContainer = document.querySelector('main > div.overflow-y-auto') || document.querySelector('.overflow-y-auto') || document.querySelector('.overflow-auto');
-    if (showMonthPicker) {
-      document.body.style.overflow = 'hidden';
-      document.body.classList.add('hide-mobile-nav');
-      if (scrollContainer) scrollContainer.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-      document.body.classList.remove('hide-mobile-nav');
-      if (scrollContainer) scrollContainer.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-      document.body.classList.remove('hide-mobile-nav');
-      if (scrollContainer) scrollContainer.style.overflow = '';
-    };
-  }, [showMonthPicker]);
+  const paidLeaveCount = history.filter(r => r.status?.toLowerCase() === 'paid leave').length;
+  const unpaidLeaveCount = history.filter(r => r.status?.toLowerCase() === 'unpaid leave' || r.status?.toLowerCase() === 'sandwich leave').length;
 
   const [statusFilter, setStatusFilter] = useState('all');
-  const currentMonth = new Date().getMonth();
-  const currentYear = new Date().getFullYear();
 
   const resolveStatusKey = (record) => {
     if (!record || !record.status) return 'missing';
@@ -93,171 +73,257 @@ const EmployeeMobileAttendance = () => {
     return true;
   });
 
-  const getStatusColor = (record) => {
+  const getStatusBadge = (record) => {
     const s = (record.status || '').toLowerCase();
-    if (s === 'present') return 'bg-emerald-100 text-emerald-700 border-emerald-200';
-    if (s.includes('late') || s.includes('checkout missing')) return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-    if (s.includes('early')) return 'bg-orange-100 text-orange-700 border-orange-200';
-    if (s.includes('leave')) return 'bg-blue-100 text-blue-700 border-blue-200';
-    if (s === 'missing') return 'bg-red-100 text-red-700 border-red-200';
-    if (s === 'regularized') return 'bg-teal-100 text-teal-700 border-teal-200';
-    if (s === 'holiday' || s === 'week-off' || s === 'weekend') return 'bg-purple-100 text-purple-700 border-purple-200';
-    return 'bg-slate-100 text-slate-700 border-slate-200';
-  };
-
-  const getStatusLabel = (record) => {
-    const s = (record.status || '').toLowerCase();
-    switch (s) {
-      case 'present': return 'Present';
-      case 'present (late)': return 'Present (Late)';
-      case 'present (early)': return 'Present (Early)';
-      case 'present (early+late)': return 'Present (Early+Late)';
-      case 'present (checkout missing)': return 'Checkout Missing';
-      case 'present (late+checkout missing)': return 'Late + Checkout Missing';
-      case 'weekend':
-      case 'week-off': return 'Week Off';
-      case 'holiday': return 'Company Holiday';
-      case 'missing': return 'Missing';
-      case 'regularized': return 'Regularized';
-      default:
-        // Capitalize words for leaves (e.g. "paid leave" -> "Paid Leave")
-        if (s.includes('leave')) {
-          return s.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-        }
-        return record.status || 'Not Marked';
+    if (s === 'present') {
+      return {
+        bg: 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]',
+        label: 'Present'
+      };
     }
+    if (s.includes('late') || s.includes('checkout missing')) {
+      return {
+        bg: 'bg-[#fef7e0] text-[#b06000] border-[#feefc3]',
+        label: s.includes('checkout missing') ? 'Checkout Missing' : 'Present (Late)'
+      };
+    }
+    if (s.includes('early')) {
+      return {
+        bg: 'bg-[#fef7e0] text-[#b06000] border-[#feefc3]',
+        label: 'Present (Early)'
+      };
+    }
+    if (s.includes('leave')) {
+      return {
+        bg: 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc]',
+        label: s.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+      };
+    }
+    if (s === 'missing') {
+      return {
+        bg: 'bg-[#fce8e6] text-[#c5221f] border-[#fad2cf]',
+        label: 'Missing'
+      };
+    }
+    if (s === 'regularized') {
+      return {
+        bg: 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]',
+        label: 'Regularized'
+      };
+    }
+    if (s === 'holiday' || s === 'week-off' || s === 'weekend') {
+      return {
+        bg: 'bg-[#f3e8fd] text-[#8430ce] border-[#e9d5ff]',
+        label: s === 'holiday' ? 'Holiday' : 'Week Off'
+      };
+    }
+    return {
+      bg: 'bg-[#f1f3f4] text-[#5f6368] border-[#dadce0]',
+      label: record.status || 'Not Marked'
+    };
   };
 
-  if (loading) return <PageLoader message="Loading Attendance..." />;
+  if (loading) return <PageLoader message="Loading Attendance History..." />;
 
   return (
-    <div className="space-y-6 pb-2">
-      {/* Hero Section with Animated Motion Graphics */}
-      <section className="-mx-4 -mt-4 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900">
-        {/* Animated Liquid Orbs */}
-        <motion.div
-          animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-20 -left-10 w-72 h-72 bg-[#ff928b] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.4, 1], x: [0, -40, 0], y: [0, 50, 0] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute -top-10 -right-10 w-64 h-64 bg-[#7bdff2] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.3, 1], x: [0, 30, 0], y: [0, -40, 0] }}
-          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-0 left-20 w-80 h-80 bg-[#84dcc6] rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
-        />
-        
-        {/* Subtle Glass Overlay */}
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
+    <div className="space-y-4 pb-8">
 
-        <div className="relative z-10 px-2">
-          <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">My Attendance</p>
-          <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">History & Stats</h2>
-          <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">Track your daily punches and leaves</p>
-        </div>
-      </section>
-
-      {/* Stats Cards */}
-      <section className="grid grid-cols-2 gap-4 relative z-20 -mt-12 mx-1">
-        <div className="bg-white rounded-[1.5rem] p-5 flex flex-col items-center justify-center border border-slate-100 shadow-lg">
-          <span className="text-3xl font-black text-emerald-500 tracking-tight">{presentCount}</span>
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Present</span>
-        </div>
-        <div className="bg-white rounded-[1.5rem] p-5 flex flex-col items-center justify-center border border-slate-100 shadow-lg">
-          <span className="text-3xl font-black text-blue-500 tracking-tight">{leaveCount}</span>
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Leaves</span>
-        </div>
-      </section>
-
-      {/* Filters */}
-      <section className="bg-white rounded-[2rem] p-5 shadow-sm border border-slate-200 space-y-3">
-        <button
-          type="button"
-          onClick={() => {
-            setPickerYear(parseInt(selectedMonth.split('-')[0], 10));
-            setShowMonthPicker(true);
-          }}
-          className="w-full h-12 px-4 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#84dcc6] font-medium flex items-center justify-between text-slate-800"
-        >
-          <span>{format(new Date(selectedMonth + '-01'), 'MMMM, yyyy')}</span>
-          <CalendarIcon className="w-5 h-5 text-slate-400" />
-        </button>
-
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="w-full h-12 px-4 rounded-xl bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#84dcc6] font-medium appearance-none"
-        >
-          <option value="all">All Status</option>
-          <option value="present">Present</option>
-          <option value="paid leave">Paid Leave</option>
-          <option value="unpaid leave">Unpaid Leave</option>
-          <option value="sandwich leave">Sandwich Leave</option>
-          <option value="missed">Missing</option>
-        </select>
-      </section>
-
-      {/* History List */}
-      <section className="space-y-4">
-        <h3 className="text-lg font-black text-slate-900 tracking-tight px-2">Recent Records</h3>
-        
-        {loading ? (
-          <div className="text-center py-10">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#ff686b] mx-auto"></div>
+      {/* Header Card */}
+      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <div className="flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368] ml-1">
+                Attendance Log
+              </span>
+            </div>
+            <h1 className="text-xl font-bold text-[#1f1f1f] tracking-tight">
+              My Attendance
+            </h1>
+            <p className="text-xs text-[#5f6368]">
+              Monthly record of biometric punches and approved leaves
+            </p>
           </div>
-        ) : error ? (
-          <div className="bg-red-50 p-4 rounded-2xl text-red-600 text-sm font-medium text-center border border-red-100">
+
+          <div className="p-3 rounded-2xl bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
+            <CalendarCheck2 className="w-5 h-5" />
+          </div>
+        </div>
+      </div>
+
+      {/* KPI Stats Grid (4 Cards) */}
+      <div className="grid grid-cols-2 gap-3">
+        {/* Present */}
+        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3.5 shadow-xs space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Present</span>
+            <div className="p-1.5 rounded-lg bg-[#e6f4ea] text-[#137333]">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <p className="text-xl font-bold text-[#137333]">{presentCount} Days</p>
+          <p className="text-[10px] text-[#5f6368]">Logged present</p>
+        </div>
+
+        {/* Total Leaves */}
+        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3.5 shadow-xs space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">On Leave</span>
+            <div className="p-1.5 rounded-lg bg-[#f3e8fd] text-[#8430ce]">
+              <CalendarDays className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <p className="text-xl font-bold text-[#8430ce]">{leaveCount} Days</p>
+          <p className="text-[10px] text-[#5f6368]">Approved leaves</p>
+        </div>
+
+        {/* Paid Leaves */}
+        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3.5 shadow-xs space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Paid Leaves</span>
+            <div className="p-1.5 rounded-lg bg-[#e8f0fe] text-[#1a73e8]">
+              <Clock className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <p className="text-xl font-bold text-[#1a73e8]">{paidLeaveCount} Days</p>
+          <p className="text-[10px] text-[#5f6368]">Quota deducted</p>
+        </div>
+
+        {/* Unpaid / LOP */}
+        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3.5 shadow-xs space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Unpaid (LOP)</span>
+            <div className="p-1.5 rounded-lg bg-[#fef7e0] text-[#b06000]">
+              <AlertCircle className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <p className="text-xl font-bold text-[#b06000]">{unpaidLeaveCount} Days</p>
+          <p className="text-[10px] text-[#5f6368]">Loss of pay</p>
+        </div>
+      </div>
+
+      {/* Filter Controls Bar */}
+      {/* Filter Controls Bar (Side-by-Side) */}
+      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-2.5 shadow-xs">
+        <div className="flex items-center gap-2">
+          
+          {/* Month Switcher Controls: [<] [Aug 2026] [>] */}
+          <div className="flex items-center gap-1 shrink-0">
+            <button
+              type="button"
+              onClick={() => {
+                const [y, m] = selectedMonth.split('-').map(Number);
+                const prev = new Date(y, m - 2, 1);
+                setSelectedMonth(`${prev.getFullYear()}-${String(prev.getMonth() + 1).padStart(2, '0')}`);
+              }}
+              className="w-8 h-8 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#5f6368] flex items-center justify-center transition-all cursor-pointer shadow-2xs shrink-0 active:scale-95"
+              title="Previous Month"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+            </button>
+
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-[#f8fafd] border border-[#dadce0] text-xs font-bold text-[#1f1f1f] shadow-2xs select-none">
+              <CalendarIcon className="w-3.5 h-3.5 text-[#1a73e8] shrink-0" />
+              <span className="whitespace-nowrap">{format(new Date(selectedMonth + '-01'), 'MMM yyyy')}</span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                const [y, m] = selectedMonth.split('-').map(Number);
+                const next = new Date(y, m, 1);
+                setSelectedMonth(`${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}`);
+              }}
+              className="w-8 h-8 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#5f6368] flex items-center justify-center transition-all cursor-pointer shadow-2xs shrink-0 active:scale-95"
+              title="Next Month"
+            >
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {/* Status Filter Selector (Flexible Right Side) */}
+          <div className="relative flex-1 min-w-0">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full pl-3 pr-7 py-1.5 rounded-full bg-[#f8fafd] border border-[#dadce0] text-xs font-semibold text-[#1f1f1f] focus:outline-none focus:ring-1 focus:ring-[#1a73e8] appearance-none cursor-pointer shadow-2xs truncate"
+            >
+              <option value="all">All Records</option>
+              <option value="present">Present</option>
+              <option value="paid leave">Paid Leave</option>
+              <option value="unpaid leave">Unpaid (LOP)</option>
+              <option value="sandwich leave">Sandwich</option>
+              <option value="missed">Missing</option>
+            </select>
+            <Filter className="w-3 h-3 text-[#5f6368] absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          </div>
+
+        </div>
+      </div>
+
+      {/* Attendance History Ledger */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between px-1">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-[#1f1f1f]">Daily Ledger</h3>
+          <span className="text-[10px] text-[#5f6368]">{filteredHistory.length} Days Recorded</span>
+        </div>
+
+        {error ? (
+          <div className="bg-[#fce8e6] p-4 rounded-2xl text-[#c5221f] text-xs font-medium text-center border border-[#fad2cf]">
             {error}
           </div>
         ) : filteredHistory.length === 0 ? (
-          <div className="bg-white p-8 rounded-[2rem] text-center border border-slate-200 shadow-sm">
-            <AlertCircle className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-500 font-medium">No attendance records found.</p>
+          <div className="bg-white p-8 rounded-3xl text-center border border-[#e0e3e7] shadow-xs space-y-2">
+            <AlertCircle className="w-8 h-8 text-[#5f6368] mx-auto opacity-50" />
+            <p className="text-xs font-semibold text-[#1f1f1f]">No attendance records found</p>
+            <p className="text-[11px] text-[#5f6368]">No log entries matching the selected criteria.</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {filteredHistory.map((record, index) => {
               const recordDate = new Date(record.date);
               const inTime = record.checkIn ? new Date(record.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
               const outTime = record.checkOut ? new Date(record.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--';
-              
+              const badge = getStatusBadge(record);
+
               return (
-                <div key={record.id || index} className="bg-white p-5 rounded-[1.5rem] border border-slate-200 shadow-sm flex flex-col gap-4">
-                  <div className="flex justify-between items-start">
+                <div key={record.id || index} className="bg-white p-4 rounded-2xl border border-[#e0e3e7] shadow-xs space-y-3">
+                  <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="text-base font-bold text-slate-900">
+                      <h4 className="text-sm font-bold text-[#1f1f1f]">
                         {recordDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                       </h4>
-                      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+                      <p className="text-[10px] font-semibold text-[#5f6368]">
                         {recordDate.toLocaleDateString('en-GB', { weekday: 'long' })}
                       </p>
                     </div>
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(record)}`}>
-                      {getStatusLabel(record)}
+                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${badge.bg}`}>
+                      {badge.label}
                     </span>
                   </div>
-                  
-                  <div className="flex items-center gap-6 pt-3 border-t border-slate-100">
+
+                  <div className="grid grid-cols-2 gap-3 pt-2.5 border-t border-[#f1f3f4] text-xs">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
-                        <Clock className="w-4 h-4 text-blue-500" />
+                      <div className="w-7 h-7 rounded-xl bg-[#e6f4ea] text-[#137333] flex items-center justify-center shrink-0">
+                        <LogIn className="w-3.5 h-3.5" />
                       </div>
                       <div>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">In</p>
-                        <p className="text-sm font-black text-slate-800">{inTime}</p>
+                        <p className="text-[9px] font-semibold text-[#5f6368] uppercase">In Time</p>
+                        <p className="font-bold text-[#1f1f1f]">{inTime}</p>
                       </div>
                     </div>
+
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-rose-50 flex items-center justify-center">
-                        <Clock className="w-4 h-4 text-rose-500" />
+                      <div className="w-7 h-7 rounded-xl bg-[#fce8e6] text-[#c5221f] flex items-center justify-center shrink-0">
+                        <LogOut className="w-3.5 h-3.5" />
                       </div>
                       <div>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Out</p>
-                        <p className="text-sm font-black text-slate-800">{outTime}</p>
+                        <p className="text-[9px] font-semibold text-[#5f6368] uppercase">Out Time</p>
+                        <p className="font-bold text-[#1f1f1f]">{outTime}</p>
                       </div>
                     </div>
                   </div>
@@ -266,87 +332,8 @@ const EmployeeMobileAttendance = () => {
             })}
           </div>
         )}
-      </section>
+      </div>
 
-      {/* Custom Month Picker Bottom Sheet */}
-      <AnimatePresence>
-        {showMonthPicker && (
-          <div className="fixed inset-x-0 top-0 bottom-0 z-[100] flex flex-col justify-end overflow-hidden">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowMonthPicker(false)}
-              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              drag="y"
-              dragControls={controls}
-              dragListener={false}
-              dragConstraints={{ top: 0 }}
-              dragElastic={{ top: 0, bottom: 0.6 }}
-              onDragEnd={(e, info) => {
-                if (info.offset.y > 100 || info.velocity.y > 400) {
-                  setShowMonthPicker(false);
-                }
-              }}
-              className="absolute bottom-0 left-0 right-0 bg-white rounded-t-[32px] shadow-2xl flex flex-col"
-            >
-              <div 
-                className="shrink-0 pt-3 pb-8 flex flex-col items-center cursor-grab active:cursor-grabbing"
-                onPointerDown={(e) => controls.start(e)}
-                style={{ touchAction: 'none' }}
-              >
-                <div className="w-12 h-1.5 bg-slate-200 rounded-full mb-4 pointer-events-none"></div>
-                <div className="px-6 w-full flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-bold text-slate-900">Select Month</h3>
-                  <button
-                    onClick={() => setShowMonthPicker(false)}
-                    className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-                
-                <div className="px-6 w-full">
-                  <div className="flex items-center justify-between bg-slate-50 rounded-xl p-2 mb-6 border border-slate-100">
-                    <button onClick={() => setPickerYear(y => y - 1)} className="p-3 text-slate-600 hover:bg-white rounded-lg shadow-sm">
-                      <ChevronLeft className="w-5 h-5" />
-                    </button>
-                    <span className="text-lg font-bold text-slate-800">{pickerYear}</span>
-                    <button onClick={() => setPickerYear(y => y + 1)} className="p-3 text-slate-600 hover:bg-white rounded-lg shadow-sm">
-                      <ChevronRight className="w-5 h-5" />
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-3">
-                    {monthNames.map((m, i) => {
-                      const isSelected = selectedMonth === `${pickerYear}-${String(i + 1).padStart(2, '0')}`;
-                      return (
-                        <button
-                          key={m}
-                          onClick={() => handleMonthSelect(i)}
-                          className={`py-3 rounded-xl text-sm font-semibold transition-all ${
-                            isSelected 
-                              ? 'bg-blue-600 text-white shadow-md' 
-                              : 'bg-slate-50 text-slate-600 border border-slate-100'
-                          }`}
-                        >
-                          {m}
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };
