@@ -226,30 +226,43 @@ const AdminLayout = () => {
       `}</style>
 
       {/* Mobile Restriction Overlay for Admins */}
-      <div className="mobile-restriction-overlay fixed inset-0 z-[9999] flex-col items-center justify-center bg-white/60 backdrop-blur-3xl p-6 text-center select-none border border-white/80 shadow-[inset_0_1px_3px_rgba(255,255,255,0.8),0_12px_40px_rgba(0,0,0,0.08)]">
-        <div className="relative mb-6">
-          <div className="w-20 h-20 border border-dashed border-slate-300 rounded-full flex items-center justify-center animate-[spin_8s_linear_infinite]">
-            <Monitor className="w-8 h-8 text-[#ff2d55] opacity-20" />
+      <div className="mobile-restriction-overlay fixed inset-0 z-[9999] flex-col items-center justify-center bg-white/95 backdrop-blur-3xl p-6 text-center select-none border border-white/80 shadow-[inset_0_1px_3px_rgba(255,255,255,0.8),0_12px_40px_rgba(0,0,0,0.08)]">
+        <div className="relative mb-5">
+          {/* Animated monitor container with Google colors */}
+          <div className="w-20 h-20 border border-dashed border-[#4285F4]/40 bg-[#e8f0fe]/60 rounded-full flex items-center justify-center animate-[spin_8s_linear_infinite]">
+            <Monitor className="w-8 h-8 text-[#4285F4] opacity-30" />
           </div>
           <div className="absolute inset-0 flex items-center justify-center">
             <motion.div
               animate={{ scale: [1, 1.05, 1] }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
-              <Monitor className="w-10 h-10 text-slate-800" />
+              <Monitor className="w-10 h-10 text-[#1a73e8]" />
             </motion.div>
           </div>
         </div>
-        <h3 className="text-xl font-black text-slate-900 mb-2 uppercase tracking-wide">Desktop Access Required</h3>
-        <p className="text-slate-500 text-sm max-w-xs font-medium leading-relaxed mb-6">
+
+        {/* 4 Google Colors Accent */}
+        <div className="flex items-center justify-center gap-1 mb-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368] ml-1">
+            Desktop Portal
+          </span>
+        </div>
+
+        <h3 className="text-xl font-black text-[#1f1f1f] mb-2 uppercase tracking-wide">Desktop Access Required</h3>
+        <p className="text-[#5f6368] text-xs max-w-xs font-medium leading-relaxed mb-6">
           Admin accounts can only be accessed from a desktop or laptop. Please use the web application on a desktop device to continue.
         </p>
         <button
           type="button"
           onClick={handleLogoutClick}
-          className="flex items-center justify-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-100 rounded-xl font-semibold shadow-sm transition-all"
+          className="flex items-center justify-center gap-2 px-6 py-2.5 bg-white border border-[#dadce0] hover:bg-[#f8fafd] text-[#1f1f1f] text-xs font-semibold rounded-full shadow-2xs transition-all cursor-pointer"
         >
-          <LogOut size={18} />
+          <LogOut size={16} className="text-[#5f6368]" />
           <span>Sign Out</span>
         </button>
       </div>
@@ -266,11 +279,11 @@ const AdminLayout = () => {
       `}</style>
 
       {/* Landscape Orientation Warning Overlay for Mobile/Tablet */}
-      <div className="orientation-warning fixed inset-0 z-[9999] flex-col items-center justify-center bg-white/60 backdrop-blur-3xl p-6 text-center select-none border border-white/80 shadow-[inset_0_1px_3px_rgba(255,255,255,0.8),0_12px_40px_rgba(0,0,0,0.08)]">
-        <div className="relative mb-6">
+      <div className="orientation-warning fixed inset-0 z-[9999] flex-col items-center justify-center bg-white/95 backdrop-blur-3xl p-6 text-center select-none border border-white/80 shadow-[inset_0_1px_3px_rgba(255,255,255,0.8),0_12px_40px_rgba(0,0,0,0.08)]">
+        <div className="relative mb-5">
           {/* Animated phone rotation container */}
-          <div className="w-20 h-20 border border-dashed border-slate-300 rounded-full flex items-center justify-center animate-[spin_8s_linear_infinite]">
-            <Smartphone className="w-8 h-8 text-[#ff2d55] opacity-20" />
+          <div className="w-20 h-20 border border-dashed border-[#4285F4]/40 bg-[#e8f0fe]/60 rounded-full flex items-center justify-center animate-[spin_8s_linear_infinite]">
+            <Smartphone className="w-8 h-8 text-[#4285F4] opacity-30" />
           </div>
           {/* Main phone rotation icon */}
           <div className="absolute inset-0 flex items-center justify-center">
@@ -278,20 +291,32 @@ const AdminLayout = () => {
               animate={{ rotate: [0, -90, 0] }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             >
-              <Smartphone className="w-10 h-10 text-slate-800" />
+              <Smartphone className="w-10 h-10 text-[#1a73e8]" />
             </motion.div>
           </div>
         </div>
-        <h3 className="text-xl font-black text-slate-900 mb-2 uppercase tracking-wide">Rotate your device</h3>
-        <p className="text-slate-500 text-sm max-w-xs font-medium leading-relaxed mb-6">
+
+        {/* 4 Google Colors Accent */}
+        <div className="flex items-center justify-center gap-1 mb-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368] ml-1">
+            Display Orientation
+          </span>
+        </div>
+
+        <h3 className="text-xl font-black text-[#1f1f1f] mb-2 uppercase tracking-wide">Rotate your device</h3>
+        <p className="text-[#5f6368] text-xs max-w-xs font-medium leading-relaxed mb-6">
           Please rotate your screen back to portrait orientation for the best Acme HRMS experience.
         </p>
         <button
           type="button"
           onClick={handleLogoutClick}
-          className="flex items-center justify-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-100 rounded-xl font-semibold shadow-sm transition-all"
+          className="flex items-center justify-center gap-2 px-6 py-2.5 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-full font-semibold shadow-xs transition-all cursor-pointer"
         >
-          <LogOut size={18} />
+          <LogOut size={16} />
           <span>Sign Out</span>
         </button>
       </div>
