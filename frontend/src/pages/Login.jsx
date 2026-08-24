@@ -58,16 +58,17 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
+
+    if (loginMethod === 'face') {
+      if (!email) return;
+      setIsScanning(true);
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      let userData;
-      if (loginMethod === 'password') {
-        userData = await signIn(email, password);
-      } else {
-        // Handled by FaceScanner callback
-        return;
-      }
+      let userData = await signIn(email, password);
 
       // Redirect based on role
       if (userData.forcePasswordChange) {
@@ -189,31 +190,31 @@ const Login = () => {
               </p>
 
               {/* Colorful Google Feature Pills - Visible on both Mobile & Desktop */}
-              <div className="mt-4 md:mt-5 grid grid-cols-2 md:grid-cols-1 gap-1.5 md:gap-2">
-                <div className="flex items-center gap-2 p-1.5 md:p-2 rounded-xl bg-[#e8f0fe]/70 border border-[#d2e3fc] text-[#1967d2] text-[11px] md:text-xs font-medium transition-all hover:bg-[#e8f0fe]">
-                  <div className="w-5 h-5 md:w-6 md:h-6 rounded-lg bg-[#4285F4] text-white flex items-center justify-center shrink-0 shadow-sm">
-                    <Sparkles size={12} />
+              <div className="mt-4 md:mt-5 grid grid-cols-2 md:grid-cols-1 gap-2 md:gap-2.5">
+                <div className="flex items-center gap-2 p-2 md:p-2.5 rounded-xl bg-[#e8f0fe]/70 border border-[#d2e3fc] text-[#1967d2] text-[11px] md:text-xs font-medium transition-all hover:bg-[#e8f0fe]">
+                  <div className="w-6 h-6 rounded-lg bg-[#4285F4] text-white flex items-center justify-center shrink-0 shadow-sm">
+                    <Sparkles size={13} />
                   </div>
                   <span className="truncate md:overflow-visible">AI Face Recognition</span>
                 </div>
 
-                <div className="flex items-center gap-2 p-1.5 md:p-2 rounded-xl bg-[#e6f4ea]/70 border border-[#ceead6] text-[#137333] text-[11px] md:text-xs font-medium transition-all hover:bg-[#e6f4ea]">
-                  <div className="w-5 h-5 md:w-6 md:h-6 rounded-lg bg-[#34A853] text-white flex items-center justify-center shrink-0 shadow-sm">
-                    <CalendarCheck size={12} />
+                <div className="flex items-center gap-2 p-2 md:p-2.5 rounded-xl bg-[#e6f4ea]/70 border border-[#ceead6] text-[#137333] text-[11px] md:text-xs font-medium transition-all hover:bg-[#e6f4ea]">
+                  <div className="w-6 h-6 rounded-lg bg-[#34A853] text-white flex items-center justify-center shrink-0 shadow-sm">
+                    <CalendarCheck size={13} />
                   </div>
                   <span className="truncate md:overflow-visible">Smart Attendance</span>
                 </div>
 
-                <div className="flex items-center gap-2 p-1.5 md:p-2 rounded-xl bg-[#fef7e0]/70 border border-[#feefc3] text-[#b06000] text-[11px] md:text-xs font-medium transition-all hover:bg-[#fef7e0]">
-                  <div className="w-5 h-5 md:w-6 md:h-6 rounded-lg bg-[#FBBC05] text-[#1f1f1f] flex items-center justify-center shrink-0 shadow-sm">
-                    <Users size={12} />
+                <div className="flex items-center gap-2 p-2 md:p-2.5 rounded-xl bg-[#fef7e0]/70 border border-[#feefc3] text-[#b06000] text-[11px] md:text-xs font-medium transition-all hover:bg-[#fef7e0]">
+                  <div className="w-6 h-6 rounded-lg bg-[#FBBC05] text-[#1f1f1f] flex items-center justify-center shrink-0 shadow-sm">
+                    <Users size={13} />
                   </div>
                   <span className="truncate md:overflow-visible">Employee Directory</span>
                 </div>
 
-                <div className="flex items-center gap-2 p-1.5 md:p-2 rounded-xl bg-[#fce8e6]/70 border border-[#fad2cf] text-[#c5221f] text-[11px] md:text-xs font-medium transition-all hover:bg-[#fce8e6]">
-                  <div className="w-5 h-5 md:w-6 md:h-6 rounded-lg bg-[#EA4335] text-white flex items-center justify-center shrink-0 shadow-sm">
-                    <ShieldCheck size={12} />
+                <div className="flex items-center gap-2 p-2 md:p-2.5 rounded-xl bg-[#fce8e6]/70 border border-[#fad2cf] text-[#c5221f] text-[11px] md:text-xs font-medium transition-all hover:bg-[#fce8e6]">
+                  <div className="w-6 h-6 rounded-lg bg-[#EA4335] text-white flex items-center justify-center shrink-0 shadow-sm">
+                    <ShieldCheck size={13} />
                   </div>
                   <span className="truncate md:overflow-visible">Zero-Trust Security</span>
                 </div>
@@ -372,13 +373,6 @@ const Login = () => {
 
                 {/* Primary Action Button */}
                 <div className="w-full sm:w-auto flex flex-col items-center sm:items-end shrink-0">
-                  {loginMethod === 'face' && !email && (
-                    <div className="mb-2 px-3 py-1 bg-[#fce8e6] border border-[#f28b82] rounded-full text-[11px] font-semibold text-[#d93025] flex items-center gap-1.5 whitespace-nowrap">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335] shrink-0" />
-                      <span>Please enter your email first.</span>
-                    </div>
-                  )}
-
                   {loginMethod === 'password' ? (
                     <button
                       type="submit"
@@ -395,9 +389,8 @@ const Login = () => {
                     </button>
                   ) : (
                     <button
-                      type="button"
-                      disabled={isLoading || lockoutSeconds > 0 || !email}
-                      onClick={() => setIsScanning(true)}
+                      type="submit"
+                      disabled={isLoading || lockoutSeconds > 0}
                       className="w-full sm:w-auto min-w-[110px] bg-[#1e8e3e] hover:bg-[#188038] active:bg-[#137333] text-white text-sm sm:text-xs font-semibold px-6 py-3.5 sm:py-2.5 rounded-full transition-all shadow-md shadow-[#34A853]/25 hover:shadow-lg hover:shadow-[#34A853]/30 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
                     >
                       {isLoading ? (
@@ -407,7 +400,7 @@ const Login = () => {
                       ) : (
                         <>
                           <ScanFace size={16} className="sm:w-[15px] sm:h-[15px]" />
-                          Scan Face
+                          <span>Scan Face</span>
                         </>
                       )}
                     </button>

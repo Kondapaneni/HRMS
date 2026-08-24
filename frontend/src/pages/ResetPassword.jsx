@@ -144,24 +144,24 @@ const ResetPassword = () => {
               </p>
 
               {/* Colorful Feature Pills - Visible on both Mobile & Desktop */}
-              <div className="mt-4 md:mt-5 grid grid-cols-1 gap-1.5 md:gap-2">
-                <div className="flex items-center gap-2 p-1.5 md:p-2 rounded-xl bg-[#e8f0fe]/70 border border-[#d2e3fc] text-[#1967d2] text-[11px] md:text-xs font-medium transition-all hover:bg-[#e8f0fe]">
-                  <div className="w-5 h-5 md:w-6 md:h-6 rounded-lg bg-[#4285F4] text-white flex items-center justify-center shrink-0 shadow-sm">
-                    <ShieldCheck size={12} />
+              <div className="mt-4 md:mt-5 grid grid-cols-1 gap-2 md:gap-2.5">
+                <div className="flex items-center gap-2 p-2 md:p-2.5 rounded-xl bg-[#e8f0fe]/70 border border-[#d2e3fc] text-[#1967d2] text-[11px] md:text-xs font-medium transition-all hover:bg-[#e8f0fe]">
+                  <div className="w-6 h-6 rounded-lg bg-[#4285F4] text-white flex items-center justify-center shrink-0 shadow-sm">
+                    <ShieldCheck size={13} />
                   </div>
                   <span>Enterprise Zero-Trust Password Standards</span>
                 </div>
 
-                <div className="flex items-center gap-2 p-1.5 md:p-2 rounded-xl bg-[#e6f4ea]/70 border border-[#ceead6] text-[#137333] text-[11px] md:text-xs font-medium transition-all hover:bg-[#e6f4ea]">
-                  <div className="w-5 h-5 md:w-6 md:h-6 rounded-lg bg-[#34A853] text-white flex items-center justify-center shrink-0 shadow-sm">
-                    <Sparkles size={12} />
+                <div className="flex items-center gap-2 p-2 md:p-2.5 rounded-xl bg-[#e6f4ea]/70 border border-[#ceead6] text-[#137333] text-[11px] md:text-xs font-medium transition-all hover:bg-[#e6f4ea]">
+                  <div className="w-6 h-6 rounded-lg bg-[#34A853] text-white flex items-center justify-center shrink-0 shadow-sm">
+                    <Sparkles size={13} />
                   </div>
                   <span>Single-Use Cryptographic Reset Token</span>
                 </div>
 
-                <div className="flex items-center gap-2 p-1.5 md:p-2 rounded-xl bg-[#fef7e0]/70 border border-[#feefc3] text-[#b06000] text-[11px] md:text-xs font-medium transition-all hover:bg-[#fef7e0]">
-                  <div className="w-5 h-5 md:w-6 md:h-6 rounded-lg bg-[#FBBC05] text-[#1f1f1f] flex items-center justify-center shrink-0 shadow-sm">
-                    <KeyRound size={12} />
+                <div className="flex items-center gap-2 p-2 md:p-2.5 rounded-xl bg-[#fef7e0]/70 border border-[#feefc3] text-[#b06000] text-[11px] md:text-xs font-medium transition-all hover:bg-[#fef7e0]">
+                  <div className="w-6 h-6 rounded-lg bg-[#FBBC05] text-[#1f1f1f] flex items-center justify-center shrink-0 shadow-sm">
+                    <KeyRound size={13} />
                   </div>
                   <span>Instant Session & Credential Invalidation</span>
                 </div>
