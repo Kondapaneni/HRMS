@@ -51,7 +51,7 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="min-h-screen md:h-screen md:max-h-screen w-full flex flex-col justify-between bg-[#f8fafd] text-[#1f1f1f] selection:bg-[#c2e7ff] selection:text-[#001d35] font-sans antialiased overflow-y-auto md:overflow-hidden relative">
+    <div className="min-h-screen min-h-[100dvh] md:h-screen md:max-h-screen w-full flex flex-col justify-between bg-[#f8fafd] text-[#1f1f1f] selection:bg-[#c2e7ff] selection:text-[#001d35] font-sans antialiased overflow-y-auto md:overflow-hidden relative">
       {/* Colorful Google Ambient Background Orbs */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute -top-32 -left-32 w-96 h-96 bg-[#4285F4]/12 rounded-full blur-3xl" />
@@ -61,14 +61,14 @@ const ForgotPassword = () => {
       </div>
 
       {/* Main Card Viewport */}
-      <div className="flex-1 flex items-center justify-center p-3 sm:p-4 md:p-6 relative z-10">
+      <div className="flex-1 flex items-center justify-center p-2.5 sm:p-4 md:p-6 relative z-10">
         
         {/* Google Material 3 Card */}
         <motion.div
           initial={{ opacity: 0, y: 10, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.35, ease: [0.2, 0, 0, 1] }}
-          className="w-full max-w-[980px] bg-white rounded-[24px] p-5 sm:p-8 md:p-9 border border-[#e0e3e7] shadow-[0_4px_24px_rgba(66,133,244,0.08),0_1px_3px_rgba(0,0,0,0.05)] md:grid md:grid-cols-2 md:gap-10 items-center relative overflow-hidden my-auto"
+          className="w-full max-w-[980px] bg-white rounded-[24px] p-4 sm:p-8 md:p-9 border border-[#e0e3e7] shadow-[0_4px_24px_rgba(66,133,244,0.08),0_1px_3px_rgba(0,0,0,0.05)] md:grid md:grid-cols-2 md:gap-10 items-center relative overflow-hidden my-auto"
         >
           {/* Top 4-Color Google Accent Line */}
           <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
@@ -242,7 +242,7 @@ const ForgotPassword = () => {
       </div>
 
       {/* Google-style Clean Bottom Footer */}
-      <footer className="w-full max-w-[980px] mx-auto px-4 sm:px-6 pt-1 pb-10 sm:pb-3 mb-2 sm:mb-0 flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#5f6368] gap-1.5 sm:gap-2 shrink-0 relative z-10">
+      <footer className="w-full max-w-[980px] mx-auto px-4 sm:px-6 pt-1 pb-5 sm:pb-3 flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#5f6368] gap-1 sm:gap-2 shrink-0 relative z-10">
         <div className="flex items-center gap-1.5 font-medium text-center sm:text-left">
           <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4] shrink-0" />
           <span>Designed &amp; Developed by Gowtham Chowdary Kondapaneni</span>
