@@ -19,12 +19,14 @@ import {
   Loader2
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
 
 const EmployeeMobileExpenses = () => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -150,24 +152,31 @@ const EmployeeMobileExpenses = () => {
     <div className="space-y-4 pb-8">
 
       {/* Header Card */}
-      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs space-y-4">
+      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs">
         <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <div className="flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368] ml-1">
-                Reimbursements Hub
-              </span>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => navigate('/employee')}
+              className="p-2 rounded-full border border-[#dadce0] bg-[#f8fafd] hover:bg-[#e8f0fe] text-[#1f1f1f] transition-all cursor-pointer shadow-2xs active:scale-95 shrink-0"
+              title="Back to Home"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </button>
+            <div>
+              <div className="flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368] ml-1">
+                  Reimbursements Hub
+                </span>
+              </div>
+              <h1 className="text-xl font-bold text-[#1f1f1f] tracking-tight mt-0.5">
+                My Expenses
+              </h1>
             </div>
-            <h1 className="text-xl font-bold text-[#1f1f1f] tracking-tight">
-              My Expenses
-            </h1>
-            <p className="text-xs text-[#5f6368]">
-              Submit business claims and track reimbursement approvals
-            </p>
           </div>
 
           <div className="p-3 rounded-2xl bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
@@ -178,7 +187,7 @@ const EmployeeMobileExpenses = () => {
         <button
           type="button"
           onClick={() => setIsFormOpen(true)}
-          className="w-full flex items-center justify-center gap-2 py-3 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold shadow-xs transition-all cursor-pointer active:scale-98"
+          className="w-full mt-4 flex items-center justify-center gap-2 py-3 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold shadow-xs transition-all cursor-pointer active:scale-98"
         >
           <Plus className="w-4 h-4" />
           <span>Claim New Expense</span>

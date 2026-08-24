@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { 
+  ArrowLeft,
   Calendar as CalendarIcon, 
   CalendarDays, 
   Sparkles, 
@@ -10,10 +11,12 @@ import {
   Flame
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import PageLoader from '../components/PageLoader';
 
 const EmployeeMobileHolidays = () => {
+  const navigate = useNavigate();
   const [filterMode, setFilterMode] = useState('upcoming'); // 'upcoming' | 'all'
 
   const { data: holidays = [], isLoading: loading } = useQuery({
@@ -47,22 +50,29 @@ const EmployeeMobileHolidays = () => {
       {/* Header Card */}
       <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs">
         <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <div className="flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368] ml-1">
-                Calendar &amp; Events
-              </span>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => navigate('/employee')}
+              className="p-2 rounded-full border border-[#dadce0] bg-[#f8fafd] hover:bg-[#e8f0fe] text-[#1f1f1f] transition-all cursor-pointer shadow-2xs active:scale-95 shrink-0"
+              title="Back to Home"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </button>
+            <div>
+              <div className="flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368] ml-1">
+                  Calendar &amp; Events
+                </span>
+              </div>
+              <h1 className="text-xl font-bold text-[#1f1f1f] tracking-tight mt-0.5">
+                Company Holidays
+              </h1>
             </div>
-            <h1 className="text-xl font-bold text-[#1f1f1f] tracking-tight">
-              Company Holidays
-            </h1>
-            <p className="text-xs text-[#5f6368]">
-              Official public and festival holidays for {currentYear}
-            </p>
           </div>
 
           <div className="p-3 rounded-2xl bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">

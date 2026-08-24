@@ -497,7 +497,12 @@ const EmployeeLayout = () => {
                   { label: 'Payroll', icon: Wallet, path: '/employee/payroll' },
                   { label: 'Profile', icon: User, path: '/employee/profile' }
                 ].map((item) => {
-                  const isActive = (swipePath || location.pathname) === item.path || (!swipePath && item.path !== '/employee' && location.pathname.startsWith(item.path));
+                  const currentPath = swipePath || location.pathname;
+                  const isHome = item.path === '/employee';
+                  const isOtherTab = ['/employee/attendance', '/employee/leaves', '/employee/payroll', '/employee/profile'].some(p => currentPath.startsWith(p));
+                  const isActive = isHome 
+                    ? (currentPath === '/employee' || !isOtherTab) 
+                    : (currentPath === item.path || (!swipePath && currentPath.startsWith(item.path)));
                   const Icon = item.icon;
 
                   return (
