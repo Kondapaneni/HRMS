@@ -235,20 +235,45 @@ const ForgotPassword = () => {
                     )}
                   </button>
                 </div>
+
+                {/* Mobile Footer (Links & Credits) inside Card */}
+                <div className="mt-4 pt-3 border-t border-[#f1f3f4] flex flex-col items-center gap-2 text-[11px] text-[#5f6368] sm:hidden">
+                  <div className="flex items-center justify-center gap-4 text-[11px]">
+                    <a
+                      href="mailto:gowthamkondapaneni2003@gmail.com"
+                      className="hover:text-[#4285F4] transition-colors"
+                    >
+                      Help
+                    </a>
+                    <span className="hover:text-[#4285F4] cursor-default transition-colors">
+                      Privacy
+                    </span>
+                    <span className="hover:text-[#4285F4] cursor-default transition-colors">
+                      Terms
+                    </span>
+                    <span className="text-[#5f6368]">
+                      © Acme HRMS
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5 font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4] shrink-0" />
+                    <span>Designed &amp; Developed by Gowtham Chowdary Kondapaneni</span>
+                  </div>
+                </div>
               </form>
             )}
           </div>
         </motion.div>
       </div>
 
-      {/* Google-style Clean Bottom Footer */}
-      <footer className="w-full max-w-[980px] mx-auto px-4 sm:px-6 pt-1 pb-5 sm:pb-3 flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#5f6368] gap-1 sm:gap-2 shrink-0 relative z-10">
-        <div className="flex items-center gap-1.5 font-medium text-center sm:text-left">
+      {/* Google-style Clean Bottom Footer - Desktop only */}
+      <footer className="hidden sm:flex w-full max-w-[980px] mx-auto px-6 py-3 items-center justify-between text-[11px] text-[#5f6368] shrink-0 relative z-10">
+        <div className="flex items-center gap-1.5 font-medium">
           <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4] shrink-0" />
           <span>Designed &amp; Developed by Gowtham Chowdary Kondapaneni</span>
         </div>
 
-        <div className="flex items-center gap-4 sm:gap-5">
+        <div className="flex items-center gap-5">
           <a
             href="mailto:gowthamkondapaneni2003@gmail.com"
             className="hover:text-[#4285F4] transition-colors"
