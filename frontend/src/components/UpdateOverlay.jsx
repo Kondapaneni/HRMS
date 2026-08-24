@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RefreshCw, Download } from 'lucide-react';
+import { RefreshCw, Download, Sparkles, ArrowUpCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axios';
 
@@ -97,33 +97,61 @@ export default function UpdateOverlay() {
   return (
     <AnimatePresence>
       {shouldShowUpdate && (
-        <div className="fixed inset-0 z-[9999] bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[9999] bg-black/40 backdrop-blur-md flex items-center justify-center p-4">
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            initial={{ opacity: 0, scale: 0.95, y: 15 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="bg-white rounded-[24px] p-6 sm:p-8 max-w-sm w-full shadow-2xl flex flex-col items-center text-center border border-slate-100"
+            exit={{ opacity: 0, scale: 0.95, y: 15 }}
+            transition={{ duration: 0.2 }}
+            className="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl flex flex-col items-center text-center border border-[#e0e3e7] relative overflow-hidden"
           >
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mb-5 ring-8 ring-blue-50 relative">
-              <RefreshCw size={28} className={isUpdating ? "animate-[spin_2s_linear_infinite]" : ""} />
-              <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1 shadow-sm">
-                <Download size={14} className="text-blue-500" />
+            {/* Top 4-Color Gradient Accent Line */}
+            <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
+
+            {/* Icon Container */}
+            <div className="w-16 h-16 bg-[#e8f0fe] border border-[#d2e3fc] rounded-2xl flex items-center justify-center text-[#1a73e8] mb-4 shadow-2xs relative mt-1">
+              <RefreshCw size={28} className={isUpdating ? "animate-spin" : ""} />
+              <div className="absolute -bottom-1.5 -right-1.5 bg-[#34A853] text-white rounded-full p-1 shadow-2xs border-2 border-white">
+                <Sparkles size={12} />
               </div>
             </div>
 
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2 tracking-tight">
-              Update Available
+            {/* 4 Google Colors Accent */}
+            <div className="flex items-center justify-center gap-1 mb-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368] ml-1">
+                Workspace Update
+              </span>
+            </div>
+
+            <h2 className="text-xl font-bold text-[#1f1f1f] mb-1.5 tracking-tight">
+              New Update Available
             </h2>
 
-            <p className="text-slate-500 text-sm mb-8 leading-relaxed px-2">
-              A New Version of Acme HRMS is ready. You must Update to Continue Using the Application Securely.
+            <p className="text-[#5f6368] text-xs mb-6 leading-relaxed px-1">
+              A newer version of Acme HRMS is ready. Please update now to receive the latest features, security enhancements, and UI updates.
             </p>
 
             <button
+              type="button"
               onClick={handleUpdate}
               disabled={isUpdating}
-              className="w-full py-4 px-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-70 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-600/30 active:scale-95 flex items-center justify-center gap-2"
+              className="w-full py-3.5 px-6 bg-[#1a73e8] hover:bg-[#1557b0] disabled:opacity-70 text-white text-xs font-semibold rounded-full transition-all shadow-xs active:scale-98 cursor-pointer flex items-center justify-center gap-2"
             >
-              {isUpdating ? 'Updating...' : 'Update Now'}
+              {isUpdating ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                  <span>Updating Workspace...</span>
+                </>
+              ) : (
+                <>
+                  <Download size={15} />
+                  <span>Update &amp; Reload</span>
+                </>
+              )}
             </button>
           </motion.div>
         </div>

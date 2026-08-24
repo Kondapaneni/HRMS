@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { RefreshCcw } from 'lucide-react';
+import { RefreshCcw, WifiOff, Globe } from 'lucide-react';
 import FuzzyText from '../components/FuzzyText';
 
 const Offline = () => {
@@ -39,34 +39,71 @@ const Offline = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[9999] bg-slate-50 flex flex-col items-center justify-center p-4 overflow-hidden"
+          className="fixed inset-0 z-[9999] bg-[#f8fafd] flex flex-col items-center justify-center p-6 overflow-hidden select-none"
         >
-          <div className="h-48 mb-4 relative flex items-center justify-center w-full max-w-2xl">
-            <FuzzyText
-              baseIntensity={0.2}
-              hoverIntensity={0.5}
-              enableHover
-              color="#0f172a"
-              fontSize="4.5rem"
-              fontWeight={900}
+          {/* Background Ambient Glow Blobs */}
+          <motion.div 
+            className="absolute top-[-10%] left-[-10%] w-[30rem] h-[30rem] bg-[#EA4335]/10 rounded-full blur-3xl pointer-events-none"
+            animate={{ 
+              scale: [1, 1.1, 1], 
+              opacity: [0.3, 0.5, 0.3],
+            }}
+            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div 
+            className="absolute bottom-[-10%] right-[-10%] w-[32rem] h-[32rem] bg-[#4285F4]/10 rounded-full blur-3xl pointer-events-none"
+            animate={{ 
+              scale: [1, 1.15, 1], 
+              opacity: [0.3, 0.5, 0.3],
+            }}
+            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          />
+
+          <div className="relative z-10 flex flex-col items-center max-w-md w-full text-center">
+            
+            {/* Animated Large OFFLINE text */}
+            <div className="h-40 sm:h-48 mb-2 relative flex items-center justify-center w-full">
+              <FuzzyText
+                baseIntensity={0.15}
+                hoverIntensity={0.4}
+                enableHover
+                color="#EA4335"
+                fontSize="clamp(3.5rem, 10vw, 5.5rem)"
+                fontWeight={900}
+              >
+                OFFLINE
+              </FuzzyText>
+            </div>
+
+            {/* 4 Google Colors Accent Dots */}
+            <div className="flex items-center justify-center gap-1 mb-3">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368] ml-1">
+                Network Status • Acme HRMS
+              </span>
+            </div>
+
+            <h1 className="text-2xl sm:text-3xl font-bold text-[#1f1f1f] mb-2 tracking-tight">
+              You are Offline
+            </h1>
+            
+            <p className="text-[#5f6368] text-xs sm:text-sm mb-8 max-w-sm leading-relaxed">
+              Your internet connection appears to have disconnected. Please check your network or Wi-Fi settings to continue using Acme HRMS.
+            </p>
+
+            <button
+              type="button"
+              onClick={handleTryAgain}
+              disabled={isChecking}
+              className="inline-flex items-center gap-2 py-3.5 px-8 bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold rounded-full transition-all shadow-xs disabled:opacity-70 cursor-pointer active:scale-98"
             >
-              OFFLINE
-            </FuzzyText>
+              <RefreshCcw className={`w-4 h-4 ${isChecking ? 'animate-spin' : ''}`} />
+              <span>{isChecking ? 'Checking Connection...' : 'Reconnect & Try Again'}</span>
+            </button>
           </div>
-
-          <h1 className="text-3xl font-bold text-slate-800 mb-4 text-center">You are Offline !</h1>
-          <p className="text-slate-500 mb-8 max-w-md text-center leading-relaxed">
-            It looks like your internet connection has dropped. Please check your network to continue using Acme HRMS.
-          </p>
-
-          <button
-            onClick={handleTryAgain}
-            disabled={isChecking}
-            className="inline-flex items-center gap-2 px-8 py-4 bg-slate-900 text-white rounded-xl font-medium hover:bg-slate-800 transition-colors shadow-sm disabled:opacity-70 cursor-pointer"
-          >
-            <RefreshCcw className={`w-5 h-5 ${isChecking ? 'animate-spin' : ''}`} />
-            {isChecking ? 'Checking...' : 'Try Again'}
-          </button>
         </motion.div>
       )}
     </AnimatePresence>
