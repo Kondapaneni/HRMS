@@ -1,12 +1,68 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import PageLoader from '../components/PageLoader';
-import { Plus, Loader2, Upload, FileText, CheckCircle, XCircle, Clock, Eye, Trash2 } from 'lucide-react';
+import { 
+  Plus, 
+  Loader2, 
+  Upload, 
+  FileText, 
+  CheckCircle2, 
+  XCircle, 
+  Clock, 
+  Eye, 
+  Trash2,
+  IndianRupee,
+  Receipt,
+  X,
+  Sparkles
+} from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
-
 import EmployeeMobileExpenses from './EmployeeMobileExpenses';
+
+const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme }) => {
+  const themes = {
+    blue: {
+      iconBg: 'bg-[#e8f0fe]',
+      iconColor: 'text-[#1a73e8]',
+    },
+    green: {
+      iconBg: 'bg-[#e6f4ea]',
+      iconColor: 'text-[#137333]',
+    },
+    purple: {
+      iconBg: 'bg-[#f3e8fd]',
+      iconColor: 'text-[#8430ce]',
+    },
+    amber: {
+      iconBg: 'bg-[#fef7e0]',
+      iconColor: 'text-[#b06000]',
+    },
+    red: {
+      iconBg: 'bg-[#fce8e6]',
+      iconColor: 'text-[#c5221f]',
+    }
+  };
+
+  const theme = themes[colorTheme] || themes.blue;
+
+  return (
+    <div className="bg-white rounded-2xl border border-[#e0e3e7] p-5 shadow-xs transition-all duration-200 hover:shadow-md hover:border-[#dadce0]">
+      <div className="flex items-start justify-between">
+        <div className="space-y-1">
+          <p className="text-xs font-semibold text-[#5f6368] uppercase tracking-wider">{title}</p>
+          <p className="text-2xl font-bold text-[#1f1f1f] tracking-tight">{value}</p>
+          {subtitle && <p className="text-xs text-[#5f6368] font-normal pt-0.5">{subtitle}</p>}
+        </div>
+        <div className={`p-3 rounded-2xl ${theme.iconBg} ${theme.iconColor} shrink-0`}>
+          <Icon className="w-5 h-5" />
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const EmployeeExpenses = () => {
   const queryClient = useQueryClient();
@@ -28,7 +84,7 @@ const EmployeeExpenses = () => {
     return () => { document.body.style.overflow = ''; };
   }, [isModalOpen]);
 
-  const { data: expensesData, isLoading } = useQuery({
+  const { data: expensesData = [], isLoading } = useQuery({
     queryKey: ['employee', 'expenses'],
     queryFn: async () => {
       const res = await api.get('/employee/expenses');
@@ -61,7 +117,7 @@ const EmployeeExpenses = () => {
       return res.data;
     },
     onSuccess: () => {
-      toast.success('Expense submitted successfully');
+      toast.success('Expense claim submitted successfully');
       queryClient.invalidateQueries({ queryKey: ['employee', 'expenses'] });
       handleCloseModal();
     },
@@ -76,7 +132,7 @@ const EmployeeExpenses = () => {
       return res.data;
     },
     onSuccess: () => {
-      toast.success('Expense deleted');
+      toast.success('Expense claim deleted');
       queryClient.invalidateQueries({ queryKey: ['employee', 'expenses'] });
     },
     onError: (err) => {
@@ -102,189 +158,350 @@ const EmployeeExpenses = () => {
     submitExpenseMutation.mutate();
   };
 
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 'Approved':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1"/> Approved</span>;
-      case 'Rejected':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"><XCircle className="w-3 h-3 mr-1"/> Rejected</span>;
-      default:
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"><Clock className="w-3 h-3 mr-1"/> Pending</span>;
-    }
+  const formatCurrency = (val) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0
+    }).format(val || 0);
   };
 
-  if (isLoading) return <PageLoader message="Loading Expenses..." />;
+  const totalClaimed = expensesData.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+  const approvedTotal = expensesData
+    .filter(e => (e.status || '').toLowerCase() === 'approved')
+    .reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+  const pendingTotal = expensesData
+    .filter(e => (e.status || '').toLowerCase() === 'pending')
+    .reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+  const rejectedCount = expensesData.filter(e => (e.status || '').toLowerCase() === 'rejected').length;
+
+  if (isLoading) return <PageLoader message="Loading Expense Claims..." />;
 
   return (
     <>
+      {/* Mobile Experience Render */}
       <div className="md:hidden">
         <EmployeeMobileExpenses />
       </div>
 
-      <div className="hidden md:block space-y-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      {/* Web Desktop Experience (Google Material 3 Workspace UI) */}
+      <div className="hidden md:block space-y-6 pb-12">
+        
+        {/* Header Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900">My Expenses</h1>
-            <p className="text-sm text-slate-500 mt-1">Submit and track your expense claims.</p>
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+              <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Reimbursements &amp; Claims</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight flex items-center gap-2">
+              Expense Reimbursements <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">{expensesData.length} Claims</span>
+            </h1>
+            <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
+              Submit corporate out-of-pocket receipts, upload vouchers, and track reimbursement status.
+            </p>
           </div>
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 transition-colors"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Submit Expense
-          </button>
+
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(true)}
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white transition-all shadow-xs cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Submit New Expense</span>
+            </button>
+          </div>
         </div>
 
-            {isLoading ? (
-              <div className="flex justify-center p-12">
-                <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+        {/* KPI Summary Cards */}
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard 
+            title="Total Claimed" 
+            value={formatCurrency(totalClaimed)} 
+            subtitle="All expense submissions" 
+            icon={IndianRupee} 
+            colorTheme="blue" 
+          />
+          <StatCard 
+            title="Approved Total" 
+            value={formatCurrency(approvedTotal)} 
+            subtitle="Reimbursements processed" 
+            icon={CheckCircle2} 
+            colorTheme="green" 
+          />
+          <StatCard 
+            title="Pending Review" 
+            value={formatCurrency(pendingTotal)} 
+            subtitle="Awaiting management review" 
+            icon={Clock} 
+            colorTheme="amber" 
+          />
+          <StatCard 
+            title="Declined Claims" 
+            value={`${rejectedCount} Claims`} 
+            subtitle="Rejected expense vouchers" 
+            icon={XCircle} 
+            colorTheme="red" 
+          />
+        </div>
+
+        {/* Expense History Table Card */}
+        <div className="bg-white rounded-2xl border border-[#e0e3e7] shadow-xs overflow-hidden">
+          <div className="p-6 border-b border-[#e0e3e7] flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-[#e8f0fe] text-[#1a73e8]">
+                <Receipt className="w-5 h-5" />
               </div>
-            ) : (
-              <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
-                <div className="p-6">
-                  <h3 className="text-lg font-semibold flex items-center gap-2 text-slate-900">
-                    <FileText className="h-5 w-5 text-slate-500" />
-                    Expense History
-                  </h3>
-                  <p className="text-sm text-slate-500 mt-1">Your expense claims and their status</p>
-                </div>
-                <div className="p-6 pt-0">
-                  <div className="rounded-md border border-slate-200 overflow-x-auto">
-                    <table className="w-full text-sm text-left">
-                      <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-medium">
-                        <tr>
-                          <th className="p-3">Date</th>
-                          <th className="p-3">Title</th>
-                          <th className="p-3">Category</th>
-                          <th className="p-3">Amount</th>
-                          <th className="p-3">Status</th>
-                          <th className="p-3 text-right">Actions</th>
-                        </tr>
-                      </thead>
-                  <tbody className="bg-white divide-y divide-slate-200">
-                    {expensesData.length === 0 ? (
-                      <tr>
-                        <td colSpan="6" className="px-6 py-12 text-center text-slate-500">
-                          <FileText className="w-12 h-12 mx-auto text-slate-300 mb-3" />
-                          <p>No expenses found.</p>
-                        </td>
-                      </tr>
-                    ) : (
-                      expensesData.map((exp) => (
-                        <tr key={exp.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
-                          <td className="p-3 text-slate-700">
-                            {new Date(exp.created_at).toLocaleDateString()}
-                          </td>
-                          <td className="p-3">
-                            <div className="font-medium text-slate-900">{exp.title}</div>
-                            {exp.remarks && <div className="text-xs text-slate-500 mt-1">Admin: {exp.remarks}</div>}
-                          </td>
-                          <td className="p-3 text-slate-700">
-                            {exp.category}
-                          </td>
-                          <td className="p-3 text-slate-700 font-medium">
-                            ₹{parseFloat(exp.amount).toFixed(2)}
-                          </td>
-                          <td className="p-3">
-                            {getStatusBadge(exp.status)}
-                          </td>
-                          <td className="p-3 text-right">
-                            <div className="flex justify-end gap-2">
-                              {exp.bill_url && (
-                                <a href={exp.bill_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-9 px-3 transition-colors cursor-pointer">
-                                  <Eye className="w-4 h-4 mr-2 text-slate-500" /> View Bill
-                                </a>
-                              )}
-                              {exp.status === 'Pending' && (
-                                <button onClick={() => deleteExpenseMutation.mutate(exp.id)} className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-9 px-3 transition-colors cursor-pointer hover:!text-red-600 hover:!border-red-200 hover:!bg-red-50">
-                                  <Trash2 className="w-4 h-4 mr-2 text-slate-400" /> Delete
-                                </button>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+              <div>
+                <h3 className="text-base font-semibold text-[#1f1f1f]">Expense Claims Ledger</h3>
+                <p className="text-xs text-[#5f6368]">Review submitted expense receipts, categories, and payment approval statuses</p>
               </div>
             </div>
           </div>
-            )}
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs text-left">
+              <thead className="bg-[#f8fafd] border-b border-[#e0e3e7] text-[#5f6368] font-semibold uppercase tracking-wider text-[10px]">
+                <tr>
+                  <th className="p-4">Submission Date</th>
+                  <th className="p-4">Title &amp; Notes</th>
+                  <th className="p-4">Category</th>
+                  <th className="p-4">Amount (₹)</th>
+                  <th className="p-4">Claim Status</th>
+                  <th className="p-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#f1f3f4]">
+                {isLoading ? (
+                  <tr>
+                    <td colSpan="6" className="text-center py-12 text-[#5f6368]">
+                      Loading expense claims...
+                    </td>
+                  </tr>
+                ) : expensesData.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="text-center py-12 text-[#5f6368]">
+                      No expense reimbursement claims submitted yet.
+                    </td>
+                  </tr>
+                ) : (
+                  expensesData.map((exp) => {
+                    const isApproved = (exp.status || '').toLowerCase() === 'approved';
+                    const isRejected = (exp.status || '').toLowerCase() === 'rejected';
+                    const isPending = !isApproved && !isRejected;
+
+                    return (
+                      <tr key={exp.id} className="hover:bg-[#f8fafd] transition-colors">
+                        <td className="p-4 font-semibold text-[#1f1f1f]">
+                          {new Date(exp.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </td>
+                        <td className="p-4">
+                          <p className="font-bold text-[#1f1f1f]">{exp.title}</p>
+                          {exp.description && <p className="text-[#5f6368] text-[11px] mt-0.5 truncate max-w-xs">{exp.description}</p>}
+                          {exp.remarks && <p className="text-[#c5221f] text-[10px] mt-0.5">Admin Note: {exp.remarks}</p>}
+                        </td>
+                        <td className="p-4">
+                          <span className="inline-flex rounded-full bg-[#f1f3f4] border border-[#dadce0] px-2.5 py-0.5 text-[11px] font-semibold text-[#5f6368]">
+                            {exp.category}
+                          </span>
+                        </td>
+                        <td className="p-4 font-bold text-[#1f1f1f]">
+                          {formatCurrency(parseFloat(exp.amount))}
+                        </td>
+                        <td className="p-4">
+                          <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+                            isApproved ? 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6]' :
+                            isRejected ? 'bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf]' :
+                            'bg-[#fef7e0] text-[#b06000] border border-[#feefc3]'
+                          }`}>
+                            {isApproved && <CheckCircle2 className="w-3 h-3" />}
+                            {isRejected && <XCircle className="w-3 h-3" />}
+                            {isPending && <Clock className="w-3 h-3" />}
+                            {exp.status || 'Pending'}
+                          </span>
+                        </td>
+                        <td className="p-4 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            {exp.bill_url && (
+                              <a 
+                                href={exp.bill_url} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-[#e8f0fe] border border-[#d2e3fc] hover:bg-[#d2e3fc] text-[#1a73e8] transition-all cursor-pointer shadow-2xs"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                                <span>Receipt</span>
+                              </a>
+                            )}
+                            {isPending && (
+                              <button 
+                                type="button"
+                                onClick={() => deleteExpenseMutation.mutate(exp.id)} 
+                                disabled={deleteExpenseMutation.isPending}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-white border border-[#dadce0] hover:border-[#fad2cf] hover:bg-[#fce8e6] text-[#d93025] transition-all cursor-pointer shadow-2xs disabled:opacity-50"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                                <span>Delete</span>
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
 
-      {/* Expenses Sidebar Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-[100] flex justify-end bg-slate-900/50 backdrop-blur-sm">
-          <div className="bg-white shadow-2xl w-full max-w-lg h-[100dvh] flex flex-col overflow-hidden transform transition-transform duration-300">
-            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 shrink-0">
-              <h2 className="text-lg font-semibold text-slate-800">Submit New Expense</h2>
-              <button onClick={handleCloseModal} className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
-                <XCircle size={20} />
+      {/* Submit Expense Slideover Drawer (Using createPortal to body to blur full screen including sidebar) */}
+      {isModalOpen && createPortal(
+        <div 
+          onClick={(e) => { if (e.target === e.currentTarget) handleCloseModal(); }}
+          className="fixed inset-0 z-[10000] flex justify-end bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200"
+        >
+          <div className="bg-white shadow-2xl w-full max-w-lg h-full flex flex-col overflow-hidden animate-in slide-in-from-right duration-300">
+            
+            {/* 4-Color Gradient Top Line */}
+            <div className="h-1 bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853]" />
+
+            {/* Drawer Header */}
+            <div className="px-6 py-4 border-b border-[#e0e3e7] flex items-center justify-between bg-[#f8fafd] shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-[#e8f0fe] text-[#1a73e8]">
+                  <Receipt className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-base font-semibold text-[#1f1f1f]">Submit Expense Claim</h2>
+                  <p className="text-xs text-[#5f6368]">Submit out-of-pocket receipts for reimbursement</p>
+                </div>
+              </div>
+              <button 
+                onClick={handleCloseModal} 
+                className="p-1.5 rounded-full hover:bg-[#e0e3e7]/60 text-[#5f6368] transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-6 overflow-y-auto flex-1">
+            {/* Drawer Content */}
+            <div className="p-6 overflow-y-auto flex-1 space-y-4">
               <form id="expenseForm" onSubmit={handleSubmit} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Title *</label>
-                    <input type="text" required value={title} onChange={(e) => setTitle(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="E.g. Client Lunch" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Amount (₹) *</label>
-                    <input type="number" step="0.01" min="0" required value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="0.00" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Category *</label>
-                    <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                      <option>Travel</option>
-                      <option>Meals</option>
-                      <option>Supplies</option>
-                      <option>Software</option>
-                      <option>Hardware</option>
-                      <option>Other</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
-                    <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" rows="3" placeholder="Additional details..."></textarea>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Bill / Receipt</label>
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={(e) => setBillFile(e.target.files[0])}
-                      className="hidden"
-                      accept="image/*,.pdf"
-                    />
-                    <div 
-                      onClick={() => fileInputRef.current?.click()}
-                      className="w-full px-4 py-4 border-2 border-dashed border-slate-300 rounded-lg text-center cursor-pointer hover:bg-slate-50 transition-colors"
-                    >
-                      <Upload className="w-6 h-6 text-slate-400 mx-auto mb-2" />
-                      <p className="text-sm text-slate-600 font-medium">
-                        {billFile ? billFile.name : 'Click to upload bill'}
-                      </p>
-                      <p className="text-xs text-slate-400 mt-1">PDF or Images up to 5MB</p>
-                    </div>
-                  </div>
-                </form>
-              </div>
+                
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-[#1f1f1f]">Expense Title <span className="text-[#d93025]">*</span></label>
+                  <input 
+                    type="text" 
+                    required 
+                    value={title} 
+                    onChange={(e) => setTitle(e.target.value)} 
+                    className="w-full rounded-xl border border-[#dadce0] bg-white px-3.5 py-2.5 text-xs text-[#1f1f1f] focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] focus:outline-none transition-all" 
+                    placeholder="e.g. Client Dinner / Flight to Mumbai" 
+                  />
+                </div>
 
-              <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3 shrink-0">
-                <button type="button" onClick={handleCloseModal} className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors cursor-pointer">
-                  Cancel
-                </button>
-                <button type="submit" form="expenseForm" disabled={submitExpenseMutation.isPending} className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 transition-colors disabled:opacity-70 cursor-pointer shadow-sm">
-                  {submitExpenseMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                  Submit
-                </button>
-              </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-[#1f1f1f]">Claim Amount (₹) <span className="text-[#d93025]">*</span></label>
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-semibold text-[#5f6368]">₹</span>
+                    <input 
+                      type="number" 
+                      step="0.01" 
+                      min="0" 
+                      required 
+                      value={amount} 
+                      onChange={(e) => setAmount(e.target.value)} 
+                      className="w-full rounded-xl border border-[#dadce0] bg-white pl-8 pr-3.5 py-2.5 text-xs text-[#1f1f1f] focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] focus:outline-none transition-all" 
+                      placeholder="0.00" 
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-[#1f1f1f]">Expense Category <span className="text-[#d93025]">*</span></label>
+                  <select 
+                    value={category} 
+                    onChange={(e) => setCategory(e.target.value)} 
+                    className="w-full rounded-xl border border-[#dadce0] bg-white px-3.5 py-2.5 text-xs text-[#1f1f1f] focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] focus:outline-none cursor-pointer"
+                  >
+                    <option>Travel</option>
+                    <option>Meals &amp; Entertainment</option>
+                    <option>Office Supplies</option>
+                    <option>Software Subscription</option>
+                    <option>Hardware &amp; Devices</option>
+                    <option>Hotel &amp; Lodging</option>
+                    <option>Fuel / Transport</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-[#1f1f1f]">Description / Business Purpose</label>
+                  <textarea 
+                    value={description} 
+                    onChange={(e) => setDescription(e.target.value)} 
+                    className="w-full rounded-xl border border-[#dadce0] bg-white p-3 text-xs text-[#1f1f1f] focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] focus:outline-none resize-none transition-all" 
+                    rows="3" 
+                    placeholder="Provide details about the business context and justification..."
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-[#1f1f1f]">Bill / Receipt Attachment</label>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={(e) => setBillFile(e.target.files[0])}
+                    className="hidden"
+                    accept="image/*,.pdf"
+                  />
+                  <div 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full p-4 border-2 border-dashed border-[#dadce0] hover:border-[#1a73e8] rounded-2xl text-center cursor-pointer bg-[#f8fafd] hover:bg-[#e8f0fe]/30 transition-colors"
+                  >
+                    <Upload className="w-6 h-6 text-[#1a73e8] mx-auto mb-1.5" />
+                    <p className="text-xs font-semibold text-[#1f1f1f]">
+                      {billFile ? billFile.name : 'Click to attach bill or receipt'}
+                    </p>
+                    <p className="text-[10px] text-[#5f6368] mt-0.5">PDF or Image documents up to 5MB</p>
+                  </div>
+                </div>
+
+              </form>
             </div>
+
+            {/* Drawer Footer Actions */}
+            <div className="px-6 py-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex items-center justify-end gap-3 shrink-0">
+              <button 
+                type="button" 
+                onClick={handleCloseModal} 
+                className="px-5 py-2 rounded-full text-xs font-semibold text-[#1f1f1f] bg-white border border-[#dadce0] hover:bg-[#f1f3f4] transition-all cursor-pointer shadow-2xs"
+              >
+                Cancel
+              </button>
+              <button 
+                type="submit" 
+                form="expenseForm" 
+                disabled={submitExpenseMutation.isPending} 
+                className="inline-flex items-center justify-center gap-2 px-6 py-2 rounded-full text-xs font-semibold text-white bg-[#1a73e8] hover:bg-[#1557b0] transition-all disabled:opacity-50 cursor-pointer shadow-xs min-w-[130px]"
+              >
+                {submitExpenseMutation.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                <span>{submitExpenseMutation.isPending ? 'Submitting...' : 'Submit Claim'}</span>
+              </button>
+            </div>
+
           </div>
-        )}
+        </div>,
+        document.body
+      )}
+
     </>
   );
 };

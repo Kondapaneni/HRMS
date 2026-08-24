@@ -1,13 +1,63 @@
 import React, { useEffect, useState } from 'react';
 import PageLoader from '../components/PageLoader';
-import { Calendar, Clock, LogIn, LogOut, Search, AlertCircle } from 'lucide-react';
+import { 
+  Calendar, 
+  Clock, 
+  LogIn, 
+  LogOut, 
+  Search, 
+  AlertCircle,
+  CheckCircle2,
+  CalendarDays,
+  Filter,
+  TrendingUp,
+  MapPin,
+  Sparkles
+} from 'lucide-react';
 import api from '../api/axios';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-
 import EmployeeMobileAttendance from './EmployeeMobileAttendance';
+
+const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme }) => {
+  const themes = {
+    blue: {
+      iconBg: 'bg-[#e8f0fe]',
+      iconColor: 'text-[#1a73e8]',
+    },
+    green: {
+      iconBg: 'bg-[#e6f4ea]',
+      iconColor: 'text-[#137333]',
+    },
+    purple: {
+      iconBg: 'bg-[#f3e8fd]',
+      iconColor: 'text-[#8430ce]',
+    },
+    amber: {
+      iconBg: 'bg-[#fef7e0]',
+      iconColor: 'text-[#b06000]',
+    }
+  };
+
+  const theme = themes[colorTheme] || themes.blue;
+
+  return (
+    <div className="bg-white rounded-2xl border border-[#e0e3e7] p-5 shadow-xs transition-all duration-200 hover:shadow-md hover:border-[#dadce0]">
+      <div className="flex items-start justify-between">
+        <div className="space-y-1">
+          <p className="text-xs font-semibold text-[#5f6368] uppercase tracking-wider">{title}</p>
+          <p className="text-2xl font-bold text-[#1f1f1f] tracking-tight">{value}</p>
+          {subtitle && <p className="text-xs text-[#5f6368] font-normal pt-0.5">{subtitle}</p>}
+        </div>
+        <div className={`p-3 rounded-2xl ${theme.iconBg} ${theme.iconColor} shrink-0`}>
+          <Icon className="w-5 h-5" />
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const EmployeeAttendance = () => {
   const { profile } = useAuth();
@@ -70,7 +120,6 @@ const EmployeeAttendance = () => {
       queryClient.invalidateQueries({
         queryKey: ['employee', 'attendance']
       });
-      // Ensure we stay on the current month when punching
       const currentMonthStr = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
       if (selectedMonth !== currentMonthStr) {
         setSelectedMonth(currentMonthStr);
@@ -125,7 +174,6 @@ const EmployeeAttendance = () => {
     );
   };
 
-  // Status computation matching PHP logic
   const resolveStatusKey = (record) => {
     if (!record || !record.status) return 'missing';
     const l = record.status.toLowerCase();
@@ -139,10 +187,7 @@ const EmployeeAttendance = () => {
   const formatDateStr = (dateString) => {
     if (!dateString) return '';
     const d = new Date(dateString);
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const year = d.getFullYear();
-    return `${day}/${month}/${year}`;
+    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
   };
 
   const filteredHistory = history.filter(record => {
@@ -154,7 +199,6 @@ const EmployeeAttendance = () => {
     if (rDateZero > today) {
       return false;
     }
-
 
     if (statusFilter !== 'all') {
       const recordStatus = resolveStatusKey(record);
@@ -169,11 +213,8 @@ const EmployeeAttendance = () => {
     return true;
   });
 
-  const todayStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD local
+  const todayStr = new Date().toLocaleDateString('en-CA');
   const currentMonthStr = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
-
-  // If we're not on the current month, we might not have today's record in `history`.
-  // To avoid incorrect check-in state, we'll disable punches if viewing a past month.
   const isViewingCurrentMonth = selectedMonth === currentMonthStr;
 
   const todayRecord = history.find(r => r.date?.split('T')[0] === todayStr) || history.find(r => r.date && new Date(r.date).toDateString() === new Date().toDateString());
@@ -190,156 +231,225 @@ const EmployeeAttendance = () => {
   const unpaidLeaveCount = history.filter(r => resolveStatusKey(r) === 'unpaid leave').length;
 
   const statusPalette = {
-    'present': { label: 'Present', classes: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
-    'present (late)': { label: 'Present (Late)', classes: 'bg-yellow-100 text-yellow-700 border-yellow-200' },
-    'present (early)': { label: 'Present (Early)', classes: 'bg-orange-100 text-orange-700 border-orange-200' },
-    'present (early+late)': { label: 'Present (Early+Late)', classes: 'bg-orange-100 text-orange-700 border-orange-200' },
-    'present (checkout missing)': { label: 'Checkout Missing', classes: 'bg-yellow-100 text-yellow-700 border-yellow-200' },
-    'present (late+checkout missing)': { label: 'Late + Checkout Missing', classes: 'bg-yellow-100 text-yellow-700 border-yellow-200' },
-    'paid leave': { label: 'Paid Leave', classes: 'bg-blue-100 text-blue-700 border-blue-200' },
-    'unpaid leave': { label: 'Unpaid Leave', classes: 'bg-blue-100 text-blue-700 border-blue-200' },
-    'sandwich leave': { label: 'Sandwich Leave', classes: 'bg-blue-100 text-blue-700 border-blue-200' },
-    'holiday': { label: 'Company Holiday', classes: 'bg-purple-100 text-purple-700 border-purple-200' },
-    'week-off': { label: 'Week Off', classes: 'bg-purple-100 text-purple-700 border-purple-200' },
-    'missing': { label: 'Missing', classes: 'bg-red-100 text-red-700 border-red-200' },
-    'regularized': { label: 'Regularized', classes: 'bg-teal-100 text-teal-700 border-teal-200' },
-    'not-marked': { label: 'Not Marked', classes: 'bg-slate-100 text-slate-700 border border-slate-200' },
+    'present': { label: 'Present', classes: 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]' },
+    'present (late)': { label: 'Present (Late)', classes: 'bg-[#fef7e0] text-[#b06000] border-[#feefc3]' },
+    'present (early)': { label: 'Present (Early)', classes: 'bg-[#fef7e0] text-[#b06000] border-[#feefc3]' },
+    'present (early+late)': { label: 'Present (Early+Late)', classes: 'bg-[#fef7e0] text-[#b06000] border-[#feefc3]' },
+    'present (checkout missing)': { label: 'Checkout Missing', classes: 'bg-[#fef7e0] text-[#b06000] border-[#feefc3]' },
+    'present (late+checkout missing)': { label: 'Late + Checkout Missing', classes: 'bg-[#fef7e0] text-[#b06000] border-[#feefc3]' },
+    'paid leave': { label: 'Paid Leave', classes: 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc]' },
+    'unpaid leave': { label: 'Unpaid Leave', classes: 'bg-[#f3e8fd] text-[#8430ce] border-[#e9d2fd]' },
+    'sandwich leave': { label: 'Sandwich Leave', classes: 'bg-[#f3e8fd] text-[#8430ce] border-[#e9d2fd]' },
+    'holiday': { label: 'Company Holiday', classes: 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc]' },
+    'week-off': { label: 'Week Off', classes: 'bg-[#f1f3f4] text-[#5f6368] border-[#dadce0]' },
+    'missing': { label: 'Missing', classes: 'bg-[#fce8e6] text-[#c5221f] border-[#fad2cf]' },
+    'regularized': { label: 'Regularized', classes: 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]' },
+    'not-marked': { label: 'Not Marked', classes: 'bg-[#f1f3f4] text-[#5f6368] border-[#dadce0]' },
   };
 
   const displayError = error || (queryError ? 'Failed to load attendance history.' : null);
 
-  if (loading) return <PageLoader message="Loading Attendance..." />;
+  if (loading) return <PageLoader message="Loading Attendance History..." />;
 
   return (
     <>
+      {/* Mobile Experience Render */}
       <div className="md:hidden">
         <EmployeeMobileAttendance />
       </div>
 
-      <div className="hidden md:block space-y-6">
-        {/* Header */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      {/* Web Desktop Experience (Google Material 3 Workspace UI) */}
+      <div className="hidden md:block space-y-6 pb-12">
+        
+        {/* Header Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900">Attendance</h1>
-            <p className="text-sm text-slate-500 mt-1">Track your daily attendance</p>
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+              <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Attendance &amp; Work Hours</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight flex items-center gap-2">
+              Attendance Records <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">{filteredHistory.length} Days Logged</span>
+            </h1>
+            <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
+              Daily biometric punch verification, monthly timesheets, and work hour compliance ledger.
+            </p>
           </div>
-        </div>
 
-        {displayError && (
-          <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
-            {displayError}
-          </div>
-        )}
-
-        {isOnLeaveToday && (
-          <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800 font-medium flex items-center gap-2 shadow-sm">
-            <Calendar className="w-5 h-5" />
-            You are currently on an approved leave. Check-in is disabled.
-          </div>
-        )}
-
-        {/* Check-in / Check-out Card */}
-        <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
-          <div className="p-6">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="text-center sm:text-left">
-                <div className="flex items-center justify-center sm:justify-start gap-2 text-lg font-semibold text-slate-800">
-                  <Calendar className="h-5 w-5 text-slate-500" />
-                  <span>{currentTime.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
-                </div>
-                <p className="text-slate-500 flex items-center justify-center sm:justify-start gap-1 mt-1">
-                  <Clock className="h-4 w-4" />
-                  Current time: <span>{currentTime.toLocaleTimeString()}</span>
-                </p>
-                {todayRecord?.checkIn && (
-                  <p className="text-sm text-slate-500 mt-2">
-                    Check-in: <span className="font-medium text-slate-900">{new Date(todayRecord.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                    {todayRecord?.checkOut && (
-                      <> &bull; Check-out: <span className="font-medium text-slate-900">{new Date(todayRecord.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></>
-                    )}
-                  </p>
-                )}
-              </div>
-
-              <div className="flex flex-wrap justify-center gap-3 w-full sm:w-auto">
-                {!isWebAttendanceEnabled ? (
-                  <div className="w-full flex items-center justify-center p-3 bg-red-50 text-red-600 rounded-lg border border-red-100 text-sm font-medium shadow-sm">
-                    <AlertCircle size={16} className="mr-2 shrink-0" />
-                    Web Attendance is Disabled for You. Please use the Mobile App.
-                  </div>
-                ) : (
-                  <>
-                    <button
-                      onClick={() => handlePunch('check-in')}
-                      disabled={!isViewingCurrentMonth || punchingAction || checkedIn || checkOutTime || isOnLeaveToday}
-                      className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-11 px-6 min-w-[140px] disabled:opacity-50 transition-colors"
-                    >
-                      <LogIn className="mr-2 h-4 w-4" />
-                      {punchingAction === 'check-in' ? 'Checking In...' : 'Check In'}
-                    </button>
-
-                    <button
-                      onClick={() => handlePunch('punch')}
-                      disabled={!isViewingCurrentMonth || punchingAction || !checkedIn || checkOutTime || isOnLeaveToday}
-                      className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-11 px-6 min-w-[140px] disabled:opacity-50 transition-colors"
-                    >
-                      <Clock className="mr-2 h-4 w-4" />
-                      {punchingAction === 'punch' ? 'Punching...' : 'Punch'}
-                    </button>
-
-                    <button
-                      onClick={() => handlePunch('check-out')}
-                      disabled={!isViewingCurrentMonth || punchingAction || !checkedIn || checkOutTime || isOnLeaveToday}
-                      className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-11 px-6 min-w-[140px] disabled:opacity-50 transition-colors"
-                    >
-                      <LogOut className="mr-2 h-4 w-4" />
-                      {punchingAction === 'check-out' ? 'Checking Out...' : 'Check Out'}
-                    </button>
-                  </>
-                )}
-              </div>
+          <div className="flex items-center gap-2.5 self-start sm:self-auto bg-white border border-[#e0e3e7] px-3.5 py-1.5 rounded-full shadow-xs">
+            <Clock className="w-4 h-4 text-[#1a73e8]" />
+            <div className="text-right">
+              <p className="text-xs font-semibold text-[#1f1f1f] leading-tight">
+                {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+              </p>
+              <p className="text-[10px] text-[#5f6368] leading-tight">
+                {currentTime.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Attendance Stats */}
-        <div className="grid gap-4 md:grid-cols-4">
-          <div className="rounded-lg border border-slate-200 bg-white shadow-sm p-6 text-center">
-            <div className="text-2xl font-bold text-green-600">{presentCount}</div>
-            <p className="text-sm text-slate-500">Present</p>
+        {displayError && (
+          <div className="rounded-2xl border border-[#fad2cf] bg-[#fce8e6] p-4 text-xs font-medium text-[#c5221f] flex items-center gap-2.5 shadow-2xs">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{displayError}</span>
           </div>
-          <div className="rounded-lg border border-slate-200 bg-white shadow-sm p-6 text-center">
-            <div className="text-2xl font-bold text-blue-600">{leaveCount}</div>
-            <p className="text-sm text-slate-500">On Leave</p>
+        )}
+
+        {isOnLeaveToday && (
+          <div className="rounded-2xl border border-[#d2e3fc] bg-[#e8f0fe] p-4 text-xs font-semibold text-[#1a73e8] flex items-center gap-2.5 shadow-2xs">
+            <Calendar className="w-4 h-4 shrink-0" />
+            <span>You have an approved leave scheduled for today. Automated attendance recording is paused.</span>
           </div>
-          <div className="rounded-lg border border-slate-200 bg-white shadow-sm p-6 text-center">
-            <div className="text-2xl font-bold text-blue-600">{paidLeaveCount}</div>
-            <p className="text-sm text-slate-500">Paid Leave</p>
+        )}
+
+        {/* Check-in / Check-out Terminal Card */}
+        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-6 shadow-xs space-y-6">
+          <div className="flex items-center justify-between pb-4 border-b border-[#e0e3e7]">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-[#e8f0fe] text-[#1a73e8]">
+                <Clock className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-base font-semibold text-[#1f1f1f]">Today's Biometric Punch Terminal</h2>
+                <p className="text-xs text-[#5f6368]">{currentTime.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
+              </div>
+            </div>
+
+            {todayRecord?.checkIn && (
+              <span className="text-[11px] font-semibold text-[#137333] bg-[#e6f4ea] border border-[#ceead6] px-3 py-1 rounded-full flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5" /> Checked In Today
+              </span>
+            )}
           </div>
-          <div className="rounded-lg border border-slate-200 bg-white shadow-sm p-6 text-center">
-            <div className="text-2xl font-bold text-blue-600">{unpaidLeaveCount}</div>
-            <p className="text-sm text-slate-500">Unpaid Leaves</p>
+
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-6 p-5 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7]">
+            <div className="space-y-1.5 text-center sm:text-left">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Today's Timestamp Record</span>
+              {todayRecord?.checkIn ? (
+                <div className="space-y-1 text-xs">
+                  <div className="flex items-center gap-2 text-[#1f1f1f]">
+                    <span className="text-[#5f6368]">Check-in Time:</span>
+                    <span className="font-semibold bg-white px-2 py-0.5 rounded border border-[#e0e3e7]">
+                      {new Date(todayRecord.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                    </span>
+                  </div>
+                  {todayRecord?.checkOut && (
+                    <div className="flex items-center gap-2 text-[#1f1f1f]">
+                      <span className="text-[#5f6368]">Check-out Time:</span>
+                      <span className="font-semibold bg-white px-2 py-0.5 rounded border border-[#e0e3e7]">
+                        {new Date(todayRecord.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-xs font-semibold text-[#b06000] bg-[#fef7e0] border border-[#feefc3] px-3 py-1 rounded-full inline-block">
+                  No punch recorded today
+                </p>
+              )}
+            </div>
+
+            <div className="flex flex-wrap justify-center gap-2.5">
+              {!isWebAttendanceEnabled ? (
+                <div className="flex items-center gap-2 p-3 bg-[#fce8e6] text-[#c5221f] rounded-2xl border border-[#fad2cf] text-xs font-semibold">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>Web Attendance is disabled for your account. Please use the mobile app.</span>
+                </div>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => handlePunch('check-in')}
+                    disabled={!isViewingCurrentMonth || punchingAction || checkedIn || checkOutTime || isOnLeaveToday}
+                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white disabled:opacity-40 transition-all cursor-pointer shadow-xs"
+                  >
+                    <LogIn className="w-4 h-4" />
+                    <span>{punchingAction === 'check-in' ? 'Checking In...' : 'Check In'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handlePunch('punch')}
+                    disabled={!isViewingCurrentMonth || punchingAction || !checkedIn || checkOutTime || isOnLeaveToday}
+                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold bg-white border border-[#dadce0] hover:bg-[#f1f3f4] text-[#1f1f1f] disabled:opacity-40 transition-all cursor-pointer shadow-2xs"
+                  >
+                    <Clock className="w-4 h-4 text-[#5f6368]" />
+                    <span>{punchingAction === 'punch' ? 'Punching...' : 'Interval Punch'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handlePunch('check-out')}
+                    disabled={!isViewingCurrentMonth || punchingAction || !checkedIn || checkOutTime || isOnLeaveToday}
+                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold bg-white border border-[#dadce0] hover:bg-[#f1f3f4] text-[#d93025] hover:border-[#fad2cf] hover:bg-[#fce8e6] disabled:opacity-40 transition-all cursor-pointer shadow-2xs"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>{punchingAction === 'check-out' ? 'Checking Out...' : 'Check Out'}</span>
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Attendance History */}
-        <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
-          <div className="p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <h3 className="text-lg font-semibold text-slate-900">Attendance History</h3>
-            <div className="flex flex-col sm:flex-row gap-4">
+        {/* Attendance Summary KPI Cards */}
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard 
+            title="Present Days" 
+            value={`${presentCount} Days`} 
+            subtitle="Marked present this month" 
+            icon={CheckCircle2} 
+            colorTheme="green" 
+          />
+          <StatCard 
+            title="On Leave" 
+            value={`${leaveCount} Days`} 
+            subtitle="Total leave requests taken" 
+            icon={Calendar} 
+            colorTheme="purple" 
+          />
+          <StatCard 
+            title="Paid Leave Days" 
+            value={`${paidLeaveCount} Days`} 
+            subtitle="Approved paid time off" 
+            icon={CalendarDays} 
+            colorTheme="blue" 
+          />
+          <StatCard 
+            title="Unpaid Leaves" 
+            value={`${unpaidLeaveCount} Days`} 
+            subtitle="Unpaid loss of pay days" 
+            icon={Clock} 
+            colorTheme="amber" 
+          />
+        </div>
+
+        {/* Attendance History Table Card */}
+        <div className="bg-white rounded-2xl border border-[#e0e3e7] shadow-xs overflow-hidden">
+          <div className="p-6 border-b border-[#e0e3e7] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-base font-semibold text-[#1f1f1f]">Monthly Attendance Ledger</h3>
+              <p className="text-xs text-[#5f6368]">Review daily work hours, check-in timestamps, and punch exceptions</p>
+            </div>
+            
+            <div className="flex flex-wrap items-center gap-3">
               <input
                 type="month"
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(e.target.value)}
-                className="h-10 w-full sm:w-[200px] rounded-md border border-slate-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                className="h-9 rounded-full border border-[#dadce0] px-3.5 text-xs text-[#1f1f1f] bg-white focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] focus:outline-none transition-all cursor-pointer shadow-2xs"
               />
 
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="h-10 w-full sm:w-fit rounded-md border border-slate-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                className="h-9 rounded-full border border-[#dadce0] px-3.5 text-xs text-[#1f1f1f] bg-white focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] focus:outline-none transition-all cursor-pointer shadow-2xs"
               >
-                <option value="all">All Status</option>
+                <option value="all">All Statuses</option>
                 <option value="present">Present</option>
                 <option value="paid leave">Paid Leave</option>
                 <option value="unpaid leave">Unpaid Leave</option>
@@ -349,51 +459,62 @@ const EmployeeAttendance = () => {
             </div>
           </div>
 
-          <div className="px-6 pb-6">
-            <div className="rounded-md border border-slate-200 overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-medium">
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs text-left">
+              <thead className="bg-[#f8fafd] border-b border-[#e0e3e7] text-[#5f6368] font-semibold uppercase tracking-wider text-[10px]">
+                <tr>
+                  <th className="p-4">Calendar Date</th>
+                  <th className="p-4">Check-In Time</th>
+                  <th className="p-4">Check-Out Time</th>
+                  <th className="p-4">Total Work Hours</th>
+                  <th className="p-4">Attendance Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#f1f3f4]">
+                {loading ? (
                   <tr>
-                    <th className="p-3">Date</th>
-                    <th className="p-3">Check In</th>
-                    <th className="p-3">Check Out</th>
-                    <th className="p-3">Hours</th>
-                    <th className="p-3">Status</th>
+                    <td colSpan="5" className="text-center py-12 text-[#5f6368]">
+                      Loading attendance records...
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {loading ? (
-                    <tr>
-                      <td colSpan="5" className="text-center py-8 text-slate-500">Loading attendance...</td>
-                    </tr>
-                  ) : filteredHistory.length === 0 ? (
-                    <tr>
-                      <td colSpan="5" className="text-center py-8 text-slate-500">No attendance records found.</td>
-                    </tr>
-                  ) : (
-                    filteredHistory.map((record, i) => {
-                      const statusKey = resolveStatusKey(record);
-                      const config = statusPalette[statusKey] || statusPalette['missing'];
-                      return (
-                        <tr key={i} className="border-b border-slate-100 hover:bg-slate-50 last:border-0">
-                          <td className="p-3 font-medium text-slate-800">{formatDateStr(record.date)}</td>
-                          <td className="p-3 text-slate-600">{record.checkIn ? new Date(record.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}</td>
-                          <td className="p-3 text-slate-600">{record.checkOut ? new Date(record.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}</td>
-                          <td className="p-3 text-slate-600">{record.hours ? `${record.hours}h` : '—'}</td>
-                          <td className="p-3">
-                            <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${config.classes}`}>
-                              {config.label}
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
+                ) : filteredHistory.length === 0 ? (
+                  <tr>
+                    <td colSpan="5" className="text-center py-12 text-[#5f6368]">
+                      No attendance records found for this period.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredHistory.map((record, i) => {
+                    const statusKey = resolveStatusKey(record);
+                    const config = statusPalette[statusKey] || statusPalette['missing'];
+                    return (
+                      <tr key={i} className="hover:bg-[#f8fafd] transition-colors">
+                        <td className="p-4 font-semibold text-[#1f1f1f]">
+                          {formatDateStr(record.date)}
+                        </td>
+                        <td className="p-4 text-[#1f1f1f] font-semibold">
+                          {record.checkIn ? new Date(record.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
+                        </td>
+                        <td className="p-4 text-[#1f1f1f] font-semibold">
+                          {record.checkOut ? new Date(record.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
+                        </td>
+                        <td className="p-4 text-[#5f6368]">
+                          {record.hours ? `${record.hours} hrs` : '—'}
+                        </td>
+                        <td className="p-4">
+                          <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${config.classes}`}>
+                            {config.label}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
+
       </div>
     </>
   );

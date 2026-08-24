@@ -83,12 +83,12 @@ const AdminEmployeeView = () => {
   const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
 
   const tabs = [
-    { id: 'personal', label: 'Personal', icon: <User size={13} /> },
-    { id: 'work', label: 'Work Info', icon: <Briefcase size={13} /> },
-    { id: 'work-shift', label: 'Schedule', icon: <Clock size={13} /> },
-    { id: 'emergency', label: 'Emergency', icon: <Phone size={13} /> },
-    { id: 'asset', label: 'Assets', icon: <Laptop size={13} /> },
-    { id: 'timeline', label: 'Timeline', icon: <CalendarDays size={13} /> },
+    { id: 'personal', label: 'Personal Info', icon: User },
+    { id: 'work', label: 'Work Info', icon: Briefcase },
+    { id: 'work-shift', label: 'Work Shift', icon: Clock },
+    { id: 'emergency', label: 'Emergency', icon: Phone },
+    { id: 'asset', label: 'My Assets', icon: Laptop },
+    { id: 'timeline', label: 'Timeline', icon: CalendarDays },
   ];
 
   const formatDate = (val) => {
@@ -360,27 +360,30 @@ const AdminEmployeeView = () => {
         </div>
 
         {/* Right Column - Tabbed Details */}
-        <div className="md:col-span-2 space-y-6">
-          <div className="rounded-2xl border border-[#e0e3e7] bg-white shadow-xs overflow-hidden">
-            {/* Google Flat Underline Tabs (No Cards, No Scrollbar) */}
-            <div className="border-b border-[#e0e3e7] bg-white px-2 pt-1">
-              <div className="grid grid-cols-3 sm:grid-cols-6 gap-1">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`w-full flex items-center justify-center gap-1.5 py-3 px-1 text-xs transition-colors cursor-pointer border-b-2 font-medium relative ${activeTab === tab.id
-                        ? 'border-[#1a73e8] text-[#1a73e8] font-semibold'
-                        : 'border-transparent text-[#5f6368] hover:text-[#1f1f1f] hover:border-[#dadce0]'
-                      }`}
-                  >
-                    {tab.icon}
-                    <span className="truncate">{tab.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
+        <div className="md:col-span-2 space-y-4">
+          {/* Material 3 Tabs Navigation Bar */}
+          <div className="flex items-center gap-1.5 p-1.5 bg-[#f8fafd] border border-[#e0e3e7] rounded-full overflow-x-auto hide-scrollbar shadow-2xs">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
+                    isActive
+                      ? 'bg-[#c2e7ff]/70 text-[#001d35] shadow-xs'
+                      : 'text-[#5f6368] hover:bg-[#f1f3f4] hover:text-[#1f1f1f]'
+                  }`}
+                >
+                  <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-[#001d35]' : 'text-[#5f6368]'}`} />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
 
+          <div className="rounded-2xl border border-[#e0e3e7] bg-white shadow-xs overflow-hidden">
             {/* Tab Contents */}
             <div className="p-6">
               {/* PERSONAL INFO */}

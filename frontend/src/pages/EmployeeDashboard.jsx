@@ -1,12 +1,73 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import PageLoader from '../components/PageLoader';
 import { useAuth } from '../contexts/AuthContext';
-import { User, Building, Calendar, Mail, Briefcase, LogIn, LogOut, Clock, CalendarDays, BarChart3, AlertCircle, Loader2, Coffee } from 'lucide-react';
+import { 
+  User, 
+  Building, 
+  Calendar, 
+  Mail, 
+  Briefcase, 
+  LogIn, 
+  LogOut, 
+  Clock, 
+  CalendarDays, 
+  BarChart3, 
+  AlertCircle, 
+  Loader2, 
+  Coffee,
+  Sparkles,
+  CheckCircle2,
+  MapPin,
+  ShieldCheck,
+  Award,
+  Wallet,
+  TrendingUp,
+  ExternalLink
+} from 'lucide-react';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import EmployeeMobileDashboard from './EmployeeMobileDashboard';
+
+const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme }) => {
+  const themes = {
+    blue: {
+      iconBg: 'bg-[#e8f0fe]',
+      iconColor: 'text-[#1a73e8]',
+    },
+    green: {
+      iconBg: 'bg-[#e6f4ea]',
+      iconColor: 'text-[#137333]',
+    },
+    purple: {
+      iconBg: 'bg-[#f3e8fd]',
+      iconColor: 'text-[#8430ce]',
+    },
+    amber: {
+      iconBg: 'bg-[#fef7e0]',
+      iconColor: 'text-[#b06000]',
+    }
+  };
+
+  const theme = themes[colorTheme] || themes.blue;
+
+  return (
+    <div className="bg-white rounded-2xl border border-[#e0e3e7] p-5 shadow-xs transition-all duration-200 hover:shadow-md hover:border-[#dadce0]">
+      <div className="flex items-start justify-between">
+        <div className="space-y-1">
+          <p className="text-xs font-semibold text-[#5f6368] uppercase tracking-wider">{title}</p>
+          <p className="text-2xl font-bold text-[#1f1f1f] tracking-tight">{value}</p>
+          {subtitle && <p className="text-xs text-[#5f6368] font-normal pt-0.5">{subtitle}</p>}
+        </div>
+        <div className={`p-3 rounded-2xl ${theme.iconBg} ${theme.iconColor} shrink-0`}>
+          <Icon className="w-5 h-5" />
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const EmployeeDashboard = () => {
   const { profile } = useAuth();
@@ -128,7 +189,7 @@ const EmployeeDashboard = () => {
         }
 
         if (!isAllowed) {
-          toast.error(`You are outside the company premises. Geofencing is required to ${action.replace('-', ' ')}.`);
+          toast.error(`You are outside company premises. Geofencing is required to ${action.replace('-', ' ')}.`);
           setPunchingAction(null);
           return;
         }
@@ -150,7 +211,7 @@ const EmployeeDashboard = () => {
         }
       },
       (error) => {
-        toast.error('Unable to read your location. Please allow location access to check in/out.');
+        toast.error('Unable to read location. Please allow location access in your browser.');
         setPunchingAction(null);
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 120000 }
@@ -169,245 +230,391 @@ const EmployeeDashboard = () => {
   const checkedIn = todayRecord && todayRecord.checkIn && !todayRecord.checkOut;
   const checkOutTime = todayRecord && todayRecord.checkOut;
 
-  const shapeVariants = {
-    animate: (i) => ({
-      y: [0, -15, 0],
-      x: [0, 10, 0],
-      rotate: [0, 5, -5, 0],
-      transition: {
-        duration: 4 + i * 1.5,
-        repeat: Infinity,
-        ease: "easeInOut"
-      }
-    })
-  };
+  // Stats calculation
+  const availablePaidLeaves = leaves?.balance ? Math.max(0, leaves.balance.paidTotal - leaves.balance.paidUsed) : '--';
+  const attendanceScore = performance?.attendancePct !== undefined ? `${performance.attendancePct}%` : '100%';
+  const onTimeScore = performance?.onTimePct !== undefined ? `${performance.onTimePct}%` : '100%';
 
-  if (loading) return <PageLoader message="Loading Dashboard..." />;
+  if (loading) return <PageLoader message="Loading Workspace..." />;
 
   return (
     <>
+      {/* Mobile Experience Render */}
       <div className="md:hidden">
         <EmployeeMobileDashboard />
       </div>
 
-      <div className="hidden md:block space-y-6">
-        {/* Page Header */}
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-2">
+      {/* Web Desktop Experience (Google Material 3 Workspace UI) */}
+      <div className="hidden md:block space-y-6 pb-12">
+        
+        {/* Header Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900">{getGreeting()}, {profile?.firstName}!</h1>
-            <p className="text-sm text-slate-500 mt-1">Here is your daily overview and performance stats.</p>
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+              <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Workspace Overview</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight flex items-center gap-2">
+              {getGreeting()}, {profile?.firstName || 'Colleague'}! <span className="text-xs font-semibold text-[#137333] bg-[#e6f4ea] border border-[#ceead6] px-2.5 py-0.5 rounded-full">Active Staff</span>
+            </h1>
+            <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
+              Daily attendance check-in, shift assignments, performance benchmarks, and leave balances.
+            </p>
           </div>
-          <div className="text-right">
-            <p className="text-lg font-semibold text-blue-600">{currentTime.toLocaleTimeString()}</p>
-            <p className="text-sm text-slate-500">{currentTime.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+
+          <div className="flex items-center gap-2.5 self-start sm:self-auto bg-white border border-[#e0e3e7] px-3.5 py-1.5 rounded-full shadow-xs">
+            <Clock className="w-4 h-4 text-[#1a73e8]" />
+            <div className="text-right">
+              <p className="text-xs font-semibold text-[#1f1f1f] leading-tight">
+                {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+              </p>
+              <p className="text-[10px] text-[#5f6368] leading-tight">
+                {currentTime.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* KPI Stats Cards */}
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard 
+            title="Today's Status" 
+            value={checkedIn ? 'Checked In' : (checkOutTime ? 'Checked Out' : 'Not Checked In')} 
+            subtitle={todayRecord?.checkIn ? `Since ${new Date(todayRecord.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'Awaiting punch'} 
+            icon={Clock} 
+            colorTheme={checkedIn ? 'green' : 'blue'} 
+          />
+          <StatCard 
+            title="On-Time Score" 
+            value={onTimeScore} 
+            subtitle="Current month benchmark" 
+            icon={TrendingUp} 
+            colorTheme="purple" 
+          />
+          <StatCard 
+            title="Paid Leaves" 
+            value={`${availablePaidLeaves} Days`} 
+            subtitle={`Out of ${leaves?.balance?.paidTotal || 12} annual days`} 
+            icon={CalendarDays} 
+            colorTheme="amber" 
+          />
+          <StatCard 
+            title="Work Location" 
+            value={fullProfile?.branch_name || 'Main Office'} 
+            subtitle={fullProfile?.shiftTime ? `Shift: ${fullProfile.shiftTime}` : 'Standard 09:00 - 18:00'} 
+            icon={Building} 
+            colorTheme="green" 
+          />
+        </div>
 
-          {/* Quick Punch Card */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:col-span-2 relative overflow-hidden group hover:border-blue-200 transition-colors z-0">
-            {/* Animated Background Graphics */}
-            <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-              <motion.div custom={1} variants={shapeVariants} animate="animate" className="absolute w-32 h-32 bg-[#F59E0B] rounded-full opacity-20 -top-10 -right-10" />
-              <motion.div custom={2} variants={shapeVariants} animate="animate" className="absolute w-24 h-24 bg-[#10B981] rounded-3xl opacity-20 bottom-[-20px] left-1/4 rotate-12" />
-              <motion.div custom={3} variants={shapeVariants} animate="animate" className="absolute w-40 h-40 bg-[#3B82F6] rounded-full opacity-15 top-1/2 left-1/2" />
-              <motion.div custom={4} variants={shapeVariants} animate="animate" className="absolute w-20 h-20 bg-[#EC4899] rounded-xl opacity-20 top-4 left-10 -rotate-12" />
-            </div>
+        {/* Main Grid: Quick Punch (Left) + Profile & Details (Right) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          
+          {/* Left Column: Quick Punch Terminal & Shift Schedule */}
+          <div className="lg:col-span-8 space-y-6">
+            
+            {/* Quick Punch Terminal Card */}
+            <div className="bg-white rounded-2xl border border-[#e0e3e7] p-6 shadow-xs space-y-6">
+              <div className="flex items-center justify-between pb-4 border-b border-[#e0e3e7]">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-[#e8f0fe] text-[#1a73e8]">
+                    <Clock className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-semibold text-[#1f1f1f]">Daily Attendance Terminal</h2>
+                    <p className="text-xs text-[#5f6368]">Geofenced biometric check-in &amp; work hours logging</p>
+                  </div>
+                </div>
 
-            <h2 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2 relative z-10">
-              <Clock size={18} className="text-blue-500" />
-              Quick Punch
-            </h2>
+                {todayRecord?.checkIn && (
+                  <span className="text-[11px] font-semibold text-[#137333] bg-[#e6f4ea] border border-[#ceead6] px-3 py-1 rounded-full flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Checked In
+                  </span>
+                )}
+              </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-6 relative z-10">
-              <div className="text-center sm:text-left">
-                <p className="text-slate-500 text-sm mb-2">Track your daily attendance</p>
-                {todayRecord?.checkIn ? (
-                  <div className="space-y-1">
-                    <p className="text-sm">
-                      <span className="text-slate-500">Check-in:</span> <span className="font-medium text-slate-900">{new Date(todayRecord.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+              {/* Punch Status & Action Buttons */}
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-6 p-5 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7]">
+                <div className="space-y-1.5 text-center sm:text-left">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-[#5f6368]">Punch Status</span>
+                  {todayRecord?.checkIn ? (
+                    <div className="space-y-1 text-xs">
+                      <div className="flex items-center gap-2 text-[#1f1f1f]">
+                        <span className="text-[#5f6368]">Check-in Time:</span>
+                        <span className="font-semibold bg-white px-2 py-0.5 rounded border border-[#e0e3e7]">
+                          {new Date(todayRecord.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                        </span>
+                      </div>
+                      {todayRecord?.checkOut && (
+                        <div className="flex items-center gap-2 text-[#1f1f1f]">
+                          <span className="text-[#5f6368]">Check-out Time:</span>
+                          <span className="font-semibold bg-white px-2 py-0.5 rounded border border-[#e0e3e7]">
+                            {new Date(todayRecord.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-xs font-semibold text-[#b06000] bg-[#fef7e0] border border-[#feefc3] px-3 py-1 rounded-full inline-block">
+                      No punch recorded today
                     </p>
-                    {todayRecord?.checkOut && (
-                      <p className="text-sm">
-                        <span className="text-slate-500">Check-out:</span> <span className="font-medium text-slate-900">{new Date(todayRecord.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                      </p>
-                    )}
+                  )}
+                </div>
+
+                {/* Punch Action Buttons */}
+                <div className="flex flex-wrap gap-2.5 justify-center sm:justify-end">
+                  {!isWebAttendanceEnabled ? (
+                    <div className="flex items-center gap-2 p-3 bg-[#fce8e6] text-[#c5221f] rounded-2xl border border-[#fad2cf] text-xs font-semibold">
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      <span>Web Attendance is disabled for your profile. Please use the mobile app.</span>
+                    </div>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => handlePunch('check-in')}
+                        disabled={punchingAction || checkedIn || checkOutTime || isLocked}
+                        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white disabled:opacity-40 transition-all cursor-pointer shadow-xs"
+                      >
+                        <LogIn className="w-4 h-4" />
+                        <span>{isLocked ? formatLockoutTimer(lockoutSeconds) : (punchingAction === 'check-in' ? 'Checking In...' : 'Check In')}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handlePunch('punch')}
+                        disabled={punchingAction || !checkedIn || checkOutTime || isLocked}
+                        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold bg-white border border-[#dadce0] hover:bg-[#f1f3f4] text-[#1f1f1f] disabled:opacity-40 transition-all cursor-pointer shadow-2xs"
+                      >
+                        <Clock className="w-4 h-4 text-[#5f6368]" />
+                        <span>{isLocked ? formatLockoutTimer(lockoutSeconds) : (punchingAction === 'punch' ? 'Punching...' : 'Interval Punch')}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handlePunch('check-out')}
+                        disabled={punchingAction || !checkedIn || checkOutTime || isLocked}
+                        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold bg-white border border-[#dadce0] hover:bg-[#f1f3f4] text-[#d93025] hover:border-[#fad2cf] hover:bg-[#fce8e6] disabled:opacity-40 transition-all cursor-pointer shadow-2xs"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span>{isLocked ? formatLockoutTimer(lockoutSeconds) : (punchingAction === 'check-out' ? 'Checking Out...' : 'Check Out')}</span>
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Shift & Office Context Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                <div className="p-3.5 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7] flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-[#e8f0fe] text-[#1a73e8]">
+                    <CalendarDays className="w-4 h-4" />
                   </div>
-                ) : (
-                  <p className="text-sm font-medium text-amber-600 bg-amber-50 px-3 py-1 rounded-full inline-block">Not checked in yet</p>
-                )}
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-3">
-                {!isWebAttendanceEnabled ? (
-                  <div className="w-full flex items-center justify-center p-3 bg-red-50 text-red-600 rounded-lg border border-red-100 text-sm font-medium">
-                    <AlertCircle size={16} className="mr-2" />
-                    Web Attendance is Disabled for You. Please use the Mobile App.
+                  <div className="truncate">
+                    <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Standard Shift</p>
+                    <p className="text-xs font-bold text-[#1f1f1f] truncate">{fullProfile?.shiftTime || '09:00 AM - 06:00 PM'}</p>
                   </div>
-                ) : (
-                  <>
-                    <button
-                      onClick={() => handlePunch('check-in')}
-                      disabled={punchingAction || checkedIn || checkOutTime || isLocked}
-                      className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-11 px-6 min-w-[140px] disabled:opacity-50 transition-all hover:shadow-md"
-                    >
-                      <LogIn className="mr-2 h-4 w-4" />
-                      {isLocked ? formatLockoutTimer(lockoutSeconds) : (punchingAction === 'check-in' ? 'Checking In...' : 'Check In')}
-                    </button>
+                </div>
 
-                    <button
-                      onClick={() => handlePunch('punch')}
-                      disabled={punchingAction || !checkedIn || checkOutTime || isLocked}
-                      className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-11 px-6 min-w-[140px] disabled:opacity-50 transition-all hover:shadow-md"
-                    >
-                      <Clock className="mr-2 h-4 w-4 text-slate-500" />
-                      {isLocked ? formatLockoutTimer(lockoutSeconds) : (punchingAction === 'punch' ? 'Punching...' : 'Punch')}
-                    </button>
+                <div className="p-3.5 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7] flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-[#f3e8fd] text-[#8430ce]">
+                    <Coffee className="w-4 h-4" />
+                  </div>
+                  <div className="truncate">
+                    <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Weekly Off</p>
+                    <p className="text-xs font-bold text-[#1f1f1f] truncate">{fullProfile?.weekOff || 'Sunday'}</p>
+                  </div>
+                </div>
 
-                    <button
-                      onClick={() => handlePunch('check-out')}
-                      disabled={punchingAction || !checkedIn || checkOutTime || isLocked}
-                      className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-11 px-6 min-w-[140px] disabled:opacity-50 transition-all hover:shadow-md"
-                    >
-                      <LogOut className="mr-2 h-4 w-4 text-slate-500" />
-                      {isLocked ? formatLockoutTimer(lockoutSeconds) : (punchingAction === 'check-out' ? 'Checking Out...' : 'Check Out')}
-                    </button>
-                  </>
-                )}
+                <div className="p-3.5 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7] flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-[#e6f4ea] text-[#137333]">
+                    <Building className="w-4 h-4" />
+                  </div>
+                  <div className="truncate">
+                    <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Assigned Branch</p>
+                    <p className="text-xs font-bold text-[#1f1f1f] truncate">{fullProfile?.branch_name || 'Corporate HQ'}</p>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="mt-8 pt-6 border-t border-slate-100/60 relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-50 text-blue-600 rounded-lg shadow-sm border border-blue-100">
-                  <CalendarDays className="w-5 h-5" />
+            {/* Performance & Leave Balances Row */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              
+              {/* Performance Card */}
+              <div className="bg-white rounded-2xl border border-[#e0e3e7] p-5 shadow-xs space-y-4">
+                <div className="flex items-center gap-2 pb-3 border-b border-[#e0e3e7]">
+                  <div className="p-2 rounded-xl bg-[#f3e8fd] text-[#8430ce]">
+                    <BarChart3 className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-[#1f1f1f]">Monthly Performance</h3>
+                    <p className="text-xs text-[#5f6368]">Attendance discipline &amp; punctuality</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">Standard Shift</p>
-                  <p className="text-sm font-medium text-slate-800">{fullProfile?.shiftTime || 'Not set'}</p>
+
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  <div className="p-3.5 rounded-xl bg-[#f8fafd] border border-[#e0e3e7] space-y-1">
+                    <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Attendance Rate</p>
+                    <p className="text-xl font-bold text-[#1f1f1f]">{attendanceScore}</p>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-[#f8fafd] border border-[#e0e3e7] space-y-1">
+                    <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Punctuality Score</p>
+                    <p className="text-xl font-bold text-[#137333]">{onTimeScore}</p>
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-xl bg-[#f8fafd] border border-[#e0e3e7] text-xs text-[#5f6368] flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#8430ce] shrink-0" />
+                  <span>Maintain scores &gt;90% for monthly performance rewards.</span>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-50 text-purple-600 rounded-lg shadow-sm border border-purple-100">
-                  <Coffee className="w-5 h-5" />
+
+              {/* Leave Balances Card */}
+              <div className="bg-white rounded-2xl border border-[#e0e3e7] p-5 shadow-xs space-y-4">
+                <div className="flex items-center gap-2 pb-3 border-b border-[#e0e3e7]">
+                  <div className="p-2 rounded-xl bg-[#e6f4ea] text-[#137333]">
+                    <CalendarDays className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-[#1f1f1f]">Leave Balances</h3>
+                    <p className="text-xs text-[#5f6368]">Annual quota and taken leave ledger</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">Week Off</p>
-                  <p className="text-sm font-medium text-slate-800">{fullProfile?.weekOff || 'Not set'}</p>
+
+                <div className="space-y-2.5 text-xs">
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-[#f8fafd] border border-[#e0e3e7]">
+                    <div>
+                      <p className="font-semibold text-[#1f1f1f]">Paid Leaves (Annual)</p>
+                      <p className="text-[10px] text-[#5f6368]">Available balance</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-bold text-[#1f1f1f]">{availablePaidLeaves}</p>
+                      <p className="text-[10px] text-[#5f6368]">of {leaves?.balance?.paidTotal || 12} Total</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-[#f8fafd] border border-[#e0e3e7]">
+                    <div>
+                      <p className="font-semibold text-[#1f1f1f]">Unpaid Leaves</p>
+                      <p className="text-[10px] text-[#5f6368]">Logged this calendar year</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-bold text-[#5f6368]">{leaves?.balance?.unpaidUsed || 0}</p>
+                      <p className="text-[10px] text-[#5f6368]">Days</p>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg shadow-sm border border-emerald-100">
-                  <Building className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">Work Location</p>
-                  <p className="text-sm font-medium text-slate-800">{fullProfile?.branch_name || 'Not set'}</p>
-                </div>
-              </div>
+
             </div>
+
           </div>
 
-          {/* Profile Summary */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 relative overflow-hidden hover:shadow-md transition-shadow">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-[100px] -z-10"></div>
-
-            <div className="flex items-center gap-4 mb-5">
-              <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-700 font-bold text-3xl overflow-hidden border border-slate-200 shrink-0 shadow-sm">
-                {profile?.avatar ? (
-                  <img src={profile.avatar} alt="Profile" className="w-full h-full object-cover" />
-                ) : (
-                  (profile?.firstName || profile?.email || 'E').charAt(0).toUpperCase()
-                )}
-              </div>
-              <div>
-                <h2 className="text-xl font-semibold text-slate-800">My Profile</h2>
-                <p className="text-sm text-slate-500">Employee Information</p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <p className="text-xs font-medium text-slate-500 mb-1">Role</p>
-                <p className="text-sm font-medium text-slate-900 capitalize">{profile?.role}</p>
-              </div>
-              <div>
-                <p className="text-xs font-medium text-slate-500 mb-1">Department</p>
-                <p className="text-sm font-medium text-slate-900">{profile?.department || 'N/A'}</p>
-              </div>
-              <div>
-                <p className="text-xs font-medium text-slate-500 mb-1">Email</p>
-                <p className="text-sm font-medium text-slate-900 truncate">{profile?.email}</p>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-          {/* Performance Stats */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow">
-            <h2 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2 border-b border-slate-100 pb-3">
-              <BarChart3 size={18} className="text-purple-500" />
-              Current Month Performance
-            </h2>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-slate-50 rounded-lg p-4 border border-slate-100">
-                <p className="text-xs font-medium text-slate-500 mb-1">Attendance Score</p>
-                <p className="text-3xl font-bold text-slate-800">
-                  {performance?.attendancePct !== undefined ? performance.attendancePct : '--'}%
-                </p>
-              </div>
-              <div className="bg-slate-50 rounded-lg p-4 border border-slate-100">
-                <p className="text-xs font-medium text-slate-500 mb-1">On-Time Score</p>
-                <p className="text-3xl font-bold text-slate-800">
-                  {performance?.onTimePct !== undefined ? performance.onTimePct : '--'}%
-                </p>
-              </div>
-              <div className="col-span-2 flex items-center gap-2 mt-2 bg-purple-50 text-purple-700 p-3 rounded-md text-sm border border-purple-100">
-                <AlertCircle size={16} />
-                <span>Aim to keep your scores above 90% for a good rating!</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Leave Balances */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow">
-            <h2 className="text-lg font-semibold text-slate-800 mb-4 flex items-center gap-2 border-b border-slate-100 pb-3">
-              <CalendarDays size={18} className="text-emerald-500" />
-              Leave Balances
-            </h2>
-
-            <div className="space-y-4">
-              <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg border border-slate-100">
-                <div>
-                  <p className="text-sm font-medium text-slate-800">Paid Leaves (Annual)</p>
-                  <p className="text-xs text-slate-500">Available to use</p>
+          {/* Right Column: Employee Profile Summary & Quick Actions */}
+          <div className="lg:col-span-4 space-y-6">
+            
+            {/* Profile Identity Card */}
+            <div className="bg-white rounded-2xl border border-[#e0e3e7] p-6 shadow-xs space-y-5">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-full bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center font-bold text-2xl overflow-hidden border border-[#d2e3fc] shrink-0 shadow-xs">
+                  {profile?.avatar ? (
+                    <img src={profile.avatar} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    (profile?.firstName || profile?.email || 'E').charAt(0).toUpperCase()
+                  )}
                 </div>
-                <div className="text-right">
-                  <p className="text-xl font-bold text-slate-800">
-                    {leaves?.balance ? Math.max(0, leaves.balance.paidTotal - leaves.balance.paidUsed) : '--'}
+                <div className="truncate">
+                  <h3 className="text-base font-semibold text-[#1f1f1f] truncate">
+                    {profile?.firstName} {profile?.lastName}
+                  </h3>
+                  <p className="text-xs text-[#5f6368] font-medium capitalize mt-0.5">
+                    {profile?.designation || profile?.role || 'Staff Member'}
                   </p>
-                  <p className="text-xs text-slate-500">out of {leaves?.balance?.paidTotal || '--'}</p>
+                  <span className="inline-block mt-1 text-[10px] font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2 py-0.2 rounded-full">
+                    {profile?.department || 'General Staff'}
+                  </span>
                 </div>
               </div>
 
-              <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg border border-slate-100">
-                <div>
-                  <p className="text-sm font-medium text-slate-800">Unpaid Leaves</p>
-                  <p className="text-xs text-slate-500">Used this year</p>
+              <div className="space-y-3 pt-3 border-t border-[#e0e3e7] text-xs">
+                <div className="flex justify-between py-1 border-b border-[#f1f3f4]">
+                  <span className="text-[#5f6368]">Email</span>
+                  <span className="font-semibold text-[#1f1f1f] truncate max-w-[170px]" title={profile?.email}>
+                    {profile?.email}
+                  </span>
                 </div>
-                <div className="text-right">
-                  <p className="text-xl font-bold text-slate-800">{leaves?.balance?.unpaidUsed || '0'}</p>
+                <div className="flex justify-between py-1 border-b border-[#f1f3f4]">
+                  <span className="text-[#5f6368]">Employee ID</span>
+                  <span className="font-semibold text-[#1f1f1f]">
+                    {fullProfile?.employee_code || fullProfile?.id?.slice(0, 8) || 'EMP-001'}
+                  </span>
+                </div>
+                <div className="flex justify-between py-1 border-b border-[#f1f3f4]">
+                  <span className="text-[#5f6368]">Joining Date</span>
+                  <span className="font-semibold text-[#1f1f1f]">
+                    {fullProfile?.joiningDate ? new Date(fullProfile.joiningDate).toLocaleDateString() : 'Active Staff'}
+                  </span>
+                </div>
+                <div className="flex justify-between py-1">
+                  <span className="text-[#5f6368]">Employment Type</span>
+                  <span className="font-semibold text-[#137333] capitalize">
+                    {fullProfile?.employmentType || 'Full-Time Regular'}
+                  </span>
                 </div>
               </div>
+
+              <div className="pt-2">
+                <Link
+                  to="/employee/profile"
+                  className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-full text-xs font-semibold bg-[#e8f0fe] hover:bg-[#d2e3fc] text-[#1a73e8] transition-colors"
+                >
+                  <User className="w-3.5 h-3.5" />
+                  <span>View Full Profile</span>
+                </Link>
+              </div>
             </div>
+
+            {/* Latest Payslip Quick Banner */}
+            {latestPayslip && (
+              <div className="bg-white rounded-2xl border border-[#e0e3e7] p-5 shadow-xs space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 rounded-xl bg-[#e6f4ea] text-[#137333]">
+                      <Wallet className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-[#1f1f1f]">Latest Payslip</h4>
+                      <p className="text-[11px] text-[#5f6368]">
+                        {latestPayslip.month && latestPayslip.year
+                          ? new Date(latestPayslip.year, latestPayslip.month - 1, 1).toLocaleString('en-US', { month: 'long', year: 'numeric' })
+                          : latestPayslip.month_year || 'Recent Cycle'}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-xs font-bold text-[#137333] bg-[#e6f4ea] px-2.5 py-0.5 rounded-full border border-[#ceead6]">
+                    ₹{Number(latestPayslip.netSalary ?? latestPayslip.net_salary ?? 0).toLocaleString('en-IN')}
+                  </span>
+                </div>
+
+                <Link
+                  to="/employee/payroll"
+                  className="w-full flex items-center justify-center gap-1 py-2 text-xs font-semibold text-[#1a73e8] hover:underline"
+                >
+                  <span>View Payslip Breakdown</span>
+                  <ExternalLink className="w-3 h-3" />
+                </Link>
+              </div>
+            )}
+
           </div>
 
         </div>
+
       </div>
     </>
   );
