@@ -358,26 +358,24 @@ const EmployeeLayout = () => {
         <main className="flex-1 flex flex-col h-[100dvh] overflow-hidden relative z-10 bg-transparent">
 
           {/* Top Header */}
-          <header className="h-14 bg-white border-b border-[#e0e3e7] px-5 flex items-center justify-between z-10 shrink-0">
+          <header className="h-14 bg-white border-b border-[#e0e3e7] px-4 sm:px-5 flex items-center justify-between z-10 shrink-0">
             <div className="flex items-center gap-3 shrink-0">
               <div className="hidden md:block">
                 {profile?.featureAccess?.canEmployees && <GlobalSearch />}
               </div>
               
-              <div className="md:hidden flex items-center gap-2.5 select-none bg-[#f8fafd] border border-[#e0e3e7] pl-1.5 pr-3 py-1 rounded-full">
-                <div className="w-7 h-7 bg-[#e8f0fe] text-[#1a73e8] rounded-full flex items-center justify-center font-bold text-xs overflow-hidden border border-[#d2e3fc]">
-                  {profile?.avatar ? (
-                    <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
-                  ) : (
-                    (profile?.email || 'E').charAt(0).toUpperCase()
-                  )}
-                </div>
-                <div className="text-left">
-                  <p className="text-xs font-semibold text-[#1f1f1f] leading-none">
-                    {profile?.email?.split('@')[0] || 'Employee'}
-                  </p>
-                  <p className="text-[10px] text-[#5f6368] mt-0.5 capitalize">{profile?.role || 'Employee'}</p>
-                </div>
+              {/* Mobile Brand & User Pill */}
+              <div className="md:hidden flex items-center gap-2.5">
+                <Link to="/employee" className="flex items-center gap-1.5 shrink-0">
+                  <span className="text-base font-bold tracking-tight text-[#1f1f1f]">Acme</span>
+                  <span className="text-base font-semibold tracking-tight text-[#4285F4]">HRMS</span>
+                  <div className="flex items-center gap-0.5 ml-0.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+                  </div>
+                </Link>
               </div>
             </div>
 
@@ -403,7 +401,7 @@ const EmployeeLayout = () => {
               </div>
             )}
 
-            <div className="flex items-center gap-4 shrink-0">
+            <div className="flex items-center gap-3 shrink-0">
               {/* Desktop Profile Pill */}
               <div className="hidden md:flex items-center gap-2.5 select-none bg-[#f8fafd] border border-[#e0e3e7] pl-1.5 pr-3 py-1 rounded-full">
                 <div className="w-7 h-7 bg-[#e8f0fe] text-[#1a73e8] rounded-full flex items-center justify-center font-bold text-xs overflow-hidden border border-[#d2e3fc]">
@@ -421,15 +419,28 @@ const EmployeeLayout = () => {
                 </div>
               </div>
 
-              {/* Mobile Right Side Logout Button */}
-              <div className="flex md:hidden items-center">
+              {/* Mobile Right Side Actions */}
+              <div className="flex md:hidden items-center gap-2">
+                <Link
+                  to="/employee/profile"
+                  className="w-8 h-8 rounded-full bg-[#e8f0fe] border border-[#d2e3fc] flex items-center justify-center overflow-hidden shrink-0 shadow-2xs"
+                >
+                  {profile?.avatar ? (
+                    <img src={profile.avatar} alt="Profile" className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="text-xs font-bold text-[#1a73e8]">
+                      {(profile?.firstName || profile?.email || 'E').charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                </Link>
+
                 <button
                   type="button"
                   onClick={() => setShowLogoutModal(true)}
-                  className="flex items-center gap-1.5 text-[#d93025] hover:bg-[#fce8e6] transition-colors text-xs font-semibold px-3 py-1.5 rounded-full cursor-pointer"
+                  className="p-1.5 rounded-full text-[#5f6368] hover:text-[#d93025] hover:bg-[#fce8e6] transition-colors cursor-pointer"
+                  title="Sign Out"
                 >
                   <LogOut className="w-4 h-4" />
-                  <span>Logout</span>
                 </button>
               </div>
             </div>
@@ -460,22 +471,22 @@ const EmployeeLayout = () => {
           {/* Dynamic Page Content */}
           <div
             ref={scrollContainerRef}
-            className={`flex-1 overflow-y-auto overscroll-y-contain p-4 sm:p-6 ${shouldHideBottomNav ? 'pb-6' : 'pb-[110px]'} md:pb-6`}
+            className={`flex-1 overflow-y-auto overscroll-y-contain p-4 sm:p-6 ${shouldHideBottomNav ? 'pb-6' : 'pb-[96px]'} md:pb-6`}
             style={{ WebkitOverflowScrolling: 'touch' }}
           >
             <Outlet />
           </div>
 
-          {/* Mobile Bottom Navigation (Preserved for mobile viewport) */}
+          {/* Mobile Bottom Navigation (Google Material 3 Floating Pill Dock) */}
           {!shouldHideBottomNav && (
             <div
-              className="mobile-bottom-nav md:hidden fixed bottom-6 left-4 right-4 z-50 pointer-events-none touch-none select-none"
+              className="mobile-bottom-nav md:hidden fixed bottom-4 left-4 right-4 z-50 pointer-events-none touch-none select-none"
               onTouchStart={handleTouchMove}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
               onTouchCancel={handleTouchEnd}
             >
-              <div className="bg-white/70 backdrop-blur-2xl border border-white/80 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-full p-1.5 flex justify-around items-center pointer-events-auto">
+              <div className="bg-white/90 backdrop-blur-2xl border border-[#e0e3e7] shadow-lg rounded-full p-1.5 flex justify-around items-center pointer-events-auto">
                 {[
                   { label: 'Home', icon: Home, path: '/employee' },
                   { label: 'Attendance', icon: Clock, path: '/employee/attendance' },
@@ -494,17 +505,17 @@ const EmployeeLayout = () => {
                       onClick={(e) => {
                         if (swipePath) e.preventDefault();
                       }}
-                      className="relative flex flex-col items-center justify-center w-[72px] h-[58px] z-10 group"
+                      className="relative flex flex-col items-center justify-center flex-1 h-[52px] z-10 group cursor-pointer"
                     >
                       {isActive && (
                         <motion.div
                           layoutId="mobileNavBubble"
-                          className="absolute inset-0 z-[-1] rounded-full shadow-[inset_0_1px_3px_rgba(255,255,255,0.8),0_4px_16px_rgba(0,0,0,0.06)] bg-white/60 backdrop-blur-xl border border-white/80 overflow-hidden"
-                          transition={{ type: 'spring', bounce: 0.25, duration: 0.5 }}
+                          className="absolute inset-0 z-[-1] rounded-full bg-[#c2e7ff]/70 border border-[#b2d7ff]/80 shadow-2xs"
+                          transition={{ type: 'spring', bounce: 0.2, duration: 0.4 }}
                         />
                       )}
-                      <Icon className={`relative z-10 w-6 h-6 mb-0.5 transition-all duration-300 ${isActive ? 'text-[#1a73e8] scale-105' : 'text-[#5f6368] group-hover:text-[#1f1f1f] group-active:scale-95'}`} strokeWidth={isActive ? 2.5 : 2} />
-                      <span className={`relative z-10 text-[10px] font-medium tracking-wide transition-all duration-300 ${isActive ? 'text-[#1a73e8]' : 'text-[#5f6368]'}`}>{item.label}</span>
+                      <Icon className={`relative z-10 w-5 h-5 mb-0.5 transition-all duration-200 ${isActive ? 'text-[#001d35] scale-105' : 'text-[#5f6368] group-hover:text-[#1f1f1f]'}`} />
+                      <span className={`relative z-10 text-[10px] font-semibold tracking-wide transition-all duration-200 ${isActive ? 'text-[#001d35]' : 'text-[#5f6368]'}`}>{item.label}</span>
                     </Link>
                   );
                 })}
