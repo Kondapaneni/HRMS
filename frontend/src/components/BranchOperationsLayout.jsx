@@ -58,15 +58,15 @@ const BranchOperationsLayout = () => {
     setSwipePath(null);
   };
 
-  // Fetch live news headlines
+  // Fetch live news headlines & maintenance status
   const { data: newsData } = useQuery({
     queryKey: ['newsHeadlines'],
     queryFn: async () => {
       const res = await api.get('/news');
       return res.data;
     },
-    refetchInterval: 180000, // Poll every 3 minutes (180 seconds)
-    staleTime: 180000,
+    refetchInterval: 15000, // Poll every 15 seconds for near-instant maintenance mode detection
+    staleTime: 10000,
     refetchOnWindowFocus: true,
   });
   const newsHeadlines = newsData?.news_headlines || profile?.news_headlines || [];

@@ -18,8 +18,8 @@ export default function UpdateOverlay() {
         return { news_headlines: [], maintenance_mode: false, maintenance_message: '' };
       }
     },
-    refetchInterval: 180000, // Poll every 3 minutes (180 seconds)
-    staleTime: 180000,
+    refetchInterval: 15000, // Poll every 15 seconds for near-instant maintenance mode detection
+    staleTime: 10000,
     refetchOnWindowFocus: false,
     retry: false,
   });

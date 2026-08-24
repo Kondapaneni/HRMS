@@ -20,7 +20,6 @@ const EmployeeLayout = () => {
   const location = useLocation();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
-  const [swipePath, setSwipePath] = useState(null);
   const [isDevBypassed, setIsDevBypassed] = useState(() => localStorage.getItem('dev_bypass_maintenance_session') === 'true');
   
   const hideBottomNavRoutes = ['/employee/leaves/apply', '/employee/profile/edit'];
@@ -41,27 +40,6 @@ const EmployeeLayout = () => {
   const handleExitBypass = () => {
     localStorage.removeItem('dev_bypass_maintenance_session');
     setIsDevBypassed(false);
-  };
-
-  const handleTouchMove = (e) => {
-    const touch = e.touches[0];
-    const element = document.elementFromPoint(touch.clientX, touch.clientY);
-    if (!element) return;
-
-    const navItem = element.closest('[data-nav-path]');
-    if (navItem) {
-      const path = navItem.getAttribute('data-nav-path');
-      if (path && path !== swipePath) {
-        setSwipePath(path);
-      }
-    }
-  };
-
-  const handleTouchEnd = () => {
-    if (swipePath && swipePath !== location.pathname) {
-      navigate(swipePath);
-    }
-    setSwipePath(null);
   };
 
   useEffect(() => {
@@ -160,15 +138,15 @@ const EmployeeLayout = () => {
     });
   }, [businessApps, profile, hasAssessmentToday, hasTrainingVideos]);
 
-  // Fetch live news headlines
+  // Fetch live news headlines & maintenance status
   const { data: newsData } = useQuery({
     queryKey: ['newsHeadlines'],
     queryFn: async () => {
       const res = await api.get('/news');
       return res.data;
     },
-    refetchInterval: 180000, // Poll every 3 minutes
-    staleTime: 180000,
+    refetchInterval: 15000, // Poll every 15 seconds for near-instant maintenance mode detection
+    staleTime: 10000,
     refetchOnWindowFocus: true,
   });
   const newsHeadlines = newsData?.news_headlines || profile?.news_headlines || [];
@@ -482,14 +460,8 @@ const EmployeeLayout = () => {
 
           {/* Mobile Bottom Navigation (Google Material 3 Floating Pill Dock) */}
           {!shouldHideBottomNav && (
-            <div
-              className="mobile-bottom-nav md:hidden fixed bottom-4 left-4 right-4 z-50 pointer-events-none touch-none select-none"
-              onTouchStart={handleTouchMove}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-              onTouchCancel={handleTouchEnd}
-            >
-              <div className="bg-white/90 backdrop-blur-2xl border border-[#e0e3e7] shadow-lg rounded-full p-1.5 flex justify-around items-center pointer-events-auto">
+            <div className="mobile-bottom-nav md:hidden fixed bottom-4 left-4 right-4 z-50">
+              <div className="bg-white/90 backdrop-blur-2xl border border-[#e0e3e7] shadow-lg rounded-full p-1.5 flex justify-around items-center" style={{ willChange: 'transform' }}>
                 {[
                   { label: 'Home', icon: Home, path: '/employee' },
                   { label: 'Attendance', icon: Clock, path: '/employee/attendance' },
@@ -497,33 +469,29 @@ const EmployeeLayout = () => {
                   { label: 'Payroll', icon: Wallet, path: '/employee/payroll' },
                   { label: 'Profile', icon: User, path: '/employee/profile' }
                 ].map((item) => {
-                  const currentPath = swipePath || location.pathname;
+                  const currentPath = location.pathname;
                   const isHome = item.path === '/employee';
                   const isOtherTab = ['/employee/attendance', '/employee/leaves', '/employee/payroll', '/employee/profile'].some(p => currentPath.startsWith(p));
                   const isActive = isHome 
                     ? (currentPath === '/employee' || !isOtherTab) 
-                    : (currentPath === item.path || (!swipePath && currentPath.startsWith(item.path)));
+                    : (currentPath === item.path || currentPath.startsWith(item.path));
                   const Icon = item.icon;
 
                   return (
                     <Link
                       key={item.path}
                       to={item.path}
-                      data-nav-path={item.path}
-                      onClick={(e) => {
-                        if (swipePath) e.preventDefault();
-                      }}
-                      className="relative flex flex-col items-center justify-center flex-1 h-[52px] z-10 group cursor-pointer"
+                      className="relative flex flex-col items-center justify-center flex-1 h-[52px] z-10 group cursor-pointer active:scale-95 transition-transform duration-100"
                     >
                       {isActive && (
                         <motion.div
                           layoutId="mobileNavBubble"
                           className="absolute inset-0 z-[-1] rounded-full bg-[#c2e7ff]/70 border border-[#b2d7ff]/80 shadow-2xs"
-                          transition={{ type: 'spring', bounce: 0.2, duration: 0.4 }}
+                          transition={{ type: 'spring', bounce: 0.15, duration: 0.35 }}
                         />
                       )}
-                      <Icon className={`relative z-10 w-5 h-5 mb-0.5 transition-all duration-200 ${isActive ? 'text-[#001d35] scale-105' : 'text-[#5f6368] group-hover:text-[#1f1f1f]'}`} />
-                      <span className={`relative z-10 text-[10px] font-semibold tracking-wide transition-all duration-200 ${isActive ? 'text-[#001d35]' : 'text-[#5f6368]'}`}>{item.label}</span>
+                      <Icon className={`relative z-10 w-5 h-5 mb-0.5 transition-colors duration-150 ${isActive ? 'text-[#001d35] scale-105' : 'text-[#5f6368]'}`} />
+                      <span className={`relative z-10 text-[10px] font-semibold tracking-wide transition-colors duration-150 ${isActive ? 'text-[#001d35]' : 'text-[#5f6368]'}`}>{item.label}</span>
                     </Link>
                   );
                 })}
