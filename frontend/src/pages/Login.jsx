@@ -383,10 +383,10 @@ const Login = () => {
                     <button
                       type="submit"
                       disabled={isLoading || lockoutSeconds > 0}
-                      className="w-full sm:w-auto min-w-[110px] bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#0d47a1] text-white text-xs font-semibold px-6 py-2.5 rounded-full transition-all shadow-md shadow-[#4285F4]/25 hover:shadow-lg hover:shadow-[#4285F4]/30 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                      className="w-full sm:w-auto min-w-[110px] bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#0d47a1] text-white text-sm sm:text-xs font-semibold px-6 py-3.5 sm:py-2.5 rounded-full transition-all shadow-md shadow-[#4285F4]/25 hover:shadow-lg hover:shadow-[#4285F4]/30 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
                     >
                       {isLoading ? (
-                        <span className="inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span className="inline-block w-4 h-4 sm:w-3.5 sm:h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       ) : lockoutSeconds > 0 ? (
                         `Locked (${Math.floor(lockoutSeconds / 60)}:${(lockoutSeconds % 60).toString().padStart(2, '0')})`
                       ) : (
@@ -398,15 +398,15 @@ const Login = () => {
                       type="button"
                       disabled={isLoading || lockoutSeconds > 0 || !email}
                       onClick={() => setIsScanning(true)}
-                      className="w-full sm:w-auto min-w-[110px] bg-[#1e8e3e] hover:bg-[#188038] active:bg-[#137333] text-white text-xs font-semibold px-6 py-2.5 rounded-full transition-all shadow-md shadow-[#34A853]/25 hover:shadow-lg hover:shadow-[#34A853]/30 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                      className="w-full sm:w-auto min-w-[110px] bg-[#1e8e3e] hover:bg-[#188038] active:bg-[#137333] text-white text-sm sm:text-xs font-semibold px-6 py-3.5 sm:py-2.5 rounded-full transition-all shadow-md shadow-[#34A853]/25 hover:shadow-lg hover:shadow-[#34A853]/30 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
                     >
                       {isLoading ? (
-                        <span className="inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span className="inline-block w-4 h-4 sm:w-3.5 sm:h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       ) : lockoutSeconds > 0 ? (
                         `Locked (${Math.floor(lockoutSeconds / 60)}:${(lockoutSeconds % 60).toString().padStart(2, '0')})`
                       ) : (
                         <>
-                          <ScanFace size={15} />
+                          <ScanFace size={16} className="sm:w-[15px] sm:h-[15px]" />
                           Scan Face
                         </>
                       )}
