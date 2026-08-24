@@ -242,7 +242,7 @@ const ForgotPassword = () => {
       </div>
 
       {/* Google-style Clean Bottom Footer */}
-      <footer className="w-full max-w-[980px] mx-auto px-4 sm:px-6 pt-1 pb-6 sm:pb-3 flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#5f6368] gap-1.5 sm:gap-2 shrink-0 relative z-10">
+      <footer className="w-full max-w-[980px] mx-auto px-4 sm:px-6 pt-1 pb-10 sm:pb-3 mb-2 sm:mb-0 flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#5f6368] gap-1.5 sm:gap-2 shrink-0 relative z-10">
         <div className="flex items-center gap-1.5 font-medium text-center sm:text-left">
           <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4] shrink-0" />
           <span>Designed &amp; Developed by Gowtham Chowdary Kondapaneni</span>

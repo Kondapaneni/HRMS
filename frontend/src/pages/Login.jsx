@@ -225,28 +225,28 @@ const Login = () => {
           <div className="flex flex-col justify-between">
             {/* Colorful Method Switcher Pill Tabs */}
             <div className="flex justify-center mb-4">
-              <div className="inline-flex p-1 bg-[#f1f3f4] rounded-full border border-[#dadce0]">
+              <div className="inline-flex p-1 bg-[#f1f3f4] rounded-full border border-[#dadce0] w-full sm:w-auto">
                 <button
                   type="button"
                   onClick={() => { setLoginMethod('password'); setIsScanning(false); }}
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium transition-all ${loginMethod === 'password'
-                      ? 'bg-[#4285F4] text-white shadow-md shadow-[#4285F4]/25 font-semibold'
-                      : 'text-[#5f6368] hover:text-[#1f1f1f] hover:bg-black/5'
+                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 sm:px-5 py-2.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${loginMethod === 'password'
+                      ? 'bg-[#4285F4] text-white shadow-md shadow-[#4285F4]/25'
+                      : 'text-[#5f6368] hover:text-[#1f1f1f] hover:bg-black/5 font-medium'
                     }`}
                 >
-                  <KeyRound size={14} />
-                  Password Sign In
+                  <KeyRound size={15} className="shrink-0" />
+                  <span>Password Sign In</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => { setLoginMethod('face'); setIsScanning(false); }}
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium transition-all ${loginMethod === 'face'
-                      ? 'bg-[#34A853] text-white shadow-md shadow-[#34A853]/25 font-semibold'
-                      : 'text-[#5f6368] hover:text-[#1f1f1f] hover:bg-black/5'
+                  className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 sm:px-5 py-2.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${loginMethod === 'face'
+                      ? 'bg-[#34A853] text-white shadow-md shadow-[#34A853]/25'
+                      : 'text-[#5f6368] hover:text-[#1f1f1f] hover:bg-black/5 font-medium'
                     }`}
                 >
-                  <ScanFace size={14} />
-                  Face ID Sign In
+                  <ScanFace size={15} className="shrink-0" />
+                  <span>Face ID Sign In</span>
                 </button>
               </div>
             </div>
@@ -420,7 +420,7 @@ const Login = () => {
       </div>
 
       {/* Google-style Clean Bottom Footer */}
-      <footer className="w-full max-w-[980px] mx-auto px-4 sm:px-6 pt-1 pb-6 sm:pb-3 flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#5f6368] gap-1.5 sm:gap-2 shrink-0 relative z-10">
+      <footer className="w-full max-w-[980px] mx-auto px-4 sm:px-6 pt-1 pb-10 sm:pb-3 mb-2 sm:mb-0 flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#5f6368] gap-1.5 sm:gap-2 shrink-0 relative z-10">
         <div className="flex items-center gap-1.5 font-medium text-center sm:text-left">
           <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4] shrink-0" />
           <span>Designed &amp; Developed by Gowtham Chowdary Kondapaneni</span>
