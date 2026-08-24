@@ -358,25 +358,41 @@ const EmployeeLayout = () => {
         <main className="flex-1 flex flex-col h-[100dvh] overflow-hidden relative z-10 bg-transparent">
 
           {/* Top Header */}
-          <header className="h-14 bg-white border-b border-[#e0e3e7] px-4 sm:px-5 flex items-center justify-between z-10 shrink-0">
+          <header className="h-14 bg-white border-b border-[#e0e3e7] px-4 sm:px-5 flex items-center justify-between z-10 shrink-0 relative">
             <div className="flex items-center gap-3 shrink-0">
               <div className="hidden md:block">
                 {profile?.featureAccess?.canEmployees && <GlobalSearch />}
               </div>
               
-              {/* Mobile Brand & User Pill */}
-              <div className="md:hidden flex items-center gap-2.5">
-                <Link to="/employee" className="flex items-center gap-1.5 shrink-0">
-                  <span className="text-base font-bold tracking-tight text-[#1f1f1f]">Acme</span>
-                  <span className="text-base font-semibold tracking-tight text-[#4285F4]">HRMS</span>
-                  <div className="flex items-center gap-0.5 ml-0.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-                  </div>
+              {/* Mobile Left Edge: Profile Avatar */}
+              <div className="md:hidden flex items-center">
+                <Link
+                  to="/employee/profile"
+                  className="w-8 h-8 rounded-full bg-[#e8f0fe] border border-[#d2e3fc] flex items-center justify-center overflow-hidden shrink-0 shadow-2xs cursor-pointer active:scale-95 transition-transform"
+                >
+                  {profile?.avatar ? (
+                    <img src={profile.avatar} alt="Profile" className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="text-xs font-bold text-[#1a73e8]">
+                      {(profile?.firstName || profile?.email || 'E').charAt(0).toUpperCase()}
+                    </span>
+                  )}
                 </Link>
               </div>
+            </div>
+
+            {/* Mobile Center: Acme HRMS with 4 Google dots */}
+            <div className="md:hidden absolute left-1/2 -translate-x-1/2 flex items-center pointer-events-auto">
+              <Link to="/employee" className="flex items-center gap-1.5 shrink-0">
+                <span className="text-base font-bold tracking-tight text-[#1f1f1f]">Acme</span>
+                <span className="text-base font-semibold tracking-tight text-[#4285F4]">HRMS</span>
+                <div className="flex items-center gap-0.5 ml-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+                </div>
+              </Link>
             </div>
 
             {/* Scrolling News Ticker (Desktop Google Pill) */}
@@ -420,20 +436,7 @@ const EmployeeLayout = () => {
               </div>
 
               {/* Mobile Right Side Actions */}
-              <div className="flex md:hidden items-center gap-2">
-                <Link
-                  to="/employee/profile"
-                  className="w-8 h-8 rounded-full bg-[#e8f0fe] border border-[#d2e3fc] flex items-center justify-center overflow-hidden shrink-0 shadow-2xs"
-                >
-                  {profile?.avatar ? (
-                    <img src={profile.avatar} alt="Profile" className="h-full w-full object-cover" />
-                  ) : (
-                    <span className="text-xs font-bold text-[#1a73e8]">
-                      {(profile?.firstName || profile?.email || 'E').charAt(0).toUpperCase()}
-                    </span>
-                  )}
-                </Link>
-
+              <div className="flex md:hidden items-center">
                 <button
                   type="button"
                   onClick={() => setShowLogoutModal(true)}
