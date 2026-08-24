@@ -334,6 +334,9 @@ const Login = () => {
 
               {loginMethod === 'face' && (
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mt-6">
+                  {!email && (
+                    <p className="text-sm text-red-500 font-bold mb-3 text-center">Please enter your email first.</p>
+                  )}
                   <button
                     type="button"
                     disabled={isLoading || lockoutSeconds > 0 || !email}
@@ -343,9 +346,6 @@ const Login = () => {
                     {isLoading ? 'Processing...' : lockoutSeconds > 0 ? `Locked out (${Math.floor(lockoutSeconds / 60)}:${(lockoutSeconds % 60).toString().padStart(2, '0')})` : 'Scan Face'}
                     {!isLoading && lockoutSeconds === 0 && <User size={24} strokeWidth={3} className="ml-2" />}
                   </button>
-                  {!email && (
-                    <p className="text-sm text-red-500 font-bold mt-2 text-center">Please enter your email first.</p>
-                  )}
                 </motion.div>
               )}
             </form>
