@@ -131,31 +131,22 @@ const AdminBulkPayroll = () => {
 
   return (
     <div className="space-y-6 pb-12">
-      {/* Header */}
+      {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate('/admin/payroll')}
-            className="p-2 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer shadow-xs"
-            title="Back to Payroll"
-          >
-            <ArrowLeft className="w-4 h-4 text-[#5f6368]" />
-          </button>
-          <div>
-            <div className="flex items-center gap-1.5 mb-0.5">
-              <span className="w-2 h-2 rounded-full bg-[#4285F4]" />
-              <span className="w-2 h-2 rounded-full bg-[#EA4335]" />
-              <span className="w-2 h-2 rounded-full bg-[#FBBC05]" />
-              <span className="w-2 h-2 rounded-full bg-[#34A853]" />
-              <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Batch Processing</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight flex items-center gap-2">
-              Bulk Generate Payslips <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">{filteredEmployees.length} Pending</span>
-            </h1>
-            <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
-              Select pay period, review pending employees, and batch calculate salary statements.
-            </p>
+        <div>
+          <div className="flex items-center gap-1.5 mb-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+            <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Batch Processing</span>
           </div>
+          <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight flex items-center gap-2">
+            Bulk Generate Payslips <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">{filteredEmployees.length} Pending</span>
+          </h1>
+          <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
+            Select pay period, review pending employees, and batch calculate salary statements.
+          </p>
         </div>
       </div>
 
