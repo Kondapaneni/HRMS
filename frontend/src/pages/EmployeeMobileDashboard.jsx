@@ -373,72 +373,48 @@ const EmployeeMobileDashboard = () => {
         </Link>
       </div>
 
-      {/* Business Apps Entry */}
+      {/* Business Apps (App-style Round Icons) */}
       {(profile?.featureAccess?.canLoanOrigination || profile?.featureAccess?.canSalesOrigination || profile?.featureAccess?.canBranchOperations || hasTrainingVideos) && (
         <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs space-y-3">
           <div className="flex items-center justify-between pb-2 border-b border-[#e0e3e7]">
             <h2 className="text-xs font-bold text-[#1f1f1f] uppercase tracking-wider">Business Apps</h2>
-            <span className="text-[10px] text-[#5f6368]">Access modules</span>
+            <span className="text-[10px] text-[#5f6368]">Tap to open</span>
           </div>
 
-          <div className="space-y-2">
+          <div className="grid grid-cols-4 gap-3 pt-1">
             {profile?.featureAccess?.canLoanOrigination && (
-              <Link to="/employee/loans/origination" className="flex items-center justify-between p-3 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7] hover:bg-[#e8f0fe]/50 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className="bg-[#e8f0fe] p-2 rounded-xl text-[#1a73e8]">
-                    <Briefcase className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold text-[#1f1f1f]">Loans Origination</div>
-                    <div className="text-[10px] text-[#5f6368]">Originate and manage customer loans</div>
-                  </div>
+              <Link to="/employee/loans/origination" className="flex flex-col items-center gap-1.5 group">
+                <div className="w-14 h-14 rounded-[1.25rem] bg-[#e8f0fe] border border-[#d2e3fc] flex items-center justify-center shadow-2xs group-active:scale-90 transition-transform duration-100">
+                  <Briefcase className="w-6 h-6 text-[#1a73e8]" />
                 </div>
-                <ChevronRight className="w-4 h-4 text-[#5f6368]" />
+                <span className="text-[10px] font-semibold text-[#1f1f1f] text-center leading-tight">Loans</span>
               </Link>
             )}
 
             {profile?.featureAccess?.canSalesOrigination && (
-              <Link to="/employee/sales/origination" className="flex items-center justify-between p-3 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7] hover:bg-[#e6f4ea]/50 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className="bg-[#e6f4ea] p-2 rounded-xl text-[#137333]">
-                    <ShoppingBag className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold text-[#1f1f1f]">Sales Origination</div>
-                    <div className="text-[10px] text-[#5f6368]">Originate and manage sales leads</div>
-                  </div>
+              <Link to="/employee/sales/origination" className="flex flex-col items-center gap-1.5 group">
+                <div className="w-14 h-14 rounded-[1.25rem] bg-[#e6f4ea] border border-[#ceead6] flex items-center justify-center shadow-2xs group-active:scale-90 transition-transform duration-100">
+                  <ShoppingBag className="w-6 h-6 text-[#137333]" />
                 </div>
-                <ChevronRight className="w-4 h-4 text-[#5f6368]" />
+                <span className="text-[10px] font-semibold text-[#1f1f1f] text-center leading-tight">Sales</span>
               </Link>
             )}
 
             {profile?.featureAccess?.canBranchOperations && (
-              <Link to="/employee/branch-operations" className="flex items-center justify-between p-3 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7] hover:bg-[#f3e8fd]/50 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className="bg-[#f3e8fd] p-2 rounded-xl text-[#8430ce]">
-                    <Building2 className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold text-[#1f1f1f]">Branch Operations</div>
-                    <div className="text-[10px] text-[#5f6368]">Branch workflows and oversight</div>
-                  </div>
+              <Link to="/employee/branch-operations" className="flex flex-col items-center gap-1.5 group">
+                <div className="w-14 h-14 rounded-[1.25rem] bg-[#fef7e0] border border-[#feefc3] flex items-center justify-center shadow-2xs group-active:scale-90 transition-transform duration-100">
+                  <Building2 className="w-6 h-6 text-[#b06000]" />
                 </div>
-                <ChevronRight className="w-4 h-4 text-[#5f6368]" />
+                <span className="text-[10px] font-semibold text-[#1f1f1f] text-center leading-tight">Branch Ops</span>
               </Link>
             )}
 
             {hasTrainingVideos && (
-              <Link to="/employee/training" className="flex items-center justify-between p-3 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7] hover:bg-[#f3e8fd]/50 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className="bg-[#f3e8fd] p-2 rounded-xl text-[#8430ce]">
-                    <Play className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold text-[#1f1f1f]">Training Videos</div>
-                    <div className="text-[10px] text-[#5f6368]">Assigned training courses</div>
-                  </div>
+              <Link to="/employee/training" className="flex flex-col items-center gap-1.5 group">
+                <div className="w-14 h-14 rounded-[1.25rem] bg-[#fce8e6] border border-[#fad2cf] flex items-center justify-center shadow-2xs group-active:scale-90 transition-transform duration-100">
+                  <Play className="w-6 h-6 text-[#d93025]" />
                 </div>
-                <ChevronRight className="w-4 h-4 text-[#5f6368]" />
+                <span className="text-[10px] font-semibold text-[#1f1f1f] text-center leading-tight">Training</span>
               </Link>
             )}
           </div>
@@ -528,6 +504,53 @@ const EmployeeMobileDashboard = () => {
           ) : (
             <div className="text-center text-[#5f6368] text-xs py-3">
               No upcoming company holidays.
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Upcoming Birthdays This Month */}
+      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs space-y-3">
+        <div className="flex items-center justify-between pb-2 border-b border-[#e0e3e7]">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 rounded-xl bg-[#fce8e6] text-[#d93025]">
+              <Cake className="w-4 h-4" />
+            </div>
+            <h2 className="text-xs font-bold text-[#1f1f1f] uppercase tracking-wider">Birthdays This Month</h2>
+          </div>
+          <span className="text-[10px] text-[#5f6368]">{new Date().toLocaleString('en-US', { month: 'long' })}</span>
+        </div>
+
+        <div className="space-y-2">
+          {upcomingBirthdays.length > 0 ? (
+            upcomingBirthdays.map((bday, idx) => (
+              <div key={idx} className="flex items-center gap-3 p-2.5 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7] text-xs">
+                <div className="w-9 h-9 rounded-full bg-[#fce8e6] border border-[#fad2cf] flex items-center justify-center shrink-0 overflow-hidden">
+                  {bday.avatar ? (
+                    <img src={bday.avatar} alt={bday.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-xs font-bold text-[#d93025]">
+                      {(bday.name || bday.firstName || '?').charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-bold text-[#1f1f1f] truncate">{bday.name || `${bday.firstName || ''} ${bday.lastName || ''}`.trim()}</h3>
+                  <p className="text-[10px] text-[#5f6368]">{bday.department || 'Team Member'}</p>
+                </div>
+                <div className="flex flex-col items-center justify-center min-w-[2.75rem] px-1.5 py-1 rounded-xl bg-[#fce8e6] text-[#d93025] border border-[#fad2cf]">
+                  <span className="text-[9px] font-bold uppercase leading-none mb-0.5">
+                    {new Date(bday.dateOfBirth || bday.dob || bday.birthday).toLocaleDateString(undefined, { month: 'short' })}
+                  </span>
+                  <span className="text-sm font-bold leading-none">
+                    {new Date(bday.dateOfBirth || bday.dob || bday.birthday).getDate()}
+                  </span>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center text-[#5f6368] text-xs py-3">
+              No birthdays this month.
             </div>
           )}
         </div>

@@ -20,12 +20,15 @@ const EmployeeLayout = () => {
   const location = useLocation();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [swipePath, setSwipePath] = useState(null);
   const [isDevBypassed, setIsDevBypassed] = useState(() => localStorage.getItem('dev_bypass_maintenance_session') === 'true');
   
   const hideBottomNavRoutes = ['/employee/leaves/apply', '/employee/profile/edit'];
   const shouldHideBottomNav = hideBottomNavRoutes.some(p => location.pathname === p || location.pathname.startsWith(`${p}/`));
 
   const scrollContainerRef = useRef(null);
+  const swipeRafRef = useRef(null);
+  const lastSwipePathRef = useRef(null);
 
   useEffect(() => {
     if (scrollContainerRef.current) {
@@ -40,6 +43,38 @@ const EmployeeLayout = () => {
   const handleExitBypass = () => {
     localStorage.removeItem('dev_bypass_maintenance_session');
     setIsDevBypassed(false);
+  };
+
+  const handleTouchMove = (e) => {
+    if (swipeRafRef.current) return;
+    swipeRafRef.current = requestAnimationFrame(() => {
+      swipeRafRef.current = null;
+      const touch = e.touches?.[0];
+      if (!touch) return;
+      const element = document.elementFromPoint(touch.clientX, touch.clientY);
+      if (!element) return;
+      const navItem = element.closest('[data-nav-path]');
+      if (navItem) {
+        const path = navItem.getAttribute('data-nav-path');
+        if (path && path !== lastSwipePathRef.current) {
+          lastSwipePathRef.current = path;
+          setSwipePath(path);
+        }
+      }
+    });
+  };
+
+  const handleTouchEnd = () => {
+    if (swipeRafRef.current) {
+      cancelAnimationFrame(swipeRafRef.current);
+      swipeRafRef.current = null;
+    }
+    const target = lastSwipePathRef.current;
+    if (target && target !== location.pathname) {
+      navigate(target);
+    }
+    lastSwipePathRef.current = null;
+    setSwipePath(null);
   };
 
   useEffect(() => {
@@ -460,7 +495,12 @@ const EmployeeLayout = () => {
 
           {/* Mobile Bottom Navigation (Google Material 3 Floating Pill Dock) */}
           {!shouldHideBottomNav && (
-            <div className="mobile-bottom-nav md:hidden fixed bottom-4 left-4 right-4 z-50">
+            <div
+              className="mobile-bottom-nav md:hidden fixed bottom-4 left-4 right-4 z-50 select-none"
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              onTouchCancel={handleTouchEnd}
+            >
               <div className="bg-white/90 backdrop-blur-2xl border border-[#e0e3e7] shadow-lg rounded-full p-1.5 flex justify-around items-center" style={{ willChange: 'transform' }}>
                 {[
                   { label: 'Home', icon: Home, path: '/employee' },
@@ -469,18 +509,20 @@ const EmployeeLayout = () => {
                   { label: 'Payroll', icon: Wallet, path: '/employee/payroll' },
                   { label: 'Profile', icon: User, path: '/employee/profile' }
                 ].map((item) => {
-                  const currentPath = location.pathname;
+                  const currentPath = swipePath || location.pathname;
                   const isHome = item.path === '/employee';
                   const isOtherTab = ['/employee/attendance', '/employee/leaves', '/employee/payroll', '/employee/profile'].some(p => currentPath.startsWith(p));
                   const isActive = isHome 
                     ? (currentPath === '/employee' || !isOtherTab) 
-                    : (currentPath === item.path || currentPath.startsWith(item.path));
+                    : (currentPath === item.path || (!swipePath && currentPath.startsWith(item.path)));
                   const Icon = item.icon;
 
                   return (
                     <Link
                       key={item.path}
                       to={item.path}
+                      data-nav-path={item.path}
+                      onClick={(e) => { if (swipePath) e.preventDefault(); }}
                       className="relative flex flex-col items-center justify-center flex-1 h-[52px] z-10 group cursor-pointer active:scale-95 transition-transform duration-100"
                     >
                       {isActive && (
