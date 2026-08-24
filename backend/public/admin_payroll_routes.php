@@ -258,21 +258,34 @@ $app->get('/api/admin/payroll/pending-employees', function (Request $request, Re
     
     $month = isset($params['month']) ? (int)$params['month'] : date('n');
     $year = isset($params['year']) ? (int)$params['year'] : date('Y');
+    $search = trim($params['search'] ?? '');
+
+    $whereSearch = '';
+    $queryParams = [$month, $year];
+
+    if (!empty($search)) {
+        $whereSearch = 'AND (e."firstName" ILIKE ? OR e."lastName" ILIKE ? OR e."employeeId" ILIKE ?)';
+        $searchTerm = '%' . $search . '%';
+        $queryParams[] = $searchTerm;
+        $queryParams[] = $searchTerm;
+        $queryParams[] = $searchTerm;
+    }
 
     // Get all active employees who do NOT have a payslip for the given month and year
-    $query = '
-        SELECT e."userId", e."employeeId", e."firstName", e."lastName", e.position, e.salary, b.name as branch_name 
+    $query = "
+        SELECT e.\"userId\", e.\"employeeId\", e.\"firstName\", e.\"lastName\", e.position, e.salary, b.name as branch_name 
         FROM employee e 
         LEFT JOIN branches b ON e.branch::uuid = b.id
-        WHERE e.status = \'active\' 
+        WHERE e.status = 'active' 
         AND NOT EXISTS (
-            SELECT 1 FROM payslips p WHERE p."employeeId" = e."userId" AND p.month = ? AND p.year = ?
+            SELECT 1 FROM payslips p WHERE p.\"employeeId\" = e.\"userId\" AND p.month = ? AND p.year = ?
         )
-        ORDER BY e."firstName" ASC
-    ';
+        {$whereSearch}
+        ORDER BY e.\"firstName\" ASC
+    ";
     
     $stmt = $conn->prepare($query);
-    $stmt->execute([$month, $year]);
+    $stmt->execute($queryParams);
     $pendingEmployees = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $response->getBody()->write(json_encode(['employees' => $pendingEmployees]));

@@ -83,10 +83,9 @@ const AdminAttendanceLocation = () => {
       });
 
       const infoWindow = new window.google.maps.InfoWindow({
-        maxWidth: 400,
-        // Shift right and further down to align with the pointer
-        pixelOffset: new window.google.maps.Size(210, 90),
-        disableAutoPan: true,
+        maxWidth: 360,
+        pixelOffset: new window.google.maps.Size(0, -10),
+        disableAutoPan: false,
       });
       infoWindowRef.current = infoWindow;
 
@@ -134,7 +133,7 @@ const AdminAttendanceLocation = () => {
         markersRef.current.checkIn = createMarker(
           { lat: parseFloat(record.checkInLat), lng: parseFloat(record.checkInLng) },
           'Check In',
-          '#22c55e',
+          '#34A853',
           'checkIn'
         );
       }
@@ -143,7 +142,7 @@ const AdminAttendanceLocation = () => {
         markersRef.current.checkOut = createMarker(
           { lat: parseFloat(record.checkOutLat), lng: parseFloat(record.checkOutLng) },
           'Check Out',
-          '#ef4444',
+          '#EA4335',
           'checkOut'
         );
       }
@@ -154,7 +153,7 @@ const AdminAttendanceLocation = () => {
             const marker = createMarker(
               { lat: parseFloat(punch.latitude), lng: parseFloat(punch.longitude) },
               `Punch In #${idx + 1}`,
-              '#2563eb',
+              '#4285F4',
               'punch',
               idx
             );
@@ -185,7 +184,6 @@ const AdminAttendanceLocation = () => {
 
         if (hasMarkers) {
           map.fitBounds(bounds);
-          // Limit zoom so it doesn't zoom in too close if there's only 1 marker
           const listener = window.google.maps.event.addListener(map, "idle", function () {
             if (map.getZoom() > 16) map.setZoom(16);
             window.google.maps.event.removeListener(listener);
@@ -193,9 +191,7 @@ const AdminAttendanceLocation = () => {
         }
       };
 
-      // Expose showAllMarkers to component scope so the button can use it
       window.__showAllMarkers = showAllMarkers;
-
       showAllMarkers();
     };
 
@@ -228,19 +224,19 @@ const AdminAttendanceLocation = () => {
         title = `Punch In #${index + 1}`;
       }
 
-      let content = `<div style="max-width:350px;font-family:Arial, sans-serif;color:#111;">
-        <div style="font-weight:700;margin-bottom:8px;">${title}</div>
-        <div style="display:flex;gap:12px;align-items:flex-start;">`;
+      let content = `<div style="max-width:320px;font-family:'Google Sans',Arial,sans-serif;color:#1f1f1f;padding:2px;">
+        <div style="font-weight:700;margin-bottom:8px;font-size:13px;color:#1f1f1f;">${title}</div>
+        <div style="display:flex;gap:10px;align-items:flex-start;">`;
 
       if (photoUrl) {
-        content += `<div style="flex-shrink:0;width:120px;"><img src="${photoUrl}" alt="${title}" style="width:100%;height:auto;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.15);" /></div>`;
+        content += `<div style="flex-shrink:0;width:105px;"><img src="${photoUrl}" alt="${title}" style="width:100%;height:auto;max-height:130px;object-fit:cover;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.12);" /></div>`;
       } else {
-        content += `<div style="flex-shrink:0;width:120px;padding:10px;background:#f8fafc;border-radius:12px;color:#475569;font-size:12px;text-align:center;box-sizing:border-box;">No photo</div>`;
+        content += `<div style="flex-shrink:0;width:95px;padding:12px 6px;background:#f8fafd;border:1px solid #e0e3e7;border-radius:10px;color:#5f6368;font-size:11px;text-align:center;box-sizing:border-box;">No photo</div>`;
       }
 
-      content += `<div style="font-size:13px;line-height:1.5;color:#334155;flex-grow:1;">
-        <div><strong>Location:</strong> ${lat && lng ? `${lat}, ${lng}` : 'Not available'}</div>
-        <div style="margin-top:6px;"><strong>Address:</strong> ${address || 'Not available'}</div>
+      content += `<div style="font-size:11.5px;line-height:1.5;color:#5f6368;flex-grow:1;min-width:0;">
+        <div style="word-break:break-word;"><strong style="color:#1f1f1f;">Location:</strong><br/>${lat && lng ? `${parseFloat(lat).toFixed(6)}, ${parseFloat(lng).toFixed(6)}` : 'Not available'}</div>
+        <div style="margin-top:6px;word-break:break-word;"><strong style="color:#1f1f1f;">Address:</strong><br/>${address || 'Not available'}</div>
       </div>
       </div></div>`;
 
@@ -264,7 +260,6 @@ const AdminAttendanceLocation = () => {
     const map = mapInstanceRef.current;
     if (!map) return;
 
-    // Hide all markers
     if (markersRef.current.checkIn) markersRef.current.checkIn.setMap(null);
     if (markersRef.current.checkOut) markersRef.current.checkOut.setMap(null);
     markersRef.current.punch.forEach(m => m.setMap(null));
@@ -281,22 +276,16 @@ const AdminAttendanceLocation = () => {
     marker.setMap(map);
     map.panTo(marker.getPosition());
     map.setZoom(17);
-    window.google.maps.event.trigger(marker, 'click');
+    pinnedMarkerRef.current = marker;
+    showPhotoInfo(key, marker, index);
   };
 
   if (loading || !data) {
-    return (
-      <div className="flex h-full items-center justify-center p-8 text-slate-500">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600"></div>
-          <p>Loading location details...</p>
-        </div>
-      </div>
-    );
+    return <PageLoader message="Loading Location Data..." />;
   }
 
   const { record, employee, punches } = data;
-  const displayDate = new Date(record.date).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
+  const displayDate = new Date(record.date).toLocaleDateString('en-US', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
   const employeeName = `${employee.firstName} ${employee.lastName}`;
 
   const checkInTime = record.checkIn ? new Date(record.checkIn).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'No record';
@@ -305,12 +294,9 @@ const AdminAttendanceLocation = () => {
   const checkOutTime = record.checkOut ? new Date(record.checkOut).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : 'Missing';
   const checkOutCoordsStr = (record.checkOutLat && record.checkOutLng) ? `${parseFloat(record.checkOutLat).toFixed(6)}, ${parseFloat(record.checkOutLng).toFixed(6)}` : 'No location';
 
-  if (loading) return <PageLoader message="Loading Location Data..." />;
-
   return (
     <div
-      className="flex flex-col gap-4 overflow-hidden -mx-4 sm:-mx-6 -mt-4 sm:-mt-6 px-4 sm:px-6 pt-4 sm:pt-6 -mb-4 sm:-mb-6"
-      style={{ height: 'calc(100vh - 61px)' }}
+      className="flex flex-col overflow-hidden -mx-4 sm:-mx-6 -my-4 sm:-my-6 h-[calc(100vh-61px)]"
     >
       <style>{`
         .gm-ui-hover-effect {
@@ -319,88 +305,98 @@ const AdminAttendanceLocation = () => {
         .gm-style-iw-c button[title="Close"] {
           display: none !important;
         }
-        /* Hide the default downward-pointing tail of the InfoWindow */
         .gm-style-iw-tc {
           display: none !important;
         }
       `}</style>
 
-
-      <div className="grid gap-4 md:grid-cols-[320px_1fr] lg:grid-cols-[360px_1fr] min-h-0 flex-1">
-        <aside className="flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden h-full">
-          <div className="flex items-start justify-between gap-3 border-b border-slate-200 p-4 bg-slate-50/50">
-            <div className="space-y-1">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Map view</p>
-              <h2 className="text-base font-semibold tracking-tight text-slate-900">
-                {displayDate} - {employeeName}
-              </h2>
+      <div className="grid md:grid-cols-[320px_1fr] lg:grid-cols-[360px_1fr] min-h-0 flex-1 bg-white">
+        {/* Sidebar Panel */}
+        <aside className="flex flex-col border-r border-[#e0e3e7] bg-white overflow-hidden h-full z-10">
+          {/* Sidebar Header */}
+          <div className="border-b border-[#f1f3f4] p-4 bg-[#f8fafd]/80 shrink-0">
+            <div className="flex items-center gap-1.5 mb-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+              <span className="text-[10px] font-bold text-[#5f6368] uppercase tracking-wider ml-1">Map View</span>
             </div>
+            <h2 className="text-sm font-semibold text-[#1f1f1f] truncate">
+              {employeeName}
+            </h2>
+            <p className="text-[11px] text-[#5f6368] mt-0.5">{displayDate}</p>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">Remote clock in / clock out</p>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
-                      <ArrowRightToLine className="w-5 h-5" />
+          {/* Sidebar Content */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
+            {/* Check In / Check Out */}
+            <section>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368] mb-2.5">Remote Clock In / Clock Out</p>
+              <div className="space-y-2.5">
+                {/* Check In */}
+                <div className="flex items-center justify-between p-3 rounded-xl bg-[#e6f4ea] border border-[#ceead6]">
+                  <div className="flex items-center gap-2.5">
+                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#34A853] shadow-xs border border-[#ceead6]">
+                      <ArrowRightToLine size={15} />
                     </span>
                     <div>
-                      <p className="text-sm font-semibold text-slate-900">{checkInTime}</p>
-                      <p className="text-xs text-slate-500">{checkInCoordsStr}</p>
+                      <p className="text-xs font-semibold text-[#137333]">{checkInTime}</p>
+                      <p className="text-[10px] text-[#137333]/70 truncate max-w-[140px]">{checkInCoordsStr}</p>
                     </div>
                   </div>
                   {record.checkInLat && record.checkInLng && (
                     <button
                       onClick={() => focusMarker('checkIn')}
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-emerald-600 shadow-sm hover:border-emerald-600 hover:bg-emerald-50 transition-all cursor-pointer"
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white text-[#34A853] border border-[#ceead6] hover:bg-[#ceead6] transition-colors cursor-pointer shadow-xs"
                       title="Focus on map"
                     >
-                      <MapPin className="w-4 h-4" />
+                      <MapPin size={13} />
                     </button>
                   )}
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-rose-50 text-rose-600">
-                      <ArrowLeftFromLine className="w-5 h-5" />
+                {/* Check Out */}
+                <div className="flex items-center justify-between p-3 rounded-xl bg-[#fce8e6] border border-[#fad2cf]">
+                  <div className="flex items-center gap-2.5">
+                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#EA4335] shadow-xs border border-[#fad2cf]">
+                      <ArrowLeftFromLine size={15} />
                     </span>
                     <div>
-                      <p className="text-sm font-semibold text-slate-900">{checkOutTime}</p>
-                      <p className="text-xs text-slate-500">{checkOutCoordsStr}</p>
+                      <p className="text-xs font-semibold text-[#c5221f]">{checkOutTime}</p>
+                      <p className="text-[10px] text-[#c5221f]/70 truncate max-w-[140px]">{checkOutCoordsStr}</p>
                     </div>
                   </div>
                   {record.checkOutLat && record.checkOutLng && (
                     <button
                       onClick={() => focusMarker('checkOut')}
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-rose-600 shadow-sm hover:border-rose-600 hover:bg-rose-50 transition-all cursor-pointer"
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white text-[#EA4335] border border-[#fad2cf] hover:bg-[#fad2cf] transition-colors cursor-pointer shadow-xs"
                       title="Focus on map"
                     >
-                      <MapPin className="w-4 h-4" />
+                      <MapPin size={13} />
                     </button>
                   )}
                 </div>
               </div>
             </section>
 
-            <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">Location punches</p>
+            {/* Location Punches */}
+            <section>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368] mb-2.5">Location Punches</p>
               {punches && punches.length > 0 ? (
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {punches.map((punch, idx) => (
-                    <div key={punch.id} className="rounded-lg border border-slate-100 bg-slate-50 p-3">
+                    <div key={punch.id} className="rounded-xl border border-[#d2e3fc] bg-[#e8f0fe] p-3">
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-                            <span className="text-xs font-bold">{idx + 1}</span>
+                        <div className="flex items-center gap-2.5">
+                          <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white text-[#1a73e8] text-[10px] font-bold border border-[#d2e3fc] shadow-xs">
+                            {idx + 1}
                           </span>
                           <div>
-                            <p className="text-sm font-semibold text-slate-900">
+                            <p className="text-xs font-semibold text-[#1a73e8]">
                               {new Date(punch.punchTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                             </p>
-                            <p className="text-xs text-slate-500">
+                            <p className="text-[10px] text-[#1a73e8]/70 truncate max-w-[140px]">
                               {(punch.latitude && punch.longitude) ? `${parseFloat(punch.latitude).toFixed(6)}, ${parseFloat(punch.longitude).toFixed(6)}` : 'No location'}
                             </p>
                           </div>
@@ -408,10 +404,10 @@ const AdminAttendanceLocation = () => {
                         {(punch.latitude && punch.longitude) && (
                           <button
                             onClick={() => focusMarker('punch', idx)}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-blue-600 shadow-sm hover:border-blue-600 hover:bg-blue-50 transition-all cursor-pointer"
+                            className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white text-[#1a73e8] border border-[#d2e3fc] hover:bg-[#d2e3fc] transition-colors cursor-pointer shadow-xs"
                             title="Focus on map"
                           >
-                            <MapPin className="w-4 h-4" />
+                            <MapPin size={13} />
                           </button>
                         )}
                       </div>
@@ -419,46 +415,68 @@ const AdminAttendanceLocation = () => {
                   ))}
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center py-6 text-center text-slate-500 bg-slate-50 rounded-lg border border-slate-100 border-dashed">
-                  <MapPinOff className="w-6 h-6 mb-2 opacity-50" />
-                  <p className="text-xs">No punches recorded for this day.</p>
+                <div className="flex flex-col items-center justify-center py-6 text-center text-[#5f6368] bg-[#f8fafd] rounded-xl border border-[#e0e3e7] border-dashed">
+                  <MapPinOff size={20} className="mb-2 text-[#dadce0]" />
+                  <p className="text-[11px] font-medium">No punches recorded for this day.</p>
                 </div>
               )}
             </section>
           </div>
+
+          {/* Sidebar Footer */}
+          <div className="p-3 border-t border-[#f1f3f4] bg-[#f8fafd]/80 flex gap-2 shrink-0">
+            <button
+              onClick={showAllMarkers}
+              className="flex-1 inline-flex items-center justify-center rounded-full text-[10px] font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#444746] py-1.5 transition-colors cursor-pointer gap-1"
+            >
+              <MapPin size={11} /> Show All Markers
+            </button>
+            {fromRegularize && (
+              <button
+                onClick={() => navigate(-1)}
+                className="flex-1 inline-flex items-center justify-center rounded-full text-[10px] font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#444746] py-1.5 transition-colors cursor-pointer gap-1"
+              >
+                <ArrowLeft size={11} /> Back to Calendar
+              </button>
+            )}
+          </div>
         </aside>
 
-        <section className="relative flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden h-full min-h-0">
-          <div className="p-4 border-b border-slate-200 bg-slate-50/50 flex justify-between items-center">
-            <div>
-              <h2 className="text-sm font-semibold text-slate-900">Attendance Map</h2>
-              <p className="text-xs text-slate-500">Visual markers for check-in, check-out and punches.</p>
+        {/* Map Section */}
+        <section className="relative flex flex-col bg-white overflow-hidden h-full min-h-0">
+          <div className="p-4 border-b border-[#f1f3f4] bg-[#f8fafd]/80 flex justify-between items-center shrink-0 z-10">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center border border-[#d2e3fc]">
+                <MapPin size={15} />
+              </div>
+              <div>
+                <h2 className="text-sm font-semibold text-[#1f1f1f]">Attendance Map</h2>
+                <p className="text-[11px] text-[#5f6368]">Visual markers for check-in, check-out and punches</p>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               {!data.googleMapsApiKey && (
-                <div className="px-2 py-1 bg-amber-50 text-amber-700 text-xs rounded border border-amber-200 font-medium">
-                  Google Maps API Key Missing
+                <div className="px-2.5 py-1 bg-[#fef7e0] text-[#b06000] text-[10px] rounded-full border border-[#feefc3] font-semibold">
+                  API Key Missing
                 </div>
               )}
-              {fromRegularize && (
-                <button
-                  onClick={() => navigate(-1)}
-                  className="inline-flex items-center justify-center rounded-md text-xs font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-8 px-2.5 transition-colors cursor-pointer"
-                >
-                  <ArrowLeft className="w-3.5 h-3.5 mr-1" /> Back to Calender
-                </button>
-              )}
+              <button
+                onClick={() => navigate('/admin/attendance')}
+                className="inline-flex items-center justify-center rounded-full text-[10px] font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#444746] h-7 px-3 transition-colors cursor-pointer gap-1"
+              >
+                <ArrowLeft size={11} /> Attendance
+              </button>
             </div>
           </div>
           <div className="flex-1 min-h-0 relative">
             {data.googleMapsApiKey ? (
               <div ref={mapRef} className="w-full h-full"></div>
             ) : (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50 text-slate-500">
-                <MapPinOff className="w-10 h-10 mb-3 text-slate-300" />
-                <p className="font-medium text-slate-700">Map is unavailable</p>
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#f8fafd] text-[#5f6368]">
+                <MapPinOff size={32} className="mb-3 text-[#dadce0]" />
+                <p className="font-semibold text-sm text-[#1f1f1f]">Map is unavailable</p>
                 <p className="text-xs mt-1 max-w-sm text-center">
-                  Please provide a valid Google Maps API Key in the backend `.env` file to view the attendance map.
+                  Please provide a valid Google Maps API Key in the backend <code className="bg-[#f1f3f4] px-1 py-0.5 rounded text-[#1a73e8] text-[10px]">.env</code> file to view the attendance map.
                 </p>
               </div>
             )}

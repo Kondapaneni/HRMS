@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assessment Results Published</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f8fafd; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #1f1f1f; -webkit-font-smoothing: antialiased;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafd; padding: 32px 16px; margin: 0; width: 100%;">
+    <tr>
+      <td align="center">
+        <!-- Main Email Container Card -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 540px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e0e3e7; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.04);">
+          <!-- Google 4-Color Accent Line -->
+          <tr>
+            <td height="4" style="background: linear-gradient(90deg, #4285F4 0%, #EA4335 33%, #FBBC05 66%, #34A853 100%); font-size: 0; line-height: 0;">&nbsp;</td>
+          </tr>
+          
+          <!-- Header Banner -->
+          <tr>
+            <td style="padding: 32px 32px 24px 32px; background-color: #f8fafd; border-bottom: 1px solid #e0e3e7;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td>
+                    <div style="display: inline-block; padding: 4px 10px; background-color: #e6f4ea; border: 1px solid #ceead6; border-radius: 100px; color: #137333; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
+                      Test Performance
+                    </div>
+                    <h1 style="margin: 0; font-size: 22px; font-weight: 600; color: #1f1f1f; letter-spacing: -0.3px;">
+                      Assessment Results Published
+                    </h1>
+                    <p style="margin: 4px 0 0 0; font-size: 13px; color: #5f6368;">
+                      Hello <strong style="color: #1f1f1f;">{{employeeName}}</strong>, your assessment evaluation is complete.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Body Content -->
+          <tr>
+            <td style="padding: 32px; text-align: left;">
+              <div style="margin-bottom: 20px; padding: 14px 18px; background-color: #f8fafd; border: 1px solid #e0e3e7; border-radius: 14px; display: flex; align-items: center; justify-content: space-between;">
+                <span style="font-size: 13px; font-weight: 600; color: #5f6368;">Module:</span>
+                <span style="font-size: 13px; font-weight: 700; color: #1a73e8;">{{assessmentTitle}}</span>
+              </div>
+
+              <!-- Score Card Banner -->
+              <div style="background-color: #f8fafd; border: 1px solid #e0e3e7; border-radius: 14px; padding: 24px; text-align: center; margin: 20px 0;">
+                <span style="display: block; font-size: 11px; font-weight: 600; color: #5f6368; text-transform: uppercase; letter-spacing: 0.5px;">Your Final Score</span>
+                <div style="font-size: 36px; font-weight: 700; color: #1a73e8; margin: 4px 0;">
+                  {{finalPercentage}}%
+                </div>
+                <div style="display: inline-block; padding: 4px 14px; border-radius: 100px; font-size: 12px; font-weight: 700; background-color: #e6f4ea; color: #137333; border: 1px solid #ceead6;">
+                  Outcome: {{resultOutcome}}
+                </div>
+              </div>
+
+              <p style="margin: 0 0 20px 0; font-size: 14px; line-height: 1.6; color: #3c4043;">
+                You scored <strong>{{obtainedMarks}} / {{totalMarks}}</strong> total marks. You can view your detailed question-by-question response breakdown and download your verified completion certificate from the portal.
+              </p>
+
+              <!-- Button CTA -->
+              <div style="margin: 28px 0; text-align: center;">
+                <a href="{{resultLink}}" target="_blank" style="display: inline-block; background-color: #1a73e8; color: #ffffff; text-decoration: none; padding: 12px 32px; border-radius: 100px; font-weight: 600; font-size: 14px; box-shadow: 0 2px 6px rgba(26,115,232,0.25);">
+                  View Score Breakdown &amp; Certificate
+                </a>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Card Footer -->
+          <tr>
+            <td style="padding: 20px 32px; background-color: #f8fafd; border-top: 1px solid #e0e3e7; text-align: center;">
+              <p style="margin: 0; font-size: 11px; color: #5f6368; line-height: 1.5;">
+                This is an automated system notification from Acme HRMS Workspace. Please do not reply directly to this email.
+              </p>
+            </td>
+          </tr>
+        </table>
+        
+        <!-- Bottom Sub-Footer -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 540px; margin: 16px auto 0 auto;">
+          <tr>
+            <td align="center" style="color: #5f6368; font-size: 11px;">
+              &copy; {{currentYear}} Acme Corp HRMS. All rights reserved.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

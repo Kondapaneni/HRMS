@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import PageLoader from '../components/PageLoader';
-import { ArrowLeft, Search, Calendar, MapPin, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Search, Calendar, MapPin, CheckCircle, Clock, AlertCircle, X, CalendarCheck } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from '../api/axios';
 import { createPortal } from 'react-dom';
+import { motion } from 'framer-motion';
 import EmployeeSelect from '../components/EmployeeSelect';
 
 const AdminAttendanceRegularize = () => {
@@ -52,7 +53,7 @@ const AdminAttendanceRegularize = () => {
     },
   });
 
-  // Attendance calendar query — conditional on employee + month selection
+  // Attendance calendar query
   const { data: attendanceResponse, isLoading: loading, error } = useQuery({
     queryKey: ['admin', 'attendance-regularize', selectedEmployeeId, selectedMonth],
     queryFn: async () => {
@@ -60,7 +61,7 @@ const AdminAttendanceRegularize = () => {
       return response.data;
     },
     enabled: !!selectedEmployeeId && !!selectedMonth,
-    staleTime: 30 * 1000, // 30 sec — attendance data changes often
+    staleTime: 30 * 1000,
     onError: () => console.error('Failed to fetch attendance'),
   });
 
@@ -92,7 +93,6 @@ const AdminAttendanceRegularize = () => {
     
     const status = (rec.status || 'missing').toLowerCase();
     
-    // If there is no checkIn and no checkOut, return static non-present statuses
     if (!rec.checkIn && !rec.checkOut) {
       if (['paid leave', 'unpaid leave', 'sandwich leave', 'holiday', 'weekend', 'future', 'not-joined', 'not-marked'].includes(status)) {
         return status;
@@ -100,7 +100,6 @@ const AdminAttendanceRegularize = () => {
       return 'missing';
     }
 
-    // Has checkIn or checkOut: compute shift status
     const isToday = new Date(rec.date).toDateString() === new Date().toDateString();
     const shiftWindow = parseShiftWindow(employeeDetails?.shiftTime);
 
@@ -136,43 +135,43 @@ const AdminAttendanceRegularize = () => {
     switch (computedStatus) {
       case 'present':
       case 'present-full-shift':
-        return { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', badge: 'bg-emerald-100 text-emerald-700', label: 'Present' };
+        return { bg: 'bg-[#e6f4ea]', border: 'border-[#ceead6]', text: 'text-[#137333]', badge: 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6]', label: 'Present' };
       case 'present (late)':
       case 'late-checkin':
-        return { bg: 'bg-yellow-50', border: 'border-yellow-200', text: 'text-yellow-700', badge: 'bg-yellow-100 text-yellow-700', label: 'Late' };
+        return { bg: 'bg-[#fef7e0]', border: 'border-[#feefc3]', text: 'text-[#b06000]', badge: 'bg-[#fef7e0] text-[#b06000] border border-[#feefc3]', label: 'Late' };
       case 'present (early)':
       case 'early-checkout':
-        return { bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-700', badge: 'bg-orange-100 text-orange-700', label: 'Early' };
+        return { bg: 'bg-[#fef7e0]', border: 'border-[#feefc3]', text: 'text-[#b06000]', badge: 'bg-[#fef7e0] text-[#b06000] border border-[#feefc3]', label: 'Early' };
       case 'present (early+late)':
       case 'late-and-early':
-        return { bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-700', badge: 'bg-orange-100 text-orange-700', label: 'Late+Early' };
+        return { bg: 'bg-[#fef7e0]', border: 'border-[#feefc3]', text: 'text-[#b06000]', badge: 'bg-[#fef7e0] text-[#b06000] border border-[#feefc3]', label: 'Late+Early' };
       case 'present (checkout missing)':
       case 'missing-checkout':
-        return { bg: 'bg-yellow-50', border: 'border-yellow-200', text: 'text-yellow-700', badge: 'bg-yellow-100 text-yellow-700', label: 'Checkout Missing' };
+        return { bg: 'bg-[#fef7e0]', border: 'border-[#feefc3]', text: 'text-[#b06000]', badge: 'bg-[#fef7e0] text-[#b06000] border border-[#feefc3]', label: 'No Checkout' };
       case 'present (late+checkout missing)':
       case 'late-missing-checkout':
-        return { bg: 'bg-yellow-50', border: 'border-yellow-200', text: 'text-yellow-700', badge: 'bg-yellow-100 text-yellow-700', label: 'Late + Checkout Missing' };
+        return { bg: 'bg-[#fef7e0]', border: 'border-[#feefc3]', text: 'text-[#b06000]', badge: 'bg-[#fef7e0] text-[#b06000] border border-[#feefc3]', label: 'Late+No CO' };
       case 'regularized':
-        return { bg: 'bg-teal-50', border: 'border-teal-200', text: 'text-teal-700', badge: 'bg-teal-100 text-teal-700', label: 'Regularized' };
+        return { bg: 'bg-[#e8f0fe]', border: 'border-[#d2e3fc]', text: 'text-[#1a73e8]', badge: 'bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]', label: 'Regularized' };
       case 'paid leave':
       case 'unpaid leave':
       case 'sandwich leave':
         let labelStr = computedStatus.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
         if (computedStatus === 'sandwich leave') labelStr = 'Sandwich';
-        return { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', badge: 'bg-blue-100 text-blue-700', label: labelStr };
+        return { bg: 'bg-[#e8f0fe]', border: 'border-[#d2e3fc]', text: 'text-[#1a73e8]', badge: 'bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]', label: labelStr };
       case 'holiday':
-        return { bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-700', badge: 'bg-purple-100 text-purple-700', label: 'Holiday' };
+        return { bg: 'bg-[#f3e8fd]', border: 'border-[#e9d2fd]', text: 'text-[#7627bb]', badge: 'bg-[#f3e8fd] text-[#7627bb] border border-[#e9d2fd]', label: 'Holiday' };
       case 'weekend':
-        return { bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-700', badge: 'bg-purple-100 text-purple-700', label: 'Week Off' };
+        return { bg: 'bg-[#f3e8fd]', border: 'border-[#e9d2fd]', text: 'text-[#7627bb]', badge: 'bg-[#f3e8fd] text-[#7627bb] border border-[#e9d2fd]', label: 'Week Off' };
       case 'not-marked':
-        return { bg: 'bg-slate-50', border: 'border-slate-200', text: 'text-slate-700', badge: 'bg-slate-100 text-slate-700 border border-slate-200', label: 'Not Marked' };
+        return { bg: 'bg-[#f8fafd]', border: 'border-[#e0e3e7]', text: 'text-[#5f6368]', badge: 'bg-[#f1f3f4] text-[#5f6368] border border-[#e0e3e7]', label: 'Not Marked' };
       case 'not-joined':
-        return { bg: 'bg-white', border: 'border-slate-100 border-dashed', text: 'text-slate-400', badge: 'bg-slate-50 text-slate-400', label: 'Not Joined' };
+        return { bg: 'bg-white', border: 'border-[#e0e3e7] border-dashed', text: 'text-[#9aa0a6]', badge: 'bg-[#f8fafd] text-[#9aa0a6] border border-dashed border-[#e0e3e7]', label: 'Not Joined' };
       case 'missing':
       default:
-        return { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', badge: 'bg-red-100 text-red-700 border border-red-200', label: 'Missing' };
+        return { bg: 'bg-[#fce8e6]', border: 'border-[#fad2cf]', text: 'text-[#c5221f]', badge: 'bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf]', label: 'Missing' };
       case 'future':
-        return { bg: 'bg-white', border: 'border-slate-100 border-dashed', text: 'text-slate-400', badge: 'bg-slate-50 text-slate-400', label: 'Future' };
+        return { bg: 'bg-white', border: 'border-[#e0e3e7] border-dashed', text: 'text-[#9aa0a6]', badge: 'bg-[#f8fafd] text-[#9aa0a6] border border-dashed border-[#e0e3e7]', label: 'Future' };
     }
   };
 
@@ -279,11 +278,11 @@ const AdminAttendanceRegularize = () => {
     if (attendanceData.length === 0) return null;
 
     const firstDate = new Date(`${selectedMonth}-01`);
-    const firstWeekday = firstDate.getDay(); // 0 is Sunday
+    const firstWeekday = firstDate.getDay();
     const daysInMonth = new Date(firstDate.getFullYear(), firstDate.getMonth() + 1, 0).getDate();
 
     const emptyCells = Array.from({ length: firstWeekday }).map((_, i) => (
-      <div key={`empty-${i}`} className="min-h-[140px] rounded-2xl border border-slate-100 bg-slate-50/50"></div>
+      <div key={`empty-${i}`} className="min-h-[130px] rounded-xl border border-[#e0e3e7] border-dashed bg-[#f8fafd]/50"></div>
     ));
 
     const dayCells = attendanceData.map((rec, index) => {
@@ -294,51 +293,51 @@ const AdminAttendanceRegularize = () => {
       const palette = getStatusPalette(computedStatus);
 
       return (
-        <div key={`day-${index}`} className={`min-h-[140px] rounded-2xl border p-3 flex flex-col justify-between ${palette.bg} ${palette.border} transition-all duration-200 hover:shadow-md`}>
+        <div key={`day-${index}`} className={`min-h-[130px] rounded-xl border p-2.5 flex flex-col justify-between ${palette.bg} ${palette.border}`}>
           <div>
-            <div className="flex items-start justify-between mb-2">
+            <div className="flex items-start justify-between mb-1.5">
               <div>
-                <span className={`text-lg font-bold ${palette.text}`}>{dayNum}</span>
-                <span className="text-xs font-medium text-slate-500 ml-1">{dayName}</span>
+                <span className={`text-base font-bold ${palette.text}`}>{dayNum}</span>
+                <span className="text-[10px] font-medium text-[#5f6368] ml-1">{dayName}</span>
               </div>
-              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider whitespace-nowrap ${palette.badge}`}>
+              <span className={`px-1.5 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-wider whitespace-nowrap ${palette.badge}`}>
                 {palette.label}
               </span>
             </div>
 
             {rec.status === 'holiday' && (
-              <div className="mt-2 text-center text-xs font-semibold text-amber-700">
-                {rec.holidayImage && <img src={rec.holidayImage} alt={rec.holidayName} className="w-10 h-10 object-contain mx-auto mb-1 rounded-full shadow-sm bg-white" />}
+              <div className="mt-1 text-center text-[10px] font-semibold text-[#b06000]">
+                {rec.holidayImage && <img src={rec.holidayImage} alt={rec.holidayName} className="w-8 h-8 object-contain mx-auto mb-0.5 rounded-full shadow-xs bg-white" />}
                 {rec.holidayName}
               </div>
             )}
 
-            <div className="mt-2 space-y-1 text-sm">
+            <div className="mt-1.5 space-y-0.5 text-[11px]">
               {rec.checkIn && (
-                <div className="flex items-center text-slate-600">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>
-                  In: <span className="font-medium ml-1">{formatTime(rec.checkIn)}</span>
+                <div className="flex items-center text-[#5f6368]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#34A853] mr-1"></span>
+                  In: <span className="font-semibold ml-0.5 text-[#1f1f1f]">{formatTime(rec.checkIn)}</span>
                 </div>
               )}
               {rec.checkOut && (
-                <div className="flex items-center text-slate-600">
-                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mr-1.5"></span>
-                  Out: <span className="font-medium ml-1">{formatTime(rec.checkOut)}</span>
+                <div className="flex items-center text-[#5f6368]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335] mr-1"></span>
+                  Out: <span className="font-semibold ml-0.5 text-[#1f1f1f]">{formatTime(rec.checkOut)}</span>
                 </div>
               )}
               {!rec.checkIn && !rec.checkOut && rec.status === 'missing' && (
-                <div className="text-red-500 text-xs font-medium flex items-center">
-                  <AlertCircle className="w-3 h-3 mr-1" /> No record
+                <div className="text-[#c5221f] text-[10px] font-medium flex items-center">
+                  <AlertCircle className="w-3 h-3 mr-0.5" /> No record
                 </div>
               )}
             </div>
           </div>
 
-          <div className="mt-3 flex gap-2">
+          <div className="mt-2 flex gap-1.5">
             {rec.status !== 'future' && (
               <button
                 onClick={() => handleOpenModal(rec)}
-                className="flex-1 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-medium py-1.5 rounded-lg transition-colors cursor-pointer"
+                className="flex-1 bg-white border border-[#dadce0] text-[#444746] hover:bg-[#f1f3f4] text-[10px] font-semibold py-1 rounded-full transition-colors cursor-pointer"
               >
                 Regularize
               </button>
@@ -346,10 +345,10 @@ const AdminAttendanceRegularize = () => {
             {(rec.checkIn || rec.checkOut) && (
               <button
                 onClick={() => navigate(`/admin/attendance/location?id=${rec.attendanceRecordId}&date=${rec.date}`, { state: { fromRegularize: true } })}
-                className="flex-none px-2 bg-white border border-slate-200 text-blue-600 hover:bg-blue-50 text-xs font-medium rounded-lg transition-colors cursor-pointer"
+                className="flex-none px-2 py-1 bg-white border border-[#dadce0] text-[#1a73e8] hover:bg-[#e8f0fe] text-[10px] font-semibold rounded-full transition-colors cursor-pointer"
                 title="View Location"
               >
-                <MapPin className="w-4 h-4 mx-auto" />
+                <MapPin size={12} />
               </button>
             )}
           </div>
@@ -358,17 +357,23 @@ const AdminAttendanceRegularize = () => {
     });
 
     return (
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-slate-100 bg-slate-50/50">
-          <h3 className="font-semibold text-slate-800">Attendance Calendar - {new Date(`${selectedMonth}-01`).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</h3>
+      <div className="rounded-2xl border border-[#e0e3e7] bg-white shadow-xs overflow-hidden">
+        <div className="p-4 sm:p-5 border-b border-[#f1f3f4] bg-[#f8fafd]/60 flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center border border-[#d2e3fc]">
+            <Calendar size={15} />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-[#1f1f1f]">Attendance Calendar — {new Date(`${selectedMonth}-01`).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</h3>
+            <p className="text-[11px] text-[#5f6368]">{employeeDetails ? `${employeeDetails.firstName} ${employeeDetails.lastName}` : 'Employee'} • {employeeDetails?.shiftTime || 'Default Shift'}</p>
+          </div>
         </div>
         <div className="p-4">
-          <div className="grid grid-cols-7 gap-3 mb-2 text-center">
+          <div className="grid grid-cols-7 gap-2 mb-2 text-center">
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
-              <div key={d} className="text-xs font-bold text-slate-400 uppercase tracking-wider py-2">{d}</div>
+              <div key={d} className="text-[10px] font-bold text-[#5f6368] uppercase tracking-wider py-1.5">{d}</div>
             ))}
           </div>
-          <div className="grid grid-cols-7 gap-3">
+          <div className="grid grid-cols-7 gap-2">
             {emptyCells}
             {dayCells}
           </div>
@@ -380,44 +385,68 @@ const AdminAttendanceRegularize = () => {
   if (loading) return <PageLoader message="Loading Attendance Records..." />;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Attendance Regularization</h1>
-          <p className="text-sm text-slate-500 mt-1">Regularize employee attendance for a full month</p>
+          <div className="flex items-center gap-1.5 mb-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+            <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Monthly Attendance Correction</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight">
+            Attendance Regularization
+          </h1>
+          <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
+            Select an employee and month to view and regularize attendance records.
+          </p>
         </div>
-        <div>
-          <button
-            onClick={() => navigate('/admin/attendance')}
-            className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-9 px-3 transition-colors cursor-pointer"
-          >
-            <ArrowLeft className="w-4 h-4 mr-1.5" /> Back to Attendance
-          </button>
-        </div>
+
+        <button
+          onClick={() => navigate('/admin/attendance')}
+          className="inline-flex items-center justify-center rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#5f6368] px-4 py-2 transition-colors cursor-pointer gap-1.5 shadow-xs shrink-0 self-start sm:self-auto"
+        >
+          <ArrowLeft size={14} />
+          <span>Back to Attendance</span>
+        </button>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Select Employee</label>
-            <EmployeeSelect
-              employees={employees}
-              selectedId={selectedEmployeeId}
-              onChange={(id) => setSelectedEmployeeId(id)}
-              placeholder="Search and Select Employee..."
-              valueKey="userId"
-            />
+      {/* Filter Card */}
+      <div className="rounded-2xl border border-[#e0e3e7] bg-white shadow-xs">
+        <div className="p-4 sm:p-5 border-b border-[#f1f3f4] bg-[#f8fafd]/60 flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center border border-[#d2e3fc]">
+            <Search size={15} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Select Month</label>
-            <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                type="month"
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                className="w-full border border-slate-300 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none cursor-pointer"
+            <h3 className="text-sm font-semibold text-[#1f1f1f]">Employee & Period Selection</h3>
+            <p className="text-[11px] text-[#5f6368]">Choose an employee and target month</p>
+          </div>
+        </div>
+        <div className="p-5 sm:p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+              <label className="block text-xs font-semibold text-[#1f1f1f] mb-1.5">Select Employee</label>
+              <EmployeeSelect
+                employees={employees}
+                selectedId={selectedEmployeeId}
+                onChange={(id) => setSelectedEmployeeId(id)}
+                placeholder="Search and Select Employee..."
+                valueKey="userId"
               />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-[#1f1f1f] mb-1.5">Select Month</label>
+              <div className="relative">
+                <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#5f6368] pointer-events-none" />
+                <input
+                  type="month"
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  className="w-full rounded-xl border border-[#dadce0] pl-10 pr-4 py-2 text-xs text-[#1f1f1f] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 outline-none transition-all cursor-pointer"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -425,58 +454,77 @@ const AdminAttendanceRegularize = () => {
 
       {loading && (
         <div className="text-center py-12">
-          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-500">Loading calendar data...</p>
+          <div className="w-7 h-7 border-3 border-[#4285F4] border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+          <p className="text-xs font-medium text-[#5f6368]">Loading calendar data...</p>
         </div>
       )}
 
       {error && (
-        <div className="bg-red-50 text-red-600 p-4 rounded-lg border border-red-100 flex items-center">
-          <AlertCircle className="w-5 h-5 mr-2" /> {error?.message || 'Failed to fetch attendance data.'}
+        <div className="bg-[#fce8e6] text-[#c5221f] p-4 rounded-xl border border-[#fad2cf] flex items-center text-xs font-medium">
+          <AlertCircle className="w-4 h-4 mr-2 shrink-0" /> {error?.message || 'Failed to fetch attendance data.'}
         </div>
       )}
 
       {!loading && !error && selectedEmployeeId && attendanceData.length > 0 && (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="space-y-5">
           {renderCalendar()}
         </div>
       )}
 
-      {/* Regularize Modal */}
+      {/* Regularize Slideover Drawer */}
       {isModalOpen && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={() => !modalLoading && setIsModalOpen(false)}></div>
-          <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-              <h3 className="text-lg font-bold text-slate-800">Regularize Attendance</h3>
-              <button
+        <div 
+          onClick={(e) => { if (e.target === e.currentTarget && !modalLoading) setIsModalOpen(false); }}
+          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm"
+        >
+          <motion.div 
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
+            className="bg-white shadow-2xl w-full max-w-lg h-[100dvh] flex flex-col overflow-hidden relative"
+          >
+            {/* Top Accent Stripe */}
+            <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#34A853] via-[#FBBC05] to-[#EA4335] absolute top-0 left-0" />
+
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd] mt-1 shrink-0">
+              <div>
+                <div className="flex items-center gap-1.5 text-[#1a73e8] mb-0.5">
+                  <CalendarCheck size={15} />
+                  <span className="text-[10.5px] font-bold uppercase tracking-wider">Attendance Regularization</span>
+                </div>
+                <h2 className="text-lg font-semibold text-[#1f1f1f]">Regularize Record</h2>
+                <p className="text-xs text-[#5f6368] mt-0.5">
+                  Date: <strong className="text-[#1f1f1f] font-semibold">{selectedRecord?.date}</strong>
+                </p>
+              </div>
+              <button 
+                type="button" 
                 onClick={() => setIsModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 transition-colors p-1 cursor-pointer"
                 disabled={modalLoading}
+                className="text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4] p-1.5 rounded-full transition-colors cursor-pointer disabled:opacity-50"
               >
-                ✕
+                <X size={18} />
               </button>
             </div>
 
-            <form onSubmit={handleSubmitRegularize} className="p-6">
-              {modalError && (
-                <div className="mb-4 p-3 bg-red-50 border border-red-100 text-red-600 text-sm rounded-lg flex items-start">
-                  <AlertCircle className="w-4 h-4 mr-2 mt-0.5 shrink-0" />
-                  <span>{modalError}</span>
-                </div>
-              )}
+            {/* Body */}
+            <div className="p-6 overflow-y-auto flex-1 space-y-4">
+              <form id="regularize-form" onSubmit={handleSubmitRegularize} className="space-y-4">
+                {modalError && (
+                  <div className="p-3 bg-[#fce8e6] border border-[#fad2cf] text-[#c5221f] text-xs rounded-xl flex items-start font-medium">
+                    <AlertCircle className="w-4 h-4 mr-2 mt-0.5 shrink-0" />
+                    <span>{modalError}</span>
+                  </div>
+                )}
 
-              <div className="mb-5 bg-slate-50 p-3 rounded-lg border border-slate-100">
-                <p className="text-sm font-medium text-slate-700">Date: <span className="font-bold">{selectedRecord?.date}</span></p>
-              </div>
-
-              <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
+                  <label className="block text-xs font-semibold text-[#1f1f1f] mb-1">Status</label>
                   <select
                     value={modalStatus}
                     onChange={(e) => setModalStatus(e.target.value)}
-                    className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none cursor-pointer"
+                    className="w-full rounded-xl border border-[#dadce0] px-3.5 py-2 text-xs text-[#1f1f1f] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 outline-none transition-all bg-white cursor-pointer"
                     disabled={modalLoading}
                   >
                     <option value="" disabled>Select Status</option>
@@ -490,66 +538,68 @@ const AdminAttendanceRegularize = () => {
                   <>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Check In Time</label>
+                        <label className="block text-xs font-semibold text-[#1f1f1f] mb-1">Check In Time</label>
                         <input
                           type="time"
                           value={modalCheckIn}
                           onChange={(e) => handleTimeChange('in', e.target.value)}
-                          className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none cursor-pointer"
+                          className="w-full rounded-xl border border-[#dadce0] px-3.5 py-2 text-xs text-[#1f1f1f] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 outline-none transition-all bg-white cursor-pointer"
                           required
                           disabled={modalLoading}
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Check Out Time</label>
+                        <label className="block text-xs font-semibold text-[#1f1f1f] mb-1">Check Out Time</label>
                         <input
                           type="time"
                           value={modalCheckOut}
                           onChange={(e) => handleTimeChange('out', e.target.value)}
-                          className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none cursor-pointer"
+                          className="w-full rounded-xl border border-[#dadce0] px-3.5 py-2 text-xs text-[#1f1f1f] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 outline-none transition-all bg-white cursor-pointer"
                           disabled={modalLoading}
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Working Hours</label>
+                      <label className="block text-xs font-semibold text-[#5f6368] mb-1">Working Hours (Auto-Calculated)</label>
                       <input
                         type="number"
                         step="0.01"
                         value={modalHours}
                         readOnly
-                        className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-slate-50 cursor-not-allowed text-slate-500 font-medium"
+                        className="w-full rounded-xl border border-[#e0e3e7] bg-[#f8fafd] px-3.5 py-2 text-xs text-[#5f6368] font-semibold cursor-not-allowed outline-none"
                       />
-                      <p className="text-xs text-slate-500 mt-1">Calculated automatically from check-in and check-out time.</p>
+                      <p className="text-[10px] text-[#5f6368] mt-1">Computed from check-in and check-out times automatically.</p>
                     </div>
                   </>
                 )}
-              </div>
+              </form>
+            </div>
 
-              <div className="mt-8 flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer"
-                  disabled={modalLoading}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors cursor-pointer flex items-center"
-                  disabled={modalLoading}
-                >
-                  {modalLoading ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
-                      Saving...
-                    </>
-                  ) : 'Save Regularization'}
-                </button>
-              </div>
-            </form>
-          </div>
+            {/* Footer Actions */}
+            <div className="px-6 py-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex justify-end gap-3 shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                className="px-5 py-2 text-xs font-semibold border border-[#dadce0] rounded-full text-[#444746] bg-white hover:bg-[#f1f3f4] transition-colors cursor-pointer"
+                disabled={modalLoading}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                form="regularize-form"
+                className="px-6 py-2 text-xs font-semibold rounded-full text-white bg-[#1a73e8] hover:bg-[#1557b0] shadow-md shadow-[#4285F4]/25 transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                disabled={modalLoading}
+              >
+                {modalLoading ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    Saving...
+                  </>
+                ) : 'Save Regularization'}
+              </button>
+            </div>
+          </motion.div>
         </div>,
         document.body
       )}

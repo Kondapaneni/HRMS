@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PageLoader from '../components/PageLoader';
-import { Search, Plus, MoreVertical, Eye, Edit, Settings, Loader2, Users } from 'lucide-react';
+import { Search, Plus, MoreVertical, Eye, Edit, Settings, Loader2, Users, ArrowUpRight, ShieldCheck, Mail, Calendar } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
@@ -44,85 +44,114 @@ const AdminEmployees = () => {
   };
 
   const formatCurrency = (amount) => {
-    if (!amount) return '₹0.00';
-    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount);
+    if (!amount) return '₹0';
+    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
   };
 
   const getStatusBadge = (status) => {
     const s = (status || '').toLowerCase();
-    if (s === 'active') return 'bg-emerald-100 text-emerald-700 border-emerald-200';
-    if (s === 'on leave') return 'bg-amber-100 text-amber-700 border-amber-200';
-    if (s === 'terminated' || s === 'resigned') return 'bg-red-100 text-red-700 border-red-200';
-    return 'bg-slate-100 text-slate-700 border-slate-200';
+    if (s === 'active') return 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]';
+    if (s === 'on leave') return 'bg-[#fef7e0] text-[#b06000] border-[#feefc3]';
+    if (s === 'terminated' || s === 'resigned') return 'bg-[#fce8e6] text-[#c5221f] border-[#fad2cf]';
+    return 'bg-[#f1f3f4] text-[#444746] border-[#dadce0]';
   };
 
   if (loading) return <PageLoader message="Loading Employees..." />;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-7xl mx-auto pb-8">
+      {/* Google Header Welcome Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Employees</h1>
-          <p className="text-sm text-slate-500 mt-1">Manage your workforce</p>
+          <div className="flex items-center gap-1.5 mb-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+            <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Staff Directory & Records</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight">
+            Employees <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full align-middle ml-1.5">{employees.length} Total</span>
+          </h1>
+          <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
+            Manage organization members, departments, compensation, and access credentials.
+          </p>
         </div>
+
         <button
           onClick={() => setIsModalOpen(true)}
-          className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 transition-colors shadow-sm cursor-pointer"
+          className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white px-5 py-2.5 shadow-md shadow-[#4285F4]/25 hover:shadow-lg hover:shadow-[#4285F4]/30 transition-all cursor-pointer gap-2 shrink-0"
         >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Employee
+          <Plus className="w-4 h-4" />
+          <span>Add Employee</span>
         </button>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden flex flex-col">
-        <div className="p-5 border-b border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <h3 className="text-lg font-semibold text-slate-800 flex items-center">
-            <Users className="w-5 h-5 mr-2 text-blue-600" /> Employee List
-          </h3>
-          <form onSubmit={handleSearchSubmit} className="relative w-full sm:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+      {/* Main Table Card Container */}
+      <div className="rounded-2xl border border-[#e0e3e7] bg-white shadow-xs overflow-hidden flex flex-col">
+        {/* Table Header Bar */}
+        <div className="p-4 sm:p-5 border-b border-[#f1f3f4] bg-[#f8fafd]/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center border border-[#d2e3fc] shadow-xs">
+              <Users size={16} />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-[#1f1f1f]">Employee Directory</h3>
+              <p className="text-[11px] text-[#5f6368]">Full staff registry and active status</p>
+            </div>
+          </div>
+
+          {/* Search Bar */}
+          <form onSubmit={handleSearchSubmit} className="relative w-full sm:w-72">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368] pointer-events-none" />
             <input
               type="search"
-              placeholder="Search employees..."
+              placeholder="Search by name, role, email..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
+              className="w-full pl-10 pr-4 py-2 text-xs bg-[#f1f3f4] hover:bg-[#e8eaed] focus:bg-white border border-transparent focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-full text-[#1f1f1f] placeholder:text-[#5f6368] outline-none transition-all shadow-none focus:shadow-sm"
             />
           </form>
         </div>
 
+        {/* Table Body */}
         <div className="flex-1 overflow-x-auto pb-32 min-h-[300px]">
           {loading ? (
             <div className="flex items-center justify-center h-64">
-              <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+              <Loader2 className="h-7 w-7 animate-spin text-[#4285F4]" />
             </div>
           ) : (
-            <table className="w-full text-sm text-left">
-              <thead className="bg-slate-50 border-b border-slate-200 text-slate-500">
+            <table className="w-full text-xs text-left">
+              <thead className="bg-[#f8fafd] border-b border-[#e0e3e7] text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider">
                 <tr>
-                  <th className="px-6 py-4 font-medium">Employee</th>
-                  <th className="px-6 py-4 font-medium">Employee ID</th>
-                  <th className="px-6 py-4 font-medium">Department</th>
-                  <th className="px-6 py-4 font-medium">Position</th>
-                  <th className="px-6 py-4 font-medium">Join Date</th>
-                  <th className="px-6 py-4 font-medium">Salary</th>
-                  <th className="px-6 py-4 font-medium">Status</th>
-                  <th className="px-6 py-4 font-medium text-right">Actions</th>
+                  <th className="px-5 py-3.5">Employee</th>
+                  <th className="px-5 py-3.5">Employee ID</th>
+                  <th className="px-5 py-3.5">Department</th>
+                  <th className="px-5 py-3.5">Position</th>
+                  <th className="px-5 py-3.5">Join Date</th>
+                  <th className="px-5 py-3.5">Salary</th>
+                  <th className="px-5 py-3.5">Status</th>
+                  <th className="px-5 py-3.5 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-[#f1f3f4]">
                 {employees.length === 0 ? (
                   <tr>
-                    <td colSpan="8" className="text-center py-12 text-slate-500">
-                      No employees found.
+                    <td colSpan="8" className="text-center py-16 text-[#5f6368]">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <Users className="w-8 h-8 text-[#dadce0]" />
+                        <p className="text-xs font-medium text-[#1f1f1f]">No employees found</p>
+                        <p className="text-[11px] text-[#5f6368]">Try searching with a different keyword or add a new team member.</p>
+                      </div>
                     </td>
                   </tr>
                 ) : (
                   employees.map((emp) => (
-                    <tr key={emp.id} className="hover:bg-slate-50/50 transition-colors group">
-                      <td className="px-6 py-4 align-middle">
-                        <div className="flex items-center space-x-3">
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700 font-semibold text-sm border border-blue-200 overflow-hidden">
+                    <tr key={emp.id} className="hover:bg-[#f8fafd] transition-colors group">
+                      {/* Name & Avatar */}
+                      <td className="px-5 py-3.5 align-middle">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#e8f0fe] text-[#1a73e8] font-bold text-xs border border-[#d2e3fc] overflow-hidden shadow-xs">
                             {emp.avatar ? (
                               <img src={emp.avatar} alt="Avatar" className="h-full w-full object-cover" />
                             ) : (
@@ -130,38 +159,77 @@ const AdminEmployees = () => {
                             )}
                           </div>
                           <div>
-                            <p className="font-medium text-slate-900">{emp.firstName} {emp.lastName}</p>
-                            <p className="text-xs text-slate-500">{emp.email}</p>
+                            <p className="font-semibold text-[#1f1f1f] text-xs">{emp.firstName} {emp.lastName}</p>
+                            <p className="text-[11px] text-[#5f6368]">{emp.email}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 align-middle text-slate-700">{emp.employeeId}</td>
-                      <td className="px-6 py-4 align-middle text-slate-700">{emp.department || '-'}</td>
-                      <td className="px-6 py-4 align-middle text-slate-700">{emp.position || '-'}</td>
-                      <td className="px-6 py-4 align-middle text-slate-700">{formatDate(emp.joinDate)}</td>
-                      <td className="px-6 py-4 align-middle text-slate-700">{formatCurrency(emp.salary)}</td>
-                      <td className="px-6 py-4 align-middle">
-                        <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${getStatusBadge(emp.status)}`}>
+
+                      {/* ID */}
+                      <td className="px-5 py-3.5 align-middle font-medium text-[#444746] text-xs">
+                        {emp.employeeId}
+                      </td>
+
+                      {/* Department */}
+                      <td className="px-5 py-3.5 align-middle">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10.5px] font-medium bg-[#f1f3f4] text-[#444746]">
+                          {emp.department || 'General'}
+                        </span>
+                      </td>
+
+                      {/* Position */}
+                      <td className="px-5 py-3.5 align-middle text-[#444746] font-medium">
+                        {emp.position || 'Staff'}
+                      </td>
+
+                      {/* Join Date */}
+                      <td className="px-5 py-3.5 align-middle text-[#5f6368]">
+                        {formatDate(emp.joinDate)}
+                      </td>
+
+                      {/* Salary */}
+                      <td className="px-5 py-3.5 align-middle font-semibold text-[#1f1f1f]">
+                        {formatCurrency(emp.salary)}
+                      </td>
+
+                      {/* Status Badge */}
+                      <td className="px-5 py-3.5 align-middle">
+                        <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10.5px] font-semibold ${getStatusBadge(emp.status)}`}>
                           {emp.status || 'Active'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 align-middle text-right relative group/dropdown">
+
+                      {/* Actions Dropdown */}
+                      <td className="px-5 py-3.5 align-middle text-right relative group/dropdown">
                         <button
-                          className="inline-flex items-center justify-center rounded-md w-8 h-8 text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
+                          className="inline-flex items-center justify-center rounded-full w-7 h-7 text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4] transition-colors cursor-pointer"
+                          aria-label="Actions"
                         >
                           <MoreVertical className="w-4 h-4" />
                         </button>
 
-                        <div className="absolute right-8 top-8 pt-2 w-48 z-50 text-left hidden group-hover/dropdown:block">
-                          <div className="rounded-md border border-slate-200 bg-white p-1 shadow-lg">
-                            <button onClick={() => navigate(`/admin/employees/${emp.id}`)} className="w-full flex items-center px-2 py-2 text-sm text-slate-700 rounded-sm hover:bg-slate-100 transition-colors cursor-pointer">
-                              <Eye className="w-4 h-4 mr-2 text-slate-400" /> View Details
+                        <div className="absolute right-6 top-8 pt-1.5 w-44 z-50 text-left hidden group-hover/dropdown:block">
+                          <div className="rounded-2xl border border-[#e0e3e7] bg-white p-1.5 shadow-[0_4px_24px_rgba(0,0,0,0.12)]">
+                            <button 
+                              onClick={() => navigate(`/admin/employees/${emp.id}`)} 
+                              className="w-full flex items-center px-3 py-2 text-xs font-medium text-[#1f1f1f] rounded-xl hover:bg-[#f8fafd] hover:text-[#1a73e8] transition-colors cursor-pointer gap-2"
+                            >
+                              <Eye className="w-3.5 h-3.5 text-[#5f6368]" /> 
+                              <span>View Profile</span>
                             </button>
-                            <button onClick={() => navigate(`/admin/employees/${emp.id}/edit`)} className="w-full flex items-center px-2 py-2 text-sm text-slate-700 rounded-sm hover:bg-slate-100 transition-colors cursor-pointer">
-                              <Edit className="w-4 h-4 mr-2 text-slate-400" /> Edit
+                            <button 
+                              onClick={() => navigate(`/admin/employees/${emp.id}/edit`)} 
+                              className="w-full flex items-center px-3 py-2 text-xs font-medium text-[#1f1f1f] rounded-xl hover:bg-[#f8fafd] hover:text-[#1a73e8] transition-colors cursor-pointer gap-2"
+                            >
+                              <Edit className="w-3.5 h-3.5 text-[#5f6368]" /> 
+                              <span>Edit Details</span>
                             </button>
-                            <button onClick={() => navigate(`/admin/employees/${emp.id}/settings`)} className="w-full flex items-center px-2 py-2 text-sm text-slate-700 rounded-sm hover:bg-slate-100 transition-colors cursor-pointer">
-                              <Settings className="w-4 h-4 mr-2 text-slate-400" /> Settings
+                            <button 
+                              onClick={() => navigate(`/admin/employees/${emp.id}/settings`)} 
+                              className="w-full flex items-center px-3 py-2 text-xs font-medium text-[#1f1f1f] rounded-xl hover:bg-[#f8fafd] hover:text-[#1a73e8] transition-colors cursor-pointer gap-2"
+                            >
+                              <Settings className="w-3.5 h-3.5 text-[#5f6368]" /> 
+                              <span>Security & Access</span>
                             </button>
                           </div>
                         </div>

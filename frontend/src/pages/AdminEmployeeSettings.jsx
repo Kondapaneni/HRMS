@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import PageLoader from '../components/PageLoader';
 import { createPortal } from 'react-dom';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Shield, Clock, Power } from 'lucide-react';
+import { ArrowLeft, Shield, Clock, Power, ShieldAlert, CheckCircle2, X, AlertTriangle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -127,92 +128,169 @@ const AdminEmployeeSettings = () => {
     setShowExitModal(false);
   };
 
-  if (loading) {
-    return <div className="flex justify-center items-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>;
-  }
+  if (loading) return <PageLoader message="Loading Security Settings..." />;
 
   const isExit = ['Exited', 'Terminated', 'Absconded'].includes(settings.employmentStatus);
 
-  if (loading) return <PageLoader message="Loading Settings..." />;
-
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 max-w-5xl mx-auto pb-12">
+      {/* Header Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Employee Settings</h1>
-          <p className="text-sm text-slate-500 mt-1">Configure attendance and security settings for {empName}</p>
+          <div className="flex items-center gap-1.5 mb-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+            <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Security & Governance Controls</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight">
+            Security Settings: <span className="font-semibold text-[#1a73e8]">{empName}</span> <span className="text-xs font-medium text-[#5f6368] bg-[#f1f3f4] border border-[#e0e3e7] px-2.5 py-0.5 rounded-full align-middle ml-1.5">{employeeData?.employeeId}</span>
+          </h1>
+          <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
+            Configure authentication protocols, attendance geofence gates, and account lifecycles.
+          </p>
         </div>
+
         <button
           onClick={() => navigate(`/admin/employees/${id}`)}
-          className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-10 px-4 py-2 transition-colors cursor-pointer"
+          className="inline-flex items-center justify-center rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#5f6368] px-4 py-2 transition-colors cursor-pointer gap-1.5 shadow-xs shrink-0 self-start sm:self-auto"
         >
-          <ArrowLeft className="w-4 h-4 mr-2" /> Back to Employee
+          <ArrowLeft size={14} />
+          <span>Back To Employee</span>
         </button>
       </div>
 
-      <div className="space-y-6">
-        {/* Attendance Settings */}
-        <div className="rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden">
-          <div className="p-5 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
-            <Clock className="w-5 h-5 text-slate-500" />
-            <h3 className="text-lg font-semibold text-slate-900">Attendance Settings</h3>
+      <div className="space-y-5">
+        {/* Attendance Settings Card */}
+        <div className="rounded-2xl border border-[#e0e3e7] bg-white shadow-xs overflow-hidden">
+          <div className="p-4 sm:p-5 border-b border-[#f1f3f4] bg-[#f8fafd]/60 flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center border border-[#d2e3fc]">
+              <Clock size={15} />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-[#1f1f1f]">Attendance & Punch Gateways</h3>
+              <p className="text-[11px] text-[#5f6368]">Web punches and physical geofence validations</p>
+            </div>
           </div>
-          <div className="p-6 space-y-6">
-            <div className="flex items-center justify-between">
+
+          <div className="p-5 sm:p-6 space-y-5">
+            <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="font-medium text-slate-900">Show check-in/check-out on web</p>
-                <p className="text-sm text-slate-500 mt-1">When disabled, the web attendance page will hide the buttons. Mobile is unaffected.</p>
+                <p className="text-xs font-semibold text-[#1f1f1f]">Web Check-In / Check-Out Gateway</p>
+                <p className="text-[11px] text-[#5f6368] mt-0.5">When disabled, this employee cannot punch from desktop web browsers. Mobile app is unaffected.</p>
               </div>
               <button
                 type="button"
                 onClick={() => handleToggle('webAttendanceEnabled')}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${settings.webAttendanceEnabled ? 'bg-blue-600' : 'bg-slate-200'}`}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${settings.webAttendanceEnabled ? 'bg-[#1a73e8]' : 'bg-[#dadce0]'}`}
               >
-                <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${settings.webAttendanceEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
+                <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${settings.webAttendanceEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
               </button>
             </div>
 
-            <div className="h-px bg-slate-100"></div>
+            <div className="h-px bg-[#f1f3f4]"></div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="font-medium text-slate-900">Enable Geo-Fence Validation</p>
-                <p className="text-sm text-slate-500 mt-1">When enabled, check-in/check-out will only be allowed from within configured geo-fence locations.</p>
+                <p className="text-xs font-semibold text-[#1f1f1f]">Geo-Fence Radius Validation</p>
+                <p className="text-[11px] text-[#5f6368] mt-0.5">Requires the employee to be physically within the assigned branch geofence radius to punch attendance.</p>
               </div>
               <button
                 type="button"
                 onClick={() => handleToggle('geoFenceEnabled')}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${settings.geoFenceEnabled ? 'bg-blue-600' : 'bg-slate-200'}`}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${settings.geoFenceEnabled ? 'bg-[#1a73e8]' : 'bg-[#dadce0]'}`}
               >
-                <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${settings.geoFenceEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
+                <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${settings.geoFenceEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
               </button>
             </div>
           </div>
         </div>
 
-        {/* Employment Status */}
-        <div className="rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden">
-          <div className="p-5 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
-            <Power className="w-5 h-5 text-slate-500" />
-            <h3 className="text-lg font-semibold text-slate-900">Employment Status</h3>
+        {/* Security & Access Card */}
+        <div className="rounded-2xl border border-[#e0e3e7] bg-white shadow-xs overflow-hidden">
+          <div className="p-4 sm:p-5 border-b border-[#f1f3f4] bg-[#f8fafd]/60 flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-[#e6f4ea] text-[#137333] flex items-center justify-center border border-[#ceead6]">
+              <Shield size={15} />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-[#1f1f1f]">Account Security & MFA Protocols</h3>
+              <p className="text-[11px] text-[#5f6368]">Authentication gates and access permissions</p>
+            </div>
           </div>
-          <div className="p-6">
-            <div className="flex flex-col sm:flex-row items-start justify-between gap-6">
-              <div className="flex-1">
-                <p className="font-medium text-slate-900">Current Employment Status</p>
-                <p className="text-sm text-slate-500 mt-1">Setting status to Exited, Terminated, or Absconded will automatically disable account access.</p>
+
+          <div className="p-5 sm:p-6 space-y-5">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="text-xs font-semibold text-[#1f1f1f]">Workspace Account Access</p>
+                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold capitalize border ${settings.isActive ? 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]' : 'bg-[#fce8e6] text-[#c5221f] border-[#fad2cf]'}`}>
+                    {settings.isActive ? 'Active' : 'Blocked'}
+                  </span>
+                </div>
+                <p className="text-[11px] text-[#5f6368] mt-0.5">When disabled, this employee is blocked from logging into the portal or mobile app immediately.</p>
+              </div>
+              <button
+                type="button"
+                onClick={handleStatusToggle}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${settings.isActive ? 'bg-[#34A853]' : 'bg-[#dadce0]'}`}
+              >
+                <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${settings.isActive ? 'translate-x-5' : 'translate-x-0'}`} />
+              </button>
+            </div>
+
+            <div className="h-px bg-[#f1f3f4]"></div>
+
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold text-[#1f1f1f]">Multi-Factor Authentication (MFA)</p>
+                <p className="text-[11px] text-[#5f6368] mt-0.5">Authorizes the employee to configure TOTP / Authenticator app multi-factor verification on their account.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleToggle('mfaEnabled')}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${settings.mfaEnabled ? 'bg-[#1a73e8]' : 'bg-[#dadce0]'}`}
+              >
+                <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${settings.mfaEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Employment Status Card */}
+        <div className="rounded-2xl border border-[#e0e3e7] bg-white shadow-xs overflow-hidden">
+          <div className="p-4 sm:p-5 border-b border-[#f1f3f4] bg-[#f8fafd]/60 flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-[#fef7e0] text-[#b06000] flex items-center justify-center border border-[#feefc3]">
+              <Power size={15} />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-[#1f1f1f]">Employment Lifecycle Status</h3>
+              <p className="text-[11px] text-[#5f6368]">Manage offboarding, separation, or termination</p>
+            </div>
+          </div>
+
+          <div className="p-5 sm:p-6">
+            <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-[#1f1f1f]">Current Employment State</p>
+                <p className="text-[11px] text-[#5f6368] mt-0.5">Marking status as Exited, Terminated, or Absconded will automatically deactivate credentials.</p>
 
                 {isExit && (
-                  <div className="mt-4 p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-2">
-                    <p className="text-sm"><span className="text-slate-500">Date:</span> <span className="font-medium text-slate-900">{settings.employmentStatusDate}</span></p>
-                    <p className="text-sm"><span className="text-slate-500">Reason:</span> <span className="font-medium text-slate-900">{settings.employmentStatusReason}</span></p>
+                  <div className="mt-3 p-3.5 bg-[#f8fafd] rounded-xl border border-[#e0e3e7] space-y-1.5">
+                    <p className="text-xs font-medium text-[#1f1f1f]">
+                      <span className="text-[#5f6368]">Effective Date:</span> <span className="font-semibold">{settings.employmentStatusDate || 'N/A'}</span>
+                    </p>
+                    <p className="text-xs font-medium text-[#1f1f1f]">
+                      <span className="text-[#5f6368]">Exit Reason:</span> <span className="font-semibold">{settings.employmentStatusReason || 'N/A'}</span>
+                    </p>
                   </div>
                 )}
               </div>
+
               <select
                 value={settings.employmentStatus}
                 onChange={handleEmploymentStatusChange}
-                className="w-full sm:w-48 rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none bg-white cursor-pointer"
+                className="w-full sm:w-44 rounded-xl border border-[#dadce0] px-3.5 py-2 text-xs text-[#1f1f1f] font-semibold focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 outline-none bg-white cursor-pointer shadow-xs shrink-0"
               >
                 <option value="Active">Active</option>
                 <option value="Exited">Exited</option>
@@ -222,79 +300,81 @@ const AdminEmployeeSettings = () => {
             </div>
           </div>
         </div>
-
-        {/* Security Settings */}
-        <div className="rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden">
-          <div className="p-5 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
-            <Shield className="w-5 h-5 text-slate-500" />
-            <h3 className="text-lg font-semibold text-slate-900">Security Settings</h3>
-          </div>
-          <div className="p-6 space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-slate-900">Employee account access</p>
-                <p className="text-sm text-slate-500 mt-1 mb-2">When enabled, the employee can sign in. When disabled, sign-in is blocked.</p>
-                <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ${settings.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                  Current status: {settings.isActive ? 'Active' : 'Inactive'}
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={handleStatusToggle}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${settings.isActive ? 'bg-blue-600' : 'bg-slate-200'}`}
-              >
-                <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${settings.isActive ? 'translate-x-5' : 'translate-x-0'}`} />
-              </button>
-            </div>
-
-            <div className="h-px bg-slate-100"></div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-slate-900">Allow MFA for this employee</p>
-                <p className="text-sm text-slate-500 mt-1">When enabled, the employee can set up MFA from their settings page.</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => handleToggle('mfaEnabled')}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${settings.mfaEnabled ? 'bg-blue-600' : 'bg-slate-200'}`}
-              >
-                <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${settings.mfaEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
-              </button>
-            </div>
-          </div>
-        </div>
       </div>
 
-      {/* Exit Modal */}
+      {/* Exit Slideover Sidebar Drawer */}
       {showExitModal && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-          <div className="bg-white rounded-lg shadow-lg w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <form onSubmit={handleExitConfirm}>
-              <div className="p-6 border-b border-slate-100">
-                <h2 className="text-lg font-semibold text-slate-900">Confirm Employment Status Change</h2>
-                <p className="text-sm text-slate-500 mt-1">You are marking this employee as <strong className="text-slate-900">{pendingStatus}</strong>.</p>
-              </div>
-              <div className="p-6 space-y-4">
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-slate-700">Date <span className="text-red-500">*</span></label>
-                  <input required type="date" name="date" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none" />
+        <div 
+          onClick={(e) => { if (e.target === e.currentTarget) setShowExitModal(false); }}
+          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm"
+        >
+          <motion.div 
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
+            className="bg-white shadow-2xl w-full max-w-lg h-[100dvh] flex flex-col overflow-hidden relative z-10"
+          >
+            {/* Top Red Warning Stripe */}
+            <div className="h-1.5 w-full bg-gradient-to-r from-[#EA4335] via-[#FBBC05] to-[#EA4335] absolute top-0 left-0" />
+
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd] mt-1 shrink-0">
+              <div>
+                <div className="flex items-center gap-1.5 text-[#EA4335] mb-0.5">
+                  <AlertTriangle size={15} />
+                  <span className="text-[10.5px] font-bold uppercase tracking-wider">Offboarding Confirmation</span>
                 </div>
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-slate-700">Reason <span className="text-red-500">*</span></label>
-                  <textarea required name="reason" rows="3" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none resize-none" placeholder="Enter reason..."></textarea>
+                <h2 className="text-lg font-semibold text-[#1f1f1f]">Confirm Employment Status</h2>
+                <p className="text-xs text-[#5f6368] mt-0.5">
+                  Marking employee as <strong className="text-[#EA4335] font-semibold">{pendingStatus}</strong>.
+                </p>
+              </div>
+              <button 
+                type="button" 
+                onClick={() => setShowExitModal(false)}
+                className="text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4] p-1.5 rounded-full transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 overflow-y-auto flex-1 space-y-4">
+              <form id="exit-form" onSubmit={handleExitConfirm} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-[#1f1f1f] mb-1">Effective Departure Date *</label>
+                  <input required type="date" name="date" className="w-full rounded-xl border border-[#dadce0] px-3.5 py-2 text-xs text-[#1f1f1f] focus:border-[#EA4335] focus:ring-2 focus:ring-[#EA4335]/20 outline-none transition-all bg-white cursor-pointer" />
                 </div>
-              </div>
-              <div className="p-6 pt-0 flex justify-end gap-3 bg-slate-50">
-                <button type="button" onClick={() => setShowExitModal(false)} className="px-4 py-2 text-sm font-medium border border-slate-300 rounded-md text-slate-700 bg-white hover:bg-slate-50 mt-6 cursor-pointer">
-                  Cancel
-                </button>
-                <button type="submit" className="px-4 py-2 text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 mt-6 cursor-pointer">
-                  Confirm
-                </button>
-              </div>
-            </form>
-          </div>
+                <div>
+                  <label className="block text-xs font-semibold text-[#1f1f1f] mb-1">Reason / Departure Notes *</label>
+                  <textarea required name="reason" rows="4" className="w-full rounded-xl border border-[#dadce0] px-3.5 py-2 text-xs text-[#1f1f1f] focus:border-[#EA4335] focus:ring-2 focus:ring-[#EA4335]/20 outline-none transition-all resize-none" placeholder="Provide context, resignation notes, or separation documentation..."></textarea>
+                </div>
+
+                <div className="p-3.5 bg-[#fce8e6]/60 border border-[#fad2cf] rounded-xl text-xs text-[#c5221f] leading-relaxed">
+                  <strong>Notice:</strong> Submitting this change will immediately revoke the employee's system login permissions and deactivate their workspace account across all devices.
+                </div>
+              </form>
+            </div>
+
+            {/* Footer Actions */}
+            <div className="px-6 py-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex justify-end gap-3 shrink-0">
+              <button 
+                type="button" 
+                onClick={() => setShowExitModal(false)} 
+                className="px-5 py-2 text-xs font-semibold border border-[#dadce0] rounded-full text-[#444746] bg-white hover:bg-[#f1f3f4] transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button 
+                type="submit" 
+                form="exit-form"
+                className="px-6 py-2 text-xs font-semibold rounded-full text-white bg-[#EA4335] hover:bg-[#d93025] shadow-md shadow-[#EA4335]/25 transition-all cursor-pointer"
+              >
+                Confirm Offboarding
+              </button>
+            </div>
+          </motion.div>
         </div>,
         document.body
       )}

@@ -1,9 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { createPortal } from 'react-dom';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import {
-  HelpCircle, Plus, Edit2, Trash2, RefreshCw, X, Building2, CheckCircle2, Filter, CheckSquare, Disc
+  HelpCircle, 
+  Plus, 
+  Edit2, 
+  Trash2, 
+  RefreshCw, 
+  X, 
+  Building2, 
+  CheckCircle2, 
+  Filter, 
+  CheckSquare, 
+  Disc,
+  Search,
+  Sparkles,
+  Layers,
+  Check,
+  AlertCircle
 } from 'lucide-react';
 import PageLoader from '../components/PageLoader';
 
@@ -19,11 +35,59 @@ const DEPARTMENTS = [
   'General / All'
 ];
 
+const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme }) => {
+  const themes = {
+    blue: {
+      iconBg: 'bg-[#e8f0fe]',
+      iconColor: 'text-[#1a73e8]',
+    },
+    purple: {
+      iconBg: 'bg-[#f3e8fd]',
+      iconColor: 'text-[#8430ce]',
+    },
+    green: {
+      iconBg: 'bg-[#e6f4ea]',
+      iconColor: 'text-[#137333]',
+    },
+    amber: {
+      iconBg: 'bg-[#fef7e0]',
+      iconColor: 'text-[#b06000]',
+    }
+  };
+
+  const theme = themes[colorTheme] || themes.blue;
+
+  return (
+    <div className="bg-white rounded-2xl border border-[#e0e3e7] p-5 shadow-xs transition-all duration-200 hover:shadow-md hover:border-[#dadce0]">
+      <div className="flex items-start justify-between">
+        <div className="space-y-1">
+          <p className="text-xs font-semibold text-[#5f6368] uppercase tracking-wider">{title}</p>
+          <p className="text-2xl font-bold text-[#1f1f1f] tracking-tight">{value}</p>
+          {subtitle && <p className="text-xs text-[#5f6368] font-normal pt-0.5">{subtitle}</p>}
+        </div>
+        <div className={`p-3 rounded-2xl ${theme.iconBg} ${theme.iconColor} shrink-0`}>
+          <Icon className="w-5 h-5" />
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const DepartmentQuestionBank = () => {
   const queryClient = useQueryClient();
   const [selectedDeptFilter, setSelectedDeptFilter] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
+
+  // Debounce search query (300ms)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const [form, setForm] = useState({
     department: 'Engineering',
@@ -34,15 +98,25 @@ const DepartmentQuestionBank = () => {
   });
 
   const { data: questions = [], isLoading } = useQuery({
-    queryKey: ['adminQuestions', selectedDeptFilter],
+    queryKey: ['adminQuestions', selectedDeptFilter, debouncedSearchQuery],
     queryFn: async () => {
-      const url = selectedDeptFilter === 'All' 
-        ? '/admin/questions' 
-        : `/admin/questions?department=${encodeURIComponent(selectedDeptFilter)}`;
+      const params = new URLSearchParams();
+      if (selectedDeptFilter !== 'All') params.append('department', selectedDeptFilter);
+      if (debouncedSearchQuery) params.append('search', debouncedSearchQuery);
+      
+      const url = `/admin/questions?${params.toString()}`;
       const res = await api.get(url);
       return res.data?.data || res.data || [];
     }
   });
+
+  const stats = useMemo(() => {
+    const total = questions.length;
+    const single = questions.filter(q => q.question_type === 'mcq_single' || !q.question_type).length;
+    const multiple = questions.filter(q => q.question_type === 'mcq_multiple').length;
+    const depts = new Set(questions.map(q => q.department)).size;
+    return { total, single, multiple, depts };
+  }, [questions]);
 
   const saveMutation = useMutation({
     mutationFn: async ({ formData }) => {
@@ -59,7 +133,6 @@ const DepartmentQuestionBank = () => {
         setShowModal(false);
         resetForm();
       } else {
-        // Keep modal open and reset fields for the next question
         const currentDept = form.department;
         const currentType = form.question_type;
         setEditingId(null);
@@ -159,422 +232,503 @@ const DepartmentQuestionBank = () => {
     setForm({ ...form, question_type: newType, correct_options: nextCorrect });
   };
 
-  if (isLoading) return <PageLoader />;
+  if (isLoading && !questions.length) return <PageLoader message="Loading Question Bank..." />;
 
   return (
-    <div className="space-y-6 p-6">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-6 pb-12">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 mb-1">Department Question Bank</h1>
-          <p className="text-sm text-slate-500">
-            Create and manage department-specific objective questions. Select whether questions have a single or multiple correct options.
+          <div className="flex items-center gap-1.5 mb-1">
+            <span className="w-2 h-2 rounded-full bg-[#4285F4]" />
+            <span className="w-2 h-2 rounded-full bg-[#EA4335]" />
+            <span className="w-2 h-2 rounded-full bg-[#FBBC05]" />
+            <span className="w-2 h-2 rounded-full bg-[#34A853]" />
+            <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Test Center</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight flex items-center gap-2">
+            Department Question Bank <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">{questions.length} Items</span>
+          </h1>
+          <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
+            Curate objective single and multiple-choice questions for employee competency evaluations.
           </p>
         </div>
+
         <button
           onClick={handleOpenCreate}
-          className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 transition-colors shadow-sm cursor-pointer self-start sm:self-auto"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-full text-xs font-semibold shadow-sm transition-all cursor-pointer self-start sm:self-auto"
         >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Department Question
+          <Plus className="w-4 h-4" /> Add Question
         </button>
       </div>
 
-      {/* Department Filter Bar */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-slate-200">
-        <span className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1 mr-2 shrink-0">
-          <Filter size={13} /> Filter Dept:
-        </span>
-        <button
-          onClick={() => setSelectedDeptFilter('All')}
-          className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer ${
-            selectedDeptFilter === 'All'
-              ? 'bg-slate-900 text-white shadow-sm'
-              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-          }`}
-        >
-          All Departments ({selectedDeptFilter === 'All' ? questions.length : 'All'})
-        </button>
-        {DEPARTMENTS.map((dept) => (
-          <button
-            key={dept}
-            onClick={() => setSelectedDeptFilter(dept)}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer ${
-              selectedDeptFilter === dept
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-            }`}
-          >
-            {dept}
-          </button>
-        ))}
+      {/* KPI Stats Cards */}
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard 
+          title="Question Pool" 
+          value={stats.total} 
+          subtitle="Total questions loaded" 
+          icon={HelpCircle} 
+          colorTheme="blue" 
+        />
+        <StatCard 
+          title="Single Choice (MCQ)" 
+          value={stats.single} 
+          subtitle="Single correct answers" 
+          icon={Disc} 
+          colorTheme="purple" 
+        />
+        <StatCard 
+          title="Multiple Choice" 
+          value={stats.multiple} 
+          subtitle="Multi-select questions" 
+          icon={CheckSquare} 
+          colorTheme="green" 
+        />
+        <StatCard 
+          title="Active Departments" 
+          value={stats.depts} 
+          subtitle="Covered question groups" 
+          icon={Building2} 
+          colorTheme="amber" 
+        />
       </div>
 
-      {/* Questions Table */}
-      <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden flex flex-col">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-500">
-              <tr>
-                <th className="px-6 py-4 font-medium w-52">Department & Type</th>
-                <th className="px-6 py-4 font-medium">Question</th>
-                <th className="px-6 py-4 font-medium">Options & Answers</th>
-                <th className="px-6 py-4 font-medium text-right w-28">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 text-sm">
-              {questions.map((item, idx) => {
-                let opts = item.options || [];
-                if (typeof opts === 'string') {
-                  try { opts = JSON.parse(opts); } catch (e) { opts = []; }
-                }
-                let cOpts = item.correct_options;
-                if (typeof cOpts === 'string') {
-                  try { cOpts = JSON.parse(cOpts); } catch (e) { cOpts = []; }
-                }
-                if (!Array.isArray(cOpts) || cOpts.length === 0) {
-                  cOpts = [parseInt(item.correct_option) || 0];
-                }
-                cOpts = cOpts.map(i => parseInt(i));
-
-                const isMultiple = item.question_type === 'mcq_multiple';
-
-                return (
-                  <tr key={item.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-6 py-4 font-medium text-slate-900 align-top space-y-1.5">
-                      <div>
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200/60">
-                          <Building2 size={13} className="shrink-0" />
-                          {item.department}
-                        </span>
-                      </div>
-                      <div>
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-                          isMultiple 
-                            ? 'bg-purple-100 text-purple-700 border border-purple-200' 
-                            : 'bg-slate-100 text-slate-600 border border-slate-200'
-                        }`}>
-                          {isMultiple ? <CheckSquare size={11} /> : <Disc size={11} />}
-                          {isMultiple ? 'Multiple Correct' : 'Single Correct'}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-slate-900 font-semibold align-top max-w-md">
-                      <div className="flex items-start gap-2">
-                        <span className="text-slate-400 font-mono text-xs mt-0.5">Q{idx + 1}.</span>
-                        <span className="whitespace-pre-wrap">{item.question_text}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 align-top">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-lg">
-                        {opts.map((optText, oIdx) => {
-                          const isCorrect = cOpts.includes(oIdx);
-                          return (
-                            <div
-                              key={oIdx}
-                              className={`px-3 py-1.5 rounded-lg text-xs font-medium border flex items-center justify-between gap-2 ${
-                                isCorrect
-                                  ? 'bg-emerald-50 border-emerald-300 text-emerald-900 font-bold shadow-2xs'
-                                  : 'bg-slate-50/70 border-slate-200 text-slate-700'
-                              }`}
-                            >
-                              <div className="flex items-center gap-2 truncate">
-                                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
-                                  isCorrect ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-700'
-                                }`}>
-                                  {String.fromCharCode(65 + oIdx)}
-                                </span>
-                                <span className="truncate" title={optText}>{optText || <span className="italic text-slate-400">Empty option</span>}</span>
-                              </div>
-                              {isCorrect && <CheckCircle2 size={14} className="text-emerald-600 shrink-0" />}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-right align-top space-x-2 whitespace-nowrap">
-                      <button
-                        onClick={() => handleOpenEdit(item)}
-                        className="p-1.5 text-slate-400 hover:text-blue-600 rounded hover:bg-slate-100 transition-colors cursor-pointer"
-                        title="Edit Question"
-                      >
-                        <Edit2 size={16} />
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (confirm('Are you sure you want to delete this question?')) {
-                            deleteMutation.mutate(item.id);
-                          }
-                        }}
-                        className="p-1.5 text-slate-400 hover:text-rose-600 rounded hover:bg-slate-100 transition-colors cursor-pointer"
-                        title="Delete Question"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-              {questions.length === 0 && (
-                <tr>
-                  <td colSpan="4" className="px-6 py-14 text-center text-slate-500">
-                    <div className="flex flex-col items-center justify-center">
-                      <HelpCircle size={44} className="text-slate-300 mb-2" />
-                      <p className="font-semibold text-slate-700 text-base">No questions found for {selectedDeptFilter === 'All' ? 'any department' : selectedDeptFilter}</p>
-                      <p className="text-xs text-slate-400 mt-1 max-w-sm">
-                        Click "+ Add Department Question" above to create department-specific objective questions.
-                      </p>
-                    </div>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Slide-over Drawer Modal for Create / Edit Question */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 overflow-hidden bg-slate-900/50 backdrop-blur-sm flex justify-end">
-          <div className="bg-white shadow-2xl w-full max-w-2xl h-[100dvh] flex flex-col overflow-hidden transform transition-transform duration-300 animate-in slide-in-from-right">
-            {/* Header */}
-            <div className="px-8 py-5 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-              <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2.5">
-                <HelpCircle className="text-blue-600" size={22} />
-                <span>{editingId ? 'Edit Department Question' : 'Add Question to Department'}</span>
-              </h2>
+      {/* Main Content Table Card */}
+      <div className="rounded-2xl border border-[#e0e3e7] bg-white shadow-xs overflow-hidden flex flex-col">
+        {/* Table Toolbar */}
+        <div className="p-4 sm:p-5 border-b border-[#e0e3e7] bg-[#f8fafd] flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          {/* Department Pills */}
+          <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1 max-w-full">
+            <button
+              onClick={() => setSelectedDeptFilter('All')}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all shrink-0 cursor-pointer ${
+                selectedDeptFilter === 'All'
+                  ? 'bg-[#1a73e8] text-white shadow-xs'
+                  : 'bg-white border border-[#dadce0] text-[#5f6368] hover:bg-[#f1f3f4] hover:text-[#1f1f1f]'
+              }`}
+            >
+              All Departments ({selectedDeptFilter === 'All' ? questions.length : 'All'})
+            </button>
+            {DEPARTMENTS.map((dept) => (
               <button
-                type="button"
-                onClick={() => setShowModal(false)}
-                className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer p-1"
+                key={dept}
+                onClick={() => setSelectedDeptFilter(dept)}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all shrink-0 cursor-pointer ${
+                  selectedDeptFilter === dept
+                    ? 'bg-[#1a73e8] text-white shadow-xs'
+                    : 'bg-white border border-[#dadce0] text-[#5f6368] hover:bg-[#f1f3f4] hover:text-[#1f1f1f]'
+                }`}
               >
-                <X size={22} />
+                {dept}
               </button>
-            </div>
+            ))}
+          </div>
 
-            {/* Body */}
-            <div className="p-8 overflow-y-auto flex-1 space-y-6">
-              {/* Card 1: Department & Question Type */}
-              <div className="bg-white rounded-xl border border-slate-200/80 shadow-2xs p-5 space-y-5">
-                <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100 text-slate-900 font-bold text-sm">
-                  <span className="p-1.5 bg-blue-50 text-blue-600 rounded-lg"><Building2 size={16} /></span>
-                  <span>Department & Question Type</span>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
-                    Link Question to Department <span className="text-rose-500">*</span>
-                  </label>
-                  <select
-                    value={form.department}
-                    onChange={e => setForm({ ...form, department: e.target.value })}
-                    className="w-full p-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:outline-none focus:bg-white font-bold text-slate-900 transition cursor-pointer"
-                  >
-                    {DEPARTMENTS.map(d => (
-                      <option key={d} value={d}>{d}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
-                    Select Question Type <span className="text-rose-500">*</span>
-                  </label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div
-                      onClick={() => handleTypeChange('mcq_single')}
-                      className={`p-3.5 rounded-xl border cursor-pointer transition-all flex items-start gap-3 ${
-                        form.question_type === 'mcq_single'
-                          ? 'bg-blue-50/70 border-blue-500 ring-2 ring-blue-500/20 text-blue-950 font-bold shadow-2xs'
-                          : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="q_type"
-                        checked={form.question_type === 'mcq_single'}
-                        onChange={() => handleTypeChange('mcq_single')}
-                        className="mt-0.5 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                      />
-                      <div>
-                        <div className="text-sm font-bold flex items-center gap-1.5">
-                          <Disc size={15} className="text-blue-600" />
-                          <span>Single Correct</span>
-                        </div>
-                        <p className="text-[11px] text-slate-500 font-normal mt-0.5">
-                          Only 1 option can be chosen as correct.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div
-                      onClick={() => handleTypeChange('mcq_multiple')}
-                      className={`p-3.5 rounded-xl border cursor-pointer transition-all flex items-start gap-3 ${
-                        form.question_type === 'mcq_multiple'
-                          ? 'bg-purple-50/70 border-purple-500 ring-2 ring-purple-500/20 text-purple-950 font-bold shadow-2xs'
-                          : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="q_type"
-                        checked={form.question_type === 'mcq_multiple'}
-                        onChange={() => handleTypeChange('mcq_multiple')}
-                        className="mt-0.5 text-purple-600 focus:ring-purple-500 cursor-pointer"
-                      />
-                      <div>
-                        <div className="text-sm font-bold flex items-center gap-1.5">
-                          <CheckSquare size={15} className="text-purple-600" />
-                          <span>Multiple Correct</span>
-                        </div>
-                        <p className="text-[11px] text-slate-500 font-normal mt-0.5">
-                          More than 1 option can be chosen as correct.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Card 2: Question Text */}
-              <div className="bg-white rounded-xl border border-slate-200/80 shadow-2xs p-5 space-y-4">
-                <div className="flex items-center gap-2 pb-2.5 border-b border-slate-100 text-slate-900 font-bold text-sm">
-                  <span className="p-1.5 bg-amber-50 text-amber-600 rounded-lg"><HelpCircle size={16} /></span>
-                  <span>Question Text</span>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
-                    Question Statement <span className="text-rose-500">*</span>
-                  </label>
-                  <textarea
-                    rows={4}
-                    value={form.question_text}
-                    onChange={e => setForm({ ...form, question_text: e.target.value })}
-                    placeholder="Enter the objective question statement here..."
-                    className="w-full p-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-white font-medium text-slate-900 placeholder-slate-400 transition"
-                  />
-                </div>
-              </div>
-
-              {/* Card 3: 4 Options & Correct Answers */}
-              <div className="bg-white rounded-xl border border-slate-200/80 shadow-2xs p-5 space-y-4">
-                <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
-                  <div className="flex items-center gap-2 text-slate-900 font-bold text-sm">
-                    <span className="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg"><CheckCircle2 size={16} /></span>
-                    <span>Answer Options</span>
-                  </div>
-                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-md ${
-                    form.question_type === 'mcq_multiple'
-                      ? 'text-purple-700 bg-purple-50 border border-purple-200'
-                      : 'text-emerald-700 bg-emerald-50 border border-emerald-200'
-                  }`}>
-                    {form.question_type === 'mcq_multiple' ? 'Check All Correct Answers' : 'Select Radio Button for Correct Answer'}
-                  </span>
-                </div>
-
-                <div className="space-y-3">
-                  {form.options.map((opt, idx) => {
-                    const isCorrect = form.correct_options.includes(idx);
-                    const letter = String.fromCharCode(65 + idx);
-                    return (
-                      <div
-                        key={idx}
-                        onClick={() => handleToggleCorrect(idx)}
-                        className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
-                          isCorrect
-                            ? 'bg-emerald-50/70 border-emerald-400 shadow-2xs'
-                            : 'bg-white border-slate-200 hover:border-slate-300'
-                        }`}
-                      >
-                        <div className="flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
-                          {form.question_type === 'mcq_single' ? (
-                            <input
-                              type="radio"
-                              name="correct_option_radio"
-                              checked={isCorrect}
-                              onChange={() => handleToggleCorrect(idx)}
-                              className="w-4 h-4 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
-                            />
-                          ) : (
-                            <input
-                              type="checkbox"
-                              checked={isCorrect}
-                              onChange={() => handleToggleCorrect(idx)}
-                              className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 cursor-pointer"
-                            />
-                          )}
-                        </div>
-                        <span className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${
-                          isCorrect ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-100 text-slate-700'
-                        }`}>
-                          {letter}
-                        </span>
-                        <input
-                          type="text"
-                          value={opt}
-                          onClick={(e) => e.stopPropagation()}
-                          onChange={(e) => handleOptionChange(idx, e.target.value)}
-                          placeholder={`Option ${letter}`}
-                          className="flex-1 p-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-medium text-slate-900 placeholder-slate-400"
-                        />
-                        {isCorrect && (
-                          <span className="text-[11px] font-bold text-emerald-700 bg-emerald-100/80 px-2 py-1 rounded shrink-0">
-                            Correct
-                          </span>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {form.correct_options.length === 0 && (
-                  <p className="text-xs font-bold text-rose-500 bg-rose-50 p-2 rounded-lg text-center">
-                    Please select at least one correct option!
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="px-8 py-4 bg-slate-50 border-t border-slate-200 flex justify-end items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setShowModal(false)}
-                className="px-5 py-2.5 text-sm font-bold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => saveMutation.mutate({ formData: form, closeAfterSave: true })}
-                disabled={
-                  saveMutation.isPending ||
-                  !form.question_text.trim() ||
-                  form.options.some(o => !o.trim()) ||
-                  form.correct_options.length === 0
-                }
-                className="px-5 py-2.5 text-sm font-bold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition cursor-pointer disabled:opacity-50"
-              >
-                Save & Close
-              </button>
-              <button
-                type="button"
-                onClick={() => saveMutation.mutate({ formData: form, closeAfterSave: false })}
-                disabled={
-                  saveMutation.isPending ||
-                  !form.question_text.trim() ||
-                  form.options.some(o => !o.trim()) ||
-                  form.correct_options.length === 0
-                }
-                className="px-6 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition cursor-pointer disabled:opacity-50 flex items-center gap-2 shadow-sm"
-              >
-                {saveMutation.isPending && <RefreshCw size={16} className="animate-spin" />}
-                <span>{editingId ? 'Update & Add Another' : 'Save & Add Next Question'}</span>
-              </button>
-            </div>
+          {/* Google Pill Search */}
+          <div className="relative w-full lg:w-72 shrink-0">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368] pointer-events-none" />
+            <input
+              type="search"
+              placeholder="Search question text or options..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 text-xs bg-[#f1f3f4] hover:bg-[#e8eaed] focus:bg-white border border-transparent focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-full text-[#1f1f1f] placeholder:text-[#5f6368] outline-none transition-all shadow-none focus:shadow-sm"
+            />
           </div>
         </div>
+
+        {/* Questions Table */}
+        <div className="overflow-x-auto custom-scrollbar">
+          {questions.length === 0 ? (
+            <div className="p-12 text-center text-[#5f6368] flex flex-col items-center justify-center space-y-2">
+              <HelpCircle className="w-12 h-12 text-[#dadce0] mb-1" />
+              <p className="text-sm font-semibold text-[#1f1f1f]">No questions found</p>
+              <p className="text-xs text-[#5f6368]">
+                {searchQuery ? "Try adjusting your search query or department filter." : "Click \"Add Question\" to register your first objective item."}
+              </p>
+            </div>
+          ) : (
+            <table className="w-full text-xs text-left">
+              <thead className="bg-[#f8fafd] border-b border-[#e0e3e7] text-[#5f6368] uppercase font-semibold tracking-wider text-[11px]">
+                <tr>
+                  <th className="px-5 py-3.5 w-48">Department & Type</th>
+                  <th className="px-5 py-3.5">Question Statement</th>
+                  <th className="px-5 py-3.5">Option Choices & Answers</th>
+                  <th className="px-5 py-3.5 text-right w-24">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#e0e3e7]">
+                {questions.map((item, idx) => {
+                  let opts = item.options || [];
+                  if (typeof opts === 'string') {
+                    try { opts = JSON.parse(opts); } catch (e) { opts = []; }
+                  }
+                  let cOpts = item.correct_options;
+                  if (typeof cOpts === 'string') {
+                    try { cOpts = JSON.parse(cOpts); } catch (e) { cOpts = []; }
+                  }
+                  if (!Array.isArray(cOpts) || cOpts.length === 0) {
+                    cOpts = [parseInt(item.correct_option) || 0];
+                  }
+                  cOpts = cOpts.map(i => parseInt(i));
+
+                  const isMultiple = item.question_type === 'mcq_multiple';
+
+                  return (
+                    <tr key={item.id} className="hover:bg-[#f8fafd] transition-colors">
+                      <td className="px-5 py-4 align-top space-y-1.5">
+                        <div>
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
+                            <Building2 className="w-3.5 h-3.5 shrink-0" />
+                            {item.department}
+                          </span>
+                        </div>
+                        <div>
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${
+                            isMultiple 
+                              ? 'bg-[#f3e8fd] text-[#8430ce] border border-[#e9d5ff]' 
+                              : 'bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]'
+                          }`}>
+                            {isMultiple ? <CheckSquare className="w-3 h-3" /> : <Disc className="w-3 h-3" />}
+                            {isMultiple ? 'Multi-Select' : 'Single MCQ'}
+                          </span>
+                        </div>
+                      </td>
+
+                      <td className="px-5 py-4 align-top max-w-md">
+                        <div className="flex items-start gap-2">
+                          <span className="font-mono text-xs font-bold text-[#5f6368] bg-[#f1f3f4] px-1.5 py-0.5 rounded shrink-0">
+                            Q{idx + 1}
+                          </span>
+                          <span className="font-semibold text-xs text-[#1f1f1f] leading-relaxed whitespace-pre-wrap">
+                            {item.question_text}
+                          </span>
+                        </div>
+                      </td>
+
+                      <td className="px-5 py-4 align-top">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-lg">
+                          {opts.map((optText, oIdx) => {
+                            const isCorrect = cOpts.includes(oIdx);
+                            return (
+                              <div
+                                key={oIdx}
+                                className={`px-2.5 py-1.5 rounded-xl text-xs font-medium border flex items-center justify-between gap-2 transition-all ${
+                                  isCorrect
+                                    ? 'bg-[#e6f4ea] border-[#ceead6] text-[#137333] font-bold shadow-2xs'
+                                    : 'bg-[#f8fafd] border-[#e0e3e7] text-[#5f6368]'
+                                }`}
+                              >
+                                <div className="flex items-center gap-2 truncate">
+                                  <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+                                    isCorrect ? 'bg-[#137333] text-white' : 'bg-[#e0e3e7] text-[#5f6368]'
+                                  }`}>
+                                    {String.fromCharCode(65 + oIdx)}
+                                  </span>
+                                  <span className="truncate" title={optText}>
+                                    {optText || <span className="italic text-[#80868b]">Empty option</span>}
+                                  </span>
+                                </div>
+                                {isCorrect && <CheckCircle2 className="w-3.5 h-3.5 text-[#137333] shrink-0" />}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </td>
+
+                      <td className="px-5 py-4 text-right align-top whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => handleOpenEdit(item)}
+                            className="p-1.5 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#5f6368] hover:text-[#1a73e8] transition-all cursor-pointer"
+                            title="Edit Question"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (confirm('Are you sure you want to delete this question?')) {
+                                deleteMutation.mutate(item.id);
+                              }
+                            }}
+                            className="p-1.5 rounded-full border border-[#fce8e6] bg-[#fce8e6] hover:bg-[#fad2cf] text-[#c5221f] transition-all cursor-pointer"
+                            title="Delete Question"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+
+      {/* Slideover Right Drawer (createPortal) */}
+      {showModal && createPortal(
+        <div className="fixed inset-0 z-50 overflow-hidden">
+          <div 
+            className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity" 
+            onClick={() => setShowModal(false)} 
+          />
+          <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
+            <div className="w-screen max-w-2xl bg-white shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
+              
+              {/* Drawer Header */}
+              <div className="p-5 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd]">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-[#e8f0fe] text-[#1a73e8]">
+                    <HelpCircle className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-semibold text-[#1f1f1f]">
+                      {editingId ? 'Edit Department Question' : 'Add Question to Bank'}
+                    </h3>
+                    <p className="text-xs text-[#5f6368]">
+                      Configure question type, statements, options, and key answers
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="p-1.5 rounded-full text-[#5f6368] hover:bg-[#e8eaed] transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Drawer Body */}
+              <div className="p-6 overflow-y-auto flex-1 custom-scrollbar space-y-5 text-xs">
+                
+                {/* Department & Type */}
+                <div className="bg-[#f8fafd] rounded-2xl border border-[#e0e3e7] p-4 space-y-4">
+                  <div className="flex items-center gap-2 pb-2 border-b border-[#e0e3e7] text-xs font-semibold text-[#1f1f1f]">
+                    <Building2 className="w-4 h-4 text-[#1a73e8]" />
+                    <span>Department & Classification</span>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5">
+                      Target Department *
+                    </label>
+                    <select
+                      value={form.department}
+                      onChange={e => setForm({ ...form, department: e.target.value })}
+                      className="w-full px-3.5 py-2 bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none cursor-pointer transition-all"
+                    >
+                      {DEPARTMENTS.map(d => (
+                        <option key={d} value={d}>{d}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5">
+                      Question Type *
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div
+                        onClick={() => handleTypeChange('mcq_single')}
+                        className={`p-3.5 rounded-2xl border cursor-pointer transition-all flex items-start gap-3 ${
+                          form.question_type === 'mcq_single'
+                            ? 'bg-[#e8f0fe] border-[#4285F4] text-[#1a73e8] font-bold shadow-2xs'
+                            : 'bg-white border-[#e0e3e7] text-[#5f6368] hover:border-[#4285F4]'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="q_type"
+                          checked={form.question_type === 'mcq_single'}
+                          onChange={() => handleTypeChange('mcq_single')}
+                          className="mt-0.5 text-[#1a73e8] focus:ring-[#1a73e8] cursor-pointer"
+                        />
+                        <div>
+                          <div className="text-xs font-bold flex items-center gap-1.5 text-[#1f1f1f]">
+                            <Disc className="w-3.5 h-3.5 text-[#1a73e8]" />
+                            <span>Single Correct (MCQ)</span>
+                          </div>
+                          <p className="text-[11px] text-[#5f6368] font-normal mt-0.5">
+                            Candidates select exactly 1 correct option.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div
+                        onClick={() => handleTypeChange('mcq_multiple')}
+                        className={`p-3.5 rounded-2xl border cursor-pointer transition-all flex items-start gap-3 ${
+                          form.question_type === 'mcq_multiple'
+                            ? 'bg-[#f3e8fd] border-[#8430ce] text-[#8430ce] font-bold shadow-2xs'
+                            : 'bg-white border-[#e0e3e7] text-[#5f6368] hover:border-[#8430ce]'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="q_type"
+                          checked={form.question_type === 'mcq_multiple'}
+                          onChange={() => handleTypeChange('mcq_multiple')}
+                          className="mt-0.5 text-[#8430ce] focus:ring-[#8430ce] cursor-pointer"
+                        />
+                        <div>
+                          <div className="text-xs font-bold flex items-center gap-1.5 text-[#1f1f1f]">
+                            <CheckSquare className="w-3.5 h-3.5 text-[#8430ce]" />
+                            <span>Multiple Correct</span>
+                          </div>
+                          <p className="text-[11px] text-[#5f6368] font-normal mt-0.5">
+                            One or more options can be valid.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Question Statement */}
+                <div className="bg-[#f8fafd] rounded-2xl border border-[#e0e3e7] p-4 space-y-3">
+                  <div className="flex items-center gap-2 pb-2 border-b border-[#e0e3e7] text-xs font-semibold text-[#1f1f1f]">
+                    <HelpCircle className="w-4 h-4 text-[#1a73e8]" />
+                    <span>Question Statement</span>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5">
+                      Question Text *
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={form.question_text}
+                      onChange={e => setForm({ ...form, question_text: e.target.value })}
+                      placeholder="Type the objective question statement here..."
+                      className="w-full p-3.5 bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs font-medium text-[#1f1f1f] placeholder:text-[#5f6368] outline-none transition-all resize-y"
+                    />
+                  </div>
+                </div>
+
+                {/* 4 Options & Correct Answers */}
+                <div className="bg-[#f8fafd] rounded-2xl border border-[#e0e3e7] p-4 space-y-3">
+                  <div className="flex items-center justify-between pb-2 border-b border-[#e0e3e7]">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-[#1f1f1f]">
+                      <CheckCircle2 className="w-4 h-4 text-[#137333]" />
+                      <span>Answer Choices (Click row to toggle correct answer)</span>
+                    </div>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      form.question_type === 'mcq_multiple'
+                        ? 'text-[#8430ce] bg-[#f3e8fd] border border-[#e9d5ff]'
+                        : 'text-[#137333] bg-[#e6f4ea] border border-[#ceead6]'
+                    }`}>
+                      {form.question_type === 'mcq_multiple' ? 'Multiple allowed' : 'Single radio choice'}
+                    </span>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    {form.options.map((opt, idx) => {
+                      const isCorrect = form.correct_options.includes(idx);
+                      const letter = String.fromCharCode(65 + idx);
+                      return (
+                        <div
+                          key={idx}
+                          onClick={() => handleToggleCorrect(idx)}
+                          className={`flex items-center gap-3 p-2.5 rounded-2xl border transition-all cursor-pointer ${
+                            isCorrect
+                              ? 'bg-[#e6f4ea] border-[#ceead6] shadow-2xs'
+                              : 'bg-white border-[#e0e3e7] hover:border-[#4285F4]'
+                          }`}
+                        >
+                          <div className="flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+                            {form.question_type === 'mcq_single' ? (
+                              <input
+                                type="radio"
+                                name="correct_option_radio"
+                                checked={isCorrect}
+                                onChange={() => handleToggleCorrect(idx)}
+                                className="w-4 h-4 text-[#137333] focus:ring-[#137333] cursor-pointer"
+                              />
+                            ) : (
+                              <input
+                                type="checkbox"
+                                checked={isCorrect}
+                                onChange={() => handleToggleCorrect(idx)}
+                                className="w-4 h-4 rounded text-[#8430ce] focus:ring-[#8430ce] cursor-pointer"
+                              />
+                            )}
+                          </div>
+                          <span className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
+                            isCorrect ? 'bg-[#137333] text-white shadow-xs' : 'bg-[#f1f3f4] text-[#5f6368]'
+                          }`}>
+                            {letter}
+                          </span>
+                          <input
+                            type="text"
+                            value={opt}
+                            onClick={(e) => e.stopPropagation()}
+                            onChange={(e) => handleOptionChange(idx, e.target.value)}
+                            placeholder={`Option ${letter}`}
+                            className="flex-1 px-3 py-1.5 bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs font-medium text-[#1f1f1f] placeholder:text-[#5f6368] outline-none"
+                          />
+                          {isCorrect && (
+                            <span className="text-[10px] font-bold text-[#137333] bg-white border border-[#ceead6] px-2 py-0.5 rounded-full shrink-0">
+                              Correct Answer
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {form.correct_options.length === 0 && (
+                    <p className="text-xs font-bold text-[#c5221f] bg-[#fce8e6] border border-[#fad2cf] p-2 rounded-xl text-center">
+                      Please select at least one correct option answer!
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Drawer Footer */}
+              <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex justify-end items-center gap-2.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="px-4 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => saveMutation.mutate({ formData: form, closeAfterSave: true })}
+                  disabled={
+                    saveMutation.isPending ||
+                    !form.question_text.trim() ||
+                    form.options.some(o => !o.trim()) ||
+                    form.correct_options.length === 0
+                  }
+                  className="px-4 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer disabled:opacity-50"
+                >
+                  Save & Close
+                </button>
+                <button
+                  type="button"
+                  onClick={() => saveMutation.mutate({ formData: form, closeAfterSave: false })}
+                  disabled={
+                    saveMutation.isPending ||
+                    !form.question_text.trim() ||
+                    form.options.some(o => !o.trim()) ||
+                    form.correct_options.length === 0
+                  }
+                  className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {saveMutation.isPending ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                  <span>{editingId ? 'Update & Add Another' : 'Save & Add Next'}</span>
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );

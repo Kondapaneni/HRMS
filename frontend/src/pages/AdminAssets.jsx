@@ -1,7 +1,37 @@
-import React, { useState } from 'react';
-import PageLoader from '../components/PageLoader';
+import React, { useState, useEffect, useMemo, Fragment } from 'react';
 import { createPortal } from 'react-dom';
-import { Shield, Edit2, Search, X, Monitor, Plus, Trash2, History, ArrowRight } from 'lucide-react';
+import PageLoader from '../components/PageLoader';
+import { 
+  Shield, 
+  Edit2, 
+  Search, 
+  X, 
+  Monitor, 
+  Plus, 
+  Trash2, 
+  History, 
+  ArrowRight,
+  Laptop,
+  Smartphone,
+  Tablet,
+  Keyboard,
+  Mouse,
+  Headphones,
+  HardDrive,
+  User,
+  Building2,
+  CheckCircle2,
+  AlertTriangle,
+  Wrench,
+  Clock,
+  ChevronLeft,
+  ChevronRight,
+  ShieldCheck,
+  UserCheck,
+  Package,
+  Layers,
+  Sparkles
+} from 'lucide-react';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
@@ -9,18 +39,85 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 
+const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme }) => {
+  const themes = {
+    blue: {
+      iconBg: 'bg-[#e8f0fe]',
+      iconColor: 'text-[#1a73e8]',
+    },
+    purple: {
+      iconBg: 'bg-[#f3e8fd]',
+      iconColor: 'text-[#8430ce]',
+    },
+    green: {
+      iconBg: 'bg-[#e6f4ea]',
+      iconColor: 'text-[#137333]',
+    },
+    amber: {
+      iconBg: 'bg-[#fef7e0]',
+      iconColor: 'text-[#b06000]',
+    }
+  };
+
+  const theme = themes[colorTheme] || themes.blue;
+
+  return (
+    <div className="bg-white rounded-2xl border border-[#e0e3e7] p-5 shadow-xs transition-all duration-200 hover:shadow-md hover:border-[#dadce0]">
+      <div className="flex items-start justify-between">
+        <div className="space-y-1">
+          <p className="text-xs font-semibold text-[#5f6368] uppercase tracking-wider">{title}</p>
+          <p className="text-2xl font-bold text-[#1f1f1f] tracking-tight">{value}</p>
+          {subtitle && <p className="text-xs text-[#5f6368] font-normal pt-0.5">{subtitle}</p>}
+        </div>
+        <div className={`p-3 rounded-2xl ${theme.iconBg} ${theme.iconColor} shrink-0`}>
+          <Icon className="w-5 h-5" />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const getCategoryIcon = (category) => {
+  switch ((category || '').toLowerCase()) {
+    case 'laptop': return Laptop;
+    case 'monitor': return Monitor;
+    case 'phone': return Smartphone;
+    case 'tablet': return Tablet;
+    case 'keyboard': return Keyboard;
+    case 'mouse': return Mouse;
+    case 'audio': return Headphones;
+    default: return HardDrive;
+  }
+};
+
 const AdminAssets = () => {
   const { token } = useAuth();
   const queryClient = useQueryClient();
 
-  // Modal State
+  // Filters and Pagination
+  const [filter, setFilter] = useState('All');
+  const [categoryFilter, setCategoryFilter] = useState('All');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const limit = 10;
+
+  // Drawer / Modal State
   const [selectedAsset, setSelectedAsset] = useState(null);
   const [modalMode, setModalMode] = useState(''); // 'assign', 'add', 'edit', 'history'
   const [modalSearch, setModalSearch] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
   const [assetHistory, setAssetHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // Debounce search query (300ms)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+      setPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -30,29 +127,42 @@ const AdminAssets = () => {
     status: 'Available'
   });
 
-  const categories = ['Laptop', 'Monitor', 'Keyboard', 'Mouse', 'Phone', 'Tablet', 'Other'];
+  const categories = ['Laptop', 'Monitor', 'Keyboard', 'Mouse', 'Phone', 'Tablet', 'Audio', 'Other'];
 
-  const { data: assets = [], isLoading: assetsLoading } = useQuery({
-    queryKey: ['admin', 'assets'],
+  // Fetch Assets from API
+  const { data: assetsResponse, isLoading: assetsLoading } = useQuery({
+    queryKey: ['admin', 'assets', page, debouncedSearchQuery, filter, categoryFilter],
     queryFn: async () => {
-      const res = await api.get('/admin/assets');
-      return res.data.data;
+      const res = await api.get(`/admin/assets?page=${page}&limit=${limit}&search=${encodeURIComponent(debouncedSearchQuery)}&status=${filter}&category=${categoryFilter}`);
+      return res.data;
     },
-    onError: (error) => toast.error(error.response?.data?.error || error.message),
+    staleTime: 30 * 1000,
   });
 
+  const assets = assetsResponse?.data || [];
+  const stats = assetsResponse?.stats || {
+    totalCount: 0,
+    availableCount: 0,
+    assignedCount: 0,
+    maintenanceCount: 0,
+    damagedCount: 0
+  };
+  const totalCount = assetsResponse?.pagination?.total || 0;
+  const totalPages = Math.ceil(totalCount / limit);
+
+  // Fetch Employees for assignment dropdown
   const { data: users = [], isLoading: usersLoading } = useQuery({
     queryKey: ['admin', 'employees'],
     queryFn: async () => {
-      const res = await api.get('/admin/employees');
-      return res.data.employees;
+      const res = await api.get('/admin/employees?limit=200');
+      return res.data.employees || [];
     },
   });
 
-  const loading = assetsLoading || usersLoading;
+  const loading = assetsLoading && !assetsResponse;
 
   const getInitials = (firstName, lastName) => {
-    return `${(firstName || '').charAt(0)}${(lastName || '').charAt(0)}`.toUpperCase();
+    return `${(firstName || '').charAt(0)}${(lastName || '').charAt(0)}`.toUpperCase() || 'EM';
   };
 
   const openAddModal = () => {
@@ -143,354 +253,534 @@ const AdminAssets = () => {
     }
   };
 
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'Available':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">
+            <ShieldCheck className="w-3.5 h-3.5" /> In Stock (Available)
+          </span>
+        );
+      case 'Assigned':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
+            <UserCheck className="w-3.5 h-3.5" /> Assigned
+          </span>
+        );
+      case 'Maintenance':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#fef7e0] text-[#b06000] border border-[#feefc3]">
+            <Wrench className="w-3.5 h-3.5" /> Maintenance
+          </span>
+        );
+      case 'Damaged':
+      case 'Missing':
+      case 'Retired':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf]">
+            <AlertTriangle className="w-3.5 h-3.5" /> {status}
+          </span>
+        );
+      default:
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]">
+            {status}
+          </span>
+        );
+    }
+  };
+
   const filteredUsersForModal = users.filter(u => {
     const fullName = `${u.firstName} ${u.lastName}`.toLowerCase();
-    return fullName.includes(modalSearch.toLowerCase()) || (u.email && u.email.toLowerCase().includes(modalSearch.toLowerCase()));
-  });
-
-  const filteredAssets = assets.filter(asset => {
-    if (!searchQuery) return true;
-    const holderName = `${asset.employee_first_name || ''} ${asset.employee_last_name || ''}`.toLowerCase();
-    const assetName = (asset.name || '').toLowerCase();
-    const search = searchQuery.toLowerCase();
-    return holderName.includes(search) || assetName.includes(search);
+    const employeeId = (u.employeeId || '').toLowerCase();
+    const email = (u.email || '').toLowerCase();
+    const q = modalSearch.toLowerCase();
+    return fullName.includes(q) || employeeId.includes(q) || email.includes(q);
   });
 
   if (loading) return <PageLoader message="Loading Assets..." />;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-6 pb-12">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Asset Management</h1>
-          <p className="text-slate-500 mt-1">Track and manage company equipment and assignments.</p>
+          <div className="flex items-center gap-1.5 mb-1">
+            <span className="w-2 h-2 rounded-full bg-[#4285F4]" />
+            <span className="w-2 h-2 rounded-full bg-[#EA4335]" />
+            <span className="w-2 h-2 rounded-full bg-[#FBBC05]" />
+            <span className="w-2 h-2 rounded-full bg-[#34A853]" />
+            <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Hardware & Devices</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight flex items-center gap-2">
+            Asset Management <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">{totalCount} Items</span>
+          </h1>
+          <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
+            Track company equipment, monitor inventory allocation, and audit employee hardware history.
+          </p>
         </div>
+
         <button
           onClick={openAddModal}
-          className="inline-flex items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 transition-all h-10"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-full text-xs font-semibold shadow-sm transition-all cursor-pointer self-start sm:self-auto"
         >
-          <Plus size={18} className="mr-2" /> Add Asset
+          <Plus className="w-4 h-4" /> Add Asset
         </button>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden flex flex-col">
-        <div className="p-5 border-b border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <h3 className="text-lg font-semibold text-slate-800 flex items-center">
-            <Monitor className="w-5 h-5 mr-2 text-blue-600" /> Assets List
-          </h3>
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input
-              type="search"
-              placeholder="Search assets..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
-            />
+      {/* KPI Stats Cards */}
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard 
+          title="Total Inventory" 
+          value={stats.totalCount} 
+          subtitle="Registered hardware items" 
+          icon={Monitor} 
+          colorTheme="blue" 
+        />
+        <StatCard 
+          title="Assigned Equipment" 
+          value={stats.assignedCount} 
+          subtitle="Currently held by staff" 
+          icon={UserCheck} 
+          colorTheme="purple" 
+        />
+        <StatCard 
+          title="In Stock (Available)" 
+          value={stats.availableCount} 
+          subtitle="Ready for allocation" 
+          icon={ShieldCheck} 
+          colorTheme="green" 
+        />
+        <StatCard 
+          title="Maintenance / Repair" 
+          value={stats.maintenanceCount + stats.damagedCount} 
+          subtitle={`${stats.maintenanceCount} servicing • ${stats.damagedCount} damaged`} 
+          icon={Wrench} 
+          colorTheme="amber" 
+        />
+      </div>
+
+      {/* Main Assets Table Card */}
+      <div className="rounded-2xl border border-[#e0e3e7] bg-white shadow-xs overflow-hidden flex flex-col">
+        {/* Table Toolbar */}
+        <div className="p-4 sm:p-5 border-b border-[#e0e3e7] bg-[#f8fafd] flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            {['All', 'Available', 'Assigned', 'Maintenance'].map((st) => (
+              <button
+                key={st}
+                onClick={() => { setFilter(st); setPage(1); }}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                  filter === st
+                    ? 'bg-[#1a73e8] text-white shadow-xs'
+                    : 'bg-white border border-[#dadce0] text-[#5f6368] hover:bg-[#f1f3f4] hover:text-[#1f1f1f]'
+                }`}
+              >
+                {st} {st === 'All' ? `(${stats.totalCount})` : st === 'Available' ? `(${stats.availableCount})` : st === 'Assigned' ? `(${stats.assignedCount})` : `(${stats.maintenanceCount})`}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            {/* Category Dropdown */}
+            <select
+              value={categoryFilter}
+              onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }}
+              className="w-full sm:w-auto px-3.5 py-2 bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-full text-xs text-[#1f1f1f] outline-none cursor-pointer"
+            >
+              <option value="All">All Categories</option>
+              {categories.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+
+            {/* Google Pill Search */}
+            <div className="relative w-full sm:w-72">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368] pointer-events-none" />
+              <input
+                type="search"
+                placeholder="Search asset, S/N, employee..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 text-xs bg-[#f1f3f4] hover:bg-[#e8eaed] focus:bg-white border border-transparent focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-full text-[#1f1f1f] placeholder:text-[#5f6368] outline-none transition-all shadow-none focus:shadow-sm"
+              />
+            </div>
           </div>
         </div>
-        {loading ? (
-          <div className="p-12 text-center text-slate-500">Loading assets...</div>
-        ) : filteredAssets.length === 0 ? (
-          <div className="p-12 text-center text-slate-500 flex flex-col items-center">
-            <Monitor size={48} className="text-slate-300 mb-4" />
-            <p className="text-lg font-medium text-slate-900">No assets found</p>
-            <p className="text-sm mt-1">
-              {searchQuery ? "Try adjusting your search criteria." : "Click \"Add Asset\" to create your first inventory item."}
-            </p>
-          </div>
-        ) : (
-          <table className="w-full text-sm text-left">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-500">
-              <tr>
-                <th className="px-6 py-4 font-medium w-1/2">Asset Details</th>
-                <th className="px-6 py-4 font-medium">Assignment</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200">
-              {filteredAssets.map(asset => {
-                return (
-                  <tr key={asset.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="py-6 px-6 align-top">
-                      <div className="flex items-center gap-3 mb-1">
-                        <h3 className="font-semibold text-slate-900 text-base">{asset.name}</h3>
-                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${asset.status === 'Available' ? 'bg-green-100 text-green-700' :
-                            asset.status === 'Assigned' ? 'bg-blue-100 text-blue-700' :
-                              asset.status === 'Missing' ? 'bg-orange-100 text-orange-700' :
-                                asset.status === 'Damaged' ? 'bg-red-100 text-red-700' :
-                                  'bg-yellow-100 text-yellow-700'
-                          }`}>
-                          {asset.status}
-                        </span>
-                        <div className="flex gap-1">
-                          <button
-                            onClick={() => openHistoryModal(asset)}
-                            className="text-slate-400 hover:text-indigo-600 transition-colors p-1"
-                            title="View Track/History"
-                          >
-                            <History size={14} />
-                          </button>
-                          <button
-                            onClick={() => openEditModal(asset)}
-                            className="text-slate-400 hover:text-blue-600 transition-colors p-1"
-                            title="Edit Asset"
-                          >
-                            <Edit2 size={14} />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteAsset(asset.id)}
-                            className="text-slate-400 hover:text-red-600 transition-colors p-1"
-                            title="Delete Asset"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="text-slate-500 leading-relaxed text-sm flex flex-col gap-1 mt-3">
-                        <div><span className="font-medium text-slate-700">Category:</span> {asset.category}</div>
-                        <div><span className="font-medium text-slate-700">S/N:</span> {asset.serial_number || 'N/A'}</div>
-                      </div>
-                    </td>
-                    <td className="py-6 px-6 align-top">
-                      <div className="text-sm font-medium text-slate-700 mb-4">Current Holder</div>
 
-                      <div className="flex flex-wrap gap-3 mb-4">
-                        {!asset.employee_id ? (
-                          <span className="text-slate-400 italic text-sm">Unassigned</span>
-                        ) : (
-                          <div className="flex items-center gap-2 bg-slate-100 border border-slate-200 rounded-full pr-3 pl-1 py-1">
-                            <div className="w-6 h-6 rounded-full bg-blue-200 text-blue-700 font-bold text-xs flex items-center justify-center">
+        {/* Table List */}
+        <div className="overflow-x-auto custom-scrollbar">
+          {assets.length === 0 ? (
+            <div className="p-12 text-center text-[#5f6368] flex flex-col items-center justify-center space-y-2">
+              <Monitor className="w-12 h-12 text-[#dadce0] mb-1" />
+              <p className="text-sm font-semibold text-[#1f1f1f]">No assets found</p>
+              <p className="text-xs text-[#5f6368]">
+                {searchQuery ? "Try adjusting your search criteria." : "Click \"Add Asset\" to register your first hardware device."}
+              </p>
+            </div>
+          ) : (
+            <table className="w-full text-xs text-left">
+              <thead className="bg-[#f8fafd] border-b border-[#e0e3e7] text-[#5f6368] uppercase font-semibold tracking-wider text-[11px]">
+                <tr>
+                  <th className="px-5 py-3.5">Asset Details</th>
+                  <th className="px-5 py-3.5">Category</th>
+                  <th className="px-5 py-3.5">Serial Number</th>
+                  <th className="px-5 py-3.5 text-center">Status</th>
+                  <th className="px-5 py-3.5">Current Holder</th>
+                  <th className="px-5 py-3.5 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#e0e3e7]">
+                {assets.map(asset => {
+                  const CatIcon = getCategoryIcon(asset.category);
+                  return (
+                    <tr key={asset.id} className="hover:bg-[#f8fafd] transition-colors">
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-xl bg-[#f1f3f4] text-[#1f1f1f] shrink-0 border border-[#e0e3e7]">
+                            <CatIcon className="w-4 h-4 text-[#1a73e8]" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-[#1f1f1f] text-xs">{asset.name}</p>
+                            <span className="text-[11px] text-[#5f6368]">Added {format(new Date(asset.created_at || new Date()), 'MMM d, yyyy')}</span>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="px-5 py-3.5 font-medium text-[#3c4043]">
+                        {asset.category}
+                      </td>
+
+                      <td className="px-5 py-3.5">
+                        <span className="font-mono text-xs font-medium text-[#5f6368] bg-[#f1f3f4] px-2 py-0.5 rounded-md">
+                          {asset.serial_number || 'N/A'}
+                        </span>
+                      </td>
+
+                      <td className="px-5 py-3.5 text-center">
+                        {getStatusBadge(asset.status)}
+                      </td>
+
+                      <td className="px-5 py-3.5">
+                        {asset.employee_id ? (
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-full bg-[#e8f0fe] border border-[#d2e3fc] flex items-center justify-center text-[#1a73e8] font-bold text-[10px] shrink-0">
                               {getInitials(asset.employee_first_name, asset.employee_last_name)}
                             </div>
-                            <span className="text-sm font-medium text-slate-700">
+                            <span className="font-semibold text-[#1f1f1f] text-xs">
                               {asset.employee_first_name} {asset.employee_last_name}
                             </span>
                           </div>
+                        ) : (
+                          <span className="text-xs text-[#5f6368] italic font-normal">Unassigned / In Stock</span>
                         )}
-                      </div>
+                      </td>
 
-                      <button
-                        onClick={() => openAssignModal(asset)}
-                        className="text-indigo-600 font-medium hover:text-indigo-800 transition-colors text-sm"
-                      >
-                        {asset.employee_id ? 'Change Assignment' : 'Assign to Employee'}
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      <td className="px-5 py-3.5 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => openAssignModal(asset)}
+                            className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer"
+                            title="Assign to Employee"
+                          >
+                            <User className="w-3.5 h-3.5 text-[#5f6368]" />
+                            {asset.employee_id ? 'Reassign' : 'Assign'}
+                          </button>
+                          <button
+                            onClick={() => openHistoryModal(asset)}
+                            className="p-1.5 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#5f6368] hover:text-[#1a73e8] transition-all cursor-pointer"
+                            title="View Track History"
+                          >
+                            <History className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => openEditModal(asset)}
+                            className="p-1.5 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#5f6368] hover:text-[#1a73e8] transition-all cursor-pointer"
+                            title="Edit Asset"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteAsset(asset.id)}
+                            className="p-1.5 rounded-full border border-[#fce8e6] bg-[#fce8e6] hover:bg-[#fad2cf] text-[#c5221f] transition-all cursor-pointer"
+                            title="Delete Asset"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="p-3.5 sm:p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+            <p className="text-[#5f6368]">
+              Showing <span className="font-semibold text-[#1f1f1f]">{((page - 1) * limit) + 1}</span> to <span className="font-semibold text-[#1f1f1f]">{Math.min(page * limit, totalCount)}</span> of <span className="font-semibold text-[#1f1f1f]">{totalCount}</span> assets
+            </p>
+            <div className="flex items-center gap-1.5 self-end sm:self-auto">
+              <button 
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="p-1.5 rounded-full text-[#5f6368] hover:bg-[#e8eaed] disabled:opacity-30 disabled:cursor-not-allowed transition-all border border-[#dadce0]"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <span className="px-3 py-1 text-xs font-medium text-[#1f1f1f] bg-white border border-[#dadce0] rounded-full">
+                Page {page} of {totalPages}
+              </span>
+              <button 
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="p-1.5 rounded-full text-[#5f6368] hover:bg-[#e8eaed] disabled:opacity-30 disabled:cursor-not-allowed transition-all border border-[#dadce0]"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
         )}
       </div>
 
-      {/* Modals (Sidebar Drawer) */}
+      {/* Slideover Right Drawers (createPortal) */}
       {modalMode && createPortal(
-        <div className="fixed inset-0 z-[100] flex justify-end bg-slate-900/50 backdrop-blur-sm">
-          <div className="bg-white shadow-2xl w-full max-w-md h-[100dvh] flex flex-col overflow-hidden transform transition-transform duration-300">
-            {/* Header */}
-            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 shrink-0">
-              <div>
-                <h2 className="text-lg font-semibold text-slate-800">
-                  {modalMode === 'assign' ? `Assign ${selectedAsset.name}` :
-                    modalMode === 'add' ? 'Add New Asset' :
-                      modalMode === 'history' ? `Track History: ${selectedAsset.name}` : 'Edit Asset'}
-                </h2>
-                <p className="text-sm text-slate-500">
-                  {modalMode === 'assign' ? 'Select an employee to assign this asset to.' :
-                    modalMode === 'history' ? 'View the assignment and status history.' : 'Enter the details of the asset.'}
-                </p>
-              </div>
-              <button onClick={closeModal} className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
-                <X size={20} />
-              </button>
-            </div>
+        <div className="fixed inset-0 z-50 overflow-hidden">
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity animate-in fade-in duration-200" 
+            onClick={closeModal} 
+          />
 
-            {/* Body */}
-            <div className="p-6 flex-1 overflow-y-auto flex flex-col">
-              {modalMode === 'assign' ? (
-                <>
-                  <div className="relative mb-4 shrink-0">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                    <input
-                      type="text"
-                      placeholder="Search by name or email..."
-                      value={modalSearch}
-                      onChange={(e) => setModalSearch(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
+          <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
+            <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
+              {/* Header */}
+              <div className="p-5 border-b border-[#e0e3e7] flex items-center justify-between bg-[#f8fafd]">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-[#e8f0fe] text-[#1a73e8]">
+                    {modalMode === 'assign' ? <UserCheck className="w-5 h-5" /> :
+                     modalMode === 'history' ? <History className="w-5 h-5" /> : <Monitor className="w-5 h-5" />}
                   </div>
-                  <div className="flex-1 overflow-y-auto min-h-[300px]">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-2">
-                      {/* Unassign Option */}
-                      {selectedAsset.employee_id && (
-                        <div
-                          onClick={() => handleAssignUser(null)}
-                          className="flex items-center gap-3 p-3 rounded-xl border-2 border-red-200 bg-red-50 hover:bg-red-100 cursor-pointer transition-all"
-                        >
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-red-700 text-sm">Unassign Asset</h4>
-                            <p className="text-xs text-red-600 mt-0.5">Return to inventory</p>
-                          </div>
-                        </div>
-                      )}
+                  <div>
+                    <h3 className="text-base font-semibold text-[#1f1f1f]">
+                      {modalMode === 'assign' ? `Assign Asset` :
+                       modalMode === 'add' ? 'Add New Asset' :
+                       modalMode === 'history' ? `Track History` : 'Edit Asset Details'}
+                    </h3>
+                    <p className="text-xs text-[#5f6368]">
+                      {modalMode === 'assign' ? `Allocate ${selectedAsset?.name} to an employee` :
+                       modalMode === 'history' ? `Audit log for ${selectedAsset?.name}` : 'Configure device specifications'}
+                    </p>
+                  </div>
+                </div>
+                <button 
+                  onClick={closeModal} 
+                  className="rounded-full p-1.5 text-[#5f6368] hover:bg-[#e8eaed] transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
 
+              {/* Body */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar text-xs">
+                {modalMode === 'assign' ? (
+                  <>
+                    <div className="relative mb-2">
+                      <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368] pointer-events-none" />
+                      <input
+                        type="search"
+                        placeholder="Search employee by name, ID, or email..."
+                        value={modalSearch}
+                        onChange={(e) => setModalSearch(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 text-xs bg-[#f1f3f4] hover:bg-[#e8eaed] focus:bg-white border border-transparent focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-full text-[#1f1f1f] outline-none transition-all"
+                      />
+                    </div>
+
+                    {/* Unassign Option */}
+                    {selectedAsset?.employee_id && (
+                      <div
+                        onClick={() => handleAssignUser(null)}
+                        className="flex items-center justify-between p-3.5 rounded-2xl border border-[#fad2cf] bg-[#fce8e6] hover:bg-[#fad2cf] cursor-pointer transition-all"
+                      >
+                        <div>
+                          <h4 className="font-bold text-[#c5221f] text-xs">Return to Stock (Unassign)</h4>
+                          <p className="text-[11px] text-[#c5221f]/80 mt-0.5">Remove current holder and mark as available</p>
+                        </div>
+                        <X className="w-4 h-4 text-[#c5221f]" />
+                      </div>
+                    )}
+
+                    <div className="space-y-2 pt-2">
                       {filteredUsersForModal.map(u => {
-                        const isCurrent = selectedAsset.employee_id === u.userId;
+                        const isCurrent = selectedAsset?.employee_id === u.userId;
                         return (
                           <div
                             key={u.userId}
                             onClick={() => !isCurrent && handleAssignUser(u.userId)}
-                            className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all ${isCurrent
-                                ? 'border-blue-500 bg-blue-50 cursor-default'
-                                : 'border-slate-100 hover:border-blue-300 hover:bg-slate-50 cursor-pointer'
-                              }`}
+                            className={`flex items-center gap-3 p-3 rounded-2xl border transition-all ${
+                              isCurrent
+                                ? 'border-[#4285F4] bg-[#e8f0fe] cursor-default'
+                                : 'border-[#e0e3e7] hover:border-[#4285F4] hover:bg-[#f8fafd] cursor-pointer'
+                            }`}
                           >
-                            <div className="w-10 h-10 rounded-full bg-slate-200 text-slate-700 font-bold text-sm flex items-center justify-center shrink-0">
+                            <div className="w-8 h-8 rounded-full bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] font-bold text-xs flex items-center justify-center shrink-0">
                               {getInitials(u.firstName, u.lastName)}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold text-slate-900 text-sm truncate">{u.firstName} {u.lastName}</h4>
-                              <p className="text-xs text-slate-500 truncate">{u.email}</p>
+                              <h4 className="font-semibold text-[#1f1f1f] text-xs truncate">{u.firstName} {u.lastName}</h4>
+                              <p className="text-[11px] text-[#5f6368] truncate">{u.employeeId} • {u.position || 'Staff'}</p>
                             </div>
-                            {isCurrent && (
-                              <div className="w-4 h-4 rounded-full bg-blue-500 border-2 border-white outline outline-1 outline-blue-200 shrink-0"></div>
+                            {isCurrent ? (
+                              <span className="text-[10px] font-bold text-[#1a73e8] bg-white px-2 py-0.5 rounded-full border border-[#d2e3fc]">
+                                Current Holder
+                              </span>
+                            ) : (
+                              <ArrowRight className="w-4 h-4 text-[#5f6368]" />
                             )}
                           </div>
                         );
                       })}
                       {filteredUsersForModal.length === 0 && (
-                        <div className="col-span-full py-8 text-center text-slate-500 text-sm italic">
-                          No users found matching "{modalSearch}"
+                        <div className="py-8 text-center text-[#5f6368] text-xs italic">
+                          No employees matching "{modalSearch}"
                         </div>
                       )}
                     </div>
-                  </div>
-                </>
-              ) : modalMode === 'history' ? (
-                <div className="space-y-4">
-                  {historyLoading ? (
-                    <div className="py-8 text-center text-slate-500">Loading history...</div>
-                  ) : assetHistory.length === 0 ? (
-                    <div className="py-8 text-center text-slate-500 italic">No history found for this asset.</div>
-                  ) : (
-                    <div className="relative border-l-2 border-slate-200 ml-4 pl-6 space-y-6">
-                      {assetHistory.map((log, index) => {
-                        const isCreation = log.action_type === 'INSERT';
-                        return (
-                          <motion.div
-                            key={index}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.4, delay: index * 0.15, ease: "easeOut" }}
-                            className="relative"
-                          >
-                            <div className={`absolute -left-[33px] top-1 h-4 w-4 rounded-full border-2 border-white shadow-sm ${isCreation ? 'bg-green-500' : 'bg-blue-500'}`}></div>
-                            <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-all">
-                              <div className="flex justify-between items-start mb-2">
-                                <span className="text-xs font-semibold text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200">
-                                  {format(new Date(log.timestamp), 'MMM d, yyyy h:mm a')}
-                                </span>
-                                <span className={`text-xs font-bold px-2 py-0.5 rounded ${log.status === 'Available' ? 'text-green-700 bg-green-100' :
-                                    log.status === 'Assigned' ? 'text-blue-700 bg-blue-100' :
-                                      log.status === 'Missing' ? 'text-orange-700 bg-orange-100' :
-                                        log.status === 'Damaged' ? 'text-red-700 bg-red-100' :
-                                          'text-yellow-700 bg-yellow-100'
-                                  }`}>
-                                  {log.status}
-                                </span>
-                              </div>
-                              <h4 className="text-sm font-semibold text-slate-900 mb-1">
-                                {isCreation ? 'Asset Added to Inventory' : 'Asset Updated'}
-                              </h4>
-                              {log.assigned_to_employee_id ? (
-                                <p className="text-sm text-slate-600 flex items-center gap-2">
-                                  <ArrowRight size={14} className="text-slate-400" />
-                                  Assigned to <span className="font-medium text-slate-900">{log.firstName} {log.lastName}</span>
-                                </p>
-                              ) : (
-                                !isCreation && (
-                                  <p className="text-sm text-slate-600 flex items-center gap-2">
-                                    <ArrowRight size={14} className="text-slate-400" />
-                                    Unassigned from employee
+                  </>
+                ) : modalMode === 'history' ? (
+                  <div className="space-y-4">
+                    {historyLoading ? (
+                      <div className="py-8 text-center text-[#5f6368]">
+                        <Loader2 className="w-6 h-6 animate-spin mx-auto text-[#4285F4] mb-2" />
+                        <p className="text-xs">Loading audit trail...</p>
+                      </div>
+                    ) : assetHistory.length === 0 ? (
+                      <div className="py-8 text-center text-[#5f6368] text-xs italic">No history records found for this asset.</div>
+                    ) : (
+                      <div className="relative border-l-2 border-[#e0e3e7] ml-3 pl-5 space-y-4">
+                        {assetHistory.map((log, index) => {
+                          const isCreation = log.action_type === 'INSERT';
+                          return (
+                            <motion.div
+                              key={index}
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ duration: 0.2, delay: index * 0.05 }}
+                              className="relative"
+                            >
+                              <div className={`absolute -left-[27px] top-1.5 h-3.5 w-3.5 rounded-full border-2 border-white shadow-xs ${isCreation ? 'bg-[#137333]' : 'bg-[#1a73e8]'}`} />
+                              <div className="bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl p-3.5 space-y-1.5">
+                                <div className="flex justify-between items-center">
+                                  <span className="text-[10px] font-semibold text-[#5f6368] bg-white px-2 py-0.5 rounded-full border border-[#dadce0]">
+                                    {format(new Date(log.timestamp), 'MMM d, yyyy h:mm a')}
+                                  </span>
+                                  {getStatusBadge(log.status)}
+                                </div>
+                                <h4 className="text-xs font-semibold text-[#1f1f1f]">
+                                  {isCreation ? 'Device Registered in Inventory' : 'Status / Allocation Changed'}
+                                </h4>
+                                {log.assigned_to_employee_id ? (
+                                  <p className="text-xs text-[#5f6368] flex items-center gap-1.5">
+                                    <UserCheck className="w-3.5 h-3.5 text-[#1a73e8]" />
+                                    Assigned to <span className="font-semibold text-[#1f1f1f]">{log.firstName} {log.lastName}</span>
                                   </p>
-                                )
-                              )}
-                            </div>
-                          </motion.div>
-                        );
-                      })}
+                                ) : (
+                                  !isCreation && (
+                                    <p className="text-xs text-[#5f6368] flex items-center gap-1.5">
+                                      <ShieldCheck className="w-3.5 h-3.5 text-[#137333]" />
+                                      Returned to Available Inventory
+                                    </p>
+                                  )
+                                )}
+                              </div>
+                            </motion.div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <form id="asset-form" onSubmit={handleSaveAsset} className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5">
+                        Asset Name
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.name}
+                        onChange={e => setFormData({ ...formData, name: e.target.value })}
+                        className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all"
+                        placeholder="e.g. MacBook Pro M3 Max"
+                      />
                     </div>
-                  )}
+
+                    <div>
+                      <label className="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5">
+                        Category
+                      </label>
+                      <select
+                        value={formData.category}
+                        onChange={e => setFormData({ ...formData, category: e.target.value })}
+                        className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none cursor-pointer transition-all"
+                      >
+                        {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5">
+                        Serial Number / Tag ID
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.serial_number}
+                        onChange={e => setFormData({ ...formData, serial_number: e.target.value })}
+                        className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none font-mono transition-all"
+                        placeholder="e.g. C02X1234ABCD"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5">
+                        Operational Status
+                      </label>
+                      <select
+                        value={formData.status}
+                        onChange={e => setFormData({ ...formData, status: e.target.value })}
+                        className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none cursor-pointer transition-all"
+                      >
+                        <option value="Available">Available (In Stock)</option>
+                        <option value="Assigned">Assigned</option>
+                        <option value="Maintenance">Maintenance</option>
+                        <option value="Damaged">Damaged</option>
+                        <option value="Retired">Retired</option>
+                      </select>
+                    </div>
+                  </form>
+                )}
+              </div>
+
+              {/* Footer */}
+              {(modalMode === 'add' || modalMode === 'edit') && (
+                <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex justify-end gap-2.5">
+                  <button
+                    onClick={closeModal}
+                    className="px-4 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    form="asset-form"
+                    disabled={saving}
+                    className="inline-flex items-center justify-center gap-2 px-5 py-2 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs transition-all cursor-pointer disabled:opacity-50"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    {saving ? 'Saving...' : modalMode === 'add' ? 'Register Asset' : 'Save Changes'}
+                  </button>
                 </div>
-              ) : (
-                <form id="asset-form" onSubmit={handleSaveAsset} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Asset Name</label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.name}
-                      onChange={e => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="e.g. MacBook Pro M2"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Category</label>
-                    <select
-                      value={formData.category}
-                      onChange={e => setFormData({ ...formData, category: e.target.value })}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      {categories.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Serial Number</label>
-                    <input
-                      type="text"
-                      value={formData.serial_number}
-                      onChange={e => setFormData({ ...formData, serial_number: e.target.value })}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="e.g. C02X1234ABCD"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
-                    <select
-                      value={formData.status}
-                      onChange={e => setFormData({ ...formData, status: e.target.value })}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="Available">Available</option>
-                      <option value="Assigned">Assigned</option>
-                      <option value="Maintenance">Maintenance</option>
-                      <option value="Retired">Retired</option>
-                    </select>
-                  </div>
-                </form>
               )}
             </div>
-
-            {/* Footer */}
-            {(modalMode === 'add' || modalMode === 'edit') && (
-              <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3 shrink-0">
-                <button
-                  onClick={closeModal}
-                  className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  form="asset-form"
-                  disabled={saving}
-                  className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 transition-colors shadow-sm cursor-pointer disabled:opacity-50"
-                >
-                  {saving ? 'Saving...' : 'Save Asset'}
-                </button>
-              </div>
-            )}
           </div>
         </div>,
         document.body

@@ -1,12 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import {
-  HelpCircle, ArrowLeft, ArrowRight, CheckCircle2, Shield, Clock, Award,
-  Building2, CheckSquare, Disc, Filter, Layers, Check, Sparkles, RefreshCw,
-  AlertCircle, Eye, Lock, FileText, Users
+  HelpCircle, 
+  ArrowLeft, 
+  ArrowRight, 
+  CheckCircle2, 
+  Shield, 
+  Clock, 
+  Award,
+  Building2, 
+  CheckSquare, 
+  Disc, 
+  Filter, 
+  Layers, 
+  Check, 
+  Sparkles, 
+  RefreshCw,
+  AlertCircle, 
+  Eye, 
+  Lock, 
+  FileText, 
+  Users,
+  Search,
+  Calendar,
+  Settings,
+  ShieldCheck,
+  CheckCheck
 } from 'lucide-react';
 import PageLoader from '../components/PageLoader';
 
@@ -28,14 +50,16 @@ const AssessmentCreate = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  // Step state: 1 = Select Questions, 2 = Configure Info & Rules
+  // Step state: 1 = Select Questions, 2 = Assign Employees, 3 = Configure Info & Rules
   const [step, setStep] = useState(1);
   const [selectedDeptFilter, setSelectedDeptFilter] = useState('All');
+  const [questionSearch, setQuestionSearch] = useState('');
+  const [debouncedQuestionSearch, setDebouncedQuestionSearch] = useState('');
 
   // Selected questions map/array (storing IDs of checked questions)
   const [selectedIds, setSelectedIds] = useState([]);
 
-  // Form state for Step 2: Basic Info, Timing & Grading, Security Controls
+  // Form state for Step 3: Basic Info, Timing & Grading, Security Controls
   const [form, setForm] = useState({
     title: '',
     department: 'IT',
@@ -52,6 +76,14 @@ const AssessmentCreate = () => {
   });
 
   const [searchEmployee, setSearchEmployee] = useState('');
+
+  // Debounce question search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuestionSearch(questionSearch);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [questionSearch]);
 
   // Fetch question bank
   const { data: questionBank = [], isLoading: loadingQuestions } = useQuery({
@@ -118,7 +150,7 @@ const AssessmentCreate = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminAssessments'] });
-      toast.success(isEditing ? 'Assessment updated successfully!' : 'Assessment created with unique rules & questions!');
+      toast.success(isEditing ? 'Assessment updated successfully!' : 'Assessment created with custom rules & questions!');
       navigate('/admin/assessments/management');
     },
     onError: (err) => {
@@ -134,9 +166,18 @@ const AssessmentCreate = () => {
     }
   };
 
+  const filteredQuestions = useMemo(() => {
+    if (!debouncedQuestionSearch.trim()) return questionBank;
+    const q = debouncedQuestionSearch.toLowerCase();
+    return questionBank.filter(item => 
+      (item.question_text && item.question_text.toLowerCase().includes(q)) ||
+      (item.department && item.department.toLowerCase().includes(q))
+    );
+  }, [questionBank, debouncedQuestionSearch]);
+
   const handleSelectAllFiltered = () => {
-    const allFilteredIds = questionBank.map(q => q.id);
-    const allSelected = allFilteredIds.every(id => selectedIds.includes(id));
+    const allFilteredIds = filteredQuestions.map(q => q.id);
+    const allSelected = allFilteredIds.length > 0 && allFilteredIds.every(id => selectedIds.includes(id));
     if (allSelected) {
       setSelectedIds(selectedIds.filter(id => !allFilteredIds.includes(id)));
     } else {
@@ -157,8 +198,6 @@ const AssessmentCreate = () => {
       return;
     }
 
-    // Prepare full objects of selected questions to store as immutable snapshot in the assessment
-    // First try to find from current loaded bank, or construct minimal ID object
     const selectedObjects = selectedIds.map(qId => {
       const found = questionBank.find(q => q.id === qId);
       if (found) return found;
@@ -173,88 +212,153 @@ const AssessmentCreate = () => {
     saveMutation.mutate(payload);
   };
 
-  if (loadingQuestions || loadingAssessment || loadingEmployees) return <PageLoader />;
+  if (loadingQuestions || loadingAssessment || loadingEmployees) return <PageLoader message="Loading Assessment Builder..." />;
 
   const totalMarks = selectedIds.length * (parseInt(form.marks_per_question) || 1);
 
+  const stepsList = [
+    { num: 1, label: 'Choose Questions', desc: `${selectedIds.length} selected` },
+    { num: 2, label: 'Assign Employees', desc: `${form.assigned_employee_ids.length} enrolled` },
+    { num: 3, label: 'Configure Rules', desc: `${form.duration_minutes}m • ${form.passing_percentage}% pass` }
+  ];
+
   return (
-    <div className="space-y-6 p-6">
-      {/* Page Header - Matching Question Bank Page Ref */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-6 pb-12">
+      {/* Header Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate('/admin/assessments/management')}
-            className="p-2 text-slate-400 hover:text-slate-700 rounded-md hover:bg-slate-100 transition cursor-pointer"
+            className="p-2 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#5f6368] transition-all cursor-pointer shadow-2xs"
             title="Back to Assessments"
           >
-            <ArrowLeft size={20} />
+            <ArrowLeft className="w-4 h-4" />
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 mb-1">
-              {isEditing ? `Edit: ${form.title || 'Assessment'}` : 'Create Assessment'}
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="w-2 h-2 rounded-full bg-[#4285F4]" />
+              <span className="w-2 h-2 rounded-full bg-[#EA4335]" />
+              <span className="w-2 h-2 rounded-full bg-[#FBBC05]" />
+              <span className="w-2 h-2 rounded-full bg-[#34A853]" />
+              <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Assessment Builder</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight">
+              {isEditing ? `Edit: ${form.title || 'Assessment'}` : 'Create New Assessment'}
             </h1>
-            <p className="text-sm text-slate-500">
-              Link objective questions from the bank and configure unique timing, grading weights, and security rules.
+            <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
+              Select questions from bank, assign targeted staff, and set custom timings & anti-cheating controls.
             </p>
           </div>
+        </div>
+
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-3 py-1 rounded-full">
+            {selectedIds.length} Qs • {totalMarks} Total Pts
+          </span>
+        </div>
+      </div>
+
+      {/* Stepper Progress Bar */}
+      <div className="rounded-2xl border border-[#e0e3e7] bg-white p-4 shadow-xs">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4">
+          {stepsList.map(s => {
+            const isActive = step === s.num;
+            const isDone = step > s.num;
+
+            return (
+              <div 
+                key={s.num}
+                onClick={() => {
+                  if (s.num === 1) setStep(1);
+                  if (s.num === 2 && selectedIds.length > 0) setStep(2);
+                  if (s.num === 3 && selectedIds.length > 0) setStep(3);
+                }}
+                className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center gap-3 ${
+                  isActive 
+                    ? 'bg-[#e8f0fe] border-[#4285F4] shadow-xs' 
+                    : isDone 
+                      ? 'bg-[#e6f4ea] border-[#ceead6]' 
+                      : 'bg-[#f8fafd] border-[#e0e3e7] opacity-60'
+                }`}
+              >
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
+                  isActive 
+                    ? 'bg-[#1a73e8] text-white' 
+                    : isDone 
+                      ? 'bg-[#137333] text-white' 
+                      : 'bg-[#e0e3e7] text-[#5f6368]'
+                }`}>
+                  {isDone ? <Check className="w-3.5 h-3.5" /> : s.num}
+                </div>
+                <div className="min-w-0 flex-1 truncate">
+                  <p className={`text-xs font-semibold truncate ${isActive ? 'text-[#1a73e8]' : isDone ? 'text-[#137333]' : 'text-[#5f6368]'}`}>
+                    {s.label}
+                  </p>
+                  <p className="text-[10px] text-[#5f6368] truncate">{s.desc}</p>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
       {/* ========================================================= */}
-      {/* STEP 1: SELECT QUESTIONS FOR THIS UNIQUE ASSESSMENT */}
+      {/* STEP 1: CHOOSE QUESTIONS */}
       {/* ========================================================= */}
       {step === 1 && (
-        <div className="space-y-5 animate-in fade-in duration-300">
-          <div className="bg-blue-50/70 border border-blue-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm text-blue-950">
+        <div className="space-y-4 animate-in fade-in duration-300">
+          
+          {/* Top Info Banner */}
+          <div className="rounded-2xl border border-[#c2e7ff] bg-[#e8f0fe] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-[#001d35] shadow-xs">
             <div className="flex items-start gap-3">
-              <Sparkles className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+              <div className="p-2 rounded-xl bg-[#c2e7ff] text-[#001d35] shrink-0">
+                <Layers className="w-5 h-5 text-[#1a73e8]" />
+              </div>
               <div>
-                <p className="font-bold">Step 1: Choose Questions for this Assessment</p>
-                <p className="text-xs text-blue-800/80 mt-0.5">
-                  Select objective questions from the Department Question Bank. Since bank questions have no predetermined marks, you will assign uniform or custom weights in Step 2.
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#1a73e8]">Step 1: Select Objective Questions</h4>
+                <p className="text-xs text-[#001d35] mt-0.5 leading-relaxed">
+                  Choose questions from your question bank. You will configure uniform or custom mark distributions in Step 3.
                 </p>
               </div>
             </div>
+
             <button
               onClick={() => {
                 if (selectedIds.length === 0) {
-                  toast.error('Please select at least 1 question to proceed!');
+                  toast.error('Please select at least 1 question to proceed');
                   return;
                 }
                 setStep(2);
               }}
               disabled={selectedIds.length === 0}
-              className="px-5 py-2.5 bg-blue-600 text-white font-bold text-xs rounded-md hover:bg-blue-700 transition cursor-pointer shrink-0 shadow-sm disabled:opacity-50 flex items-center gap-2 self-start sm:self-auto"
+              className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs transition-all cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed self-start sm:self-auto"
             >
-              <span>Next: Assign Employees</span>
-              <ArrowRight size={14} />
+              <span>Next: Assign Staff</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
 
-          {/* Department Filter Bar */}
-          <div className="flex items-center justify-between gap-4 flex-wrap bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 max-w-full">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1 mr-1 shrink-0">
-                <Filter size={13} /> Department:
-              </span>
+          {/* Department Filter & Search Bar */}
+          <div className="rounded-2xl border border-[#e0e3e7] bg-white p-4 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+            <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1 max-w-full">
               <button
                 onClick={() => setSelectedDeptFilter('All')}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer ${
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all shrink-0 cursor-pointer ${
                   selectedDeptFilter === 'All'
-                    ? 'bg-slate-900 text-white shadow-sm'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    ? 'bg-[#1a73e8] text-white shadow-xs'
+                    : 'bg-white border border-[#dadce0] text-[#5f6368] hover:bg-[#f1f3f4]'
                 }`}
               >
-                All ({selectedDeptFilter === 'All' ? questionBank.length : 'All'})
+                All Departments ({selectedDeptFilter === 'All' ? questionBank.length : 'All'})
               </button>
               {DEPARTMENTS.map((dept) => (
                 <button
                   key={dept}
                   onClick={() => setSelectedDeptFilter(dept)}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all shrink-0 cursor-pointer ${
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all shrink-0 cursor-pointer ${
                     selectedDeptFilter === dept
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      ? 'bg-[#1a73e8] text-white shadow-xs'
+                      : 'bg-white border border-[#dadce0] text-[#5f6368] hover:bg-[#f1f3f4]'
                   }`}
                 >
                   {dept}
@@ -262,30 +366,44 @@ const AssessmentCreate = () => {
               ))}
             </div>
 
-            <button
-              onClick={handleSelectAllFiltered}
-              className="text-xs font-bold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition cursor-pointer shrink-0"
-            >
-              {questionBank.length > 0 && questionBank.every(q => selectedIds.includes(q.id))
-                ? 'Deselect All in Filter'
-                : 'Select All in Filter'}
-            </button>
+            <div className="flex items-center gap-2.5">
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#5f6368]" />
+                <input
+                  type="search"
+                  placeholder="Search question text..."
+                  value={questionSearch}
+                  onChange={e => setQuestionSearch(e.target.value)}
+                  className="w-full pl-9 pr-3 py-1.5 text-xs bg-[#f1f3f4] focus:bg-white border border-[#dadce0] rounded-full text-[#1f1f1f] placeholder:text-[#5f6368] outline-none"
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={handleSelectAllFiltered}
+                className="px-3 py-1.5 rounded-full text-xs font-semibold bg-[#e8f0fe] text-[#1a73e8] hover:bg-[#d2e3fc] transition-all cursor-pointer shrink-0"
+              >
+                {filteredQuestions.length > 0 && filteredQuestions.every(q => selectedIds.includes(q.id))
+                  ? 'Deselect All'
+                  : 'Select All'}
+              </button>
+            </div>
           </div>
 
-          {/* Questions Checkbox Table */}
-          <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden flex flex-col">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="bg-slate-50 border-b border-slate-200 text-slate-500">
+          {/* Questions Selection Table */}
+          <div className="rounded-2xl border border-[#e0e3e7] bg-white shadow-xs overflow-hidden flex flex-col">
+            <div className="overflow-x-auto custom-scrollbar">
+              <table className="w-full text-xs text-left">
+                <thead className="bg-[#f8fafd] border-b border-[#e0e3e7] text-[#5f6368] uppercase font-semibold tracking-wider text-[11px]">
                   <tr>
-                    <th className="px-6 py-4 font-medium w-16 text-center">Select</th>
-                    <th className="px-6 py-4 font-medium w-44">Department & Type</th>
-                    <th className="px-6 py-4 font-medium">Question Text</th>
-                    <th className="px-6 py-4 font-medium">Options Preview</th>
+                    <th className="px-4 py-3.5 w-12 text-center">Select</th>
+                    <th className="px-4 py-3.5 w-44">Department & Type</th>
+                    <th className="px-4 py-3.5">Question Statement</th>
+                    <th className="px-4 py-3.5">Options Preview</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-sm">
-                  {questionBank.map((item, idx) => {
+                <tbody className="divide-y divide-[#e0e3e7]">
+                  {filteredQuestions.map((item, idx) => {
                     const isChecked = selectedIds.includes(item.id);
                     const isMultiple = item.question_type === 'mcq_multiple';
                     let opts = item.options || [];
@@ -298,45 +416,48 @@ const AssessmentCreate = () => {
                         key={item.id}
                         onClick={() => handleToggleQuestion(item.id)}
                         className={`transition-colors cursor-pointer ${
-                          isChecked ? 'bg-blue-50/50 hover:bg-blue-50/80 font-medium' : 'hover:bg-slate-50'
+                          isChecked ? 'bg-[#e8f0fe]/40 hover:bg-[#e8f0fe]/60' : 'hover:bg-[#f8fafd]'
                         }`}
                       >
-                        <td className="px-6 py-4 text-center align-middle" onClick={e => e.stopPropagation()}>
+                        <td className="px-4 py-3.5 text-center align-middle" onClick={e => e.stopPropagation()}>
                           <input
                             type="checkbox"
                             checked={isChecked}
                             onChange={() => handleToggleQuestion(item.id)}
-                            className="w-5 h-5 rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
+                            className="w-4 h-4 rounded text-[#1a73e8] focus:ring-[#1a73e8] cursor-pointer"
                           />
                         </td>
-                        <td className="px-6 py-4 text-slate-900 align-top space-y-1.5">
+
+                        <td className="px-4 py-3.5 align-top space-y-1">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
+                            <Building2 className="w-3 h-3" /> {item.department}
+                          </span>
                           <div>
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                              <Building2 size={12} /> {item.department}
-                            </span>
-                          </div>
-                          <div>
-                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-                              isMultiple 
-                                ? 'bg-purple-100 text-purple-700' 
-                                : 'bg-blue-100 text-blue-700'
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${
+                              isMultiple ? 'bg-[#f3e8fd] text-[#8430ce] border border-[#e9d5ff]' : 'bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]'
                             }`}>
-                              {isMultiple ? <CheckSquare size={10} /> : <Disc size={10} />}
-                              {isMultiple ? 'Multi Correct' : 'Single Correct'}
+                              {isMultiple ? <CheckSquare className="w-2.5 h-2.5" /> : <Disc className="w-2.5 h-2.5" />}
+                              {isMultiple ? 'Multi-Select' : 'Single MCQ'}
                             </span>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-slate-900 font-semibold align-top max-w-md">
+
+                        <td className="px-4 py-3.5 align-top max-w-md">
                           <div className="flex items-start gap-2">
-                            <span className="text-slate-400 font-mono text-xs mt-0.5">#{idx + 1}.</span>
-                            <span className="whitespace-pre-wrap">{item.question_text}</span>
+                            <span className="font-mono text-[11px] font-bold text-[#5f6368] bg-[#f1f3f4] px-1.5 py-0.5 rounded shrink-0">
+                              #{idx + 1}
+                            </span>
+                            <span className="font-semibold text-xs text-[#1f1f1f] leading-relaxed whitespace-pre-wrap">
+                              {item.question_text}
+                            </span>
                           </div>
                         </td>
-                        <td className="px-6 py-4 align-top text-xs text-slate-500">
+
+                        <td className="px-4 py-3.5 align-top text-xs text-[#5f6368]">
                           <div className="flex flex-wrap gap-1.5 max-w-md">
                             {opts.map((o, oIdx) => (
-                              <span key={oIdx} className="px-2 py-0.5 bg-slate-50 border border-slate-200 rounded text-slate-600 truncate max-w-[140px]">
-                                <strong className="text-slate-400 mr-1">{String.fromCharCode(65 + oIdx)}:</strong>{o}
+                              <span key={oIdx} className="px-2 py-0.5 bg-[#f8fafd] border border-[#dadce0] rounded-lg text-[#5f6368] truncate max-w-[140px]">
+                                <strong className="text-[#1a73e8] mr-1">{String.fromCharCode(65 + oIdx)}:</strong>{o}
                               </span>
                             ))}
                           </div>
@@ -344,11 +465,11 @@ const AssessmentCreate = () => {
                       </tr>
                     );
                   })}
-                  {questionBank.length === 0 && (
+                  {filteredQuestions.length === 0 && (
                     <tr>
-                      <td colSpan="4" className="px-6 py-14 text-center text-slate-500">
-                        <p className="font-semibold text-slate-700">No questions found in {selectedDeptFilter} department.</p>
-                        <p className="text-xs text-slate-400 mt-1">Go to Department Question Bank to add objective questions first.</p>
+                      <td colSpan="4" className="p-12 text-center text-[#5f6368]">
+                        <p className="font-semibold text-sm text-[#1f1f1f]">No questions found</p>
+                        <p className="text-xs text-[#5f6368] mt-0.5">Please adjust your search or department filter.</p>
                       </td>
                     </tr>
                   )}
@@ -363,161 +484,164 @@ const AssessmentCreate = () => {
       {/* STEP 2: ASSIGN EMPLOYEES */}
       {/* ========================================================= */}
       {step === 2 && (
-        <div className="space-y-5 animate-in fade-in duration-300">
-          <div className="bg-purple-50/70 border border-purple-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm text-purple-950">
+        <div className="space-y-4 animate-in fade-in duration-300">
+          
+          {/* Top Info Banner */}
+          <div className="rounded-2xl border border-[#e9d5ff] bg-[#f3e8fd] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-[#3b0764] shadow-xs">
             <div className="flex items-start gap-3">
-              <Users className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
+              <div className="p-2 rounded-xl bg-[#e9d5ff] text-[#8430ce] shrink-0">
+                <Users className="w-5 h-5" />
+              </div>
               <div>
-                <p className="font-bold">Step 2: Assign Specific Employees</p>
-                <p className="text-xs text-purple-800/80 mt-0.5">
-                  Select specific employees to assign this assessment to. If no employees are selected, this assessment will not be visible to anyone. Legacy department fallback is disabled for new assignments.
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#8430ce]">Step 2: Enroll Specific Employees</h4>
+                <p className="text-xs text-[#3b0764] mt-0.5 leading-relaxed">
+                  Select the employees who must complete this competency test. (Leave empty to open access by department fallback).
                 </p>
               </div>
             </div>
+
             <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
               <button
+                type="button"
                 onClick={() => setStep(1)}
-                className="px-5 py-2.5 bg-white text-purple-800 border border-purple-300 font-bold text-xs rounded-md hover:bg-purple-100 transition cursor-pointer flex items-center justify-center gap-2 shadow-sm"
+                className="inline-flex items-center gap-1 px-4 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer shadow-2xs"
               >
-                <ArrowLeft size={14} />
-                <span>Back</span>
+                <ArrowLeft className="w-3.5 h-3.5" /> Back
               </button>
               <button
+                type="button"
                 onClick={() => setStep(3)}
-                className="px-5 py-2.5 bg-purple-600 text-white font-bold text-xs rounded-md hover:bg-purple-700 transition cursor-pointer shadow-sm flex items-center gap-2"
+                className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs transition-all cursor-pointer"
               >
-                <span>Next: Set Info & Rules</span>
-                <ArrowRight size={14} />
+                <span>Next: Configure Rules</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
-            <div className="p-4 border-b border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row gap-4 justify-between items-center">
-              <div className="relative w-full sm:w-72">
-                <input
-                  type="text"
-                  placeholder="Search employees..."
-                  value={searchEmployee}
-                  onChange={e => setSearchEmployee(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all outline-none"
-                />
-                <Filter className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-slate-500">{form.assigned_employee_ids.length} selected</span>
-                <button
-                  onClick={() => setForm(f => ({ ...f, assigned_employee_ids: [] }))}
-                  className="text-xs font-bold text-rose-600 hover:text-rose-700 px-3 py-1.5 bg-rose-50 rounded-lg transition"
-                >
-                  Clear Selection
-                </button>
-              </div>
+          {/* Search & Actions Bar */}
+          <div className="rounded-2xl border border-[#e0e3e7] bg-white p-4 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="relative w-full sm:w-80">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#5f6368]" />
+              <input
+                type="search"
+                placeholder="Search employees by name, email or code..."
+                value={searchEmployee}
+                onChange={e => setSearchEmployee(e.target.value)}
+                className="w-full pl-9 pr-3.5 py-1.5 text-xs bg-[#f1f3f4] focus:bg-white border border-[#dadce0] rounded-full text-[#1f1f1f] placeholder:text-[#5f6368] outline-none"
+              />
             </div>
 
-            <div className="max-h-[400px] overflow-y-auto">
-              <table className="w-full text-left border-collapse">
-                <thead className="bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
+            <div className="flex items-center gap-3 text-xs">
+              <span className="font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-3 py-1 rounded-full">
+                {form.assigned_employee_ids.length} Selected
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  const allIds = employees.map(e => e.userId || e.id);
+                  setForm(f => ({ ...f, assigned_employee_ids: allIds }));
+                }}
+                className="font-semibold text-[#1a73e8] hover:underline cursor-pointer"
+              >
+                Select All
+              </button>
+              <span className="text-[#dadce0]">•</span>
+              <button
+                type="button"
+                onClick={() => setForm(f => ({ ...f, assigned_employee_ids: [] }))}
+                className="font-semibold text-[#5f6368] hover:underline cursor-pointer"
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+
+          {/* Employees Directory Table */}
+          <div className="rounded-2xl border border-[#e0e3e7] bg-white shadow-xs overflow-hidden flex flex-col">
+            <div className="max-h-[420px] overflow-y-auto custom-scrollbar">
+              <table className="w-full text-xs text-left">
+                <thead className="bg-[#f8fafd] border-b border-[#e0e3e7] text-[#5f6368] uppercase font-semibold tracking-wider text-[11px] sticky top-0 z-10">
                   <tr>
-                    <th className="px-6 py-3 text-xs font-extrabold text-slate-500 uppercase tracking-wider w-14">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const filtered = employees.filter(e => {
-                            if (!searchEmployee) return true;
-                            const s = searchEmployee.toLowerCase();
-                            return (e.firstName?.toLowerCase().includes(s) || e.lastName?.toLowerCase().includes(s) || e.email?.toLowerCase().includes(s));
-                          }).map(e => e.userId);
-                          
-                          const allSelected = filtered.every(id => form.assigned_employee_ids.includes(id));
-                          if (allSelected) {
-                            setForm(f => ({ ...f, assigned_employee_ids: f.assigned_employee_ids.filter(id => !filtered.includes(id)) }));
-                          } else {
-                            const newIds = Array.from(new Set([...form.assigned_employee_ids, ...filtered]));
-                            setForm(f => ({ ...f, assigned_employee_ids: newIds }));
-                          }
-                        }}
-                        className={`w-5 h-5 rounded flex items-center justify-center border transition-colors ${
-                          employees.length > 0 && employees.filter(e => {
-                            if (!searchEmployee) return true;
-                            const s = searchEmployee.toLowerCase();
-                            return (e.firstName?.toLowerCase().includes(s) || e.lastName?.toLowerCase().includes(s) || e.email?.toLowerCase().includes(s));
-                          }).every(e => form.assigned_employee_ids.includes(e.userId))
-                            ? 'bg-purple-600 border-purple-600'
-                            : 'border-slate-300 hover:border-purple-400 bg-white'
-                        }`}
-                      >
-                        <Check size={14} className="text-white" />
-                      </button>
-                    </th>
-                    <th className="px-6 py-3 text-xs font-extrabold text-slate-500 uppercase tracking-wider">Employee</th>
-                    <th className="px-6 py-3 text-xs font-extrabold text-slate-500 uppercase tracking-wider">Department</th>
-                    <th className="px-6 py-3 text-xs font-extrabold text-slate-500 uppercase tracking-wider">Role</th>
+                    <th className="px-4 py-3.5 w-12 text-center">Select</th>
+                    <th className="px-4 py-3.5">Employee</th>
+                    <th className="px-4 py-3.5">Department</th>
+                    <th className="px-4 py-3.5">Designation</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-[#e0e3e7]">
                   {employees.filter(e => {
                     if (!searchEmployee) return true;
                     const s = searchEmployee.toLowerCase();
-                    return (e.firstName?.toLowerCase().includes(s) || e.lastName?.toLowerCase().includes(s) || e.email?.toLowerCase().includes(s));
-                  }).map((emp) => {
-                    const isSelected = form.assigned_employee_ids.includes(emp.userId);
                     return (
-                      <tr 
-                        key={emp.id} 
-                        className={`hover:bg-slate-50/80 transition-colors cursor-pointer ${isSelected ? 'bg-purple-50/30' : ''}`}
+                      (e.firstName?.toLowerCase().includes(s)) ||
+                      (e.lastName?.toLowerCase().includes(s)) ||
+                      (e.email?.toLowerCase().includes(s)) ||
+                      (e.department?.toLowerCase().includes(s))
+                    );
+                  }).map(emp => {
+                    const empId = emp.userId || emp.id;
+                    const isSelected = form.assigned_employee_ids.includes(empId);
+                    const initials = `${(emp.firstName || '').charAt(0)}${(emp.lastName || '').charAt(0)}`.toUpperCase() || 'E';
+
+                    return (
+                      <tr
+                        key={emp.id}
                         onClick={() => {
                           setForm(f => {
                             if (isSelected) {
-                              return { ...f, assigned_employee_ids: f.assigned_employee_ids.filter(id => id !== emp.userId) };
+                              return { ...f, assigned_employee_ids: f.assigned_employee_ids.filter(id => id !== empId) };
                             } else {
-                              return { ...f, assigned_employee_ids: [...f.assigned_employee_ids, emp.userId] };
+                              return { ...f, assigned_employee_ids: [...f.assigned_employee_ids, empId] };
                             }
                           });
                         }}
+                        className={`transition-colors cursor-pointer ${
+                          isSelected ? 'bg-[#e8f0fe]/40 hover:bg-[#e8f0fe]/60' : 'hover:bg-[#f8fafd]'
+                        }`}
                       >
-                        <td className="px-6 py-3">
-                          <div className={`w-5 h-5 rounded flex items-center justify-center border transition-colors ${
-                            isSelected
-                              ? 'bg-purple-600 border-purple-600'
-                              : 'border-slate-300 bg-white'
-                          }`}>
-                            <Check size={14} className="text-white" />
-                          </div>
+                        <td className="px-4 py-3.5 text-center align-middle" onClick={e => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => {
+                              setForm(f => {
+                                if (isSelected) {
+                                  return { ...f, assigned_employee_ids: f.assigned_employee_ids.filter(id => id !== empId) };
+                                } else {
+                                  return { ...f, assigned_employee_ids: [...f.assigned_employee_ids, empId] };
+                                }
+                              });
+                            }}
+                            className="w-4 h-4 rounded text-[#1a73e8] focus:ring-[#1a73e8] cursor-pointer"
+                          />
                         </td>
-                        <td className="px-6 py-3">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-xs shrink-0 uppercase">
-                              {(emp.firstName?.[0] || '') + (emp.lastName?.[0] || '')}
+
+                        <td className="px-4 py-3.5">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-full bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] flex items-center justify-center font-bold text-xs shrink-0">
+                              {initials}
                             </div>
                             <div>
-                              <p className="font-bold text-sm text-slate-900">{emp.firstName} {emp.lastName}</p>
-                              <p className="text-xs text-slate-500">{emp.email}</p>
+                              <p className="font-semibold text-xs text-[#1f1f1f]">{emp.firstName} {emp.lastName}</p>
+                              <p className="text-[11px] text-[#5f6368]">{emp.email}</p>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-3">
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-bold bg-slate-100 text-slate-700">
-                            {emp.department || 'N/A'}
+
+                        <td className="px-4 py-3.5">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#f8fafd] text-[#5f6368] border border-[#dadce0]">
+                            <Building2 className="w-3 h-3" />
+                            {emp.department || 'General'}
                           </span>
                         </td>
-                        <td className="px-6 py-3 text-xs font-medium text-slate-600">
-                          {emp.position || 'N/A'}
+
+                        <td className="px-4 py-3.5 text-xs text-[#5f6368]">
+                          {emp.position || 'Employee'}
                         </td>
                       </tr>
                     );
                   })}
-                  {employees.filter(e => {
-                    if (!searchEmployee) return true;
-                    const s = searchEmployee.toLowerCase();
-                    return (e.firstName?.toLowerCase().includes(s) || e.lastName?.toLowerCase().includes(s) || e.email?.toLowerCase().includes(s));
-                  }).length === 0 && (
-                    <tr>
-                      <td colSpan="4" className="px-6 py-14 text-center text-slate-500">
-                        <p className="font-semibold text-slate-700">No employees found matching "{searchEmployee}"</p>
-                      </td>
-                    </tr>
-                  )}
                 </tbody>
               </table>
             </div>
@@ -526,61 +650,65 @@ const AssessmentCreate = () => {
       )}
 
       {/* ========================================================= */}
-      {/* STEP 3: CONFIGURE BASIC INFORMATION & RULES */}
+      {/* STEP 3: CONFIGURE BASIC INFO & RULES */}
       {/* ========================================================= */}
       {step === 3 && (
         <form onSubmit={handleSubmit} className="space-y-6 animate-in fade-in duration-300">
-          <div className="bg-emerald-50/70 border border-emerald-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm text-emerald-950">
+          
+          {/* Top Info Banner */}
+          <div className="rounded-2xl border border-[#ceead6] bg-[#e6f4ea] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-[#0d5926] shadow-xs">
             <div className="flex items-start gap-3">
-              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+              <div className="p-2 rounded-xl bg-[#ceead6] text-[#137333] shrink-0">
+                <CheckCircle2 className="w-5 h-5" />
+              </div>
               <div>
-                <p className="font-bold">Step 3: Basic Information & Assessment Rules</p>
-                <p className="text-xs text-emerald-800/80 mt-0.5">
-                  You have linked <span className="font-bold underline">{selectedIds.length} questions</span> and <span className="font-bold underline">{form.assigned_employee_ids.length > 0 ? `${form.assigned_employee_ids.length} employees` : 'a department'}</span> to this assessment. Configure the timing, grading weights, and security rules below.
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#137333]">Step 3: Define Exam Parameters & Rules</h4>
+                <p className="text-xs text-[#0d5926] mt-0.5 leading-relaxed">
+                  Linked <span className="font-bold underline">{selectedIds.length} questions</span> and <span className="font-bold underline">{form.assigned_employee_ids.length > 0 ? `${form.assigned_employee_ids.length} employees` : 'all departmental staff'}</span>. Finalize timings, grading benchmarks, and anti-cheating controls below.
                 </p>
               </div>
             </div>
+
             <button
               type="button"
               onClick={() => setStep(2)}
-              className="px-5 py-2.5 bg-white text-emerald-800 border border-emerald-300 font-bold text-xs rounded-md hover:bg-emerald-100 transition cursor-pointer shrink-0 shadow-sm flex items-center justify-center gap-2 self-start sm:self-auto"
+              className="inline-flex items-center gap-1 px-4 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer shadow-2xs self-start sm:self-auto shrink-0"
             >
-              <ArrowLeft size={14} />
-              <span>Back</span>
+              <ArrowLeft className="w-3.5 h-3.5" /> Back
             </button>
           </div>
 
-          {/* Top Full Width: Basic Information */}
-          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-6 space-y-5">
-            <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100 text-slate-900 font-bold text-base">
-              <span className="p-2 bg-blue-50 text-blue-600 rounded-xl"><FileText size={18} /></span>
+          {/* Section 1: Basic Information */}
+          <div className="bg-white rounded-2xl border border-[#e0e3e7] p-5 shadow-xs space-y-4">
+            <div className="flex items-center gap-2 pb-2.5 border-b border-[#e0e3e7] text-xs font-semibold text-[#1f1f1f]">
+              <FileText className="w-4 h-4 text-[#1a73e8]" />
               <span>Basic Information</span>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                  Assessment Title / Name <span className="text-rose-500">*</span>
+                <label className="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5">
+                  Assessment Title / Name *
                 </label>
                 <input
                   type="text"
                   required
                   value={form.title}
                   onChange={e => setForm({ ...form, title: e.target.value })}
-                  placeholder="e.g. Q3 IT Infrastructure & Cybersecurity Evaluation"
-                  className="w-full p-3 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition"
+                  placeholder="e.g. Q3 IT Infrastructure & Cybersecurity Competency"
+                  className="w-full px-3.5 py-2.5 bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs font-semibold text-[#1f1f1f] placeholder:text-[#5f6368] outline-none transition-all"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+                  <label className="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5">
                     Department Category
                   </label>
                   <select
                     value={form.department}
                     onChange={e => setForm({ ...form, department: e.target.value })}
-                    className="w-full p-3 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 bg-slate-50/50 focus:bg-white focus:outline-none transition cursor-pointer"
+                    className="w-full px-3.5 py-2 bg-white border border-[#dadce0] focus:border-[#4285F4] rounded-xl text-xs font-medium text-[#1f1f1f] outline-none cursor-pointer"
                   >
                     {DEPARTMENTS.map(d => (
                       <option key={d} value={d}>{d}</option>
@@ -589,28 +717,28 @@ const AssessmentCreate = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
-                    Assessment Date (Optional)
+                  <label className="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5">
+                    Scheduled Date (Optional)
                   </label>
                   <input
                     type="date"
                     value={form.assessment_date || ''}
                     onChange={e => setForm({ ...form, assessment_date: e.target.value })}
-                    className="w-full p-3 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition cursor-pointer"
+                    className="w-full px-3.5 py-2 bg-white border border-[#dadce0] focus:border-[#4285F4] rounded-xl text-xs font-medium text-[#1f1f1f] outline-none cursor-pointer"
                   />
-                  <p className="text-[11px] text-slate-400 mt-1">Leave empty for anytime access</p>
+                  <p className="text-[10px] text-[#5f6368] mt-1">Leave empty for anytime access</p>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+                  <label className="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5">
                     Assessment Status
                   </label>
                   <select
                     value={form.status}
                     onChange={e => setForm({ ...form, status: e.target.value })}
-                    className="w-full p-3 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 bg-slate-50/50 focus:bg-white focus:outline-none transition cursor-pointer"
+                    className="w-full px-3.5 py-2 bg-white border border-[#dadce0] focus:border-[#4285F4] rounded-xl text-xs font-medium text-[#1f1f1f] outline-none cursor-pointer"
                   >
-                    <option value="Active">Active & Ready</option>
+                    <option value="Active">Active & Visible</option>
                     <option value="Draft">Draft (Hidden)</option>
                     <option value="Archived">Archived</option>
                   </select>
@@ -619,19 +747,20 @@ const AssessmentCreate = () => {
             </div>
           </div>
 
-          {/* Bottom 2 Columns: Timing & Grading + Security Controls */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-            {/* Left Column: Timing & Grading Parameters */}
-            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-6 space-y-5">
-              <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100 text-slate-900 font-bold text-base">
-                <span className="p-2 bg-purple-50 text-purple-600 rounded-xl"><Clock size={18} /></span>
-                <span>Timing & Grading</span>
+          {/* Section 2: Timing & Grading + Security Controls */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
+            
+            {/* Timing & Grading */}
+            <div className="bg-white rounded-2xl border border-[#e0e3e7] p-5 shadow-xs space-y-4">
+              <div className="flex items-center gap-2 pb-2.5 border-b border-[#e0e3e7] text-xs font-semibold text-[#1f1f1f]">
+                <Clock className="w-4 h-4 text-[#1a73e8]" />
+                <span>Timing & Grading Parameters</span>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-3.5">
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
-                    Total Duration (Minutes) <span className="text-rose-500">*</span>
+                  <label className="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1">
+                    Exam Duration (Minutes) *
                   </label>
                   <input
                     type="number"
@@ -639,13 +768,13 @@ const AssessmentCreate = () => {
                     required
                     value={form.duration_minutes}
                     onChange={e => setForm({ ...form, duration_minutes: e.target.value })}
-                    className="w-full p-3 border border-slate-200 rounded-xl text-base font-bold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none"
+                    className="w-full px-3.5 py-2 bg-white border border-[#dadce0] focus:border-[#4285F4] rounded-xl text-xs font-bold text-[#1f1f1f] outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
-                    Passing Percentage (%) <span className="text-rose-500">*</span>
+                  <label className="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1">
+                    Passing Percentage (%) *
                   </label>
                   <input
                     type="number"
@@ -654,13 +783,13 @@ const AssessmentCreate = () => {
                     required
                     value={form.passing_percentage}
                     onChange={e => setForm({ ...form, passing_percentage: e.target.value })}
-                    className="w-full p-3 border border-slate-200 rounded-xl text-base font-bold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none"
+                    className="w-full px-3.5 py-2 bg-white border border-[#dadce0] focus:border-[#4285F4] rounded-xl text-xs font-bold text-[#137333] outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
-                    Marks Per Question <span className="text-rose-500">*</span>
+                  <label className="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1">
+                    Marks Per Question *
                   </label>
                   <input
                     type="number"
@@ -668,19 +797,19 @@ const AssessmentCreate = () => {
                     required
                     value={form.marks_per_question}
                     onChange={e => setForm({ ...form, marks_per_question: e.target.value })}
-                    className="w-full p-3 border border-slate-200 rounded-xl text-base font-bold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none"
+                    className="w-full px-3.5 py-2 bg-white border border-[#dadce0] focus:border-[#4285F4] rounded-xl text-xs font-bold text-[#1f1f1f] outline-none"
                   />
-                  <div className="mt-2 p-3 bg-blue-50/80 rounded-xl border border-blue-200/60 flex items-center justify-between text-xs text-blue-900 font-bold">
-                    <span>Total Assessment Marks:</span>
-                    <span className="text-sm text-blue-600 bg-white px-2.5 py-0.5 rounded-lg shadow-2xs border border-blue-200">
+                  <div className="mt-2 p-2.5 bg-[#e8f0fe] rounded-xl border border-[#d2e3fc] flex items-center justify-between text-xs text-[#1a73e8] font-semibold">
+                    <span>Total Test Marks:</span>
+                    <span className="text-xs bg-white text-[#1a73e8] px-2.5 py-0.5 rounded-full border border-[#d2e3fc] font-bold">
                       {totalMarks} pts
                     </span>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
-                    Maximum Attempts Allowed <span className="text-rose-500">*</span>
+                  <label className="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1">
+                    Max Attempts Allowed *
                   </label>
                   <input
                     type="number"
@@ -688,80 +817,80 @@ const AssessmentCreate = () => {
                     required
                     value={form.max_attempts}
                     onChange={e => setForm({ ...form, max_attempts: e.target.value })}
-                    className="w-full p-3 border border-slate-200 rounded-xl text-base font-bold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none"
+                    className="w-full px-3.5 py-2 bg-white border border-[#dadce0] focus:border-[#4285F4] rounded-xl text-xs font-bold text-[#1f1f1f] outline-none"
                   />
                 </div>
               </div>
             </div>
 
-            {/* Right Column: Display & Security Controls */}
-            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs p-6 space-y-5">
-              <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100 text-slate-900 font-bold text-base">
-                <span className="p-2 bg-rose-50 text-rose-600 rounded-xl"><Shield size={18} /></span>
-                <span>Security Controls</span>
+            {/* Security Controls */}
+            <div className="bg-white rounded-2xl border border-[#e0e3e7] p-5 shadow-xs space-y-4">
+              <div className="flex items-center gap-2 pb-2.5 border-b border-[#e0e3e7] text-xs font-semibold text-[#1f1f1f]">
+                <Shield className="w-4 h-4 text-[#8430ce]" />
+                <span>Security & Anti-Cheating Controls</span>
               </div>
 
-                <div className="space-y-4">
-                  <label className="flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:bg-slate-50 transition cursor-pointer">
-                    <div>
-                      <div className="text-sm font-bold text-slate-900">Shuffle Questions</div>
-                      <div className="text-[11px] text-slate-500">Randomize question order for candidates</div>
-                    </div>
-                    <input
-                      type="checkbox"
-                      checked={form.randomize_questions}
-                      onChange={e => setForm({ ...form, randomize_questions: e.target.checked })}
-                      className="w-5 h-5 rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
-                    />
-                  </label>
-
-                  <label className="flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:bg-slate-50 transition cursor-pointer">
-                    <div>
-                      <div className="text-sm font-bold text-slate-900">Shuffle Options</div>
-                      <div className="text-[11px] text-slate-500">Randomize A/B/C/D option order</div>
-                    </div>
-                    <input
-                      type="checkbox"
-                      checked={form.randomize_options}
-                      onChange={e => setForm({ ...form, randomize_options: e.target.checked })}
-                      className="w-5 h-5 rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
-                    />
-                  </label>
-
+              <div className="space-y-3">
+                <label className="flex items-center justify-between p-3 rounded-xl border border-[#dadce0] hover:bg-[#f8fafd] transition cursor-pointer">
                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5 mt-2">
-                      Result Visibility
-                    </label>
-                    <select
-                      value={form.result_visibility}
-                      onChange={e => setForm({ ...form, result_visibility: e.target.value })}
-                      className="w-full p-3 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 bg-slate-50 focus:bg-white focus:outline-none transition cursor-pointer"
-                    >
-                      <option value="immediate">Immediate (Show score upon submit)</option>
-                      <option value="after_review">After Admin Review</option>
-                      <option value="never">Never (Hidden from candidate)</option>
-                    </select>
+                    <div className="text-xs font-semibold text-[#1f1f1f]">Shuffle Questions</div>
+                    <div className="text-[11px] text-[#5f6368]">Randomize question presentation order</div>
                   </div>
+                  <input
+                    type="checkbox"
+                    checked={form.randomize_questions}
+                    onChange={e => setForm({ ...form, randomize_questions: e.target.checked })}
+                    className="w-4 h-4 rounded text-[#1a73e8] focus:ring-[#1a73e8] cursor-pointer"
+                  />
+                </label>
+
+                <label className="flex items-center justify-between p-3 rounded-xl border border-[#dadce0] hover:bg-[#f8fafd] transition cursor-pointer">
+                  <div>
+                    <div className="text-xs font-semibold text-[#1f1f1f]">Shuffle Option Choices</div>
+                    <div className="text-[11px] text-[#5f6368]">Randomize A/B/C/D choices order</div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={form.randomize_options}
+                    onChange={e => setForm({ ...form, randomize_options: e.target.checked })}
+                    className="w-4 h-4 rounded text-[#1a73e8] focus:ring-[#1a73e8] cursor-pointer"
+                  />
+                </label>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5 mt-2">
+                    Result Visibility
+                  </label>
+                  <select
+                    value={form.result_visibility}
+                    onChange={e => setForm({ ...form, result_visibility: e.target.value })}
+                    className="w-full px-3.5 py-2 bg-white border border-[#dadce0] focus:border-[#4285F4] rounded-xl text-xs font-medium text-[#1f1f1f] outline-none cursor-pointer"
+                  >
+                    <option value="immediate">Immediate (Show score upon submission)</option>
+                    <option value="after_review">After Admin Review</option>
+                    <option value="never">Never (Hidden from candidate)</option>
+                  </select>
                 </div>
               </div>
             </div>
+          </div>
 
-          {/* Submit Footer */}
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+          {/* Form Actions Footer */}
+          <div className="rounded-2xl border border-[#e0e3e7] bg-[#f8fafd] p-4 flex justify-end items-center gap-2.5">
             <button
               type="button"
               onClick={() => navigate('/admin/assessments/management')}
-              className="px-6 py-3 text-sm font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-md transition cursor-pointer"
+              className="px-5 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saveMutation.isPending}
-              className="px-8 py-3 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-md transition cursor-pointer shadow-md disabled:opacity-50 flex items-center gap-2"
+              className="inline-flex items-center gap-1.5 px-6 py-2 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs transition-all cursor-pointer disabled:opacity-50"
             >
-              {saveMutation.isPending && <RefreshCw size={18} className="animate-spin" />}
-              <span>{isEditing ? 'Update Assessment & Rules' : 'Create & Publish Assessment'}</span>
+              {saveMutation.isPending ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+              <span>{isEditing ? 'Update Assessment & Rules' : 'Publish Assessment'}</span>
             </button>
           </div>
         </form>

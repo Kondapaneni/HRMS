@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import PageLoader from '../components/PageLoader';
 import { createPortal } from 'react-dom';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Loader2, X, Trash2, ArrowLeft } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Loader2, X, Trash2, ArrowLeft, Plus, Sparkles, Image as ImageIcon, Archive } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, getDay, getDate } from 'date-fns';
 import toast from 'react-hot-toast';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { motion } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import api from '../api/axios';
 
@@ -20,6 +21,7 @@ const AdminHolidays = () => {
   const [holidayName, setHolidayName] = useState('');
   const [holidayImage, setHolidayImage] = useState(null);
   const [existingImage, setExistingImage] = useState('');
+  const [previewUrl, setPreviewUrl] = useState('');
   const [saving, setSaving] = useState(false);
 
   const monthStr = format(currentMonth, 'yyyy-MM');
@@ -42,6 +44,7 @@ const AdminHolidays = () => {
     setSelectedDate(dateStr);
     setHolidayName(existing ? existing.holidayName : '');
     setExistingImage(existing ? existing.holidayImage : '');
+    setPreviewUrl(existing ? existing.holidayImage : '');
     setHolidayImage(null);
     setShowModal(true);
   };
@@ -52,6 +55,15 @@ const AdminHolidays = () => {
     setHolidayName('');
     setHolidayImage(null);
     setExistingImage('');
+    setPreviewUrl('');
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setHolidayImage(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
   };
 
   const handleSaveHoliday = async (e) => {
@@ -123,78 +135,96 @@ const AdminHolidays = () => {
   const todayStr = format(new Date(), 'yyyy-MM-dd');
   const upcomingHolidays = holidays.filter(h => h.holidayDate >= todayStr);
 
-  if (loading) return <PageLoader message="Loading Holidays..." />;
+  if (loading) return <PageLoader message="Loading Company Holidays..." />;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Company Holidays</h1>
-          <p className="text-slate-500">Manage dates used in attendance regularization.</p>
+          <div className="flex items-center gap-1.5 mb-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+            <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Company Calendar & Observances</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight">
+            Company Holidays <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full align-middle ml-1.5">{holidays.length} Holidays</span>
+          </h1>
+          <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
+            Manage official holidays and festival leaves for attendance regularization.
+          </p>
         </div>
-        <div className="flex items-center gap-3">
+
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => navigate('/admin/holidays/archive')}
-            className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-10 px-4 py-2 transition-colors cursor-pointer"
+            className="inline-flex items-center justify-center rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#444746] px-4 py-2 transition-colors cursor-pointer gap-1.5 shadow-xs"
           >
-            Archived Holidays
+            <Archive size={14} className="text-[#5f6368]" />
+            <span>Archived Holidays</span>
           </button>
           <button
             onClick={() => navigate('/admin/attendance')}
-            className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-10 px-4 py-2 transition-colors cursor-pointer"
+            className="inline-flex items-center justify-center rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#5f6368] px-3.5 py-2 transition-colors cursor-pointer gap-1 shadow-xs"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Attendance
+            <ArrowLeft size={13} />
+            <span>Attendance</span>
           </button>
         </div>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white shadow-sm flex flex-col overflow-hidden">
-        <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 bg-slate-50/50">
-          <div>
-            <h2 className="text-lg font-semibold text-slate-900">Holiday Calendar</h2>
-            <p className="text-sm text-slate-500">Click any date to add or update holiday name and image.</p>
+      {/* Calendar Card */}
+      <div className="rounded-2xl border border-[#e0e3e7] bg-white shadow-xs overflow-hidden flex flex-col">
+        {/* Calendar Header Bar */}
+        <div className="p-4 sm:p-5 border-b border-[#f1f3f4] bg-[#f8fafd]/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center border border-[#d2e3fc]">
+              <CalendarIcon size={15} />
+            </div>
+            <div>
+              <h2 className="text-sm font-semibold text-[#1f1f1f]">Holiday Calendar — {format(currentMonth, 'MMMM yyyy')}</h2>
+              <p className="text-[11px] text-[#5f6368]">Click any date to add or update holiday name and poster</p>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
+
+          <div className="flex items-center gap-1.5">
             <button
               onClick={handlePrevMonth}
-              className="inline-flex items-center justify-center h-10 w-10 rounded-md border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 transition-colors"
+              className="flex items-center justify-center h-8 w-8 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#5f6368] transition-colors cursor-pointer"
             >
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronLeft size={14} />
             </button>
             <div className="relative">
-              <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+              <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#5f6368] pointer-events-none" />
               <input
                 type="month"
                 value={format(currentMonth, 'yyyy-MM')}
                 onChange={handleMonthChange}
-                className="flex h-10 w-40 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm pl-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="h-8 rounded-full border border-[#dadce0] bg-white px-3 py-1 text-xs pl-8 outline-none focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 text-[#1f1f1f] cursor-pointer"
               />
             </div>
             <button
               onClick={handleNextMonth}
-              className="inline-flex items-center justify-center h-10 w-10 rounded-md border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 transition-colors"
+              className="flex items-center justify-center h-8 w-8 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#5f6368] transition-colors cursor-pointer"
             >
-              <ChevronRight className="w-5 h-5" />
+              <ChevronRight size={14} />
             </button>
           </div>
         </div>
 
-        <div className="p-6">
-          <div className="mb-4 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
-            Selected month: <span className="font-semibold text-slate-900">{format(currentMonth, 'MMMM yyyy')}</span>
-          </div>
-
-          <div className="mt-4 grid grid-cols-7 gap-2 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">
+        <div className="p-4 sm:p-5">
+          <div className="grid grid-cols-7 gap-2 mb-2 text-center">
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-              <div key={day} className="py-2">{day}</div>
+              <div key={day} className="text-[10px] font-bold text-[#5f6368] uppercase tracking-wider py-1.5">{day}</div>
             ))}
           </div>
 
-          <div className="mt-2 grid grid-cols-7 gap-2">
+          <div className="grid grid-cols-7 gap-2">
             {/* Empty slots for start of month */}
             {Array.from({ length: startDate }).map((_, i) => (
-              <div key={`empty-${i}`} className="min-h-[110px] rounded-xl border border-slate-100 bg-slate-50/50"></div>
+              <div key={`empty-${i}`} className="min-h-[110px] rounded-xl border border-[#e0e3e7] border-dashed bg-[#f8fafd]/50"></div>
             ))}
 
             {/* Days of month */}
@@ -206,29 +236,40 @@ const AdminHolidays = () => {
               return (
                 <button
                   key={day}
+                  type="button"
                   onClick={() => openModal(dateStr)}
-                  className={`min-h-[130px] flex flex-col rounded-xl border p-3 text-left transition-all overflow-hidden ${holiday
-                      ? 'border-green-300 bg-green-50 hover:bg-green-100'
-                      : 'border-slate-200 bg-white hover:border-blue-300 hover:shadow-md'
+                  className={`min-h-[120px] flex flex-col justify-between rounded-xl border p-2.5 text-left transition-all cursor-pointer overflow-hidden ${holiday
+                      ? 'border-[#ceead6] bg-[#e6f4ea] hover:bg-[#d8edd9]'
+                      : 'border-[#e0e3e7] bg-white hover:border-[#4285F4] hover:shadow-xs'
                     }`}
                 >
-                  <p className="text-sm font-semibold text-slate-900">{day}</p>
-                  {holiday ? (
-                    <div className="flex-1 flex flex-col w-full">
-                      <div className="mt-1.5">
-                        <span className="inline-block rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-700">Holiday</span>
-                      </div>
-                      {holiday.holidayName && (
-                        <p className="mt-1 line-clamp-1 text-xs font-medium text-green-900 leading-tight" title={holiday.holidayName}>{holiday.holidayName}</p>
-                      )}
-                      {holiday.holidayImage && (
-                        <div className="mt-2 flex-1 w-full min-h-[40px] rounded border border-green-200/50 overflow-hidden">
-                          <img src={holiday.holidayImage} alt={holiday.holidayName} className="w-full h-full object-cover" />
-                        </div>
+                  <div>
+                    <div className="flex items-start justify-between">
+                      <span className={`text-sm font-bold ${holiday ? 'text-[#137333]' : 'text-[#1f1f1f]'}`}>
+                        {day}
+                      </span>
+                      {holiday && (
+                        <span className="bg-[#137333] text-white px-1.5 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-wider">
+                          Holiday
+                        </span>
                       )}
                     </div>
-                  ) : (
-                    <p className="mt-1.5 text-xs font-medium text-slate-400">Add Holiday</p>
+
+                    {holiday ? (
+                      <div className="mt-1">
+                        <p className="text-[11px] font-semibold text-[#137333] line-clamp-1 leading-tight" title={holiday.holidayName}>
+                          {holiday.holidayName}
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="mt-1 text-[10px] text-[#9aa0a6]">Click to add</p>
+                    )}
+                  </div>
+
+                  {holiday && holiday.holidayImage && (
+                    <div className="mt-1.5 w-full h-10 rounded-lg overflow-hidden border border-[#ceead6] shadow-2xs bg-white">
+                      <img src={holiday.holidayImage} alt={holiday.holidayName} className="w-full h-full object-cover" />
+                    </div>
                   )}
                 </button>
               );
@@ -238,108 +279,144 @@ const AdminHolidays = () => {
       </div>
 
       {/* Upcoming Holidays List */}
-      <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-        <div className="p-5 border-b border-slate-100 bg-slate-50/50">
-          <h2 className="text-lg font-semibold text-slate-900">Upcoming Holidays</h2>
-          <p className="text-sm text-slate-500">These upcoming dates are treated as a holiday in attendance regularization.</p>
+      <div className="rounded-2xl border border-[#e0e3e7] bg-white shadow-xs overflow-hidden">
+        <div className="p-4 sm:p-5 border-b border-[#f1f3f4] bg-[#f8fafd]/60 flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center border border-[#d2e3fc]">
+            <Sparkles size={15} />
+          </div>
+          <div>
+            <h2 className="text-sm font-semibold text-[#1f1f1f]">Upcoming Holidays</h2>
+            <p className="text-[11px] text-[#5f6368]">Active company holidays recognized for this period ({upcomingHolidays.length})</p>
+          </div>
         </div>
 
-        <div className="p-6 space-y-3">
+        <div className="p-4 sm:p-5">
           {loading ? (
-            <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-blue-500" /></div>
+            <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-[#4285F4]" /></div>
           ) : upcomingHolidays.length === 0 ? (
-            <div className="text-center py-8 text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-300">
-              No upcoming holidays found for this month.
+            <div className="text-center py-8 text-[#5f6368] bg-[#f8fafd] rounded-xl border border-dashed border-[#e0e3e7]">
+              <CalendarIcon size={24} className="mx-auto mb-2 text-[#dadce0]" />
+              <p className="text-xs font-semibold text-[#1f1f1f]">No upcoming holidays this month</p>
+              <p className="text-[11px] text-[#5f6368] mt-0.5">Click any calendar date to schedule a new holiday.</p>
             </div>
           ) : (
-            upcomingHolidays.map((h, i) => (
-              <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md transition-shadow gap-4">
-                <div className="flex items-center gap-4">
-                  {h.holidayImage ? (
-                    <img src={h.holidayImage} alt={h.holidayName} className="h-14 w-14 rounded-lg border border-slate-200 object-cover shadow-sm" />
-                  ) : (
-                    <div className="h-14 w-14 rounded-lg border border-slate-200 bg-slate-100 flex items-center justify-center">
-                      <CalendarIcon className="w-6 h-6 text-slate-400" />
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+              {upcomingHolidays.map((h, i) => (
+                <div key={i} className="flex items-center justify-between rounded-xl border border-[#e0e3e7] bg-white p-3.5 shadow-2xs hover:shadow-xs transition-shadow gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    {h.holidayImage ? (
+                      <img src={h.holidayImage} alt={h.holidayName} className="h-12 w-12 rounded-lg border border-[#e0e3e7] object-cover shadow-2xs shrink-0" />
+                    ) : (
+                      <div className="h-12 w-12 rounded-lg border border-[#e0e3e7] bg-[#f8fafd] flex items-center justify-center shrink-0 text-[#1a73e8]">
+                        <CalendarIcon size={20} />
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-[#1f1f1f] truncate">{h.holidayName}</p>
+                      <p className="text-[11px] font-medium text-[#1a73e8] mt-0.5">{format(new Date(h.holidayDate), 'dd MMM yyyy, EEEE')}</p>
+                      <p className="text-[10px] text-[#5f6368] mt-0.5">{h.holidayDate}</p>
                     </div>
-                  )}
-                  <div>
-                    <p className="text-base font-semibold text-slate-900">{format(new Date(h.holidayDate), 'dd MMM yyyy, EEEE')}</p>
-                    <p className="text-sm font-medium text-blue-600 mt-0.5">{h.holidayName}</p>
-                    <p className="text-xs text-slate-500 mt-1">{h.holidayDate}</p>
                   </div>
+                  <button
+                    onClick={() => handleRemoveHoliday(h.holidayDate)}
+                    className="p-1.5 text-[#5f6368] hover:text-[#c5221f] hover:bg-[#fce8e6] rounded-full transition-colors cursor-pointer shrink-0"
+                    title="Remove Holiday"
+                  >
+                    <Trash2 size={14} />
+                  </button>
                 </div>
-                <button
-                  onClick={() => handleRemoveHoliday(h.holidayDate)}
-                  className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 h-9 px-4 transition-colors"
-                >
-                  <Trash2 className="w-4 h-4 mr-2" /> Remove
-                </button>
-              </div>
-            ))
+              ))}
+            </div>
           )}
         </div>
       </div>
 
-      {/* Add/Edit Sidebar Modal */}
+      {/* Add/Edit Sidebar Drawer */}
       {showModal && createPortal(
-        <div className="fixed inset-0 z-[100] flex justify-end bg-slate-900/50 backdrop-blur-sm">
-          <div className="bg-white shadow-2xl w-full max-w-md h-[100dvh] flex flex-col overflow-hidden transform transition-transform duration-300">
-            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 shrink-0">
+        <div 
+          onClick={(e) => { if (e.target === e.currentTarget && !saving) closeModal(); }}
+          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm"
+        >
+          <motion.div 
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
+            className="bg-white shadow-2xl w-full max-w-md h-[100dvh] flex flex-col overflow-hidden relative"
+          >
+            {/* Top Accent Stripe */}
+            <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#34A853] via-[#FBBC05] to-[#EA4335] absolute top-0 left-0" />
+
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd] mt-1 shrink-0">
               <div>
-                <h2 className="text-lg font-semibold text-slate-800">
+                <div className="flex items-center gap-1.5 text-[#1a73e8] mb-0.5">
+                  <CalendarIcon size={15} />
+                  <span className="text-[10.5px] font-bold uppercase tracking-wider">Holiday Management</span>
+                </div>
+                <h2 className="text-lg font-semibold text-[#1f1f1f]">
                   {existingImage ? 'Edit Holiday' : 'Add Holiday'}
                 </h2>
-                <p className="text-sm text-slate-500">Save holiday details for {selectedDate}</p>
+                <p className="text-xs text-[#5f6368] mt-0.5">Date: <strong className="text-[#1f1f1f]">{selectedDate}</strong></p>
               </div>
-              <button onClick={closeModal} className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
-                <X size={20} />
+              <button 
+                type="button" 
+                onClick={closeModal}
+                disabled={saving}
+                className="text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4] p-1.5 rounded-full transition-colors cursor-pointer disabled:opacity-50"
+              >
+                <X size={18} />
               </button>
             </div>
             
-            <div className="p-6 overflow-y-auto flex-1">
-              <form id="holiday-form" onSubmit={handleSaveHoliday} className="space-y-5">
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-slate-700">Date</label>
-                <input
-                  type="date"
-                  value={selectedDate}
-                  readOnly
-                  className="flex h-10 w-full rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-500"
-                />
-              </div>
+            {/* Body */}
+            <div className="p-6 overflow-y-auto flex-1 space-y-4">
+              <form id="holiday-form" onSubmit={handleSaveHoliday} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-[#1f1f1f] mb-1">
+                    Holiday Name <span className="text-[#EA4335]">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={holidayName}
+                    onChange={(e) => setHolidayName(e.target.value)}
+                    placeholder="e.g. Diwali, Independence Day"
+                    required
+                    className="w-full rounded-xl border border-[#dadce0] px-3.5 py-2 text-xs text-[#1f1f1f] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 outline-none transition-all"
+                  />
+                </div>
 
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-slate-700">Holiday Name <span className="text-red-500">*</span></label>
-                <input
-                  type="text"
-                  value={holidayName}
-                  onChange={(e) => setHolidayName(e.target.value)}
-                  placeholder="Example: Diwali"
-                  required
-                  className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
+                <div>
+                  <label className="block text-xs font-semibold text-[#1f1f1f] mb-1">
+                    Holiday Image Banner {(!existingImage) && <span className="text-[#EA4335]">*</span>}
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="block w-full text-xs text-[#5f6368] file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#e8f0fe] file:text-[#1a73e8] hover:file:bg-[#d2e3fc] file:transition-colors file:cursor-pointer"
+                  />
+                  <p className="text-[10px] text-[#5f6368] mt-1">Upload a festive banner or poster for the holiday card.</p>
+                </div>
 
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-slate-700">Holiday Image {(!existingImage) && <span className="text-red-500">*</span>}</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setHolidayImage(e.target.files[0])}
-                  className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-colors"
-                />
-                <p className="text-xs text-slate-500">Upload an image for the holiday banner.</p>
-              </div>
-
-
+                {previewUrl && (
+                  <div className="mt-2">
+                    <p className="text-[11px] font-semibold text-[#5f6368] mb-1.5">Banner Preview:</p>
+                    <div className="w-full h-36 rounded-xl overflow-hidden border border-[#e0e3e7] shadow-xs bg-[#f8fafd]">
+                      <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                    </div>
+                  </div>
+                )}
               </form>
             </div>
             
-            <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3 shrink-0">
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex justify-end gap-3 shrink-0">
               <button
                 type="button"
                 onClick={closeModal}
-                className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors cursor-pointer"
+                disabled={saving}
+                className="px-5 py-2 text-xs font-semibold border border-[#dadce0] rounded-full text-[#444746] bg-white hover:bg-[#f1f3f4] transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -347,12 +424,17 @@ const AdminHolidays = () => {
                 type="submit"
                 form="holiday-form"
                 disabled={saving}
-                className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 transition-colors shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-2 text-xs font-semibold rounded-full text-white bg-[#1a73e8] hover:bg-[#1557b0] shadow-md shadow-[#4285F4]/25 transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
               >
-                {saving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Saving...</> : 'Save Holiday'}
+                {saving ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" />
+                    <span>Saving...</span>
+                  </>
+                ) : 'Save Holiday'}
               </button>
             </div>
-          </div>
+          </motion.div>
         </div>,
         document.body
       )}

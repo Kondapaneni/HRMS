@@ -1,222 +1,650 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, Fragment } from 'react';
+import { createPortal } from 'react-dom';
 import PageLoader from '../components/PageLoader';
-import { Loader2, FileText, CheckCircle, XCircle, Clock, Filter, X, Eye } from 'lucide-react';
+import { 
+  Loader2, 
+  FileText, 
+  CheckCircle2, 
+  XCircle, 
+  Clock, 
+  Filter, 
+  X, 
+  Eye, 
+  Search, 
+  IndianRupee, 
+  ChevronLeft, 
+  ChevronRight, 
+  Receipt, 
+  User, 
+  Building2, 
+  Calendar, 
+  ExternalLink, 
+  Sparkles,
+  ArrowUpRight,
+  TrendingUp,
+  Tag,
+  AlertCircle
+} from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 
+function numberToWords(num) {
+  const a = ['','One ','Two ','Three ','Four ', 'Five ','Six ','Seven ','Eight ','Nine ','Ten ','Eleven ','Twelve ','Thirteen ','Fourteen ','Fifteen ','Sixteen ','Seventeen ','Eighteen ','Nineteen '];
+  const b = ['', '', 'Twenty','Thirty','Forty','Fifty', 'Sixty','Seventy','Eighty','Ninety'];
+  if (!num) return 'Zero Rupees Only';
+  
+  const parsed = Math.round(parseFloat(num));
+  if (isNaN(parsed) || parsed <= 0) return 'Zero Rupees Only';
+  
+  const numStr = parsed.toString();
+  if (numStr.length > 9) return `${parsed} Rupees Only`;
+  
+  let n = ('000000000' + numStr).substr(-9).match(/^(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})$/);
+  if (!n) return 'Zero Rupees Only';
+  
+  let str = '';
+  str += (n[1] != 0) ? (a[Number(n[1])] || b[n[1][0]] + ' ' + a[n[1][1]]) + 'Crore ' : '';
+  str += (n[2] != 0) ? (a[Number(n[2])] || b[n[2][0]] + ' ' + a[n[2][1]]) + 'Lakh ' : '';
+  str += (n[3] != 0) ? (a[Number(n[3])] || b[n[3][0]] + ' ' + a[n[3][1]]) + 'Thousand ' : '';
+  str += (n[4] != 0) ? (a[Number(n[4])] || b[n[4][0]] + ' ' + a[n[4][1]]) + 'Hundred ' : '';
+  str += (n[5] != 0) ? ((str != '') ? 'and ' : '') + (a[Number(n[5])] || b[n[5][0]] + ' ' + a[n[5][1]]) + 'Rupees Only' : 'Rupees Only';
+  return str.trim();
+}
+
+const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme }) => {
+  const themes = {
+    blue: {
+      iconBg: 'bg-[#e8f0fe]',
+      iconColor: 'text-[#1a73e8]',
+    },
+    amber: {
+      iconBg: 'bg-[#fef7e0]',
+      iconColor: 'text-[#b06000]',
+    },
+    green: {
+      iconBg: 'bg-[#e6f4ea]',
+      iconColor: 'text-[#137333]',
+    },
+    red: {
+      iconBg: 'bg-[#fce8e6]',
+      iconColor: 'text-[#c5221f]',
+    }
+  };
+
+  const theme = themes[colorTheme] || themes.blue;
+
+  return (
+    <div className="bg-white rounded-2xl border border-[#e0e3e7] p-5 shadow-xs transition-all duration-200 hover:shadow-md hover:border-[#dadce0]">
+      <div className="flex items-start justify-between">
+        <div className="space-y-1">
+          <p className="text-xs font-semibold text-[#5f6368] uppercase tracking-wider">{title}</p>
+          <p className="text-2xl font-bold text-[#1f1f1f] tracking-tight">{value}</p>
+          {subtitle && <p className="text-xs text-[#5f6368] font-normal pt-0.5">{subtitle}</p>}
+        </div>
+        <div className={`p-3 rounded-2xl ${theme.iconBg} ${theme.iconColor} shrink-0`}>
+          <Icon className="w-5 h-5" />
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const AdminExpenses = () => {
   const queryClient = useQueryClient();
+  
+  // Filters & Search
   const [filter, setFilter] = useState('All');
+  const [categoryFilter, setCategoryFilter] = useState('All');
+  const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const limit = 10;
 
-  // Modal for Approve/Reject with remarks
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // Drawer & Action state
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState(null);
-  const [actionType, setActionType] = useState('Approved'); // 'Approved' or 'Rejected'
+  const [actionType, setActionType] = useState('Approved');
   const [remarks, setRemarks] = useState('');
 
+  // 300ms Search Debounce
   useEffect(() => {
-    if (isModalOpen) document.body.style.overflow = 'hidden';
-    else document.body.style.overflow = '';
-    return () => { document.body.style.overflow = ''; };
-  }, [isModalOpen]);
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
-  const { data: expensesData, isLoading } = useQuery({
-    queryKey: ['admin', 'expenses'],
+  // Query Server for expenses
+  const { data: responseData, isLoading } = useQuery({
+    queryKey: ['admin', 'expenses', page, debouncedSearch, filter, categoryFilter],
     queryFn: async () => {
-      const res = await api.get('/admin/expenses');
-      return res.data.expenses || [];
+      const offset = (page - 1) * limit;
+      const res = await api.get(`/admin/expenses?page=${page}&limit=${limit}&search=${encodeURIComponent(debouncedSearch)}&status=${filter}&category=${categoryFilter}`);
+      return res.data;
     },
-    onError: () => toast.error('Failed to load expenses.'),
+    staleTime: 5 * 60 * 1000,
   });
 
+  const expenses = responseData?.expenses || [];
+  const stats = responseData?.stats || {
+    totalAmount: 0,
+    totalCount: 0,
+    pendingAmount: 0,
+    pendingCount: 0,
+    approvedAmount: 0,
+    approvedCount: 0,
+    rejectedAmount: 0,
+    rejectedCount: 0,
+  };
+  const totalCount = responseData?.pagination?.total || 0;
+  const totalPages = Math.ceil(totalCount / limit);
+
+  // Mutation for updating status
   const updateStatusMutation = useMutation({
     mutationFn: async ({ id, status, remarks }) => {
       const res = await api.put(`/admin/expenses/${id}`, { status, remarks });
       return res.data;
     },
     onSuccess: () => {
-      toast.success(`Expense ${actionType} successfully`);
+      toast.success(`Expense ${actionType.toLowerCase()} successfully`);
       queryClient.invalidateQueries({ queryKey: ['admin', 'expenses'] });
-      setIsModalOpen(false);
+      setIsDrawerOpen(false);
+      setSelectedExpense(null);
     },
     onError: (err) => {
       toast.error(err.response?.data?.error || 'Failed to update expense');
     }
   });
 
-  const filteredExpenses = expensesData?.filter(exp => {
-    if (filter === 'All') return true;
-    return exp.status === filter;
-  }) || [];
-
-  const handleActionClick = (expense, type) => {
+  const openReviewDrawer = (expense, defaultAction = 'Approved') => {
     setSelectedExpense(expense);
-    setActionType(type);
-    setRemarks('');
-    setIsModalOpen(true);
+    setActionType(defaultAction);
+    setRemarks(expense.remarks || '');
+    setIsDrawerOpen(true);
   };
 
-  const handleConfirmAction = () => {
+  const closeReviewDrawer = () => {
+    setIsDrawerOpen(false);
+    setSelectedExpense(null);
+  };
+
+  const handleConfirmAction = (status) => {
+    if (!selectedExpense) return;
     updateStatusMutation.mutate({
       id: selectedExpense.id,
-      status: actionType,
+      status: status || actionType,
       remarks
     });
   };
 
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0
+    }).format(amount || 0);
+  };
+
   const getStatusBadge = (status) => {
     switch (status) {
-      case 'Approved': return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"><CheckCircle className="w-3 h-3 mr-1" /> Approved</span>;
-      case 'Rejected': return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"><XCircle className="w-3 h-3 mr-1" /> Rejected</span>;
-      default: return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800"><Clock className="w-3 h-3 mr-1" /> Pending</span>;
+      case 'Approved':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">
+            <CheckCircle2 className="w-3.5 h-3.5" /> Approved
+          </span>
+        );
+      case 'Rejected':
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf]">
+            <XCircle className="w-3.5 h-3.5" /> Rejected
+          </span>
+        );
+      default:
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#fef7e0] text-[#b06000] border border-[#feefc3]">
+            <Clock className="w-3.5 h-3.5" /> Pending Review
+          </span>
+        );
     }
   };
 
-  if (isLoading) return <PageLoader message="Loading Expenses..." />;
+  const getCategoryBadge = (category) => {
+    return (
+      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-[#f1f3f4] text-[#3c4043]">
+        <Tag className="w-3 h-3 text-[#5f6368]" />
+        {category || 'General'}
+      </span>
+    );
+  };
+
+  if (isLoading && !responseData) return <PageLoader message="Loading Expenses..." />;
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6 pb-12">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Expense Management</h1>
-          <p className="text-slate-500 mt-1">Review and approve employee expense claims</p>
+          <div className="flex items-center gap-1.5 mb-1">
+            <span className="w-2 h-2 rounded-full bg-[#4285F4]" />
+            <span className="w-2 h-2 rounded-full bg-[#EA4335]" />
+            <span className="w-2 h-2 rounded-full bg-[#FBBC05]" />
+            <span className="w-2 h-2 rounded-full bg-[#34A853]" />
+            <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Finance & Claims</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight flex items-center gap-2">
+            Expense Management <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">{totalCount} Claims</span>
+          </h1>
+          <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
+            Review and approve employee reimbursement requests, verify supporting bills, and audit disbursements.
+          </p>
         </div>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden flex flex-col">
-        <div className="p-5 border-b border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center space-x-2 w-full sm:w-auto">
-            <Filter className="w-4 h-4 text-slate-400" />
+      {/* KPI Stats Cards */}
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard 
+          title="Total Claims" 
+          value={formatCurrency(stats.totalAmount)} 
+          subtitle={`${stats.totalCount} total submissions`} 
+          icon={IndianRupee} 
+          colorTheme="blue" 
+        />
+        <StatCard 
+          title="Pending Approval" 
+          value={formatCurrency(stats.pendingAmount)} 
+          subtitle={`${stats.pendingCount} awaiting review`} 
+          icon={Clock} 
+          colorTheme="amber" 
+        />
+        <StatCard 
+          title="Approved Claims" 
+          value={formatCurrency(stats.approvedAmount)} 
+          subtitle={`${stats.approvedCount} verified & settled`} 
+          icon={CheckCircle2} 
+          colorTheme="green" 
+        />
+        <StatCard 
+          title="Declined Claims" 
+          value={formatCurrency(stats.rejectedAmount)} 
+          subtitle={`${stats.rejectedCount} claims rejected`} 
+          icon={XCircle} 
+          colorTheme="red" 
+        />
+      </div>
+
+      {/* Main Expenses Table Card */}
+      <div className="rounded-2xl border border-[#e0e3e7] bg-white shadow-xs overflow-hidden flex flex-col">
+        {/* Table Toolbar */}
+        <div className="p-4 sm:p-5 border-b border-[#e0e3e7] bg-[#f8fafd] flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            {['All', 'Pending', 'Approved', 'Rejected'].map((st) => (
+              <button
+                key={st}
+                onClick={() => { setFilter(st); setPage(1); }}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                  filter === st
+                    ? 'bg-[#1a73e8] text-white shadow-xs'
+                    : 'bg-white border border-[#dadce0] text-[#5f6368] hover:bg-[#f1f3f4] hover:text-[#1f1f1f]'
+                }`}
+              >
+                {st} {st === 'All' ? `(${stats.totalCount})` : st === 'Pending' ? `(${stats.pendingCount})` : st === 'Approved' ? `(${stats.approvedCount})` : `(${stats.rejectedCount})`}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            {/* Category Dropdown */}
             <select
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              className="bg-white border border-slate-300 text-slate-700 text-sm rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent block px-3 py-2 transition-shadow"
+              value={categoryFilter}
+              onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }}
+              className="w-full sm:w-auto px-3.5 py-2 bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-full text-xs text-[#1f1f1f] outline-none cursor-pointer"
             >
-              <option value="All">All Expenses</option>
-              <option value="Pending">Pending</option>
-              <option value="Approved">Approved</option>
-              <option value="Rejected">Rejected</option>
+              <option value="All">All Categories</option>
+              <option value="Travel">Travel & Fuel</option>
+              <option value="Food">Meals & Food</option>
+              <option value="Equipment">Office Equipment</option>
+              <option value="Medical">Medical Reimbursement</option>
+              <option value="Other">Other Expenses</option>
             </select>
+
+            {/* Google Pill Search */}
+            <div className="relative w-full sm:w-72">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368] pointer-events-none" />
+              <input
+                type="search"
+                placeholder="Search employee, title, category..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 text-xs bg-[#f1f3f4] hover:bg-[#e8eaed] focus:bg-white border border-transparent focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-full text-[#1f1f1f] placeholder:text-[#5f6368] outline-none transition-all shadow-none focus:shadow-sm"
+              />
+            </div>
           </div>
         </div>
 
-        {isLoading ? (
-          <div className="flex justify-center p-12">
-            <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-slate-50 border-b border-slate-200 text-slate-500">
+        {/* Table Content */}
+        <div className="overflow-x-auto custom-scrollbar">
+          <table className="w-full text-xs text-left">
+            <thead className="bg-[#f8fafd] border-b border-[#e0e3e7] text-[#5f6368] uppercase font-semibold tracking-wider text-[11px]">
+              <tr>
+                <th className="px-5 py-3.5">Employee</th>
+                <th className="px-5 py-3.5">Claim Details</th>
+                <th className="px-5 py-3.5">Category</th>
+                <th className="px-5 py-3.5 text-right">Amount</th>
+                <th className="px-5 py-3.5 text-center">Status</th>
+                <th className="px-5 py-3.5 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#e0e3e7]">
+              {isLoading ? (
                 <tr>
-                  <th className="px-6 py-4 font-medium">Employee</th>
-                  <th className="px-6 py-4 font-medium">Details</th>
-                  <th className="px-6 py-4 font-medium">Category</th>
-                  <th className="px-6 py-4 font-medium">Amount</th>
-                  <th className="px-6 py-4 font-medium">Status</th>
-                  <th className="px-6 py-4 font-medium text-right">Actions</th>
+                  <td colSpan="6" className="px-6 py-12 text-center text-[#5f6368]">
+                    <div className="flex flex-col items-center justify-center space-y-2">
+                      <div className="w-6 h-6 border-2 border-[#4285F4] border-t-transparent rounded-full animate-spin"></div>
+                      <p className="text-xs">Loading expense claims...</p>
+                    </div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-slate-200">
-                {filteredExpenses.length === 0 ? (
-                  <tr>
-                    <td colSpan="6" className="px-6 py-12 text-center text-slate-500">
-                      <FileText className="w-12 h-12 mx-auto text-slate-300 mb-3" />
-                      <p>No expenses found.</p>
+              ) : expenses.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="px-6 py-12 text-center text-[#5f6368]">
+                    <div className="flex flex-col items-center justify-center space-y-1">
+                      <Receipt className="w-10 h-10 text-[#dadce0] mb-2" />
+                      <p className="text-sm font-medium text-[#1f1f1f]">No expense claims found</p>
+                      <p className="text-xs text-[#5f6368]">Try changing your status filter or search keywords.</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                expenses.map((exp) => (
+                  <tr key={exp.id} className="hover:bg-[#f8fafd] transition-colors">
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-[#e8f0fe] border border-[#d2e3fc] flex items-center justify-center text-[#1a73e8] font-bold text-xs shrink-0">
+                          {((exp.firstName?.[0] || '') + (exp.lastName?.[0] || '')).toUpperCase() || 'EM'}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-[#1f1f1f] text-xs">{exp.firstName} {exp.lastName}</p>
+                          <span className="font-mono text-[11px] text-[#5f6368]">{exp.employee_ref || 'EMP'}</span>
+                        </div>
+                      </div>
                     </td>
-                  </tr>
-                ) : (
-                  filteredExpenses.map((exp) => (
-                    <tr key={exp.id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-slate-900">{exp.firstName} {exp.lastName}</div>
-                        <div className="text-xs text-slate-500">{exp.employee_ref}</div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm font-medium text-slate-900">{exp.title}</div>
-                        <div className="text-xs text-slate-500 mt-1">{new Date(exp.created_at).toLocaleDateString()}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-                        {exp.category}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-900">
-                        ₹{parseFloat(exp.amount).toFixed(2)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {getStatusBadge(exp.status)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                        {exp.bill_url && (
-                          <a href={exp.bill_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-9 px-3 transition-colors cursor-pointer">
-                            <Eye className="w-4 h-4 mr-2 text-slate-500" /> View Bill
-                          </a>
-                        )}
+
+                    <td className="px-5 py-3.5">
+                      <div>
+                        <p className="font-semibold text-[#1f1f1f] text-xs">{exp.title}</p>
+                        <p className="text-[11px] text-[#5f6368] mt-0.5 flex items-center gap-1">
+                          <Calendar className="w-3 h-3 text-[#5f6368]" />
+                          {new Date(exp.created_at).toLocaleDateString('en-IN', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric'
+                          })}
+                        </p>
+                      </div>
+                    </td>
+
+                    <td className="px-5 py-3.5">
+                      {getCategoryBadge(exp.category)}
+                    </td>
+
+                    <td className="px-5 py-3.5 text-right">
+                      <span className="text-sm font-bold text-[#1f1f1f]">
+                        {formatCurrency(exp.amount)}
+                      </span>
+                    </td>
+
+                    <td className="px-5 py-3.5 text-center">
+                      {getStatusBadge(exp.status)}
+                    </td>
+
+                    <td className="px-5 py-3.5 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          onClick={() => openReviewDrawer(exp, exp.status === 'Pending' ? 'Approved' : exp.status)}
+                          className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer shadow-none hover:shadow-xs"
+                        >
+                          <Eye className="w-3.5 h-3.5 text-[#5f6368]" />
+                          {exp.status === 'Pending' ? 'Review Claim' : 'View Details'}
+                        </button>
+
                         {exp.status === 'Pending' && (
                           <>
-                            <button onClick={() => handleActionClick(exp, 'Approved')} className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-9 px-3 transition-colors cursor-pointer hover:!text-green-700 hover:!border-green-200 hover:!bg-green-50">
-                              <CheckCircle className="w-4 h-4 mr-2 text-slate-400" /> Approve
+                            <button
+                              onClick={() => {
+                                setSelectedExpense(exp);
+                                setActionType('Approved');
+                                setRemarks('');
+                                handleConfirmAction('Approved');
+                              }}
+                              disabled={updateStatusMutation.isPending}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-[#e6f4ea] hover:bg-[#ceead6] text-[#137333] border border-[#ceead6] transition-all cursor-pointer"
+                              title="Quick Approve"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" /> Approve
                             </button>
-                            <button onClick={() => handleActionClick(exp, 'Rejected')} className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-9 px-3 transition-colors cursor-pointer hover:!text-red-700 hover:!border-red-200 hover:!bg-red-50">
-                              <XCircle className="w-4 h-4 mr-2 text-slate-400" /> Reject
+                            <button
+                              onClick={() => openReviewDrawer(exp, 'Rejected')}
+                              disabled={updateStatusMutation.isPending}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-[#fce8e6] hover:bg-[#fad2cf] text-[#c5221f] border border-[#fad2cf] transition-all cursor-pointer"
+                              title="Reject Claim"
+                            >
+                              <XCircle className="w-3.5 h-3.5" /> Reject
                             </button>
                           </>
                         )}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination Footer */}
+        {totalPages > 1 && (
+          <div className="p-3.5 sm:p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+            <p className="text-[#5f6368]">
+              Showing <span className="font-semibold text-[#1f1f1f]">{((page - 1) * limit) + 1}</span> to <span className="font-semibold text-[#1f1f1f]">{Math.min(page * limit, totalCount)}</span> of <span className="font-semibold text-[#1f1f1f]">{totalCount}</span> claims
+            </p>
+            <div className="flex items-center gap-1.5 self-end sm:self-auto">
+              <button 
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="p-1.5 rounded-full text-[#5f6368] hover:bg-[#e8eaed] disabled:opacity-30 disabled:cursor-not-allowed transition-all border border-[#dadce0]"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <span className="px-3 py-1 text-xs font-medium text-[#1f1f1f] bg-white border border-[#dadce0] rounded-full">
+                Page {page} of {totalPages}
+              </span>
+              <button 
+                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="p-1.5 rounded-full text-[#5f6368] hover:bg-[#e8eaed] disabled:opacity-30 disabled:cursor-not-allowed transition-all border border-[#dadce0]"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         )}
       </div>
 
-      {/* Approve/Reject Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={() => setIsModalOpen(false)}></div>
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md relative z-10 flex flex-col">
-            <div className="flex items-center justify-between p-6 border-b border-slate-100">
-              <h3 className="text-lg font-semibold text-slate-900">
-                {actionType === 'Approved' ? 'Approve Expense' : 'Reject Expense'}
-              </h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-500">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+      {/* Slideover Review Drawer */}
+      {isDrawerOpen && selectedExpense && createPortal(
+        <div className="fixed inset-0 z-50 overflow-hidden">
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity animate-in fade-in duration-200" 
+            onClick={closeReviewDrawer} 
+          />
 
-            <div className="p-6">
-              <p className="text-sm text-slate-600 mb-4">
-                You are about to {actionType.toLowerCase()} an expense of <strong>₹{parseFloat(selectedExpense?.amount).toFixed(2)}</strong> from <strong>{selectedExpense?.firstName} {selectedExpense?.lastName}</strong>.
-              </p>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Remarks (Optional)</label>
-                <textarea
-                  value={remarks}
-                  onChange={(e) => setRemarks(e.target.value)}
-                  placeholder={`Reason for ${actionType.toLowerCase()}...`}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  rows="3"
-                ></textarea>
+          <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
+            <div className="w-screen max-w-lg bg-white shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
+              {/* Drawer Header */}
+              <div className="p-5 border-b border-[#e0e3e7] flex items-center justify-between bg-[#f8fafd]">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-[#e8f0fe] text-[#1a73e8]">
+                    <Receipt className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-semibold text-[#1f1f1f]">Expense Claim Details</h3>
+                    <p className="text-xs text-[#5f6368]">
+                      {selectedExpense.firstName} {selectedExpense.lastName} • {selectedExpense.employee_ref}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={closeReviewDrawer}
+                  className="rounded-full p-1.5 text-[#5f6368] hover:bg-[#e8eaed] transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Drawer Body */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-5 custom-scrollbar text-xs">
+                {/* Status & Amount Banner */}
+                <div className="bg-[#e8f0fe] border border-[#d2e3fc] rounded-2xl p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-[11px] font-bold text-[#1a73e8] uppercase tracking-wider block">Claimed Amount</span>
+                      <span className="text-2xl font-extrabold text-[#1a73e8]">{formatCurrency(selectedExpense.amount)}</span>
+                    </div>
+                    <div>
+                      {getStatusBadge(selectedExpense.status)}
+                    </div>
+                  </div>
+                  <div className="pt-2 border-t border-[#d2e3fc]/60">
+                    <p className="text-[10px] font-bold text-[#1a73e8] uppercase tracking-wider">Amount in Words</p>
+                    <p className="text-xs font-semibold text-[#1f1f1f] mt-0.5">{numberToWords(selectedExpense.amount)}</p>
+                  </div>
+                </div>
+
+                {/* Metadata Grid */}
+                <div className="grid grid-cols-2 gap-3 bg-[#f8fafd] p-4 rounded-2xl border border-[#e0e3e7]">
+                  <div>
+                    <p className="text-[#5f6368] font-medium">Claim Title</p>
+                    <p className="font-semibold text-[#1f1f1f] mt-0.5">{selectedExpense.title}</p>
+                  </div>
+                  <div>
+                    <p className="text-[#5f6368] font-medium">Category</p>
+                    <p className="font-semibold text-[#1f1f1f] mt-0.5">{selectedExpense.category}</p>
+                  </div>
+                  <div>
+                    <p className="text-[#5f6368] font-medium">Submitted On</p>
+                    <p className="font-semibold text-[#1f1f1f] mt-0.5">
+                      {new Date(selectedExpense.created_at).toLocaleDateString('en-IN', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                      })}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[#5f6368] font-medium">Department</p>
+                    <p className="font-semibold text-[#1f1f1f] mt-0.5">{selectedExpense.department || 'Operations'}</p>
+                  </div>
+                </div>
+
+                {/* Description */}
+                {selectedExpense.description && (
+                  <div className="border border-[#e0e3e7] rounded-2xl p-4 space-y-1 bg-white">
+                    <h4 className="font-semibold text-[#1f1f1f]">Claim Description</h4>
+                    <p className="text-[#5f6368] whitespace-pre-wrap leading-relaxed">{selectedExpense.description}</p>
+                  </div>
+                )}
+
+                {/* Supporting Bill / Receipt */}
+                <div className="border border-[#e0e3e7] rounded-2xl p-4 space-y-3 bg-white">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-semibold text-[#1f1f1f] flex items-center gap-1.5">
+                      <FileText className="w-4 h-4 text-[#1a73e8]" /> Supporting Receipt / Bill
+                    </h4>
+                    {selectedExpense.bill_url && (
+                      <a
+                        href={selectedExpense.bill_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[#1a73e8] hover:underline font-semibold text-xs"
+                      >
+                        Open Full <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
+                  </div>
+
+                  {selectedExpense.bill_url ? (
+                    <div className="rounded-xl overflow-hidden border border-[#e0e3e7] bg-[#f8fafd] flex items-center justify-center max-h-60 p-2">
+                      <img 
+                        src={selectedExpense.bill_url} 
+                        alt="Bill Receipt" 
+                        className="max-h-56 max-w-full object-contain rounded-lg shadow-xs"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.style.display = 'none';
+                          e.target.parentNode.innerHTML = `<div class="p-4 text-center text-[#5f6368]"><p>Attachment file available</p><a href="${selectedExpense.bill_url}" target="_blank" class="text-[#1a73e8] font-bold mt-1 inline-block">Click here to view attachment</a></div>`;
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="p-4 rounded-xl bg-[#f8fafd] border border-dashed border-[#dadce0] text-center text-[#5f6368]">
+                      No digital receipt attached for this claim.
+                    </div>
+                  )}
+                </div>
+
+                {/* Admin Remarks Section */}
+                <div className="border border-[#e0e3e7] rounded-2xl p-4 space-y-2 bg-white">
+                  <label className="block font-semibold text-[#1f1f1f]">
+                    Admin Review Remarks
+                  </label>
+                  <textarea
+                    value={remarks}
+                    onChange={(e) => setRemarks(e.target.value)}
+                    placeholder="Enter approval note, audit comments, or reason for decline..."
+                    rows="3"
+                    className="w-full px-3.5 py-2.5 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all resize-none"
+                  />
+                </div>
+              </div>
+
+              {/* Drawer Footer Actions */}
+              <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex items-center gap-3">
+                {selectedExpense.status === 'Pending' ? (
+                  <>
+                    <button
+                      onClick={() => handleConfirmAction('Approved')}
+                      disabled={updateStatusMutation.isPending}
+                      className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-xs font-semibold bg-[#137333] hover:bg-[#0d652d] text-white shadow-xs transition-all cursor-pointer disabled:opacity-50"
+                    >
+                      {updateStatusMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                      Approve Claim
+                    </button>
+                    <button
+                      onClick={() => handleConfirmAction('Rejected')}
+                      disabled={updateStatusMutation.isPending}
+                      className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-xs font-semibold bg-[#c5221f] hover:bg-[#a51d24] text-white shadow-xs transition-all cursor-pointer disabled:opacity-50"
+                    >
+                      {updateStatusMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+                      Decline Claim
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={closeReviewDrawer}
+                    className="w-full px-4 py-2.5 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer"
+                  >
+                    Close Statement
+                  </button>
+                )}
               </div>
             </div>
-
-            <div className="p-6 border-t border-slate-100 bg-slate-50 rounded-b-xl flex justify-end space-x-3">
-              <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50">Cancel</button>
-              <button
-                onClick={handleConfirmAction}
-                disabled={updateStatusMutation.isPending}
-                className={`flex items-center px-4 py-2 text-sm font-medium text-white border border-transparent rounded-lg ${actionType === 'Approved' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'} disabled:opacity-50`}
-              >
-                {updateStatusMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                Confirm {actionType}
-              </button>
-            </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
-
     </div>
   );
 };

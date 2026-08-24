@@ -1,22 +1,21 @@
-import React, { useMemo, useState, useEffect, useRef } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import PageLoader from '../components/PageLoader';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axios';
 import { Tree, TreeNode } from 'react-organizational-chart';
-import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
-import { Loader2, Search, Building2, User, ZoomIn, ZoomOut, Maximize, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, Building2, User, ChevronDown, ChevronUp } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const AdminDirectory = () => {
   const [search, setSearch] = useState('');
-  const transformRef = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    if (search && transformRef.current) {
-      // Delay to allow React to expand the branches before panning
+    if (search) {
       const timer = setTimeout(() => {
         const highlightedNode = document.querySelector('.highlighted-node');
         if (highlightedNode) {
-          transformRef.current.zoomToElement(highlightedNode, 1, 600, 'easeOut');
+          highlightedNode.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
         }
       }, 300);
       return () => clearTimeout(timer);
@@ -26,7 +25,6 @@ const AdminDirectory = () => {
   const { data: employees = [], isLoading } = useQuery({
     queryKey: ['admin', 'employees', 'directory'],
     queryFn: async () => {
-      // Fetch all employees without pagination limits for the tree
       const res = await api.get('/admin/employees?limit=1000');
       return res.data.employees || [];
     },
@@ -42,7 +40,6 @@ const AdminDirectory = () => {
     const empMap = new Map();
     employees.forEach(emp => {
       empMap.set(emp.employeeId, { ...emp, children: [] });
-      // Also map by UUID in case managerId is stored as UUID
       empMap.set(emp.id, empMap.get(emp.employeeId));
     });
 
@@ -53,7 +50,6 @@ const AdminDirectory = () => {
       const node = empMap.get(emp.employeeId);
       if (emp.managerId && empMap.has(emp.managerId)) {
         const managerNode = empMap.get(emp.managerId);
-        // Prevent infinite loops if manager references self
         if (managerNode.employeeId !== node.employeeId) {
           managerNode.children.push(node);
         } else {
@@ -77,15 +73,22 @@ const AdminDirectory = () => {
     const isHighlighted = search && (
       (employee.firstName + ' ' + employee.lastName).toLowerCase().includes(search.toLowerCase()) ||
       (employee.department || '').toLowerCase().includes(search.toLowerCase()) ||
-      (employee.position || '').toLowerCase().includes(search.toLowerCase())
+      (employee.position || '').toLowerCase().includes(search.toLowerCase()) ||
+      (employee.employeeId || '').toLowerCase().includes(search.toLowerCase())
     );
 
     return (
-      <div id={`node-${employee.id}`} className={`relative mt-6 mb-2 flex flex-col items-center rounded-xl border border-slate-200 ${isHighlighted ? 'bg-blue-50 ring-2 ring-blue-300 scale-105 highlighted-node' : 'bg-white'} shadow-sm min-w-[200px] max-w-[240px] transition-all duration-300 hover:shadow-md hover:-translate-y-1 z-10 mx-auto group pb-4`}>
-
+      <div 
+        id={`node-${employee.id}`} 
+        className={`relative mt-7 mb-3 flex flex-col items-center rounded-2xl border min-w-[210px] max-w-[250px] mx-auto pb-4 ${
+          isHighlighted 
+            ? 'bg-[#e8f0fe] border-[#4285F4] ring-2 ring-[#4285F4]/30 highlighted-node shadow-md' 
+            : 'bg-white border-[#e0e3e7] shadow-xs'
+        }`}
+      >
         {/* Floating Avatar */}
-        <div className="absolute -top-6 w-12 h-12 rounded-full bg-white flex items-center justify-center p-0.5 border border-slate-200 shadow-sm z-20 transition-transform group-hover:scale-110">
-          <div className="w-full h-full rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-sm overflow-hidden">
+        <div className="absolute -top-6 w-12 h-12 rounded-full bg-white flex items-center justify-center p-0.5 border border-[#dadce0] shadow-xs z-20">
+          <div className="w-full h-full rounded-full bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center font-bold text-xs overflow-hidden">
             {employee.avatar ? (
               <img src={employee.avatar} alt="Avatar" className="w-full h-full object-cover" />
             ) : (
@@ -95,21 +98,32 @@ const AdminDirectory = () => {
         </div>
 
         {/* Card Content */}
-        <div className="pt-8 px-4 w-full text-center">
-          <div className="text-sm font-bold text-slate-800 truncate group-hover:text-blue-700 transition-colors">
+        <div 
+          onClick={() => navigate(`/admin/employees/${employee.id}`)}
+          className="pt-7 px-3.5 w-full text-center cursor-pointer"
+        >
+          <div className="text-xs font-semibold text-[#1f1f1f] truncate">
             {employee.firstName} {employee.lastName}
           </div>
-          <div className="text-[11px] font-medium text-slate-500 truncate mt-0.5">
-            {employee.position || 'Employee'}
+          <div className="text-[10.5px] font-medium text-[#5f6368] truncate mt-0.5">
+            {employee.position || 'Staff Member'}
+          </div>
+          <div className="mt-1.5 flex items-center justify-center gap-1">
+            <span className="text-[9.5px] font-medium px-2 py-0.5 rounded-full bg-[#f1f3f4] text-[#444746] truncate max-w-[150px]">
+              {employee.department || 'General'}
+            </span>
           </div>
         </div>
 
-        {/* Expand/Collapse Pill */}
+        {/* Expand/Collapse Pill Button */}
         {hasChildren && (
           <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 z-30">
             <button
-              onClick={toggleExpand}
-              className="flex items-center justify-center gap-1 bg-white border border-slate-200 text-[10px] font-semibold text-slate-600 px-3 py-1 rounded-full shadow-sm hover:bg-slate-50 hover:text-blue-600 transition-colors cursor-pointer w-max"
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleExpand();
+              }}
+              className="flex items-center justify-center gap-1 bg-white border border-[#dadce0] text-[10px] font-semibold text-[#5f6368] px-2.5 py-0.5 rounded-full shadow-xs cursor-pointer whitespace-nowrap"
             >
               {isExpanded ? (
                 <>Collapse <ChevronUp className="w-3 h-3" /></>
@@ -124,16 +138,21 @@ const AdminDirectory = () => {
   };
 
   const RootNode = () => (
-    <div className="relative mt-6 mb-2 flex flex-col items-center rounded-xl border border-slate-200 bg-white shadow-xl min-w-[200px] max-w-[240px] transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 z-10 mx-auto group pb-5 pt-8 px-4 text-center">
-      {/* Floating Icon */}
-      <div className="absolute -top-6 w-12 h-12 rounded-full bg-white flex items-center justify-center p-0.5 border border-slate-200 shadow-sm z-20 transition-transform group-hover:scale-110">
-        <div className="w-full h-full rounded-full bg-blue-50 flex items-center justify-center shadow-inner">
-          <Building2 className="w-5 h-5 text-blue-600 group-hover:text-blue-500 transition-colors" />
+    <div className="relative mt-7 mb-3 flex flex-col items-center rounded-2xl border-2 border-[#4285F4] bg-white shadow-md min-w-[210px] max-w-[250px] mx-auto pb-4 pt-7 px-4 text-center">
+      {/* Floating Logo Badge */}
+      <div className="absolute -top-6 w-12 h-12 rounded-full bg-white flex items-center justify-center p-0.5 border border-[#dadce0] shadow-xs z-20">
+        <div className="w-full h-full rounded-full bg-[#e8f0fe] flex items-center justify-center text-[#1a73e8]">
+          <Building2 className="w-5 h-5" />
         </div>
       </div>
 
-      <div className="font-bold text-sm tracking-widest text-slate-800 group-hover:text-blue-700 transition-colors truncate w-full">ACME CORP</div>
-      <div className="text-[10px] text-slate-500 uppercase tracking-wider mt-1 truncate w-full">Root Organization</div>
+      <div className="font-bold text-xs tracking-wider text-[#1f1f1f] truncate w-full flex items-center justify-center gap-1">
+        <span>ACME</span>
+        <span className="text-[#1a73e8]">HRMS</span>
+      </div>
+      <div className="text-[10px] font-medium text-[#5f6368] uppercase tracking-wider mt-0.5 truncate w-full">
+        Root Organization
+      </div>
     </div>
   );
 
@@ -143,6 +162,7 @@ const AdminDirectory = () => {
     if ((emp.firstName + ' ' + emp.lastName).toLowerCase().includes(q)) return true;
     if ((emp.department || '').toLowerCase().includes(q)) return true;
     if ((emp.position || '').toLowerCase().includes(q)) return true;
+    if ((emp.employeeId || '').toLowerCase().includes(q)) return true;
     return false;
   };
 
@@ -184,72 +204,64 @@ const AdminDirectory = () => {
       );
     }
 
-    // Completely omit children block to prevent dangling lines
     return <TreeNode label={labelContent} />;
   };
 
-  if (isLoading) return <PageLoader message="Loading Directory..." />;
+  if (isLoading) return <PageLoader message="Loading Organization Directory..." />;
 
   return (
-    <div className="space-y-6 h-[calc(100vh-8rem)] flex flex-col">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
+    <div className="space-y-4 h-[calc(100vh-6.5rem)] flex flex-col max-w-7xl mx-auto pb-4">
+      {/* Header Section */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Organization Directory</h1>
-          <p className="text-sm text-slate-500 mt-1">Interactive company hierarchy</p>
+          <div className="flex items-center gap-1.5 mb-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+            <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Organizational Hierarchy & Tree</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight">
+            Organization Directory <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full align-middle ml-1.5">{employees.length} Members</span>
+          </h1>
+          <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
+            Interactive reporting tree and organizational chart.
+          </p>
         </div>
+
+        {/* Google Pill Search */}
         <div className="relative w-full sm:w-80">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368] pointer-events-none" />
           <input
             type="search"
-            placeholder="Search by name, role, or dept..."
+            placeholder="Search by name, role, dept, or ID..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm pl-9 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow shadow-sm"
+            className="w-full pl-10 pr-4 py-2 text-xs bg-[#f1f3f4] hover:bg-[#e8eaed] focus:bg-white border border-transparent focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-full text-[#1f1f1f] placeholder:text-[#5f6368] outline-none transition-all shadow-none focus:shadow-sm"
           />
         </div>
       </div>
 
-      <div className="flex-1 bg-slate-50/50 border border-slate-200 rounded-xl overflow-hidden relative shadow-inner cursor-grab active:cursor-grabbing">
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center h-full text-slate-500">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-500 mb-4" />
-            <p>Loading organization structure...</p>
-          </div>
-        ) : employees.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-slate-500">
-            <User className="w-12 h-12 text-slate-300 mb-4" />
-            <p>No employees found.</p>
+      {/* Main Scrollable Canvas */}
+      <div className="flex-1 bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl overflow-auto relative shadow-xs custom-scrollbar">
+        {employees.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full text-[#5f6368]">
+            <User className="w-10 h-10 text-[#dadce0] mb-3" />
+            <p className="text-xs font-medium text-[#1f1f1f]">No employees in the organization yet</p>
           </div>
         ) : (
-          <TransformWrapper
-            ref={transformRef}
-            initialScale={1}
-            minScale={1}
-            maxScale={1}
-            centerOnInit={true}
-            limitToBounds={false}
-            wheel={{ disabled: true }}
-            pinch={{ disabled: true }}
-            doubleClick={{ disabled: true }}
-            panOnScroll={true}
-          >
-            {({ zoomIn, zoomOut, resetTransform }) => (
-              <div className="relative w-full h-full">
-                <TransformComponent wrapperClass="!w-full !h-full" contentClass="min-w-max min-h-max flex items-start justify-center pt-16 pb-32 px-16">
-                  <Tree
-                    lineWidth={'2px'}
-                    lineColor={'#cbd5e1'}
-                    lineBorderRadius={'8px'}
-                    lineHeight={'40px'}
-                    nodePadding={'20px'}
-                    label={<RootNode />}
-                  >
-                    {treeData.map(rootNode => <OrgTreeNode key={rootNode.employeeId} node={rootNode} />)}
-                  </Tree>
-                </TransformComponent>
-              </div>
-            )}
-          </TransformWrapper>
+          <div className="min-w-max min-h-max flex items-start justify-center pt-14 pb-32 px-16">
+            <Tree
+              lineWidth={'2px'}
+              lineColor={'#dadce0'}
+              lineBorderRadius={'10px'}
+              lineHeight={'36px'}
+              nodePadding={'16px'}
+              label={<RootNode />}
+            >
+              {treeData.map(rootNode => <OrgTreeNode key={rootNode.employeeId} node={rootNode} />)}
+            </Tree>
+          </div>
         )}
       </div>
     </div>

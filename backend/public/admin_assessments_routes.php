@@ -8,14 +8,36 @@ use App\Utils\AssessmentConstants;
 
 /** @var \Slim\App $app */
 
-// GET /api/admin/assessments - List all assessments
+// GET /api/admin/assessments - List all assessments (with department and search filters)
 $app->get('/api/admin/assessments', function (Request $request, Response $response, $args) {
+    $queryParams = $request->getQueryParams();
+    $department = trim($queryParams['department'] ?? '');
+    $search = trim($queryParams['search'] ?? '');
+
     $db = new Database();
     $conn = $db->getConnection();
 
     try {
-        $sql = 'SELECT * FROM assessments ORDER BY created_at DESC';
-        $stmt = $conn->query($sql);
+        $where = [];
+        $params = [];
+
+        if (!empty($department) && $department !== 'All') {
+            $where[] = 'department = ?';
+            $params[] = $department;
+        }
+
+        if (!empty($search)) {
+            $where[] = '(title ILIKE ? OR department ILIKE ? OR description ILIKE ?)';
+            $searchTerm = '%' . $search . '%';
+            $params[] = $searchTerm;
+            $params[] = $searchTerm;
+            $params[] = $searchTerm;
+        }
+
+        $whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
+        $sql = "SELECT * FROM assessments {$whereClause} ORDER BY created_at DESC";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute($params);
         $assessments = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($assessments as &$a) {
@@ -268,21 +290,36 @@ $app->delete('/api/admin/assessments/{id}', function (Request $request, Response
 // DEPARTMENT QUESTION BANK ROUTES (NO MARKS)
 // ==========================================
 
-// GET /api/admin/questions - List questions (optionally filter by department)
+// GET /api/admin/questions - List questions (optionally filter by department and search)
 $app->get('/api/admin/questions', function (Request $request, Response $response, $args) {
     $queryParams = $request->getQueryParams();
     $department = trim($queryParams['department'] ?? '');
+    $search = trim($queryParams['search'] ?? '');
 
     $db = new Database();
     $conn = $db->getConnection();
 
     try {
+        $where = [];
+        $params = [];
+
         if (!empty($department) && $department !== 'All') {
-            $stmt = $conn->prepare('SELECT * FROM department_question_bank WHERE department = ? ORDER BY created_at DESC');
-            $stmt->execute([$department]);
-        } else {
-            $stmt = $conn->query('SELECT * FROM department_question_bank ORDER BY created_at DESC');
+            $where[] = 'department = ?';
+            $params[] = $department;
         }
+
+        if (!empty($search)) {
+            $where[] = '(question_text ILIKE ? OR department ILIKE ? OR options::text ILIKE ?)';
+            $searchTerm = '%' . $search . '%';
+            $params[] = $searchTerm;
+            $params[] = $searchTerm;
+            $params[] = $searchTerm;
+        }
+
+        $whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
+        $sql = "SELECT * FROM department_question_bank {$whereClause} ORDER BY created_at DESC";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute($params);
         $questions = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         // Decode options and correct_options json

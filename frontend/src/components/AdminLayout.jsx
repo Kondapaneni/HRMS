@@ -1,13 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { 
   LogOut, Users, Settings, Activity, Briefcase, 
   Search, Bell, Menu, Home, Calendar, Clock, 
-  BarChart2, ChevronDown, DollarSign, Monitor, FileText, Shield, Network, Mail, Award, Smartphone
+  BarChart2, ChevronDown, IndianRupee, Monitor, FileText, Shield, Network, Mail, Award, Smartphone, X, AlertCircle
 } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import GlobalSearch from './GlobalSearch';
 import EmployeeLayout from './EmployeeLayout';
 import api from '../api/axios';
@@ -23,32 +24,42 @@ const AdminLayout = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
-  const handleLogout = async () => {
+  const handleLogoutClick = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const handleConfirmLogout = async () => {
     try {
+      setLoggingOut(true);
       await signOut();
       navigate('/');
     } catch (e) {
       console.error("Logout failed", e);
+    } finally {
+      setLoggingOut(false);
+      setShowLogoutConfirm(false);
     }
   };
 
   const navItems = [
-    { icon: <Home size={18} />, label: 'Dashboard', path: '/admin' },
-    { icon: <Users size={18} />, label: 'Employees', path: '/admin/employees' },
-    { icon: <Network size={18} />, label: 'Org Directory', path: '/admin/directory' },
-    { icon: <Clock size={18} />, label: 'Attendance', path: '/admin/attendance', activePaths: ['/admin/attendance', '/admin/holidays'] },
-    { icon: <Calendar size={18} />, label: 'Leave', path: '/admin/leaves' },
-    { icon: <BarChart2 size={18} />, label: 'Performance', path: '/admin/performance' },
-    { icon: <DollarSign size={18} />, label: 'Payroll', path: '/admin/payroll' },
-    { icon: <FileText size={18} />, label: 'Expenses', path: '/admin/expenses' },
-    { icon: <Monitor size={18} />, label: 'Assets', path: '/admin/assets' },
-    { icon: <Briefcase size={18} />, label: 'Recruitment', path: '/admin/recruitment' },
-    { icon: <Award size={18} />, label: 'Assessment and Training', path: '/admin/assessments' },
-    { icon: <Mail size={18} />, label: 'Email Templates', path: '/admin/email-templates' },
-    { icon: <FileText size={18} />, label: 'Audit Logs', path: '/admin/audit-logs' },
-    { icon: <Shield size={18} />, label: 'Feature Access', path: '/admin/feature-access' },
-    { icon: <Settings size={18} />, label: 'Settings', path: '/admin/settings' },
+    { icon: <Home size={15} />, label: 'Dashboard', path: '/admin' },
+    { icon: <Users size={15} />, label: 'Employees', path: '/admin/employees' },
+    { icon: <Network size={15} />, label: 'Org Directory', path: '/admin/directory' },
+    { icon: <Clock size={15} />, label: 'Attendance', path: '/admin/attendance', activePaths: ['/admin/attendance', '/admin/holidays'] },
+    { icon: <Calendar size={15} />, label: 'Leave', path: '/admin/leaves' },
+    { icon: <BarChart2 size={15} />, label: 'Performance', path: '/admin/performance' },
+    { icon: <IndianRupee size={15} />, label: 'Payroll', path: '/admin/payroll' },
+    { icon: <FileText size={15} />, label: 'Expenses', path: '/admin/expenses' },
+    { icon: <Monitor size={15} />, label: 'Assets', path: '/admin/assets' },
+    { icon: <Briefcase size={15} />, label: 'Recruitment', path: '/admin/recruitment' },
+    { icon: <Award size={15} />, label: 'Assessment & Training', path: '/admin/assessments' },
+    { icon: <Mail size={15} />, label: 'Email Templates', path: '/admin/email-templates' },
+    { icon: <FileText size={15} />, label: 'Audit Logs', path: '/admin/audit-logs' },
+    { icon: <Shield size={15} />, label: 'Feature Access', path: '/admin/feature-access' },
+    { icon: <Settings size={15} />, label: 'Settings', path: '/admin/settings' },
   ];
 
   const { data: pendingDocsCount = 0 } = useQuery({
@@ -65,52 +76,45 @@ const AdminLayout = () => {
     refetchInterval: 5000,
   });
 
-  const shapeVariants = {
-    animate: (i) => ({
-      y: [0, -20, 0],
-      x: [0, 15, 0],
-      rotate: [0, 10, -10, 0],
-      transition: {
-        duration: 5 + i * 2,
-        repeat: Infinity,
-        ease: "easeInOut"
-      }
-    })
-  };
-
   return (
-    <div className="h-[100dvh] w-full overflow-hidden bg-slate-50 flex font-sans text-slate-800 relative z-0">
+    <div className="h-[100dvh] w-full overflow-hidden bg-[#f8fafd] text-[#1f1f1f] selection:bg-[#c2e7ff] selection:text-[#001d35] flex font-sans antialiased relative z-0">
       
-      {/* Global Animated Background Graphics */}
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-        <motion.div custom={1} variants={shapeVariants} animate="animate" className="absolute w-64 h-64 bg-[#F59E0B] rounded-full opacity-10 -top-20 -right-20" />
-        <motion.div custom={2} variants={shapeVariants} animate="animate" className="absolute w-48 h-48 bg-[#10B981] rounded-3xl opacity-10 bottom-[-40px] left-1/4 rotate-12" />
-        <motion.div custom={3} variants={shapeVariants} animate="animate" className="absolute w-96 h-96 bg-[#3B82F6] rounded-full opacity-5 top-1/2 left-1/3" />
-        <motion.div custom={4} variants={shapeVariants} animate="animate" className="absolute w-32 h-32 bg-[#EC4899] rounded-xl opacity-10 top-20 left-10 -rotate-12" />
-        <motion.div custom={5} variants={shapeVariants} animate="animate" className="absolute w-72 h-72 bg-[#8B5CF6] rounded-full opacity-10 bottom-20 right-1/4" />
-        
-        {/* Additional top-left boxes */}
-        <motion.div custom={6} variants={shapeVariants} animate="animate" className="absolute w-40 h-40 bg-[#14B8A6] rounded-2xl opacity-10 top-[-20px] left-[18rem] rotate-45" />
-        <motion.div custom={7} variants={shapeVariants} animate="animate" className="absolute w-28 h-28 bg-[#F43F5E] rounded-3xl opacity-10 top-32 left-[24rem] -rotate-12" />
-        <motion.div custom={8} variants={shapeVariants} animate="animate" className="absolute w-56 h-56 bg-[#6366F1] rounded-full opacity-[0.06] top-10 left-[35%]" />
-        
-        {/* Additional bottom-right boxes */}
-        <motion.div custom={9} variants={shapeVariants} animate="animate" className="absolute w-36 h-36 bg-[#EAB308] rounded-2xl opacity-10 bottom-10 right-10 -rotate-12" />
-        <motion.div custom={10} variants={shapeVariants} animate="animate" className="absolute w-24 h-24 bg-[#06B6D4] rounded-full opacity-10 bottom-40 right-28 rotate-45" />
+      {/* Google Ambient Multi-color Background Glows */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute -top-32 -left-32 w-96 h-96 bg-[#4285F4]/10 rounded-full blur-3xl" />
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-[#EA4335]/8 rounded-full blur-3xl" />
+        <div className="absolute -bottom-32 -left-20 w-96 h-96 bg-[#FBBC05]/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-[#34A853]/8 rounded-full blur-3xl" />
       </div>
 
-      {/* Sidebar */}
-      <aside className="w-[260px] h-full bg-white/80 backdrop-blur-md border-r border-slate-200 hidden md:flex flex-col z-20 shadow-sm relative shrink-0">
-        <div className="h-14 flex items-center px-4 border-b border-slate-200 shrink-0">
-          <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center text-white mr-3 shrink-0">
-            <Activity size={18} strokeWidth={2.5} />
+      {/* Top Full-Width 4-Color Google Accent Line */}
+      <div className="h-1 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0 right-0 z-50 pointer-events-none" />
+
+      {/* Google-style Sleek Left Sidebar */}
+      <aside className="w-[215px] h-full bg-white border-r border-[#e0e3e7] hidden md:flex flex-col z-20 relative shrink-0 shadow-none">
+        {/* Brand Header */}
+        <div className="h-14 flex items-center justify-between px-4 border-b border-[#f1f3f4] shrink-0 mt-0.5">
+          <div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-lg font-bold tracking-tight text-[#1f1f1f]">Acme</span>
+              <span className="text-lg font-semibold tracking-tight text-[#4285F4]">HRMS</span>
+            </div>
+            <div className="flex items-center gap-1 mt-0.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+              <span className="text-[10px] font-medium text-[#5f6368] ml-1">Workspace Admin</span>
+            </div>
           </div>
-          <span className="text-lg font-semibold tracking-tight text-slate-900 whitespace-nowrap">Acme HRMS</span>
         </div>
 
-        <div className="p-4 overflow-y-auto flex-1">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 px-2 whitespace-nowrap">Main Menu</p>
-          <nav className="space-y-1">
+        {/* Navigation Menu */}
+        <div className="p-2 overflow-y-auto flex-1 space-y-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5 px-2.5 whitespace-nowrap">
+            Management
+          </p>
+          <nav className="space-y-0.5">
             {navItems.map((item, idx) => {
               const isActive = location.pathname === item.path || 
                                (item.path !== '/admin' && location.pathname.startsWith(item.path)) ||
@@ -119,17 +123,17 @@ const AdminLayout = () => {
                 <Link 
                   key={idx}
                   to={item.path}
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  className={`w-full flex items-center gap-2.5 px-3 py-1.5 rounded-full text-xs transition-all ${
                     isActive 
-                      ? 'bg-blue-50 text-blue-700' 
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                      ? 'bg-[#c2e7ff]/70 text-[#001d35] font-semibold shadow-xs' 
+                      : 'text-[#444746] hover:bg-[#f1f3f4] hover:text-[#1f1f1f] font-medium'
                   }`}
                 >
-                  <span className={`shrink-0 ${isActive ? 'text-blue-600' : 'text-slate-400'}`}>{item.icon}</span>
-                  <span className="flex-1 whitespace-nowrap truncate">{item.label}</span>
+                  <span className={`shrink-0 ${isActive ? 'text-[#1a73e8]' : 'text-[#5f6368]'}`}>{item.icon}</span>
+                  <span className="flex-1 whitespace-nowrap truncate text-[11.5px]">{item.label}</span>
 
                   {item.label === 'Recruitment' && pendingDocsCount > 0 && (
-                    <span className="bg-amber-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shrink-0" title={`${pendingDocsCount} documents waiting for verification`}>
+                    <span className="bg-[#FBBC05] text-[#1f1f1f] text-[9px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center px-1 shrink-0 shadow-xs" title={`${pendingDocsCount} documents waiting for verification`}>
                       {pendingDocsCount}
                     </span>
                   )}
@@ -139,39 +143,45 @@ const AdminLayout = () => {
           </nav>
         </div>
 
-        <div className="p-4 border-t border-slate-200 bg-white">
+        {/* Bottom Actions */}
+        <div className="p-2.5 border-t border-[#f1f3f4] bg-white">
           <button 
-            onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-600 rounded-md hover:bg-slate-50 hover:text-red-600 transition-colors"
+            type="button"
+            onClick={handleLogoutClick}
+            className="w-full flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-[#5f6368] rounded-full hover:bg-[#fce8e6] hover:text-[#d93025] transition-colors cursor-pointer"
           >
-            <LogOut size={18} className="text-slate-400" />
-            Sign Out
+            <LogOut size={15} className="text-[#5f6368]" />
+            <span className="text-[11.5px]">Sign Out</span>
           </button>
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col h-[100dvh] overflow-hidden relative z-30 bg-transparent">
+      {/* Main Content Area */}
+      <main className="flex-1 flex flex-col h-[100dvh] overflow-hidden relative z-10 bg-transparent">
         
         {/* Top Header */}
-        <header className="h-14 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 flex items-center justify-between z-10 shrink-0">
-          <div className="flex items-center gap-4">
-            <button className="md:hidden text-slate-500 hover:text-slate-700">
+        <header className="h-14 bg-white border-b border-[#e0e3e7] px-5 flex items-center justify-between z-10 shrink-0">
+          <div className="flex items-center gap-3">
+            <button className="md:hidden text-[#5f6368] hover:text-[#1f1f1f] p-1.5 rounded-full hover:bg-[#f1f3f4] transition-colors">
               <Menu size={20} />
             </button>
             <GlobalSearch />
           </div>
 
-          <div className="flex items-center gap-5">
-            <button className="relative text-slate-500 hover:text-slate-700 transition-colors">
-              <Bell size={20} />
-              <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+          <div className="flex items-center gap-4">
+            <button 
+              className="relative text-[#5f6368] hover:text-[#1f1f1f] p-2 rounded-full hover:bg-[#f1f3f4] transition-colors"
+              title="Notifications"
+            >
+              <Bell size={18} />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#EA4335] rounded-full ring-2 ring-white"></span>
             </button>
             
-            <div className="h-6 w-px bg-slate-200"></div>
+            <div className="h-5 w-px bg-[#e0e3e7]"></div>
 
-            <div className="flex items-center gap-3 select-none">
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-semibold text-sm overflow-hidden border border-slate-200">
+            {/* User Profile Pill */}
+            <div className="flex items-center gap-2.5 select-none bg-[#f8fafd] border border-[#e0e3e7] pl-1.5 pr-3 py-1 rounded-full">
+              <div className="w-7 h-7 bg-[#e8f0fe] text-[#1a73e8] rounded-full flex items-center justify-center font-bold text-xs overflow-hidden border border-[#d2e3fc]">
                 {profile?.avatar ? (
                   <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
@@ -179,24 +189,26 @@ const AdminLayout = () => {
                 )}
               </div>
               <div className="hidden sm:block text-left">
-                <p className="text-sm font-medium text-slate-700 leading-none">
+                <p className="text-xs font-semibold text-[#1f1f1f] leading-none">
                   {profile?.email?.split('@')[0] || 'Admin User'}
                 </p>
-                <p className="text-xs text-slate-500 mt-1">{profile?.role || 'Administrator'}</p>
+                <p className="text-[10px] text-[#5f6368] mt-0.5 capitalize">{profile?.role || 'Administrator'}</p>
               </div>
             </div>
 
             {/* Mobile Logout Button */}
             <button
-              onClick={handleLogout}
-              className="md:hidden flex items-center gap-1.5 text-rose-500 hover:text-rose-600 transition-colors text-sm font-semibold bg-rose-50/50 hover:bg-rose-50 p-2.5 sm:px-3 sm:py-1.5 rounded-full"
+              type="button"
+              onClick={handleLogoutClick}
+              className="md:hidden flex items-center gap-1.5 text-[#d93025] hover:bg-[#fce8e6] transition-colors text-xs font-semibold px-3 py-1.5 rounded-full cursor-pointer"
             >
-              <LogOut className="w-5 h-5 sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline">Logout</span>
+              <LogOut className="w-4 h-4" />
+              <span>Logout</span>
             </button>
           </div>
         </header>
 
+        {/* Dynamic Route Outlet */}
         <div id="main-scroll-container" className="flex-1 overflow-y-auto overscroll-y-contain p-4 sm:p-6" style={{ WebkitOverflowScrolling: 'touch' }}>
           <Outlet />
         </div>
@@ -213,33 +225,44 @@ const AdminLayout = () => {
         }
       `}</style>
 
-      {/* Mobile Restriction Overlay for Admins */}
-      <div className="mobile-restriction-overlay fixed inset-0 z-[9999] flex-col items-center justify-center bg-white/60 backdrop-blur-3xl p-6 text-center select-none border border-white/80 shadow-[inset_0_1px_3px_rgba(255,255,255,0.8),0_12px_40px_rgba(0,0,0,0.08)]">
-        <div className="relative mb-6">
-          <div className="w-20 h-20 border border-dashed border-slate-300 rounded-full flex items-center justify-center animate-[spin_8s_linear_infinite]">
-            <Monitor className="w-8 h-8 text-[#ff2d55] opacity-20" />
-          </div>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <motion.div
-              animate={{ scale: [1, 1.05, 1] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            >
-              <Monitor className="w-10 h-10 text-slate-800" />
-            </motion.div>
-          </div>
-        </div>
-        <h3 className="text-xl font-black text-slate-900 mb-2 uppercase tracking-wide">Desktop Access Required</h3>
-        <p className="text-slate-500 text-sm max-w-xs font-medium leading-relaxed mb-6">
-          Admin accounts can only be accessed from a desktop or laptop. Please use the web application on a desktop device to continue.
-        </p>
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-100 rounded-xl font-semibold shadow-sm transition-all"
+      {/* Mobile Restriction Overlay for Admins (Google Dialog Theme) */}
+      <div className="mobile-restriction-overlay fixed inset-0 z-[9999] flex-col items-center justify-center bg-[#f8fafd]/90 backdrop-blur-xl p-6 text-center select-none">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="max-w-sm w-full bg-white rounded-[24px] p-6 border border-[#e0e3e7] shadow-[0_4px_24px_rgba(66,133,244,0.12),0_1px_3px_rgba(0,0,0,0.05)] relative overflow-hidden flex flex-col items-center"
         >
-          <LogOut size={18} />
-          Sign Out
-        </button>
+          {/* Top 4-Color Accent */}
+          <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
+
+          <div className="w-14 h-14 rounded-2xl bg-[#e8f0fe] border border-[#d2e3fc] flex items-center justify-center text-[#1a73e8] mt-2 mb-4 shadow-sm">
+            <Monitor className="w-7 h-7" />
+          </div>
+
+          <div className="flex items-center gap-1 mb-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+            <span className="text-[11px] font-medium text-[#5f6368] ml-1">Desktop Portal</span>
+          </div>
+
+          <h3 className="text-lg font-semibold text-[#1f1f1f] mb-1.5">Desktop Access Required</h3>
+          <p className="text-[#5f6368] text-xs leading-relaxed mb-5">
+            Admin workspaces are optimized for desktop displays. Please sign in on a desktop or laptop to access the administration portal.
+          </p>
+
+          <button
+            type="button"
+            onClick={handleLogoutClick}
+            className="flex items-center justify-center gap-2 px-6 py-2.5 bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold rounded-full shadow-md shadow-[#4285F4]/25 transition-all cursor-pointer w-full"
+          >
+            <LogOut size={15} />
+            <span>Sign Out</span>
+          </button>
+        </motion.div>
       </div>
+
       <style>{`
         .orientation-warning {
           display: none;
@@ -252,34 +275,99 @@ const AdminLayout = () => {
       `}</style>
 
       {/* Landscape Orientation Warning Overlay for Mobile/Tablet */}
-      <div className="orientation-warning fixed inset-0 z-[9999] flex-col items-center justify-center bg-white/60 backdrop-blur-3xl p-6 text-center select-none border border-white/80 shadow-[inset_0_1px_3px_rgba(255,255,255,0.8),0_12px_40px_rgba(0,0,0,0.08)]">
-        <div className="relative mb-6">
-          {/* Animated phone rotation container */}
-          <div className="w-20 h-20 border border-dashed border-slate-300 rounded-full flex items-center justify-center animate-[spin_8s_linear_infinite]">
-            <Smartphone className="w-8 h-8 text-[#ff2d55] opacity-20" />
-          </div>
-          {/* Main phone rotation icon */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <motion.div
-              animate={{ rotate: [0, -90, 0] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            >
-              <Smartphone className="w-10 h-10 text-slate-800" />
-            </motion.div>
-          </div>
-        </div>
-        <h3 className="text-xl font-black text-slate-900 mb-2 uppercase tracking-wide">Rotate your device</h3>
-        <p className="text-slate-500 text-sm max-w-xs font-medium leading-relaxed mb-6">
-          Please rotate your screen back to portrait orientation for the best Acme HRMS experience.
-        </p>
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 text-slate-700 hover:text-rose-600 hover:bg-rose-50 hover:border-rose-100 rounded-xl font-semibold shadow-sm transition-all"
+      <div className="orientation-warning fixed inset-0 z-[9999] flex-col items-center justify-center bg-[#f8fafd]/90 backdrop-blur-xl p-6 text-center select-none">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="max-w-sm w-full bg-white rounded-[24px] p-6 border border-[#e0e3e7] shadow-[0_4px_24px_rgba(66,133,244,0.12),0_1px_3px_rgba(0,0,0,0.05)] relative overflow-hidden flex flex-col items-center"
         >
-          <LogOut size={18} />
-          Sign Out
-        </button>
+          {/* Top 4-Color Accent */}
+          <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
+
+          <div className="w-14 h-14 rounded-2xl bg-[#fef7e0] border border-[#feefc3] flex items-center justify-center text-[#b06000] mt-2 mb-4 shadow-sm">
+            <Smartphone className="w-7 h-7" />
+          </div>
+
+          <h3 className="text-lg font-semibold text-[#1f1f1f] mb-1.5">Rotate Your Device</h3>
+          <p className="text-[#5f6368] text-xs leading-relaxed mb-5">
+            Please rotate your device back to portrait orientation for optimal viewing.
+          </p>
+
+          <button
+            type="button"
+            onClick={handleLogoutClick}
+            className="flex items-center justify-center gap-2 px-6 py-2.5 bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold rounded-full shadow-md shadow-[#4285F4]/25 transition-all cursor-pointer w-full"
+          >
+            <LogOut size={15} />
+            <span>Sign Out</span>
+          </button>
+        </motion.div>
       </div>
+
+      {/* Google Material 3 Sign Out Confirmation Modal (createPortal) */}
+      {showLogoutConfirm && createPortal(
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/40 backdrop-blur-xs" 
+            onClick={() => !loggingOut && setShowLogoutConfirm(false)} 
+          />
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 8 }}
+            transition={{ duration: 0.2 }}
+            className="w-full max-w-sm bg-white rounded-3xl border border-[#e0e3e7] shadow-2xl overflow-hidden relative z-10 flex flex-col"
+          >
+            {/* Top 4-Color Gradient Accent Line */}
+            <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853]" />
+
+            <div className="p-6 text-center space-y-4">
+              <div className="w-12 h-12 rounded-2xl bg-[#fce8e6] border border-[#fad2cf] text-[#d93025] flex items-center justify-center mx-auto shadow-2xs">
+                <LogOut className="w-6 h-6" />
+              </div>
+
+              <div className="space-y-1">
+                <h3 className="text-lg font-semibold text-[#1f1f1f] tracking-tight">
+                  Sign out of Acme HRMS?
+                </h3>
+                <p className="text-xs text-[#5f6368] leading-relaxed">
+                  Are you sure you want to end your session? You will need to log back in to access the administrator workspace.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2.5 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowLogoutConfirm(false)}
+                  disabled={loggingOut}
+                  className="flex-1 py-2.5 px-4 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-xs font-semibold text-[#1f1f1f] transition-all cursor-pointer disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmLogout}
+                  disabled={loggingOut}
+                  className="flex-1 py-2.5 px-4 rounded-full bg-[#d93025] hover:bg-[#b3261e] text-white text-xs font-semibold shadow-xs transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5"
+                >
+                  {loggingOut ? (
+                    <>
+                      <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent" />
+                      <span>Signing Out...</span>
+                    </>
+                  ) : (
+                    <span>Sign Out</span>
+                  )}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>,
+        document.body
+      )}
 
     </div>
   );

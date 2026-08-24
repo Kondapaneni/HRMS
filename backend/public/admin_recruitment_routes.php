@@ -158,15 +158,31 @@ $app->put('/api/admin/jobs/{id}/status', function (Request $request, Response $r
 $app->get('/api/admin/applications', function (Request $request, Response $response, $args) {
     $db = new Database();
     $conn = $db->getConnection();
-    
+    $params = $request->getQueryParams();
+    $search = trim($params['search'] ?? '');
+
     try {
-        $stmt = $conn->query('
+        $where = '';
+        $queryParams = [];
+
+        if (!empty($search)) {
+            $where = 'WHERE (u."firstName" ILIKE ? OR u."lastName" ILIKE ? OR u.email ILIKE ? OR j.title ILIKE ?)';
+            $searchTerm = '%' . $search . '%';
+            $queryParams = [$searchTerm, $searchTerm, $searchTerm, $searchTerm];
+        }
+
+        $sql = "
             SELECT a.*, j.title as job_title, j.department as job_department,
-                   (SELECT COUNT(*) FROM candidate_documents cd WHERE cd.candidate_id = a.candidate_id AND (cd.status = \'pending\' OR cd.status IS NULL)) as pending_documents_count
+                   (SELECT COUNT(*) FROM candidate_documents cd WHERE cd.candidate_id = a.candidate_id AND (cd.status = 'pending' OR cd.status IS NULL)) as pending_documents_count
             FROM applications a 
-            JOIN jobs j ON a.job_id = j.id 
+            JOIN jobs j ON a.job_id = j.id
+            LEFT JOIN users u ON a.candidate_id = u.id
+            {$where}
             ORDER BY a.applied_date DESC
-        ');
+        ";
+        
+        $stmt = $conn->prepare($sql);
+        $stmt->execute($queryParams);
         $applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($applications as &$app) {

@@ -14,22 +14,92 @@ $app->get('/api/admin/expenses', function (Request $request, Response $response,
     $page = max(1, (int)($params['page'] ?? 1));
     $limit = max(1, min(100, (int)($params['limit'] ?? 10)));
     $offset = ($page - 1) * $limit;
+    $search = trim($params['search'] ?? '');
+    $status = trim($params['status'] ?? '');
+    $category = trim($params['category'] ?? '');
 
     try {
-        $countQuery = "SELECT COUNT(*) FROM expenses";
-        $totalCount = (int)$conn->query($countQuery)->fetchColumn();
-        $stmt = $conn->prepare('
-            SELECT ex.*, e."firstName", e."lastName", e."employeeId" as employee_ref
+        // Aggregate KPI stats across the entire table
+        $statsStmt = $conn->query('
+            SELECT 
+                COALESCE(SUM(amount), 0) as total_amount,
+                COUNT(*) as total_count,
+                COALESCE(SUM(CASE WHEN status = \'Pending\' THEN amount ELSE 0 END), 0) as pending_amount,
+                COALESCE(COUNT(CASE WHEN status = \'Pending\' THEN 1 END), 0) as pending_count,
+                COALESCE(SUM(CASE WHEN status = \'Approved\' THEN amount ELSE 0 END), 0) as approved_amount,
+                COALESCE(COUNT(CASE WHEN status = \'Approved\' THEN 1 END), 0) as approved_count,
+                COALESCE(SUM(CASE WHEN status = \'Rejected\' THEN amount ELSE 0 END), 0) as rejected_amount,
+                COALESCE(COUNT(CASE WHEN status = \'Rejected\' THEN 1 END), 0) as rejected_count
+            FROM expenses
+        ');
+        $statsRaw = $statsStmt->fetch(PDO::FETCH_ASSOC);
+
+        $stats = [
+            'totalAmount' => (float)$statsRaw['total_amount'],
+            'totalCount' => (int)$statsRaw['total_count'],
+            'pendingAmount' => (float)$statsRaw['pending_amount'],
+            'pendingCount' => (int)$statsRaw['pending_count'],
+            'approvedAmount' => (float)$statsRaw['approved_amount'],
+            'approvedCount' => (int)$statsRaw['approved_count'],
+            'rejectedAmount' => (float)$statsRaw['rejected_amount'],
+            'rejectedCount' => (int)$statsRaw['rejected_count']
+        ];
+
+        // Build filtered query
+        $whereConditions = [];
+        $queryParams = [];
+
+        if (!empty($search)) {
+            $whereConditions[] = '(e."firstName" ILIKE ? OR e."lastName" ILIKE ? OR e."employeeId" ILIKE ? OR ex.title ILIKE ? OR ex.category ILIKE ?)';
+            $searchTerm = '%' . $search . '%';
+            $queryParams[] = $searchTerm;
+            $queryParams[] = $searchTerm;
+            $queryParams[] = $searchTerm;
+            $searchTerm2 = '%' . $search . '%';
+            $queryParams[] = $searchTerm2;
+            $queryParams[] = $searchTerm2;
+        }
+
+        if (!empty($status) && $status !== 'All') {
+            $whereConditions[] = 'ex.status = ?';
+            $queryParams[] = $status;
+        }
+
+        if (!empty($category) && $category !== 'All') {
+            $whereConditions[] = 'ex.category = ?';
+            $queryParams[] = $category;
+        }
+
+        $whereSql = !empty($whereConditions) ? 'WHERE ' . implode(' AND ', $whereConditions) : '';
+
+        // Count total filtered
+        $countSql = "
+            SELECT COUNT(*) 
             FROM expenses ex
-            LEFT JOIN employee e ON ex.user_id = e."userId"
+            LEFT JOIN employee e ON ex.user_id = e.\"userId\"
+            $whereSql
+        ";
+        $countStmt = $conn->prepare($countSql);
+        $countStmt->execute($queryParams);
+        $totalCount = (int)$countStmt->fetchColumn();
+
+        // Fetch paginated expenses
+        $dataSql = "
+            SELECT ex.*, e.\"firstName\", e.\"lastName\", e.\"employeeId\" as employee_ref, e.\"position\", e.\"department\"
+            FROM expenses ex
+            LEFT JOIN employee e ON ex.user_id = e.\"userId\"
+            $whereSql
             ORDER BY ex.created_at DESC
             LIMIT ? OFFSET ?
-        ');
-        $stmt->execute([$limit, $offset]);
-        $expenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        ";
+        $dataStmt = $conn->prepare($dataSql);
+        $execParams = array_merge($queryParams, [$limit, $offset]);
+        $dataStmt->execute($execParams);
+        $expenses = $dataStmt->fetchAll(PDO::FETCH_ASSOC);
 
         $response->getBody()->write(json_encode([
             'expenses' => $expenses,
+            'stats' => $stats,
             'pagination' => [
                 'total' => $totalCount,
                 'page' => $page,

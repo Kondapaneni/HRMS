@@ -1,139 +1,365 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Award, HelpCircle, Users, BarChart2, ArrowLeft, Home, LogOut, Settings, BookOpen } from 'lucide-react';
+import { 
+  Award, 
+  HelpCircle, 
+  Users, 
+  BarChart2, 
+  ArrowLeft, 
+  Home, 
+  LogOut, 
+  Settings, 
+  BookOpen,
+  Menu,
+  X,
+  FileCheck2,
+  PlaySquare,
+  GraduationCap,
+  Sparkles,
+  ChevronRight,
+  ShieldCheck
+} from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
 const AssessmentWorkspaceLayout = () => {
   const { profile, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
-  const handleLogout = async () => {
+  const handleLogoutClick = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const handleConfirmLogout = async () => {
     try {
+      setLoggingOut(true);
       await signOut();
       navigate('/');
     } catch (e) {
       console.error("Logout failed", e);
+    } finally {
+      setLoggingOut(false);
+      setShowLogoutConfirm(false);
     }
   };
 
   const navItems = [
-    { icon: <HelpCircle size={18} />, label: 'Department Question Bank', path: '/admin/assessments/questions' },
-    { icon: <Settings size={18} />, label: 'Assessment Management', path: '/admin/assessments/management' },
-    { icon: <Award size={18} />, label: 'Employee Results & Attempts', path: '/admin/assessments/results' },
-    { icon: <BookOpen size={18} />, label: 'Training Videos', path: '/admin/assessments/training', heading: 'Training Modules' },
+    { 
+      icon: <HelpCircle size={15} />, 
+      label: 'Question Bank', 
+      path: '/admin/assessments/questions' 
+    },
+    { 
+      icon: <FileCheck2 size={15} />, 
+      label: 'Assessment Management', 
+      path: '/admin/assessments/management',
+      activeAliases: ['/admin/assessments/create', '/admin/assessments/edit'] 
+    },
+    { 
+      icon: <Award size={15} />, 
+      label: 'Results & Attempts', 
+      path: '/admin/assessments/results' 
+    },
+    { 
+      icon: <PlaySquare size={15} />, 
+      label: 'Training Videos', 
+      path: '/admin/assessments/training', 
+      heading: 'Continuous Learning' 
+    },
   ];
 
+  const getActiveTitle = () => {
+    if (location.pathname.includes('/questions')) return 'Department Question Bank';
+    if (location.pathname.includes('/management') || location.pathname.includes('/create') || location.pathname.includes('/edit')) return 'Assessment Management';
+    if (location.pathname.includes('/results')) return 'Employee Results & Attempts';
+    if (location.pathname.includes('/training')) return 'Training Modules & Videos';
+    return 'Assessment Hub';
+  };
+
   return (
-    <div className="h-[100dvh] w-full overflow-hidden bg-slate-50 flex font-sans text-slate-800 relative z-0">
+    <div className="h-[100dvh] w-full overflow-hidden bg-[#f8fafd] text-[#1f1f1f] selection:bg-[#c2e7ff] selection:text-[#001d35] flex font-sans antialiased relative z-0">
       
-      {/* Sidebar - Clean, Professional */}
-      <aside className="w-[260px] h-screen sticky top-0 bg-white/80 backdrop-blur-md border-r border-slate-200 hidden md:flex flex-col z-20 shadow-sm shrink-0">
-        <div className="h-14 flex items-center px-4 border-b border-slate-200 shrink-0">
-          <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center mr-3 shrink-0">
-            <Award className="w-5 h-5 text-white" />
+      {/* Ambient background glows */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute -top-32 -left-32 w-96 h-96 bg-[#4285F4]/10 rounded-full blur-3xl" />
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-[#EA4335]/8 rounded-full blur-3xl" />
+        <div className="absolute -bottom-32 -left-20 w-96 h-96 bg-[#FBBC05]/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-[#34A853]/8 rounded-full blur-3xl" />
+      </div>
+
+      {/* Top 4-Color Google Accent Line */}
+      <div className="h-1 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0 right-0 z-50 pointer-events-none" />
+
+      {/* Left Navigation Sidebar */}
+      <aside className="w-[215px] h-full bg-white border-r border-[#e0e3e7] hidden md:flex flex-col z-20 relative shrink-0 shadow-none">
+        
+        {/* Brand Header */}
+        <div className="h-14 flex items-center justify-between px-4 border-b border-[#f1f3f4] shrink-0 mt-0.5">
+          <div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-lg font-bold tracking-tight text-[#1f1f1f]">Acme</span>
+              <span className="text-lg font-semibold tracking-tight text-[#4285F4]">Assessment</span>
+            </div>
+            <div className="flex items-center gap-1 mt-0.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+              <span className="text-[10px] font-medium text-[#5f6368] ml-1">Training Hub</span>
+            </div>
           </div>
-          <span className="text-base font-semibold tracking-tight text-slate-900 leading-tight">Acme Assessment & Training</span>
         </div>
 
-        <div className="p-4 overflow-y-auto flex-1">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 px-2 whitespace-nowrap">Assessment Modules</p>
-          <nav className="space-y-1">
+        {/* Navigation Items */}
+        <div className="p-2 overflow-y-auto flex-1 space-y-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5 px-2.5 whitespace-nowrap">
+            LMS &amp; Evaluations
+          </p>
+
+          <nav className="space-y-0.5">
             {navItems.map((item, idx) => {
-              const isActive = location.pathname === item.path || 
-                               location.pathname.startsWith(`${item.path}/`) ||
-                               (item.path === '/admin/assessments/management' && (location.pathname.startsWith('/admin/assessments/create') || location.pathname.startsWith('/admin/assessments/edit') || location.pathname.startsWith('/admin/assessments/rules')));
+              const isDirectActive = location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
+              const isAliasActive = item.activeAliases?.some(alias => location.pathname.startsWith(alias));
+              const isActive = isDirectActive || isAliasActive;
+
               return (
                 <React.Fragment key={idx}>
                   {item.heading && (
-                    <div className="pt-4 mt-2 mb-4 border-t border-slate-200">
-                      <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-2 whitespace-nowrap">{item.heading}</p>
-                    </div>
+                    <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider mt-4 mb-1.5 px-2.5 whitespace-nowrap">
+                      {item.heading}
+                    </p>
                   )}
                   <Link
                     to={item.path}
-                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive
-                      ? 'bg-blue-50 text-blue-700'
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                      }`}
+                    className={`w-full flex items-center gap-2.5 px-3 py-1.5 rounded-full text-xs transition-all ${
+                      isActive
+                        ? 'bg-[#c2e7ff]/70 text-[#001d35] font-semibold shadow-xs'
+                        : 'text-[#444746] hover:bg-[#f1f3f4] hover:text-[#1f1f1f] font-medium'
+                    }`}
                   >
-                    <span className={`shrink-0 ${isActive ? 'text-blue-600' : 'text-slate-400'}`}>{item.icon}</span>
-                    <span className="flex-1 whitespace-nowrap truncate">{item.label}</span>
+                    <span className={`shrink-0 ${isActive ? 'text-[#1a73e8]' : 'text-[#5f6368]'}`}>
+                      {item.icon}
+                    </span>
+                    <span className="flex-1 whitespace-nowrap truncate text-[11.5px]">{item.label}</span>
                   </Link>
                 </React.Fragment>
               );
             })}
           </nav>
         </div>
-        
-        <div className="p-4 border-t border-slate-200 mt-auto shrink-0">
+
+        {/* Bottom Actions */}
+        <div className="p-2.5 border-t border-[#f1f3f4] bg-white">
           <Link
             to="/admin"
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+            className="w-full flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] rounded-full hover:bg-[#d2e3fc] transition-colors shadow-2xs"
           >
-            <span className="text-slate-400 shrink-0"><ArrowLeft size={18} /></span>
-            <span className="flex-1 whitespace-nowrap">Back to HRMS</span>
+            <ArrowLeft size={14} />
+            <span className="text-[11.5px]">Back to HRMS</span>
           </Link>
         </div>
       </aside>
 
-      {/* Main Content Wrapper */}
-      <main className="flex-1 flex flex-col h-[100dvh] overflow-hidden relative z-30 bg-transparent">
-
+      {/* Main Content Area */}
+      <main className="flex-1 flex flex-col h-[100dvh] overflow-hidden relative z-10 bg-transparent">
+        
         {/* Top Header */}
-        <header className="h-14 shrink-0 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 flex items-center justify-between sticky top-0 z-40 md:relative md:z-10">
-          <div className="flex items-center gap-4">
-            <div className="md:hidden flex items-center gap-2">
-               <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center mr-2 shrink-0">
-                 <Award className="w-5 h-5 text-white" />
-               </div>
-               <span className="text-base font-semibold tracking-tight text-slate-900 leading-tight">Acme Assessment & Training</span>
+        <header className="h-14 bg-white border-b border-[#e0e3e7] px-5 flex items-center justify-between z-10 shrink-0">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              className="md:hidden text-[#5f6368] hover:text-[#1f1f1f] p-1.5 rounded-full hover:bg-[#f1f3f4] transition-colors"
+            >
+              <Menu size={20} />
+            </button>
+            <div>
+              <h2 className="text-sm font-semibold text-[#1f1f1f] flex items-center gap-2">
+                {getActiveTitle()}
+              </h2>
             </div>
           </div>
 
-          <div className="flex items-center gap-5">
-            <div className="hidden md:flex items-center gap-5">
-              <div className="flex items-center gap-3 select-none">
-                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-semibold text-sm overflow-hidden border border-slate-200">
-                  {profile?.avatar ? (
-                    <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
-                  ) : (
-                    (profile?.email || 'A').charAt(0).toUpperCase()
-                  )}
-                </div>
-                <div className="hidden sm:block text-left">
-                  <p className="text-sm font-medium text-slate-700 leading-none">
-                    {profile?.email?.split('@')[0] || 'Administrator'}
-                  </p>
-                  <p className="text-xs text-slate-500 mt-1 capitalize">{profile?.role || 'Admin'}</p>
-                </div>
+          <div className="flex items-center gap-4">
+            <Link
+              to="/admin"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] hover:bg-[#d2e3fc] transition-colors"
+            >
+              <ArrowLeft size={13} />
+              <span>Back to HRMS</span>
+            </Link>
+
+            <div className="h-5 w-px bg-[#e0e3e7]"></div>
+
+            {/* User Profile Pill */}
+            <div className="flex items-center gap-2.5 select-none bg-[#f8fafd] border border-[#e0e3e7] pl-1.5 pr-3 py-1 rounded-full">
+              <div className="w-7 h-7 bg-[#e8f0fe] text-[#1a73e8] rounded-full flex items-center justify-center font-bold text-xs overflow-hidden border border-[#d2e3fc]">
+                {profile?.avatar ? (
+                  <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  (profile?.email || 'A').charAt(0).toUpperCase()
+                )}
+              </div>
+              <div className="hidden sm:block text-left">
+                <p className="text-xs font-semibold text-[#1f1f1f] leading-none">
+                  {profile?.email?.split('@')[0] || 'Admin User'}
+                </p>
+                <p className="text-[10px] text-[#5f6368] mt-0.5 capitalize">{profile?.role || 'Administrator'}</p>
               </div>
             </div>
+
+            {/* Mobile Logout Button */}
+            <button
+              type="button"
+              onClick={handleLogoutClick}
+              className="md:hidden flex items-center gap-1.5 text-[#d93025] hover:bg-[#fce8e6] transition-colors text-xs font-semibold px-3 py-1.5 rounded-full cursor-pointer"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Logout</span>
+            </button>
           </div>
         </header>
 
-        {/* Dynamic Page Content */}
-        <div className="flex-1 overflow-y-auto overscroll-y-contain bg-slate-50" style={{ WebkitOverflowScrolling: 'touch' }}>
+        {/* Dynamic Route Outlet */}
+        <div id="main-scroll-container" className="flex-1 overflow-y-auto overscroll-y-contain p-4 sm:p-6" style={{ WebkitOverflowScrolling: 'touch' }}>
           <Outlet />
         </div>
-        
-        {/* Mobile Bottom Nav Minimal */}
-        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-2 flex justify-around z-50">
-           <Link to="/admin" className="flex flex-col items-center p-2 text-slate-500">
-             <Home size={20} />
-             <span className="text-[10px] mt-1">HRMS</span>
-           </Link>
-           {navItems.map((item, idx) => {
-              const isActive = location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
-              return (
-                <Link key={idx} to={item.path} className={`flex flex-col items-center p-2 ${isActive ? 'text-blue-600' : 'text-slate-500'}`}>
-                  {item.icon}
-                  <span className="text-[10px] mt-1">{item.label}</span>
-                </Link>
-              );
-           })}
-        </div>
       </main>
+
+      {/* Mobile Drawer */}
+      {mobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 z-50 overflow-hidden">
+          <div 
+            className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity" 
+            onClick={() => setMobileMenuOpen(false)} 
+          />
+          <div className="fixed inset-y-0 left-0 max-w-full flex pr-10">
+            <div className="w-screen max-w-xs bg-white shadow-2xl flex flex-col">
+              <div className="p-4 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd]">
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-base font-bold text-[#1f1f1f]">Acme</span>
+                    <span className="text-base font-semibold text-[#4285F4]">Assessment</span>
+                  </div>
+                  <p className="text-[10px] text-[#5f6368]">Training Hub</p>
+                </div>
+                <button
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="p-1.5 rounded-full text-[#5f6368] hover:bg-[#e8eaed]"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="p-3 overflow-y-auto flex-1 space-y-1">
+                {navItems.map((item, idx) => {
+                  const isDirectActive = location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
+                  const isAliasActive = item.activeAliases?.some(alias => location.pathname.startsWith(alias));
+                  const isActive = isDirectActive || isAliasActive;
+
+                  return (
+                    <Link
+                      key={idx}
+                      to={item.path}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-full text-xs font-semibold transition-all ${
+                        isActive
+                          ? 'bg-[#c2e7ff]/70 text-[#001d35]'
+                          : 'text-[#444746] hover:bg-[#f1f3f4]'
+                      }`}
+                    >
+                      <span className={isActive ? 'text-[#1a73e8]' : 'text-[#5f6368]'}>
+                        {item.icon}
+                      </span>
+                      <span>{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+
+              <div className="p-3 border-t border-[#e0e3e7] bg-[#f8fafd] space-y-2">
+                <Link
+                  to="/admin"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full flex items-center justify-center gap-2 py-2 rounded-full text-xs font-semibold bg-white border border-[#dadce0] text-[#1f1f1f]"
+                >
+                  <ArrowLeft size={14} /> Back to HRMS
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Google Material 3 Sign Out Confirmation Modal (createPortal) */}
+      {showLogoutConfirm && createPortal(
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/40 backdrop-blur-xs" 
+            onClick={() => !loggingOut && setShowLogoutConfirm(false)} 
+          />
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 8 }}
+            transition={{ duration: 0.2 }}
+            className="w-full max-w-sm bg-white rounded-3xl border border-[#e0e3e7] shadow-2xl overflow-hidden relative z-10 flex flex-col"
+          >
+            {/* Top 4-Color Gradient Accent Line */}
+            <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853]" />
+
+            <div className="p-6 text-center space-y-4">
+              <div className="w-12 h-12 rounded-2xl bg-[#fce8e6] border border-[#fad2cf] text-[#d93025] flex items-center justify-center mx-auto shadow-2xs">
+                <LogOut className="w-6 h-6" />
+              </div>
+
+              <div className="space-y-1">
+                <h3 className="text-lg font-semibold text-[#1f1f1f] tracking-tight">
+                  Sign out of Acme HRMS?
+                </h3>
+                <p className="text-xs text-[#5f6368] leading-relaxed">
+                  Are you sure you want to end your session? You will need to log back in to access the workspace.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2.5 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowLogoutConfirm(false)}
+                  disabled={loggingOut}
+                  className="flex-1 py-2.5 px-4 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-xs font-semibold text-[#1f1f1f] transition-all cursor-pointer disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmLogout}
+                  disabled={loggingOut}
+                  className="flex-1 py-2.5 px-4 rounded-full bg-[#d93025] hover:bg-[#b3261e] text-white text-xs font-semibold shadow-xs transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5"
+                >
+                  {loggingOut ? (
+                    <>
+                      <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent" />
+                      <span>Signing Out...</span>
+                    </>
+                  ) : (
+                    <span>Sign Out</span>
+                  )}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>,
+        document.body
+      )}
+
     </div>
   );
 };

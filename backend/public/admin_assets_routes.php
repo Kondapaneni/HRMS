@@ -15,27 +15,81 @@ $app->get('/api/admin/assets', function (Request $request, Response $response, $
     $page = max(1, (int)($params['page'] ?? 1));
     $limit = max(1, min(100, (int)($params['limit'] ?? 10)));
     $offset = ($page - 1) * $limit;
+    $search = trim($params['search'] ?? '');
+    $status = trim($params['status'] ?? '');
+    $category = trim($params['category'] ?? '');
 
     try {
-        $countQuery = "SELECT COUNT(*) FROM assets";
-        $totalCount = (int)$conn->query($countQuery)->fetchColumn();
+        // Aggregate KPI stats
+        $statsStmt = $conn->query('
+            SELECT 
+                COUNT(*) as total_count,
+                COALESCE(COUNT(CASE WHEN status = \'Available\' THEN 1 END), 0) as available_count,
+                COALESCE(COUNT(CASE WHEN status = \'Assigned\' THEN 1 END), 0) as assigned_count,
+                COALESCE(COUNT(CASE WHEN status = \'Maintenance\' THEN 1 END), 0) as maintenance_count,
+                COALESCE(COUNT(CASE WHEN status IN (\'Damaged\', \'Missing\', \'Retired\') THEN 1 END), 0) as damaged_count
+            FROM assets
+        ');
+        $statsRaw = $statsStmt->fetch(PDO::FETCH_ASSOC);
+
+        $stats = [
+            'totalCount' => (int)$statsRaw['total_count'],
+            'availableCount' => (int)$statsRaw['available_count'],
+            'assignedCount' => (int)$statsRaw['assigned_count'],
+            'maintenanceCount' => (int)$statsRaw['maintenance_count'],
+            'damagedCount' => (int)$statsRaw['damaged_count']
+        ];
+
+        $where = [];
+        $queryParams = [];
+
+        if (!empty($search)) {
+            $where[] = '(a.name ILIKE ? OR a.serial_number ILIKE ? OR a.category ILIKE ? OR e."firstName" ILIKE ? OR e."lastName" ILIKE ?)';
+            $searchTerm = '%' . $search . '%';
+            $queryParams = [$searchTerm, $searchTerm, $searchTerm, $searchTerm, $searchTerm];
+        }
+
+        if (!empty($status) && $status !== 'All') {
+            $where[] = 'a.status = ?';
+            $queryParams[] = $status;
+        }
+
+        if (!empty($category) && $category !== 'All') {
+            $where[] = 'a.category = ?';
+            $queryParams[] = $category;
+        }
+
+        $whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
+
+        $countQuery = "
+            SELECT COUNT(*) 
+            FROM assets a
+            LEFT JOIN employee e ON a.assigned_to = e.id
+            {$whereClause}
+        ";
+        $stmtCount = $conn->prepare($countQuery);
+        $stmtCount->execute($queryParams);
+        $totalCount = (int)$stmtCount->fetchColumn();
 
         $query = "
             SELECT 
                 a.id, a.name, a.category, a.serial_number, a.status, a.assigned_to, a.created_at,
-                e.\"userId\" as employee_id, e.\"firstName\" as employee_first_name, e.\"lastName\" as employee_last_name
+                e.\"userId\" as employee_id, e.\"firstName\" as employee_first_name, e.\"lastName\" as employee_last_name, e.\"employeeId\" as employee_ref, e.\"department\" as employee_department
             FROM assets a
             LEFT JOIN employee e ON a.assigned_to = e.id
+            {$whereClause}
             ORDER BY a.created_at DESC
             LIMIT ? OFFSET ?
         ";
         
         $stmt = $conn->prepare($query);
-        $stmt->execute([$limit, $offset]);
+        $execParams = array_merge($queryParams, [$limit, $offset]);
+        $stmt->execute($execParams);
         $assets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $response->getBody()->write(json_encode([
             'data' => $assets,
+            'stats' => $stats,
             'pagination' => [
                 'total' => $totalCount,
                 'page' => $page,
