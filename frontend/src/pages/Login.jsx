@@ -141,7 +141,7 @@ const Login = () => {
   };
 
   return (
-    <div className="h-screen max-h-screen w-full flex flex-col justify-between bg-[#f8fafd] text-[#1f1f1f] selection:bg-[#c2e7ff] selection:text-[#001d35] font-sans antialiased overflow-hidden relative">
+    <div className="min-h-screen md:h-screen md:max-h-screen w-full flex flex-col justify-between bg-[#f8fafd] text-[#1f1f1f] selection:bg-[#c2e7ff] selection:text-[#001d35] font-sans antialiased overflow-y-auto md:overflow-hidden relative">
       {/* Colorful Google Ambient Background Orbs */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute -top-32 -left-32 w-96 h-96 bg-[#4285F4]/12 rounded-full blur-3xl" />
@@ -150,15 +150,15 @@ const Login = () => {
         <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-[#34A853]/10 rounded-full blur-3xl" />
       </div>
 
-      {/* Main Card Viewport - Centered & Non-scrolling */}
-      <div className="flex-1 flex items-center justify-center p-3 sm:p-4 md:p-6 relative z-10 overflow-hidden">
+      {/* Main Card Viewport */}
+      <div className="flex-1 flex items-center justify-center p-3 sm:p-4 md:p-6 relative z-10">
 
         {/* Google Material 3 Sign-in Card */}
         <motion.div
           initial={{ opacity: 0, y: 10, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.35, ease: [0.2, 0, 0, 1] }}
-          className="w-full max-w-[980px] bg-white rounded-[24px] p-6 sm:p-8 md:p-9 border border-[#e0e3e7] shadow-[0_4px_24px_rgba(66,133,244,0.08),0_1px_3px_rgba(0,0,0,0.05)] md:grid md:grid-cols-2 md:gap-10 items-center relative overflow-hidden my-auto"
+          className="w-full max-w-[980px] bg-white rounded-[24px] p-5 sm:p-8 md:p-9 border border-[#e0e3e7] shadow-[0_4px_24px_rgba(66,133,244,0.08),0_1px_3px_rgba(0,0,0,0.05)] md:grid md:grid-cols-2 md:gap-10 items-center relative overflow-hidden my-auto"
         >
           {/* Top 4-Color Google Accent Line */}
           <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
@@ -181,46 +181,44 @@ const Login = () => {
                 </div>
               </div>
 
-              <h1 className="text-[26px] sm:text-[30px] font-normal text-[#1f1f1f] mt-4 mb-1 leading-tight tracking-tight">
+              <h1 className="text-[24px] sm:text-[30px] font-normal text-[#1f1f1f] mt-3 md:mt-4 mb-1 leading-tight tracking-tight">
                 Sign in
               </h1>
               <p className="text-xs sm:text-sm text-[#5f6368] font-normal">
                 Use your Acme Authenticated HR Account
               </p>
 
-              {/* Colorful Google Feature Pills */}
-              <div className="mt-5 space-y-2 hidden md:block">
-                <div className="flex items-center gap-2.5 p-2 rounded-xl bg-[#e8f0fe]/70 border border-[#d2e3fc] text-[#1967d2] text-xs font-medium transition-all hover:bg-[#e8f0fe]">
-                  <div className="w-6 h-6 rounded-lg bg-[#4285F4] text-white flex items-center justify-center shrink-0 shadow-sm">
-                    <Sparkles size={13} />
+              {/* Colorful Google Feature Pills - Visible on both Mobile & Desktop */}
+              <div className="mt-4 md:mt-5 grid grid-cols-2 md:grid-cols-1 gap-1.5 md:gap-2">
+                <div className="flex items-center gap-2 p-1.5 md:p-2 rounded-xl bg-[#e8f0fe]/70 border border-[#d2e3fc] text-[#1967d2] text-[11px] md:text-xs font-medium transition-all hover:bg-[#e8f0fe]">
+                  <div className="w-5 h-5 md:w-6 md:h-6 rounded-lg bg-[#4285F4] text-white flex items-center justify-center shrink-0 shadow-sm">
+                    <Sparkles size={12} />
                   </div>
-                  <span>AI Biometric & Face Recognition Verification</span>
+                  <span className="truncate md:overflow-visible">AI Face Recognition</span>
                 </div>
 
-                <div className="flex items-center gap-2.5 p-2 rounded-xl bg-[#e6f4ea]/70 border border-[#ceead6] text-[#137333] text-xs font-medium transition-all hover:bg-[#e6f4ea]">
-                  <div className="w-6 h-6 rounded-lg bg-[#34A853] text-white flex items-center justify-center shrink-0 shadow-sm">
-                    <CalendarCheck size={13} />
+                <div className="flex items-center gap-2 p-1.5 md:p-2 rounded-xl bg-[#e6f4ea]/70 border border-[#ceead6] text-[#137333] text-[11px] md:text-xs font-medium transition-all hover:bg-[#e6f4ea]">
+                  <div className="w-5 h-5 md:w-6 md:h-6 rounded-lg bg-[#34A853] text-white flex items-center justify-center shrink-0 shadow-sm">
+                    <CalendarCheck size={12} />
                   </div>
-                  <span>Instant Attendance, Shift Logs & Smart Leaves</span>
+                  <span className="truncate md:overflow-visible">Smart Attendance</span>
                 </div>
 
-                <div className="flex items-center gap-2.5 p-2 rounded-xl bg-[#fef7e0]/70 border border-[#feefc3] text-[#b06000] text-xs font-medium transition-all hover:bg-[#fef7e0]">
-                  <div className="w-6 h-6 rounded-lg bg-[#FBBC05] text-[#1f1f1f] flex items-center justify-center shrink-0 shadow-sm">
-                    <Users size={13} />
+                <div className="flex items-center gap-2 p-1.5 md:p-2 rounded-xl bg-[#fef7e0]/70 border border-[#feefc3] text-[#b06000] text-[11px] md:text-xs font-medium transition-all hover:bg-[#fef7e0]">
+                  <div className="w-5 h-5 md:w-6 md:h-6 rounded-lg bg-[#FBBC05] text-[#1f1f1f] flex items-center justify-center shrink-0 shadow-sm">
+                    <Users size={12} />
                   </div>
-                  <span>Interactive Employee Directory & Org Hierarchy</span>
+                  <span className="truncate md:overflow-visible">Employee Directory</span>
                 </div>
 
-                <div className="flex items-center gap-2.5 p-2 rounded-xl bg-[#fce8e6]/70 border border-[#fad2cf] text-[#c5221f] text-xs font-medium transition-all hover:bg-[#fce8e6]">
-                  <div className="w-6 h-6 rounded-lg bg-[#EA4335] text-white flex items-center justify-center shrink-0 shadow-sm">
-                    <ShieldCheck size={13} />
+                <div className="flex items-center gap-2 p-1.5 md:p-2 rounded-xl bg-[#fce8e6]/70 border border-[#fad2cf] text-[#c5221f] text-[11px] md:text-xs font-medium transition-all hover:bg-[#fce8e6]">
+                  <div className="w-5 h-5 md:w-6 md:h-6 rounded-lg bg-[#EA4335] text-white flex items-center justify-center shrink-0 shadow-sm">
+                    <ShieldCheck size={12} />
                   </div>
-                  <span>Enterprise Zero-Trust Role & Permission Guard</span>
+                  <span className="truncate md:overflow-visible">Zero-Trust Security</span>
                 </div>
               </div>
             </div>
-
-
           </div>
 
           {/* Right Column: Form & Method Switcher */}
