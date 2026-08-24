@@ -246,16 +246,35 @@ const EmployeeMobileDashboard = () => {
           </span>
         </div>
 
-        {/* Circular Live Clock */}
+        {/* Circular Live Clock with Liquid Wave Animation */}
         <div className="flex flex-col items-center justify-center py-2">
-          <div className="h-28 w-28 rounded-full bg-[#f8fafd] border-4 border-[#e8f0fe] flex flex-col items-center justify-center shadow-inner relative">
+          <div className="w-36 h-36 rounded-full relative overflow-hidden bg-[#f8fafd] flex items-center justify-center shadow-inner">
+
+            {/* The Outer Ring */}
+            <div className="absolute inset-0 rounded-full border-[5px] border-[#e8f0fe] z-20 pointer-events-none" />
+
             {isActiveSession && (
-              <span className="absolute top-2 w-2 h-2 rounded-full bg-[#34A853] animate-ping" />
+              <div className="absolute inset-0 z-0">
+                {/* Liquid body */}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#1a73e8] to-[#4285F4]" />
+
+                {/* Wave cutouts - they rotate to create the liquid effect */}
+                <div className="absolute top-[-145%] left-[-50%] w-[200%] h-[200%] bg-white/70 rounded-[43%] animate-[spin_5s_linear_infinite]" />
+                <div className="absolute top-[-135%] left-[-50%] w-[200%] h-[200%] bg-[#f8fafd] rounded-[40%] animate-[spin_7s_linear_infinite]" />
+              </div>
             )}
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Work Session</span>
-            <span className="text-lg font-bold text-[#1f1f1f] tracking-tight mt-0.5">
-              {formatTime(liveSeconds)}
-            </span>
+
+            <div className="relative z-10 flex flex-col items-center justify-center">
+              {isActiveSession && (
+                <div className="absolute inset-[-8px] bg-white/50 backdrop-blur-[2px] rounded-full -z-10 blur-xs" />
+              )}
+              <span className={`text-[10px] font-semibold uppercase tracking-wider mb-0.5 ${isActiveSession ? 'text-[#1a73e8]' : 'text-[#5f6368]'}`}>
+                Work Session
+              </span>
+              <span className={`text-xl font-black tracking-tight ${isActiveSession ? 'text-[#1a73e8] drop-shadow-xs' : 'text-[#1f1f1f]'}`}>
+                {formatTime(liveSeconds)}
+              </span>
+            </div>
           </div>
         </div>
 
