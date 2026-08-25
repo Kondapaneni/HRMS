@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { Camera, RefreshCw, UploadCloud, X, AlertCircle } from 'lucide-react';
+import { Camera, RefreshCw, UploadCloud, X, AlertCircle, Check } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import api from '../api/axios';
 import { supabase } from '../lib/supabase';
@@ -228,29 +228,31 @@ const EmployeeMobileCamera = () => {
       {/* Controls Footer */}
       <div className="bg-black pb-8 pt-6 px-6 shrink-0 relative z-10">
         {photoDataUrl ? (
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center justify-between gap-3 max-w-md mx-auto w-full">
             <button
+              type="button"
               onClick={retakePhoto}
               disabled={isSubmitting}
-              className="flex-1 py-4 bg-slate-800 text-white rounded-2xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-50"
+              className="flex-1 py-3.5 px-4 bg-white/15 hover:bg-white/25 border border-white/20 backdrop-blur-md text-white rounded-full text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-50 cursor-pointer shadow-xs"
             >
-              <RefreshCw className="w-5 h-5" />
-              Retake
+              <RefreshCw className="w-4 h-4 text-white/90" />
+              <span>Retake</span>
             </button>
             <button
+              type="button"
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className="flex-1 py-4 bg-blue-600 text-white rounded-2xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-80 relative overflow-hidden"
+              className="flex-1 py-3.5 px-4 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-full text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-75 cursor-pointer shadow-md relative overflow-hidden"
             >
               {isSubmitting ? (
                 <>
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Submitting...
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Submitting...</span>
                 </>
               ) : (
                 <>
-                  <UploadCloud className="w-5 h-5" />
-                  Confirm
+                  <Check className="w-4 h-4" />
+                  <span>Confirm</span>
                 </>
               )}
             </button>

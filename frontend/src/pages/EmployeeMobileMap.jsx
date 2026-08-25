@@ -197,7 +197,7 @@ const EmployeeMobileMap = () => {
   useEffect(() => {
     if (currentLocation && isInsideGeofence !== null) {
       const timer = setTimeout(() => {
-        toast.error('Location verification session expired. Please try again.');
+        toast.error('Location Verification Session Expired. Please Try Again.');
         navigate('/employee', { replace: true });
       }, 30000);
       return () => clearTimeout(timer);

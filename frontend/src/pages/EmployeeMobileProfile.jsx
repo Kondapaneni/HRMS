@@ -12,6 +12,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 
 const EmployeeMobileProfile = () => {
@@ -116,24 +117,32 @@ const EmployeeMobileProfile = () => {
     { id: 'timeline', label: 'Career Timeline', icon: Clock, color: 'text-[#4f46e5]', bg: 'bg-[#eef2ff]' }
   ];
 
-  const DetailItem = ({ icon: Icon, label, value }) => (
-    <div className="flex items-center gap-3 p-3 bg-[#f8fafd] rounded-2xl border border-[#e0e3e7]">
-      <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center shrink-0 border border-[#e0e3e7] text-[#1a73e8] shadow-2xs">
-        <Icon className="w-4 h-4" />
+  const DetailItem = ({ icon: Icon, label, value }) => {
+    const currentSection = sections.find(s => s.id === activeSection);
+    const iconColor = currentSection?.color || 'text-[#1a73e8]';
+    const iconBg = currentSection?.bg || 'bg-[#e8f0fe]';
+
+    return (
+      <div className="flex items-center gap-3 p-3 bg-[#f8fafd] hover:bg-[#f1f3f4]/60 rounded-2xl border border-[#e0e3e7] transition-colors">
+        <div className={`w-8 h-8 rounded-xl ${iconBg} ${iconColor} flex items-center justify-center shrink-0 shadow-2xs`}>
+          <Icon className="w-4 h-4" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-[10px] font-bold text-[#5f6368] uppercase tracking-wider">{label}</p>
+          <p className="text-xs font-semibold text-[#1f1f1f] break-words mt-0.5 select-all">
+            {value || <span className="text-[#80868b] font-normal italic">Not provided</span>}
+          </p>
+        </div>
       </div>
-      <div className="min-w-0 flex-1">
-        <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">{label}</p>
-        <p className="text-xs font-bold text-[#1f1f1f] truncate">{value || 'Not set'}</p>
-      </div>
-    </div>
-  );
+    );
+  };
 
   const TeamMemberCard = ({ employee }) => {
     if (!employee) return null;
     const initial = `${(employee.firstName || '').charAt(0)}${(employee.lastName || '').charAt(0)}`.toUpperCase() || 'U';
     return (
       <div className="flex items-center gap-3 p-3 bg-[#f8fafd] rounded-2xl border border-[#e0e3e7]">
-        <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shrink-0 overflow-hidden font-bold text-[#1a73e8] border border-[#e0e3e7] shadow-2xs">
+        <div className="w-9 h-9 rounded-full bg-[#e8f0fe] flex items-center justify-center shrink-0 overflow-hidden font-bold text-[#1a73e8] border border-[#d2e3fc] shadow-2xs">
           {employee.avatar ? (
             <img src={employee.avatar} alt="Avatar" className="w-full h-full object-cover" />
           ) : (
@@ -434,53 +443,82 @@ const EmployeeMobileProfile = () => {
         })}
       </div>
 
-      {/* Slide-Up Bottom Sheet Drawer (Mounted via createPortal) */}
-      {activeSection && createPortal(
-        <div 
-          onClick={(e) => { if (e.target === e.currentTarget) setActiveSection(null); }}
-          className="fixed inset-0 z-[10000] flex flex-col justify-end bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200"
-        >
-          <div className="bg-white rounded-t-3xl shadow-2xl border-t border-[#e0e3e7] w-full max-w-md mx-auto max-h-[85vh] flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-300">
-            
-            {/* Top 4-Color Gradient Line */}
-            <div className="h-1 bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853]" />
+      {/* Slide-Up Bottom Sheet Drawer (Mounted via createPortal with Framer Motion) */}
+      {createPortal(
+        <AnimatePresence>
+          {activeSection && (
+            <div className="fixed inset-0 z-[10000] flex flex-col justify-end">
+              {/* Smooth Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25, ease: 'easeOut' }}
+                onClick={() => setActiveSection(null)}
+                className="fixed inset-0 bg-black/50 backdrop-blur-xs cursor-pointer"
+              />
 
-            {/* Bottom Sheet Header */}
-            <div className="p-4 border-b border-[#e0e3e7] flex items-center justify-between bg-[#f8fafd] shrink-0">
-              <div className="flex items-center gap-2">
-                <div className={`p-1.5 rounded-xl ${sections.find(s => s.id === activeSection)?.bg} ${sections.find(s => s.id === activeSection)?.color}`}>
-                  {React.createElement(sections.find(s => s.id === activeSection)?.icon || User, { className: 'w-4 h-4' })}
+              {/* Smooth Slide-Up Sheet */}
+              <motion.div
+                initial={{ y: '100%' }}
+                animate={{ y: 0 }}
+                exit={{ y: '100%' }}
+                transition={{ type: 'spring', damping: 28, stiffness: 300, mass: 0.8 }}
+                className="bg-white rounded-t-[2rem] shadow-2xl border-t border-[#e0e3e7] w-full max-w-md mx-auto max-h-[85vh] flex flex-col overflow-hidden relative z-10"
+              >
+                {/* Top Drag Indicator */}
+                <div className="w-10 h-1 bg-[#dadce0] rounded-full mx-auto my-2.5 shrink-0" />
+
+                {/* Top 4-Color Gradient Line */}
+                <div className="h-1 bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] shrink-0" />
+
+                {/* Bottom Sheet Header */}
+                <div className="px-5 py-3.5 border-b border-[#e0e3e7] flex items-center justify-between bg-white shrink-0">
+                  <div className="flex items-center gap-2.5">
+                    <div className={`w-8 h-8 rounded-xl ${sections.find(s => s.id === activeSection)?.bg} ${sections.find(s => s.id === activeSection)?.color} flex items-center justify-center shrink-0 shadow-2xs`}>
+                      {React.createElement(sections.find(s => s.id === activeSection)?.icon || User, { className: 'w-4 h-4' })}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+                        <span className="text-[9.5px] font-bold uppercase tracking-wider text-[#5f6368] ml-0.5">Profile Info</span>
+                      </div>
+                      <h3 className="text-sm font-bold text-[#1f1f1f]">
+                        {sections.find(s => s.id === activeSection)?.label}
+                      </h3>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setActiveSection(null)}
+                    className="w-8 h-8 rounded-full bg-[#f1f3f4] hover:bg-[#e8eaed] text-[#5f6368] hover:text-[#1f1f1f] flex items-center justify-center transition-colors cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
-                <h3 className="text-xs font-bold text-[#1f1f1f]">
-                  {sections.find(s => s.id === activeSection)?.label}
-                </h3>
-              </div>
-              <button
-                onClick={() => setActiveSection(null)}
-                className="p-1.5 rounded-full hover:bg-[#e0e3e7]/60 text-[#5f6368] transition-colors cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
 
-            {/* Content Body */}
-            <div className="p-5 overflow-y-auto space-y-4 flex-1">
-              {renderContent()}
-            </div>
+                {/* Content Body */}
+                <div className="p-4 sm:p-5 overflow-y-auto space-y-2.5 flex-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  {renderContent()}
+                </div>
 
-            {/* Bottom Actions */}
-            <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex items-center gap-2.5 shrink-0">
-              <button
-                type="button"
-                onClick={() => setActiveSection(null)}
-                className="w-full py-2.5 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-xs font-semibold text-[#1f1f1f] transition-all cursor-pointer shadow-2xs"
-              >
-                Close Section
-              </button>
+                {/* Bottom Actions */}
+                <div className="p-4 border-t border-[#e0e3e7] bg-white flex items-center gap-2.5 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setActiveSection(null)}
+                    className="w-full py-3 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold shadow-xs flex items-center justify-center gap-2 active:scale-98 transition-all cursor-pointer"
+                  >
+                    Done
+                  </button>
+                </div>
+              </motion.div>
             </div>
-
-          </div>
-        </div>,
+          )}
+        </AnimatePresence>,
         document.body
       )}
 

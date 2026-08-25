@@ -21,6 +21,7 @@ import toast from 'react-hot-toast';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axios';
 import { pdf } from '@react-pdf/renderer';
+import { motion, AnimatePresence } from 'framer-motion';
 import PayslipPDF from '../components/PayslipPDF';
 
 const EmployeeMobilePayroll = ({ profile }) => {
@@ -292,125 +293,149 @@ const EmployeeMobilePayroll = ({ profile }) => {
         )}
       </div>
 
-      {/* Payslip Breakdown Bottom Sheet Drawer (Mounted via createPortal) */}
-      {selectedPayslip && createPortal(
-        <div 
-          onClick={(e) => { if (e.target === e.currentTarget) setSelectedPayslip(null); }}
-          className="fixed inset-0 z-[10000] flex flex-col justify-end bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200"
-        >
-          <div className="bg-white rounded-t-3xl shadow-2xl border-t border-[#e0e3e7] w-full max-w-md mx-auto max-h-[85vh] flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-300">
-            
-            {/* Top 4-Color Gradient Line */}
-            <div className="h-1 bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853]" />
-
-            {/* Bottom Sheet Header */}
-            <div className="p-4 border-b border-[#e0e3e7] flex items-center justify-between bg-[#f8fafd] shrink-0">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-xl bg-[#e8f0fe] text-[#1a73e8]">
-                  <FileText className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-xs font-bold text-[#1f1f1f]">
-                    {getMonthYearString(selectedPayslip.month, selectedPayslip.year)} Payslip
-                  </h3>
-                  <p className="text-[10px] text-[#5f6368]">
-                    {(selectedPayslip.employeeName || `${profile?.firstName || ''} ${profile?.lastName || ''}`.trim() || 'Employee')}
-                  </p>
-                </div>
-              </div>
-              <button
+      {/* Payslip Breakdown Bottom Sheet Drawer (Mounted via createPortal with Framer Motion) */}
+      {createPortal(
+        <AnimatePresence>
+          {selectedPayslip && (
+            <div className="fixed inset-0 z-[10000] flex flex-col justify-end">
+              {/* Smooth Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25, ease: 'easeOut' }}
                 onClick={() => setSelectedPayslip(null)}
-                className="p-1.5 rounded-full hover:bg-[#e0e3e7]/60 text-[#5f6368] transition-colors cursor-pointer"
+                className="fixed inset-0 bg-black/50 backdrop-blur-xs cursor-pointer"
+              />
+
+              {/* Smooth Slide-Up Sheet */}
+              <motion.div
+                initial={{ y: '100%' }}
+                animate={{ y: 0 }}
+                exit={{ y: '100%' }}
+                transition={{ type: 'spring', damping: 28, stiffness: 300, mass: 0.8 }}
+                className="bg-white rounded-t-[2rem] shadow-2xl border-t border-[#e0e3e7] w-full max-w-md mx-auto max-h-[85vh] flex flex-col overflow-hidden relative z-10"
               >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
+                {/* Top Drag Indicator */}
+                <div className="w-10 h-1 bg-[#dadce0] rounded-full mx-auto my-2.5 shrink-0" />
 
-            {/* Scrollable Content */}
-            <div className="p-5 overflow-y-auto space-y-4 flex-1">
-              
-              {/* Employee Summary Chip Grid */}
-              <div className="grid grid-cols-2 gap-2.5 p-3 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7] text-xs">
-                <div>
-                  <span className="text-[9px] font-semibold text-[#5f6368] uppercase">Employee ID</span>
-                  <p className="font-bold text-[#1f1f1f]">{selectedPayslip.employeeCode || selectedPayslip.details?.employeeNumber || profile?.employeeId || 'N/A'}</p>
-                </div>
-                <div>
-                  <span className="text-[9px] font-semibold text-[#5f6368] uppercase">Payable Days</span>
-                  <p className="font-bold text-[#1f1f1f]">{selectedPayslip.details?.daysPayable ?? 0} / {selectedPayslip.details?.totalWorkingDays ?? 0}</p>
-                </div>
-              </div>
+                {/* Top 4-Color Gradient Line */}
+                <div className="h-1 bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] shrink-0" />
 
-              {/* Earnings Table */}
-              <div className="border border-[#e0e3e7] rounded-2xl overflow-hidden bg-white">
-                <div className="bg-[#e6f4ea]/60 px-3.5 py-2 border-b border-[#e0e3e7]">
-                  <span className="text-[11px] font-bold text-[#137333]">Earnings &amp; Allowances</span>
-                </div>
-                <div className="p-3 space-y-1.5 text-xs">
-                  {selectedPayslip.earnings?.map((item, idx) => (
-                    <div key={idx} className="flex justify-between py-0.5 border-b border-[#f1f3f4] last:border-0">
-                      <span className="text-[#5f6368]">{item.label}</span>
-                      <span className="font-semibold text-[#1f1f1f]">{formatCurrency(item.value)}</span>
+                {/* Bottom Sheet Header */}
+                <div className="px-5 py-3.5 border-b border-[#e0e3e7] flex items-center justify-between bg-white shrink-0">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center shrink-0 shadow-2xs">
+                      <FileText className="w-4 h-4" />
                     </div>
-                  ))}
-                  <div className="pt-2 mt-1 border-t border-[#e0e3e7] flex justify-between font-bold text-xs">
-                    <span>Gross Earnings</span>
-                    <span className="text-[#137333]">{formatCurrency(getTotal(selectedPayslip.earnings))}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Deductions Table */}
-              <div className="border border-[#e0e3e7] rounded-2xl overflow-hidden bg-white">
-                <div className="bg-[#fce8e6]/60 px-3.5 py-2 border-b border-[#e0e3e7]">
-                  <span className="text-[11px] font-bold text-[#c5221f]">Statutory Deductions</span>
-                </div>
-                <div className="p-3 space-y-1.5 text-xs">
-                  {selectedPayslip.deductions?.map((item, idx) => (
-                    <div key={idx} className="flex justify-between py-0.5 border-b border-[#f1f3f4] last:border-0">
-                      <span className="text-[#5f6368]">{item.label}</span>
-                      <span className="font-semibold text-[#1f1f1f]">{formatCurrency(item.value)}</span>
+                    <div>
+                      <div className="flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+                        <span className="text-[9.5px] font-bold uppercase tracking-wider text-[#5f6368] ml-0.5">Payroll Breakdown</span>
+                      </div>
+                      <h3 className="text-sm font-bold text-[#1f1f1f]">
+                        {getMonthYearString(selectedPayslip.month, selectedPayslip.year)} Payslip
+                      </h3>
                     </div>
-                  ))}
-                  <div className="pt-2 mt-1 border-t border-[#e0e3e7] flex justify-between font-bold text-xs">
-                    <span>Total Deductions</span>
-                    <span className="text-[#c5221f]">{formatCurrency(getTotal(selectedPayslip.deductions))}</span>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPayslip(null)}
+                    className="w-8 h-8 rounded-full bg-[#f1f3f4] hover:bg-[#e8eaed] text-[#5f6368] hover:text-[#1f1f1f] flex items-center justify-center transition-colors cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
-              </div>
 
-              {/* Net Disbursed Banner */}
-              <div className="bg-[#e8f0fe] border border-[#d2e3fc] rounded-2xl p-3.5 flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#1a73e8]">Net Take-Home Salary</span>
-                  <p className="text-[10px] text-[#5f6368]">Disbursed to Bank Account</p>
+                {/* Scrollable Content */}
+                <div className="p-4 sm:p-5 overflow-y-auto space-y-3 flex-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  
+                  {/* Employee Summary Chip Grid */}
+                  <div className="grid grid-cols-2 gap-2.5 p-3 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7] text-xs">
+                    <div>
+                      <span className="text-[9.5px] font-semibold text-[#5f6368] uppercase">Employee ID</span>
+                      <p className="font-bold text-[#1f1f1f] mt-0.5">{selectedPayslip.employeeCode || selectedPayslip.details?.employeeNumber || profile?.employeeId || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <span className="text-[9.5px] font-semibold text-[#5f6368] uppercase">Payable Days</span>
+                      <p className="font-bold text-[#1f1f1f] mt-0.5">{selectedPayslip.details?.daysPayable ?? 0} / {selectedPayslip.details?.totalWorkingDays ?? 0}</p>
+                    </div>
+                  </div>
+
+                  {/* Earnings Table */}
+                  <div className="border border-[#e0e3e7] rounded-2xl overflow-hidden bg-white">
+                    <div className="bg-[#e6f4ea]/60 px-3.5 py-2 border-b border-[#e0e3e7]">
+                      <span className="text-[11px] font-bold text-[#137333]">Earnings &amp; Allowances</span>
+                    </div>
+                    <div className="p-3 space-y-1.5 text-xs">
+                      {selectedPayslip.earnings?.map((item, idx) => (
+                        <div key={idx} className="flex justify-between py-0.5 border-b border-[#f1f3f4] last:border-0">
+                          <span className="text-[#5f6368]">{item.label}</span>
+                          <span className="font-semibold text-[#1f1f1f]">{formatCurrency(item.value)}</span>
+                        </div>
+                      ))}
+                      <div className="pt-2 mt-1 border-t border-[#e0e3e7] flex justify-between font-bold text-xs">
+                        <span>Gross Earnings</span>
+                        <span className="text-[#137333]">{formatCurrency(getTotal(selectedPayslip.earnings))}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Deductions Table */}
+                  <div className="border border-[#e0e3e7] rounded-2xl overflow-hidden bg-white">
+                    <div className="bg-[#fce8e6]/60 px-3.5 py-2 border-b border-[#e0e3e7]">
+                      <span className="text-[11px] font-bold text-[#c5221f]">Statutory Deductions</span>
+                    </div>
+                    <div className="p-3 space-y-1.5 text-xs">
+                      {selectedPayslip.deductions?.map((item, idx) => (
+                        <div key={idx} className="flex justify-between py-0.5 border-b border-[#f1f3f4] last:border-0">
+                          <span className="text-[#5f6368]">{item.label}</span>
+                          <span className="font-semibold text-[#1f1f1f]">{formatCurrency(item.value)}</span>
+                        </div>
+                      ))}
+                      <div className="pt-2 mt-1 border-t border-[#e0e3e7] flex justify-between font-bold text-xs">
+                        <span>Total Deductions</span>
+                        <span className="text-[#c5221f]">{formatCurrency(getTotal(selectedPayslip.deductions))}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Net Disbursed Banner */}
+                  <div className="bg-[#e8f0fe] border border-[#d2e3fc] rounded-2xl p-3.5 flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#1a73e8]">Net Take-Home Salary</span>
+                      <p className="text-[10px] text-[#5f6368]">Disbursed to Bank Account</p>
+                    </div>
+                    <span className="text-xl font-bold text-[#1a73e8]">{formatCurrency(selectedPayslip.netSalary)}</span>
+                  </div>
+
                 </div>
-                <span className="text-xl font-bold text-[#1a73e8]">{formatCurrency(selectedPayslip.netSalary)}</span>
-              </div>
 
+                {/* Bottom Actions */}
+                <div className="p-4 border-t border-[#e0e3e7] bg-white flex items-center gap-2.5 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPayslip(null)}
+                    className="flex-1 py-2.5 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-xs font-semibold text-[#1f1f1f] transition-all cursor-pointer shadow-2xs active:scale-98"
+                  >
+                    Close
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => handleDownload(e, selectedPayslip)}
+                    className="flex-1 py-2.5 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-98"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Download PDF</span>
+                  </button>
+                </div>
+              </motion.div>
             </div>
-
-            {/* Bottom Actions */}
-            <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex items-center gap-2.5 shrink-0">
-              <button
-                type="button"
-                onClick={() => setSelectedPayslip(null)}
-                className="flex-1 py-2.5 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-xs font-semibold text-[#1f1f1f] transition-all cursor-pointer shadow-2xs"
-              >
-                Close
-              </button>
-              <button
-                type="button"
-                onClick={(e) => handleDownload(e, selectedPayslip)}
-                className="flex-1 py-2.5 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>Download PDF</span>
-              </button>
-            </div>
-
-          </div>
-        </div>,
+          )}
+        </AnimatePresence>,
         document.body
       )}
 
