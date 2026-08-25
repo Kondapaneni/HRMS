@@ -542,246 +542,262 @@ const AdminAssets = () => {
           </div>
         )}
       </div>
-
       {/* Slideover Right Drawers (createPortal) */}
       {modalMode && createPortal(
-        <div className="fixed inset-0 z-50 overflow-hidden">
-          {/* Backdrop */}
-          <div 
-            className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity animate-in fade-in duration-200" 
-            onClick={closeModal} 
-          />
+        <div 
+          onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}
+          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm"
+        >
+          <motion.div 
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
+            className="bg-white shadow-2xl w-full max-w-md h-[100dvh] flex flex-col overflow-hidden relative z-10 border-l border-[#e0e3e7]"
+          >
+            {/* Top 4-Color Google Accent Line */}
+            <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
 
-          <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-            <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
-              {/* Header */}
-              <div className="p-5 border-b border-[#e0e3e7] flex items-center justify-between bg-[#f8fafd]">
-                <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-xl bg-[#e8f0fe] text-[#1a73e8]">
-                    {modalMode === 'assign' ? <UserCheck className="w-5 h-5" /> :
-                     modalMode === 'history' ? <History className="w-5 h-5" /> : <Monitor className="w-5 h-5" />}
-                  </div>
-                  <div>
-                    <h3 className="text-base font-semibold text-[#1f1f1f]">
-                      {modalMode === 'assign' ? `Assign Asset` :
-                       modalMode === 'add' ? 'Add New Asset' :
-                       modalMode === 'history' ? `Track History` : 'Edit Asset Details'}
-                    </h3>
-                    <p className="text-xs text-[#5f6368]">
-                      {modalMode === 'assign' ? `Allocate ${selectedAsset?.name} to an employee` :
-                       modalMode === 'history' ? `Audit log for ${selectedAsset?.name}` : 'Configure device specifications'}
-                    </p>
-                  </div>
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd] mt-1 shrink-0">
+              <div>
+                <div className="flex items-center gap-1 mb-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+                  <span className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">
+                    {modalMode === 'assign' ? 'Asset Allocation' :
+                     modalMode === 'history' ? 'Asset Audit Log' : 'Asset Management'}
+                  </span>
                 </div>
-                <button 
-                  onClick={closeModal} 
-                  className="rounded-full p-1.5 text-[#5f6368] hover:bg-[#e8eaed] transition-colors cursor-pointer"
-                >
-                  <X className="w-5 h-5" />
-                </button>
+                <h2 className="text-lg font-semibold text-[#1f1f1f]">
+                  {modalMode === 'assign' ? 'Assign Asset' :
+                   modalMode === 'add' ? 'Add New Asset' :
+                   modalMode === 'history' ? 'Track History' : 'Edit Asset Details'}
+                </h2>
               </div>
+              <button 
+                onClick={closeModal} 
+                className="text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4] p-1.5 rounded-full transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
 
-              {/* Body */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar text-xs">
-                {modalMode === 'assign' ? (
-                  <>
-                    <div className="relative mb-2">
-                      <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368] pointer-events-none" />
-                      <input
-                        type="search"
-                        placeholder="Search employee by name, ID, or email..."
-                        value={modalSearch}
-                        onChange={(e) => setModalSearch(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 text-xs bg-[#f1f3f4] hover:bg-[#e8eaed] focus:bg-white border border-transparent focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-full text-[#1f1f1f] outline-none transition-all"
-                      />
-                    </div>
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar text-xs">
+              {modalMode === 'assign' ? (
+                <>
+                  <div className="relative mb-2">
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368] pointer-events-none" />
+                    <input
+                      type="search"
+                      placeholder="Search employee by name, ID, or email..."
+                      value={modalSearch}
+                      onChange={(e) => setModalSearch(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2 text-xs bg-[#f1f3f4] hover:bg-[#e8eaed] focus:bg-white border border-transparent focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-full text-[#1f1f1f] outline-none transition-all"
+                    />
+                  </div>
 
-                    {/* Unassign Option */}
-                    {selectedAsset?.employee_id && (
-                      <div
-                        onClick={() => handleAssignUser(null)}
-                        className="flex items-center justify-between p-3.5 rounded-2xl border border-[#fad2cf] bg-[#fce8e6] hover:bg-[#fad2cf] cursor-pointer transition-all"
-                      >
-                        <div>
-                          <h4 className="font-bold text-[#c5221f] text-xs">Return to Stock (Unassign)</h4>
-                          <p className="text-[11px] text-[#c5221f]/80 mt-0.5">Remove current holder and mark as available</p>
+                  {/* Unassign Option */}
+                  {selectedAsset?.employee_id && (
+                    <button
+                      onClick={() => handleAssign(null)}
+                      disabled={saving}
+                      className="w-full p-3 mb-3 rounded-2xl border border-[#fad2cf] bg-[#fce8e6]/40 hover:bg-[#fce8e6] flex items-center justify-between text-left transition-colors cursor-pointer group"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="p-2 rounded-xl bg-white text-[#c5221f] shadow-2xs">
+                          <User className="w-4 h-4" />
                         </div>
-                        <X className="w-4 h-4 text-[#c5221f]" />
+                        <div>
+                          <p className="font-semibold text-[#c5221f]">Unassign &amp; Return to Inventory</p>
+                          <p className="text-[11px] text-[#5f6368]">Remove currently assigned employee</p>
+                        </div>
                       </div>
-                    )}
+                      <ChevronRight className="w-4 h-4 text-[#c5221f] group-hover:translate-x-0.5 transition-transform" />
+                    </button>
+                  )}
 
-                    <div className="space-y-2 pt-2">
-                      {filteredUsersForModal.map(u => {
-                        const isCurrent = selectedAsset?.employee_id === u.userId;
-                        return (
-                          <div
-                            key={u.userId}
-                            onClick={() => !isCurrent && handleAssignUser(u.userId)}
-                            className={`flex items-center gap-3 p-3 rounded-2xl border transition-all ${
-                              isCurrent
-                                ? 'border-[#4285F4] bg-[#e8f0fe] cursor-default'
-                                : 'border-[#e0e3e7] hover:border-[#4285F4] hover:bg-[#f8fafd] cursor-pointer'
-                            }`}
-                          >
-                            <div className="w-8 h-8 rounded-full bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] font-bold text-xs flex items-center justify-center shrink-0">
-                              {getInitials(u.firstName, u.lastName)}
+                  {/* Employee Directory List */}
+                  <div className="space-y-2">
+                    <p className="font-semibold text-[#5f6368] uppercase tracking-wider text-[10px]">Select Employee</p>
+                    {filteredEmployees.length === 0 ? (
+                      <p className="text-center py-6 text-[#5f6368]">No employees found</p>
+                    ) : (
+                      filteredEmployees.map(emp => (
+                        <div
+                          key={emp.id}
+                          onClick={() => handleAssign(emp.id)}
+                          className={`p-3 rounded-2xl border flex items-center justify-between cursor-pointer transition-all ${
+                            selectedAsset?.employee_id === emp.id
+                              ? 'border-[#4285F4] bg-[#e8f0fe]'
+                              : 'border-[#e0e3e7] bg-[#f8fafd] hover:bg-[#f1f3f4]'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-full bg-white border border-[#dadce0] flex items-center justify-center font-bold text-xs text-[#1a73e8]">
+                              {emp.first_name ? emp.first_name.charAt(0) : 'E'}
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold text-[#1f1f1f] text-xs truncate">{u.firstName} {u.lastName}</h4>
-                              <p className="text-[11px] text-[#5f6368] truncate">{u.employeeId} • {u.position || 'Staff'}</p>
+                            <div>
+                              <p className="font-semibold text-[#1f1f1f]">{emp.first_name} {emp.last_name}</p>
+                              <p className="text-[11px] text-[#5f6368]">{emp.designation || 'Staff'} • {emp.department || 'General'}</p>
                             </div>
-                            {isCurrent ? (
-                              <span className="text-[10px] font-bold text-[#1a73e8] bg-white px-2 py-0.5 rounded-full border border-[#d2e3fc]">
-                                Current Holder
-                              </span>
-                            ) : (
-                              <ArrowRight className="w-4 h-4 text-[#5f6368]" />
+                          </div>
+                          {selectedAsset?.employee_id === emp.id ? (
+                            <span className="text-[10px] font-bold text-[#1a73e8] bg-white px-2 py-0.5 rounded-full border border-[#d2e3fc]">Assigned</span>
+                          ) : (
+                            <ChevronRight className="w-4 h-4 text-[#5f6368]" />
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </>
+              ) : modalMode === 'history' ? (
+                /* History Timeline Mode */
+                <div className="space-y-4">
+                  {selectedAsset?.asset_history?.length === 0 ? (
+                    <div className="text-center py-10 text-[#5f6368]">
+                      <History className="w-8 h-8 mx-auto mb-2 opacity-40" />
+                      <p>No audit history recorded for this asset yet.</p>
+                    </div>
+                  ) : (
+                    <div className="relative pl-6 space-y-4 border-l border-[#e0e3e7] ml-2">
+                      {selectedAsset?.asset_history?.map((hist, i) => (
+                        <div key={i} className="relative group">
+                          <div className="absolute -left-[31px] top-1 w-3.5 h-3.5 rounded-full border-2 border-white bg-[#1a73e8] shadow-xs" />
+                          <div className="bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl p-3.5 space-y-1">
+                            <div className="flex items-center justify-between">
+                              <span className="font-semibold text-[#1f1f1f]">{hist.action}</span>
+                              <span className="text-[10px] text-[#5f6368]">{hist.timestamp ? format(new Date(hist.timestamp), 'dd MMM yyyy, hh:mm a') : '—'}</span>
+                            </div>
+                            <p className="text-[#5f6368]">{hist.details}</p>
+                            {hist.performed_by_name && (
+                              <p className="text-[10px] text-[#1a73e8] font-medium pt-1">By: {hist.performed_by_name}</p>
                             )}
                           </div>
-                        );
-                      })}
-                      {filteredUsersForModal.length === 0 && (
-                        <div className="py-8 text-center text-[#5f6368] text-xs italic">
-                          No employees matching "{modalSearch}"
                         </div>
-                      )}
+                      ))}
                     </div>
-                  </>
-                ) : modalMode === 'history' ? (
-                  <div className="space-y-4">
-                    {historyLoading ? (
-                      <div className="py-8 text-center text-[#5f6368]">
-                        <Loader2 className="w-6 h-6 animate-spin mx-auto text-[#4285F4] mb-2" />
-                        <p className="text-xs">Loading audit trail...</p>
-                      </div>
-                    ) : assetHistory.length === 0 ? (
-                      <div className="py-8 text-center text-[#5f6368] text-xs italic">No history records found for this asset.</div>
-                    ) : (
-                      <div className="relative border-l-2 border-[#e0e3e7] ml-3 pl-5 space-y-4">
-                        {assetHistory.map((log, index) => {
-                          const isCreation = log.action_type === 'INSERT';
-                          return (
-                            <motion.div
-                              key={index}
-                              initial={{ opacity: 0, x: -10 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ duration: 0.2, delay: index * 0.05 }}
-                              className="relative"
-                            >
-                              <div className={`absolute -left-[27px] top-1.5 h-3.5 w-3.5 rounded-full border-2 border-white shadow-xs ${isCreation ? 'bg-[#137333]' : 'bg-[#1a73e8]'}`} />
-                              <div className="bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl p-3.5 space-y-1.5">
-                                <div className="flex justify-between items-center">
-                                  <span className="text-[10px] font-semibold text-[#5f6368] bg-white px-2 py-0.5 rounded-full border border-[#dadce0]">
-                                    {format(new Date(log.timestamp), 'MMM d, yyyy h:mm a')}
-                                  </span>
-                                  {getStatusBadge(log.status)}
-                                </div>
-                                <h4 className="text-xs font-semibold text-[#1f1f1f]">
-                                  {isCreation ? 'Device Registered in Inventory' : 'Status / Allocation Changed'}
-                                </h4>
-                                {log.assigned_to_employee_id ? (
-                                  <p className="text-xs text-[#5f6368] flex items-center gap-1.5">
-                                    <UserCheck className="w-3.5 h-3.5 text-[#1a73e8]" />
-                                    Assigned to <span className="font-semibold text-[#1f1f1f]">{log.firstName} {log.lastName}</span>
-                                  </p>
-                                ) : (
-                                  !isCreation && (
-                                    <p className="text-xs text-[#5f6368] flex items-center gap-1.5">
-                                      <ShieldCheck className="w-3.5 h-3.5 text-[#137333]" />
-                                      Returned to Available Inventory
-                                    </p>
-                                  )
-                                )}
-                              </div>
-                            </motion.div>
-                          );
-                        })}
-                      </div>
-                    )}
+                  )}
+                </div>
+              ) : (
+                /* Add / Edit Form */
+                <form id="asset-form" onSubmit={handleSaveAsset} className="space-y-4">
+                  <div>
+                    <label className="block font-semibold text-[#1f1f1f] mb-1">Asset Name *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. MacBook Pro 16, Dell UltraSharp 27"
+                      value={formData.name}
+                      onChange={e => setFormData({ ...formData, name: e.target.value })}
+                      className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all"
+                    />
                   </div>
-                ) : (
-                  <form id="asset-form" onSubmit={handleSaveAsset} className="space-y-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5">
-                        Asset Name
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={formData.name}
-                        onChange={e => setFormData({ ...formData, name: e.target.value })}
-                        className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all"
-                        placeholder="e.g. MacBook Pro M3 Max"
-                      />
-                    </div>
 
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5">
-                        Category
-                      </label>
+                      <label className="block font-semibold text-[#1f1f1f] mb-1">Asset Category *</label>
                       <select
                         value={formData.category}
                         onChange={e => setFormData({ ...formData, category: e.target.value })}
                         className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none cursor-pointer transition-all"
                       >
-                        {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                        {categories.filter(c => c !== 'All').map(cat => (
+                          <option key={cat} value={cat}>{cat}</option>
+                        ))}
                       </select>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5">
-                        Serial Number / Tag ID
-                      </label>
+                      <label className="block font-semibold text-[#1f1f1f] mb-1">Serial Number</label>
                       <input
                         type="text"
+                        placeholder="e.g. C02G1234MD6R"
                         value={formData.serial_number}
                         onChange={e => setFormData({ ...formData, serial_number: e.target.value })}
                         className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none font-mono transition-all"
-                        placeholder="e.g. C02X1234ABCD"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block font-semibold text-[#1f1f1f] mb-1">Purchase Date</label>
+                      <input
+                        type="date"
+                        value={formData.purchase_date}
+                        onChange={e => setFormData({ ...formData, purchase_date: e.target.value })}
+                        className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5">
-                        Operational Status
-                      </label>
-                      <select
-                        value={formData.status}
-                        onChange={e => setFormData({ ...formData, status: e.target.value })}
-                        className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none cursor-pointer transition-all"
-                      >
-                        <option value="Available">Available (In Stock)</option>
-                        <option value="Assigned">Assigned</option>
-                        <option value="Maintenance">Maintenance</option>
-                        <option value="Damaged">Damaged</option>
-                        <option value="Retired">Retired</option>
-                      </select>
+                      <label className="block font-semibold text-[#1f1f1f] mb-1">Purchase Cost (₹)</label>
+                      <input
+                        type="number"
+                        placeholder="e.g. 85000"
+                        value={formData.purchase_cost}
+                        onChange={e => setFormData({ ...formData, purchase_cost: e.target.value })}
+                        className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none font-mono transition-all"
+                      />
                     </div>
-                  </form>
-                )}
-              </div>
+                  </div>
 
-              {/* Footer */}
-              {(modalMode === 'add' || modalMode === 'edit') && (
-                <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex justify-end gap-2.5">
-                  <button
-                    onClick={closeModal}
-                    className="px-4 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    form="asset-form"
-                    disabled={saving}
-                    className="inline-flex items-center justify-center gap-2 px-5 py-2 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs transition-all cursor-pointer disabled:opacity-50"
-                  >
-                    <Sparkles className="w-3.5 h-3.5" />
-                    {saving ? 'Saving...' : modalMode === 'add' ? 'Register Asset' : 'Save Changes'}
-                  </button>
-                </div>
+                  <div>
+                    <label className="block font-semibold text-[#1f1f1f] mb-1">Specifications / Model Notes</label>
+                    <textarea
+                      rows="2"
+                      placeholder="e.g. M2 Pro / 16GB Unified RAM / 512GB SSD / Space Grey"
+                      value={formData.specifications}
+                      onChange={e => setFormData({ ...formData, specifications: e.target.value })}
+                      className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all resize-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-semibold text-[#1f1f1f] mb-1">Initial Status</label>
+                    <select
+                      value={formData.status}
+                      onChange={e => setFormData({ ...formData, status: e.target.value })}
+                      className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none cursor-pointer transition-all"
+                    >
+                      <option value="Available">Available (In Stock)</option>
+                      <option value="Assigned">Assigned</option>
+                      <option value="Maintenance">Maintenance</option>
+                      <option value="Damaged">Damaged</option>
+                      <option value="Retired">Retired</option>
+                    </select>
+                  </div>
+                </form>
               )}
             </div>
-          </div>
+
+            {/* Footer */}
+            {(modalMode === 'add' || modalMode === 'edit') && (
+              <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex justify-end gap-2.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="px-4 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  form="asset-form"
+                  disabled={saving}
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs transition-all cursor-pointer disabled:opacity-50"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  {saving ? 'Saving...' : modalMode === 'add' ? 'Register Asset' : 'Save Changes'}
+                </button>
+              </div>
+            )}
+          </motion.div>
         </div>,
         document.body
       )}

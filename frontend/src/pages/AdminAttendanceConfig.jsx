@@ -324,14 +324,17 @@ const AdminAttendanceConfig = () => {
             className="bg-white shadow-2xl w-full max-w-md h-[100dvh] flex flex-col overflow-hidden relative"
           >
             {/* Top Accent Stripe */}
-            <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#34A853] via-[#FBBC05] to-[#EA4335] absolute top-0 left-0" />
+            <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
 
             {/* Header */}
             <div className="px-6 py-4 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd] mt-1 shrink-0">
               <div>
-                <div className="flex items-center gap-1.5 text-[#1a73e8] mb-0.5">
-                  <Globe size={15} />
-                  <span className="text-[10.5px] font-bold uppercase tracking-wider">Geo-Fence Configuration</span>
+                <div className="flex items-center gap-1 mb-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+                  <span className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Geo-Fence Configuration</span>
                 </div>
                 <h2 className="text-lg font-semibold text-[#1f1f1f]">{editingGeo ? 'Edit Geo Location' : 'Add Geo Location'}</h2>
               </div>
@@ -446,14 +449,17 @@ const AdminAttendanceConfig = () => {
             className="bg-white shadow-2xl w-full max-w-md h-[100dvh] flex flex-col overflow-hidden relative"
           >
             {/* Top Accent Stripe */}
-            <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#34A853] via-[#FBBC05] to-[#EA4335] absolute top-0 left-0" />
+            <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
 
             {/* Header */}
             <div className="px-6 py-4 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd] mt-1 shrink-0">
               <div>
-                <div className="flex items-center gap-1.5 text-[#1a73e8] mb-0.5">
-                  <Clock size={15} />
-                  <span className="text-[10.5px] font-bold uppercase tracking-wider">Shift Timings</span>
+                <div className="flex items-center gap-1 mb-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+                  <span className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Shift Timings</span>
                 </div>
                 <h2 className="text-lg font-semibold text-[#1f1f1f]">{editingShift ? 'Edit Shift Time' : 'Add Shift Time'}</h2>
               </div>

@@ -1,6 +1,21 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Phone, MapPin, Calendar, Clock, CheckCircle2, UserPlus, XCircle, Loader2, RefreshCw, Briefcase, Check } from 'lucide-react';
+import { 
+  X, 
+  Phone, 
+  MapPin, 
+  Calendar, 
+  Clock, 
+  CheckCircle2, 
+  UserPlus, 
+  XCircle, 
+  Loader2, 
+  RefreshCw, 
+  Briefcase, 
+  Check,
+  TrendingUp
+} from 'lucide-react';
 import { format } from 'date-fns';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateLeadStatus } from '../services/loanServices';
@@ -96,28 +111,28 @@ const LeadDetailsSidebar = ({ isOpen, onClose, lead, type = 'loan' }) => {
     }
   };
 
-  if (!lead) return null;
+  if (!isOpen || !lead) return null;
 
   const getStatusBadge = (status) => {
     switch (status) {
       case 'New':
-        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700"><Clock size={12} /> New</span>;
+        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]"><Clock size={11} /> New</span>;
       case 'Contacted':
       case 'Follow Up':
-        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-violet-100 text-violet-700"><RefreshCw size={12} /> Follow Up</span>;
+        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#f3e8fd] text-[#8430ce] border border-[#e9d5ff]"><TrendingUp size={11} /> Follow Up</span>;
       case 'Proposal Sent':
       case 'Negotiation':
       case 'Active':
       case 'In Progress':
-        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700"><Clock size={12} /> {status}</span>;
+        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#fef7e0] text-[#b06000] border border-[#feefc3]"><Clock size={11} /> {status}</span>;
       case 'Won':
       case 'Converted':
-        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700"><CheckCircle2 size={12} /> Converted</span>;
+        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#e6f4ea] text-[#137333] border border-[#ceead6]"><CheckCircle2 size={11} /> Converted</span>;
       case 'Lost':
       case 'Not Interested':
-        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-100 text-rose-700"><XCircle size={12} /> Not Interested</span>;
+        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf]"><XCircle size={11} /> Not Interested</span>;
       default:
-        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">{status}</span>;
+        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]">{status || '—'}</span>;
     }
   };
 
@@ -125,226 +140,228 @@ const LeadDetailsSidebar = ({ isOpen, onClose, lead, type = 'loan' }) => {
   const isConverted = lead.status === 'Converted';
   const currentOptions = isSale ? saleProductTypeOptions : loanTypeOptions;
 
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-50 cursor-pointer"
-          />
+  return createPortal(
+    <div 
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm"
+    >
+      <motion.div 
+        initial={{ x: '100%' }}
+        animate={{ x: 0 }}
+        exit={{ x: '100%' }}
+        transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
+        className="bg-white shadow-2xl w-full max-w-md h-[100dvh] flex flex-col overflow-hidden relative z-10 border-l border-[#e0e3e7]"
+      >
+        {/* Top 4-Color Google Accent Line */}
+        <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
 
-          {/* Sidebar Drawer */}
-          <motion.div
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl z-50 flex flex-col border-l border-slate-200"
-          >
-            {viewMode === 'convert' ? (
-              /* Convert View (Select Loan Type or Product Type) */
-              <>
-                {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-slate-100">
-                  <div className="flex items-center gap-2.5 text-emerald-600 font-bold text-lg">
-                    <UserPlus size={22} className="shrink-0" />
-                    <span>Convert to Member</span>
-                  </div>
-                  <button
-                    onClick={() => setViewMode('details')}
-                    className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-2 rounded-full transition-colors cursor-pointer"
-                    title="Back to details"
-                  >
-                    <X size={20} />
-                  </button>
+        {viewMode === 'convert' ? (
+          /* Convert View */
+          <>
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd] mt-1 shrink-0">
+              <div>
+                <div className="flex items-center gap-1 mb-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+                  <span className="text-[10.5px] font-semibold text-[#137333] uppercase tracking-wider ml-1">Member Conversion</span>
                 </div>
+                <h2 className="text-lg font-semibold text-[#1f1f1f]">Convert to Member</h2>
+              </div>
+              <button 
+                onClick={() => setViewMode('details')} 
+                className="text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4] p-1.5 rounded-full transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
 
-                {/* Content */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-5">
-                  <p className="text-sm text-slate-600 leading-relaxed">
-                    Select the {isSale ? 'product type' : 'loan product'} for <span className="font-semibold text-slate-900">{lead.name}</span> to convert them into an active member.
-                  </p>
+            {/* Content */}
+            <div className="p-6 overflow-y-auto flex-1 space-y-4">
+              <p className="text-xs text-[#5f6368] leading-relaxed">
+                Select the {isSale ? 'product type' : 'loan product'} for <span className="font-semibold text-[#1f1f1f]">{lead.name}</span> to finalize membership:
+              </p>
 
-                  <div className="space-y-3">
-                    {currentOptions.map((opt) => {
-                      const isSelected = selectedType === opt.value;
-                      return (
-                        <div
-                          key={opt.value}
-                          onClick={() => setSelectedType(opt.value)}
-                          className={`p-3.5 rounded-2xl border flex items-center justify-between cursor-pointer transition-all ${
-                            isSelected
-                              ? 'border-emerald-500 bg-emerald-50/50 shadow-xs'
-                              : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/60 bg-white'
-                          }`}
-                        >
-                          <div>
-                            <p className={`text-sm font-semibold ${isSelected ? 'text-emerald-900 font-bold' : 'text-slate-800'}`}>
-                              {opt.label}
-                            </p>
-                            <p className="text-xs text-slate-500 mt-0.5">{opt.desc}</p>
-                          </div>
-                          <div
-                            className={`w-5 h-5 rounded-full flex items-center justify-center border shrink-0 transition-colors ${
-                              isSelected
-                                ? 'bg-emerald-600 border-emerald-600 text-white'
-                                : 'border-slate-300 bg-white'
-                            }`}
-                          >
-                            {isSelected && <Check size={12} strokeWidth={3} />}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Footer */}
-                <div className="p-6 border-t border-slate-100 bg-white flex items-center justify-end gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setViewMode('details')}
-                    className="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleConfirmConvert}
-                    disabled={isPending}
-                    className="px-5 py-2.5 rounded-xl text-sm font-semibold bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm shadow-emerald-600/20 transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer active:scale-95"
-                  >
-                    {isPending ? (
-                      <Loader2 size={16} className="animate-spin" />
-                    ) : (
-                      <UserPlus size={16} />
-                    )}
-                    Confirm &amp; Convert
-                  </button>
-                </div>
-              </>
-            ) : (
-              /* Lead Details View */
-              <>
-                {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
-                  <div>
-                    <h2 className="text-xl font-bold text-slate-900">Lead Details</h2>
-                    <p className="text-xs text-slate-500 mt-0.5">Manage lead status and actions</p>
-                  </div>
-                  <button
-                    onClick={onClose}
-                    className="text-slate-400 hover:text-slate-600 hover:bg-slate-200 p-2 rounded-full transition-colors cursor-pointer"
-                  >
-                    <X size={20} />
-                  </button>
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                  {/* Profile Info */}
-                  <div className="flex items-start gap-4">
-                    <div className={`w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold uppercase shrink-0 shadow-inner ${
-                      isSale ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-600'
-                    }`}>
-                      {lead.name ? lead.name.charAt(0) : 'L'}
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-slate-900">{lead.name}</h3>
-                      <div className="mt-2">{getStatusBadge(lead.status)}</div>
-                    </div>
-                  </div>
-
-                  {/* Details List */}
-                  <div className="space-y-4 bg-slate-50 p-5 rounded-2xl border border-slate-100 text-sm">
-                    <div className="flex flex-col gap-1">
-                      <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Contact</span>
-                      <div className="flex items-center gap-2 text-slate-700">
-                        <Phone size={16} className="text-slate-400" />
-                        <span className="font-medium">{maskPhoneNumber(lead.phone)}</span>
+              <div className="space-y-2.5">
+                {currentOptions.map((opt) => {
+                  const isSelected = selectedType === opt.value;
+                  return (
+                    <div
+                      key={opt.value}
+                      onClick={() => setSelectedType(opt.value)}
+                      className={`p-3.5 rounded-2xl border flex items-center justify-between cursor-pointer transition-all ${
+                        isSelected
+                          ? 'border-[#1a73e8] bg-[#e8f0fe]/60 shadow-2xs'
+                          : 'border-[#e0e3e7] hover:border-[#dadce0] hover:bg-[#f8fafd] bg-white'
+                      }`}
+                    >
+                      <div>
+                        <p className={`text-xs font-semibold ${isSelected ? 'text-[#1a73e8]' : 'text-[#1f1f1f]'}`}>
+                          {opt.label}
+                        </p>
+                        <p className="text-[11px] text-[#5f6368] mt-0.5">{opt.desc}</p>
+                      </div>
+                      <div
+                        className={`w-5 h-5 rounded-full flex items-center justify-center border shrink-0 transition-colors ${
+                          isSelected
+                            ? 'bg-[#1a73e8] border-[#1a73e8] text-white'
+                            : 'border-[#dadce0] bg-white'
+                        }`}
+                      >
+                        {isSelected && <Check size={12} strokeWidth={3} />}
                       </div>
                     </div>
+                  );
+                })}
+              </div>
+            </div>
 
-                    <div className="flex flex-col gap-1 pt-3 border-t border-slate-200/60">
-                      <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                        {isSale ? 'Product Type' : 'Loan Type'}
-                      </span>
-                      <div className="flex items-center gap-2 text-slate-700">
-                        <Briefcase size={16} className="text-slate-400" />
-                        <span className="font-medium">{isSale ? (lead.product_type || '—') : (lead.loan_type || '—')}</span>
-                      </div>
-                    </div>
+            {/* Footer */}
+            <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex items-center justify-end gap-2.5 shrink-0">
+              <button
+                type="button"
+                onClick={() => setViewMode('details')}
+                className="px-4 py-2 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-xs font-semibold text-[#1f1f1f] transition-all cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmConvert}
+                disabled={isPending}
+                className="px-5 py-2 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer active:scale-95"
+              >
+                {isPending ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : (
+                  <UserPlus size={14} />
+                )}
+                <span>Confirm &amp; Convert</span>
+              </button>
+            </div>
+          </>
+        ) : (
+          /* Lead Details View */
+          <>
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd] mt-1 shrink-0">
+              <div>
+                <div className="flex items-center gap-1 mb-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+                  <span className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Prospect Profile</span>
+                </div>
+                <h2 className="text-lg font-semibold text-[#1f1f1f]">Lead Details</h2>
+              </div>
+              <button 
+                onClick={onClose} 
+                className="text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4] p-1.5 rounded-full transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
 
-                    <div className="flex flex-col gap-1 pt-3 border-t border-slate-200/60">
-                      <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Location</span>
-                      <div className="flex items-start gap-2 text-slate-700">
-                        <MapPin size={16} className="text-slate-400 mt-0.5 shrink-0" />
-                        <span className="font-medium">{lead.address || '—'}</span>
-                      </div>
-                    </div>
+            {/* Content */}
+            <div className="p-6 overflow-y-auto flex-1 space-y-5">
+              {/* Profile Info */}
+              <div className="flex items-center gap-3.5">
+                <div className="w-13 h-13 rounded-full bg-[#e8f0fe] border border-[#d2e3fc] text-[#1a73e8] font-bold text-lg flex items-center justify-center uppercase shrink-0 shadow-2xs">
+                  {lead.name ? lead.name.charAt(0) : 'L'}
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-base font-bold text-[#1f1f1f] leading-snug">{lead.name}</h3>
+                  <div>{getStatusBadge(lead.status)}</div>
+                </div>
+              </div>
 
-                    <div className="flex flex-col gap-1 pt-3 border-t border-slate-200/60">
-                      <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Created On</span>
-                      <div className="flex items-center gap-2 text-slate-700">
-                        <Calendar size={16} className="text-slate-400" />
-                        <span className="font-medium">{lead.created_at ? format(new Date(lead.created_at), 'MMM d, yyyy h:mm a') : '—'}</span>
-                      </div>
-                    </div>
+              {/* Details List Card */}
+              <div className="space-y-3 bg-[#f8fafd] p-4.5 rounded-2xl border border-[#e0e3e7] text-xs">
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Contact</span>
+                  <div className="flex items-center gap-2 text-[#1f1f1f] font-medium pt-0.5">
+                    <Phone size={14} className="text-[#1a73e8]" />
+                    <span>{maskPhoneNumber(lead.phone)}</span>
                   </div>
                 </div>
 
-                {/* Actions Footer */}
-                <div className="p-6 border-t border-slate-100 bg-white grid grid-cols-1 gap-3">
-                  <button
-                    onClick={() => handleUpdateStatus('Follow Up')}
-                    disabled={isPending || isConverted}
-                    className="w-full flex items-center justify-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-700 px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors border border-blue-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                  >
-                    {isPending ? (
-                      <Loader2 size={18} className="animate-spin" />
-                    ) : (
-                      <Clock size={18} />
-                    )}
-                    Followup
-                  </button>
-
-                  <button
-                    onClick={() => handleUpdateStatus('Converted')}
-                    disabled={isPending || isConverted}
-                    className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm shadow-emerald-600/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                  >
-                    {isPending ? (
-                      <Loader2 size={18} className="animate-spin" />
-                    ) : (
-                      <UserPlus size={18} />
-                    )}
-                    Convert to Member
-                  </button>
-
-                  <button
-                    onClick={() => handleUpdateStatus('Not Interested')}
-                    disabled={isPending || isConverted}
-                    className="w-full flex items-center justify-center gap-2 bg-white hover:bg-red-50 text-red-600 border border-red-200 px-4 py-2.5 rounded-lg text-sm font-semibold transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                  >
-                    {isPending ? (
-                      <Loader2 size={18} className="animate-spin" />
-                    ) : (
-                      <XCircle size={18} />
-                    )}
-                    Not Interested
-                  </button>
+                <div className="flex flex-col gap-0.5 pt-2.5 border-t border-[#e0e3e7]/70">
+                  <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">
+                    {isSale ? 'Product Type' : 'Loan Type'}
+                  </span>
+                  <div className="flex items-center gap-2 text-[#1f1f1f] font-medium pt-0.5">
+                    <Briefcase size={14} className="text-[#1a73e8]" />
+                    <span>{isSale ? (lead.product_type || '—') : (lead.loan_type || '—')}</span>
+                  </div>
                 </div>
-              </>
-            )}
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+
+                <div className="flex flex-col gap-0.5 pt-2.5 border-t border-[#e0e3e7]/70">
+                  <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Location</span>
+                  <div className="flex items-start gap-2 text-[#1f1f1f] font-medium pt-0.5">
+                    <MapPin size={14} className="text-[#1a73e8] mt-0.5 shrink-0" />
+                    <span className="leading-relaxed">{lead.address || '—'}</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-0.5 pt-2.5 border-t border-[#e0e3e7]/70">
+                  <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Created Date</span>
+                  <div className="flex items-center gap-2 text-[#1f1f1f] font-medium pt-0.5">
+                    <Calendar size={14} className="text-[#1a73e8]" />
+                    <span>{lead.created_at ? format(new Date(lead.created_at), 'MMM d, yyyy h:mm a') : '—'}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions Footer */}
+            <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] grid grid-cols-1 gap-2.5 shrink-0">
+              <button
+                type="button"
+                onClick={() => handleUpdateStatus('Follow Up')}
+                disabled={isPending || isConverted}
+                className="w-full flex items-center justify-center gap-1.5 bg-[#f3e8fd] hover:bg-[#ebd4fc] text-[#8430ce] border border-[#e9d5ff] px-4 py-2.5 rounded-full text-xs font-semibold transition-all shadow-2xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer active:scale-98"
+              >
+                {isPending ? (
+                  <Loader2 size={15} className="animate-spin" />
+                ) : (
+                  <Clock size={15} />
+                )}
+                <span>Follow Up</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleUpdateStatus('Converted')}
+                disabled={isPending || isConverted}
+                className="w-full flex items-center justify-center gap-1.5 bg-[#1a73e8] hover:bg-[#1557b0] text-white px-4 py-2.5 rounded-full text-xs font-semibold transition-all shadow-xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer active:scale-98"
+              >
+                {isPending ? (
+                  <Loader2 size={15} className="animate-spin" />
+                ) : (
+                  <UserPlus size={15} />
+                )}
+                <span>Convert to Member</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleUpdateStatus('Not Interested')}
+                disabled={isPending || isConverted}
+                className="w-full flex items-center justify-center gap-1.5 bg-white hover:bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf] px-4 py-2.5 rounded-full text-xs font-semibold transition-all shadow-2xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer active:scale-98"
+              >
+                {isPending ? (
+                  <Loader2 size={15} className="animate-spin" />
+                ) : (
+                  <XCircle size={15} />
+                )}
+                <span>Not Interested</span>
+              </button>
+            </div>
+          </>
+        )}
+      </motion.div>
+    </div>,
+    document.body
   );
 };
 

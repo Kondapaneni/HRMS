@@ -5,7 +5,6 @@ import api from '../api/axios';
 import toast from 'react-hot-toast';
 import {
   HelpCircle, 
-  ArrowLeft, 
   ArrowRight, 
   CheckCircle2, 
   Shield, 
@@ -226,29 +225,20 @@ const AssessmentCreate = () => {
     <div className="space-y-6 pb-12">
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate('/admin/assessments/management')}
-            className="p-2 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#5f6368] transition-all cursor-pointer shadow-2xs"
-            title="Back to Assessments"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </button>
-          <div>
-            <div className="flex items-center gap-1.5 mb-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-              <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Assessment Builder</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight">
-              {isEditing ? `Edit: ${form.title || 'Assessment'}` : 'Create New Assessment'}
-            </h1>
-            <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
-              Select questions from bank, assign targeted staff, and set custom timings & anti-cheating controls.
-            </p>
+        <div>
+          <div className="flex items-center gap-1.5 mb-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+            <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Assessment Builder</span>
           </div>
+          <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight">
+            {isEditing ? `Edit: ${form.title || 'Assessment'}` : 'Create New Assessment'}
+          </h1>
+          <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
+            Select questions from bank, assign targeted staff, and set custom timings & anti-cheating controls.
+          </p>
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">

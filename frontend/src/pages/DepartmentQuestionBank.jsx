@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createPortal } from 'react-dom';
+import { motion } from 'framer-motion';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import {
@@ -470,40 +471,45 @@ const DepartmentQuestionBank = () => {
 
       {/* Slideover Right Drawer (createPortal) */}
       {showModal && createPortal(
-        <div className="fixed inset-0 z-50 overflow-hidden">
-          <div 
-            className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity" 
-            onClick={() => setShowModal(false)} 
-          />
-          <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-            <div className="w-screen max-w-2xl bg-white shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
-              
-              {/* Drawer Header */}
-              <div className="p-5 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd]">
-                <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-xl bg-[#e8f0fe] text-[#1a73e8]">
-                    <HelpCircle className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-semibold text-[#1f1f1f]">
-                      {editingId ? 'Edit Department Question' : 'Add Question to Bank'}
-                    </h3>
-                    <p className="text-xs text-[#5f6368]">
-                      Configure question type, statements, options, and key answers
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="p-1.5 rounded-full text-[#5f6368] hover:bg-[#e8eaed] transition-colors cursor-pointer"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
+        <div 
+          onClick={(e) => { if (e.target === e.currentTarget) setShowModal(false); }}
+          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm"
+        >
+          <motion.div 
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
+            className="bg-white shadow-2xl w-full max-w-2xl h-[100dvh] flex flex-col overflow-hidden relative z-10 border-l border-[#e0e3e7]"
+          >
+            {/* Top 4-Color Google Accent Line */}
+            <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
 
-              {/* Drawer Body */}
-              <div className="p-6 overflow-y-auto flex-1 custom-scrollbar space-y-5 text-xs">
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd] mt-1 shrink-0">
+              <div>
+                <div className="flex items-center gap-1 mb-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+                  <span className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Question Bank</span>
+                </div>
+                <h2 className="text-lg font-semibold text-[#1f1f1f]">
+                  {editingId ? 'Edit Department Question' : 'Add Question to Bank'}
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowModal(false)}
+                className="text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4] p-1.5 rounded-full transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Drawer Body */}
+            <div className="p-6 overflow-y-auto flex-1 custom-scrollbar space-y-5 text-xs">
                 
                 {/* Department & Type */}
                 <div className="bg-[#f8fafd] rounded-2xl border border-[#e0e3e7] p-4 space-y-4">
@@ -724,12 +730,10 @@ const DepartmentQuestionBank = () => {
                   <span>{editingId ? 'Update & Add Another' : 'Save & Add Next'}</span>
                 </button>
               </div>
-
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
+            </motion.div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 };

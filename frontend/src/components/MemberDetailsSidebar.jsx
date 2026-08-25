@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Phone, Briefcase, CheckCircle2, ArrowRight, Lock, MapPin, Calendar } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -25,155 +26,159 @@ const MemberDetailsSidebar = ({ isOpen, onClose, member, type = 'loan' }) => {
     );
   }, [appsResponse]);
 
-  if (!member) return null;
+  if (!isOpen || !member) return null;
 
   const defaultLeadId = String(member.lead_id || member.id || '');
   const isMemberDefaultCreated = createdLeadIds.has(defaultLeadId);
 
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-50 cursor-pointer"
-          />
-          
-          {/* Sidebar */}
-          <motion.div
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed top-0 right-0 h-full w-full sm:w-[400px] bg-white shadow-2xl z-50 flex flex-col overflow-hidden border-l border-slate-100"
+  return createPortal(
+    <div 
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm"
+    >
+      <motion.div 
+        initial={{ x: '100%' }}
+        animate={{ x: 0 }}
+        exit={{ x: '100%' }}
+        transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
+        className="bg-white shadow-2xl w-full max-w-md h-[100dvh] flex flex-col overflow-hidden relative z-10 border-l border-[#e0e3e7]"
+      >
+        {/* Top 4-Color Google Accent Line */}
+        <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
+
+        {/* Modal Header */}
+        <div className="px-6 py-4 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd] mt-1 shrink-0">
+          <div>
+            <div className="flex items-center gap-1 mb-0.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+              <span className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Member Profile</span>
+            </div>
+            <h2 className="text-lg font-semibold text-[#1f1f1f]">Member Details</h2>
+          </div>
+          <button 
+            onClick={onClose} 
+            className="text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4] p-1.5 rounded-full transition-colors cursor-pointer"
           >
-            {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-white">
-              <div>
-                <h2 className="text-lg font-bold text-slate-900">Member Details</h2>
-              </div>
-              <button 
-                onClick={onClose}
-                className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
-              >
-                <X size={20} />
-              </button>
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Scrollable Content */}
+        <div className="p-6 overflow-y-auto flex-1 space-y-6">
+          
+          {/* Member Profile Info */}
+          <div className="flex items-center gap-3.5">
+            <div className={`w-13 h-13 rounded-full flex items-center justify-center text-lg font-bold uppercase shrink-0 shadow-2xs border ${
+              isSale 
+                ? 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]' 
+                : 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]'
+            }`}>
+              {member.name ? member.name.charAt(0) : 'M'}
             </div>
-
-            {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-8">
-              
-              {/* Member Profile Info */}
-              <div className="flex items-start gap-4">
-                <div className={`w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold shrink-0 ${
-                  isSale ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-600'
-                }`}>
-                  {member.name ? member.name.charAt(0) : 'M'}
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-slate-900">{member.name}</h3>
-                  <div className="flex items-center gap-2 text-slate-500 mt-1">
-                    <Phone size={14} />
-                    <span className="text-sm font-medium">{maskPhoneNumber(member.phone)}</span>
-                  </div>
-                  {member.address && (
-                    <div className="flex items-center gap-2 text-slate-500 mt-1 text-xs">
-                      <MapPin size={13} className="shrink-0" />
-                      <span className="truncate">{member.address}</span>
-                    </div>
-                  )}
-                </div>
+            <div className="space-y-1">
+              <h3 className="text-base font-bold text-[#1f1f1f] leading-snug">{member.name}</h3>
+              <div className="flex items-center gap-2 text-xs text-[#5f6368]">
+                <Phone size={13} className="text-[#1a73e8]" />
+                <span>{maskPhoneNumber(member.phone)}</span>
               </div>
+              {member.address && (
+                <div className="flex items-center gap-1.5 text-xs text-[#5f6368]">
+                  <MapPin size={13} className="text-[#1a73e8] shrink-0" />
+                  <span className="truncate max-w-[260px]">{member.address}</span>
+                </div>
+              )}
+            </div>
+          </div>
 
-              {/* History Section */}
-              <div className="space-y-4">
-                <h4 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                  <Briefcase size={16} className="text-slate-500" />
-                  {isSale ? 'Product History' : 'Loan History'}
-                </h4>
-                
-                <div className="grid gap-3">
-                  {isSale ? (
-                    member.products && member.products.length > 0 ? (
-                      member.products.map((item) => (
-                        <div key={item.id} className="bg-slate-50 border border-slate-100 rounded-xl p-4 transition-all hover:shadow-md hover:border-slate-200">
-                          <div className="flex justify-between items-start mb-2">
-                            <div className="font-semibold text-slate-800 text-sm">
-                              {item.product_type || 'General Member Product'}
-                            </div>
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700">
-                              <CheckCircle2 size={12} /> Converted
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                            <Calendar size={12} />
-                            <span>{item.created_at ? format(new Date(item.created_at), 'MMM d, yyyy') : '—'}</span>
-                          </div>
-                          <div className="pt-1">
-                            <span className="inline-flex items-center gap-1 text-sm font-medium text-emerald-600 hover:text-emerald-700 hover:underline transition-all cursor-pointer">
-                              Fill Application <ArrowRight size={14} />
-                            </span>
-                          </div>
+          {/* History Section */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-semibold text-[#5f6368] uppercase tracking-wider flex items-center gap-1.5">
+              <Briefcase size={14} className="text-[#1a73e8]" />
+              <span>{isSale ? 'Product History' : 'Loan Product History'}</span>
+            </h4>
+            
+            <div className="grid gap-2.5">
+              {isSale ? (
+                member.products && member.products.length > 0 ? (
+                  member.products.map((item) => (
+                    <div key={item.id} className="bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl p-4 transition-all hover:border-[#1a73e8]">
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="font-semibold text-[#1f1f1f] text-xs">
+                          {item.product_type || 'General Member Product'}
                         </div>
-                      ))
-                    ) : (
-                      <div className="text-center p-4 text-slate-500 text-sm bg-slate-50 rounded-lg">
-                        <p>No product history available.</p>
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">
+                          <CheckCircle2 size={11} /> Converted
+                        </span>
                       </div>
-                    )
-                  ) : (
-                    member.loans && member.loans.map((loan) => {
-                      const currentLeadId = String(loan.id || loan.lead_id || member.lead_id || '');
-                      const isCreated = createdLeadIds.has(currentLeadId);
+                      <div className="flex items-center gap-1.5 text-[11px] text-[#80868b]">
+                        <Calendar size={11} />
+                        <span>{item.created_at ? format(new Date(item.created_at), 'MMM d, yyyy') : '—'}</span>
+                      </div>
+                      <div className="pt-2">
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#1a73e8] hover:underline cursor-pointer">
+                          Fill Application <ArrowRight size={13} />
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center p-6 text-[#5f6368] text-xs bg-[#f8fafd] rounded-2xl border border-[#e0e3e7]">
+                    <p>No product history available.</p>
+                  </div>
+                )
+              ) : (
+                member.loans && member.loans.map((loan) => {
+                  const currentLeadId = String(loan.id || loan.lead_id || member.lead_id || '');
+                  const isCreated = createdLeadIds.has(currentLeadId);
 
-                      return (
-                        <div key={loan.id} className="bg-slate-50 border border-slate-100 rounded-lg p-4 transition-all hover:shadow-md hover:border-slate-200">
-                          <div className="flex justify-between items-start mb-3">
-                            <div className="font-semibold text-slate-800">
-                              {loan.loan_type}
-                            </div>
-                            {isLoadingApps && !appsResponse ? (
-                              <div className="h-5 w-16 bg-slate-200 animate-pulse rounded-full" />
-                            ) : (
-                              <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                                isCreated ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-                              }`}>
-                                <CheckCircle2 size={12} /> {isCreated ? 'Created' : (loan.status || 'Draft')}
-                              </span>
-                            )}
-                          </div>
-                          
-                          {isLoadingApps && !appsResponse ? (
-                            <div className="h-8 w-36 bg-slate-200 animate-pulse rounded-md" />
-                          ) : isCreated ? (
-                            <div className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-md bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed select-none">
-                              <Lock size={12} className="text-slate-400" /> Application Created
-                            </div>
-                          ) : (
-                            <Link 
-                              to="/employee/loans/form"
-                              state={{ name: member.name, phone: member.phone, lead_id: currentLeadId, loan_type: loan.loan_type }}
-                              className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline transition-all"
-                            >
-                              Fill Application <ArrowRight size={14} />
-                            </Link>
-                          )}
+                  return (
+                    <div key={loan.id} className="bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl p-4 transition-all hover:border-[#1a73e8]">
+                      <div className="flex justify-between items-start mb-2.5">
+                        <div className="font-semibold text-[#1f1f1f] text-xs">
+                          {loan.loan_type}
                         </div>
-                      );
-                    })
-                  )}
-                </div>
-              </div>
-
+                        {isLoadingApps && !appsResponse ? (
+                          <div className="h-5 w-16 bg-[#e0e3e7] animate-pulse rounded-full" />
+                        ) : (
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${
+                            isCreated 
+                              ? 'bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]' 
+                              : 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6]'
+                          }`}>
+                            <CheckCircle2 size={11} /> {isCreated ? 'Created' : (loan.status || 'Converted')}
+                          </span>
+                        )}
+                      </div>
+                      
+                      {isLoadingApps && !appsResponse ? (
+                        <div className="h-7 w-32 bg-[#e0e3e7] animate-pulse rounded-full" />
+                      ) : isCreated ? (
+                        <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1 rounded-full bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0] cursor-not-allowed select-none">
+                          <Lock size={11} className="text-[#80868b]" /> Application Created
+                        </div>
+                      ) : (
+                        <Link 
+                          to="/employee/loans/form"
+                          state={{ name: member.name, phone: member.phone, lead_id: currentLeadId, loan_type: loan.loan_type }}
+                          className="inline-flex items-center gap-1 text-xs font-semibold text-[#1a73e8] hover:underline"
+                        >
+                          Fill Application <ArrowRight size={13} />
+                        </Link>
+                      )}
+                    </div>
+                  );
+                })
+              )}
             </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+          </div>
+
+        </div>
+      </motion.div>
+    </div>,
+    document.body
   );
 };
 

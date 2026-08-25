@@ -7,8 +7,21 @@ import {
   Camera,
   Printer,
   Loader2,
-  X
+  X,
+  ArrowLeft,
+  Briefcase,
+  Building2,
+  User,
+  Phone,
+  Calendar,
+  ShieldCheck,
+  CheckCircle2,
+  Copy,
+  FileEdit,
+  Send,
+  Sparkles
 } from 'lucide-react';
+import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
 import { getLoanApplications, updateLoanApplicationStatus } from '../services/loanServices';
@@ -16,6 +29,18 @@ import { LoanDetailView } from '../components/forms';
 import { LoanDocumentsSidebar } from '../components/forms/LoanDocumentsSidebar';
 import { SignatureModal } from '../components/forms/SignatureModal';
 import OriginationMobileLoanViewApplications from './OriginationMobileLoanViewApplications';
+import { maskPhoneNumber } from '../utils/phoneUtils';
+
+// Helper: Safe date formatter
+const formatDateSafe = (dateStr, formatPattern = 'MMM d, yyyy') => {
+  if (!dateStr) return '—';
+  try {
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? '—' : format(d, formatPattern);
+  } catch (e) {
+    return '—';
+  }
+};
 
 export default function OriginationLoanViewApplication() {
   const location = useLocation();
@@ -44,7 +69,6 @@ export default function OriginationLoanViewApplication() {
         (a) => String(a.id) === String(paramAppId) || String(a.application_id) === String(paramAppId)
       );
     } else if (response.applications.length > 0) {
-      // If no specific ID, take the most recent application as fallback or the first match
       application = response.applications[0];
     }
     if (application) {
@@ -134,6 +158,13 @@ export default function OriginationLoanViewApplication() {
     }, 1000);
   };
 
+  const handleCopyId = () => {
+    if (appId) {
+      navigator.clipboard.writeText(appId);
+      toast.success(`Copied Application ID: ${appId}`);
+    }
+  };
+
   const handleTransferToBranchOperations = async (signatureDataUrl) => {
     if (!dbId) {
       toast.error('Application ID not found, cannot transfer.');
@@ -181,28 +212,50 @@ export default function OriginationLoanViewApplication() {
     }
   };
 
+  // Status Badge Styling
+  const getStatusBadgeStyle = (status) => {
+    switch (status) {
+      case 'Approved':
+        return 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]';
+      case 'Created':
+        return 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc]';
+      case 'Under Review':
+        return 'bg-[#f3e8fd] text-[#8430ce] border-[#e9d2fd]';
+      case 'Rejected':
+        return 'bg-[#fce8e6] text-[#c5221f] border-[#fad2cf]';
+      case 'Draft':
+      default:
+        return 'bg-[#fef7e0] text-[#b06000] border-[#fce8b2]';
+    }
+  };
+
   if (!application && isLoading) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-slate-500">
-        <Loader2 className="animate-spin h-8 w-8 text-blue-600 mb-3" />
-        <p className="text-sm font-medium">Loading application details...</p>
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-[#5f6368]">
+        <Loader2 className="animate-spin h-8 w-8 text-[#1a73e8] mb-3" />
+        <p className="text-xs font-semibold">Loading application details...</p>
       </div>
     );
   }
 
   if (!application && !isLoading) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-slate-500">
-        <p className="text-sm font-medium mb-4">No application details found.</p>
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-[#5f6368]">
+        <p className="text-sm font-semibold mb-4 text-[#1f1f1f]">No application details found.</p>
         <button
           onClick={() => navigate(fromPath)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-semibold hover:bg-blue-700 transition-colors"
+          className="px-5 py-2.5 bg-[#1a73e8] text-white rounded-full text-xs font-semibold hover:bg-[#1557b0] transition-colors cursor-pointer shadow-xs"
         >
           Back to Applications List
         </button>
       </div>
     );
   }
+
+  const applicantName = formData?.applicant_name || application?.applicant_name || 'Unnamed Applicant';
+  const applicantPhone = formData?.phone_number || application?.phone_number || '';
+  const branchName = application?.branch || formData?.branch || 'Main Branch';
+  const createdAt = application?.created_at || formData?.created_at;
 
   return (
     <>
@@ -216,70 +269,183 @@ export default function OriginationLoanViewApplication() {
       </div>
 
       {/* Desktop View Component (Visible ONLY on Desktop >= 768px, forced in Print) */}
-      <div className="hidden md:block print:block w-full max-w-full space-y-6 pb-12 p-4 md:p-6 lg:p-8">
-        {/* Top Page Header & Action Buttons (Hidden in Print) */}
+      <div className="hidden md:block print:block w-full max-w-full space-y-6 pb-16">
+        {/* Top Google Workspace Header Bar */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden">
           <div>
-            <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
-                Application
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+              <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Origination Loans Workspace</span>
+            </div>
+            
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight">
+                {loanType} Application
               </h1>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-                <Lock className="w-3.5 h-3.5 text-blue-600" /> Read-Only Mode
+
+              {/* ID Badge with copy */}
+              <button
+                type="button"
+                onClick={handleCopyId}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] hover:bg-[#d2e3fc] transition-colors cursor-pointer"
+                title="Click to copy Application ID"
+              >
+                <span>{appId}</span>
+                <Copy size={12} />
+              </button>
+
+              {/* Status Pill */}
+              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${getStatusBadgeStyle(localStatus)}`}>
+                {localStatus}
+              </span>
+
+              {/* Read Only Indicator */}
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#f8fafd] text-[#5f6368] border border-[#dadce0]">
+                <Lock size={12} className="text-[#5f6368]" /> Read-Only
               </span>
             </div>
-            <p className="text-xs sm:text-sm text-slate-500">
-              View and manage created loan application records, documents, and print copies.
+
+            <p className="text-xs text-[#5f6368] mt-1">
+              Inspect applicant verified profile, documents, and submit stage approvals to Branch Operations.
             </p>
           </div>
 
-          {/* Right-aligned action buttons */}
-          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 shrink-0">
+          {/* Top Right Action Toolbar */}
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+            {/* Back Button */}
+            <button
+              type="button"
+              onClick={() => navigate(fromPath)}
+              className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] px-4 py-2 transition-all gap-1.5 shadow-2xs cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4 text-[#5f6368]" />
+              <span>Back</span>
+            </button>
+
+            {/* Edit / Continue Draft */}
+            {(localStatus === 'Draft' || isCreated) && (
+              <button
+                type="button"
+                onClick={() => navigate('/employee/loans/form', {
+                  state: {
+                    loan_type: loanType,
+                    loanType: loanType,
+                    application: application,
+                    form_data: formData,
+                    id: dbId,
+                    lead_id: application?.lead_id || formData?.lead_id,
+                    mode: 'edit',
+                    isEdit: true,
+                    from: '/employee/loans/view-application'
+                  }
+                })}
+                className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1a73e8] hover:bg-[#e8f0fe] border border-[#d2e3fc] px-4 py-2 transition-all gap-1.5 shadow-2xs cursor-pointer"
+              >
+                <FileEdit className="w-4 h-4" />
+                <span>{localStatus === 'Draft' ? 'Continue Draft' : 'Edit Application'}</span>
+              </button>
+            )}
+
+            {/* Upload Photos */}
             {isCreated && !hasTransferred && (
               <button
                 type="button"
                 onClick={() => setIsDocsOpen(true)}
-                className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 transition-colors gap-2 shadow-sm cursor-pointer"
+                className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1a73e8] hover:bg-[#e8f0fe] border border-[#d2e3fc] px-4 py-2 transition-all gap-1.5 shadow-2xs cursor-pointer"
               >
-                <Camera className="w-4 h-4" /> Upload Photos
+                <Camera className="w-4 h-4" />
+                <span>Upload Photos ({uploadedCount}/{requiredSlots})</span>
               </button>
             )}
 
+            {/* Transfer to Branch Operations */}
             {isCreated && !hasTransferred && isAllUploaded && (
               <button
                 type="button"
                 onClick={() => setIsSignatureModalOpen(true)}
                 disabled={isTransferring}
-                className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 h-10 px-4 transition-colors gap-2 shadow-sm cursor-pointer disabled:opacity-70"
+                className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[#137333] hover:bg-[#0d652d] text-white px-5 py-2 transition-all gap-1.5 shadow-xs cursor-pointer disabled:opacity-50"
               >
                 {isTransferring ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" /> Transferring...
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Transferring...</span>
                   </>
                 ) : (
-                  <>Transfer to Branch Operations</>
+                  <>
+                    <Send className="w-4 h-4" />
+                    <span>Transfer to Branch Operations</span>
+                  </>
                 )}
               </button>
             )}
 
+            {/* Print Form Button */}
             <button
               type="button"
               onClick={handlePrint}
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 transition-colors gap-2 shadow-sm cursor-pointer"
+              className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white px-4 py-2 transition-all gap-1.5 shadow-xs cursor-pointer"
             >
-              <Printer className="w-4 h-4" /> Print Application Form
+              <Printer className="w-4 h-4" />
+              <span>Print Application</span>
             </button>
           </div>
         </div>
 
-        {/* Main Loan Application Form Component */}
-        <LoanDetailView
-          formData={formData || {}}
-          application={application || {}}
-          currentDocs={currentDocs}
-          onPreviewDoc={setPreviewDoc}
-          localTimeline={localTimeline}
-        />
+        {/* Application Summary KPI Card Strip */}
+        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-4 shadow-xs grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3 print:hidden">
+          <div className="p-3 bg-[#f8fafd] rounded-xl border border-[#e0e3e7]">
+            <p className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider">Primary Applicant</p>
+            <p className="text-xs font-bold text-[#1f1f1f] truncate mt-0.5">{applicantName}</p>
+            <p className="text-[11px] text-[#5f6368] font-mono mt-0.5">{applicantPhone ? maskPhoneNumber(applicantPhone) : '—'}</p>
+          </div>
+
+          <div className="p-3 bg-[#f8fafd] rounded-xl border border-[#e0e3e7]">
+            <p className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider">Loan Category</p>
+            <p className="text-xs font-bold text-[#1a73e8] truncate mt-0.5">{loanType}</p>
+            <p className="text-[11px] text-[#5f6368] mt-0.5">{hasCoApplicant ? 'With Co-Applicant' : 'Single Applicant'}</p>
+          </div>
+
+          <div className="p-3 bg-[#f8fafd] rounded-xl border border-[#e0e3e7]">
+            <p className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider">Originating Branch</p>
+            <p className="text-xs font-bold text-[#1f1f1f] truncate mt-0.5">{branchName}</p>
+            <p className="text-[11px] text-[#5f6368] mt-0.5">Origination Desk</p>
+          </div>
+
+          <div className="p-3 bg-[#f8fafd] rounded-xl border border-[#e0e3e7]">
+            <p className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider">Submission Date</p>
+            <p className="text-xs font-bold text-[#1f1f1f] mt-0.5">{formatDateSafe(createdAt)}</p>
+            <p className="text-[11px] text-[#5f6368] mt-0.5">Origination Log</p>
+          </div>
+
+          <div className="col-span-2 sm:col-span-4 lg:col-span-1 p-3 bg-[#f8fafd] rounded-xl border border-[#e0e3e7]">
+            <p className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider">KYC Photos</p>
+            <div className="flex items-center gap-2 mt-1">
+              <div className="flex-1 bg-[#e0e3e7] h-2 rounded-full overflow-hidden">
+                <div 
+                  className={`h-full transition-all ${isAllUploaded ? 'bg-[#137333]' : 'bg-[#1a73e8]'}`}
+                  style={{ width: `${Math.min(100, (uploadedCount / Math.max(1, requiredSlots)) * 100)}%` }}
+                />
+              </div>
+              <span className="text-xs font-bold text-[#1f1f1f]">{uploadedCount}/{requiredSlots}</span>
+            </div>
+            <p className="text-[10px] text-[#5f6368] mt-1">{isAllUploaded ? '✓ All Photos Verified' : 'Photos Pending'}</p>
+          </div>
+        </div>
+
+        {/* Main Loan Application Detail Paper View Component */}
+        <div className="bg-white rounded-2xl border border-[#e0e3e7] shadow-xs overflow-hidden">
+          <LoanDetailView
+            formData={formData || {}}
+            application={application || {}}
+            currentDocs={currentDocs}
+            onPreviewDoc={setPreviewDoc}
+            localTimeline={localTimeline}
+          />
+        </div>
 
         {/* Loan Documents Sidebar */}
         <LoanDocumentsSidebar
@@ -294,7 +460,7 @@ export default function OriginationLoanViewApplication() {
         {previewDoc &&
           createPortal(
             <div
-              className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md animate-in fade-in duration-200 cursor-pointer"
+              className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-in fade-in duration-200 cursor-pointer"
               onClick={() => setPreviewDoc(null)}
             >
               <button

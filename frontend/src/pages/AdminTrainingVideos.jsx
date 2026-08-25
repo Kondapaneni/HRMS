@@ -1,6 +1,7 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createPortal } from 'react-dom';
+import { motion } from 'framer-motion';
 import { 
   Play, 
   Plus, 
@@ -415,269 +416,279 @@ const AdminTrainingVideos = () => {
 
       {/* Slideover Right Drawer: Upload Video (createPortal) */}
       {isModalOpen && createPortal(
-        <div className="fixed inset-0 z-50 overflow-hidden">
-          <div 
-            className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity" 
-            onClick={() => !isUploading && setIsModalOpen(false)} 
-          />
-          <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-            <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
-              
-              {/* Header */}
-              <div className="p-5 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd]">
-                <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-xl bg-[#e8f0fe] text-[#1a73e8]">
-                    <Video className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-semibold text-[#1f1f1f]">Upload Training Video</h3>
-                    <p className="text-xs text-[#5f6368]">Add an MP4 module to employee training hub</p>
-                  </div>
+        <div 
+          onClick={(e) => { if (e.target === e.currentTarget && !isUploading) setIsModalOpen(false); }}
+          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm"
+        >
+          <motion.div 
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
+            className="bg-white shadow-2xl w-full max-w-md h-[100dvh] flex flex-col overflow-hidden relative z-10 border-l border-[#e0e3e7]"
+          >
+            {/* Top 4-Color Google Accent Line */}
+            <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
+
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd] mt-1 shrink-0">
+              <div>
+                <div className="flex items-center gap-1 mb-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+                  <span className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Training Hub</span>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => !isUploading && setIsModalOpen(false)}
-                  className="p-1.5 rounded-full text-[#5f6368] hover:bg-[#e8eaed] transition-colors cursor-pointer"
-                >
-                  <X className="w-5 h-5" />
-                </button>
+                <h2 className="text-lg font-semibold text-[#1f1f1f]">Upload Training Video</h2>
               </div>
-
-              {/* Form Body */}
-              <form onSubmit={handleUpload} className="p-6 overflow-y-auto flex-1 custom-scrollbar space-y-5 text-xs">
-                <div>
-                  <label className="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5">
-                    Module Title *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={title}
-                    onChange={e => setTitle(e.target.value)}
-                    placeholder="e.g. Employee Security Orientation & Protocols"
-                    className="w-full px-3.5 py-2.5 bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs font-medium text-[#1f1f1f] placeholder:text-[#5f6368] outline-none transition-all"
-                    disabled={isUploading}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5">
-                    Select MP4 Video File *
-                  </label>
-                  
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    accept="video/mp4,video/quicktime,video/webm"
-                    className="hidden"
-                    onChange={(e) => {
-                      if (e.target.files && e.target.files[0]) {
-                        setVideoFile(e.target.files[0]);
-                      }
-                    }}
-                  />
-
-                  <div 
-                    onClick={() => !isUploading && fileInputRef.current?.click()}
-                    className={`flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-2xl transition-all cursor-pointer ${
-                      videoFile
-                        ? 'bg-[#e8f0fe]/30 border-[#4285F4]'
-                        : 'bg-[#f8fafd] border-[#dadce0] hover:border-[#4285F4] hover:bg-[#f1f3f4]'
-                    } ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  >
-                    <div className="w-12 h-12 rounded-full bg-white shadow-xs border border-[#e0e3e7] flex items-center justify-center mb-2.5 text-[#1a73e8]">
-                      <Upload className="w-6 h-6" />
-                    </div>
-                    <span className="font-semibold text-xs text-[#1f1f1f] text-center">
-                      {videoFile ? videoFile.name : 'Click or drop video file here'}
-                    </span>
-                    <span className="text-[10px] text-[#5f6368] mt-1">
-                      Supported: MP4, WebM (up to 100MB)
-                    </span>
-                  </div>
-                </div>
-              </form>
-
-              {/* Footer */}
-              <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex justify-end items-center gap-2.5 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  disabled={isUploading}
-                  className="px-4 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  onClick={handleUpload}
-                  disabled={isUploading || !title.trim() || !videoFile}
-                  className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs transition-all cursor-pointer disabled:opacity-50"
-                >
-                  {isUploading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent" />
-                      <span>Uploading Video...</span>
-                    </>
-                  ) : (
-                    <span>Upload & Publish</span>
-                  )}
-                </button>
-              </div>
-
+              <button
+                type="button"
+                onClick={() => !isUploading && setIsModalOpen(false)}
+                className="text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4] p-1.5 rounded-full transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
             </div>
-          </div>
+
+            {/* Form Body */}
+            <form onSubmit={handleUpload} className="p-6 overflow-y-auto flex-1 custom-scrollbar space-y-5 text-xs">
+              <div>
+                <label className="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5">
+                  Module Title *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={title}
+                  onChange={e => setTitle(e.target.value)}
+                  placeholder="e.g. Employee Security Orientation & Protocols"
+                  className="w-full px-3.5 py-2.5 bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs font-medium text-[#1f1f1f] placeholder:text-[#5f6368] outline-none transition-all"
+                  disabled={isUploading}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5">
+                  Select MP4 Video File *
+                </label>
+                
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept="video/mp4,video/quicktime,video/webm"
+                  className="hidden"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      setVideoFile(e.target.files[0]);
+                    }
+                  }}
+                />
+
+                <div 
+                  onClick={() => !isUploading && fileInputRef.current?.click()}
+                  className={`flex flex-col items-center justify-center p-8 border-2 border-dashed rounded-2xl transition-all cursor-pointer ${
+                    videoFile
+                      ? 'bg-[#e8f0fe]/30 border-[#4285F4]'
+                      : 'bg-[#f8fafd] border-[#dadce0] hover:border-[#4285F4] hover:bg-[#f1f3f4]'
+                  } ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  <div className="w-12 h-12 rounded-full bg-white shadow-xs border border-[#e0e3e7] flex items-center justify-center mb-2.5 text-[#1a73e8]">
+                    <Upload className="w-6 h-6" />
+                  </div>
+                  <span className="font-semibold text-xs text-[#1f1f1f] text-center">
+                    {videoFile ? videoFile.name : 'Click or drop video file here'}
+                  </span>
+                  <span className="text-[10px] text-[#5f6368] mt-1">
+                    Supported: MP4, WebM (up to 100MB)
+                  </span>
+                </div>
+              </div>
+            </form>
+
+            {/* Footer */}
+            <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex justify-end items-center gap-2.5 shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
+                disabled={isUploading}
+                className="px-4 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                onClick={handleUpload}
+                disabled={isUploading || !title.trim() || !videoFile}
+                className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs transition-all cursor-pointer disabled:opacity-50"
+              >
+                {isUploading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent" />
+                    <span>Uploading Video...</span>
+                  </>
+                ) : (
+                  <span>Upload & Publish</span>
+                )}
+              </button>
+            </div>
+          </motion.div>
         </div>,
         document.body
       )}
 
       {/* Slideover Right Drawer: Assign Employees (createPortal) */}
       {isAssignModalOpen && selectedVideoForAssign && createPortal(
-        <div className="fixed inset-0 z-50 overflow-hidden">
-          <div 
-            className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity" 
-            onClick={() => setIsAssignModalOpen(false)} 
-          />
-          <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-            <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
-              
-              {/* Header */}
-              <div className="p-5 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd]">
-                <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-xl bg-[#e8f0fe] text-[#1a73e8]">
-                    <Users className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-semibold text-[#1f1f1f]">Assign Employees</h3>
-                    <p className="text-xs text-[#5f6368] line-clamp-1">{selectedVideoForAssign.title}</p>
-                  </div>
+        <div 
+          onClick={(e) => { if (e.target === e.currentTarget) setIsAssignModalOpen(false); }}
+          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm"
+        >
+          <motion.div 
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
+            className="bg-white shadow-2xl w-full max-w-md h-[100dvh] flex flex-col overflow-hidden relative z-10 border-l border-[#e0e3e7]"
+          >
+            {/* Top 4-Color Google Accent Line */}
+            <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
+
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd] mt-1 shrink-0">
+              <div>
+                <div className="flex items-center gap-1 mb-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+                  <span className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Course Enrollment</span>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setIsAssignModalOpen(false)}
-                  className="p-1.5 rounded-full text-[#5f6368] hover:bg-[#e8eaed] transition-colors cursor-pointer"
-                >
-                  <X className="w-5 h-5" />
-                </button>
+                <h2 className="text-lg font-semibold text-[#1f1f1f]">Assign Employees</h2>
               </div>
-
-              {/* Search and Quick Selection */}
-              <div className="p-4 border-b border-[#e0e3e7] bg-white space-y-2.5">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#5f6368]" />
-                  <input
-                    type="search"
-                    placeholder="Search employees by name..."
-                    value={assignSearchQuery}
-                    onChange={(e) => setAssignSearchQuery(e.target.value)}
-                    className="w-full pl-9 pr-3.5 py-1.5 text-xs bg-[#f1f3f4] focus:bg-white border border-[#dadce0] rounded-full text-[#1f1f1f] placeholder:text-[#5f6368] outline-none"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between text-xs pt-1">
-                  <span className="text-[#5f6368] font-medium">
-                    {modalAssignedEmployees.length} employee(s) selected
-                  </span>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setModalAssignedEmployees(employees.map(e => e.id))}
-                      className="text-[#1a73e8] font-semibold hover:underline cursor-pointer"
-                    >
-                      Select All
-                    </button>
-                    <span className="text-[#dadce0]">•</span>
-                    <button
-                      type="button"
-                      onClick={() => setModalAssignedEmployees([])}
-                      className="text-[#5f6368] font-semibold hover:underline cursor-pointer"
-                    >
-                      Deselect
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Employee List Body */}
-              <div className="p-4 overflow-y-auto flex-1 custom-scrollbar space-y-1.5">
-                {employeesLoading ? (
-                  <p className="text-xs text-[#5f6368] p-4 text-center">Loading employee directory...</p>
-                ) : (
-                  (() => {
-                    const filtered = employees.filter(emp => {
-                      const name = `${emp.firstName || ''} ${emp.lastName || ''}`.toLowerCase();
-                      return name.includes(assignSearchQuery.toLowerCase()) || (emp.department && emp.department.toLowerCase().includes(assignSearchQuery.toLowerCase()));
-                    });
-
-                    if (filtered.length === 0) {
-                      return <p className="text-xs text-[#5f6368] p-4 text-center">No matching employees found.</p>;
-                    }
-
-                    return filtered.map(emp => {
-                      const isSelected = modalAssignedEmployees.includes(emp.id);
-                      const initials = `${(emp.firstName || '').charAt(0)}${(emp.lastName || '').charAt(0)}`.toUpperCase() || 'E';
-
-                      return (
-                        <label 
-                          key={emp.id}
-                          className={`flex items-center gap-3 p-2.5 rounded-2xl border transition-all cursor-pointer ${
-                            isSelected 
-                              ? 'bg-[#e8f0fe] border-[#4285F4] shadow-2xs' 
-                              : 'bg-white border-[#e0e3e7] hover:border-[#dadce0]'
-                          }`}
-                        >
-                          <input 
-                            type="checkbox"
-                            className="w-4 h-4 rounded text-[#1a73e8] focus:ring-[#1a73e8] cursor-pointer"
-                            checked={isSelected}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setModalAssignedEmployees(prev => [...prev, emp.id]);
-                              } else {
-                                setModalAssignedEmployees(prev => prev.filter(id => id !== emp.id));
-                              }
-                            }}
-                          />
-                          <div className="w-7 h-7 rounded-full bg-[#e8f0fe] text-[#1a73e8] font-bold text-xs flex items-center justify-center shrink-0">
-                            {initials}
-                          </div>
-                          <div className="flex-1 truncate text-xs">
-                            <p className="font-semibold text-[#1f1f1f] truncate">{emp.firstName} {emp.lastName}</p>
-                            <p className="text-[10px] text-[#5f6368] truncate">{emp.department || 'General'}</p>
-                          </div>
-                        </label>
-                      );
-                    });
-                  })()
-                )}
-              </div>
-
-              {/* Footer */}
-              <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex justify-end items-center gap-2.5 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setIsAssignModalOpen(false)}
-                  className="px-4 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    assignVideoMutation.mutate({
-                      id: selectedVideoForAssign.id,
-                      assigned_employee_ids: modalAssignedEmployees
-                    });
-                  }}
-                  disabled={assignVideoMutation.isPending}
-                  className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs transition-all cursor-pointer disabled:opacity-50"
-                >
-                  {assignVideoMutation.isPending ? 'Saving...' : 'Save Assignments'}
-                </button>
-              </div>
-
+              <button
+                type="button"
+                onClick={() => setIsAssignModalOpen(false)}
+                className="text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4] p-1.5 rounded-full transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
             </div>
-          </div>
+
+            {/* Search and Quick Selection */}
+            <div className="p-4 border-b border-[#e0e3e7] bg-white space-y-2.5">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#5f6368]" />
+                <input
+                  type="search"
+                  placeholder="Search employees by name..."
+                  value={assignSearchQuery}
+                  onChange={(e) => setAssignSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-3.5 py-1.5 text-xs bg-[#f1f3f4] focus:bg-white border border-[#dadce0] rounded-full text-[#1f1f1f] placeholder:text-[#5f6368] outline-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-between text-xs pt-1">
+                <span className="text-[#5f6368] font-medium">
+                  {modalAssignedEmployees.length} employee(s) selected
+                </span>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setModalAssignedEmployees(employees.map(e => e.id))}
+                    className="text-[#1a73e8] font-semibold hover:underline cursor-pointer"
+                  >
+                    Select All
+                  </button>
+                  <span className="text-[#dadce0]">•</span>
+                  <button
+                    type="button"
+                    onClick={() => setModalAssignedEmployees([])}
+                    className="text-[#5f6368] font-semibold hover:underline cursor-pointer"
+                  >
+                    Deselect
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Employee List Body */}
+            <div className="p-4 overflow-y-auto flex-1 custom-scrollbar space-y-1.5">
+              {employeesLoading ? (
+                <p className="text-xs text-[#5f6368] p-4 text-center">Loading employee directory...</p>
+              ) : (
+                (() => {
+                  const filtered = employees.filter(emp => {
+                    const name = `${emp.firstName || ''} ${emp.lastName || ''}`.toLowerCase();
+                    return name.includes(assignSearchQuery.toLowerCase()) || (emp.department && emp.department.toLowerCase().includes(assignSearchQuery.toLowerCase()));
+                  });
+
+                  if (filtered.length === 0) {
+                    return <p className="text-xs text-[#5f6368] p-4 text-center">No matching employees found.</p>;
+                  }
+
+                  return filtered.map(emp => {
+                    const isSelected = modalAssignedEmployees.includes(emp.id);
+                    const initials = `${(emp.firstName || '').charAt(0)}${(emp.lastName || '').charAt(0)}`.toUpperCase() || 'E';
+
+                    return (
+                      <label 
+                        key={emp.id}
+                        className={`flex items-center gap-3 p-2.5 rounded-2xl border transition-all cursor-pointer ${
+                          isSelected 
+                            ? 'bg-[#e8f0fe] border-[#4285F4] shadow-2xs' 
+                            : 'bg-white border-[#e0e3e7] hover:border-[#dadce0]'
+                        }`}
+                      >
+                        <input 
+                          type="checkbox"
+                          className="w-4 h-4 rounded text-[#1a73e8] focus:ring-[#1a73e8] cursor-pointer"
+                          checked={isSelected}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setModalAssignedEmployees(prev => [...prev, emp.id]);
+                            } else {
+                              setModalAssignedEmployees(prev => prev.filter(id => id !== emp.id));
+                            }
+                          }}
+                        />
+                        <div className="w-7 h-7 rounded-full bg-[#e8f0fe] text-[#1a73e8] font-bold text-xs flex items-center justify-center shrink-0">
+                          {initials}
+                        </div>
+                        <div className="flex-1 truncate text-xs">
+                          <p className="font-semibold text-[#1f1f1f] truncate">{emp.firstName} {emp.lastName}</p>
+                          <p className="text-[10px] text-[#5f6368] truncate">{emp.department || 'General'}</p>
+                        </div>
+                      </label>
+                    );
+                  });
+                })()
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex justify-end items-center gap-2.5 shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsAssignModalOpen(false)}
+                className="px-4 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  assignVideoMutation.mutate({
+                    id: selectedVideoForAssign.id,
+                    assigned_employee_ids: modalAssignedEmployees
+                  });
+                }}
+                disabled={assignVideoMutation.isPending}
+                className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs transition-all cursor-pointer disabled:opacity-50"
+              >
+                {assignVideoMutation.isPending ? 'Saving...' : 'Save Assignments'}
+              </button>
+            </div>
+          </motion.div>
         </div>,
         document.body
       )}

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, User, Phone, MapPin } from 'lucide-react';
+import { X, User, Phone, MapPin, Loader2, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { capitalizeWords, validateAddLeadForm } from '../utils/loanValidations';
 import { createLead } from '../services/loanServices';
@@ -49,9 +50,6 @@ const AddLeadSidebar = ({ isOpen, onClose, type = 'loan' }) => {
     setErrors({});
   };
 
-  /* ========================================================================== */
-  /* ==================== LOANS & SALES SUBMIT LOGIC START ==================== */
-  /* ========================================================================== */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -67,14 +65,12 @@ const AddLeadSidebar = ({ isOpen, onClose, type = 'loan' }) => {
     try {
       setIsSubmitting(true);
       if (isSale) {
-        // --- SALES LEAD SUBMIT ---
         await createSalesLead(formData);
         queryClient.invalidateQueries(['sales', 'leads']);
         queryClient.invalidateQueries(['sales', 'leads', 'list']);
         queryClient.invalidateQueries(['salesDashboard']);
         toast.success('Sales lead added successfully!');
       } else {
-        // --- LOANS LEAD SUBMIT ---
         await createLead(formData);
         queryClient.invalidateQueries(['origination', 'leads']);
         queryClient.invalidateQueries(['origination', 'leads', 'list']);
@@ -90,118 +86,117 @@ const AddLeadSidebar = ({ isOpen, onClose, type = 'loan' }) => {
       setIsSubmitting(false);
     }
   };
-  /* ========================================================================== */
-  /* ==================== LOANS & SALES SUBMIT LOGIC END ====================== */
-  /* ========================================================================== */
 
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-50 cursor-pointer"
-          />
+  if (!isOpen) return null;
 
-          {/* Sidebar Drawer */}
-          <motion.div
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl z-50 flex flex-col border-l border-slate-200"
+  return createPortal(
+    <div 
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm"
+    >
+      <motion.div 
+        initial={{ x: '100%' }}
+        animate={{ x: 0 }}
+        exit={{ x: '100%' }}
+        transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
+        className="bg-white shadow-2xl w-full max-w-md h-[100dvh] flex flex-col overflow-hidden relative z-10 border-l border-[#e0e3e7]"
+      >
+        {/* Top 4-Color Google Accent Line */}
+        <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
+
+        {/* Modal Header */}
+        <div className="px-6 py-4 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd] mt-1 shrink-0">
+          <div>
+            <div className="flex items-center gap-1 mb-0.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+              <span className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">New Prospect</span>
+            </div>
+            <h2 className="text-lg font-semibold text-[#1f1f1f]">Add New Lead</h2>
+          </div>
+          <button 
+            onClick={onClose} 
+            className="text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4] p-1.5 rounded-full transition-colors cursor-pointer"
           >
-            {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-slate-100">
-              <h2 className="text-xl font-bold text-slate-900">Add New Lead</h2>
-              <button
-                onClick={onClose}
-                className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-2 rounded-full transition-colors cursor-pointer"
-              >
-                <X size={20} />
-              </button>
-            </div>
+            <X size={18} />
+          </button>
+        </div>
 
-            {/* Form */}
-            <div className="flex-1 overflow-y-auto p-6 hide-scrollbar">
-              <form onSubmit={handleSubmit} className="space-y-4">
-                
-                {/* ========================================================================== */}
-                {/* ==================== LOANS & SALES FORM FIELDS START ===================== */}
-                {/* ========================================================================== */}
-                <TextField
-                  name="name"
-                  label="Lead Name"
-                  value={formData.name}
-                  onChange={handleNameChange}
-                  required
-                  placeholder="e.g. Rahul Sharma"
-                  error={errors.name}
-                  prefix={<User size={16} className="text-slate-400" />}
-                />
+        {/* Form Body */}
+        <div className="p-6 overflow-y-auto flex-1 space-y-4">
+          <form id="add-lead-form" onSubmit={handleSubmit} className="space-y-4">
+            <TextField
+              name="name"
+              label="Lead Name"
+              value={formData.name}
+              onChange={handleNameChange}
+              required
+              placeholder="e.g. Rahul Sharma"
+              error={errors.name}
+              prefix={<User size={15} className="text-[#5f6368]" />}
+            />
 
-                <PhoneField
-                  name="phone"
-                  label="Phone Number"
-                  value={formData.phone}
-                  onChange={handlePhoneChange}
-                  required
-                  placeholder="10-digit mobile number"
-                  error={errors.phone}
-                  prefix={<Phone size={16} className="text-slate-400" />}
-                />
+            <PhoneField
+              name="phone"
+              label="Phone Number"
+              value={formData.phone}
+              onChange={handlePhoneChange}
+              required
+              placeholder="10-digit mobile number"
+              error={errors.phone}
+              prefix={<Phone size={15} className="text-[#5f6368]" />}
+            />
 
-                <TextareaField
-                  name="address"
-                  label="Address"
-                  value={formData.address}
-                  onChange={handleAddressChange}
-                  required
-                  placeholder="Enter full address"
-                  rows={3}
-                  error={errors.address}
-                />
-                {/* ========================================================================== */}
-                {/* ==================== LOANS & SALES FORM FIELDS END ======================= */}
-                {/* ========================================================================== */}
+            <TextareaField
+              name="address"
+              label="Address"
+              value={formData.address}
+              onChange={handleAddressChange}
+              required
+              placeholder="Enter full address"
+              rows={3}
+              error={errors.address}
+            />
+          </form>
+        </div>
 
-                {/* ========================================================================== */}
-                {/* ==================== LOANS & SALES BUTTONS START ========================= */}
-                {/* ========================================================================== */}
-                <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3 mt-6">
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 h-10 px-4 py-2 transition-colors cursor-pointer border border-slate-200"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className={`inline-flex items-center justify-center rounded-md text-sm font-medium text-white h-10 px-4 py-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50 ${
-                      isSale
-                        ? 'bg-emerald-600 hover:bg-emerald-700'
-                        : 'bg-blue-600 hover:bg-blue-700'
-                    }`}
-                  >
-                    {isSubmitting ? 'Saving...' : 'Save Lead'}
-                  </button>
-                </div>
-                {/* ========================================================================== */}
-                {/* ==================== LOANS & SALES BUTTONS END =========================== */}
-                {/* ========================================================================== */}
-
-              </form>
-            </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+        {/* Footer Buttons */}
+        <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex items-center justify-end gap-2.5 shrink-0">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-xs font-semibold text-[#1f1f1f] transition-all cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            form="add-lead-form"
+            disabled={isSubmitting}
+            className={`px-5 py-2 rounded-full text-xs font-semibold text-white shadow-xs transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer active:scale-95 ${
+              isSale
+                ? 'bg-[#137333] hover:bg-[#0d5926]'
+                : 'bg-[#1a73e8] hover:bg-[#1557b0]'
+            }`}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 size={14} className="animate-spin" />
+                <span>Saving...</span>
+              </>
+            ) : (
+              <>
+                <Plus size={14} />
+                <span>Save Lead</span>
+              </>
+            )}
+          </button>
+        </div>
+      </motion.div>
+    </div>,
+    document.body
   );
 };
 

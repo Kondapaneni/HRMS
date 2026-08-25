@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import PageLoader from '../components/PageLoader';
 import { createPortal } from 'react-dom';
+import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
@@ -1123,220 +1124,272 @@ const AdminRecruitment = () => {
 
       {/* Timeline Sidebar Drawer */}
       {isTimelineModalOpen && timelineApp && createPortal(
-        <div className="fixed inset-0 z-50 overflow-hidden">
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity" onClick={() => setIsTimelineModalOpen(false)} />
-          <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-            <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col">
-              <div className="p-5 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd]">
-                <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-xl bg-[#e8f0fe] text-[#1a73e8]">
-                    <Clock className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-semibold text-[#1f1f1f]">Application Timeline</h3>
-                    <p className="text-xs text-[#5f6368]">Audit log of candidate pipeline progression</p>
-                  </div>
+        <div 
+          onClick={(e) => { if (e.target === e.currentTarget) setIsTimelineModalOpen(false); }}
+          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm"
+        >
+          <motion.div 
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
+            className="bg-white shadow-2xl w-full max-w-md h-[100dvh] flex flex-col overflow-hidden relative z-10 border-l border-[#e0e3e7]"
+          >
+            {/* Top 4-Color Google Accent Line */}
+            <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
+
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd] mt-1 shrink-0">
+              <div>
+                <div className="flex items-center gap-1 mb-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+                  <span className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Application Pipeline</span>
                 </div>
-                <button onClick={() => setIsTimelineModalOpen(false)} className="p-1.5 rounded-full text-[#5f6368] hover:bg-[#e8eaed] transition-colors cursor-pointer">
-                  <X className="w-5 h-5" />
-                </button>
+                <h2 className="text-lg font-semibold text-[#1f1f1f]">Application Timeline</h2>
               </div>
-              
-              <div className="p-6 overflow-y-auto flex-1 custom-scrollbar text-xs">
-                {(!timelineApp.application_timeline || timelineApp.application_timeline.length === 0) ? (
-                  <div className="rounded-2xl border border-dashed border-[#dadce0] bg-[#f8fafd] p-6 text-center text-xs text-[#5f6368]">
-                    No status history recorded yet.
-                  </div>
-                ) : (
-                  <div className="relative border-l-2 border-[#e0e3e7] ml-3 pl-5 space-y-4">
-                    {timelineApp.application_timeline.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).map((event, idx) => {
-                      const isLatest = idx === 0;
-                      return (
-                        <div key={idx} className="relative">
-                          <div className={`absolute -left-[27px] top-1 h-3.5 w-3.5 rounded-full border-2 border-white shadow-xs ${isLatest ? 'bg-[#1a73e8]' : 'bg-[#dadce0]'}`} />
-                          <div className={`rounded-2xl border p-3.5 space-y-1 ${isLatest ? 'border-[#d2e3fc] bg-[#e8f0fe]/50' : 'border-[#e0e3e7] bg-[#f8fafd]'}`}>
-                            <div className="flex justify-between items-center">
-                              <h4 className="font-semibold text-xs text-[#1f1f1f]">{event.status_change}</h4>
-                              <span className="text-[10px] text-[#5f6368] bg-white border border-[#dadce0] px-2 py-0.5 rounded-full">
-                                {new Date(event.created_at).toLocaleDateString()}
-                              </span>
-                            </div>
-                            {event.notes && (
-                              <p className="text-xs text-[#5f6368] leading-relaxed pt-1 whitespace-pre-line">{event.notes}</p>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-              
-              <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex justify-end">
-                <button onClick={() => setIsTimelineModalOpen(false)} className="px-4 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer">
-                  Close
-                </button>
-              </div>
+              <button 
+                onClick={() => setIsTimelineModalOpen(false)} 
+                className="text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4] p-1.5 rounded-full transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
             </div>
-          </div>
+            
+            <div className="p-6 overflow-y-auto flex-1 custom-scrollbar text-xs">
+              {(!timelineApp.application_timeline || timelineApp.application_timeline.length === 0) ? (
+                <div className="rounded-2xl border border-dashed border-[#dadce0] bg-[#f8fafd] p-6 text-center text-xs text-[#5f6368]">
+                  No status history recorded yet.
+                </div>
+              ) : (
+                <div className="relative border-l-2 border-[#e0e3e7] ml-3 pl-5 space-y-4">
+                  {timelineApp.application_timeline.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).map((event, idx) => {
+                    const isLatest = idx === 0;
+                    return (
+                      <div key={idx} className="relative">
+                        <div className={`absolute -left-[27px] top-1 h-3.5 w-3.5 rounded-full border-2 border-white shadow-xs ${isLatest ? 'bg-[#1a73e8]' : 'bg-[#dadce0]'}`} />
+                        <div className={`rounded-2xl border p-3.5 space-y-1 ${isLatest ? 'border-[#d2e3fc] bg-[#e8f0fe]/50' : 'border-[#e0e3e7] bg-[#f8fafd]'}`}>
+                          <div className="flex justify-between items-center">
+                            <h4 className="font-semibold text-xs text-[#1f1f1f]">{event.status_change}</h4>
+                            <span className="text-[10px] text-[#5f6368] bg-white border border-[#dadce0] px-2 py-0.5 rounded-full">
+                              {new Date(event.created_at).toLocaleDateString()}
+                            </span>
+                          </div>
+                          {event.notes && (
+                            <p className="text-xs text-[#5f6368] leading-relaxed pt-1 whitespace-pre-line">{event.notes}</p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+            
+            <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex justify-end shrink-0">
+              <button onClick={() => setIsTimelineModalOpen(false)} className="px-4 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer">
+                Close
+              </button>
+            </div>
+          </motion.div>
         </div>,
         document.body
       )}
 
       {/* Schedule Interview Sidebar Drawer */}
       {isScheduleModalOpen && createPortal(
-        <div className="fixed inset-0 z-50 overflow-hidden">
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity" onClick={() => setIsScheduleModalOpen(false)} />
-          <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-            <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col">
-              <div className="p-5 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd]">
-                <div>
-                  <h3 className="text-base font-semibold text-[#1f1f1f]">Schedule {interviewData.status}</h3>
-                  <p className="text-xs text-[#5f6368]">Configure interview round details and meeting link</p>
-                </div>
-                <button onClick={() => setIsScheduleModalOpen(false)} className="p-1.5 rounded-full text-[#5f6368] hover:bg-[#e8eaed] transition-colors cursor-pointer">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-              
-              <div className="p-6 overflow-y-auto flex-1 custom-scrollbar text-xs">
-                <form id="schedule-interview-form" onSubmit={handleScheduleInterview} className="space-y-4">
-                  <div>
-                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Interview Date *</label>
-                    <input type="date" required value={interviewData.date} onChange={e => setInterviewData({...interviewData, date: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
-                  </div>
-                  <div>
-                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Interview Time *</label>
-                    <input type="time" required value={interviewData.time} onChange={e => setInterviewData({...interviewData, time: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
-                  </div>
-                  <div>
-                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Meeting Link / Physical Location *</label>
-                    <input type="text" required value={interviewData.location} onChange={e => setInterviewData({...interviewData, location: e.target.value})} placeholder="Google Meet link or Office meeting room" className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
-                  </div>
-                  <div>
-                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Preparation Instructions (Optional)</label>
-                    <textarea rows="3" value={interviewData.notes} onChange={e => setInterviewData({...interviewData, notes: e.target.value})} placeholder="Instructions sent to candidate..." className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all resize-y" />
-                  </div>
-                </form>
-              </div>
+        <div 
+          onClick={(e) => { if (e.target === e.currentTarget) setIsScheduleModalOpen(false); }}
+          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm"
+        >
+          <motion.div 
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
+            className="bg-white shadow-2xl w-full max-w-md h-[100dvh] flex flex-col overflow-hidden relative z-10 border-l border-[#e0e3e7]"
+          >
+            {/* Top 4-Color Google Accent Line */}
+            <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
 
-              <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex justify-end gap-2.5">
-                <button type="button" onClick={() => setIsScheduleModalOpen(false)} className="px-4 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer" disabled={updateStatusMutation.isPending}>
-                  Cancel
-                </button>
-                <button type="submit" form="schedule-interview-form" disabled={updateStatusMutation.isPending} className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs transition-all cursor-pointer disabled:opacity-50">
-                  <Calendar className="w-3.5 h-3.5" />
-                  {updateStatusMutation.isPending ? 'Dispatching...' : 'Schedule & Notify'}
-                </button>
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd] mt-1 shrink-0">
+              <div>
+                <div className="flex items-center gap-1 mb-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+                  <span className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Candidate Interview</span>
+                </div>
+                <h2 className="text-lg font-semibold text-[#1f1f1f]">Schedule {interviewData.status}</h2>
               </div>
+              <button 
+                onClick={() => setIsScheduleModalOpen(false)} 
+                className="text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4] p-1.5 rounded-full transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
             </div>
-          </div>
+            
+            <div className="p-6 overflow-y-auto flex-1 custom-scrollbar text-xs">
+              <form id="schedule-interview-form" onSubmit={handleScheduleInterview} className="space-y-4">
+                <div>
+                  <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Interview Date *</label>
+                  <input type="date" required value={interviewData.date} onChange={e => setInterviewData({...interviewData, date: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
+                </div>
+                <div>
+                  <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Interview Time *</label>
+                  <input type="time" required value={interviewData.time} onChange={e => setInterviewData({...interviewData, time: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
+                </div>
+                <div>
+                  <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Meeting Link / Physical Location *</label>
+                  <input type="text" required value={interviewData.location} onChange={e => setInterviewData({...interviewData, location: e.target.value})} placeholder="Google Meet link or Office meeting room" className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
+                </div>
+                <div>
+                  <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Preparation Instructions (Optional)</label>
+                  <textarea rows="3" value={interviewData.notes} onChange={e => setInterviewData({...interviewData, notes: e.target.value})} placeholder="Instructions sent to candidate..." className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all resize-y" />
+                </div>
+              </form>
+            </div>
+
+            <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex justify-end gap-2.5 shrink-0">
+              <button type="button" onClick={() => setIsScheduleModalOpen(false)} className="px-4 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer" disabled={updateStatusMutation.isPending}>
+                Cancel
+              </button>
+              <button type="submit" form="schedule-interview-form" disabled={updateStatusMutation.isPending} className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs transition-all cursor-pointer disabled:opacity-50">
+                <Calendar className="w-3.5 h-3.5" />
+                {updateStatusMutation.isPending ? 'Dispatching...' : 'Schedule & Notify'}
+              </button>
+            </div>
+          </motion.div>
         </div>,
         document.body
       )}
 
       {/* Post Job Sidebar Drawer */}
       {isJobModalOpen && createPortal(
-        <div className="fixed inset-0 z-50 overflow-hidden">
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity" onClick={() => setIsJobModalOpen(false)} />
-          <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-            <div className="w-screen max-w-lg bg-white shadow-2xl flex flex-col">
-              <div className="p-5 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd]">
-                <div>
-                  <h3 className="text-base font-semibold text-[#1f1f1f]">Create Job Requisition</h3>
-                  <p className="text-xs text-[#5f6368]">Publish a new career opportunity to portal</p>
+        <div 
+          onClick={(e) => { if (e.target === e.currentTarget) setIsJobModalOpen(false); }}
+          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm"
+        >
+          <motion.div 
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
+            className="bg-white shadow-2xl w-full max-w-lg h-[100dvh] flex flex-col overflow-hidden relative z-10 border-l border-[#e0e3e7]"
+          >
+            {/* Top 4-Color Google Accent Line */}
+            <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
+
+            {/* Modal Header */}
+            <div className="px-6 py-4 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd] mt-1 shrink-0">
+              <div>
+                <div className="flex items-center gap-1 mb-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+                  <span className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Recruitment Opening</span>
                 </div>
-                <button onClick={() => setIsJobModalOpen(false)} className="p-1.5 rounded-full text-[#5f6368] hover:bg-[#e8eaed] transition-colors cursor-pointer">
-                  <X className="w-5 h-5" />
-                </button>
+                <h2 className="text-lg font-semibold text-[#1f1f1f]">Create Job Requisition</h2>
               </div>
-              
-              <div className="p-6 overflow-y-auto flex-1 custom-scrollbar text-xs">
-                <form id="post-job-form" onSubmit={handleCreateJob} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Job Title *</label>
-                      <input type="text" required value={jobFormData.title} onChange={e => setJobFormData({...jobFormData, title: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
-                    </div>
-                    <div>
-                      <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Department *</label>
-                      <input type="text" required value={jobFormData.department} onChange={e => setJobFormData({...jobFormData, department: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Location *</label>
-                      <input type="text" required value={jobFormData.location} onChange={e => setJobFormData({...jobFormData, location: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
-                    </div>
-                    <div>
-                      <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Employment Type *</label>
-                      <select required value={jobFormData.type} onChange={e => setJobFormData({...jobFormData, type: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all cursor-pointer">
-                        <option>Full Time</option>
-                        <option>Part Time</option>
-                        <option>Contract</option>
-                        <option>Internship</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-3">
-                    <div>
-                      <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Experience *</label>
-                      <input type="text" required value={jobFormData.experience} onChange={e => setJobFormData({...jobFormData, experience: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" placeholder="e.g. 3-5 Yrs" />
-                    </div>
-                    <div>
-                      <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Min Salary (₹)</label>
-                      <input type="text" value={jobFormData.salary_min} onChange={e => setJobFormData({...jobFormData, salary_min: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none font-mono transition-all" placeholder="500000" />
-                    </div>
-                    <div>
-                      <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Max Salary (₹)</label>
-                      <input type="text" value={jobFormData.salary_max} onChange={e => setJobFormData({...jobFormData, salary_max: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none font-mono transition-all" placeholder="1200000" />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Vacancies *</label>
-                      <input type="number" required value={jobFormData.vacancy} onChange={e => setJobFormData({...jobFormData, vacancy: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
-                    </div>
-                    <div>
-                      <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Application Deadline</label>
-                      <input type="date" value={jobFormData.deadline} onChange={e => setJobFormData({...jobFormData, deadline: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">JD Document (PDF Attachment)</label>
-                    <input type="file" accept="application/pdf" onChange={e => setJobFile(e.target.files[0])} className="w-full text-xs text-[#5f6368] file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#e8f0fe] file:text-[#1a73e8] hover:file:bg-[#d2e3fc] transition-colors" />
-                  </div>
-
-                  <div>
-                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Required Skills</label>
-                    <textarea rows={2} required value={jobFormData.skills} onChange={e => setJobFormData({...jobFormData, skills: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all resize-y" placeholder="e.g. React.js, PHP, PostgreSQL, Docker" />
-                  </div>
-
-                  <div>
-                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Job Description</label>
-                    <textarea rows={3} required value={jobFormData.description} onChange={e => setJobFormData({...jobFormData, description: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all resize-y" placeholder="Detailed role description and expectations..." />
-                  </div>
-                </form>
-              </div>
-              
-              <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex justify-end gap-2.5 shrink-0">
-                <button type="button" onClick={() => setIsJobModalOpen(false)} className="px-4 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer" disabled={createJobMutation.isPending}>
-                  Cancel
-                </button>
-                <button type="submit" form="post-job-form" onClick={() => setSubmitStatus('Draft')} disabled={createJobMutation.isPending} className="px-4 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#5f6368] transition-all cursor-pointer disabled:opacity-50">
-                  {createJobMutation.isPending && submitStatus === 'Draft' ? 'Saving...' : 'Save Draft'}
-                </button>
-                <button type="submit" form="post-job-form" onClick={() => setSubmitStatus('Published')} disabled={createJobMutation.isPending} className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs transition-all cursor-pointer disabled:opacity-50">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  {createJobMutation.isPending && submitStatus === 'Published' ? 'Publishing...' : 'Publish Opening'}
-                </button>
-              </div>
+              <button 
+                onClick={() => setIsJobModalOpen(false)} 
+                className="text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4] p-1.5 rounded-full transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
             </div>
-          </div>
+            
+            <div className="p-6 overflow-y-auto flex-1 custom-scrollbar text-xs">
+              <form id="post-job-form" onSubmit={handleCreateJob} className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Job Title *</label>
+                    <input type="text" required value={jobFormData.title} onChange={e => setJobFormData({...jobFormData, title: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
+                  </div>
+                  <div>
+                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Department *</label>
+                    <input type="text" required value={jobFormData.department} onChange={e => setJobFormData({...jobFormData, department: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Location *</label>
+                    <input type="text" required value={jobFormData.location} onChange={e => setJobFormData({...jobFormData, location: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
+                  </div>
+                  <div>
+                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Employment Type *</label>
+                    <select required value={jobFormData.type} onChange={e => setJobFormData({...jobFormData, type: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all cursor-pointer">
+                      <option>Full Time</option>
+                      <option>Part Time</option>
+                      <option>Contract</option>
+                      <option>Internship</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Experience *</label>
+                    <input type="text" required value={jobFormData.experience} onChange={e => setJobFormData({...jobFormData, experience: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" placeholder="e.g. 3-5 Yrs" />
+                  </div>
+                  <div>
+                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Min Salary (₹)</label>
+                    <input type="text" value={jobFormData.salary_min} onChange={e => setJobFormData({...jobFormData, salary_min: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none font-mono transition-all" placeholder="500000" />
+                  </div>
+                  <div>
+                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Max Salary (₹)</label>
+                    <input type="text" value={jobFormData.salary_max} onChange={e => setJobFormData({...jobFormData, salary_max: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none font-mono transition-all" placeholder="1200000" />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Vacancies *</label>
+                    <input type="number" required value={jobFormData.vacancy} onChange={e => setJobFormData({...jobFormData, vacancy: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
+                  </div>
+                  <div>
+                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Application Deadline</label>
+                    <input type="date" value={jobFormData.deadline} onChange={e => setJobFormData({...jobFormData, deadline: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">JD Document (PDF Attachment)</label>
+                  <input type="file" accept="application/pdf" onChange={e => setJobFile(e.target.files[0])} className="w-full text-xs text-[#5f6368] file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#e8f0fe] file:text-[#1a73e8] hover:file:bg-[#d2e3fc] transition-colors" />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Required Skills</label>
+                  <textarea rows={2} required value={jobFormData.skills} onChange={e => setJobFormData({...jobFormData, skills: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all resize-y" placeholder="e.g. React.js, PHP, PostgreSQL, Docker" />
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Job Description</label>
+                  <textarea rows={3} required value={jobFormData.description} onChange={e => setJobFormData({...jobFormData, description: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all resize-y" placeholder="Detailed role description and expectations..." />
+                </div>
+              </form>
+            </div>
+            
+            <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex justify-end gap-2.5 shrink-0">
+              <button type="button" onClick={() => setIsJobModalOpen(false)} className="px-4 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer" disabled={createJobMutation.isPending}>
+                Cancel
+              </button>
+              <button type="submit" form="post-job-form" onClick={() => setSubmitStatus('Draft')} disabled={createJobMutation.isPending} className="px-4 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#5f6368] transition-all cursor-pointer disabled:opacity-50">
+                {createJobMutation.isPending && submitStatus === 'Draft' ? 'Saving...' : 'Save Draft'}
+              </button>
+              <button type="submit" form="post-job-form" onClick={() => setSubmitStatus('Published')} disabled={createJobMutation.isPending} className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs transition-all cursor-pointer disabled:opacity-50">
+                <Sparkles className="w-3.5 h-3.5" />
+                {createJobMutation.isPending && submitStatus === 'Published' ? 'Publishing...' : 'Publish Opening'}
+              </button>
+            </div>
+          </motion.div>
         </div>,
         document.body
       )}

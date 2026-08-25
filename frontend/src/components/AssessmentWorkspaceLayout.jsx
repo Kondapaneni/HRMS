@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { 
-  Award, 
-  HelpCircle, 
-  Users, 
-  BarChart2, 
-  ArrowLeft, 
-  Home, 
-  LogOut, 
-  Settings, 
+import {
+  Award,
+  HelpCircle,
+  Users,
+  BarChart2,
+  ArrowLeft,
+  Home,
+  LogOut,
+  Settings,
   BookOpen,
   Menu,
   X,
@@ -49,27 +49,27 @@ const AssessmentWorkspaceLayout = () => {
   };
 
   const navItems = [
-    { 
-      icon: <HelpCircle size={15} />, 
-      label: 'Question Bank', 
-      path: '/admin/assessments/questions' 
+    {
+      icon: <HelpCircle size={15} />,
+      label: 'Question Bank',
+      path: '/admin/assessments/questions'
     },
-    { 
-      icon: <FileCheck2 size={15} />, 
-      label: 'Assessment Management', 
+    {
+      icon: <FileCheck2 size={15} />,
+      label: 'Assessment Management',
       path: '/admin/assessments/management',
-      activeAliases: ['/admin/assessments/create', '/admin/assessments/edit'] 
+      activeAliases: ['/admin/assessments/create', '/admin/assessments/edit']
     },
-    { 
-      icon: <Award size={15} />, 
-      label: 'Results & Attempts', 
-      path: '/admin/assessments/results' 
+    {
+      icon: <Award size={15} />,
+      label: 'Results & Attempts',
+      path: '/admin/assessments/results'
     },
-    { 
-      icon: <PlaySquare size={15} />, 
-      label: 'Training Videos', 
-      path: '/admin/assessments/training', 
-      heading: 'Continuous Learning' 
+    {
+      icon: <PlaySquare size={15} />,
+      label: 'Training Videos',
+      path: '/admin/assessments/training',
+      heading: 'Continuous Learning'
     },
   ];
 
@@ -83,7 +83,7 @@ const AssessmentWorkspaceLayout = () => {
 
   return (
     <div className="h-[100dvh] w-full overflow-hidden bg-[#f8fafd] text-[#1f1f1f] selection:bg-[#c2e7ff] selection:text-[#001d35] flex font-sans antialiased relative z-0">
-      
+
       {/* Ambient background glows */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute -top-32 -left-32 w-96 h-96 bg-[#4285F4]/10 rounded-full blur-3xl" />
@@ -97,7 +97,7 @@ const AssessmentWorkspaceLayout = () => {
 
       {/* Left Navigation Sidebar */}
       <aside className="w-[215px] h-full bg-white border-r border-[#e0e3e7] hidden md:flex flex-col z-20 relative shrink-0 shadow-none">
-        
+
         {/* Brand Header */}
         <div className="h-14 flex items-center justify-between px-4 border-b border-[#f1f3f4] shrink-0 mt-0.5">
           <div>
@@ -136,11 +136,10 @@ const AssessmentWorkspaceLayout = () => {
                   )}
                   <Link
                     to={item.path}
-                    className={`w-full flex items-center gap-2.5 px-3 py-1.5 rounded-full text-xs transition-all ${
-                      isActive
+                    className={`w-full flex items-center gap-2.5 px-3 py-1.5 rounded-full text-xs transition-all ${isActive
                         ? 'bg-[#c2e7ff]/70 text-[#001d35] font-semibold shadow-xs'
                         : 'text-[#444746] hover:bg-[#f1f3f4] hover:text-[#1f1f1f] font-medium'
-                    }`}
+                      }`}
                   >
                     <span className={`shrink-0 ${isActive ? 'text-[#1a73e8]' : 'text-[#5f6368]'}`}>
                       {item.icon}
@@ -167,7 +166,7 @@ const AssessmentWorkspaceLayout = () => {
 
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col h-[100dvh] overflow-hidden relative z-10 bg-transparent">
-        
+
         {/* Top Header */}
         <header className="h-14 bg-white border-b border-[#e0e3e7] px-5 flex items-center justify-between z-10 shrink-0">
           <div className="flex items-center gap-3">
@@ -177,7 +176,7 @@ const AssessmentWorkspaceLayout = () => {
             >
               <Menu size={20} />
             </button>
-            <div>
+            <div className="md:hidden">
               <h2 className="text-sm font-semibold text-[#1f1f1f] flex items-center gap-2">
                 {getActiveTitle()}
               </h2>
@@ -185,15 +184,6 @@ const AssessmentWorkspaceLayout = () => {
           </div>
 
           <div className="flex items-center gap-4">
-            <Link
-              to="/admin"
-              className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] hover:bg-[#d2e3fc] transition-colors"
-            >
-              <ArrowLeft size={13} />
-              <span>Back to HRMS</span>
-            </Link>
-
-            <div className="h-5 w-px bg-[#e0e3e7]"></div>
 
             {/* User Profile Pill */}
             <div className="flex items-center gap-2.5 select-none bg-[#f8fafd] border border-[#e0e3e7] pl-1.5 pr-3 py-1 rounded-full">
@@ -233,9 +223,9 @@ const AssessmentWorkspaceLayout = () => {
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
         <div className="md:hidden fixed inset-0 z-50 overflow-hidden">
-          <div 
-            className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity" 
-            onClick={() => setMobileMenuOpen(false)} 
+          <div
+            className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity"
+            onClick={() => setMobileMenuOpen(false)}
           />
           <div className="fixed inset-y-0 left-0 max-w-full flex pr-10">
             <div className="w-screen max-w-xs bg-white shadow-2xl flex flex-col">
@@ -266,11 +256,10 @@ const AssessmentWorkspaceLayout = () => {
                       key={idx}
                       to={item.path}
                       onClick={() => setMobileMenuOpen(false)}
-                      className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-full text-xs font-semibold transition-all ${
-                        isActive
+                      className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-full text-xs font-semibold transition-all ${isActive
                           ? 'bg-[#c2e7ff]/70 text-[#001d35]'
                           : 'text-[#444746] hover:bg-[#f1f3f4]'
-                      }`}
+                        }`}
                     >
                       <span className={isActive ? 'text-[#1a73e8]' : 'text-[#5f6368]'}>
                         {item.icon}
@@ -298,14 +287,14 @@ const AssessmentWorkspaceLayout = () => {
       {/* Google Material 3 Sign Out Confirmation Modal (createPortal) */}
       {showLogoutConfirm && createPortal(
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/40 backdrop-blur-xs" 
-            onClick={() => !loggingOut && setShowLogoutConfirm(false)} 
+            className="fixed inset-0 bg-black/40 backdrop-blur-xs"
+            onClick={() => !loggingOut && setShowLogoutConfirm(false)}
           />
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 8 }}
