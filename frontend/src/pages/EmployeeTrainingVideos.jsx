@@ -1,11 +1,68 @@
-import React from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Play } from 'lucide-react';
+import { 
+  Play, 
+  CheckCircle2, 
+  Circle, 
+  Search, 
+  GraduationCap, 
+  Clock, 
+  Check, 
+  ChevronRight, 
+  ChevronLeft,
+  LayoutGrid,
+  Tv,
+  Film,
+  Sparkles,
+  BookOpen,
+  Award
+} from 'lucide-react';
+import { motion } from 'framer-motion';
 import api from '../api/axios';
 import EmployeeMobileTrainingVideos from './EmployeeMobileTrainingVideos';
 import PageLoader from '../components/PageLoader';
+import { useAuth } from '../contexts/AuthContext';
+import toast from 'react-hot-toast';
 
 const EmployeeTrainingVideos = () => {
+  const { user, profile } = useAuth();
+  const [selectedVideoId, setSelectedVideoId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeFilter, setActiveFilter] = useState('all'); // 'all' | 'completed' | 'pending'
+  const [viewMode, setViewMode] = useState('theater'); // 'theater' | 'grid'
+  const videoPlayerRef = useRef(null);
+
+  // Storage key for completed videos
+  const storageKey = `acme_training_completed_${user?.id || profile?.id || 'guest'}`;
+  const [completedIds, setCompletedIds] = useState(() => {
+    try {
+      const saved = localStorage.getItem(storageKey);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const toggleComplete = (id, e) => {
+    if (e) e.stopPropagation();
+    setCompletedIds(prev => {
+      let updated;
+      if (prev.includes(id)) {
+        updated = prev.filter(x => x !== id);
+        toast('Marked as uncompleted', { icon: '↩️' });
+      } else {
+        updated = [...prev, id];
+        toast.success('Module marked as completed!');
+      }
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(updated));
+      } catch (err) {
+        console.error('Failed to save completion state', err);
+      }
+      return updated;
+    });
+  };
+
   const { data: videos = [], isLoading } = useQuery({
     queryKey: ['employee', 'trainingVideos'],
     queryFn: async () => {
@@ -14,58 +71,550 @@ const EmployeeTrainingVideos = () => {
     }
   });
 
+  // Default to first video if not set
+  useEffect(() => {
+    if (videos.length > 0 && !selectedVideoId) {
+      setSelectedVideoId(videos[0].id);
+    }
+  }, [videos, selectedVideoId]);
+
+  const activeVideo = useMemo(() => {
+    return videos.find(v => v.id === selectedVideoId) || videos[0] || null;
+  }, [videos, selectedVideoId]);
+
+  const activeIndex = useMemo(() => {
+    return videos.findIndex(v => v.id === activeVideo?.id);
+  }, [videos, activeVideo]);
+
+  const filteredVideos = useMemo(() => {
+    return videos.filter(v => {
+      const matchesSearch = v.title.toLowerCase().includes(searchQuery.toLowerCase());
+      const isCompleted = completedIds.includes(v.id);
+      if (activeFilter === 'completed') return matchesSearch && isCompleted;
+      if (activeFilter === 'pending') return matchesSearch && !isCompleted;
+      return matchesSearch;
+    });
+  }, [videos, searchQuery, activeFilter, completedIds]);
+
+  const completedCount = useMemo(() => {
+    return videos.filter(v => completedIds.includes(v.id)).length;
+  }, [videos, completedIds]);
+
+  const progressPercent = videos.length > 0 ? Math.round((completedCount / videos.length) * 100) : 0;
+
+  const handleSelectVideo = (video) => {
+    setSelectedVideoId(video.id);
+    setViewMode('theater');
+  };
+
+  const handleNextVideo = () => {
+    if (activeIndex >= 0 && activeIndex < videos.length - 1) {
+      handleSelectVideo(videos[activeIndex + 1]);
+    }
+  };
+
+  const handlePrevVideo = () => {
+    if (activeIndex > 0) {
+      handleSelectVideo(videos[activeIndex - 1]);
+    }
+  };
+
   if (isLoading) {
     return <PageLoader message="Loading Training Videos..." />;
   }
 
   return (
     <>
+      {/* Mobile Experience */}
       <div className="md:hidden">
         <EmployeeMobileTrainingVideos />
       </div>
 
+      {/* Desktop Experience */}
       <div className="hidden md:block w-full space-y-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900">Training Videos</h1>
-            <p className="text-sm text-slate-500 mt-1">Watch the training videos assigned to you.</p>
+        {/* Header Section with Google Workspace Accent */}
+        <div className="bg-white rounded-3xl border border-[#e0e3e7] p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#4285F4]" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[#EA4335]" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[#FBBC05]" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[#34A853]" />
+              <span className="text-xs font-bold uppercase tracking-wider text-[#5f6368] ml-1">
+                Learning & Development
+              </span>
+            </div>
+            <h1 className="text-2xl font-bold text-[#1f1f1f] tracking-tight">
+              Training Videos & Modules
+            </h1>
+            <p className="text-xs text-[#5f6368]">
+              Watch assigned training modules, orientation courses, and company learning materials.
+            </p>
+          </div>
+
+          {/* View Mode Toggle & Total Counter */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center bg-[#f1f3f4] p-1 rounded-2xl border border-[#e0e3e7]">
+              <button
+                onClick={() => setViewMode('theater')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                  viewMode === 'theater'
+                    ? 'bg-white text-[#1a73e8] shadow-xs'
+                    : 'text-[#5f6368] hover:text-[#1f1f1f]'
+                }`}
+                title="Theater View"
+              >
+                <Tv className="w-3.5 h-3.5" />
+                <span>Player</span>
+              </button>
+              <button
+                onClick={() => setViewMode('grid')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                  viewMode === 'grid'
+                    ? 'bg-white text-[#1a73e8] shadow-xs'
+                    : 'text-[#5f6368] hover:text-[#1f1f1f]'
+                }`}
+                title="Grid View"
+              >
+                <LayoutGrid className="w-3.5 h-3.5" />
+                <span>Grid</span>
+              </button>
+            </div>
           </div>
         </div>
 
-          {videos.length === 0 ? (
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
-              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Play className="w-8 h-8 text-slate-400" />
+        {/* Overview & Progress Metric Cards */}
+        {videos.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Total Assigned */}
+            <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold text-[#5f6368]">Total Assigned</p>
+                <h3 className="text-2xl font-bold text-[#1f1f1f] mt-0.5">{videos.length} Modules</h3>
+                <p className="text-[11px] text-[#80868b] mt-1">Full curriculum required</p>
               </div>
-              <h3 className="text-lg font-medium text-slate-800">No videos assigned</h3>
-              <p className="text-slate-500 mt-1">You currently have no training videos assigned to you.</p>
+              <div className="p-3.5 rounded-2xl bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
+                <BookOpen className="w-6 h-6" />
+              </div>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {videos.map(video => (
-                <div key={video.id} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden group">
-                  <div className="aspect-video bg-slate-900 relative">
-                    <video 
-                      src={video.video_url}
-                      className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+
+            {/* Completed Modules */}
+            <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold text-[#5f6368]">Completed</p>
+                <h3 className="text-2xl font-bold text-[#137333] mt-0.5">{completedCount} Modules</h3>
+                <p className="text-[11px] text-[#80868b] mt-1">{progressPercent}% completion rate</p>
+              </div>
+              <div className="p-3.5 rounded-2xl bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">
+                <CheckCircle2 className="w-6 h-6" />
+              </div>
+            </div>
+
+            {/* Pending to Watch */}
+            <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold text-[#5f6368]">Pending Modules</p>
+                <h3 className="text-2xl font-bold text-[#b06000] mt-0.5">{videos.length - completedCount} Modules</h3>
+                <p className="text-[11px] text-[#80868b] mt-1">Remaining to watch</p>
+              </div>
+              <div className="p-3.5 rounded-2xl bg-[#fef7e0] text-[#b06000] border border-[#feefc3]">
+                <Clock className="w-6 h-6" />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {videos.length === 0 ? (
+          /* Empty State */
+          <div className="bg-white rounded-3xl border border-[#e0e3e7] p-16 text-center shadow-xs space-y-4">
+            <div className="w-20 h-20 bg-[#fce8e6] border border-[#fad2cf] rounded-3xl flex items-center justify-center mx-auto text-[#d93025]">
+              <Film className="w-10 h-10" />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-lg font-bold text-[#1f1f1f]">No Training Videos Assigned</h3>
+              <p className="text-sm text-[#5f6368] max-w-md mx-auto">
+                You currently have no training videos assigned to your profile. Check back later or reach out to your HR administrator.
+              </p>
+            </div>
+          </div>
+        ) : viewMode === 'theater' ? (
+          /* Theater Split View */
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            {/* Left Main Player (7 Cols) */}
+            <div className="lg:col-span-7 space-y-4">
+              {activeVideo ? (
+                <div className="bg-white rounded-3xl border border-[#e0e3e7] overflow-hidden shadow-xs space-y-4">
+                  {/* Video Player Container */}
+                  <div className="aspect-video bg-black relative">
+                    <video
+                      ref={videoPlayerRef}
+                      key={activeVideo.id}
+                      src={activeVideo.video_url}
+                      className="w-full h-full object-contain"
                       controls
+                      playsInline
                       preload="metadata"
                     />
                   </div>
-                  <div className="p-4 flex items-start justify-between">
-                    <div>
-                      <h3 className="font-semibold text-slate-800 line-clamp-1" title={video.title}>
-                        {video.title}
-                      </h3>
-                      <p className="text-xs text-slate-500 mt-1">
-                        Added {new Date(video.created_at).toLocaleDateString()}
-                      </p>
+
+                  {/* Player Details & Actions */}
+                  <div className="p-6 pt-2 space-y-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
+                            Module {activeIndex + 1} of {videos.length}
+                          </span>
+                          {completedIds.includes(activeVideo.id) && (
+                            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#e6f4ea] text-[#137333] border border-[#ceead6] flex items-center gap-1">
+                              <Check className="w-3.5 h-3.5" /> Completed
+                            </span>
+                          )}
+                        </div>
+                        <h2 className="text-xl font-bold text-[#1f1f1f]">
+                          {activeVideo.title}
+                        </h2>
+                        <p className="text-xs text-[#5f6368] flex items-center gap-1.5 pt-0.5">
+                          <Clock className="w-3.5 h-3.5 text-[#80868b]" />
+                          Uploaded on {new Date(activeVideo.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Interactive Bottom Bar */}
+                    <div className="flex items-center justify-between pt-4 border-t border-[#e0e3e7]">
+                      {/* Prev Module */}
+                      <button
+                        onClick={handlePrevVideo}
+                        disabled={activeIndex === 0}
+                        className={`flex items-center gap-1.5 py-2 px-3.5 rounded-2xl text-xs font-semibold transition-all ${
+                          activeIndex === 0
+                            ? 'opacity-40 cursor-not-allowed text-[#80868b]'
+                            : 'bg-[#f1f3f4] text-[#1f1f1f] hover:bg-[#e3e3e3] active:scale-95'
+                        }`}
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        <span>Previous</span>
+                      </button>
+
+                      {/* Complete Toggle */}
+                      <button
+                        onClick={(e) => toggleComplete(activeVideo.id, e)}
+                        className={`flex items-center gap-2 py-2 px-5 rounded-2xl text-xs font-semibold transition-all active:scale-95 ${
+                          completedIds.includes(activeVideo.id)
+                            ? 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6] hover:bg-[#d5eedc]'
+                            : 'bg-[#1a73e8] text-white hover:bg-[#1557b0] shadow-xs'
+                        }`}
+                      >
+                        {completedIds.includes(activeVideo.id) ? (
+                          <>
+                            <CheckCircle2 className="w-4 h-4" />
+                            <span>Completed</span>
+                          </>
+                        ) : (
+                          <>
+                            <Check className="w-4 h-4" />
+                            <span>Mark as Completed</span>
+                          </>
+                        )}
+                      </button>
+
+                      {/* Next Module */}
+                      <button
+                        onClick={handleNextVideo}
+                        disabled={activeIndex === videos.length - 1}
+                        className={`flex items-center gap-1.5 py-2 px-3.5 rounded-2xl text-xs font-semibold transition-all ${
+                          activeIndex === videos.length - 1
+                            ? 'opacity-40 cursor-not-allowed text-[#80868b]'
+                            : 'bg-[#f1f3f4] text-[#1f1f1f] hover:bg-[#e3e3e3] active:scale-95'
+                        }`}
+                      >
+                        <span>Next</span>
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
                 </div>
-              ))}
+              ) : null}
             </div>
-          )}
+
+            {/* Right Playlist Sidebar (5 Cols) */}
+            <div className="lg:col-span-5 space-y-4">
+              <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs space-y-3.5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-bold text-[#1f1f1f] uppercase tracking-wider">
+                      Curriculum Playlist
+                    </h3>
+                    <p className="text-xs text-[#5f6368]">
+                      {completedCount} of {videos.length} Completed
+                    </p>
+                  </div>
+                  <div className="w-24 h-2 rounded-full bg-[#f1f3f4] overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-[#4285F4] to-[#34A853]"
+                      style={{ width: `${progressPercent}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Search Bar */}
+                <div className="relative">
+                  <Search className="w-4 h-4 text-[#5f6368] absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    placeholder="Search video modules..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-9 pr-4 py-2 bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl text-xs text-[#1f1f1f] placeholder-[#80868b] focus:outline-none focus:border-[#1a73e8] focus:bg-white transition-all"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#5f6368] hover:text-[#1f1f1f]"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+
+                {/* Filter Pills */}
+                <div className="flex items-center gap-1.5 pt-0.5">
+                  <button
+                    onClick={() => setActiveFilter('all')}
+                    className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                      activeFilter === 'all'
+                        ? 'bg-[#1a73e8] text-white'
+                        : 'bg-[#f1f3f4] text-[#5f6368] hover:bg-[#e3e3e3]'
+                    }`}
+                  >
+                    All ({videos.length})
+                  </button>
+                  <button
+                    onClick={() => setActiveFilter('pending')}
+                    className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                      activeFilter === 'pending'
+                        ? 'bg-[#b06000] text-white'
+                        : 'bg-[#fef7e0] text-[#b06000] border border-[#feefc3] hover:bg-[#feeec3]'
+                    }`}
+                  >
+                    To Watch ({videos.length - completedCount})
+                  </button>
+                  <button
+                    onClick={() => setActiveFilter('completed')}
+                    className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                      activeFilter === 'completed'
+                        ? 'bg-[#137333] text-white'
+                        : 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6] hover:bg-[#d5eedc]'
+                    }`}
+                  >
+                    Completed ({completedCount})
+                  </button>
+                </div>
+
+                {/* Playlist Items */}
+                <div className="space-y-2 max-h-[520px] overflow-y-auto pr-1">
+                  {filteredVideos.length === 0 ? (
+                    <div className="p-6 text-center text-xs text-[#5f6368]">
+                      No modules matched your search.
+                    </div>
+                  ) : (
+                    filteredVideos.map((video) => {
+                      const isSelected = activeVideo?.id === video.id;
+                      const isCompleted = completedIds.includes(video.id);
+                      const originalIndex = videos.findIndex(v => v.id === video.id);
+
+                      return (
+                        <div
+                          key={video.id}
+                          onClick={() => handleSelectVideo(video)}
+                          className={`rounded-2xl border p-3 transition-all flex items-center justify-between gap-3 cursor-pointer ${
+                            isSelected
+                              ? 'border-[#1a73e8] bg-[#e8f0fe]/60 shadow-xs'
+                              : 'border-[#e0e3e7] bg-white hover:border-[#c4c7c5] hover:bg-[#f8fafd]'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div
+                              className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 font-bold text-xs ${
+                                isSelected
+                                  ? 'bg-[#1a73e8] text-white shadow-xs'
+                                  : isCompleted
+                                  ? 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6]'
+                                  : 'bg-[#f1f3f4] text-[#5f6368]'
+                              }`}
+                            >
+                              {isSelected ? (
+                                <Play className="w-4 h-4 fill-white" />
+                              ) : isCompleted ? (
+                                <CheckCircle2 className="w-4 h-4" />
+                              ) : (
+                                <span>#{originalIndex + 1}</span>
+                              )}
+                            </div>
+
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-[10px] font-bold text-[#5f6368] uppercase">
+                                  Module {originalIndex + 1}
+                                </span>
+                                {isCompleted && (
+                                  <span className="text-[9px] font-bold text-[#137333] bg-[#e6f4ea] px-1.5 rounded">
+                                    Done
+                                  </span>
+                                )}
+                              </div>
+                              <h4 className={`text-xs font-semibold truncate ${isSelected ? 'text-[#1a73e8]' : 'text-[#1f1f1f]'}`}>
+                                {video.title}
+                              </h4>
+                            </div>
+                          </div>
+
+                          <button
+                            onClick={(e) => toggleComplete(video.id, e)}
+                            className={`p-1.5 rounded-lg shrink-0 transition-all ${
+                              isCompleted
+                                ? 'text-[#137333] hover:bg-[#e6f4ea]'
+                                : 'text-[#80868b] hover:text-[#1a73e8] hover:bg-[#f1f3f4]'
+                            }`}
+                            title={isCompleted ? 'Mark uncompleted' : 'Mark completed'}
+                          >
+                            {isCompleted ? (
+                              <CheckCircle2 className="w-4 h-4" />
+                            ) : (
+                              <Circle className="w-4 h-4" />
+                            )}
+                          </button>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* Grid View */
+          <div className="space-y-4">
+            {/* Search & Filter Bar for Grid */}
+            <div className="bg-white rounded-3xl border border-[#e0e3e7] p-4 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="relative w-full sm:w-80">
+                <Search className="w-4 h-4 text-[#5f6368] absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Search training modules..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl text-xs text-[#1f1f1f] placeholder-[#80868b] focus:outline-none focus:border-[#1a73e8] focus:bg-white transition-all"
+                />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setActiveFilter('all')}
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                    activeFilter === 'all'
+                      ? 'bg-[#1a73e8] text-white'
+                      : 'bg-[#f1f3f4] text-[#5f6368] hover:bg-[#e3e3e3]'
+                  }`}
+                >
+                  All ({videos.length})
+                </button>
+                <button
+                  onClick={() => setActiveFilter('pending')}
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                    activeFilter === 'pending'
+                      ? 'bg-[#b06000] text-white'
+                      : 'bg-[#fef7e0] text-[#b06000] border border-[#feefc3] hover:bg-[#feeec3]'
+                  }`}
+                >
+                  To Watch ({videos.length - completedCount})
+                </button>
+                <button
+                  onClick={() => setActiveFilter('completed')}
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                    activeFilter === 'completed'
+                      ? 'bg-[#137333] text-white'
+                      : 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6] hover:bg-[#d5eedc]'
+                  }`}
+                >
+                  Completed ({completedCount})
+                </button>
+              </div>
+            </div>
+
+            {/* Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredVideos.map((video) => {
+                const isCompleted = completedIds.includes(video.id);
+                const originalIndex = videos.findIndex(v => v.id === video.id);
+
+                return (
+                  <div
+                    key={video.id}
+                    className="bg-white rounded-3xl border border-[#e0e3e7] overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col group"
+                  >
+                    <div className="aspect-video bg-black relative">
+                      <video
+                        src={video.video_url}
+                        className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+                        controls
+                        playsInline
+                        preload="metadata"
+                      />
+                    </div>
+
+                    <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                      <div>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
+                            Module {originalIndex + 1}
+                          </span>
+                          {isCompleted && (
+                            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#e6f4ea] text-[#137333] border border-[#ceead6] flex items-center gap-1">
+                              <Check className="w-3 h-3" /> Completed
+                            </span>
+                          )}
+                        </div>
+                        <h3 className="font-bold text-sm text-[#1f1f1f] line-clamp-2" title={video.title}>
+                          {video.title}
+                        </h3>
+                        <p className="text-xs text-[#5f6368] mt-1">
+                          Added {new Date(video.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-2 pt-3 border-t border-[#e0e3e7]">
+                        <button
+                          onClick={() => handleSelectVideo(video)}
+                          className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-2xl bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold transition-all"
+                        >
+                          <Tv className="w-3.5 h-3.5" />
+                          <span>Open in Player</span>
+                        </button>
+                        <button
+                          onClick={(e) => toggleComplete(video.id, e)}
+                          className={`p-2 rounded-2xl border transition-all ${
+                            isCompleted
+                              ? 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]'
+                              : 'bg-[#f1f3f4] text-[#5f6368] border-[#dadce0] hover:bg-[#e3e3e3]'
+                          }`}
+                          title={isCompleted ? 'Mark uncompleted' : 'Mark completed'}
+                        >
+                          {isCompleted ? (
+                            <CheckCircle2 className="w-4 h-4" />
+                          ) : (
+                            <Circle className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
