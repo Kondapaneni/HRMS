@@ -574,6 +574,10 @@ export function BusinessLoanForm({ isEditMode: propEditMode, application: propAp
 
   const isReadOnly = Boolean(location.state?.readOnly || location.state?.isReadOnly || isAlreadySubmitted);
 
+  // Hide "Save Draft" when the application is already submitted (status = Created)
+  const appStatus = propApplication?.status || location.state?.application?.status || '';
+  const isCreatedApp = appStatus.toLowerCase() === 'created' || appStatus.toLowerCase() === 'under_review' || appStatus.toLowerCase() === 'approved';
+
   // Render individual Guarantor Sub-form
   const renderGuarantorForm = (idx) => {
     const pfx = `guarantor_${idx}_`;
@@ -1840,8 +1844,8 @@ export function BusinessLoanForm({ isEditMode: propEditMode, application: propAp
               </button>
             )}
 
-            {/* Save as Draft */}
-            {!isReadOnly && (
+            {/* Save as Draft — hidden when the application is already created/submitted */}
+            {!isReadOnly && !isCreatedApp && (
               <button
                 type="button"
                 onClick={handleSaveDraft}
