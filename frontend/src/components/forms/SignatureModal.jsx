@@ -1,17 +1,17 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { 
   X, 
   RotateCcw, 
   Send, 
   PenTool, 
-  ShieldCheck,
-  CheckCircle2 
+  ShieldCheck 
 } from 'lucide-react';
 import { createPortal } from 'react-dom';
 
 /**
  * Google Material 3 Workspace Signature Capture Modal
- * Provides high-DPI stylus & touch canvas with auto-rotation, signature baseline, and Material 3 controls.
+ * Full-screen landscape on mobile, centered modal on desktop.
+ * High-DPI stylus & touch canvas with auto-rotation, signature baseline, and Material 3 controls.
  */
 export function SignatureModal({ 
   isOpen, 
@@ -23,33 +23,56 @@ export function SignatureModal({
   const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [isEmpty, setIsEmpty] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
   const [isPortrait, setIsPortrait] = useState(false);
 
-  // Check device orientation for mobile signature capture
+  // Detect mobile & orientation
   useEffect(() => {
     if (!isOpen) return;
-    const checkOrientation = () => {
-      setIsPortrait(window.innerHeight > window.innerWidth && window.innerWidth < 768);
+    const check = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      setIsPortrait(mobile && window.innerHeight > window.innerWidth);
     };
-    checkOrientation();
-    window.addEventListener('resize', checkOrientation);
-    return () => window.removeEventListener('resize', checkOrientation);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
   }, [isOpen]);
 
-  // Lock body scroll while modal is open
+  // Try to lock orientation to landscape on mobile
+  useEffect(() => {
+    if (!isOpen || !isMobile) return;
+    try {
+      if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('landscape').catch(() => {});
+      }
+    } catch {}
+    return () => {
+      try {
+        if (screen.orientation && screen.orientation.unlock) {
+          screen.orientation.unlock();
+        }
+      } catch {}
+    };
+  }, [isOpen, isMobile]);
+
+  // Lock body scroll while modal is open & hide mobile nav
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
+      document.body.classList.add('hide-mobile-nav');
     } else {
       document.body.style.overflow = 'unset';
+      document.body.classList.remove('hide-mobile-nav');
     }
     return () => {
       document.body.style.overflow = 'unset';
+      document.body.classList.remove('hide-mobile-nav');
     };
   }, [isOpen]);
 
   // Initialize Canvas with High-DPI Retina resolution
-  const initCanvas = () => {
+  const initCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const parent = canvas.parentElement;
@@ -72,19 +95,19 @@ export function SignatureModal({
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     setIsEmpty(true);
-  };
+  }, []);
 
   // Re-measure on open or orientation switch
   useEffect(() => {
     if (isOpen) {
-      const timeout = setTimeout(initCanvas, 60);
+      const timeout = setTimeout(initCanvas, 80);
       window.addEventListener('resize', initCanvas);
       return () => {
         clearTimeout(timeout);
         window.removeEventListener('resize', initCanvas);
       };
     }
-  }, [isOpen, isPortrait]);
+  }, [isOpen, isPortrait, initCanvas]);
 
   if (!isOpen) return null;
 
@@ -102,7 +125,8 @@ export function SignatureModal({
     const clientX = touch ? touch.clientX : e.clientX;
     const clientY = touch ? touch.clientY : e.clientY;
 
-    if (isPortrait) {
+    if (isMobile && isPortrait) {
+      // When CSS rotated -90deg, remap coordinates
       const scaleX = rect.height > 0 ? (canvas.width / (window.devicePixelRatio || 1)) / rect.height : 1;
       const scaleY = rect.width > 0 ? (canvas.height / (window.devicePixelRatio || 1)) / rect.width : 1;
       return {
@@ -184,31 +208,37 @@ export function SignatureModal({
     onSubmit(dataUrl);
   };
 
-  const containerStyle = isPortrait ? {
+  // On mobile portrait, force the entire modal to rotate into landscape
+  const mobilePortraitStyle = (isMobile && isPortrait) ? {
     transform: 'rotate(-90deg)',
     transformOrigin: 'center center',
     width: '100dvh',
     height: '100dvw',
-    position: 'absolute',
+    position: 'fixed',
     top: '50%',
     left: '50%',
     marginTop: 'calc(-50dvw)',
-    marginLeft: 'calc(-50dvh)'
-  } : {
-    width: '100%',
-    height: '100%'
-  };
+    marginLeft: 'calc(-50dvh)',
+    zIndex: 99999
+  } : {};
 
   return createPortal(
-    <div className="fixed inset-0 z-[99999] bg-[#1f1f1f]/60 backdrop-blur-xs flex items-center justify-center p-0 sm:p-6 overflow-hidden animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[99999] bg-black/70 backdrop-blur-sm flex items-center justify-center overflow-hidden animate-in fade-in duration-200">
       <div 
-        style={containerStyle}
-        className="flex flex-col bg-white sm:rounded-[28px] shadow-2xl sm:border sm:border-[#e0e3e7] overflow-hidden max-w-4xl max-h-[85vh] w-full"
+        style={mobilePortraitStyle}
+        className={`flex flex-col bg-white overflow-hidden shadow-2xl ${
+          isMobile 
+            ? 'w-full h-full' 
+            : 'rounded-[28px] border border-[#e0e3e7] max-w-4xl max-h-[85vh] w-full mx-6'
+        }`}
       >
-        {/* Google Material 3 Header */}
-        <div className="px-5 sm:px-7 py-4 sm:py-5 border-b border-[#e0e3e7] flex items-center justify-between shrink-0 bg-white">
-          <div>
-            <div className="flex items-center gap-1.5 mb-1">
+        {/* Header — Compact on mobile, spacious on desktop */}
+        <div className={`border-b border-[#e0e3e7] flex items-center justify-between shrink-0 bg-white ${
+          isMobile ? 'px-4 py-3' : 'px-7 py-5'
+        }`}>
+          <div className="min-w-0">
+            {/* Workspace dots — hide on mobile to save space */}
+            <div className="hidden sm:flex items-center gap-1.5 mb-1">
               <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
               <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
               <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
@@ -217,13 +247,17 @@ export function SignatureModal({
                 Origination Authorization
               </span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-normal text-[#1f1f1f] tracking-tight flex items-center gap-2">
-              <PenTool className="w-5 h-5 text-[#1a73e8]" />
-              {title}
+            <h2 className={`font-bold text-[#1f1f1f] tracking-tight flex items-center gap-2 ${
+              isMobile ? 'text-base' : 'text-xl sm:text-2xl font-normal'
+            }`}>
+              <PenTool className={`text-[#1a73e8] shrink-0 ${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
+              <span className="truncate">{title}</span>
             </h2>
-            <p className="text-xs text-[#5f6368] mt-0.5 max-w-xl">
-              {subtitle}
-            </p>
+            {!isMobile && (
+              <p className="text-xs text-[#5f6368] mt-0.5 max-w-xl">
+                {subtitle}
+              </p>
+            )}
           </div>
 
           <button 
@@ -237,22 +271,26 @@ export function SignatureModal({
         </div>
         
         {/* Signature Canvas Drawing Box */}
-        <div className="flex-1 p-4 sm:p-6 flex flex-col min-h-0 bg-[#f8fafd]">
+        <div className={`flex-1 flex flex-col min-h-0 bg-[#f8fafd] ${
+          isMobile ? 'p-2.5' : 'p-4 sm:p-6'
+        }`}>
           <div className="flex-1 w-full bg-white border-2 border-[#dadce0] hover:border-[#1a73e8] focus-within:border-[#1a73e8] rounded-2xl overflow-hidden shadow-xs relative transition-all flex flex-col">
             
-            {/* Top Helper Indicator */}
-            <div className="px-4 py-2 bg-[#f8fafd] border-b border-[#f1f3f4] flex items-center justify-between select-none">
+            {/* Top Helper Indicator — More compact on mobile */}
+            <div className={`bg-[#f8fafd] border-b border-[#f1f3f4] flex items-center justify-between select-none ${
+              isMobile ? 'px-3 py-1.5' : 'px-4 py-2'
+            }`}>
               <span className="text-[11px] font-medium text-[#5f6368] flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-[#1a73e8] animate-pulse" />
-                Sign with mouse, stylus, or touchscreen
+                {isMobile ? 'Draw your signature' : 'Sign with mouse, stylus, or touchscreen'}
               </span>
               <span className="text-[10.5px] font-mono text-[#80868b]">
-                {isEmpty ? 'Awaiting Signature' : 'Signature Recorded'}
+                {isEmpty ? 'Awaiting' : '✓ Recorded'}
               </span>
             </div>
 
             {/* Main HTML5 Canvas */}
-            <div className="flex-1 relative w-full h-full min-h-[220px]">
+            <div className="flex-1 relative w-full h-full min-h-[140px] sm:min-h-[220px]">
               <canvas
                 ref={canvasRef}
                 className="w-full h-full touch-none cursor-crosshair block"
@@ -265,25 +303,31 @@ export function SignatureModal({
                 onTouchEnd={stopDrawing}
               />
 
-              {/* Watermark and Signature Line */}
-              {isEmpty ? (
+              {/* Watermark placeholder */}
+              {isEmpty && (
                 <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center text-[#9aa0a6] select-none gap-2">
-                  <div className="w-12 h-12 rounded-full bg-[#f1f3f4] flex items-center justify-center text-[#80868b]">
-                    <PenTool size={22} className="text-[#80868b]" />
+                  <div className={`rounded-full bg-[#f1f3f4] flex items-center justify-center text-[#80868b] ${
+                    isMobile ? 'w-10 h-10' : 'w-12 h-12'
+                  }`}>
+                    <PenTool size={isMobile ? 18 : 22} className="text-[#80868b]" />
                   </div>
-                  <p className="text-sm font-semibold text-[#5f6368]">
+                  <p className={`font-semibold text-[#5f6368] ${isMobile ? 'text-xs' : 'text-sm'}`}>
                     Draw your signature here
                   </p>
-                  <p className="text-xs text-[#80868b]">
-                    Use your fingertip, mouse, or stylus pen
-                  </p>
+                  {!isMobile && (
+                    <p className="text-xs text-[#80868b]">
+                      Use your fingertip, mouse, or stylus pen
+                    </p>
+                  )}
                 </div>
-              ) : null}
+              )}
 
               {/* Signature Baseline */}
-              <div className="absolute bottom-6 left-8 right-8 pointer-events-none border-b border-dashed border-[#dadce0] flex items-center justify-between pb-1">
+              <div className={`absolute left-6 right-6 pointer-events-none border-b border-dashed border-[#dadce0] flex items-center justify-between pb-1 ${
+                isMobile ? 'bottom-4' : 'bottom-6 left-8 right-8'
+              }`}>
                 <span className="text-[10px] font-semibold text-[#80868b] uppercase tracking-wider">
-                  Authorized Signatory Baseline
+                  {isMobile ? 'Signature' : 'Authorized Signatory Baseline'}
                 </span>
                 <ShieldCheck size={14} className="text-[#80868b]" />
               </div>
@@ -292,24 +336,30 @@ export function SignatureModal({
         </div>
 
         {/* Footer Material 3 Action Toolbar */}
-        <div className="px-5 sm:px-7 py-3.5 sm:py-4 bg-white border-t border-[#e0e3e7] flex items-center justify-between shrink-0 pb-safe">
+        <div className={`bg-white border-t border-[#e0e3e7] flex items-center justify-between shrink-0 ${
+          isMobile ? 'px-3 py-2.5 pb-safe' : 'px-7 py-4'
+        }`}>
           <div>
             <button 
               type="button"
               onClick={clearCanvas}
               disabled={isEmpty}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-white text-[#5f6368] hover:bg-[#f1f3f4] hover:text-[#1f1f1f] border border-[#dadce0] transition-all shadow-2xs cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+              className={`inline-flex items-center gap-1.5 rounded-full font-semibold bg-white text-[#5f6368] hover:bg-[#f1f3f4] hover:text-[#1f1f1f] border border-[#dadce0] transition-all shadow-2xs cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
+                isMobile ? 'px-3 py-1.5 text-[11px]' : 'px-4 py-2 text-xs'
+              }`}
             >
               <RotateCcw size={13} />
-              <span>Clear Signature</span>
+              <span>Clear</span>
             </button>
           </div>
 
-          <div className="flex items-center gap-2.5 sm:gap-3">
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] px-5 py-2 transition-all shadow-2xs cursor-pointer"
+              className={`inline-flex items-center justify-center rounded-full font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] transition-all shadow-2xs cursor-pointer ${
+                isMobile ? 'px-3.5 py-1.5 text-[11px]' : 'px-5 py-2 text-xs'
+              }`}
             >
               Cancel
             </button>
@@ -317,7 +367,9 @@ export function SignatureModal({
               type="button"
               onClick={handleSubmit}
               disabled={isEmpty}
-              className="inline-flex items-center justify-center gap-1.5 rounded-full text-xs font-semibold bg-[#137333] hover:bg-[#0d652d] text-white px-6 py-2 transition-all shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`inline-flex items-center justify-center gap-1.5 rounded-full font-semibold bg-[#137333] hover:bg-[#0d652d] text-white transition-all shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                isMobile ? 'px-4 py-1.5 text-[11px]' : 'px-6 py-2 text-xs'
+              }`}
             >
               <Send size={13} />
               <span>Submit & Transfer</span>
@@ -331,3 +383,4 @@ export function SignatureModal({
 }
 
 export default SignatureModal;
+
