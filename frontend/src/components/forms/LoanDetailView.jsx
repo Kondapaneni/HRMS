@@ -4,18 +4,26 @@ import {
   User,
   Users,
   Shield,
+  ShieldCheck,
   Calendar,
   UserCheck,
   Edit3,
   ChevronDown,
   ChevronUp,
   History,
-  FileEdit
+  FileEdit,
+  MapPin,
+  Briefcase,
+  Phone,
+  FileText,
+  CheckCircle2,
+  Clock,
+  Sparkles
 } from 'lucide-react';
 import { format } from 'date-fns';
 
 // ============================================================================
-// HELPER UTILITIES
+// HELPER UTILITIES & CONFIG
 // ============================================================================
 
 const SYSTEM_IGNORED_FIELDS = [
@@ -39,8 +47,8 @@ const SYSTEM_IGNORED_FIELDS = [
 ];
 
 /**
- * Compact Audit Log Diff Viewer for edited loan applications
- * Displays only the modified fields (old value vs new value) and editor details, matching the applications table styling.
+ * Compact Google Workspace Style Audit Log Diff Viewer
+ * Displays only the modified fields (old value vs new value) and editor details.
  */
 const AuditLogChangesViewer = ({ event }) => {
   const [isOpen, setIsOpen] = useState(true);
@@ -53,51 +61,51 @@ const AuditLogChangesViewer = ({ event }) => {
   if (changes.length === 0) return null;
 
   return (
-    <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50/60 p-3.5 space-y-3">
+    <div className="mt-3 rounded-2xl border border-[#e0e3e7] bg-[#f8fafd] p-3.5 space-y-3 shadow-2xs">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2 text-sm text-slate-700">
-          <div className="p-1.5 rounded-md bg-blue-50 text-blue-700 border border-blue-100 flex items-center justify-center">
-            <UserCheck className="w-4 h-4" />
+        <div className="flex items-center gap-2 text-xs text-[#3c4043]">
+          <div className="p-1 rounded-lg bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] flex items-center justify-center">
+            <UserCheck className="w-3.5 h-3.5" />
           </div>
           <span>
-            Edited by <strong className="font-semibold text-slate-900">{editorName}</strong>
+            Edited by <strong className="font-semibold text-[#1f1f1f]">{editorName}</strong>
           </span>
         </div>
         {changes.length > 0 && (
           <button
             type="button"
             onClick={() => setIsOpen(!isOpen)}
-            className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700 hover:text-blue-600 bg-white px-2.5 py-1 rounded-md border border-slate-200 shadow-2xs hover:bg-slate-50 transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1a73e8] hover:text-[#1557b0] bg-white px-3 py-1 rounded-full border border-[#dadce0] shadow-2xs hover:bg-[#f1f3f4] transition-all cursor-pointer"
           >
             {isOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-            <span>{isOpen ? 'Hide Changes' : 'View Changes'} ({changes.length})</span>
+            <span>{isOpen ? 'Hide Diff' : 'View Diff'} ({changes.length})</span>
           </button>
         )}
       </div>
 
       {isOpen && changes.length > 0 && (
-        <div className="rounded-md border border-slate-200 overflow-x-auto bg-white shadow-2xs">
-          <table className="w-full text-sm text-left table-fixed min-w-[500px]">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-medium whitespace-nowrap text-xs">
+        <div className="rounded-xl border border-[#e0e3e7] overflow-x-auto bg-white shadow-2xs">
+          <table className="w-full text-xs text-left table-fixed min-w-[500px]">
+            <thead className="bg-[#f8fafd] border-b border-[#e0e3e7] text-[#5f6368] font-semibold whitespace-nowrap">
               <tr>
-                <th className="p-3 font-semibold text-slate-700 w-[40%]">Modified Field</th>
-                <th className="p-3 font-semibold text-slate-700 w-[30%]">Old Value</th>
-                <th className="p-3 font-semibold text-slate-700 w-[30%]">New Value</th>
+                <th className="p-2.5 font-bold text-[#1f1f1f] w-[40%]">Modified Field</th>
+                <th className="p-2.5 font-bold text-[#5f6368] w-[30%]">Previous Value</th>
+                <th className="p-2.5 font-bold text-[#1a73e8] w-[30%]">Updated Value</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-[#f1f3f4]">
               {changes.map((ch, cIdx) => (
-                <tr key={cIdx} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/80 transition-colors">
-                  <td className="p-3 font-medium text-slate-900 text-sm break-words">
+                <tr key={cIdx} className="hover:bg-[#f8fafd] transition-colors">
+                  <td className="p-2.5 font-medium text-[#1f1f1f] break-words">
                     {ch.label || ch.field}
                   </td>
-                  <td className="p-3 text-sm text-slate-700">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200 line-through">
+                  <td className="p-2.5 text-[#5f6368]">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf] line-through">
                       {ch.old_value || '—'}
                     </span>
                   </td>
-                  <td className="p-3 text-sm text-slate-700">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <td className="p-2.5 text-[#1f1f1f]">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">
                       {ch.new_value || '—'}
                     </span>
                   </td>
@@ -110,7 +118,6 @@ const AuditLogChangesViewer = ({ event }) => {
     </div>
   );
 };
-
 
 const formatDateSafe = (dateStr) => {
   if (!dateStr) return null;
@@ -128,9 +135,6 @@ const formatCurrency = (val) => {
   return isNaN(num) || num === 0 ? '—' : `₹ ${num.toLocaleString('en-IN')} / Month`;
 };
 
-/**
- * Resolves photo URL for loan documents matching employee avatar implementation
- */
 const getDocumentPhotoUrl = (doc) => {
   if (!doc) return null;
   if (typeof doc === 'object' && doc !== null) {
@@ -143,9 +147,8 @@ const getDocumentPhotoUrl = (doc) => {
 };
 
 /**
- * Unified Passport Photograph Box Component
- * Displays authentic dashed placeholder with icon + "PASSPORT PHOTO" / "Not Uploaded"
- * or the uploaded image with tap-to-enlarge preview.
+ * Google Material 3 Passport Photograph Box Component
+ * Displays authentic rounded box with photo preview and tap-to-enlarge modal preview.
  */
 const PassportPhotoBox = ({ doc, label, onPreview, icon: Icon = User, size = 'md' }) => {
   const photoUrl = getDocumentPhotoUrl(doc);
@@ -158,34 +161,36 @@ const PassportPhotoBox = ({ doc, label, onPreview, icon: Icon = User, size = 'md
   return (
     <div className="shrink-0 flex flex-col items-center select-none passport-photo-box print:w-[110px] print:h-[140px] print:shrink-0">
       <div
-        className={`${boxDimensions} rounded-xl border-2 ${
+        className={`${boxDimensions} rounded-2xl border-2 ${
           photoUrl 
-            ? 'border-blue-400 bg-blue-50/20' 
-            : 'border-dashed border-slate-300 bg-slate-50/70'
-        } flex flex-col items-center justify-center p-1 overflow-hidden shadow-2xs transition-all print:w-[110px] print:h-[140px] print:max-w-[110px] print:max-h-[140px]`}
+            ? 'border-[#1a73e8] bg-[#e8f0fe]/30' 
+            : 'border-dashed border-[#dadce0] bg-[#f8fafd]'
+        } flex flex-col items-center justify-center p-1.5 overflow-hidden shadow-2xs transition-all print:w-[110px] print:h-[140px] print:max-w-[110px] print:max-h-[140px]`}
       >
         {photoUrl ? (
           <img
             src={photoUrl}
             alt={label}
-            className="w-full h-full object-cover rounded-lg cursor-pointer hover:opacity-90 active:scale-95 transition-all print:w-[102px] print:h-[130px] print:max-h-[130px] print:object-cover"
+            className="w-full h-full object-cover rounded-xl cursor-pointer hover:opacity-90 active:scale-95 transition-all print:w-[102px] print:h-[130px] print:max-h-[130px] print:object-cover shadow-2xs"
             onClick={() => onPreview && onPreview(photoUrl)}
             title="Click to view full size"
           />
         ) : (
           <div className="text-center p-1.5 flex flex-col items-center justify-center h-full">
-            <Icon className={`${isSmall ? 'w-6 h-6' : 'w-8 h-8'} text-slate-300 mx-auto mb-1`} />
-            <p className={`${isSmall ? 'text-[8.5px]' : 'text-[10px]'} font-bold text-slate-400 uppercase tracking-tight leading-tight`}>
+            <div className="p-2 rounded-full bg-[#f1f3f4] text-[#80868b] mb-1.5">
+              <Icon className={`${isSmall ? 'w-4 h-4' : 'w-5 h-5'} text-[#80868b]`} />
+            </div>
+            <p className={`${isSmall ? 'text-[8px]' : 'text-[9.5px]'} font-bold text-[#5f6368] uppercase tracking-tight leading-tight`}>
               Passport Photo
             </p>
-            <span className={`${isSmall ? 'text-[7.5px]' : 'text-[9px]'} text-slate-300 italic mt-0.5`}>
+            <span className={`${isSmall ? 'text-[7.5px]' : 'text-[8.5px]'} text-[#80868b] italic mt-0.5`}>
               Not Uploaded
             </span>
           </div>
         )}
       </div>
       {label && (
-        <span className="text-[10px] font-bold text-slate-600 mt-1 uppercase tracking-wider text-center print:text-[9px]">
+        <span className="text-[10px] font-bold text-[#5f6368] mt-1.5 uppercase tracking-wider text-center print:text-[9px]">
           {label}
         </span>
       )}
@@ -194,12 +199,9 @@ const PassportPhotoBox = ({ doc, label, onPreview, icon: Icon = User, size = 'md
 };
 
 // ============================================================================
-// 1. MOBILE DETAIL VIEW SUB-COMPONENTS
+// 1. MOBILE DETAIL VIEW SUB-COMPONENTS (Google Material 3 Cards)
 // ============================================================================
 
-/**
- * A single read-only detail field for mobile: small label on top, bold value below.
- */
 const DetailField = ({ label, value }) => {
   const displayVal =
     value !== null && value !== undefined && String(value).trim() !== ''
@@ -207,53 +209,45 @@ const DetailField = ({ label, value }) => {
       : '—';
 
   return (
-    <div className="py-2.5">
-      <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-0.5">
+    <div className="py-2">
+      <p className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider mb-0.5">
         {label}
       </p>
-      <p className="text-[15px] font-semibold text-slate-800 leading-snug break-words">
+      <p className="text-sm font-semibold text-[#1f1f1f] leading-snug break-words">
         {displayVal}
       </p>
     </div>
   );
 };
 
-/**
- * A thin divider between mobile fields.
- */
-const FieldDivider = () => <div className="border-b border-slate-100" />;
+const FieldDivider = () => <div className="border-b border-[#f1f3f4]" />;
 
-/**
- * Mobile section card wrapper with numbered badge and title.
- */
-const SectionCard = ({ number, title, children }) => (
-  <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-    <div className="flex items-center gap-1.5 px-5 pt-5 pb-3">
-      <span className="text-base font-bold text-slate-800 shrink-0">
-        {number}.
-      </span>
-      <h3 className="text-base font-bold text-slate-800 uppercase tracking-wide">
+const SectionCard = ({ number, title, icon: Icon, children }) => (
+  <div className="bg-white rounded-2xl shadow-xs border border-[#e0e3e7] overflow-hidden">
+    <div className="flex items-center gap-2.5 px-5 pt-4 pb-3 border-b border-[#f1f3f4] bg-[#f8fafd]">
+      <div className="w-6 h-6 rounded-full bg-[#1a73e8] text-white flex items-center justify-center text-xs font-bold shrink-0">
+        {number}
+      </div>
+      {Icon && <Icon className="w-4 h-4 text-[#1a73e8]" />}
+      <h3 className="text-xs font-bold text-[#1f1f1f] uppercase tracking-wide">
         {title}
       </h3>
     </div>
-    <div className="px-5 pb-5">{children}</div>
+    <div className="px-5 py-4">{children}</div>
   </div>
 );
 
-/**
- * Sub-section header inside a mobile card (e.g. "Current Address", "Permanent Address").
- */
 const SubSectionHeader = ({ label }) => (
   <div className="pt-3 pb-1">
-    <p className="text-[11px] font-bold text-blue-700 uppercase tracking-wider">
+    <p className="text-[11px] font-bold text-[#1a73e8] uppercase tracking-wider">
       {label}
     </p>
-    <div className="border-b border-blue-100 mt-1" />
+    <div className="border-b border-[#d2e3fc] mt-1" />
   </div>
 );
 
 /**
- * Mobile Read-Only View Component (Designed for small screens)
+ * Mobile Read-Only View Component
  */
 function MobileDetailView({
   formData = {},
@@ -315,129 +309,36 @@ function MobileDetailView({
         ? 'Unmarried'
         : formData.co_marital_status;
 
-  const renderGuarantor = (idx) => {
-    const pfx = `guarantor_${idx}_`;
-    const g = (field) => formData[`${pfx}${field}`];
-    const gMarital = g('marital_status');
-    const gEmp = g('employment');
-    const gPhoto = currentDocs[`guarantor_${idx}_photo`];
-
-    return (
-      <div className="space-y-0">
-        <SubSectionHeader label="Personal Details" />
-        <div className="flex items-start justify-between gap-3 pt-1 pb-1">
-          <div className="flex-1 min-w-0">
-            <DetailField label="Full Name" value={g('name')} />
-            <FieldDivider />
-            <DetailField label="Phone Number" value={g('phone_number')} />
-            <FieldDivider />
-            <DetailField label="Aadhaar Number" value={g('aadhaar_number')} />
-          </div>
-          <PassportPhotoBox
-            doc={gPhoto}
-            label={`Guarantor ${idx}`}
-            icon={Shield}
-            size="sm"
-            onPreview={onPreviewDoc}
-          />
-        </div>
-        <FieldDivider />
-        <DetailField label="Age" value={g('age') ? `${g('age')} Years` : ''} />
-        <FieldDivider />
-        <DetailField label="Gender" value={g('gender')} />
-        <FieldDivider />
-        <DetailField
-          label="Marital Status"
-          value={gMarital === 'Yes' ? 'Married' : gMarital === 'No' ? 'Unmarried' : gMarital}
-        />
-        {g('father_name') && (
-          <>
-            <FieldDivider />
-            <DetailField label="Father's Name" value={g('father_name')} />
-          </>
-        )}
-        {g('mother_name') && (
-          <>
-            <FieldDivider />
-            <DetailField label="Mother's Name" value={g('mother_name')} />
-          </>
-        )}
-        {g('husband_name') && (
-          <>
-            <FieldDivider />
-            <DetailField label="Husband's Name" value={g('husband_name')} />
-          </>
-        )}
-        <FieldDivider />
-        <DetailField label="Own House" value={g('own_house')} />
-
-        {/* Current Address */}
-        <SubSectionHeader label="Current Address" />
-        <DetailField label="Address" value={g('current_address')} />
-        <FieldDivider />
-        <DetailField label="Street / Locality" value={g('current_street')} />
-        <FieldDivider />
-        <div className="grid grid-cols-2 gap-x-3">
-          <DetailField label="City" value={g('current_city')} />
-          <DetailField label="State" value={g('current_state')} />
-        </div>
-        <FieldDivider />
-        <DetailField label="Postal Code" value={g('current_postal_code')} />
-
-        {/* Permanent Address */}
-        <SubSectionHeader label="Permanent Address" />
-        <DetailField label="Address" value={g('permanent_address')} />
-        <FieldDivider />
-        <DetailField label="Street / Locality" value={g('permanent_street')} />
-        <FieldDivider />
-        <div className="grid grid-cols-2 gap-x-3">
-          <DetailField label="City" value={g('permanent_city')} />
-          <DetailField label="State" value={g('permanent_state')} />
-        </div>
-        <FieldDivider />
-        <DetailField label="Postal Code" value={g('permanent_postal_code')} />
-
-        {/* Employment */}
-        <SubSectionHeader label="Occupation & Income" />
-        <DetailField
-          label="Employment Type"
-          value={
-            gEmp === 'Job'
-              ? 'Job (Salaried)'
-              : gEmp === 'Business'
-                ? 'Business (Self-Employed)'
-                : gEmp
-          }
-        />
-        {gEmp === 'Job' && (
-          <>
-            <FieldDivider />
-            <DetailField label="Job / Employer Name" value={g('job_name')} />
-            <FieldDivider />
-            <DetailField label="Job Monthly Income" value={formatCurrency(g('job_income_per_month'))} />
-            <FieldDivider />
-            <DetailField label="Workplace Address" value={g('job_address')} />
-          </>
-        )}
-        {gEmp === 'Business' && (
-          <>
-            <FieldDivider />
-            <DetailField label="Business Name" value={g('business_name')} />
-            <FieldDivider />
-            <DetailField label="Business Monthly Income" value={formatCurrency(g('business_income_per_month'))} />
-            <FieldDivider />
-            <DetailField label="Business Address" value={g('business_address')} />
-          </>
-        )}
-      </div>
-    );
-  };
+  const appId = application.application_id || formData.application_id || 'LA-DRAFT';
+  const loanType = application.loan_type || formData.loan_type || 'Business Loan';
 
   return (
-    <div className="w-full space-y-4 pb-2">
-      {/* ── 1. Applicant Details ── */}
-      <SectionCard number="1" title="Applicant Personal Details">
-        <div className="flex items-start justify-between gap-3 pt-1 pb-1">
+    <div className="space-y-4 pb-12">
+      {/* Mobile Header Card */}
+      <div className="bg-white rounded-2xl border border-[#e0e3e7] shadow-xs overflow-hidden">
+        <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853]" />
+        <div className="p-5">
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
+              <Building2 className="w-3.5 h-3.5" />
+              {loanType}
+            </span>
+            <span className="text-xs text-[#5f6368] font-medium">
+              {formattedDate}
+            </span>
+          </div>
+          <h2 className="text-lg font-bold text-[#1f1f1f]">
+            {formData.applicant_name || 'Loan Application'}
+          </h2>
+          <p className="text-xs text-[#5f6368] mt-0.5">
+            ID: <strong className="text-[#1a73e8]">{appId}</strong>
+          </p>
+        </div>
+      </div>
+
+      {/* ── 1. Applicant Personal Details ── */}
+      <SectionCard number="1" title="Applicant Personal Details" icon={User}>
+        <div className="flex items-start justify-between gap-3 pb-2">
           <div className="flex-1 min-w-0">
             <DetailField label="Full Name" value={formData.applicant_name} />
             <FieldDivider />
@@ -454,9 +355,10 @@ function MobileDetailView({
           />
         </div>
         <FieldDivider />
-        <DetailField label="Age" value={formData.age ? `${formData.age} Years` : ''} />
-        <FieldDivider />
-        <DetailField label="Gender" value={formData.gender} />
+        <div className="grid grid-cols-2 gap-x-3">
+          <DetailField label="Age" value={formData.age ? `${formData.age} Years` : ''} />
+          <DetailField label="Gender" value={formData.gender} />
+        </div>
         <FieldDivider />
         <DetailField label="Marital Status" value={maritalDisplay} />
         {formData.father_name && (
@@ -481,8 +383,8 @@ function MobileDetailView({
         <DetailField label="Own House" value={formData.own_house} />
       </SectionCard>
 
-      {/* ── 2. Residential Address ── */}
-      <SectionCard number="2" title="Residential Address">
+      {/* ── 2. Residential Addresses ── */}
+      <SectionCard number="2" title="Residential Addresses" icon={MapPin}>
         <SubSectionHeader label="Current Address" />
         <DetailField label="Address" value={formData.current_address} />
         <FieldDivider />
@@ -509,7 +411,7 @@ function MobileDetailView({
       </SectionCard>
 
       {/* ── 3. Employment / Business Details ── */}
-      <SectionCard number="3" title="Occupation Details">
+      <SectionCard number="3" title="Occupation & Income Details" icon={Briefcase}>
         <DetailField
           label="Employment Type"
           value={
@@ -543,7 +445,7 @@ function MobileDetailView({
       </SectionCard>
 
       {/* ── 4. Co-Applicant Details ── */}
-      <SectionCard number="4" title="Co-Applicant Details">
+      <SectionCard number="4" title="Co-Applicant Profile" icon={Users}>
         <DetailField
           label="Has Co-Applicant?"
           value={hasCoApplicant ? 'Yes' : 'No'}
@@ -570,9 +472,10 @@ function MobileDetailView({
               />
             </div>
             <FieldDivider />
-            <DetailField label="Age" value={formData.co_age ? `${formData.co_age} Years` : ''} />
-            <FieldDivider />
-            <DetailField label="Gender" value={formData.co_gender} />
+            <div className="grid grid-cols-2 gap-x-3">
+              <DetailField label="Age" value={formData.co_age ? `${formData.co_age} Years` : ''} />
+              <DetailField label="Gender" value={formData.co_gender} />
+            </div>
             <FieldDivider />
             <DetailField label="Marital Status" value={coMaritalDisplay} />
             {formData.co_father_name && (
@@ -659,74 +562,218 @@ function MobileDetailView({
         )}
       </SectionCard>
 
-      {/* ── 5. Guarantors ── */}
-      <SectionCard number="5" title="Guarantors (3 Required)">
-        <div className="flex items-center gap-2 pb-3 overflow-x-auto">
-          {[1, 2, 3].map((gIdx) => {
-            const isActive = activeGuarantorTab === gIdx;
-            const gName = formData[`guarantor_${gIdx}_name`];
+      {/* ── 5. Guarantors Verification (3 Required) ── */}
+      <SectionCard number="5" title="Guarantors Verification (3 Required)" icon={ShieldCheck}>
+        {/* Guarantor Tab Buttons */}
+        <div className="flex items-center gap-1.5 p-1 bg-[#f8fafd] rounded-full border border-[#dadce0] mb-4">
+          {[1, 2, 3].map((idx) => {
+            const isActive = activeGuarantorTab === idx;
+            const gName = formData[`guarantor_${idx}_name`];
             const shortName = gName ? ` (${gName.split(' ')[0]})` : '';
 
             return (
               <button
-                key={gIdx}
+                key={idx}
                 type="button"
-                onClick={() => setActiveGuarantorTab(gIdx)}
-                className={`shrink-0 inline-flex items-center justify-center rounded-full text-xs font-semibold h-8 px-4 transition-all cursor-pointer ${
+                onClick={() => setActiveGuarantorTab(idx)}
+                className={`flex-1 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer text-center ${
                   isActive
-                    ? 'bg-blue-600 text-white shadow-sm shadow-blue-600/30'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    ? 'bg-[#1a73e8] text-white shadow-xs'
+                    : 'text-[#5f6368] hover:text-[#1f1f1f]'
                 }`}
               >
-                Guarantor {gIdx}{shortName}
+                G{idx}{shortName}
               </button>
             );
           })}
         </div>
-        {renderGuarantor(activeGuarantorTab)}
+
+        {/* Selected Guarantor Details */}
+        {(() => {
+          const idx = activeGuarantorTab;
+          const pfx = `guarantor_${idx}_`;
+          const gName = formData[`${pfx}name`];
+          const gPhone = formData[`${pfx}phone_number`];
+          const gAadhaar = formData[`${pfx}aadhaar_number`];
+          const gAge = formData[`${pfx}age`];
+          const gGender = formData[`${pfx}gender`];
+          const gMarital = formData[`${pfx}marital_status`];
+          const gFather = formData[`${pfx}father_name`];
+          const gMother = formData[`${pfx}mother_name`];
+          const gHusband = formData[`${pfx}husband_name`];
+          const gOwnHouse = formData[`${pfx}own_house`];
+
+          const gCurAddr = formData[`${pfx}current_address`];
+          const gCurStreet = formData[`${pfx}current_street`];
+          const gCurCity = formData[`${pfx}current_city`];
+          const gCurState = formData[`${pfx}current_state`];
+          const gCurZip = formData[`${pfx}current_postal_code`];
+
+          const gPermAddr = formData[`${pfx}permanent_address`];
+          const gPermStreet = formData[`${pfx}permanent_street`];
+          const gPermCity = formData[`${pfx}permanent_city`];
+          const gPermState = formData[`${pfx}permanent_state`];
+          const gPermZip = formData[`${pfx}permanent_postal_code`];
+
+          const gEmp = formData[`${pfx}employment`];
+          const gJobName = formData[`${pfx}job_name`];
+          const gJobAddr = formData[`${pfx}job_address`];
+          const gJobIncome = formData[`${pfx}job_income_per_month`];
+          const gBizName = formData[`${pfx}business_name`];
+          const gBizAddr = formData[`${pfx}business_address`];
+          const gBizIncome = formData[`${pfx}business_income_per_month`];
+
+          return (
+            <div className="space-y-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <DetailField label="Guarantor Name" value={gName} />
+                  <FieldDivider />
+                  <DetailField label="Phone Number" value={gPhone} />
+                  <FieldDivider />
+                  <DetailField label="Aadhaar Number" value={gAadhaar} />
+                </div>
+                <PassportPhotoBox
+                  doc={currentDocs[`guarantor_${idx}_photo`]}
+                  label={`Guarantor ${idx}`}
+                  icon={Shield}
+                  size="sm"
+                  onPreview={onPreviewDoc}
+                />
+              </div>
+              <FieldDivider />
+              <div className="grid grid-cols-2 gap-x-3">
+                <DetailField label="Age" value={gAge ? `${gAge} Years` : ''} />
+                <DetailField label="Gender" value={gGender} />
+              </div>
+              <FieldDivider />
+              <DetailField
+                label="Marital Status"
+                value={gMarital === 'Yes' ? 'Married' : gMarital === 'No' ? 'Unmarried' : gMarital}
+              />
+              {gFather && (
+                <>
+                  <FieldDivider />
+                  <DetailField label="Father's Name" value={gFather} />
+                </>
+              )}
+              {gMother && (
+                <>
+                  <FieldDivider />
+                  <DetailField label="Mother's Name" value={gMother} />
+                </>
+              )}
+              {gHusband && (
+                <>
+                  <FieldDivider />
+                  <DetailField label="Husband's Name" value={gHusband} />
+                </>
+              )}
+              <FieldDivider />
+              <DetailField label="Own House" value={gOwnHouse} />
+
+              <SubSectionHeader label="Current Address" />
+              <DetailField label="Address" value={gCurAddr} />
+              <FieldDivider />
+              <DetailField label="Street / Locality" value={gCurStreet} />
+              <FieldDivider />
+              <div className="grid grid-cols-2 gap-x-3">
+                <DetailField label="City" value={gCurCity} />
+                <DetailField label="State" value={gCurState} />
+              </div>
+              <FieldDivider />
+              <DetailField label="Postal Code" value={gCurZip} />
+
+              <SubSectionHeader label="Permanent Address" />
+              <DetailField label="Address" value={gPermAddr} />
+              <FieldDivider />
+              <DetailField label="Street / Locality" value={gPermStreet} />
+              <FieldDivider />
+              <div className="grid grid-cols-2 gap-x-3">
+                <DetailField label="City" value={gPermCity} />
+                <DetailField label="State" value={gPermState} />
+              </div>
+              <FieldDivider />
+              <DetailField label="Postal Code" value={gPermZip} />
+
+              <SubSectionHeader label="Occupation & Income" />
+              <DetailField
+                label="Employment Type"
+                value={
+                  gEmp === 'Job'
+                    ? 'Job (Salaried)'
+                    : gEmp === 'Business'
+                      ? 'Business (Self-Employed)'
+                      : gEmp
+                }
+              />
+              {gEmp === 'Job' && (
+                <>
+                  <FieldDivider />
+                  <DetailField label="Job Name" value={gJobName} />
+                  <FieldDivider />
+                  <DetailField label="Job Income" value={formatCurrency(gJobIncome)} />
+                  <FieldDivider />
+                  <DetailField label="Job Address" value={gJobAddr} />
+                </>
+              )}
+              {gEmp === 'Business' && (
+                <>
+                  <FieldDivider />
+                  <DetailField label="Business Name" value={gBizName} />
+                  <FieldDivider />
+                  <DetailField label="Business Income" value={formatCurrency(gBizIncome)} />
+                  <FieldDivider />
+                  <DetailField label="Business Address" value={gBizAddr} />
+                </>
+              )}
+            </div>
+          );
+        })()}
       </SectionCard>
 
       {/* ── 6. Application Timeline ── */}
-      <SectionCard number="6" title="Application Timeline">
-        <div className="py-2">
-          <div className="relative border-l-2 border-slate-200 ml-3 space-y-6 pb-2">
-            <div className="relative pl-6">
-              <div className="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-blue-100 border-2 border-blue-600" />
-              <p className="text-sm font-bold text-slate-800">Application Created</p>
-              <p className="text-[11px] text-slate-500 mt-0.5">{formattedDate}</p>
-            </div>
-            {localTimeline.map((event, idx) => {
-              const isLast = idx === localTimeline.length - 1;
-              const isUpdateEvent = Boolean(event.changes && event.changes.length > 0) || event.stage === 'Application Updated';
-
-              return (
-                <div key={idx} className="relative pl-6">
-                  <div
-                    className={`absolute -left-[9px] top-1 w-4 h-4 rounded-full border-2 ${
-                      isUpdateEvent
-                        ? 'bg-amber-100 border-amber-600'
-                        : isLast
-                        ? 'bg-emerald-100 border-emerald-600'
-                        : 'bg-blue-100 border-blue-600'
-                    }`}
-                  />
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-bold text-slate-800">
-                      {event.stage || event.action || 'Application Updated'}
-                    </p>
-                    {isUpdateEvent && (
-                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
-                        <FileEdit className="w-2.5 h-2.5" /> Edited
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[11px] text-slate-500 mt-0.5">{formatDateSafe(event.timestamp)}</p>
-
-                  {isUpdateEvent && <AuditLogChangesViewer event={event} />}
-                </div>
-              );
-            })}
+      <SectionCard number="6" title="Application Timeline & History" icon={History}>
+        <div className="relative border-l-2 border-[#dadce0] ml-3 space-y-5 pb-2 pt-1">
+          {/* Created Event */}
+          <div className="relative pl-5">
+            <div className="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-[#e8f0fe] border-2 border-[#1a73e8]" />
+            <p className="text-xs font-bold text-[#1f1f1f]">Application Submitted</p>
+            <p className="text-[11px] text-[#5f6368] mt-0.5">{formattedDate}</p>
           </div>
+
+          {/* Dynamic Events */}
+          {localTimeline.map((event, idx) => {
+            const isLast = idx === localTimeline.length - 1;
+            const isUpdateEvent = Boolean(event.changes && event.changes.length > 0) || event.stage === 'Application Updated';
+
+            return (
+              <div key={idx} className="relative pl-5">
+                <div
+                  className={`absolute -left-[9px] top-1 w-4 h-4 rounded-full border-2 ${
+                    isUpdateEvent
+                      ? 'bg-[#fef7e0] border-[#f29900]'
+                      : isLast
+                      ? 'bg-[#e6f4ea] border-[#137333]'
+                      : 'bg-[#e8f0fe] border-[#1a73e8]'
+                  }`}
+                />
+                <div className="flex items-center gap-2">
+                  <p className="text-xs font-bold text-[#1f1f1f]">
+                    {event.stage || event.action || 'Application Updated'}
+                  </p>
+                  {isUpdateEvent && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#fef7e0] text-[#b06000] border border-[#feefc3]">
+                      <FileEdit className="w-2.5 h-2.5" /> Edited
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-[#5f6368] mt-0.5">{formatDateSafe(event.timestamp)}</p>
+
+                {isUpdateEvent && <AuditLogChangesViewer event={event} />}
+              </div>
+            );
+          })}
         </div>
       </SectionCard>
     </div>
@@ -741,17 +788,17 @@ function MobileDetailView({
  * Line-based Paper Application Field
  * Matches authentic printed physical application form with underline fill-ins
  */
-const PaperLine = ({ label, value, className = '', labelWidth = 'min-w-[135px]' }) => {
+const PaperLine = ({ label, value, className = '', labelWidth = 'min-w-[140px]' }) => {
   const displayVal = value !== null && value !== undefined && String(value).trim() !== '' ? String(value) : '';
 
   return (
     <div className={`flex flex-row items-baseline py-1 print:py-0.5 ${className}`}>
-      <span className={`${labelWidth} text-xs sm:text-sm font-semibold text-slate-700 shrink-0 select-none pr-2 print:text-xs print:font-bold`}>
+      <span className={`${labelWidth} text-xs sm:text-sm font-semibold text-[#3c4043] shrink-0 select-none pr-2 print:text-xs print:font-bold`}>
         {label}:
       </span>
-      <div className="flex-1 border-b border-slate-300 sm:border-slate-400 min-h-[22px] print:min-h-[20px] flex items-end pb-0.5">
-        <span className="text-xs sm:text-sm font-bold text-slate-900 tracking-wide break-words print:text-xs">
-          {displayVal || <span className="text-slate-300 font-normal italic">—</span>}
+      <div className="flex-1 border-b border-[#dadce0] min-h-[22px] print:min-h-[20px] flex items-end pb-0.5">
+        <span className="text-xs sm:text-sm font-bold text-[#1f1f1f] tracking-wide break-words print:text-xs">
+          {displayVal || <span className="text-[#80868b] font-normal italic">—</span>}
         </span>
       </div>
     </div>
@@ -840,7 +887,8 @@ function DesktopPaperView({
       <div className="space-y-6 print:space-y-3 print-avoid-break">
         {/* Personal Details */}
         <div className="space-y-2 print:space-y-1">
-          <div className="text-xs font-bold text-blue-950 uppercase tracking-wider border-b border-slate-200 pb-1 mb-2 print:mb-1">
+          <div className="text-xs font-bold text-[#1a73e8] uppercase tracking-wider border-b border-[#e0e3e7] pb-1 mb-2 print:mb-1 flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#1a73e8]" />
             A. {labelPfx} Personal Details
           </div>
           <div className="flex flex-row items-start justify-between gap-4 print:flex-row print:items-start">
@@ -876,7 +924,8 @@ function DesktopPaperView({
 
         {/* Current Address */}
         <div className="space-y-2 print:space-y-1">
-          <div className="text-xs font-bold text-blue-950 uppercase tracking-wider border-b border-slate-200 pb-1 mb-2 print:mb-1">
+          <div className="text-xs font-bold text-[#1a73e8] uppercase tracking-wider border-b border-[#e0e3e7] pb-1 mb-2 print:mb-1 flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#1a73e8]" />
             B. {labelPfx} Current Residential Address
           </div>
           <PaperLine label="Current Address" value={gCurAddr} />
@@ -890,7 +939,8 @@ function DesktopPaperView({
 
         {/* Permanent Address */}
         <div className="space-y-2 print:space-y-1">
-          <div className="text-xs font-bold text-blue-950 uppercase tracking-wider border-b border-slate-200 pb-1 mb-2 print:mb-1">
+          <div className="text-xs font-bold text-[#1a73e8] uppercase tracking-wider border-b border-[#e0e3e7] pb-1 mb-2 print:mb-1 flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#1a73e8]" />
             C. {labelPfx} Permanent Residential Address
           </div>
           <PaperLine label="Permanent Address" value={gPermAddr} />
@@ -904,7 +954,8 @@ function DesktopPaperView({
 
         {/* Employment & Income */}
         <div className="space-y-2 print:space-y-1">
-          <div className="text-xs font-bold text-blue-950 uppercase tracking-wider border-b border-slate-200 pb-1 mb-2 print:mb-1">
+          <div className="text-xs font-bold text-[#1a73e8] uppercase tracking-wider border-b border-[#e0e3e7] pb-1 mb-2 print:mb-1 flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#1a73e8]" />
             D. {labelPfx} Occupation & Income Details
           </div>
           <PaperLine label="Employment Type" value={gEmp === 'Job' ? 'Job (Salaried)' : gEmp === 'Business' ? 'Business (Self-Employed)' : gEmp} />
@@ -952,51 +1003,63 @@ function DesktopPaperView({
         : formData.co_marital_status;
 
   return (
-    <div className="relative bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden print:shadow-none print:border-0 print:rounded-none">
-      {/* Full Page Diagonal Application ID Watermark (Centered cross on every printed page with light fadeout color) */}
+    <div className="relative bg-white rounded-2xl border border-[#e0e3e7] shadow-xs overflow-hidden print:shadow-none print:border-0 print:rounded-none">
+      {/* Google 4-Color Accent Banner */}
+      <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853]" />
+
+      {/* Full Page Diagonal Application ID Watermark (Print Only) */}
       <div className="print-watermark hidden print:flex">
         <span className="print-watermark-text">
           {appId}
         </span>
       </div>
 
-      {/* Paper Form Header (Matching Acme HRMS Theme) */}
-      <div className="p-6 sm:p-7 bg-white border-b border-slate-200 print:px-0 print:pt-0 print:pb-3">
+      {/* Paper Form Header */}
+      <div className="p-6 sm:p-7 bg-[#f8fafd] border-b border-[#e0e3e7] print:bg-white print:px-0 print:pt-0 print:pb-3">
         <div className="flex flex-row items-center justify-between gap-4">
           <div className="space-y-1">
-            <div className="flex items-center gap-2 text-blue-600 font-bold text-xs uppercase tracking-widest print:text-[10px]">
-              <Building2 className="w-4 h-4 text-blue-600 print:w-3.5 print:h-3.5" /> Acme Financial Services • Credit Origination
+            <div className="flex items-center gap-2 text-[#1a73e8] font-bold text-xs uppercase tracking-wider print:text-[10px]">
+              <span className="flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+              </span>
+              <span>Acme Financial Services • Loan Origination</span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 uppercase print:text-lg">
-              {loanType} Application Form
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1f1f1f] uppercase print:text-lg">
+              {loanType} Application Record
             </h1>
-            <p className="text-xs text-slate-500 print:text-[10px]">
-              Official Commercial Credit Record • Form Code: {loanType === 'Personal Loan' ? 'PL-ORIG-2026' : 'BL-ORIG-2026'}
+            <p className="text-xs text-[#5f6368] print:text-[10px]">
+              Official Credit & Underwriting Dossier • Form Ref: {loanType === 'Personal Loan' ? 'PL-ORIG-2026' : 'BL-ORIG-2026'}
             </p>
           </div>
 
-          {/* App / Loan ID & Date Info */}
-          <div className="flex flex-col items-end gap-0.5 text-right">
-            <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider print:text-[9px]">
+          {/* App ID & Date Pill */}
+          <div className="flex flex-col items-end gap-1 text-right">
+            <div className="text-[11px] font-bold text-[#5f6368] uppercase tracking-wider print:text-[9px]">
               Application ID
             </div>
-            <div className="text-2xl sm:text-3xl font-bold font-sans tracking-tight text-blue-600 print:text-xl">
+            <div className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#1a73e8] print:text-xl">
               {appId}
             </div>
-            <div className="flex items-center gap-1 mt-0.5 text-xs text-slate-500 print:text-[10px]">
-              <Calendar className="w-3.5 h-3.5 text-slate-400 print:w-3 print:h-3" /> {formattedDate}
+            <div className="flex items-center gap-1 mt-0.5 text-xs text-[#5f6368] print:text-[10px]">
+              <Calendar className="w-3.5 h-3.5 text-[#80868b] print:w-3 print:h-3" />
+              <span>{formattedDate}</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Paper Sheet Form Fields Body */}
-      <div className="p-6 sm:p-8 space-y-8 print:space-y-4 print:p-4 bg-white text-slate-900">
+      <div className="p-6 sm:p-8 space-y-8 print:space-y-4 print:p-4 bg-white text-[#1f1f1f]">
         {/* ================= 1. APPLICANT PERSONAL DETAILS ================= */}
         <section className="space-y-3">
-          <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
-            <span className="text-base sm:text-lg font-bold text-slate-900 shrink-0">1.</span>
-            <h2 className="text-base sm:text-lg font-bold text-slate-900 uppercase tracking-wide">
+          <div className="flex items-center gap-2 border-b border-[#e0e3e7] pb-2">
+            <div className="w-6 h-6 rounded-full bg-[#1a73e8] text-white flex items-center justify-center text-xs font-bold shrink-0">
+              1
+            </div>
+            <h2 className="text-sm sm:text-base font-bold text-[#1f1f1f] uppercase tracking-wide">
               Applicant Personal Details
             </h2>
           </div>
@@ -1034,16 +1097,19 @@ function DesktopPaperView({
 
         {/* ================= 2. APPLICANT RESIDENTIAL ADDRESS DETAILS ================= */}
         <section className="space-y-4">
-          <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
-            <span className="text-base sm:text-lg font-bold text-slate-900 shrink-0">2.</span>
-            <h2 className="text-base sm:text-lg font-bold text-slate-900 uppercase tracking-wide">
+          <div className="flex items-center gap-2 border-b border-[#e0e3e7] pb-2">
+            <div className="w-6 h-6 rounded-full bg-[#1a73e8] text-white flex items-center justify-center text-xs font-bold shrink-0">
+              2
+            </div>
+            <h2 className="text-sm sm:text-base font-bold text-[#1f1f1f] uppercase tracking-wide">
               Applicant Residential Address Details
             </h2>
           </div>
 
           {/* Current Address */}
           <div className="space-y-2">
-            <div className="text-xs font-bold text-blue-950 uppercase tracking-wider border-b border-slate-200 pb-1 mb-2">
+            <div className="text-xs font-bold text-[#1a73e8] uppercase tracking-wider border-b border-[#e0e3e7] pb-1 mb-2 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#1a73e8]" />
               A. Current Address
             </div>
             <PaperLine label="Current Address" value={formData.current_address} />
@@ -1057,7 +1123,8 @@ function DesktopPaperView({
 
           {/* Permanent Address */}
           <div className="space-y-2">
-            <div className="text-xs font-bold text-blue-950 uppercase tracking-wider border-b border-slate-200 pb-1 mb-2">
+            <div className="text-xs font-bold text-[#1a73e8] uppercase tracking-wider border-b border-[#e0e3e7] pb-1 mb-2 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#1a73e8]" />
               B. Permanent Address
             </div>
             <PaperLine label="Permanent Address" value={formData.permanent_address} />
@@ -1072,9 +1139,11 @@ function DesktopPaperView({
 
         {/* ================= 3. APPLICANT OCCUPATION & INCOME ================= */}
         <section className="space-y-3">
-          <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
-            <span className="text-base sm:text-lg font-bold text-slate-900 shrink-0">3.</span>
-            <h2 className="text-base sm:text-lg font-bold text-slate-900 uppercase tracking-wide">
+          <div className="flex items-center gap-2 border-b border-[#e0e3e7] pb-2">
+            <div className="w-6 h-6 rounded-full bg-[#1a73e8] text-white flex items-center justify-center text-xs font-bold shrink-0">
+              3
+            </div>
+            <h2 className="text-sm sm:text-base font-bold text-[#1f1f1f] uppercase tracking-wide">
               Applicant Occupation & Income Details
             </h2>
           </div>
@@ -1115,9 +1184,11 @@ function DesktopPaperView({
 
         {/* ================= 4. CO-APPLICANT DETAILS ================= */}
         <section className={`space-y-4 ${hasCoApplicant ? 'print-break-before print:space-y-2 print:p-0 print:m-0' : 'print:hidden'}`}>
-          <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
-            <span className="text-base sm:text-lg font-bold text-slate-900 shrink-0">4.</span>
-            <h2 className="text-base sm:text-lg font-bold text-slate-900 uppercase tracking-wide">
+          <div className="flex items-center gap-2 border-b border-[#e0e3e7] pb-2">
+            <div className="w-6 h-6 rounded-full bg-[#1a73e8] text-white flex items-center justify-center text-xs font-bold shrink-0">
+              4
+            </div>
+            <h2 className="text-sm sm:text-base font-bold text-[#1f1f1f] uppercase tracking-wide">
               Co-Applicant Details
             </h2>
           </div>
@@ -1128,7 +1199,8 @@ function DesktopPaperView({
             <div className="space-y-6 pt-2">
               {/* Co-Applicant Personal Details */}
               <div className="space-y-2">
-                <div className="text-xs font-bold text-blue-950 uppercase tracking-wider border-b border-slate-200 pb-1 mb-2">
+                <div className="text-xs font-bold text-[#1a73e8] uppercase tracking-wider border-b border-[#e0e3e7] pb-1 mb-2 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#1a73e8]" />
                   A. Co-Applicant Personal Details
                 </div>
                 <div className="flex flex-row items-start justify-between gap-4 print:flex-row print:items-start pt-1">
@@ -1165,7 +1237,8 @@ function DesktopPaperView({
 
               {/* Co-Applicant Current Address */}
               <div className="space-y-2">
-                <div className="text-xs font-bold text-blue-950 uppercase tracking-wider border-b border-slate-200 pb-1 mb-2">
+                <div className="text-xs font-bold text-[#1a73e8] uppercase tracking-wider border-b border-[#e0e3e7] pb-1 mb-2 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#1a73e8]" />
                   B. Co-Applicant Current Residential Address
                 </div>
                 <PaperLine label="Current Address" value={formData.co_current_address} />
@@ -1179,7 +1252,8 @@ function DesktopPaperView({
 
               {/* Co-Applicant Permanent Address */}
               <div className="space-y-2">
-                <div className="text-xs font-bold text-blue-950 uppercase tracking-wider border-b border-slate-200 pb-1 mb-2">
+                <div className="text-xs font-bold text-[#1a73e8] uppercase tracking-wider border-b border-[#e0e3e7] pb-1 mb-2 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#1a73e8]" />
                   C. Co-Applicant Permanent Residential Address
                 </div>
                 <PaperLine label="Permanent Address" value={formData.co_permanent_address} />
@@ -1194,7 +1268,8 @@ function DesktopPaperView({
               {/* Co-Applicant Employment */}
               {formData.co_employment && (
                 <div className="space-y-2">
-                  <div className="text-xs font-bold text-blue-950 uppercase tracking-wider border-b border-slate-200 pb-1 mb-2">
+                  <div className="text-xs font-bold text-[#1a73e8] uppercase tracking-wider border-b border-[#e0e3e7] pb-1 mb-2 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#1a73e8]" />
                     D. Co-Applicant Occupation & Income Details
                   </div>
                   <PaperLine
@@ -1235,15 +1310,17 @@ function DesktopPaperView({
 
         {/* ================= 5. GUARANTOR DETAILS (3 REQUIRED) ================= */}
         <section className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-2 print:hidden">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#e0e3e7] pb-2 print:hidden">
             <div className="flex items-center gap-2">
-              <span className="text-base sm:text-lg font-bold text-slate-900 shrink-0">5.</span>
-              <h2 className="text-base sm:text-lg font-bold text-slate-900 uppercase tracking-wide">
+              <div className="w-6 h-6 rounded-full bg-[#1a73e8] text-white flex items-center justify-center text-xs font-bold shrink-0">
+                5
+              </div>
+              <h2 className="text-sm sm:text-base font-bold text-[#1f1f1f] uppercase tracking-wide">
                 Guarantors Details (3 Required)
               </h2>
             </div>
 
-            {/* Guarantor Tabs Styled Like Add Lead Button */}
+            {/* Guarantor Tabs Styled Like Google Pill Buttons */}
             <div className="flex flex-wrap items-center gap-2 print:hidden">
               {[1, 2, 3].map((gIdx) => {
                 const isActive = activeGuarantorTab === gIdx;
@@ -1255,10 +1332,10 @@ function DesktopPaperView({
                     key={gIdx}
                     type="button"
                     onClick={() => setActiveGuarantorTab(gIdx)}
-                    className={`inline-flex items-center justify-center rounded-md text-xs sm:text-sm font-medium h-9 px-3.5 transition-colors gap-1.5 cursor-pointer shadow-xs ${
+                    className={`inline-flex items-center justify-center rounded-full text-xs font-semibold px-4 py-1.5 transition-all gap-1.5 cursor-pointer shadow-2xs ${
                       isActive
-                        ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm'
-                        : 'bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 border border-slate-300'
+                        ? 'bg-[#1a73e8] text-white shadow-xs'
+                        : 'bg-white text-[#3c4043] hover:bg-[#f1f3f4] hover:text-[#1f1f1f] border border-[#dadce0]'
                     }`}
                   >
                     Guarantor {gIdx}{shortName}
@@ -1269,32 +1346,32 @@ function DesktopPaperView({
           </div>
 
           {/* Active Guarantor Form in Screen View (Hidden in Print to prevent duplication) */}
-          <div className="p-4 sm:p-5 rounded-md border border-slate-200 bg-slate-50/50 print:hidden">
+          <div className="p-5 rounded-2xl border border-[#e0e3e7] bg-[#f8fafd] print:hidden shadow-2xs">
             {renderGuarantorPaper(activeGuarantorTab)}
           </div>
 
           {/* Print Layout: Sequentially outputs all 3 Guarantors with pagination breaks */}
           <div className="hidden print:block">
             <div className="space-y-4 print-break-before">
-              <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
-                <span className="text-base sm:text-lg font-bold text-slate-900 shrink-0">5.</span>
-                <h2 className="text-base sm:text-lg font-bold text-slate-900 uppercase tracking-wide">Guarantor 1 Details</h2>
+              <div className="flex items-center gap-2 border-b border-[#e0e3e7] pb-2">
+                <span className="text-base sm:text-lg font-bold text-[#1f1f1f] shrink-0">5.</span>
+                <h2 className="text-base sm:text-lg font-bold text-[#1f1f1f] uppercase tracking-wide">Guarantor 1 Details</h2>
               </div>
               {renderGuarantorPaper(1)}
             </div>
 
             <div className="space-y-4 print-break-before">
-              <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
-                <span className="text-base sm:text-lg font-bold text-slate-900 shrink-0">6.</span>
-                <h2 className="text-base sm:text-lg font-bold text-slate-900 uppercase tracking-wide">Guarantor 2 Details</h2>
+              <div className="flex items-center gap-2 border-b border-[#e0e3e7] pb-2">
+                <span className="text-base sm:text-lg font-bold text-[#1f1f1f] shrink-0">6.</span>
+                <h2 className="text-base sm:text-lg font-bold text-[#1f1f1f] uppercase tracking-wide">Guarantor 2 Details</h2>
               </div>
               {renderGuarantorPaper(2)}
             </div>
 
             <div className="space-y-4 print-break-before">
-              <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
-                <span className="text-base sm:text-lg font-bold text-slate-900 shrink-0">7.</span>
-                <h2 className="text-base sm:text-lg font-bold text-slate-900 uppercase tracking-wide">Guarantor 3 Details</h2>
+              <div className="flex items-center gap-2 border-b border-[#e0e3e7] pb-2">
+                <span className="text-base sm:text-lg font-bold text-[#1f1f1f] shrink-0">7.</span>
+                <h2 className="text-base sm:text-lg font-bold text-[#1f1f1f] uppercase tracking-wide">Guarantor 3 Details</h2>
               </div>
               {renderGuarantorPaper(3)}
             </div>
@@ -1303,20 +1380,22 @@ function DesktopPaperView({
 
         {/* ================= 6. APPLICATION TIMELINE ================= */}
         <section className="space-y-4 print:hidden">
-          <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
-            <span className="text-base sm:text-lg font-bold text-slate-900 shrink-0">6.</span>
-            <h2 className="text-base sm:text-lg font-bold text-slate-900 uppercase tracking-wide">
-              Application Timeline
+          <div className="flex items-center gap-2 border-b border-[#e0e3e7] pb-2">
+            <div className="w-6 h-6 rounded-full bg-[#1a73e8] text-white flex items-center justify-center text-xs font-bold shrink-0">
+              6
+            </div>
+            <h2 className="text-sm sm:text-base font-bold text-[#1f1f1f] uppercase tracking-wide">
+              Application Timeline & Edit Logs
             </h2>
           </div>
           
-          <div className="p-4 sm:p-5 rounded-md border border-slate-200 bg-slate-50/50">
-            <div className="relative border-l-2 border-slate-200 ml-3 space-y-6 pb-2">
+          <div className="p-5 rounded-2xl border border-[#e0e3e7] bg-[#f8fafd] shadow-2xs">
+            <div className="relative border-l-2 border-[#dadce0] ml-3 space-y-6 pb-2">
               {/* Created Event (Inferred) */}
               <div className="relative pl-6">
-                <div className="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-blue-100 border-2 border-blue-600" />
-                <p className="text-sm font-bold text-slate-800">Application Created</p>
-                <p className="text-[11px] text-slate-500 mt-0.5">{formattedDate}</p>
+                <div className="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-[#e8f0fe] border-2 border-[#1a73e8]" />
+                <p className="text-xs font-bold text-[#1f1f1f]">Application Submitted</p>
+                <p className="text-[11px] text-[#5f6368] mt-0.5">{formattedDate}</p>
               </div>
               
               {/* Dynamic Events from localTimeline */}
@@ -1329,23 +1408,23 @@ function DesktopPaperView({
                     <div
                       className={`absolute -left-[9px] top-1 w-4 h-4 rounded-full border-2 ${
                         isUpdateEvent
-                          ? 'bg-amber-100 border-amber-600'
+                          ? 'bg-[#fef7e0] border-[#f29900]'
                           : isLast
-                          ? 'bg-emerald-100 border-emerald-600'
-                          : 'bg-blue-100 border-blue-600'
+                          ? 'bg-[#e6f4ea] border-[#137333]'
+                          : 'bg-[#e8f0fe] border-[#1a73e8]'
                       }`}
                     />
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-bold text-slate-800">
+                      <p className="text-xs font-bold text-[#1f1f1f]">
                         {event.stage || event.action || 'Application Updated'}
                       </p>
                       {isUpdateEvent && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
-                          <FileEdit className="w-3 h-3" /> Edited
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#fef7e0] text-[#b06000] border border-[#feefc3]">
+                          <FileEdit className="w-2.5 h-2.5" /> Edited
                         </span>
                       )}
                     </div>
-                    <p className="text-[11px] text-slate-500 mt-0.5">{formatDateSafe(event.timestamp)}</p>
+                    <p className="text-[11px] text-[#5f6368] mt-0.5">{formatDateSafe(event.timestamp)}</p>
 
                     {isUpdateEvent && <AuditLogChangesViewer event={event} />}
                   </div>
