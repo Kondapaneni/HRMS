@@ -380,7 +380,7 @@ export default function OriginationLoanViewApplication() {
               className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] px-4 py-2 transition-all gap-1.5 shadow-2xs cursor-pointer whitespace-nowrap shrink-0"
             >
               <ArrowLeft className="w-4 h-4 text-[#5f6368]" />
-              <span>Back</span>
+              <span>Back to Applications</span>
             </button>
 
             {/* Edit / Continue Draft */}
