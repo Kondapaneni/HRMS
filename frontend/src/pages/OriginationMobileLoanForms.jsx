@@ -9,6 +9,22 @@ const OriginationMobileLoanForms = () => {
   const location = useLocation();
   const fromPath = location.state?.from || '/employee/loans/origination/members';
   const loanType = location.state?.loan_type || location.state?.loanType || 'Business Loan';
+  const application = location.state?.application;
+
+  const handleBack = () => {
+    if (fromPath.includes('view-application') && application) {
+      const viewId = application.application_id || application.id;
+      navigate(`/employee/loans/view-application?id=${encodeURIComponent(viewId)}`, {
+        state: {
+          application,
+          form_data: application.form_data,
+          from: '/employee/loans/origination/applications'
+        }
+      });
+    } else {
+      navigate(fromPath);
+    }
+  };
 
   const renderForm = () => {
     switch (loanType) {
@@ -64,7 +80,7 @@ const OriginationMobileLoanForms = () => {
         <div className="relative z-10 px-2 flex items-center justify-between">
           <button 
             type="button" 
-            onClick={() => navigate(fromPath)} 
+            onClick={() => handleBack()} 
             className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center backdrop-blur-md transition-transform active:scale-95 border border-white/20 cursor-pointer"
           >
             <ArrowLeft className="w-5 h-5" />

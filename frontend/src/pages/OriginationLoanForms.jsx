@@ -75,7 +75,23 @@ export default function OriginationLoanForms() {
 
           <button
             type="button"
-            onClick={() => navigate(fromPath)}
+            onClick={() => {
+              // When returning to the view-application page, pass the application
+              // state back so it shows the same application instead of defaulting
+              // to the first one in the list.
+              if (fromPath.includes('view-application') && application) {
+                const viewId = application.application_id || application.id;
+                navigate(`/employee/loans/view-application?id=${encodeURIComponent(viewId)}`, {
+                  state: {
+                    application,
+                    form_data: application.form_data,
+                    from: '/employee/loans/origination/applications'
+                  }
+                });
+              } else {
+                navigate(fromPath);
+              }
+            }}
             className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] px-4 py-2 transition-all gap-1.5 shadow-2xs cursor-pointer shrink-0"
           >
             <ArrowLeft className="w-4 h-4 text-[#5f6368]" />
