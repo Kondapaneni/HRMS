@@ -9,7 +9,6 @@ import {
   CheckCircle2, 
   Users, 
   Loader2, 
-  Briefcase, 
   ChevronRight, 
   X,
   ShoppingBag
@@ -71,6 +70,17 @@ const OriginationMobileSaleMemberList = () => {
     }
   };
 
+  const filteredMembers = useMemo(() => {
+    if (!searchTerm.trim()) return members;
+    const term = searchTerm.toLowerCase();
+    return members.filter(m => 
+      m.name?.toLowerCase().includes(term) ||
+      m.phone?.includes(term) ||
+      m.address?.toLowerCase().includes(term) ||
+      m.products?.some(p => p.product_type?.toLowerCase().includes(term))
+    );
+  }, [members, searchTerm]);
+
   return (
     <div className="space-y-4 pb-14">
       {/* 1. Header Card (Google Material 3 Workspace) */}
@@ -83,7 +93,7 @@ const OriginationMobileSaleMemberList = () => {
               <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05] shrink-0" />
               <span className="w-1.5 h-1.5 rounded-full bg-[#34A853] shrink-0" />
               <span className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368] ml-0.5 whitespace-nowrap">
-                Sales Origination Hub
+                Origination Workspace
               </span>
             </div>
             <h1 className="text-xl font-bold text-[#1f1f1f] tracking-tight">
@@ -94,9 +104,10 @@ const OriginationMobileSaleMemberList = () => {
             </p>
           </div>
 
-          <div className="w-11 h-11 rounded-full bg-[#e6f4ea] border border-[#ceead6] flex items-center justify-center text-[#137333] shrink-0 shadow-2xs">
-            <Users size={20} />
-          </div>
+          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-[#e6f4ea] text-[#137333] border border-[#ceead6] shrink-0">
+            <CheckCircle2 size={12} />
+            <span>{members.length} Active</span>
+          </span>
         </div>
       </div>
 
@@ -124,60 +135,79 @@ const OriginationMobileSaleMemberList = () => {
       {/* 3. Members Cards Feed */}
       <div className="space-y-3">
         {isLoading ? (
-          <div className="bg-white rounded-3xl border border-[#e0e3e7] p-8 text-center shadow-xs">
-            <Loader2 className="animate-spin h-6 w-6 text-[#1a73e8] mx-auto mb-2" />
-            <p className="text-xs text-[#5f6368]">Loading members...</p>
+          <div className="flex justify-center items-center py-16">
+            <Loader2 className="animate-spin h-7 w-7 text-[#1a73e8]" />
           </div>
-        ) : members.length === 0 ? (
-          <div className="bg-white rounded-3xl border border-[#e0e3e7] p-8 text-center shadow-xs space-y-2">
-            <Users className="w-8 h-8 text-[#80868b] mx-auto" />
-            <p className="text-xs font-semibold text-[#1f1f1f]">No converted members found</p>
-            <p className="text-[11px] text-[#5f6368]">Converted sales leads will appear here automatically.</p>
+        ) : filteredMembers.length === 0 ? (
+          <div className="bg-white rounded-3xl border border-[#e0e3e7] p-8 text-center space-y-2 shadow-xs">
+            <div className="w-12 h-12 rounded-full bg-[#f8fafd] border border-[#e0e3e7] flex items-center justify-center mx-auto text-[#80868b]">
+              <Users size={20} />
+            </div>
+            <p className="text-sm font-bold text-[#1f1f1f]">No members found</p>
+            <p className="text-xs text-[#5f6368]">
+              {searchTerm ? 'No results matched your search query.' : 'Converted sales prospects will appear here.'}
+            </p>
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="mt-2 inline-flex items-center text-xs font-semibold text-[#1a73e8] hover:underline"
+              >
+                Clear search query
+              </button>
+            )}
           </div>
         ) : (
-          members.map((member) => (
-            <div
-              key={member.id}
+          filteredMembers.map((member) => (
+            <div 
+              key={member.id} 
               onClick={() => navigate('/employee/sales/origination/members/details', { state: { member } })}
-              className="bg-white rounded-2xl border border-[#e0e3e7] p-4 shadow-xs hover:border-[#dadce0] transition-all active:scale-[0.99] cursor-pointer space-y-3"
+              className="bg-white rounded-2xl border border-[#e0e3e7] hover:border-[#dadce0] p-4 shadow-xs transition-all active:scale-[0.99] active:bg-[#f8fafd] cursor-pointer space-y-2.5"
             >
+              {/* Top Row: Name and Member Pill */}
               <div className="flex items-start justify-between gap-2">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-8 h-8 rounded-full bg-[#e6f4ea] text-[#137333] font-bold text-xs flex items-center justify-center border border-[#ceead6] shrink-0">
-                    {(member.name || 'M').charAt(0).toUpperCase()}
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="text-sm font-semibold text-[#1f1f1f] truncate">{member.name}</h3>
-                    <p className="text-[11px] text-[#1a73e8] font-medium truncate mt-0.5">
-                      {formatProductTypes(member.products)}
-                    </p>
+                <div className="min-w-0 space-y-0.5">
+                  <h3 className="font-bold text-[#1f1f1f] text-sm truncate">
+                    {member.name || 'Unnamed Member'}
+                  </h3>
+                  <div className="flex items-center gap-2 text-[10.5px] text-[#5f6368]">
+                    <span className="inline-flex items-center gap-1 font-mono font-medium text-[#1f1f1f]">
+                      <Phone size={10} className="text-[#80868b]" />
+                      {member.phone ? maskPhoneNumber(member.phone) : '—'}
+                    </span>
+                    <span>&bull;</span>
+                    <span className="text-[#1a73e8] font-medium truncate">{formatProductTypes(member.products)}</span>
                   </div>
                 </div>
 
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#e6f4ea] text-[#137333] border border-[#ceead6] shrink-0">
-                  <CheckCircle2 size={10} /> Converted
-                </span>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 text-[11.5px] pt-1 border-t border-[#f1f3f4] text-[#5f6368]">
-                <div className="flex items-center gap-1.5 truncate">
-                  <Phone size={12} className="text-[#80868b] shrink-0" />
-                  <span className="truncate">{maskPhoneNumber(member.phone)}</span>
-                </div>
-                <div className="flex items-center gap-1.5 truncate">
-                  <MapPin size={12} className="text-[#80868b] shrink-0" />
-                  <span className="truncate">{member.address || '—'}</span>
+                <div className="shrink-0 flex items-center gap-1.5">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">
+                    <CheckCircle2 size={10} /> Member
+                  </span>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between text-[11px] pt-1 text-[#80868b]">
-                <div className="flex items-center gap-1">
-                  <Calendar size={11} />
-                  <span>{member.created_at ? format(new Date(member.created_at), 'dd MMM yyyy') : '—'}</span>
+              {/* Middle Row: Address & Joined Date */}
+              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#f1f3f4] text-[11px] text-[#5f6368]">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <MapPin size={11} className="text-[#80868b] shrink-0" />
+                  <span className="truncate">{member.address || 'Address on file'}</span>
                 </div>
-                <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-[#1a73e8]">
-                  View Details <ChevronRight size={13} />
+                <div className="flex items-center justify-end gap-1.5 text-right min-w-0">
+                  <Calendar size={11} className="text-[#80868b] shrink-0" />
+                  <span>{member.created_at ? format(new Date(member.created_at), 'dd MMM yyyy') : 'Recent'}</span>
+                </div>
+              </div>
+
+              {/* Bottom Row: Products Count & Arrow */}
+              <div className="pt-2 border-t border-[#f1f3f4] flex items-center justify-between text-xs">
+                <span className="text-[11px] font-semibold text-[#5f6368] flex items-center gap-1">
+                  <ShoppingBag size={11} className="text-[#1a73e8]" />
+                  {member.products.length} Product{member.products.length !== 1 ? 's' : ''} on record
                 </span>
+                
+                <div className="w-6 h-6 rounded-full bg-[#f8fafd] border border-[#dadce0] flex items-center justify-center text-[#5f6368]">
+                  <ChevronRight size={13} />
+                </div>
               </div>
             </div>
           ))

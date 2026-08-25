@@ -185,7 +185,7 @@ const BranchOperationsLayout = () => {
                   <Link
                     key={idx}
                     to={item.path}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-full text-xs transition-all ${
+                    className={`w-full flex items-center gap-2.5 px-3 py-1.5 rounded-full text-xs transition-all ${
                       isActive 
                         ? 'bg-[#c2e7ff]/70 text-[#001d35] font-semibold shadow-xs' 
                         : 'text-[#444746] hover:bg-[#f1f3f4] hover:text-[#1f1f1f] font-medium'

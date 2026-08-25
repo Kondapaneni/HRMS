@@ -157,7 +157,7 @@ const OriginationSaleLeadsList = () => {
         {/* Search & Filter Bar */}
         <div className="bg-white rounded-2xl border border-[#e0e3e7] p-4 shadow-xs flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
           {/* Status Filter Chips */}
-          <div className="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex items-center gap-1.5 overflow-x-auto hide-scrollbar">
             {[
               { id: 'All', label: 'All', count: statusCounts.All },
               { id: 'New', label: 'New', count: statusCounts.New },

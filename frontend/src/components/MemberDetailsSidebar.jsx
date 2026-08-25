@@ -14,7 +14,6 @@ const MemberDetailsSidebar = ({ isOpen, onClose, member, type = 'loan' }) => {
   const { data: appsResponse, isLoading: isLoadingApps } = useQuery({
     queryKey: ['origination', 'applications', 'list'],
     queryFn: getLoanApplications,
-    enabled: !isSale
   });
 
   const createdLeadIds = React.useMemo(() => {
@@ -30,6 +29,15 @@ const MemberDetailsSidebar = ({ isOpen, onClose, member, type = 'loan' }) => {
 
   const defaultLeadId = String(member.lead_id || member.id || '');
   const isMemberDefaultCreated = createdLeadIds.has(defaultLeadId);
+
+  const rawProducts = isSale ? (member.products || []) : (member.loans || []);
+  const productsList = rawProducts.length > 0 ? rawProducts : [
+    {
+      id: member.lead_id || member.id,
+      product_type: member.product_type || member.loan_type || (isSale ? 'Savings & Deposits' : 'Personal Loan'),
+      status: 'Converted'
+    }
+  ];
 
   return createPortal(
     <div 
@@ -71,11 +79,7 @@ const MemberDetailsSidebar = ({ isOpen, onClose, member, type = 'loan' }) => {
           
           {/* Member Profile Info */}
           <div className="flex items-center gap-3.5">
-            <div className={`w-13 h-13 rounded-full flex items-center justify-center text-lg font-bold uppercase shrink-0 shadow-2xs border ${
-              isSale 
-                ? 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]' 
-                : 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]'
-            }`}>
+            <div className="w-13 h-13 rounded-full flex items-center justify-center text-lg font-bold uppercase shrink-0 shadow-2xs border bg-[#e6f4ea] text-[#137333] border-[#ceead6]">
               {member.name ? member.name.charAt(0) : 'M'}
             </div>
             <div className="space-y-1">
@@ -101,97 +105,54 @@ const MemberDetailsSidebar = ({ isOpen, onClose, member, type = 'loan' }) => {
             </h4>
             
             <div className="grid gap-2.5">
-              {isSale ? (
-                member.products && member.products.length > 0 ? (
-                  member.products.map((item, idx) => (
-                    <div key={item.id || idx} className="bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl p-4 transition-all hover:border-[#1a73e8]">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <div className="font-semibold text-[#1f1f1f] text-xs">
-                            {item.product_type || member.product_type || 'General Member Product'}
-                          </div>
-                          {item.id && (
-                            <p className="text-[10.5px] text-[#5f6368] mt-0.5">
-                              Lead ID: #{String(item.id).substring(0, 8)}
-                            </p>
-                          )}
-                        </div>
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">
-                          <CheckCircle2 size={11} /> Converted
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-[11px] text-[#80868b] pt-1">
-                        <Calendar size={11} />
-                        <span>Enrolled on {item.created_at ? format(new Date(item.created_at), 'MMM d, yyyy') : '—'}</span>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl p-4 transition-all hover:border-[#1a73e8]">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <div className="font-semibold text-[#1f1f1f] text-xs">
-                          {member.product_type || 'Sales Account'}
-                        </div>
-                        {member.lead_id && (
-                          <p className="text-[10.5px] text-[#5f6368] mt-0.5">
-                            Lead ID: #{String(member.lead_id).substring(0, 8)}
-                          </p>
-                        )}
-                      </div>
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">
-                        <CheckCircle2 size={11} /> Converted
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-[11px] text-[#80868b] pt-1">
-                      <Calendar size={11} />
-                      <span>Enrolled on {member.created_at ? format(new Date(member.created_at), 'MMM d, yyyy') : '—'}</span>
-                    </div>
-                  </div>
-                )
-              ) : (
-                member.loans && member.loans.map((loan) => {
-                  const currentLeadId = String(loan.id || loan.lead_id || member.lead_id || '');
-                  const isCreated = createdLeadIds.has(currentLeadId);
+              {productsList.map((item, idx) => {
+                const currentLeadId = String(item.id || item.lead_id || member.lead_id || '');
+                const isCreated = createdLeadIds.has(currentLeadId);
+                const title = item.product_type || item.loan_type || member.product_type || member.loan_type || (isSale ? 'Savings & Deposits' : 'Personal Loan');
 
-                  return (
-                    <div key={loan.id} className="bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl p-4 transition-all hover:border-[#1a73e8]">
-                      <div className="flex justify-between items-start mb-2.5">
-                        <div className="font-semibold text-[#1f1f1f] text-xs">
-                          {loan.loan_type}
-                        </div>
-                        {isLoadingApps && !appsResponse ? (
-                          <div className="h-5 w-16 bg-[#e0e3e7] animate-pulse rounded-full" />
-                        ) : (
-                          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${
-                            isCreated 
-                              ? 'bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]' 
-                              : 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6]'
-                          }`}>
-                            <CheckCircle2 size={11} /> {isCreated ? 'Created' : (loan.status || 'Converted')}
-                          </span>
-                        )}
+                return (
+                  <div key={item.id || idx} className="bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl p-4 transition-all hover:border-[#1a73e8]">
+                    <div className="flex justify-between items-start mb-2.5">
+                      <div className="font-semibold text-[#1f1f1f] text-xs">
+                        {title}
                       </div>
-                      
                       {isLoadingApps && !appsResponse ? (
-                        <div className="h-7 w-32 bg-[#e0e3e7] animate-pulse rounded-full" />
-                      ) : isCreated ? (
-                        <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1 rounded-full bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0] cursor-not-allowed select-none">
-                          <Lock size={11} className="text-[#80868b]" /> Application Created
-                        </div>
+                        <div className="h-5 w-16 bg-[#e0e3e7] animate-pulse rounded-full" />
                       ) : (
-                        <Link 
-                          to="/employee/loans/form"
-                          state={{ name: member.name, phone: member.phone, lead_id: currentLeadId, loan_type: loan.loan_type }}
-                          className="inline-flex items-center gap-1 text-xs font-semibold text-[#1a73e8] hover:underline"
-                        >
-                          Fill Application <ArrowRight size={13} />
-                        </Link>
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${
+                          isCreated 
+                            ? 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc]' 
+                            : 'bg-[#fef7e0] text-[#b06000] border-[#feefc3]'
+                        }`}>
+                          <CheckCircle2 size={11} /> {isCreated ? 'Created' : 'Converted'}
+                        </span>
                       )}
                     </div>
-                  );
-                })
-              )}
+                    
+                    {isLoadingApps && !appsResponse ? (
+                      <div className="h-7 w-32 bg-[#e0e3e7] animate-pulse rounded-full" />
+                    ) : isCreated ? (
+                      <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-3 py-1 rounded-full bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0] cursor-not-allowed select-none">
+                        <Lock size={11} className="text-[#80868b]" /> Application Created
+                      </div>
+                    ) : (
+                      <Link 
+                        to="/employee/loans/form"
+                        state={{ 
+                          name: member.name, 
+                          phone: member.phone, 
+                          lead_id: currentLeadId, 
+                          loan_type: title,
+                          from: isSale ? '/employee/sales/origination/members' : '/employee/loans/origination/members'
+                        }}
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-[#1a73e8] hover:underline"
+                      >
+                        Fill Application <ArrowRight size={13} />
+                      </Link>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
 

@@ -129,7 +129,7 @@ const OriginationMobileSaleLeadsList = () => {
               <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05] shrink-0" />
               <span className="w-1.5 h-1.5 rounded-full bg-[#34A853] shrink-0" />
               <span className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368] ml-0.5 whitespace-nowrap">
-                Sales Origination Hub
+                Origination Workspace
               </span>
             </div>
             <h1 className="text-xl font-bold text-[#1f1f1f] tracking-tight">
@@ -171,89 +171,96 @@ const OriginationMobileSaleLeadsList = () => {
         )}
       </div>
 
-      {/* 3. Filter Chips */}
-      <div className="flex items-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden px-0.5">
-        {filterTabs.map((tab) => {
-          const isSelected = selectedStatusFilter === tab.key;
-          return (
-            <button
-              key={tab.key}
-              type="button"
-              onClick={() => setSelectedStatusFilter(tab.key)}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
-                isSelected
-                  ? 'bg-[#c2e7ff]/70 text-[#001d35] border border-[#b2d7ff]/80 shadow-2xs font-bold'
-                  : 'bg-white text-[#5f6368] border border-[#e0e3e7] hover:bg-[#f8fafd]'
-              }`}
-            >
-              <span>{tab.label}</span>
-              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                isSelected ? 'bg-[#1a73e8] text-white' : 'bg-[#f1f3f4] text-[#5f6368]'
-              }`}>
-                {tab.count}
-              </span>
-            </button>
-          );
-        })}
+      {/* 3. Horizontal Scrollable Status Filter Chips */}
+      <div className="flex overflow-x-auto gap-2 py-0.5 hide-scrollbar">
+        {filterTabs.map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setSelectedStatusFilter(tab.key)}
+            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
+              selectedStatusFilter === tab.key
+                ? 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc] shadow-2xs font-bold'
+                : 'bg-white text-[#5f6368] border-[#e0e3e7] hover:bg-[#f8fafd]'
+            }`}
+          >
+            <span>{tab.label}</span>
+            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold leading-none ${
+              selectedStatusFilter === tab.key
+                ? 'bg-[#1a73e8] text-white'
+                : 'bg-[#f1f3f4] text-[#5f6368]'
+            }`}>
+              {tab.count}
+            </span>
+          </button>
+        ))}
       </div>
 
-      {/* 4. Leads Cards Feed */}
+      {/* 4. Leads Card List */}
       <div className="space-y-3">
-        {isLoading ? (
-          <div className="bg-white rounded-3xl border border-[#e0e3e7] p-8 text-center shadow-xs">
-            <Loader2 className="animate-spin h-6 w-6 text-[#1a73e8] mx-auto mb-2" />
-            <p className="text-xs text-[#5f6368]">Loading sales leads...</p>
+        {error ? (
+          <div className="bg-[#fce8e6] text-[#c5221f] p-4 rounded-2xl text-center border border-[#fad2cf] text-xs">
+            Failed to load leads. Please refresh or try again.
+          </div>
+        ) : isLoading ? (
+          <div className="flex justify-center items-center py-16">
+            <Loader2 className="animate-spin h-7 w-7 text-[#1a73e8]" />
           </div>
         ) : filteredLeads.length === 0 ? (
-          <div className="bg-white rounded-3xl border border-[#e0e3e7] p-8 text-center shadow-xs space-y-2">
-            <Users className="w-8 h-8 text-[#80868b] mx-auto" />
-            <p className="text-xs font-semibold text-[#1f1f1f]">No sales leads found</p>
-            <p className="text-[11px] text-[#5f6368]">Try adjusting your search or status filter.</p>
+          <div className="bg-white rounded-3xl border border-[#e0e3e7] p-8 text-center space-y-2 shadow-xs">
+            <div className="w-12 h-12 rounded-full bg-[#f8fafd] border border-[#e0e3e7] flex items-center justify-center mx-auto text-[#80868b]">
+              <Users size={20} />
+            </div>
+            <p className="text-sm font-bold text-[#1f1f1f]">No leads found</p>
+            <p className="text-xs text-[#5f6368]">
+              {searchTerm ? 'No results matched your search query.' : 'No prospect entries in this filter category.'}
+            </p>
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="mt-2 inline-flex items-center text-xs font-semibold text-[#1a73e8] hover:underline"
+              >
+                Clear search query
+              </button>
+            )}
           </div>
         ) : (
           filteredLeads.map((lead) => (
-            <div
-              key={lead.id}
+            <div 
+              key={lead.id} 
               onClick={() => navigate('/employee/sales/origination/leads/details', { state: { lead } })}
-              className="bg-white rounded-2xl border border-[#e0e3e7] p-4 shadow-xs hover:border-[#dadce0] transition-all active:scale-[0.99] cursor-pointer space-y-3"
+              className="bg-white rounded-2xl border border-[#e0e3e7] hover:border-[#dadce0] p-4 shadow-xs transition-all active:scale-[0.99] active:bg-[#f8fafd] cursor-pointer space-y-2.5"
             >
+              {/* Top Row: Name and Status */}
               <div className="flex items-start justify-between gap-2">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-8 h-8 rounded-full bg-[#e8f0fe] text-[#1a73e8] font-bold text-xs flex items-center justify-center border border-[#d2e3fc] shrink-0">
-                    {(lead.name || 'L').charAt(0).toUpperCase()}
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="text-sm font-semibold text-[#1f1f1f] truncate">{lead.name}</h3>
-                    <p className="text-[11px] text-[#5f6368] truncate">
-                      {lead.product_type || 'Sales Prospect'}
-                    </p>
+                <div className="min-w-0 space-y-0.5">
+                  <h3 className="font-bold text-[#1f1f1f] text-sm truncate">
+                    {lead.name || lead.full_name || 'Unnamed Prospect'}
+                  </h3>
+                  <div className="flex items-center gap-2 text-[10.5px] text-[#5f6368]">
+                    <span className="inline-flex items-center gap-1 font-mono font-medium text-[#1f1f1f]">
+                      <Phone size={10} className="text-[#80868b]" />
+                      {lead.phone ? maskPhoneNumber(lead.phone) : '—'}
+                    </span>
+                    <span>&bull;</span>
+                    <span className="truncate text-[#1a73e8] font-medium">{lead.product_type || 'Savings Account'}</span>
                   </div>
                 </div>
 
-                <div className="shrink-0">
+                <div className="shrink-0 flex items-center gap-1.5">
                   {getStatusBadge(lead.status)}
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 text-[11.5px] pt-1 border-t border-[#f1f3f4] text-[#5f6368]">
-                <div className="flex items-center gap-1.5 truncate">
-                  <Phone size={12} className="text-[#80868b] shrink-0" />
-                  <span className="truncate">{maskPhoneNumber(lead.phone)}</span>
+              {/* Middle Row: Address & Date Details */}
+              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#f1f3f4] text-[11px] text-[#5f6368]">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <MapPin size={11} className="text-[#80868b] shrink-0" />
+                  <span className="truncate">{lead.address || 'Location Not Specified'}</span>
                 </div>
-                <div className="flex items-center gap-1.5 truncate">
-                  <MapPin size={12} className="text-[#80868b] shrink-0" />
-                  <span className="truncate">{lead.address || '—'}</span>
+                <div className="flex items-center justify-end gap-1.5 text-right min-w-0">
+                  <Calendar size={11} className="text-[#80868b] shrink-0" />
+                  <span>{lead.created_at ? format(new Date(lead.created_at), 'dd MMM yyyy') : 'Recent'}</span>
                 </div>
-              </div>
-
-              <div className="flex items-center justify-between text-[11px] pt-1 text-[#80868b]">
-                <div className="flex items-center gap-1">
-                  <Calendar size={11} />
-                  <span>{lead.created_at ? format(new Date(lead.created_at), 'dd MMM yyyy') : '—'}</span>
-                </div>
-                <span className="inline-flex items-center gap-0.5 text-xs font-semibold text-[#1a73e8]">
-                  View Details <ChevronRight size={13} />
-                </span>
               </div>
             </div>
           ))

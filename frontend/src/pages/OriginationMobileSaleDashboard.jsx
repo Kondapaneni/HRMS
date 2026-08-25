@@ -152,7 +152,7 @@ const OriginationMobileSaleDashboard = () => {
               <img src={profile.avatar} alt="Profile" className="h-full w-full object-cover" />
             ) : (
               <span className="text-base font-bold text-[#1a73e8]">
-                {profile?.firstName?.[0] || profile?.name?.[0] || 'S'}
+                {profile?.firstName?.[0] || profile?.name?.split(' ')?.[0]?.[0] || 'S'}{profile?.lastName?.[0] || profile?.name?.split(' ')?.[1]?.[0] || 'O'}
               </span>
             )}
           </div>
@@ -246,14 +246,12 @@ const OriginationMobileSaleDashboard = () => {
               Conversion Rate
             </p>
             <div className="flex items-baseline gap-2">
-              <p className="text-2xl font-bold text-[#1f1f1f] tracking-tight">
+              <p className="text-2xl font-bold text-[#1a73e8] tracking-tight">
                 {conversionRate}%
               </p>
-              <span className="inline-flex items-center text-xs font-bold text-[#8430ce]">
-                Avg
-              </span>
+              <span className="text-xs font-semibold text-[#137333]">Active</span>
             </div>
-            <p className="text-xs text-[#5f6368] font-normal pt-0.5">Lead to conversion</p>
+            <p className="text-xs text-[#5f6368] font-normal pt-0.5">Total funnel conversion</p>
           </div>
           <div className="p-3 rounded-2xl bg-[#f3e8fd] text-[#8430ce] shrink-0">
             <Award className="w-5 h-5" />

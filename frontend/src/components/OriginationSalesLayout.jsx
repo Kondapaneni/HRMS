@@ -221,53 +221,89 @@ const OriginationSalesLayout = () => {
         {/* Main Content Area */}
         <main className="flex-1 flex flex-col h-[100dvh] overflow-hidden relative z-10 bg-transparent min-w-0">
           {/* Top Header */}
-          <header className="h-14 shrink-0 bg-white/80 backdrop-blur-md border-b border-[#e0e3e7] px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30 overflow-hidden">
-            {/* Left Header / Mobile Brand */}
-            <div className="flex items-center gap-3">
-              <div className="md:hidden flex items-center gap-2">
-                <div className="flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-[#4285F4]" />
-                  <span className="w-2 h-2 rounded-full bg-[#EA4335]" />
-                  <span className="w-2 h-2 rounded-full bg-[#FBBC05]" />
-                  <span className="w-2 h-2 rounded-full bg-[#34A853]" />
-                </div>
-                <span className="font-bold text-sm text-[#1f1f1f]">Acme</span>
-                <span className="font-semibold text-sm text-[#4285F4]">Sales</span>
-              </div>
-
-              {/* News Announcements Marquee */}
-              {newsHeadlines && newsHeadlines.length > 0 && (
-                <div className="hidden lg:flex items-center gap-2 bg-[#f8fafd] border border-[#dadce0] rounded-full px-3 py-1 text-xs text-[#444746] max-w-lg overflow-hidden">
-                  <Megaphone size={13} className="text-[#1a73e8] shrink-0" />
-                  <span className="font-semibold text-[#1a73e8] text-[11px] shrink-0">ANNOUNCEMENT:</span>
-                  <div className="overflow-hidden whitespace-nowrap">
-                    <span className="inline-block animate-marquee text-[11px]">
-                      {newsHeadlines.map((h, i) => (
-                        <span key={i} className="mr-6">
-                          {typeof h === 'string' ? h : h.text || h.headline || ''}
-                        </span>
-                      ))}
+          <header className="h-14 bg-white border-b border-[#e0e3e7] px-4 sm:px-5 flex items-center justify-between z-10 shrink-0 relative">
+            <div className="flex items-center gap-3 shrink-0">
+              {/* Mobile Left Edge: Profile Avatar */}
+              <div className="md:hidden flex items-center">
+                <Link
+                  to="/employee/profile"
+                  className="w-8 h-8 rounded-full bg-[#e8f0fe] border border-[#d2e3fc] flex items-center justify-center overflow-hidden shrink-0 shadow-2xs cursor-pointer active:scale-95 transition-transform"
+                >
+                  {profile?.avatar ? (
+                    <img src={profile.avatar} alt="Profile" className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="text-xs font-bold text-[#1a73e8]">
+                      {(profile?.firstName || profile?.name || profile?.email || 'E').charAt(0).toUpperCase()}
                     </span>
-                  </div>
-                </div>
-              )}
+                  )}
+                </Link>
+              </div>
             </div>
 
-            {/* Right Profile & Info */}
-            <div className="flex items-center gap-3">
-              {/* User Profile Pill Card */}
-              <div className="flex items-center gap-2 bg-[#f8fafd] border border-[#dadce0] rounded-full pl-1.5 pr-3 py-1 shadow-2xs">
-                <div className="w-6 h-6 rounded-full bg-[#e8f0fe] text-[#1a73e8] font-bold text-xs flex items-center justify-center border border-[#d2e3fc]">
-                  {profile?.name ? profile.name.charAt(0).toUpperCase() : (profile?.email || 'U').charAt(0).toUpperCase()}
+            {/* Mobile Center: Acme Sales with 4 Google dots */}
+            <div className="md:hidden absolute left-1/2 -translate-x-1/2 flex items-center pointer-events-auto">
+              <Link to="/employee/sales/origination" className="flex items-center gap-1.5 shrink-0">
+                <span className="text-base font-bold tracking-tight text-[#1f1f1f]">Acme</span>
+                <span className="text-base font-semibold tracking-tight text-[#4285F4]">Sales</span>
+                <div className="flex items-center gap-0.5 ml-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
                 </div>
-                <div className="flex flex-col text-left">
-                  <span className="text-xs font-semibold text-[#1f1f1f] leading-none">
+              </Link>
+            </div>
+
+            {/* Scrolling News Ticker (Desktop Google Pill) */}
+            {newsHeadlines && newsHeadlines.length > 0 && (
+              <div className="hidden md:flex flex-1 mx-6 overflow-hidden items-center text-xs font-medium text-[#1f1f1f] bg-[#f8fafd] rounded-full h-8 px-4 border border-[#e0e3e7] shadow-2xs relative group">
+                <Megaphone size={14} className="text-[#1a73e8] mr-2.5 shrink-0" />
+                <div className="flex-1 overflow-hidden relative h-full flex items-center">
+                  <motion.div
+                    key={newsHeadlines.join(" • ")}
+                    className="flex whitespace-nowrap"
+                    animate={{ x: ["0%", "-50%"] }}
+                    transition={{ repeat: Infinity, duration: Math.max(30, newsHeadlines.join("   •   ").length * 0.5), ease: "linear" }}
+                  >
+                    <span className="text-[#1f1f1f] tracking-wide pr-10">
+                      {Array(4).fill(newsHeadlines.join("   •   ")).join("   •   ")}
+                    </span>
+                    <span className="text-[#1f1f1f] tracking-wide pr-10">
+                      {Array(4).fill(newsHeadlines.join("   •   ")).join("   •   ")}
+                    </span>
+                  </motion.div>
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center gap-3 shrink-0">
+              {/* Desktop Profile Pill */}
+              <div className="hidden md:flex items-center gap-2.5 select-none bg-[#f8fafd] border border-[#e0e3e7] pl-1.5 pr-3 py-1 rounded-full">
+                <div className="w-7 h-7 bg-[#e8f0fe] text-[#1a73e8] rounded-full flex items-center justify-center font-bold text-xs overflow-hidden border border-[#d2e3fc]">
+                  {profile?.avatar ? (
+                    <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    (profile?.firstName || profile?.name || profile?.email || 'E').charAt(0).toUpperCase()
+                  )}
+                </div>
+                <div className="text-left">
+                  <p className="text-xs font-semibold text-[#1f1f1f] leading-none">
                     {profile?.name || profile?.email?.split('@')[0] || 'Employee'}
-                  </span>
-                  <span className="text-[10px] text-[#5f6368] font-medium leading-tight capitalize">
-                    {profile?.role || 'Sales Officer'}
-                  </span>
+                  </p>
+                  <p className="text-[10px] text-[#5f6368] mt-0.5 capitalize">{profile?.role || 'Sales Officer'}</p>
                 </div>
+              </div>
+
+              {/* Mobile Right Side Actions */}
+              <div className="flex md:hidden items-center">
+                <button
+                  type="button"
+                  onClick={() => setShowLogoutModal(true)}
+                  className="p-1.5 rounded-full text-[#5f6368] hover:text-[#d93025] hover:bg-[#fce8e6] transition-colors cursor-pointer"
+                  title="Sign Out"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
               </div>
             </div>
           </header>

@@ -87,7 +87,7 @@ const OriginationMobileSaleAddLead = () => {
               <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05] shrink-0" />
               <span className="w-1.5 h-1.5 rounded-full bg-[#34A853] shrink-0" />
               <span className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368] ml-0.5 whitespace-nowrap">
-                Sales Origination Hub
+                Origination Workspace
               </span>
             </div>
             <h1 className="text-xl font-bold text-[#1f1f1f] tracking-tight">

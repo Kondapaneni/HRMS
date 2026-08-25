@@ -157,7 +157,7 @@ const OriginationMobileSaleLeadDetails = () => {
           <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05] shrink-0" />
           <span className="w-1.5 h-1.5 rounded-full bg-[#34A853] shrink-0" />
           <span className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368] ml-0.5 whitespace-nowrap">
-            Sales Origination Hub
+            Origination Workspace
           </span>
         </div>
 
@@ -177,9 +177,9 @@ const OriginationMobileSaleLeadDetails = () => {
           </button>
         </div>
 
-        {/* Subtitle */}
+        {/* Subtitle Row (Full Width - Always Single Line) */}
         <p className="text-xs text-[#5f6368] truncate">
-          Prospect ID &bull; Sales Pipeline Profile
+          Prospect ID &bull; Pipeline Verification Profile
         </p>
       </div>
 
@@ -210,128 +210,127 @@ const OriginationMobileSaleLeadDetails = () => {
 
         {/* Contact Info Rows */}
         <div className="space-y-3 pt-1">
-          {/* Phone */}
-          <div className="flex items-center justify-between p-3 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7]">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-full bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center shrink-0">
-                <Phone size={14} />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider">Contact Phone</p>
-                <p className="text-xs font-bold text-[#1f1f1f] truncate">{maskPhoneNumber(lead.phone)}</p>
-              </div>
-            </div>
-
-            {lead.phone && (
+          {/* Phone with Call Action */}
+          <div>
+            <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider block mb-1">
+              Contact Number
+            </span>
+            {lead.phone ? (
               <a
                 href={`tel:${lead.phone}`}
-                className="inline-flex items-center gap-1 px-3 py-1 bg-[#1a73e8] text-white text-[11px] font-semibold rounded-full shadow-xs active:scale-95 transition-all"
+                className="flex items-center justify-between p-3 rounded-2xl bg-[#f8fafd] hover:bg-[#f1f3f4] border border-[#e0e3e7] transition-all cursor-pointer group active:scale-98"
               >
-                <Phone size={11} /> Call
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-full bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center shrink-0">
+                    <Phone size={14} />
+                  </div>
+                  <span className="font-bold font-mono text-sm text-[#1f1f1f]">
+                    {maskPhoneNumber(lead.phone)}
+                  </span>
+                </div>
+                <span className="text-xs font-semibold text-[#1a73e8] bg-white px-3 py-1 rounded-full border border-[#d2e3fc] shadow-2xs flex items-center gap-1">
+                  <Phone size={11} className="fill-[#1a73e8]" /> Call
+                </span>
               </a>
+            ) : (
+              <p className="text-xs text-[#80868b]">—</p>
             )}
           </div>
 
-          {/* Product Type */}
-          <div className="p-3 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7] flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-[#fef7e0] text-[#b06000] flex items-center justify-center shrink-0">
-              <Briefcase size={14} />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider">Product Type</p>
-              <p className="text-xs font-semibold text-[#1f1f1f] truncate">
-                {currentProductType || lead.product_type || '—'}
-              </p>
+          {/* Product Requested */}
+          <div className="pt-2 border-t border-[#f1f3f4]">
+            <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider block mb-1">
+              Target Sales Product
+            </span>
+            <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7] text-xs text-[#1f1f1f]">
+              <Briefcase size={15} className="text-[#1a73e8] shrink-0" />
+              <span className="font-medium">{currentProductType || lead.product_type || 'Savings & Deposits'}</span>
             </div>
           </div>
 
-          {/* Location */}
-          <div className="p-3 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7] flex items-start gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-[#e6f4ea] text-[#137333] flex items-center justify-center shrink-0 mt-0.5">
-              <MapPin size={14} />
+          {/* Address */}
+          {lead.address && (
+            <div className="pt-2 border-t border-[#f1f3f4]">
+              <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider block mb-1">
+                Residential / Business Address
+              </span>
+              <div className="flex items-start gap-2.5 p-3 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7] text-xs text-[#1f1f1f]">
+                <MapPin size={15} className="text-[#1a73e8] shrink-0 mt-0.5" />
+                <span className="leading-relaxed">{lead.address}</span>
+              </div>
             </div>
-            <div className="min-w-0">
-              <p className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider">Location / Address</p>
-              <p className="text-xs text-[#1f1f1f] leading-relaxed pt-0.5">
-                {lead.address || '—'}
-              </p>
-            </div>
-          </div>
+          )}
 
           {/* Created Date */}
-          <div className="p-3 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7] flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-[#f1f3f4] text-[#5f6368] flex items-center justify-center shrink-0">
-              <Calendar size={14} />
+          {lead.created_at && (
+            <div className="pt-2 border-t border-[#f1f3f4]">
+              <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider block mb-1">
+                Lead Registered On
+              </span>
+              <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7] text-xs text-[#1f1f1f]">
+                <Calendar size={15} className="text-[#1a73e8] shrink-0" />
+                <span>{format(new Date(lead.created_at), 'MMMM d, yyyy - h:mm a')}</span>
+              </div>
             </div>
-            <div className="min-w-0">
-              <p className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider">Created On</p>
-              <p className="text-xs font-semibold text-[#1f1f1f]">
-                {lead.created_at ? format(new Date(lead.created_at), 'MMMM d, yyyy - h:mm a') : '—'}
-              </p>
-            </div>
-          </div>
+          )}
         </div>
       </div>
 
-      {/* 3. Action Buttons Card */}
+      {/* 3. Pipeline Action Controls Card */}
       <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs space-y-3">
-        <h3 className="text-xs font-bold text-[#5f6368] uppercase tracking-wider">
-          Update Pipeline Status
-        </h3>
-
-        <div className="grid grid-cols-2 gap-2.5">
-          <button
-            type="button"
-            disabled={statusMutation.isPending || currentStatus === 'Follow Up'}
-            onClick={() => handleUpdateStatus('Follow Up')}
-            className={`py-3 px-3 rounded-2xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-              currentStatus === 'Follow Up'
-                ? 'bg-[#f3e8fd] text-[#8430ce] border-[#e9d5ff]'
-                : 'bg-white text-[#444746] border-[#dadce0] hover:bg-[#f1f3f4]'
-            }`}
-          >
-            <RefreshCw size={13} className={statusMutation.isPending ? 'animate-spin' : ''} />
-            <span>Follow Up</span>
-          </button>
-
-          <button
-            type="button"
-            disabled={statusMutation.isPending || currentStatus === 'Not Interested'}
-            onClick={() => handleUpdateStatus('Not Interested')}
-            className={`py-3 px-3 rounded-2xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-              currentStatus === 'Not Interested'
-                ? 'bg-[#fce8e6] text-[#c5221f] border-[#fad2cf]'
-                : 'bg-white text-[#444746] border-[#dadce0] hover:bg-[#f1f3f4]'
-            }`}
-          >
-            <XCircle size={13} />
-            <span>Not Interested</span>
-          </button>
+        <div className="flex items-center gap-2 pb-2 border-b border-[#e0e3e7]">
+          <div className="p-1.5 rounded-xl bg-[#e8f0fe] text-[#1a73e8]">
+            <RefreshCw className="w-4 h-4" />
+          </div>
+          <div>
+            <h3 className="text-xs font-bold text-[#1f1f1f] uppercase tracking-wider">Pipeline Actions</h3>
+            <p className="text-[10px] text-[#5f6368]">Update lead status or convert to member</p>
+          </div>
         </div>
 
-        {/* Primary Convert Button */}
-        <button
-          type="button"
-          disabled={statusMutation.isPending || isConverted}
-          onClick={() => handleUpdateStatus('Converted')}
-          className={`w-full py-3 px-4 rounded-full text-xs font-semibold shadow-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
-            isConverted
-              ? 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6] cursor-default'
-              : 'bg-[#1a73e8] hover:bg-[#1557b0] text-white active:scale-95'
-          }`}
-        >
-          {isConverted ? (
-            <>
-              <CheckCircle2 size={15} />
-              <span>Converted to Member</span>
-            </>
-          ) : (
-            <>
-              <UserPlus size={15} />
-              <span>Convert to Member</span>
-            </>
-          )}
-        </button>
+        <div className="space-y-2.5 pt-1">
+          <button 
+            type="button"
+            onClick={() => handleUpdateStatus('Follow Up')}
+            disabled={statusMutation.isPending || isConverted}
+            className="w-full flex items-center justify-center gap-2 bg-[#f3e8fd] hover:bg-[#ede9fe] text-[#8430ce] border border-[#e9d5ff] px-4 py-2.5 rounded-full text-xs font-semibold transition-all shadow-2xs disabled:opacity-50 cursor-pointer"
+          >
+            {statusMutation.isPending && statusMutation.variables?.status === 'Follow Up' ? (
+              <Loader2 size={14} className="animate-spin" />
+            ) : (
+              <RefreshCw size={14} />
+            )}
+            <span>Mark for Follow Up</span>
+          </button>
+          
+          <button 
+            type="button"
+            onClick={() => handleUpdateStatus('Converted')}
+            disabled={statusMutation.isPending || isConverted}
+            className="w-full flex items-center justify-center gap-2 bg-[#137333] hover:bg-[#0d5926] text-white px-4 py-2.5 rounded-full text-xs font-semibold transition-all shadow-xs disabled:opacity-50 cursor-pointer"
+          >
+            {statusMutation.isPending && statusMutation.variables?.status === 'Converted' ? (
+              <Loader2 size={14} className="animate-spin" />
+            ) : (
+              <UserPlus size={14} />
+            )}
+            <span>{isConverted ? 'Converted to Member' : 'Convert to Member'}</span>
+          </button>
+
+          <button 
+            type="button"
+            onClick={() => handleUpdateStatus('Not Interested')}
+            disabled={statusMutation.isPending || isConverted}
+            className="w-full flex items-center justify-center gap-2 bg-white hover:bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf] px-4 py-2.5 rounded-full text-xs font-semibold transition-all shadow-2xs disabled:opacity-50 cursor-pointer"
+          >
+            {statusMutation.isPending && statusMutation.variables?.status === 'Not Interested' ? (
+              <Loader2 size={14} className="animate-spin" />
+            ) : (
+              <XCircle size={14} />
+            )}
+            <span>Mark as Not Interested</span>
+          </button>
+        </div>
       </div>
 
       {/* Convert to Member Modal */}
