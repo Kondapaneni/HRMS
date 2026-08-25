@@ -1,19 +1,29 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Loader2, Save, User, Phone, MapPin } from 'lucide-react';
+import { 
+  ArrowLeft, 
+  Loader2, 
+  Save, 
+  User, 
+  Phone, 
+  MapPin, 
+  UserPlus, 
+  Sparkles,
+  Briefcase
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { capitalizeWords, validateAddLeadForm } from '../utils/loanValidations';
 import { createLead } from '../services/loanServices';
 import {
   TextField,
   PhoneField,
-  TextareaField,
-  RadioGroup
+  TextareaField
 } from '../components/forms';
 
 const OriginationMobileLoanAddLead = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   
   const [formData, setFormData] = useState({
     name: '',
@@ -53,6 +63,9 @@ const OriginationMobileLoanAddLead = () => {
     try {
       setIsSubmitting(true);
       await createLead(formData);
+      queryClient.invalidateQueries({ queryKey: ['origination', 'leads'] });
+      queryClient.invalidateQueries({ queryKey: ['origination', 'leads', 'list'] });
+      queryClient.invalidateQueries({ queryKey: ['leadsDashboard'] });
       toast.success('Lead added successfully!');
       navigate('/employee/loans/origination/leads');
     } catch (error) {
@@ -64,113 +77,119 @@ const OriginationMobileLoanAddLead = () => {
   };
 
   return (
-    <div className="w-full pb-8">
-      {/* Animated Hero Header */}
-      <div className="relative pt-12 pb-24 px-6 overflow-hidden rounded-b-[40px] shadow-md bg-slate-900">
-        {/* Animated Background Blobs */}
-        <motion.div
-          animate={{
-            scale: [1, 1.2, 1],
-            x: [0, 50, 0],
-            y: [0, 30, 0],
-          }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-20 -left-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.4, 1],
-            x: [0, -40, 0],
-            y: [0, 50, 0],
-          }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute -top-10 -right-10 w-64 h-64 bg-indigo-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.3, 1],
-            x: [0, 30, 0],
-            y: [0, -40, 0],
-          }}
-          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-0 left-20 w-80 h-80 bg-emerald-500 rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
-        />
-        
-        {/* Subtle Glass Overlay */}
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
+    <div className="space-y-4 pb-14">
 
-        <div className="relative z-10 flex items-center justify-between px-2">
-          <button type="button" onClick={() => navigate('/employee/loans/origination/leads')} className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center backdrop-blur-md transition-transform active:scale-95 border border-white/20">
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div className="text-center">
-            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">Origination Loans Module</p>
-            <h2 className="text-xl font-bold text-white tracking-tight drop-shadow-sm">Add New Lead</h2>
+      {/* 1. Header Card (Google Material 3 Workspace) */}
+      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs relative overflow-hidden bg-gradient-to-br from-white via-[#f8fafd] to-[#e8f0fe]/30">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <div className="flex items-center gap-1.5 whitespace-nowrap shrink-0">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4] shrink-0" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335] shrink-0" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05] shrink-0" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853] shrink-0" />
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368] ml-0.5 whitespace-nowrap">
+                Origination Workspace
+              </span>
+            </div>
+            <h1 className="text-xl font-bold text-[#1f1f1f] tracking-tight">
+              Add New Lead
+            </h1>
+            <p className="text-xs text-[#5f6368]">
+              Register prospective applicant to pipeline
+            </p>
           </div>
-          <button onClick={handleSubmit} disabled={isSubmitting} className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-lg disabled:opacity-50 transition-transform active:scale-95">
-            {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+
+          <button
+            type="button"
+            onClick={() => navigate('/employee/loans/origination/leads')}
+            className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] px-3.5 py-2 transition-all gap-1.5 shadow-2xs cursor-pointer shrink-0"
+          >
+            <ArrowLeft className="w-3.5 h-3.5 text-[#5f6368]" />
+            <span>Back</span>
           </button>
         </div>
       </div>
 
-      {/* Form Content */}
-      <div className="space-y-6 relative z-20 -mt-12 mx-4">
+      {/* 2. Form Container Card */}
+      <form onSubmit={handleSubmit} className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs space-y-4.5">
         
-        <div className="bg-white p-5 rounded-[24px] shadow-lg border border-slate-100/50 space-y-4">
-          
+        <div className="flex items-center gap-2 pb-3 border-b border-[#e0e3e7]">
+          <div className="p-1.5 rounded-xl bg-[#e8f0fe] text-[#1a73e8]">
+            <UserPlus className="w-4 h-4" />
+          </div>
+          <div>
+            <h2 className="text-xs font-bold text-[#1f1f1f] uppercase tracking-wider">Prospect Profile</h2>
+            <p className="text-[10px] text-[#5f6368]">Enter contact details for field verification</p>
+          </div>
+        </div>
+
+        <div className="space-y-4">
           <TextField
             name="name"
-            label="Lead Name"
+            label="Prospect Full Name"
             value={formData.name}
             onChange={handleNameChange}
             required
-            placeholder="e.g. John Doe"
+            placeholder="e.g. Rahul Sharma"
             error={errors.name}
-            prefix={<User size={16} className="text-slate-400" />}
+            prefix={<User size={15} className="text-[#5f6368]" />}
           />
 
           <PhoneField
             name="phone"
-            label="Phone Number"
+            label="Mobile Number"
             value={formData.phone}
             onChange={handlePhoneChange}
             required
-            placeholder="10-digit mobile number"
+            placeholder="10-digit primary contact number"
             error={errors.phone}
-            prefix={<Phone size={16} className="text-slate-400" />}
+            prefix={<Phone size={15} className="text-[#5f6368]" />}
           />
 
           <TextareaField
             name="address"
-            label="Address"
+            label="Residential / Business Address"
             value={formData.address}
             onChange={handleAddressChange}
             required
-            placeholder="Enter full address"
+            placeholder="Complete address including street, area, city, and pincode"
             rows={3}
             error={errors.address}
           />
-
-          <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
-            <button
-              type="button"
-              onClick={() => navigate('/employee/loans/origination/leads')}
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 h-10 px-4 py-2 transition-colors cursor-pointer border border-slate-200"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50 gap-2"
-            >
-              {isSubmitting ? 'Saving...' : 'Save Lead'}
-            </button>
-          </div>
-
         </div>
-      </div>
+
+        {/* Action Buttons */}
+        <div className="pt-3 border-t border-[#e0e3e7] flex items-center justify-end gap-2.5">
+          <button
+            type="button"
+            onClick={() => navigate('/employee/loans/origination/leads')}
+            className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] px-5 py-2.5 transition-all shadow-2xs cursor-pointer"
+          >
+            Cancel
+          </button>
+          
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="inline-flex items-center justify-center gap-1.5 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white px-6 py-2.5 transition-all shadow-xs cursor-pointer disabled:opacity-50"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <span>Saving Lead...</span>
+              </>
+            ) : (
+              <>
+                <Save className="w-3.5 h-3.5" />
+                <span>Save & Create Lead</span>
+              </>
+            )}
+          </button>
+        </div>
+
+      </form>
+
     </div>
   );
 };

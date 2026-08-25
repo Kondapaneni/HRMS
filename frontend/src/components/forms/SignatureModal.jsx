@@ -1,25 +1,42 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { X, Eraser } from 'lucide-react';
+import { 
+  X, 
+  RotateCcw, 
+  Send, 
+  PenTool, 
+  ShieldCheck,
+  CheckCircle2 
+} from 'lucide-react';
 import { createPortal } from 'react-dom';
 
-export function SignatureModal({ isOpen, onClose, onSubmit, title = "Employee Signature" }) {
+/**
+ * Google Material 3 Workspace Signature Capture Modal
+ * Provides high-DPI stylus & touch canvas with auto-rotation, signature baseline, and Material 3 controls.
+ */
+export function SignatureModal({ 
+  isOpen, 
+  onClose, 
+  onSubmit, 
+  title = "Employee Signature",
+  subtitle = "Draw your official signature to authorize application verification and handover to Branch Operations."
+}) {
   const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [isEmpty, setIsEmpty] = useState(true);
   const [isPortrait, setIsPortrait] = useState(false);
 
-  // Check orientation
+  // Check device orientation for mobile signature capture
   useEffect(() => {
     if (!isOpen) return;
     const checkOrientation = () => {
-      setIsPortrait(window.innerHeight > window.innerWidth);
+      setIsPortrait(window.innerHeight > window.innerWidth && window.innerWidth < 768);
     };
     checkOrientation();
     window.addEventListener('resize', checkOrientation);
     return () => window.removeEventListener('resize', checkOrientation);
   }, [isOpen]);
 
-  // Handle body scroll locking
+  // Lock body scroll while modal is open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -31,40 +48,47 @@ export function SignatureModal({ isOpen, onClose, onSubmit, title = "Employee Si
     };
   }, [isOpen]);
 
+  // Initialize Canvas with High-DPI Retina resolution
   const initCanvas = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const parent = canvas.parentElement;
-    
-    // Set internal resolution to match display size for sharp drawing
-    canvas.width = parent.clientWidth;
-    canvas.height = parent.clientHeight;
-    
+    if (!parent) return;
+
+    const rect = parent.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+
     const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.scale(dpr, dpr);
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.strokeStyle = '#0f172a'; // slate-950
-    ctx.lineWidth = 3;
+    ctx.fillRect(0, 0, rect.width, rect.height);
+    ctx.strokeStyle = '#1f1f1f';
+    ctx.lineWidth = 2.5;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     setIsEmpty(true);
   };
 
-  // Initialize canvas context and handle resize
+  // Re-measure on open or orientation switch
   useEffect(() => {
     if (isOpen) {
-      // Small delay to ensure the DOM layout is complete before measuring
-      const timeout = setTimeout(initCanvas, 50);
+      const timeout = setTimeout(initCanvas, 60);
       window.addEventListener('resize', initCanvas);
       return () => {
         clearTimeout(timeout);
         window.removeEventListener('resize', initCanvas);
       };
     }
-  }, [isOpen, isPortrait]); // re-init if orientation changes
+  }, [isOpen, isPortrait]);
 
   if (!isOpen) return null;
 
+  // Normalized touch/mouse coordinates
   const getCoordinates = (e) => {
     const canvas = canvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
@@ -79,16 +103,15 @@ export function SignatureModal({ isOpen, onClose, onSubmit, title = "Employee Si
     const clientY = touch ? touch.clientY : e.clientY;
 
     if (isPortrait) {
-      // Rotated -90deg: screen Y is canvas X, screen X is canvas Y
-      const scaleX = rect.height > 0 ? canvas.width / rect.height : 1;
-      const scaleY = rect.width > 0 ? canvas.height / rect.width : 1;
+      const scaleX = rect.height > 0 ? (canvas.width / (window.devicePixelRatio || 1)) / rect.height : 1;
+      const scaleY = rect.width > 0 ? (canvas.height / (window.devicePixelRatio || 1)) / rect.width : 1;
       return {
         x: (rect.bottom - clientY) * scaleX,
         y: (clientX - rect.left) * scaleY
       };
     } else {
-      const scaleX = rect.width > 0 ? canvas.width / rect.width : 1;
-      const scaleY = rect.height > 0 ? canvas.height / rect.height : 1;
+      const scaleX = rect.width > 0 ? (canvas.width / (window.devicePixelRatio || 1)) / rect.width : 1;
+      const scaleY = rect.height > 0 ? (canvas.height / (window.devicePixelRatio || 1)) / rect.height : 1;
       return {
         x: (clientX - rect.left) * scaleX,
         y: (clientY - rect.top) * scaleY
@@ -103,16 +126,15 @@ export function SignatureModal({ isOpen, onClose, onSubmit, title = "Employee Si
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    
+    if (!ctx) return;
+
     const { x, y } = getCoordinates(e);
-    
-    // 1. Draw a filled circular dot immediately (iOS Safari WebKit drops zero-length line strokes, but arc+fill is 100% reliable)
-    ctx.fillStyle = '#0f172a';
+
+    ctx.fillStyle = '#1f1f1f';
     ctx.beginPath();
-    ctx.arc(x, y, 2.5, 0, Math.PI * 2);
+    ctx.arc(x, y, 1.5, 0, Math.PI * 2);
     ctx.fill();
 
-    // 2. Begin path for continuous strokes if the user drags
     ctx.beginPath();
     ctx.moveTo(x, y);
     setIsDrawing(true);
@@ -127,11 +149,12 @@ export function SignatureModal({ isOpen, onClose, onSubmit, title = "Employee Si
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    
+    if (!ctx) return;
+
     const { x, y } = getCoordinates(e);
-    
-    ctx.strokeStyle = '#0f172a';
-    ctx.lineWidth = 3;
+
+    ctx.strokeStyle = '#1f1f1f';
+    ctx.lineWidth = 2.5;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.lineTo(x, y);
@@ -143,7 +166,7 @@ export function SignatureModal({ isOpen, onClose, onSubmit, title = "Employee Si
       const canvas = canvasRef.current;
       if (canvas) {
         const ctx = canvas.getContext('2d');
-        ctx.closePath();
+        if (ctx) ctx.closePath();
       }
       setIsDrawing(false);
     }
@@ -177,60 +200,116 @@ export function SignatureModal({ isOpen, onClose, onSubmit, title = "Employee Si
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[99999] bg-slate-50 overflow-hidden animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[99999] bg-[#1f1f1f]/60 backdrop-blur-xs flex items-center justify-center p-0 sm:p-6 overflow-hidden animate-in fade-in duration-200">
       <div 
         style={containerStyle}
-        className="flex flex-col"
+        className="flex flex-col bg-white sm:rounded-[28px] shadow-2xl sm:border sm:border-[#e0e3e7] overflow-hidden max-w-4xl max-h-[85vh] w-full"
       >
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 sm:px-6 py-4 bg-white border-b border-slate-200 shadow-sm shrink-0">
-          <h2 className="text-xl font-bold text-slate-800">{title}</h2>
+        {/* Google Material 3 Header */}
+        <div className="px-5 sm:px-7 py-4 sm:py-5 border-b border-[#e0e3e7] flex items-center justify-between shrink-0 bg-white">
+          <div>
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+              <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">
+                Origination Authorization
+              </span>
+            </div>
+            <h2 className="text-xl sm:text-2xl font-normal text-[#1f1f1f] tracking-tight flex items-center gap-2">
+              <PenTool className="w-5 h-5 text-[#1a73e8]" />
+              {title}
+            </h2>
+            <p className="text-xs text-[#5f6368] mt-0.5 max-w-xl">
+              {subtitle}
+            </p>
+          </div>
+
           <button 
+            type="button"
             onClick={onClose}
-            className="p-2 -mr-2 rounded-full text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+            className="w-9 h-9 rounded-full bg-[#f8fafd] hover:bg-[#f1f3f4] text-[#5f6368] hover:text-[#1f1f1f] border border-[#dadce0] flex items-center justify-center transition-colors cursor-pointer shrink-0 shadow-2xs"
+            title="Close"
           >
-            <X size={24} />
+            <X size={18} />
           </button>
         </div>
         
-        {/* Canvas Area */}
-        <div className="flex-1 p-4 sm:p-8 flex flex-col min-h-0 relative">
-          <div className="flex-1 w-full bg-white border-2 border-dashed border-slate-300 rounded-2xl overflow-hidden shadow-inner relative">
-            <canvas
-              ref={canvasRef}
-              className="w-full h-full touch-none cursor-crosshair"
-              onMouseDown={startDrawing}
-              onMouseMove={draw}
-              onMouseUp={stopDrawing}
-              onMouseLeave={stopDrawing}
-              onTouchStart={startDrawing}
-              onTouchMove={draw}
-              onTouchEnd={stopDrawing}
-            />
-            {isEmpty && (
-              <div className="absolute inset-0 pointer-events-none flex items-center justify-center text-slate-300 font-medium text-xl sm:text-2xl select-none">
-                Sign Here
+        {/* Signature Canvas Drawing Box */}
+        <div className="flex-1 p-4 sm:p-6 flex flex-col min-h-0 bg-[#f8fafd]">
+          <div className="flex-1 w-full bg-white border-2 border-[#dadce0] hover:border-[#1a73e8] focus-within:border-[#1a73e8] rounded-2xl overflow-hidden shadow-xs relative transition-all flex flex-col">
+            
+            {/* Top Helper Indicator */}
+            <div className="px-4 py-2 bg-[#f8fafd] border-b border-[#f1f3f4] flex items-center justify-between select-none">
+              <span className="text-[11px] font-medium text-[#5f6368] flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-[#1a73e8] animate-pulse" />
+                Sign with mouse, stylus, or touchscreen
+              </span>
+              <span className="text-[10.5px] font-mono text-[#80868b]">
+                {isEmpty ? 'Awaiting Signature' : 'Signature Recorded'}
+              </span>
+            </div>
+
+            {/* Main HTML5 Canvas */}
+            <div className="flex-1 relative w-full h-full min-h-[220px]">
+              <canvas
+                ref={canvasRef}
+                className="w-full h-full touch-none cursor-crosshair block"
+                onMouseDown={startDrawing}
+                onMouseMove={draw}
+                onMouseUp={stopDrawing}
+                onMouseLeave={stopDrawing}
+                onTouchStart={startDrawing}
+                onTouchMove={draw}
+                onTouchEnd={stopDrawing}
+              />
+
+              {/* Watermark and Signature Line */}
+              {isEmpty ? (
+                <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center text-[#9aa0a6] select-none gap-2">
+                  <div className="w-12 h-12 rounded-full bg-[#f1f3f4] flex items-center justify-center text-[#80868b]">
+                    <PenTool size={22} className="text-[#80868b]" />
+                  </div>
+                  <p className="text-sm font-semibold text-[#5f6368]">
+                    Draw your signature here
+                  </p>
+                  <p className="text-xs text-[#80868b]">
+                    Use your fingertip, mouse, or stylus pen
+                  </p>
+                </div>
+              ) : null}
+
+              {/* Signature Baseline */}
+              <div className="absolute bottom-6 left-8 right-8 pointer-events-none border-b border-dashed border-[#dadce0] flex items-center justify-between pb-1">
+                <span className="text-[10px] font-semibold text-[#80868b] uppercase tracking-wider">
+                  Authorized Signatory Baseline
+                </span>
+                <ShieldCheck size={14} className="text-[#80868b]" />
               </div>
-            )}
+            </div>
           </div>
         </div>
 
-        {/* Footer / Actions */}
-        <div className="px-4 sm:px-6 py-4 bg-white border-t border-slate-200 flex items-center justify-between shrink-0 pb-safe">
-          <div className="flex items-center">
+        {/* Footer Material 3 Action Toolbar */}
+        <div className="px-5 sm:px-7 py-3.5 sm:py-4 bg-white border-t border-[#e0e3e7] flex items-center justify-between shrink-0 pb-safe">
+          <div>
             <button 
               type="button"
               onClick={clearCanvas}
-              className="flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-800 transition-colors bg-white px-4 py-2.5 rounded-lg border border-slate-200 shadow-sm active:scale-95"
+              disabled={isEmpty}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-white text-[#5f6368] hover:bg-[#f1f3f4] hover:text-[#1f1f1f] border border-[#dadce0] transition-all shadow-2xs cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              <Eraser size={16} /> Clear
+              <RotateCcw size={13} />
+              <span>Clear Signature</span>
             </button>
           </div>
-          <div className="flex items-center gap-3 sm:gap-4">
+
+          <div className="flex items-center gap-2.5 sm:gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
+              className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] px-5 py-2 transition-all shadow-2xs cursor-pointer"
             >
               Cancel
             </button>
@@ -238,9 +317,10 @@ export function SignatureModal({ isOpen, onClose, onSubmit, title = "Employee Si
               type="button"
               onClick={handleSubmit}
               disabled={isEmpty}
-              className="px-4 sm:px-8 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-bold bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm active:scale-95"
+              className="inline-flex items-center justify-center gap-1.5 rounded-full text-xs font-semibold bg-[#137333] hover:bg-[#0d652d] text-white px-6 py-2 transition-all shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Submit & Transfer
+              <Send size={13} />
+              <span>Submit & Transfer</span>
             </button>
           </div>
         </div>
@@ -249,3 +329,5 @@ export function SignatureModal({ isOpen, onClose, onSubmit, title = "Employee Si
     document.body
   );
 }
+
+export default SignatureModal;

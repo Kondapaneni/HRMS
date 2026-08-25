@@ -1,181 +1,268 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getLeads } from '../services/loanServices';
-import { motion } from 'framer-motion';
-import { Search, Phone, MapPin, Calendar, CheckCircle2, Clock, Loader2, Plus, XCircle, RefreshCw } from 'lucide-react';
-import { format } from 'date-fns';
-import { maskPhoneNumber } from '../utils/phoneUtils';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Search, 
+  Phone, 
+  MapPin, 
+  Calendar, 
+  CheckCircle2, 
+  Clock, 
+  Loader2, 
+  Plus, 
+  XCircle, 
+  RefreshCw,
+  ChevronRight,
+  SlidersHorizontal,
+  X,
+  UserPlus,
+  Users,
+  Briefcase
+} from 'lucide-react';
+import { format } from 'date-fns';
+import { getLeads } from '../services/loanServices';
+import { maskPhoneNumber } from '../utils/phoneUtils';
 
 const OriginationMobileLoanLeadsList = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState('All');
 
-  // Debounce the search input
+  // Debounce search input
   React.useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(searchTerm), 300);
+    const timer = setTimeout(() => setDebouncedSearch(searchTerm), 250);
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  const { data: response, isLoading, error } = useQuery({
+  const { data: response, isLoading, error, refetch } = useQuery({
     queryKey: ['origination', 'leads', 'list', debouncedSearch],
     queryFn: getLeads,
   });
 
-  const leads = response?.leads || [];
+  const rawLeads = response?.leads || [];
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
-  };
+  const filteredLeads = useMemo(() => {
+    if (selectedStatusFilter === 'All') return rawLeads;
+    return rawLeads.filter(lead => {
+      if (selectedStatusFilter === 'Active/In Progress') {
+        return lead.status === 'Active' || lead.status === 'In Progress';
+      }
+      return lead.status === selectedStatusFilter;
+    });
+  }, [rawLeads, selectedStatusFilter]);
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 15 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } }
-  };
+  const statusCounts = useMemo(() => {
+    const counts = { All: rawLeads.length, New: 0, 'Follow Up': 0, Converted: 0, 'Not Interested': 0 };
+    rawLeads.forEach(l => {
+      if (counts[l.status] !== undefined) {
+        counts[l.status] += 1;
+      }
+    });
+    return counts;
+  }, [rawLeads]);
 
   const getStatusBadge = (status) => {
     switch (status) {
       case 'New':
-        return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-100 text-blue-700 whitespace-nowrap"><Clock size={10} /> New</span>;
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
+            <Clock size={10} /> New
+          </span>
+        );
       case 'Follow Up':
-        return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-violet-100 text-violet-700 whitespace-nowrap"><RefreshCw size={10} /> Follow Up</span>;
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#f3e8fd] text-[#8430ce] border border-[#e9d5ff]">
+            <RefreshCw size={10} /> Follow Up
+          </span>
+        );
       case 'Active':
       case 'In Progress':
-        return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-700 whitespace-nowrap"><Clock size={10} /> {status}</span>;
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#fef7e0] text-[#b06000] border border-[#feefc3]">
+            <Clock size={10} /> {status}
+          </span>
+        );
       case 'Converted':
-        return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-700 whitespace-nowrap"><CheckCircle2 size={10} /> Converted</span>;
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">
+            <CheckCircle2 size={10} /> Converted
+          </span>
+        );
       case 'Not Interested':
-        return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-100 text-rose-700 whitespace-nowrap"><XCircle size={10} /> Not Interested</span>;
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf]">
+            <XCircle size={10} /> Not Interested
+          </span>
+        );
       default:
-        return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700 whitespace-nowrap">{status}</span>;
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]">
+            {status || '—'}
+          </span>
+        );
     }
   };
 
+  const filterTabs = [
+    { key: 'All', label: 'All', count: statusCounts.All },
+    { key: 'New', label: 'New', count: statusCounts.New },
+    { key: 'Follow Up', label: 'Follow Up', count: statusCounts['Follow Up'] },
+    { key: 'Converted', label: 'Converted', count: statusCounts.Converted },
+    { key: 'Not Interested', label: 'Closed', count: statusCounts['Not Interested'] },
+  ];
+
   return (
-    <div className="w-full pb-5">
-      {/* Animated Hero Header */}
-      <section className="relative px-6 pt-12 pb-24 rounded-b-[40px] overflow-hidden bg-slate-900 shadow-md">
-        {/* Animated Background Blobs */}
-        <motion.div
-          animate={{
-            scale: [1, 1.2, 1],
-            x: [0, 50, 0],
-            y: [0, 30, 0],
-          }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-20 -left-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.4, 1],
-            x: [0, -40, 0],
-            y: [0, 50, 0],
-          }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute -top-10 -right-10 w-64 h-64 bg-indigo-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.3, 1],
-            x: [0, 30, 0],
-            y: [0, -40, 0],
-          }}
-          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-0 left-20 w-80 h-80 bg-emerald-500 rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
-        />
+    <div className="space-y-4 pb-14">
 
-        {/* Subtle Glass Overlay */}
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
-
-        <div className="relative z-10 px-2 flex justify-between items-center">
-          <div>
-            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">Origination Loans Module</p>
-            <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">All Leads</h2>
-            <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">Manage & track opportunities</p>
+      {/* 1. Header Card (Google Material 3 Workspace) */}
+      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs relative overflow-hidden bg-gradient-to-br from-white via-[#f8fafd] to-[#e8f0fe]/30">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <div className="flex items-center gap-1.5 whitespace-nowrap shrink-0">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4] shrink-0" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335] shrink-0" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05] shrink-0" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853] shrink-0" />
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368] ml-0.5 whitespace-nowrap">
+                Origination Workspace
+              </span>
+            </div>
+            <h1 className="text-xl font-bold text-[#1f1f1f] tracking-tight">
+              All Leads Pool
+            </h1>
+            <p className="text-xs text-[#5f6368]">
+              {rawLeads.length} total prospect entries in pipeline
+            </p>
           </div>
+
           <button
-            className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white px-3 py-2 rounded-xl backdrop-blur-md border border-white/30 text-sm font-semibold transition-all active:scale-95"
             onClick={() => navigate('/employee/loans/origination/leads/add')}
+            className="inline-flex items-center gap-1.5 bg-[#1a73e8] hover:bg-[#1557b0] text-white px-4 py-2 rounded-full text-xs font-semibold shadow-xs transition-all active:scale-95 cursor-pointer shrink-0"
           >
-            <Plus size={16} />
-            Add Lead
+            <Plus size={14} />
+            <span>Add Lead</span>
           </button>
         </div>
-      </section>
+      </div>
 
-      <motion.div
-        variants={containerVariants}
-        className="relative z-20 -mt-16 px-4 space-y-4"
-      >
-        {/* Search Bar - Floating */}
-        <motion.div variants={itemVariants} className="bg-white rounded-2xl shadow-lg border border-slate-100 p-3 flex items-center">
-          <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-            <input
-              type="search"
-              placeholder="Search by name, phone..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-            />
-          </div>
-        </motion.div>
+      {/* 2. Search Box */}
+      <div className="bg-white rounded-2xl border border-[#e0e3e7] p-2.5 shadow-xs flex items-center gap-2">
+        <Search className="w-4 h-4 text-[#5f6368] ml-1.5 shrink-0" />
+        <input
+          type="search"
+          placeholder="Search by name, phone, address..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full text-xs bg-transparent border-none outline-none text-[#1f1f1f] placeholder:text-[#80868b] pr-2"
+        />
+        {searchTerm && (
+          <button
+            onClick={() => setSearchTerm('')}
+            className="p-1 rounded-full text-[#5f6368] hover:bg-[#f1f3f4] shrink-0"
+          >
+            <X size={13} />
+          </button>
+        )}
+      </div>
 
-        {/* State Handling */}
+      {/* 3. Horizontal Scrollable Status Filter Chips */}
+      <div className="flex overflow-x-auto gap-2 py-0.5 hide-scrollbar">
+        {filterTabs.map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setSelectedStatusFilter(tab.key)}
+            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
+              selectedStatusFilter === tab.key
+                ? 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc] shadow-2xs font-bold'
+                : 'bg-white text-[#5f6368] border-[#e0e3e7] hover:bg-[#f8fafd]'
+            }`}
+          >
+            <span>{tab.label}</span>
+            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold leading-none ${
+              selectedStatusFilter === tab.key
+                ? 'bg-[#1a73e8] text-white'
+                : 'bg-[#f1f3f4] text-[#5f6368]'
+            }`}>
+              {tab.count}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {/* 4. Leads Card List */}
+      <div className="space-y-3">
         {error ? (
-          <motion.div variants={itemVariants} className="bg-red-50 text-red-600 p-4 rounded-2xl text-center border border-red-100 shadow-sm mt-4">
-            Failed to load leads. Please try again.
-          </motion.div>
-        ) : isLoading ? (
-          <div className="flex justify-center items-center py-20 mt-4">
-            <Loader2 className="animate-spin h-8 w-8 text-blue-600" />
+          <div className="bg-[#fce8e6] text-[#c5221f] p-4 rounded-2xl text-center border border-[#fad2cf] text-xs">
+            Failed to load leads. Please refresh or try again.
           </div>
-        ) : leads.length === 0 ? (
-          <div className="py-20 text-center text-slate-500 mt-4">
-            No leads found.
+        ) : isLoading ? (
+          <div className="flex justify-center items-center py-16">
+            <Loader2 className="animate-spin h-7 w-7 text-[#1a73e8]" />
+          </div>
+        ) : filteredLeads.length === 0 ? (
+          <div className="bg-white rounded-3xl border border-[#e0e3e7] p-8 text-center space-y-2 shadow-xs">
+            <div className="w-12 h-12 rounded-full bg-[#f8fafd] border border-[#e0e3e7] flex items-center justify-center mx-auto text-[#80868b]">
+              <Users size={20} />
+            </div>
+            <p className="text-sm font-bold text-[#1f1f1f]">No leads found</p>
+            <p className="text-xs text-[#5f6368]">
+              {searchTerm ? 'No results matched your search query.' : 'No prospect entries in this filter category.'}
+            </p>
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="mt-2 inline-flex items-center text-xs font-semibold text-[#1a73e8] hover:underline"
+              >
+                Clear search query
+              </button>
+            )}
           </div>
         ) : (
-          <div className="space-y-4 mt-4">
-            {leads.map(lead => (
-              <motion.div 
-                key={lead.id} 
-                variants={itemVariants} 
-                onClick={() => navigate('/employee/loans/origination/leads/details', { state: { lead } })}
-                className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-5 hover:shadow-md transition-shadow active:scale-[0.98] active:bg-slate-50 cursor-pointer"
-              >
-                <div className="flex justify-between items-start mb-4">
-                  <h3 className="font-bold text-slate-900 text-lg leading-tight">{lead.name}</h3>
-                  <div className="shrink-0 ml-3">
-                    {getStatusBadge(lead.status)}
+          filteredLeads.map((lead) => (
+            <div 
+              key={lead.id} 
+              onClick={() => navigate('/employee/loans/origination/leads/details', { state: { lead } })}
+              className="bg-white rounded-2xl border border-[#e0e3e7] hover:border-[#dadce0] p-4 shadow-xs transition-all active:scale-[0.99] active:bg-[#f8fafd] cursor-pointer space-y-2.5"
+            >
+              {/* Top Row: Name and Status */}
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0 space-y-0.5">
+                  <h3 className="font-bold text-[#1f1f1f] text-sm truncate">
+                    {lead.name || lead.full_name || 'Unnamed Prospect'}
+                  </h3>
+                  <div className="flex items-center gap-2 text-[10.5px] text-[#5f6368]">
+                    <span className="inline-flex items-center gap-1 font-mono font-medium text-[#1f1f1f]">
+                      <Phone size={10} className="text-[#80868b]" />
+                      {lead.phone ? maskPhoneNumber(lead.phone) : '—'}
+                    </span>
+                    <span>&bull;</span>
+                    <span className="truncate text-[#1a73e8] font-medium">{lead.loan_type || 'Personal Loan'}</span>
                   </div>
                 </div>
-                <div className="space-y-2.5 text-sm text-slate-600">
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
-                      <Phone size={12} className="text-blue-500" />
-                    </div>
-                    <span>{maskPhoneNumber(lead.phone)}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full bg-indigo-50 flex items-center justify-center shrink-0">
-                      <MapPin size={12} className="text-indigo-500" />
-                    </div>
-                    <span className="truncate">{lead.address}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
-                      <Calendar size={12} className="text-emerald-500" />
-                    </div>
-                    <span>{format(new Date(lead.created_at), 'MMM d, yyyy')}</span>
-                  </div>
+
+                <div className="shrink-0 flex items-center gap-1.5">
+                  {getStatusBadge(lead.status)}
                 </div>
-              </motion.div>
-            ))}
-          </div>
+              </div>
+
+              {/* Middle Row: Address & Date Details */}
+              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#f1f3f4] text-[11px] text-[#5f6368]">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <MapPin size={11} className="text-[#80868b] shrink-0" />
+                  <span className="truncate">{lead.address || 'Location Not Specified'}</span>
+                </div>
+                <div className="flex items-center justify-end gap-1.5 text-right min-w-0">
+                  <Calendar size={11} className="text-[#80868b] shrink-0" />
+                  <span>{lead.created_at ? format(new Date(lead.created_at), 'dd MMM yyyy') : 'Recent'}</span>
+                </div>
+              </div>
+            </div>
+          ))
         )}
-      </motion.div>
+      </div>
+
     </div>
   );
 };

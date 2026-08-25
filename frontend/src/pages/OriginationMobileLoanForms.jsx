@@ -1,15 +1,20 @@
 import React from 'react';
-import { ArrowLeft, Briefcase } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { BusinessLoanForm, PersonalLoanForm } from '../components/forms';
+import OriginationMobileFormEngine from '../components/forms/OriginationMobileFormEngine';
 
 const OriginationMobileLoanForms = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const fromPath = location.state?.from || '/employee/loans/origination/members';
-  const loanType = location.state?.loan_type || location.state?.loanType || 'Business Loan';
+  const fromPath = location.state?.from || '/employee/loans/origination/applications';
+  const loanType = location.state?.loan_type || location.state?.loanType || location.state?.application?.loan_type || 'Personal Loan';
   const application = location.state?.application;
+
+  const isEditMode = Boolean(
+    location.state?.mode === 'edit' || 
+    location.state?.isEdit || 
+    location.state?.application?.status === 'Draft'
+  );
 
   const handleBack = () => {
     if (fromPath.includes('view-application') && application) {
@@ -26,81 +31,55 @@ const OriginationMobileLoanForms = () => {
     }
   };
 
-  const renderForm = () => {
-    switch (loanType) {
-      case 'Personal Loan':
-        return <PersonalLoanForm />;
-      case 'Business Loan':
-        return <BusinessLoanForm />;
-      default:
-        return (
-          <div className="p-8 text-center text-slate-500 font-medium">
-            Invalid or Unsupported Loan Type Selected.
-          </div>
-        );
-    }
-  };
-
   return (
-    <div className="w-full pb-8">
-      {/* Animated Hero Header - Matched from Member Page */}
-      <section className="relative px-6 pt-12 pb-24 rounded-b-[40px] overflow-hidden bg-slate-900 shadow-md">
-        {/* Animated Background Blobs */}
-        <motion.div
-          animate={{
-            scale: [1, 1.2, 1],
-            x: [0, 50, 0],
-            y: [0, 30, 0],
-          }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-20 -left-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.4, 1],
-            x: [0, -40, 0],
-            y: [0, 50, 0],
-          }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute -top-10 -right-10 w-64 h-64 bg-indigo-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.3, 1],
-            x: [0, 30, 0],
-            y: [0, -40, 0],
-          }}
-          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-0 left-20 w-80 h-80 bg-emerald-500 rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
-        />
+    <div className="space-y-4 pb-14 w-full">
 
-        {/* Subtle Glass Overlay */}
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
-
-        <div className="relative z-10 px-2 flex items-center justify-between">
-          <button 
-            type="button" 
-            onClick={() => handleBack()} 
-            className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center backdrop-blur-md transition-transform active:scale-95 border border-white/20 cursor-pointer"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div className="text-center">
-            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">Origination Loans Module</p>
-            <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-1.5 justify-center drop-shadow-sm">
-              <Briefcase className="w-4 h-4 text-blue-300" /> {loanType} Form
-            </h2>
-          </div>
-          <div className="w-10 h-10" />
+      {/* 1. Header Card (Google Material 3 Workspace) */}
+      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs relative overflow-hidden bg-gradient-to-br from-white via-[#f8fafd] to-[#e8f0fe]/30 space-y-2">
+        {/* Workspace Tag */}
+        <div className="flex items-center gap-1.5 whitespace-nowrap shrink-0">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4] shrink-0" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335] shrink-0" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05] shrink-0" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[#34A853] shrink-0" />
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368] ml-0.5 whitespace-nowrap">
+            Origination Workspace
+          </span>
         </div>
-      </section>
 
-      {/* Main Floating Form Container */}
-      <div className="relative z-20 -mt-12 mx-4">
-        <div className="bg-white p-5 rounded-[28px] shadow-xl border border-slate-100">
-          {renderForm()}
+        {/* Heading + Back Button Row (Same Line) */}
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="text-xl font-bold text-[#1f1f1f] tracking-tight">
+            {loanType} Form
+          </h1>
+
+          <button
+            type="button"
+            onClick={handleBack}
+            className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] px-3.5 py-1.5 transition-all gap-1.5 shadow-2xs cursor-pointer shrink-0 whitespace-nowrap"
+          >
+            <ArrowLeft className="w-3.5 h-3.5 text-[#5f6368]" />
+            <span>Back</span>
+          </button>
+        </div>
+
+        {/* Subtitle Row (Full Width - Always Single Line) */}
+        <div className="flex items-center gap-2 text-xs text-[#5f6368] whitespace-nowrap pt-0.5">
+          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full shrink-0">
+            {isEditMode ? 'Edit Mode' : 'New Application'}
+          </span>
+          <span>&bull;</span>
+          <span className="truncate">Fill all verified details</span>
         </div>
       </div>
+
+      {/* 2. Bespoke Mobile Form Engine */}
+      <OriginationMobileFormEngine
+        loanType={loanType}
+        isEditMode={isEditMode}
+        application={application}
+      />
+
     </div>
   );
 };

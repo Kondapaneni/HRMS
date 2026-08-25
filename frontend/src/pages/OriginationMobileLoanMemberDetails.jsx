@@ -1,8 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Phone, MapPin, Calendar, Briefcase, CheckCircle2, ArrowRight, Lock, Loader2 } from 'lucide-react';
+import React from 'react';
+import { 
+  ArrowLeft, 
+  Phone, 
+  MapPin, 
+  Calendar, 
+  Briefcase, 
+  CheckCircle2, 
+  ArrowRight, 
+  Lock, 
+  Loader2,
+  User,
+  ShieldCheck,
+  FileEdit,
+  ExternalLink
+} from 'lucide-react';
 import { useNavigate, useLocation, useParams, Link } from 'react-router-dom';
 import { format } from 'date-fns';
-import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { getLoanApplications, getLeads } from '../services/loanServices';
 import { maskPhoneNumber } from '../utils/phoneUtils';
@@ -66,23 +79,23 @@ const OriginationMobileLoanMemberDetails = ({ member: propMember }) => {
 
   if (isLoadingLeads && !member) {
     return (
-      <div className="w-full min-h-[60vh] flex flex-col items-center justify-center p-6 text-slate-500">
-        <Loader2 className="w-8 h-8 text-blue-600 animate-spin mb-3" />
-        <p className="text-sm font-medium">Loading member details...</p>
+      <div className="w-full min-h-[60vh] flex flex-col items-center justify-center p-6 text-[#5f6368]">
+        <Loader2 className="w-8 h-8 text-[#1a73e8] animate-spin mb-3" />
+        <p className="text-xs font-semibold">Loading member details...</p>
       </div>
     );
   }
 
   if (!member) {
     return (
-      <div className="w-full min-h-[60vh] flex flex-col items-center justify-center p-6 text-center text-slate-500 space-y-4">
-        <p className="text-base font-semibold text-slate-700">Member profile not found.</p>
+      <div className="w-full min-h-[60vh] flex flex-col items-center justify-center p-6 text-center text-[#5f6368] space-y-3">
+        <p className="text-sm font-semibold text-[#1f1f1f]">Member profile not found.</p>
         <button
           type="button"
           onClick={() => navigate('/employee/loans/origination/members')}
-          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-slate-900 rounded-xl shadow-sm cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[#1a73e8] rounded-full shadow-xs cursor-pointer"
         >
-          <ArrowLeft size={16} /> Back to Members
+          <ArrowLeft size={14} /> Back to Members
         </button>
       </div>
     );
@@ -92,199 +105,224 @@ const OriginationMobileLoanMemberDetails = ({ member: propMember }) => {
   const isMemberDefaultCreated = createdLeadIds.has(defaultLeadId);
 
   return (
-    <div className="w-full pb-8">
-      {/* Animated Hero Header - Matched from Member Page */}
-      <section className="relative px-6 pt-12 pb-24 rounded-b-[40px] overflow-hidden bg-slate-900 shadow-md">
-        {/* Animated Background Blobs */}
-        <motion.div
-          animate={{
-            scale: [1, 1.2, 1],
-            x: [0, 50, 0],
-            y: [0, 30, 0],
-          }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-20 -left-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.4, 1],
-            x: [0, -40, 0],
-            y: [0, 50, 0],
-          }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute -top-10 -right-10 w-64 h-64 bg-indigo-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.3, 1],
-            x: [0, 30, 0],
-            y: [0, -40, 0],
-          }}
-          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-0 left-20 w-80 h-80 bg-emerald-500 rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
-        />
+    <div className="space-y-4 pb-14">
 
-        {/* Subtle Glass Overlay */}
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
-
-        <div className="relative z-10 flex items-center justify-between px-2">
-          <button 
-            type="button" 
-            onClick={() => navigate('/employee/loans/origination/members')} 
-            className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center backdrop-blur-md transition-transform active:scale-95 border border-white/20 cursor-pointer"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div className="text-center">
-            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">Origination Loans Module</p>
-            <h2 className="text-xl font-bold text-white tracking-tight drop-shadow-sm">Member Profile</h2>
-          </div>
-          <div className="w-10 h-10" />
-        </div>
-      </section>
-
-      {/* Profile Card */}
-      <div className="space-y-6 relative z-20 -mt-12 mx-4">
-        <div className="bg-white p-6 rounded-[28px] shadow-xl border border-slate-100 space-y-6">
-          <div className="flex items-center gap-4 border-b border-slate-100 pb-5">
-            <div className="w-16 h-16 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-2xl font-bold shrink-0 shadow-inner">
-              {member.name ? member.name.charAt(0) : 'M'}
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900">{member.name}</h2>
-              <span className="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider leading-none bg-blue-100 text-blue-700 mt-1.5">
-                <CheckCircle2 size={12} className="shrink-0" />
-                <span>Converted Member</span>
+      {/* 1. Header Card (Google Material 3 Workspace) */}
+      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs relative overflow-hidden bg-gradient-to-br from-white via-[#f8fafd] to-[#e8f0fe]/30">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <div className="flex items-center gap-1.5 whitespace-nowrap shrink-0">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4] shrink-0" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335] shrink-0" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05] shrink-0" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853] shrink-0" />
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368] ml-0.5 whitespace-nowrap">
+                Origination Workspace
               </span>
             </div>
+            <h1 className="text-xl font-bold text-[#1f1f1f] tracking-tight">
+              Member Profile
+            </h1>
+            <p className="text-xs text-[#5f6368]">
+              Converted Borrower &bull; Active Record
+            </p>
           </div>
 
-          <div className="space-y-1">
-            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Phone Number</h3>
-            {member.phone ? (
-              <a 
-                href={`tel:${member.phone}`}
-                className="flex items-center justify-between p-2.5 -mx-2 rounded-2xl bg-blue-50/50 hover:bg-blue-50 border border-blue-100/60 active:scale-[0.98] transition-all cursor-pointer group"
-              >
-                <div className="flex items-center gap-3 text-slate-800">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                    <Phone size={18} />
-                  </div>
-                  <span className="font-bold text-lg text-slate-900 tracking-wide">{maskPhoneNumber(member.phone)}</span>
-                </div>
-                <span className="text-xs font-bold text-blue-600 bg-white px-2.5 py-1 rounded-full border border-blue-200 shadow-xs flex items-center gap-1">
-                  <Phone size={12} className="fill-blue-600 text-blue-600" /> Call
-                </span>
-              </a>
-            ) : (
-              <div className="flex items-center gap-3 text-slate-400">
-                <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
-                  <Phone size={18} />
-                </div>
-                <span className="font-medium text-lg">—</span>
-              </div>
-            )}
-          </div>
-
-          {member.address && (
-            <div className="space-y-1 border-t border-slate-100 pt-5">
-              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Address</h3>
-              <div className="flex items-center gap-3 text-slate-700">
-                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
-                  <MapPin size={18} className="text-blue-600" />
-                </div>
-                <span className="font-medium">{member.address}</span>
-              </div>
-            </div>
-          )}
-
-          {member.created_at && (
-            <div className="space-y-1 border-t border-slate-100 pt-5">
-              <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Member Since</h3>
-              <div className="flex items-center gap-3 text-slate-700">
-                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
-                  <Calendar size={18} className="text-blue-600" />
-                </div>
-                <span className="font-medium">{format(new Date(member.created_at), 'MMMM d, yyyy - h:mm a')}</span>
-              </div>
-            </div>
-          )}
-
+          <button
+            type="button"
+            onClick={() => navigate('/employee/loans/origination/members')}
+            className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] px-3.5 py-2 transition-all gap-1.5 shadow-2xs cursor-pointer shrink-0"
+          >
+            <ArrowLeft className="w-3.5 h-3.5 text-[#5f6368]" />
+            <span>Back</span>
+          </button>
         </div>
       </div>
 
-      {/* Loan History Section */}
-      <div className="px-4 mt-6">
-        <div className="bg-white rounded-3xl p-6 shadow-xl border border-slate-100 space-y-5">
-          <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2 mb-4">
-            <Briefcase size={16} className="text-slate-500" />
-            Loan History
-          </h3>
-          
-          <div className="grid gap-3">
-            {member.loans && member.loans.map((loan) => {
+      {/* 2. Member Overview Card */}
+      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs space-y-4">
+        
+        {/* Profile Avatar & Name Row */}
+        <div className="flex items-center gap-3.5 pb-4 border-b border-[#f1f3f4]">
+          <div className="w-14 h-14 rounded-full bg-[#e8f0fe] border-2 border-[#d2e3fc] flex items-center justify-center text-lg font-bold text-[#1a73e8] shrink-0 shadow-2xs">
+            {member.name ? member.name.charAt(0).toUpperCase() : 'M'}
+          </div>
+          <div className="min-w-0 space-y-1">
+            <h2 className="text-base font-bold text-[#1f1f1f] truncate">
+              {member.name}
+            </h2>
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">
+              <CheckCircle2 size={10} /> Converted Member
+            </span>
+          </div>
+        </div>
+
+        {/* Contact Info Rows */}
+        <div className="space-y-3 pt-1">
+          {/* Phone with Call Action */}
+          <div>
+            <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider block mb-1">
+              Contact Number
+            </span>
+            {member.phone ? (
+              <a
+                href={`tel:${member.phone}`}
+                className="flex items-center justify-between p-3 rounded-2xl bg-[#f8fafd] hover:bg-[#f1f3f4] border border-[#e0e3e7] transition-all cursor-pointer group active:scale-98"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-full bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center shrink-0">
+                    <Phone size={14} />
+                  </div>
+                  <span className="font-bold font-mono text-sm text-[#1f1f1f]">
+                    {maskPhoneNumber(member.phone)}
+                  </span>
+                </div>
+                <span className="text-xs font-semibold text-[#1a73e8] bg-white px-3 py-1 rounded-full border border-[#d2e3fc] shadow-2xs flex items-center gap-1">
+                  <Phone size={11} className="fill-[#1a73e8]" /> Call
+                </span>
+              </a>
+            ) : (
+              <p className="text-xs text-[#80868b]">—</p>
+            )}
+          </div>
+
+          {/* Address */}
+          {member.address && (
+            <div className="pt-2 border-t border-[#f1f3f4]">
+              <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider block mb-1">
+                Residential Address
+              </span>
+              <div className="flex items-start gap-2.5 p-3 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7] text-xs text-[#1f1f1f]">
+                <MapPin size={15} className="text-[#1a73e8] shrink-0 mt-0.5" />
+                <span className="leading-relaxed">{member.address}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Member Since */}
+          {member.created_at && (
+            <div className="pt-2 border-t border-[#f1f3f4]">
+              <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider block mb-1">
+                Member Since
+              </span>
+              <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7] text-xs text-[#1f1f1f]">
+                <Calendar size={15} className="text-[#1a73e8] shrink-0" />
+                <span>{format(new Date(member.created_at), 'MMMM d, yyyy - h:mm a')}</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+      </div>
+
+      {/* 3. Loan Origination Applications History */}
+      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs space-y-3.5">
+        <div className="flex items-center justify-between pb-2 border-b border-[#e0e3e7]">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 rounded-xl bg-[#e8f0fe] text-[#1a73e8]">
+              <Briefcase className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="text-xs font-bold text-[#1f1f1f] uppercase tracking-wider">Loan Applications</h3>
+              <p className="text-[10px] text-[#5f6368]">Pipeline requests on record</p>
+            </div>
+          </div>
+
+          <span className="text-[10px] font-semibold text-[#1a73e8] bg-[#e8f0fe] px-2.5 py-0.5 rounded-full border border-[#d2e3fc]">
+            {member.loans?.length || 0} Total
+          </span>
+        </div>
+
+        <div className="space-y-3 pt-1">
+          {member.loans && member.loans.length > 0 ? (
+            member.loans.map((loan) => {
               const currentLeadId = String(loan.id || loan.lead_id || member.lead_id || '');
               const isCreated = createdLeadIds.has(currentLeadId);
 
               return (
-                <div key={loan.id} className="bg-slate-50 border border-slate-100 rounded-lg p-4 transition-all shadow-sm">
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="font-semibold text-slate-800">
-                      {loan.loan_type}
+                <div 
+                  key={loan.id} 
+                  className="p-4 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7] space-y-3"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs font-bold text-[#1f1f1f]">
+                        {loan.loan_type || 'Personal Loan'}
+                      </p>
+                      <p className="text-[10px] text-[#5f6368]">
+                        Lead Ref: {loan.id ? String(loan.id).slice(0, 8) : 'Direct'}
+                      </p>
                     </div>
+
                     {isLoadingApps && !appsResponse ? (
-                      <div className="h-5 w-16 bg-slate-200 animate-pulse rounded-full" />
+                      <div className="h-5 w-16 bg-[#e0e3e7] animate-pulse rounded-full" />
                     ) : (
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                        isCreated ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${
+                        isCreated 
+                          ? 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]' 
+                          : 'bg-[#fef7e0] text-[#b06000] border-[#feefc3]'
                       }`}>
-                        <CheckCircle2 size={12} /> {isCreated ? 'Created' : (loan.status || 'Draft')}
+                        <CheckCircle2 size={10} /> {isCreated ? 'Created' : (loan.status || 'Draft')}
                       </span>
                     )}
                   </div>
-                  
-                  {isLoadingApps && !appsResponse ? (
-                    <div className="h-8 w-36 bg-slate-200 animate-pulse rounded-md" />
-                  ) : isCreated ? (
-                    <div className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-md bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed select-none">
-                      <Lock size={12} className="text-slate-400" /> Application Created
-                    </div>
-                  ) : (
-                    <Link 
-                      to="/employee/loans/form"
-                      state={{ name: member.name, phone: member.phone, lead_id: currentLeadId, loan_type: loan.loan_type }}
-                      className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 transition-all"
-                    >
-                      Fill Application <ArrowRight size={14} />
-                    </Link>
-                  )}
+
+                  <div className="pt-2 border-t border-[#e0e3e7] flex items-center justify-end">
+                    {isLoadingApps && !appsResponse ? (
+                      <div className="h-8 w-32 bg-[#e0e3e7] animate-pulse rounded-full" />
+                    ) : isCreated ? (
+                      <span className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]">
+                        <Lock size={11} /> Application Created
+                      </span>
+                    ) : (
+                      <Link
+                        to="/employee/loans/form"
+                        state={{ 
+                          name: member.name, 
+                          phone: member.phone, 
+                          lead_id: currentLeadId, 
+                          loan_type: loan.loan_type,
+                          from: '/employee/loans/origination/members'
+                        }}
+                        className="inline-flex items-center justify-center gap-1.5 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white px-4 py-1.5 shadow-xs transition-all cursor-pointer"
+                      >
+                        <FileEdit size={12} />
+                        <span>Fill Application</span>
+                        <ArrowRight size={12} />
+                      </Link>
+                    )}
+                  </div>
                 </div>
               );
-            })}
-            
-            {(!member.loans || member.loans.length === 0) && (
-              <div className="text-center p-4 text-slate-500 text-sm bg-slate-50 rounded-lg border border-slate-100 space-y-2">
-                <p>No loan history available.</p>
-                {isLoadingApps && !appsResponse ? (
-                  <div className="h-8 w-36 bg-slate-200 animate-pulse rounded-md mx-auto" />
-                ) : isMemberDefaultCreated ? (
-                  <div className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-md bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed select-none">
-                    <Lock size={12} className="text-slate-400" /> Application Created
-                  </div>
-                ) : (
-                  <Link 
-                    to="/employee/loans/form"
-                    state={{ name: member.name, phone: member.phone, lead_id: member.lead_id }}
-                    className="inline-flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-700"
-                  >
-                    Fill Application <ArrowRight size={14} />
-                  </Link>
-                )}
-              </div>
-            )}
-          </div>
+            })
+          ) : (
+            <div className="p-6 text-center text-xs text-[#5f6368] font-medium bg-[#f8fafd] rounded-2xl border border-[#e0e3e7] space-y-3">
+              <p>No loan history on record.</p>
+              {isMemberDefaultCreated ? (
+                <span className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]">
+                  <Lock size={11} /> Application Created
+                </span>
+              ) : (
+                <Link
+                  to="/employee/loans/form"
+                  state={{ 
+                    name: member.name, 
+                    phone: member.phone, 
+                    lead_id: member.lead_id,
+                    from: '/employee/loans/origination/members'
+                  }}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white px-5 py-2 shadow-xs transition-all cursor-pointer"
+                >
+                  <FileEdit size={12} />
+                  <span>Start New Application</span>
+                  <ArrowRight size={12} />
+                </Link>
+              )}
+            </div>
+          )}
         </div>
       </div>
+
     </div>
   );
 };

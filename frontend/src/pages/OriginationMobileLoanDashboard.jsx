@@ -1,7 +1,14 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getDashboardData } from '../services/loanServices';
-import { Users, TrendingUp, CheckCircle, ArrowUpRight } from 'lucide-react';
+import { 
+  Users, 
+  TrendingUp, 
+  CheckCircle2, 
+  ArrowUpRight, 
+  ArrowDownRight,
+  Briefcase,
+  Award
+} from 'lucide-react';
 import {
   LineChart,
   Line,
@@ -12,17 +19,38 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend
+  Legend,
+  Area,
+  AreaChart
 } from 'recharts';
-import { motion } from 'framer-motion';
+import { useAuth } from '../contexts/AuthContext';
+import { getDashboardData } from '../services/loanServices';
+import PageLoader from '../components/PageLoader';
 
 const OriginationMobileLoanDashboard = () => {
-  const { data, isLoading, error } = useQuery({
+  const { profile } = useAuth();
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [chartTab, setChartTab] = useState('daily'); // 'daily' | 'monthly'
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const getGreeting = () => {
+    const hour = currentTime.getHours();
+    if (hour < 12) return 'Good Morning';
+    if (hour < 18) return 'Good Afternoon';
+    return 'Good Evening';
+  };
+
+  // Fetch dashboard metrics
+  const { data: dashboardData, isLoading: isDashboardLoading } = useQuery({
     queryKey: ['leadsDashboard'],
     queryFn: getDashboardData
   });
 
-  const stats = data?.stats || {
+  const stats = dashboardData?.stats || {
     total_leads_month: 0,
     percent_change_total: 0,
     active_opportunities: 0,
@@ -31,168 +59,261 @@ const OriginationMobileLoanDashboard = () => {
     percent_change_converted: 0
   };
 
-  const dailyData = data?.dailyData || [];
-  const monthlyData = data?.monthlyData || [];
+  const dailyData = dashboardData?.dailyData || [];
+  const monthlyData = dashboardData?.monthlyData || [];
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
+  const conversionRate = stats.total_leads_month > 0
+    ? Math.min(100, Math.round((stats.converted_leads / stats.total_leads_month) * 100))
+    : 0;
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 15 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } }
-  };
+  if (isDashboardLoading) {
+    return <PageLoader message="Loading Origination Dashboard..." />;
+  }
 
   return (
-    <div className="min-h-screen">
-      {/* Animated Hero Header */}
-      <section className="relative px-6 pt-12 pb-20 rounded-b-[40px] overflow-hidden bg-slate-900 shadow-md">
-        {/* Animated Background Blobs */}
-        <motion.div
-          animate={{
-            scale: [1, 1.2, 1],
-            x: [0, 50, 0],
-            y: [0, 30, 0],
-          }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-20 -left-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.4, 1],
-            x: [0, -40, 0],
-            y: [0, 50, 0],
-          }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute -top-10 -right-10 w-64 h-64 bg-indigo-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.3, 1],
-            x: [0, 30, 0],
-            y: [0, -40, 0],
-          }}
-          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-0 left-20 w-80 h-80 bg-emerald-500 rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
-        />
+    <div className="space-y-4 pb-12">
 
-        {/* Subtle Glass Overlay */}
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
-
-        <div className="relative z-10 px-2">
-          <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">Origination Loans Module</p>
-          <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">Origination Loans Dashboard</h2>
-          <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">Performance overview & conversions</p>
-        </div>
-      </section>
-
-      <motion.div
-        variants={containerVariants}
-        className="relative z-20 -mt-20"
-      >
-        {/* Summary Carousel */}
-        <motion.div variants={itemVariants} className="flex overflow-x-auto gap-4 px-4 py-5 hide-scrollbar snap-x">
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm min-w-[200px] snap-center shrink-0">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-medium text-slate-500">Total Leads (Month)</p>
-              <Users size={16} className="text-blue-500" />
+      {/* 1. Hero Welcome Header Card */}
+      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs relative overflow-hidden bg-gradient-to-br from-white via-[#f8fafd] to-[#e8f0fe]/30">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <div className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368] ml-0.5">
+                {getGreeting()}
+              </span>
             </div>
-            <div className="flex items-end gap-2">
-              <h3 className="text-2xl font-bold text-slate-800">
-                {isLoading ? '...' : stats.total_leads_month}
-              </h3>
-              <span className={`flex items-center text-[10px] font-bold mb-1 ${stats.percent_change_total >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                <ArrowUpRight size={12} className={`mr-0.5 ${stats.percent_change_total < 0 ? 'rotate-90' : ''}`} />
+            <h1 className="text-xl font-bold text-[#1f1f1f] tracking-tight">
+              {profile?.firstName || 'Origination'} {profile?.lastName || 'Officer'}
+            </h1>
+            <p className="text-xs text-[#5f6368] flex items-center gap-1.5">
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2 py-0.5 rounded-full">
+                <Briefcase size={11} /> Loan Origination
+              </span>
+              <span>&bull;</span>
+              <span>{currentTime.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}</span>
+            </p>
+          </div>
+
+          <div className="h-13 w-13 rounded-full bg-[#e8f0fe] border-2 border-[#d2e3fc] flex items-center justify-center overflow-hidden shrink-0 shadow-xs">
+            {profile?.avatar ? (
+              <img src={profile.avatar} alt="Profile" className="h-full w-full object-cover" />
+            ) : (
+              <span className="text-base font-bold text-[#1a73e8]">
+                {profile?.firstName?.[0] || 'L'}{profile?.lastName?.[0] || 'O'}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Exactly the 4 KPI Metric Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        
+        {/* Card 1: Total Leads */}
+        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-4.5 shadow-xs flex items-center justify-between">
+          <div className="space-y-1">
+            <p className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider">
+              Total Leads (This Month)
+            </p>
+            <div className="flex items-baseline gap-2">
+              <p className="text-2xl font-bold text-[#1f1f1f] tracking-tight">
+                {stats.total_leads_month}
+              </p>
+              <span className={`inline-flex items-center text-xs font-bold ${stats.percent_change_total >= 0 ? 'text-[#137333]' : 'text-[#c5221f]'}`}>
+                {stats.percent_change_total >= 0 ? (
+                  <ArrowUpRight className="w-3.5 h-3.5" />
+                ) : (
+                  <ArrowDownRight className="w-3.5 h-3.5" />
+                )}
                 {Math.abs(stats.percent_change_total)}%
               </span>
             </div>
+            <p className="text-xs text-[#5f6368] font-normal pt-0.5">Vs previous month</p>
           </div>
+          <div className="p-3 rounded-2xl bg-[#e8f0fe] text-[#1a73e8] shrink-0">
+            <Users className="w-5 h-5" />
+          </div>
+        </div>
 
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm min-w-[180px] snap-center shrink-0">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-medium text-slate-500">Active</p>
-              <TrendingUp size={16} className="text-indigo-500" />
-            </div>
-            <div className="flex items-end gap-2">
-              <h3 className="text-2xl font-bold text-slate-800">
-                {isLoading ? '...' : stats.active_opportunities}
-              </h3>
-              <span className={`flex items-center text-[10px] font-bold mb-1 ${stats.percent_change_active >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                <ArrowUpRight size={12} className={`mr-0.5 ${stats.percent_change_active < 0 ? 'rotate-90' : ''}`} />
+        {/* Card 2: Active Opportunities */}
+        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-4.5 shadow-xs flex items-center justify-between">
+          <div className="space-y-1">
+            <p className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider">
+              Active Opportunities
+            </p>
+            <div className="flex items-baseline gap-2">
+              <p className="text-2xl font-bold text-[#1f1f1f] tracking-tight">
+                {stats.active_opportunities}
+              </p>
+              <span className={`inline-flex items-center text-xs font-bold ${stats.percent_change_active >= 0 ? 'text-[#137333]' : 'text-[#c5221f]'}`}>
+                {stats.percent_change_active >= 0 ? (
+                  <ArrowUpRight className="w-3.5 h-3.5" />
+                ) : (
+                  <ArrowDownRight className="w-3.5 h-3.5" />
+                )}
                 {Math.abs(stats.percent_change_active)}%
               </span>
             </div>
+            <p className="text-xs text-[#5f6368] font-normal pt-0.5">In pipeline follow-up</p>
           </div>
+          <div className="p-3 rounded-2xl bg-[#fef7e0] text-[#b06000] shrink-0">
+            <TrendingUp className="w-5 h-5" />
+          </div>
+        </div>
 
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm min-w-[180px] snap-center shrink-0 pr-6">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-medium text-slate-500">Converted</p>
-              <CheckCircle size={16} className="text-emerald-500" />
-            </div>
-            <div className="flex items-end gap-2">
-              <h3 className="text-2xl font-bold text-slate-800">
-                {isLoading ? '...' : stats.converted_leads}
-              </h3>
-              <span className={`flex items-center text-[10px] font-bold mb-1 ${stats.percent_change_converted >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                <ArrowUpRight size={12} className={`mr-0.5 ${stats.percent_change_converted < 0 ? 'rotate-90' : ''}`} />
+        {/* Card 3: Converted Leads */}
+        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-4.5 shadow-xs flex items-center justify-between">
+          <div className="space-y-1">
+            <p className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider">
+              Converted Leads
+            </p>
+            <div className="flex items-baseline gap-2">
+              <p className="text-2xl font-bold text-[#137333] tracking-tight">
+                {stats.converted_leads}
+              </p>
+              <span className={`inline-flex items-center text-xs font-bold ${stats.percent_change_converted >= 0 ? 'text-[#137333]' : 'text-[#c5221f]'}`}>
+                {stats.percent_change_converted >= 0 ? (
+                  <ArrowUpRight className="w-3.5 h-3.5" />
+                ) : (
+                  <ArrowDownRight className="w-3.5 h-3.5" />
+                )}
                 {Math.abs(stats.percent_change_converted)}%
               </span>
             </div>
+            <p className="text-xs text-[#5f6368] font-normal pt-0.5">Successfully disbursed</p>
           </div>
-        </motion.div>
-
-        {/* Charts Content */}
-        <div className="px-4 space-y-4 pb-6">
-
-          {/* Daily Trends Chart */}
-          <motion.div variants={itemVariants} className="bg-white rounded-[24px] shadow-lg border border-slate-100/50 overflow-hidden p-6">
-            <h3 className="text-base font-bold text-slate-800 mb-4">Daily Leads (Last 7 Days)</h3>
-            <div className="h-[250px] w-full -ml-3">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={dailyData} margin={{ top: 5, right: 5, bottom: 5, left: -20 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 10 }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 10 }} />
-                  <Tooltip
-                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }}
-                  />
-                  <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
-                  <Line type="monotone" dataKey="leads" name="Leads" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3, fill: '#fff', strokeWidth: 2 }} activeDot={{ r: 5, strokeWidth: 0 }} />
-                  <Line type="monotone" dataKey="converted" name="Converted" stroke="#10b981" strokeWidth={2} dot={{ r: 3, fill: '#fff', strokeWidth: 2 }} activeDot={{ r: 5, strokeWidth: 0 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </motion.div>
-
-          {/* Monthly Trends Chart */}
-          <motion.div variants={itemVariants} className="bg-white rounded-[24px] shadow-lg border border-slate-100/50 overflow-hidden p-6 mt-6">
-            <h3 className="text-base font-bold text-slate-800 mb-4">Monthly Trends</h3>
-            <div className="h-[250px] w-full -ml-3">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={monthlyData} margin={{ top: 5, right: 5, bottom: 5, left: -10 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 10 }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 10 }} />
-                  <Tooltip
-                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }}
-                    cursor={{ fill: '#f1f5f9' }}
-                  />
-                  <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
-                  <Bar dataKey="leads" name="Leads" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={16} />
-                  <Bar dataKey="converted" name="Converted" fill="#10b981" radius={[4, 4, 0, 0]} barSize={16} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </motion.div>
-
+          <div className="p-3 rounded-2xl bg-[#e6f4ea] text-[#137333] shrink-0">
+            <CheckCircle2 className="w-5 h-5" />
+          </div>
         </div>
-      </motion.div>
+
+        {/* Card 4: Conversion Rate */}
+        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-4.5 shadow-xs flex items-center justify-between">
+          <div className="space-y-1">
+            <p className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider">
+              Conversion Rate
+            </p>
+            <div className="flex items-baseline gap-2">
+              <p className="text-2xl font-bold text-[#1a73e8] tracking-tight">
+                {conversionRate}%
+              </p>
+              <span className="text-xs font-semibold text-[#137333]">Active</span>
+            </div>
+            <p className="text-xs text-[#5f6368] font-normal pt-0.5">Total funnel conversion</p>
+          </div>
+          <div className="p-3 rounded-2xl bg-[#f3e8fd] text-[#8430ce] shrink-0">
+            <Award className="w-5 h-5" />
+          </div>
+        </div>
+
+      </div>
+
+      {/* 3. Charts Section */}
+      <div className="space-y-4">
+        
+        {/* Daily Leads Line Chart */}
+        <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-[#e0e3e7]">
+            <div>
+              <h3 className="text-xs font-bold text-[#1f1f1f] uppercase tracking-wider">Daily Leads</h3>
+              <p className="text-[10px] text-[#5f6368]">Last 7 Days Trend</p>
+            </div>
+            <span className="text-[10px] font-semibold text-[#1a73e8] bg-[#e8f0fe] px-2.5 py-0.5 rounded-full border border-[#d2e3fc]">
+              7 Days
+            </span>
+          </div>
+
+          <div className="h-[210px] w-full -ml-3 pt-1">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={dailyData} margin={{ top: 5, right: 5, bottom: 5, left: -20 }}>
+                <defs>
+                  <linearGradient id="leadsGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#1a73e8" stopOpacity={0.25}/>
+                    <stop offset="95%" stopColor="#1a73e8" stopOpacity={0.0}/>
+                  </linearGradient>
+                  <linearGradient id="convertedGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#137333" stopOpacity={0.25}/>
+                    <stop offset="95%" stopColor="#137333" stopOpacity={0.0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f3f4" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#5f6368', fontSize: 10 }} dy={8} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#5f6368', fontSize: 10 }} />
+                <Tooltip
+                  contentStyle={{ 
+                    borderRadius: '12px', 
+                    border: '1px solid #e0e3e7', 
+                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.08)', 
+                    fontSize: '11px',
+                    backgroundColor: '#ffffff'
+                  }}
+                />
+                <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '8px' }} />
+                <Area 
+                  type="monotone" 
+                  dataKey="leads" 
+                  name="Leads" 
+                  stroke="#1a73e8" 
+                  strokeWidth={2.5} 
+                  fillOpacity={1} 
+                  fill="url(#leadsGradient)" 
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="converted" 
+                  name="Converted" 
+                  stroke="#137333" 
+                  strokeWidth={2.5} 
+                  fillOpacity={1} 
+                  fill="url(#convertedGradient)" 
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Monthly Trends Bar Chart */}
+        <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-[#e0e3e7]">
+            <div>
+              <h3 className="text-xs font-bold text-[#1f1f1f] uppercase tracking-wider">Monthly Trends</h3>
+              <p className="text-[10px] text-[#5f6368]">Historical Monthly Conversions</p>
+            </div>
+            <span className="text-[10px] font-semibold text-[#137333] bg-[#e6f4ea] px-2.5 py-0.5 rounded-full border border-[#ceead6]">
+              Monthly
+            </span>
+          </div>
+
+          <div className="h-[210px] w-full -ml-3 pt-1">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={monthlyData} margin={{ top: 5, right: 5, bottom: 5, left: -10 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f3f4" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#5f6368', fontSize: 10 }} dy={8} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#5f6368', fontSize: 10 }} />
+                <Tooltip
+                  contentStyle={{ 
+                    borderRadius: '12px', 
+                    border: '1px solid #e0e3e7', 
+                    boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.08)', 
+                    fontSize: '11px',
+                    backgroundColor: '#ffffff'
+                  }}
+                  cursor={{ fill: '#f8fafd' }}
+                />
+                <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '8px' }} />
+                <Bar dataKey="leads" name="Leads" fill="#1a73e8" radius={[4, 4, 0, 0]} barSize={14} />
+                <Bar dataKey="converted" name="Converted" fill="#137333" radius={[4, 4, 0, 0]} barSize={14} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+      </div>
+
     </div>
   );
 };

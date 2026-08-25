@@ -959,7 +959,7 @@ export function BusinessLoanForm({ isEditMode: propEditMode, application: propAp
         </div>
 
         {/* Stepper Tabs Bar */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+        <div className="flex overflow-x-auto gap-2 pb-1 hide-scrollbar sm:grid sm:grid-cols-3 lg:grid-cols-5">
           {steps.map((step) => {
             const isActive = activeStep === step.id && !viewAllSections;
 
@@ -971,7 +971,7 @@ export function BusinessLoanForm({ isEditMode: propEditMode, application: propAp
                   setActiveStep(step.id);
                   setViewAllSections(false);
                 }}
-                className={`flex items-center gap-2 p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                className={`flex items-center gap-2 p-2.5 rounded-xl border text-left transition-all cursor-pointer shrink-0 sm:shrink min-w-[130px] sm:min-w-0 ${
                   isActive
                     ? 'bg-[#e8f0fe] border-[#1a73e8] text-[#1a73e8] shadow-2xs font-semibold'
                     : 'bg-[#f8fafd] border-[#dadce0] text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4]'
