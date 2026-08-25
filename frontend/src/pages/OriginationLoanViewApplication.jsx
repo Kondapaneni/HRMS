@@ -329,8 +329,8 @@ export default function OriginationLoanViewApplication() {
       {/* Desktop View Component (Visible ONLY on Desktop >= 768px, forced in Print) */}
       <div className="hidden md:block print:block w-full max-w-full space-y-6 pb-16">
         {/* Top Google Workspace Header Bar */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden">
-          <div>
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 print:hidden">
+          <div className="min-w-0">
             <div className="flex items-center gap-1.5 mb-1">
               <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
               <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
@@ -339,8 +339,8 @@ export default function OriginationLoanViewApplication() {
               <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Origination Loans Workspace</span>
             </div>
             
-            <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight">
+            <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
+              <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight whitespace-nowrap">
                 {loanType} Application
               </h1>
 
@@ -348,7 +348,7 @@ export default function OriginationLoanViewApplication() {
               <button
                 type="button"
                 onClick={handleCopyId}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] hover:bg-[#d2e3fc] transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] hover:bg-[#d2e3fc] transition-colors cursor-pointer whitespace-nowrap"
                 title="Click to copy Application ID"
               >
                 <span>{appId}</span>
@@ -356,12 +356,12 @@ export default function OriginationLoanViewApplication() {
               </button>
 
               {/* Status Pill */}
-              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${getStatusBadgeStyle(localStatus)}`}>
+              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border whitespace-nowrap ${getStatusBadgeStyle(localStatus)}`}>
                 {localStatus}
               </span>
 
               {/* Read Only Indicator */}
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#f8fafd] text-[#5f6368] border border-[#dadce0]">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#f8fafd] text-[#5f6368] border border-[#dadce0] whitespace-nowrap">
                 <Lock size={12} className="text-[#5f6368]" /> Read-Only
               </span>
             </div>
@@ -371,13 +371,13 @@ export default function OriginationLoanViewApplication() {
             </p>
           </div>
 
-          {/* Top Right Action Toolbar */}
-          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+          {/* Top Right Action Toolbar - Wrapped into clean flex container with whitespace-nowrap buttons */}
+          <div className="flex flex-wrap items-center gap-2 xl:justify-end">
             {/* Back Button */}
             <button
               type="button"
               onClick={() => navigate(fromPath)}
-              className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] px-4 py-2 transition-all gap-1.5 shadow-2xs cursor-pointer"
+              className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] px-4 py-2 transition-all gap-1.5 shadow-2xs cursor-pointer whitespace-nowrap shrink-0"
             >
               <ArrowLeft className="w-4 h-4 text-[#5f6368]" />
               <span>Back</span>
@@ -400,7 +400,7 @@ export default function OriginationLoanViewApplication() {
                     from: '/employee/loans/view-application'
                   }
                 })}
-                className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1a73e8] hover:bg-[#e8f0fe] border border-[#d2e3fc] px-4 py-2 transition-all gap-1.5 shadow-2xs cursor-pointer"
+                className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1a73e8] hover:bg-[#e8f0fe] border border-[#d2e3fc] px-4 py-2 transition-all gap-1.5 shadow-2xs cursor-pointer whitespace-nowrap shrink-0"
               >
                 <FileEdit className="w-4 h-4" />
                 <span>{localStatus === 'Draft' ? 'Continue Draft' : 'Edit Application'}</span>
@@ -412,7 +412,7 @@ export default function OriginationLoanViewApplication() {
               <button
                 type="button"
                 onClick={() => setIsDocsOpen(true)}
-                className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1a73e8] hover:bg-[#e8f0fe] border border-[#d2e3fc] px-4 py-2 transition-all gap-1.5 shadow-2xs cursor-pointer"
+                className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1a73e8] hover:bg-[#e8f0fe] border border-[#d2e3fc] px-4 py-2 transition-all gap-1.5 shadow-2xs cursor-pointer whitespace-nowrap shrink-0"
               >
                 <Camera className="w-4 h-4" />
                 <span>Upload Photos ({uploadedCount}/{requiredSlots})</span>
@@ -425,7 +425,7 @@ export default function OriginationLoanViewApplication() {
                 type="button"
                 onClick={() => setIsSignatureModalOpen(true)}
                 disabled={isTransferring}
-                className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[#137333] hover:bg-[#0d652d] text-white px-5 py-2 transition-all gap-1.5 shadow-xs cursor-pointer disabled:opacity-50"
+                className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[#137333] hover:bg-[#0d652d] text-white px-5 py-2 transition-all gap-1.5 shadow-xs cursor-pointer disabled:opacity-50 whitespace-nowrap shrink-0"
               >
                 {isTransferring ? (
                   <>
@@ -446,7 +446,7 @@ export default function OriginationLoanViewApplication() {
               type="button"
               onClick={handlePrint}
               disabled={isPrinting}
-              className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white px-4 py-2 transition-all gap-1.5 shadow-xs cursor-pointer disabled:opacity-75"
+              className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white px-4 py-2 transition-all gap-1.5 shadow-xs cursor-pointer disabled:opacity-75 whitespace-nowrap shrink-0"
             >
               {isPrinting ? (
                 <>
