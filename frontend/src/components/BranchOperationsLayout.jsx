@@ -348,58 +348,48 @@ const BranchOperationsLayout = () => {
               className="mobile-bottom-nav md:hidden fixed bottom-4 left-4 right-4 z-50 select-none"
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
+              onTouchCancel={handleTouchEnd}
             >
-              <div className="bg-white/90 backdrop-blur-xl border border-[#dadce0]/80 shadow-[0_4px_24px_rgba(0,0,0,0.08)] rounded-full p-1.5 flex justify-around items-center">
+              <div className="bg-white/90 backdrop-blur-2xl border border-[#e0e3e7] shadow-lg rounded-full p-1.5 flex justify-around items-center" style={{ willChange: 'transform' }}>
                 {/* Back to HRMS Button */}
                 <button
                   type="button"
                   onClick={() => setShowBackModal(true)}
-                  className="flex flex-col items-center justify-center py-1.5 px-3 rounded-full text-[#444746] hover:bg-[#f1f3f4] transition-all cursor-pointer min-w-[58px]"
+                  className="relative flex flex-col items-center justify-center flex-1 h-[52px] z-10 group cursor-pointer active:scale-95 transition-transform duration-100"
                 >
-                  <ArrowLeft size={16} className="text-[#5f6368]" />
-                  <span className="text-[10px] font-medium mt-0.5 tracking-tight text-[#444746]">Back</span>
+                  <ArrowLeft className="relative z-10 w-5 h-5 mb-0.5 text-[#5f6368]" />
+                  <span className="relative z-10 text-[10px] font-semibold tracking-wide text-[#5f6368]">HRMS</span>
                 </button>
 
-                {navItems.map((item, idx) => {
+                {[
+                  { label: 'Dashboard', icon: Activity, path: '/employee/branch-operations' },
+                  { label: 'Applications', icon: Briefcase, path: '/employee/branch-operations/loans-applications' }
+                ].map((item) => {
                   const currentPath = swipePath || location.pathname;
-                  const isLoansAppPage = 
-                    currentPath.startsWith('/employee/branch-operations/loans-applications') ||
-                    currentPath.startsWith('/employee/branch-operations/loans-view-applications') ||
-                    currentPath.startsWith('/employee/branch-operations/loans-edit-application');
-
-                  let isActive = false;
-                  if (item.path === '/employee/branch-operations/loans-applications') {
-                    isActive = isLoansAppPage;
-                  } else if (item.path === '/employee/branch-operations') {
-                    isActive = (currentPath === '/employee/branch-operations' || currentPath === '/employee/branch-operations/dashboard') && !isLoansAppPage;
-                  } else {
-                    isActive = currentPath === item.path || currentPath.startsWith(`${item.path}/`) || (item.activePaths && item.activePaths.some(p => currentPath.startsWith(p)));
-                  }
+                  const isDashboard = item.path === '/employee/branch-operations';
+                  const isOtherTab = currentPath.startsWith('/employee/branch-operations/loans-applications') || currentPath.startsWith('/employee/branch-operations/loans-view-applications') || currentPath.startsWith('/employee/branch-operations/loans-edit-application');
+                  const isActive = isDashboard 
+                    ? (currentPath === '/employee/branch-operations' || !isOtherTab) 
+                    : (currentPath === item.path || (!swipePath && currentPath.startsWith(item.path)));
+                  const Icon = item.icon;
 
                   return (
                     <Link
-                      key={idx}
+                      key={item.path}
                       to={item.path}
                       data-nav-path={item.path}
-                      className={`relative flex flex-col items-center justify-center py-1.5 px-4 rounded-full transition-all cursor-pointer min-w-[70px] ${
-                        isActive 
-                          ? 'text-[#001d35] font-bold' 
-                          : 'text-[#444746] hover:bg-[#f1f3f4] font-medium'
-                      }`}
+                      onClick={(e) => { if (swipePath) e.preventDefault(); }}
+                      className="relative flex flex-col items-center justify-center flex-1 h-[52px] z-10 group cursor-pointer active:scale-95 transition-transform duration-100"
                     >
                       {isActive && (
                         <motion.div
-                          layoutId="branchOpsActivePill"
-                          className="absolute inset-0 bg-[#c2e7ff]/70 rounded-full -z-10 shadow-xs"
-                          transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                          layoutId="branchOpsMobileNavBubble"
+                          className="absolute inset-0 z-[-1] rounded-full bg-[#c2e7ff]/70 border border-[#b2d7ff]/80 shadow-2xs"
+                          transition={{ type: 'spring', bounce: 0.15, duration: 0.35 }}
                         />
                       )}
-                      <span className={`transition-colors ${isActive ? 'text-[#1a73e8]' : 'text-[#5f6368]'}`}>
-                        {item.icon}
-                      </span>
-                      <span className="text-[10px] tracking-tight mt-0.5 whitespace-nowrap truncate max-w-[80px]">
-                        {item.label}
-                      </span>
+                      <Icon className={`relative z-10 w-5 h-5 mb-0.5 transition-colors duration-150 ${isActive ? 'text-[#001d35] scale-105' : 'text-[#5f6368]'}`} />
+                      <span className={`relative z-10 text-[10px] font-semibold tracking-wide transition-colors duration-150 ${isActive ? 'text-[#001d35]' : 'text-[#5f6368]'}`}>{item.label}</span>
                     </Link>
                   );
                 })}
@@ -410,48 +400,44 @@ const BranchOperationsLayout = () => {
       </div>
 
       {/* Back to HRMS Confirmation Modal */}
-      <AnimatePresence>
-        {showBackModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowBackModal(false)}
-              className="absolute inset-0 bg-[#001d35]/30 backdrop-blur-xs cursor-pointer"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              transition={{ duration: 0.15, ease: "easeOut" }}
-              className="bg-white w-full max-w-sm rounded-[24px] p-6 shadow-xl border border-[#e0e3e7] relative z-10"
-            >
-              <div className="flex items-center gap-1 mb-4">
-                <span className="w-2 h-2 rounded-full bg-[#4285F4]" />
-                <span className="w-2 h-2 rounded-full bg-[#EA4335]" />
-                <span className="w-2 h-2 rounded-full bg-[#FBBC05]" />
-                <span className="w-2 h-2 rounded-full bg-[#34A853]" />
-                <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1.5">Acme HRMS</span>
+      {showBackModal && createPortal(
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowBackModal(false)}
+            className="fixed inset-0 bg-black/40 backdrop-blur-xs cursor-pointer"
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 8 }}
+            transition={{ duration: 0.2 }}
+            className="w-full max-w-sm bg-white rounded-3xl border border-[#e0e3e7] shadow-2xl overflow-hidden relative z-10 flex flex-col"
+          >
+            {/* Top 4-Color Gradient Accent Line */}
+            <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853]" />
+
+            <div className="p-6 text-center space-y-4">
+              <div className="w-12 h-12 rounded-2xl bg-[#e8f0fe] border border-[#d2e3fc] text-[#1a73e8] flex items-center justify-center mx-auto shadow-2xs">
+                <ArrowLeft className="w-6 h-6" />
               </div>
 
-              <div className="flex items-start gap-3.5 mb-4">
-                <div className="w-10 h-10 rounded-full bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center shrink-0">
-                  <Building2 size={20} />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-[#1f1f1f] leading-snug">Return to HRMS?</h3>
-                  <p className="text-xs text-[#5f6368] mt-1 leading-relaxed">
-                    You will navigate back to the main Acme HRMS employee dashboard.
-                  </p>
-                </div>
+              <div className="space-y-1">
+                <h3 className="text-lg font-semibold text-[#1f1f1f] tracking-tight">
+                  Back to HRMS Dashboard?
+                </h3>
+                <p className="text-xs text-[#5f6368] leading-relaxed">
+                  Return to the main Employee Workspace and attendance portal.
+                </p>
               </div>
 
-              <div className="flex items-center justify-end gap-2 mt-6">
+              <div className="flex items-center gap-2.5 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowBackModal(false)}
-                  className="px-4 py-2 text-xs font-semibold text-[#444746] hover:bg-[#f1f3f4] rounded-full transition-colors cursor-pointer"
+                  className="flex-1 py-3 px-4 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-xs font-semibold text-[#1f1f1f] transition-all cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -461,83 +447,81 @@ const BranchOperationsLayout = () => {
                     setShowBackModal(false);
                     navigate('/employee');
                   }}
-                  className="px-5 py-2 text-xs font-semibold text-white bg-[#1a73e8] hover:bg-[#1557b0] rounded-full shadow-xs transition-all cursor-pointer"
+                  className="flex-1 py-3 px-4 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold shadow-xs transition-all cursor-pointer"
                 >
-                  Continue
+                  Return to HRMS
                 </button>
               </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+            </div>
+          </motion.div>
+        </div>,
+        document.body
+      )}
 
-      {/* Logout Confirmation Modal */}
-      <AnimatePresence>
-        {showLogoutModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => !loggingOut && setShowLogoutModal(false)}
-              className="absolute inset-0 bg-[#001d35]/30 backdrop-blur-xs cursor-pointer"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              transition={{ duration: 0.15, ease: "easeOut" }}
-              className="bg-white w-full max-w-sm rounded-[24px] p-6 shadow-xl border border-[#e0e3e7] relative z-10"
-            >
-              <div className="flex items-center gap-1 mb-4">
-                <span className="w-2 h-2 rounded-full bg-[#4285F4]" />
-                <span className="w-2 h-2 rounded-full bg-[#EA4335]" />
-                <span className="w-2 h-2 rounded-full bg-[#FBBC05]" />
-                <span className="w-2 h-2 rounded-full bg-[#34A853]" />
-                <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1.5">Acme HRMS</span>
+      {/* Google Material 3 Logout Confirmation Modal (createPortal) */}
+      {showLogoutModal && createPortal(
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => !loggingOut && setShowLogoutModal(false)}
+            className="fixed inset-0 bg-black/40 backdrop-blur-xs cursor-pointer"
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 8 }}
+            transition={{ duration: 0.2 }}
+            className="w-full max-w-sm bg-white rounded-3xl border border-[#e0e3e7] shadow-2xl overflow-hidden relative z-10 flex flex-col"
+          >
+            {/* Top 4-Color Gradient Accent Line */}
+            <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853]" />
+
+            <div className="p-6 text-center space-y-4">
+              <div className="w-12 h-12 rounded-2xl bg-[#fce8e6] border border-[#fad2cf] text-[#d93025] flex items-center justify-center mx-auto shadow-2xs">
+                <LogOut className="w-6 h-6" />
               </div>
 
-              <div className="flex items-start gap-3.5 mb-4">
-                <div className="w-10 h-10 rounded-full bg-[#fce8e6] text-[#d93025] flex items-center justify-center shrink-0">
-                  <LogOut size={20} />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-[#1f1f1f] leading-snug">Sign out of Acme HRMS?</h3>
-                  <p className="text-xs text-[#5f6368] mt-1 leading-relaxed">
-                    You will be returned to the login screen and will need to sign in again to access Branch Operations.
-                  </p>
-                </div>
+              <div className="space-y-1">
+                <h3 className="text-lg font-semibold text-[#1f1f1f] tracking-tight">
+                  Sign out of your account?
+                </h3>
+                <p className="text-xs text-[#5f6368] leading-relaxed">
+                  Are you sure you want to end your session? You will need to sign in again to access the portal.
+                </p>
               </div>
 
-              <div className="flex items-center justify-end gap-2 mt-6">
+              <div className="flex items-center gap-2.5 pt-2">
                 <button
                   type="button"
-                  disabled={loggingOut}
                   onClick={() => setShowLogoutModal(false)}
-                  className="px-4 py-2 text-xs font-semibold text-[#444746] hover:bg-[#f1f3f4] rounded-full transition-colors cursor-pointer disabled:opacity-50"
+                  disabled={loggingOut}
+                  className="flex-1 py-3 px-4 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-xs font-semibold text-[#1f1f1f] transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
-                  disabled={loggingOut}
                   onClick={handleConfirmLogout}
-                  className="px-5 py-2 text-xs font-semibold text-white bg-[#d93025] hover:bg-[#b3261e] rounded-full shadow-xs transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                  disabled={loggingOut}
+                  className="flex-1 py-3 px-4 rounded-full bg-[#d93025] hover:bg-[#b3261e] text-white text-xs font-semibold shadow-xs transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5"
                 >
                   {loggingOut ? (
                     <>
-                      <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      <span>Signing out...</span>
+                      <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent" />
+                      <span>Signing Out...</span>
                     </>
                   ) : (
                     <span>Sign Out</span>
                   )}
                 </button>
               </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+            </div>
+          </motion.div>
+        </div>,
+        document.body
+      )}
 
       <style>{`
         .orientation-warning {
