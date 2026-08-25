@@ -642,6 +642,7 @@ function streamSupabaseFile($supabaseUrl, Response $response, $filename, $dispos
     
     return $response
         ->withBody($slimStream)
+        ->withHeader('Access-Control-Allow-Origin', '*')
         ->withHeader('Content-Type', getMimeType($filename))
         ->withHeader('Content-Disposition', $disposition . '; filename="' . basename($filename) . '"')
         ->withHeader('Cache-Control', 'public, max-age=31536000, immutable')

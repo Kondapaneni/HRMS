@@ -176,7 +176,6 @@ const PassportPhotoBox = ({ doc, label, onPreview, icon: Icon = User, size = 'md
             height="140"
             loading="eager"
             decoding="async"
-            crossOrigin="anonymous"
             className="w-full h-full object-cover rounded-xl cursor-pointer hover:opacity-90 active:scale-95 transition-all print:w-[102px] print:h-[130px] print:max-h-[130px] print:object-cover shadow-2xs"
             onClick={() => onPreview && onPreview(photoUrl)}
             title="Click to view full size"

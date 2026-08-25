@@ -105,7 +105,6 @@ export async function preloadAndDecodeImages(urls, timeoutMs = 1500) {
   const decodePromises = validUrls.map((url) => {
     return new Promise((resolve) => {
       const img = new Image();
-      img.crossOrigin = 'anonymous';
 
       const done = () => {
         if (img.decode) {
