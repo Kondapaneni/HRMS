@@ -1,8 +1,7 @@
 import React from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Edit3, Building2, ShieldAlert } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
 import { getBranchLoanApplications } from '../services/loanServices';
 import { BusinessLoanForm, PersonalLoanForm } from '../components/forms';
 
@@ -31,7 +30,7 @@ const BranchOperationsMobileLoansEditApplication = () => {
         return <BusinessLoanForm isEditMode={true} application={application} />;
       default:
         return (
-          <div className="p-8 text-center text-slate-500 font-medium">
+          <div className="p-8 text-center text-[#5f6368] font-medium">
             Invalid or Unsupported Loan Type Selected.
           </div>
         );
@@ -39,70 +38,70 @@ const BranchOperationsMobileLoansEditApplication = () => {
   };
 
   return (
-    <div className="w-full pb-8">
-      {/* Hero Header matching Branch Operations Mobile Design */}
-      <section className="relative px-6 pt-12 pb-24 rounded-b-[40px] overflow-hidden bg-slate-900 shadow-md">
-        {/* Animated Background Blobs (#7C4DFF) */}
-        <motion.div
-          animate={{
-            scale: [1, 1.2, 1],
-            x: [0, 50, 0],
-            y: [0, 30, 0],
-          }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-20 -left-10 w-72 h-72 bg-[#7C4DFF] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.4, 1],
-            x: [0, -40, 0],
-            y: [0, 50, 0],
-          }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute -top-10 -right-10 w-64 h-64 bg-[#9575FF] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.3, 1],
-            x: [0, 30, 0],
-            y: [0, -40, 0],
-          }}
-          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-0 left-20 w-80 h-80 bg-[#B388FF] rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
-        />
+    <div className="w-full space-y-4 pb-12">
+      {/* 1. Header Card */}
+      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs bg-gradient-to-br from-white via-[#f8fafd] to-[#e8f0fe]/30">
+        <div className="flex items-center justify-between gap-3">
+          <div className="space-y-1">
+            <div className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368] ml-0.5">
+                Branch Operations
+              </span>
+            </div>
+            <h1 className="text-xl font-bold text-[#1f1f1f] tracking-tight">
+              Edit Application
+            </h1>
+            <p className="text-xs text-[#5f6368] flex items-center gap-1">
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2 py-0.5 rounded-full">
+                <Building2 size={11} /> {branchName}
+              </span>
+            </p>
+          </div>
 
-        {/* Subtle Glass Overlay */}
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none" />
-
-        <div className="relative z-10 flex items-center justify-between px-2">
           <button
             type="button"
             onClick={() => navigate(fromPath, { state: { application, id: application?.id } })}
-            className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center backdrop-blur-md transition-transform active:scale-95 border border-white/20 cursor-pointer shadow-xs"
+            className="w-9 h-9 rounded-full bg-white border border-[#dadce0] text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4] flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4" />
           </button>
-          <div className="text-center">
-            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">
-              Branch Operation Module
-            </p>
-            <h2 className="text-xl font-bold text-white tracking-tight drop-shadow-sm">
-              Edit {loanType}
-            </h2>
-          </div>
-          <div className="w-10 h-10" />
         </div>
-      </section>
+      </div>
 
-      {/* Main Content Form Floating Over Hero */}
-      <div className="relative z-20 -mt-12 px-4 space-y-4">
-        <div className="rounded-[24px] border border-slate-100/80 bg-white p-5 shadow-lg">
-          <div className="mb-4 pb-3 border-b border-slate-100">
-            <h3 className="text-lg font-bold text-slate-900 font-sans tracking-tight">{appId}</h3>
-            <p className="text-xs font-semibold text-slate-500">Edit {loanType} Application</p>
-          </div>
-          {renderForm()}
+      {/* 2. Overview Banner */}
+      <div className="bg-white p-4 rounded-2xl border border-[#e0e3e7] shadow-xs space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="font-mono text-sm font-bold text-[#1a73e8] bg-[#e8f0fe] px-2.5 py-0.5 rounded-full border border-[#d2e3fc]">
+            {appId}
+          </span>
+          <span className="text-xs font-semibold text-[#5f6368]">
+            {loanType}
+          </span>
         </div>
+        <div className="flex items-center gap-1.5 text-[11px] font-medium text-[#b06000] bg-[#fef7e0] border border-[#feefc3] p-2 rounded-xl">
+          <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
+          <span>Edits will update application records for this branch</span>
+        </div>
+      </div>
+
+      {/* 3. Main Form */}
+      <div className="rounded-2xl border border-[#e0e3e7] bg-white p-4 shadow-xs">
+        {renderForm()}
+      </div>
+
+      {/* 4. Bottom Back Button */}
+      <div className="flex justify-center pt-2 pb-4">
+        <button
+          type="button"
+          onClick={() => navigate(fromPath, { state: { application, id: application?.id } })}
+          className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#444746] border border-[#dadce0] hover:bg-[#f1f3f4] h-10 px-6 transition-all gap-2 shadow-2xs cursor-pointer active:scale-98"
+        >
+          <ArrowLeft className="w-4 h-4" /> Back to View Application
+        </button>
       </div>
     </div>
   );

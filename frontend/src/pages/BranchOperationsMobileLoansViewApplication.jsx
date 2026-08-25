@@ -10,10 +10,10 @@ import {
   Loader2,
   X,
   FileText,
-  Edit3
+  Edit3,
+  Building2
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { motion } from 'framer-motion';
 import { getBranchLoanApplications } from '../services/loanServices';
 import { LoanDetailView } from '../components/forms';
 
@@ -109,20 +109,20 @@ export default function BranchOperationsMobileLoansViewApplication({
 
   if (!application && isLoading) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-slate-500">
-        <Loader2 className="animate-spin h-8 w-8 text-[#7C4DFF] mb-3" />
-        <p className="text-sm font-medium">Loading application details...</p>
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-[#5f6368]">
+        <Loader2 className="animate-spin h-8 w-8 text-[#1a73e8] mb-3" />
+        <p className="text-xs font-semibold">Loading application details...</p>
       </div>
     );
   }
 
   if (!application && !isLoading) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-slate-500 text-center">
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-[#5f6368] text-center">
         <p className="text-sm font-medium mb-4">No application details found.</p>
         <button
           onClick={() => navigate(fromPath)}
-          className="px-4 py-2 bg-[#7C4DFF] text-white rounded-xl text-sm font-semibold hover:bg-[#6a3ae8] transition-colors shadow-sm cursor-pointer"
+          className="px-5 py-2 bg-[#1a73e8] text-white rounded-full text-xs font-semibold hover:bg-[#1557b0] transition-colors shadow-xs cursor-pointer"
         >
           Back to Applications
         </button>
@@ -131,133 +131,109 @@ export default function BranchOperationsMobileLoansViewApplication({
   }
 
   return (
-    <div className="w-full pb-8">
-      {/* Hero Header */}
-      <section className="relative px-6 pt-12 pb-24 rounded-b-[40px] overflow-hidden bg-slate-900 shadow-md">
-        {/* Animated Background Blobs (#7C4DFF) */}
-        <motion.div
-          animate={{
-            scale: [1, 1.2, 1],
-            x: [0, 50, 0],
-            y: [0, 30, 0],
-          }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-20 -left-10 w-72 h-72 bg-[#7C4DFF] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.4, 1],
-            x: [0, -40, 0],
-            y: [0, 50, 0],
-          }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute -top-10 -right-10 w-64 h-64 bg-[#9575FF] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.3, 1],
-            x: [0, 30, 0],
-            y: [0, -40, 0],
-          }}
-          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-0 left-20 w-80 h-80 bg-[#B388FF] rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
-        />
-
-        {/* Subtle Glass Overlay */}
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none" />
-
-        <div className="relative z-10 flex items-center justify-between px-2">
-          <button
-            type="button"
-            onClick={() => navigate(fromPath)}
-            className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center backdrop-blur-md transition-transform active:scale-95 border border-white/20 cursor-pointer shadow-xs"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div className="text-center">
-            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">
-              Branch Operation Module
-            </p>
-            <h2 className="text-xl font-bold text-white tracking-tight drop-shadow-sm">
-              Application Details
-            </h2>
-          </div>
-          <div className="w-10 h-10" />
-        </div>
-      </section>
-
-      {/* Mobile Content Cards */}
-      <div className="relative z-20 -mt-12 px-4 space-y-4">
-        {/* Application Overview & Status Card */}
-        <div className="bg-white p-5 rounded-[24px] shadow-lg border border-slate-100/80">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-lg font-bold text-slate-900 tracking-tight font-sans">
-                  {appId}
-                </span>
-                <span
-                  className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider whitespace-nowrap shrink-0 ${
-                    appStatus === 'Created' || appStatus === 'Approved'
-                      ? 'bg-emerald-100 text-emerald-700 border border-emerald-200'
-                      : appStatus === 'Under Review'
-                      ? 'bg-blue-100 text-blue-700 border border-blue-200'
-                      : appStatus === 'Rejected'
-                      ? 'bg-rose-100 text-rose-700 border border-rose-200'
-                      : 'bg-amber-100 text-amber-700 border border-amber-200'
-                  }`}
-                >
-                  {appStatus === 'Created' || appStatus === 'Approved' ? (
-                    <CheckCircle2 size={10} />
-                  ) : (
-                    <Clock size={10} />
-                  )}{' '}
-                  {appStatus}
-                </span>
-              </div>
-              <p className="text-xs font-semibold text-slate-500">{loanType}</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">
-                Processed on {formattedDate}
-              </p>
+    <div className="w-full space-y-4 pb-12">
+      {/* 1. Header Card */}
+      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs bg-gradient-to-br from-white via-[#f8fafd] to-[#e8f0fe]/30">
+        <div className="flex items-center justify-between gap-3">
+          <div className="space-y-1">
+            <div className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368] ml-0.5">
+                Branch Operations
+              </span>
             </div>
-
-            {hasBranchOpsStage && (
-              <button
-                type="button"
-                onClick={() => navigate('/employee/branch-operations/loans-edit-application', {
-                  state: {
-                    application,
-                    form_data: formData,
-                    loan_type: loanType,
-                    from: '/employee/branch-operations/loans-view-applications'
-                  }
-                })}
-                className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-[#7C4DFF] text-white hover:bg-[#6a3ae8] active:scale-95 transition-all shadow-md shadow-[#7C4DFF]/20 shrink-0 cursor-pointer"
-              >
-                <Edit3 className="w-3.5 h-3.5" /> Edit
-              </button>
-            )}
+            <h1 className="text-xl font-bold text-[#1f1f1f] tracking-tight">
+              Application Details
+            </h1>
+            <p className="text-xs text-[#5f6368] flex items-center gap-1">
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2 py-0.5 rounded-full">
+                <Building2 size={11} /> {branchName}
+              </span>
+            </p>
           </div>
-        </div>
 
-        {/* Loan Details Content rendered from LoanDetailView */}
-        <LoanDetailView
-          formData={formData || {}}
-          application={application || {}}
-          currentDocs={currentDocs}
-          onPreviewDoc={setPreviewDoc}
-        />
-
-        {/* Bottom Back Button */}
-        <div className="flex justify-center pt-2 pb-2">
           <button
             type="button"
             onClick={() => navigate(fromPath)}
-            className="inline-flex items-center justify-center rounded-xl text-sm font-semibold bg-slate-900 text-white h-11 px-6 transition-colors gap-2 shadow-sm cursor-pointer active:scale-[0.98]"
+            className="w-9 h-9 rounded-full bg-white border border-[#dadce0] text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4] flex items-center justify-center transition-colors shadow-2xs cursor-pointer"
           >
-            <ArrowLeft className="w-4 h-4" /> Back to Applications
+            <ArrowLeft className="w-4 h-4" />
           </button>
         </div>
+      </div>
+
+      {/* 2. Overview & Status Card */}
+      <div className="bg-white p-4.5 rounded-2xl shadow-xs border border-[#e0e3e7]">
+        <div className="flex items-start justify-between gap-3">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-sm font-bold text-[#1a73e8] bg-[#e8f0fe] px-2.5 py-0.5 rounded-full border border-[#d2e3fc]">
+                {appId}
+              </span>
+              <span
+                className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider whitespace-nowrap ${
+                  appStatus === 'Created' || appStatus === 'Approved'
+                    ? 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6]'
+                    : appStatus === 'Under Review'
+                    ? 'bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]'
+                    : appStatus === 'Rejected'
+                    ? 'bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf]'
+                    : 'bg-[#fef7e0] text-[#b06000] border border-[#feefc3]'
+                }`}
+              >
+                {appStatus === 'Created' || appStatus === 'Approved' ? (
+                  <CheckCircle2 size={10} />
+                ) : (
+                  <Clock size={10} />
+                )}{' '}
+                {appStatus}
+              </span>
+            </div>
+            <p className="text-xs font-semibold text-[#1f1f1f] pt-0.5">{loanType}</p>
+            <p className="text-[11px] text-[#5f6368]">
+              Processed on {formattedDate}
+            </p>
+          </div>
+
+          {hasBranchOpsStage && (
+            <button
+              type="button"
+              onClick={() => navigate('/employee/branch-operations/loans-edit-application', {
+                state: {
+                  application,
+                  form_data: formData,
+                  loan_type: loanType,
+                  from: '/employee/branch-operations/loans-view-applications'
+                }
+              })}
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-[#1a73e8] text-white hover:bg-[#1557b0] active:scale-95 transition-all shadow-xs shrink-0 cursor-pointer"
+            >
+              <Edit3 className="w-3.5 h-3.5" /> Edit
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* 3. Loan Details Content rendered from LoanDetailView */}
+      <LoanDetailView
+        formData={formData || {}}
+        application={application || {}}
+        currentDocs={currentDocs}
+        onPreviewDoc={setPreviewDoc}
+      />
+
+      {/* 4. Bottom Navigation Button */}
+      <div className="flex justify-center pt-2 pb-4">
+        <button
+          type="button"
+          onClick={() => navigate(fromPath)}
+          className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#444746] border border-[#dadce0] hover:bg-[#f1f3f4] h-10 px-6 transition-all gap-2 shadow-2xs cursor-pointer active:scale-98"
+        >
+          <ArrowLeft className="w-4 h-4" /> Back to Applications
+        </button>
       </div>
 
       {/* Fullscreen Photo Lightbox Preview Portal */}

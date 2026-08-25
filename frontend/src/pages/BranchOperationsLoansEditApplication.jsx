@@ -20,7 +20,7 @@ export default function BranchOperationsLoansEditApplication() {
         return <BusinessLoanForm isEditMode={true} application={application} />;
       default:
         return (
-          <div className="p-8 text-center text-slate-500 font-medium">
+          <div className="p-8 text-center text-[#5f6368] font-medium">
             Invalid or Unsupported Loan Type Selected.
           </div>
         );
@@ -34,45 +34,57 @@ export default function BranchOperationsLoansEditApplication() {
         <BranchOperationsMobileLoansEditApplication />
       </div>
 
-      {/* Desktop View */}
-      <div className="hidden md:block p-4 md:p-6 lg:p-8 space-y-6 w-full max-w-full">
+      {/* Desktop View (Google Material 3 Workspace UI) */}
+      <div className="hidden md:block space-y-6 w-full max-w-full pb-16">
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900 font-sans">
-              {appId}
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+              <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">
+                Branch Operations Hub
+              </span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight flex items-center gap-2">
+              Edit Application
+              <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">
+                {appId}
+              </span>
             </h1>
-            <p className="text-sm font-medium text-slate-500 mt-1">
-              Edit {loanType} Application • Update details or correct mistakes in the application.
+            <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
+              Edit {loanType} Application &bull; Update details or correct mistakes in the application.
             </p>
           </div>
 
           <button
             type="button"
             onClick={() => navigate(fromPath, { state: { application, id: application?.id } })}
-            className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-white text-slate-700 hover:bg-slate-50 border border-slate-300 h-10 px-4 transition-colors gap-2 shadow-xs cursor-pointer"
+            className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#444746] hover:bg-[#f1f3f4] border border-[#dadce0] h-9 px-4 transition-all gap-1.5 shadow-2xs cursor-pointer"
           >
-            <ArrowLeft className="w-4 h-4" /> Back to View Application
+            <ArrowLeft className="w-3.5 h-3.5" /> Back to View Application
           </button>
         </div>
 
         {/* Main Full Width Form Card */}
-        <div className="rounded-lg border border-slate-200 bg-white shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-[#7C4DFF]/10 text-[#7C4DFF]">
-                <Edit3 className="w-5 h-5" />
+        <div className="rounded-2xl border border-[#e0e3e7] bg-white shadow-xs overflow-hidden">
+          <div className="p-5 border-b border-[#f1f3f4] flex items-center justify-between bg-[#f8fafd]/60">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-full bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center">
+                <Edit3 className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="text-base font-semibold text-slate-900">
+                <h3 className="text-sm font-bold text-[#1f1f1f]">
                   {loanType} Form Data
                 </h3>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-[#5f6368]">
                   Applicant &amp; Loan Details
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-md">
+            <div className="flex items-center gap-2 text-xs font-semibold text-[#b06000] bg-[#fef7e0] border border-[#feefc3] px-3.5 py-1.5 rounded-full">
               <ShieldAlert className="w-4 h-4" />
               Edits will update application fields and log editor information
             </div>

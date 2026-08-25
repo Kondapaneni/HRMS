@@ -287,13 +287,13 @@ const OriginationLoanApplicationsList = () => {
   const getLoanTypeBadge = (loanType) => {
     const isBusiness = String(loanType).toLowerCase().includes('business');
     return (
-      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium border ${
+      <span className={`inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium border whitespace-nowrap text-center ${
         isBusiness 
           ? 'bg-[#f3e8fd] text-[#8430ce] border-[#e9d5ff]' 
           : 'bg-[#f1f3f4] text-[#3c4043] border-[#dadce0]'
       }`}>
         {isBusiness ? <Building2 className="w-3 h-3 text-[#8430ce]" /> : <User className="w-3 h-3 text-[#5f6368]" />}
-        {loanType || 'Personal Loan'}
+        <span className="text-center">{loanType || 'Personal Loan'}</span>
       </span>
     );
   };
@@ -471,7 +471,7 @@ const OriginationLoanApplicationsList = () => {
                   <tr>
                     <th className="py-3.5 px-4 whitespace-nowrap">Application ID</th>
                     <th className="py-3.5 px-4 whitespace-nowrap">Applicant</th>
-                    <th className="py-3.5 px-4 whitespace-nowrap">Loan Product</th>
+                    <th className="py-3.5 px-4 whitespace-nowrap text-center">Loan Product</th>
                     <th className="py-3.5 px-4 whitespace-nowrap text-center">Status</th>
                     <th className="py-3.5 px-4 whitespace-nowrap">Submitted On</th>
                     <th className="py-3.5 px-4 whitespace-nowrap text-right">Actions</th>
@@ -535,7 +535,7 @@ const OriginationLoanApplicationsList = () => {
                           </td>
 
                           {/* Loan Product */}
-                          <td className="py-3.5 px-4 whitespace-nowrap">
+                          <td className="py-3.5 px-4 whitespace-nowrap text-center">
                             {getLoanTypeBadge(loanType)}
                           </td>
 

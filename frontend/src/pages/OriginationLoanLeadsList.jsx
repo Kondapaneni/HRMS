@@ -192,7 +192,7 @@ const OriginationLoanLeadsList = () => {
                     <th className="py-3 px-3.5 whitespace-nowrap">Applicant Name</th>
                     <th className="py-3 px-3.5 whitespace-nowrap">Contact</th>
                     <th className="py-3 px-3.5 whitespace-nowrap">Location</th>
-                    <th className="py-3 px-3.5 whitespace-nowrap">Loan Type</th>
+                    <th className="py-3 px-3.5 text-center whitespace-nowrap">Loan Type</th>
                     <th className="py-3 px-3.5 whitespace-nowrap">Status</th>
                     <th className="py-3 px-3.5 whitespace-nowrap">Created Date</th>
                     <th className="py-3 px-3.5 text-right whitespace-nowrap">Action</th>
@@ -239,9 +239,9 @@ const OriginationLoanLeadsList = () => {
                             <span className="truncate max-w-[145px]">{lead.address || '—'}</span>
                           </span>
                         </td>
-                        <td className="py-3 px-3.5 text-[#1f1f1f] font-medium whitespace-nowrap">
+                        <td className="py-3 px-3.5 text-center whitespace-nowrap">
                           {lead.loan_type ? (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] bg-[#f8fafd] border border-[#e0e3e7] text-[#1f1f1f] whitespace-nowrap font-medium">
+                            <span className="inline-flex items-center justify-center px-3 py-1 rounded-full text-[11px] bg-[#f8fafd] border border-[#e0e3e7] text-[#1f1f1f] whitespace-nowrap font-medium text-center">
                               {lead.loan_type}
                             </span>
                           ) : (

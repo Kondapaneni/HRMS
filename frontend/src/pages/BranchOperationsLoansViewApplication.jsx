@@ -8,7 +8,8 @@ import {
   Loader2,
   X,
   Building2,
-  Edit3
+  Edit3,
+  ArrowLeft
 } from 'lucide-react';
 import { getBranchLoanApplications } from '../services/loanServices';
 import { preloadAndDecodeImages } from '../utils/imageCompressor';
@@ -98,23 +99,16 @@ export default function BranchOperationsLoansViewApplication() {
         .map((k) => {
           const doc = currentDocs?.[k];
           if (!doc) return null;
-          return typeof doc === 'object' ? (doc.url || doc.proxy_url) : doc;
+          return typeof doc === 'string' ? doc : doc.url;
         })
         .filter(Boolean);
 
       if (urls.length > 0) {
-        await preloadAndDecodeImages(urls, 1200);
+        await preloadAndDecodeImages(urls);
       }
-
-      const originalTitle = document.title;
-      const documentName = appId && appId !== 'LA-PENDING' ? appId : `${loanType.replace(/\s+/g, '-')}-Application`;
-      document.title = documentName;
       window.print();
-      setTimeout(() => {
-        document.title = originalTitle;
-      }, 1000);
     } catch (e) {
-      console.warn('Print preparation error:', e);
+      console.error('Print preparation error:', e);
       window.print();
     } finally {
       setIsPrinting(false);
@@ -123,20 +117,20 @@ export default function BranchOperationsLoansViewApplication() {
 
   if (!application && isLoading) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-slate-500">
-        <Loader2 className="animate-spin h-8 w-8 text-[#7C4DFF] mb-3" />
-        <p className="text-sm font-medium">Loading application details...</p>
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-[#5f6368]">
+        <Loader2 className="animate-spin h-8 w-8 text-[#1a73e8] mb-3" />
+        <p className="text-xs font-semibold">Loading application details...</p>
       </div>
     );
   }
 
   if (!application && !isLoading) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-slate-500">
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-[#5f6368]">
         <p className="text-sm font-medium mb-4">No application details found.</p>
         <button
           onClick={() => navigate(fromPath)}
-          className="px-4 py-2 bg-[#7C4DFF] text-white rounded-md text-sm font-semibold hover:bg-[#6a3ae8] transition-colors cursor-pointer"
+          className="px-5 py-2 bg-[#1a73e8] text-white rounded-full text-xs font-semibold hover:bg-[#1557b0] transition-colors cursor-pointer"
         >
           Back to Applications List
         </button>
@@ -156,22 +150,40 @@ export default function BranchOperationsLoansViewApplication() {
       </div>
 
       {/* Desktop View Component (Visible ONLY on Desktop >= 768px, forced in Print) */}
-      <div className="hidden md:block print:block w-full max-w-full space-y-6 pb-12 p-4 md:p-6 lg:p-8">
+      <div className="hidden md:block print:block w-full max-w-full space-y-6 pb-16">
         {/* Top Page Header & Action Buttons (Hidden in Print) */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden">
           <div>
-            <div className="mb-1">
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
-                Application Details
-              </h1>
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+              <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">
+                Branch Operations Hub
+              </span>
             </div>
-            <p className="text-xs sm:text-sm text-slate-500">
+            <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight flex items-center gap-2">
+              Application Details
+              <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">
+                {appId}
+              </span>
+            </h1>
+            <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
               View complete loan application details, applicant information, documents, and stage history.
             </p>
           </div>
 
           {/* Right-aligned action buttons */}
           <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 shrink-0">
+            <button
+              type="button"
+              onClick={() => navigate(fromPath)}
+              className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#444746] border border-[#dadce0] hover:bg-[#f1f3f4] h-9 px-4 transition-all gap-1.5 shadow-2xs cursor-pointer"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" /> Back
+            </button>
+
             {hasBranchOpsStage && (
               <button
                 type="button"
@@ -183,24 +195,24 @@ export default function BranchOperationsLoansViewApplication() {
                     from: '/employee/branch-operations/loans-view-applications'
                   }
                 })}
-                className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-[#7C4DFF] text-white hover:bg-[#6a3ae8] h-10 px-4 transition-colors gap-2 shadow-sm cursor-pointer"
+                className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[#1a73e8] text-white hover:bg-[#1557b0] h-9 px-4 transition-all gap-1.5 shadow-xs cursor-pointer"
               >
-                <Edit3 className="w-4 h-4" /> Edit Application
+                <Edit3 className="w-3.5 h-3.5" /> Edit Application
               </button>
             )}
             <button
               type="button"
               onClick={handlePrint}
               disabled={isPrinting}
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-[#7C4DFF] text-white hover:bg-[#6a3ae8] h-10 px-4 transition-colors gap-2 shadow-sm shadow-[#7C4DFF]/20 cursor-pointer disabled:opacity-75"
+              className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1a73e8] border border-[#dadce0] hover:bg-[#e8f0fe] h-9 px-4 transition-all gap-1.5 shadow-2xs cursor-pointer disabled:opacity-75"
             >
               {isPrinting ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" /> Preparing Print...
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" /> Preparing Print...
                 </>
               ) : (
                 <>
-                  <Printer className="w-4 h-4" /> Print Application Form
+                  <Printer className="w-3.5 h-3.5" /> Print Application Form
                 </>
               )}
             </button>
