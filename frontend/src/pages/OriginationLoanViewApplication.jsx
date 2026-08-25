@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { createPortal } from 'react-dom';
@@ -24,7 +24,7 @@ import {
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
-import { getLoanApplications, updateLoanApplicationStatus } from '../services/loanServices';
+import { getLoanApplications, updateLoanApplicationStatus, getBranches } from '../services/loanServices';
 import { LoanDetailView } from '../components/forms';
 import { LoanDocumentsSidebar } from '../components/forms/LoanDocumentsSidebar';
 import { SignatureModal } from '../components/forms/SignatureModal';
@@ -252,11 +252,35 @@ export default function OriginationLoanViewApplication() {
     );
   }
 
+  // Fetch all company branches to map branch IDs to human-readable names
+  const { data: branches = [] } = useQuery({
+    queryKey: ['branches', 'list'],
+    queryFn: getBranches,
+    staleTime: 1000 * 60 * 30,
+  });
+
+  const branchMap = useMemo(() => {
+    const map = {};
+    branches.forEach((b) => {
+      if (b && b.id && b.name) {
+        map[String(b.id).toLowerCase()] = b.name;
+      }
+    });
+    return map;
+  }, [branches]);
+
   const applicantName = formData?.applicant_name || application?.applicant_name || 'Unnamed Applicant';
   const applicantPhone = formData?.phone_number || application?.phone_number || '';
-  const rawBranch = application?.branch_name || application?.branch || formData?.branch_name || formData?.branch;
-  const isUUID = typeof rawBranch === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawBranch.trim());
-  const branchName = (!rawBranch || isUUID) ? 'Main Branch' : rawBranch;
+  
+  // Resolve friendly branch name from branches table or application data
+  const rawBranch = String(application?.branch || formData?.branch || '').trim();
+  const branchName =
+    application?.branch_name ||
+    formData?.branch_name ||
+    branchMap[rawBranch.toLowerCase()] ||
+    (rawBranch && !/^[0-9a-fA-F-]{32,36}$/.test(rawBranch) ? rawBranch : null) ||
+    'Corporate Office';
+
   const createdAt = application?.created_at || formData?.created_at;
 
   return (
@@ -267,6 +291,7 @@ export default function OriginationLoanViewApplication() {
           application={application}
           formData={formData}
           fromPath={fromPath}
+          branchName={branchName}
         />
       </div>
 

@@ -292,10 +292,25 @@ $app->get('/api/loans/applications', function (Request $request, Response $respo
         }
 
         $stmt = $conn->prepare('
-            SELECT id, application_id, lead_id, loan_type, status, form_data, branch, signatures, created_at, updated_at
-            FROM public.loan_applications
-            WHERE created_by = ? OR ? = \'admin\'
-            ORDER BY created_at DESC
+            SELECT 
+                la.id, 
+                la.application_id, 
+                la.lead_id, 
+                la.loan_type, 
+                la.status, 
+                la.form_data, 
+                la.branch, 
+                b.name AS branch_name, 
+                la.signatures, 
+                la.created_at, 
+                la.updated_at
+            FROM public.loan_applications la
+            LEFT JOIN public.branches b ON (
+                la.branch = b.id::text OR 
+                (la.branch ~ \'^[0-9a-fA-F-]{36}$\' AND la.branch::uuid = b.id)
+            )
+            WHERE la.created_by = ? OR ? = \'admin\'
+            ORDER BY la.created_at DESC
         ');
 
         $stmt->execute([$userId, $userRole]);

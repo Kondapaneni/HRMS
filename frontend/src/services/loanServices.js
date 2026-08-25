@@ -1,4 +1,5 @@
 import api from '../api/axios';
+import { supabase } from '../lib/supabase';
 
 /**
  * Creates a new loan lead.
@@ -175,6 +176,29 @@ export const updateBranchLoanApplication = async (appId, formData, loanType) => 
   const response = await api.put(`/branch-operations/applications/${encodeURIComponent(appId)}`, payload);
   return response.data;
 };
+
+/**
+ * Fetches all company branches from the Supabase branches table.
+ * @returns {Promise<Array>} List of { id, name }
+ */
+export const getBranches = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('branches')
+      .select('id, name')
+      .order('name');
+    if (error) {
+      console.warn('Could not fetch branches from Supabase:', error);
+      return [];
+    }
+    return data || [];
+  } catch (e) {
+    console.warn('Error fetching branches:', e);
+    return [];
+  }
+};
+
+
 
 
 

@@ -34,7 +34,8 @@ const formatDateSafe = (dateStr) => {
 export default function OriginationMobileLoanViewApplications({
   application: propApplication,
   formData: propFormData,
-  fromPath: propFromPath
+  fromPath: propFromPath,
+  branchName: propBranchName
 }) {
   const location = useLocation();
   const navigate = useNavigate();
