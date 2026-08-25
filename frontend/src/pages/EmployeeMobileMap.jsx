@@ -13,7 +13,8 @@ import {
   CheckCircle2,
   Sparkles,
   Camera,
-  Compass
+  Compass,
+  Clock
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -29,6 +30,7 @@ const EmployeeMobileMap = () => {
   const [locationError, setLocationError] = useState('');
   const [isInsideGeofence, setIsInsideGeofence] = useState(null); // null = checking, true/false
   const [distanceToNearest, setDistanceToNearest] = useState(null);
+  const [mapLockoutSeconds, setMapLockoutSeconds] = useState(null);
 
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
@@ -43,14 +45,41 @@ const EmployeeMobileMap = () => {
   }, [action, navigate]);
 
   // Fetch geofences from backend
-  const { data, isLoading: loadingGeofences } = useQuery({
+  const { data, isLoading: loadingGeofences, error: geofencesError } = useQuery({
     queryKey: ['employee', 'geofences'],
     queryFn: async () => {
-      const response = await api.get('/employee/geofences');
-      return response.data;
+      try {
+        const response = await api.get('/employee/geofences');
+        return response.data;
+      } catch (err) {
+        if (err.response?.status === 429) {
+          try {
+            const statusRes = await api.get('/employee/maps-rate-limit-status');
+            if (statusRes.data?.secondsRemaining) {
+              setMapLockoutSeconds(statusRes.data.secondsRemaining);
+            } else {
+              setMapLockoutSeconds(600);
+            }
+          } catch (e) {
+            setMapLockoutSeconds(600);
+          }
+        }
+        throw err;
+      }
     },
-    staleTime: 0 // Fetch latest every time to ensure geofence enabled status is up to date
+    retry: false,
+    staleTime: 0
   });
+
+  // Countdown timer for map lockout
+  useEffect(() => {
+    if (mapLockoutSeconds !== null && mapLockoutSeconds > 0) {
+      const timer = setInterval(() => {
+        setMapLockoutSeconds(prev => (prev > 0 ? prev - 1 : null));
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [mapLockoutSeconds]);
 
   // Get user location
   useEffect(() => {
@@ -275,7 +304,32 @@ const EmployeeMobileMap = () => {
       <div className="flex-1 relative flex flex-col min-h-0">
         
         <div className="flex-1 relative bg-[#f1f3f4]">
-          {locationError ? (
+          {mapLockoutSeconds !== null && mapLockoutSeconds > 0 ? (
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-white space-y-4 z-20">
+              <div className="w-16 h-16 rounded-3xl bg-[#fef7e0] text-[#b06000] flex items-center justify-center border border-[#feefc3] shadow-xs">
+                <Clock className="w-8 h-8 animate-pulse" />
+              </div>
+              <div className="space-y-1 max-w-xs">
+                <h3 className="text-base font-bold text-[#1f1f1f]">Punch Rate Limit Active</h3>
+                <p className="text-xs text-[#5f6368]">
+                  Too many punch requests were received in a short time. Location verification is temporarily locked.
+                </p>
+              </div>
+              <div className="bg-[#f8fafd] border border-[#dadce0] rounded-2xl px-6 py-3 text-center space-y-0.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368]">Unlocks Automatically In</span>
+                <p className="text-2xl font-black font-mono text-[#b06000]">
+                  {Math.floor(mapLockoutSeconds / 60)}m {String(mapLockoutSeconds % 60).padStart(2, '0')}s
+                </p>
+              </div>
+              <button 
+                type="button"
+                onClick={() => navigate('/employee', { replace: true })}
+                className="px-6 py-2.5 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-full text-xs font-semibold shadow-xs active:scale-95 transition-all cursor-pointer"
+              >
+                Back to Dashboard
+              </button>
+            </div>
+          ) : locationError ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-white space-y-3">
               <div className="w-12 h-12 rounded-2xl bg-[#fce8e6] text-[#c5221f] flex items-center justify-center border border-[#fad2cf]">
                 <MapPinOff className="w-6 h-6" />

@@ -113,23 +113,30 @@ const EmployeeDashboard = () => {
   useEffect(() => {
     if (dashboardData?.mapsRateLimit?.locked && dashboardData.mapsRateLimit.secondsRemaining > 0) {
       setLockoutSeconds(dashboardData.mapsRateLimit.secondsRemaining);
+    } else if (dashboardData?.mapsRateLimit && !dashboardData.mapsRateLimit.locked) {
+      setLockoutSeconds(null);
     }
   }, [dashboardData]);
 
   useEffect(() => {
     if (lockoutSeconds !== null && lockoutSeconds > 0) {
       const timer = setInterval(() => {
-        setLockoutSeconds(prev => (prev > 0 ? prev - 1 : null));
+        setLockoutSeconds(prev => {
+          if (prev && prev > 1) return prev - 1;
+          queryClient.invalidateQueries({ queryKey: ['employee', 'dashboard'] });
+          return null;
+        });
       }, 1000);
       return () => clearInterval(timer);
     }
-  }, [lockoutSeconds]);
+  }, [lockoutSeconds, queryClient]);
 
   const isLocked = lockoutSeconds !== null && lockoutSeconds > 0;
   const formatLockoutTimer = (seconds) => {
+    if (!seconds || seconds <= 0) return 'Locked';
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
-    return `Locked (${m}m ${s}s)`;
+    return `Locked (${m}m ${String(s).padStart(2, '0')}s)`;
   };
 
   const isWebAttendanceEnabled = fullProfile?.webAttendanceEnabled == 1 || fullProfile?.webAttendanceEnabled === true || fullProfile?.webAttendanceEnabled === '1' || fullProfile?.webAttendanceEnabled === 'true';
@@ -338,31 +345,43 @@ const EmployeeDashboard = () => {
 
               {/* Punch Status & Action Buttons */}
               <div className="flex flex-col sm:flex-row items-center justify-between gap-6 p-5 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7]">
-                <div className="space-y-1.5 text-center sm:text-left">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-[#5f6368]">Punch Status</span>
+                <div className="space-y-1.5 text-center sm:text-left shrink-0">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-[#5f6368] whitespace-nowrap block">Punch Status</span>
                   {todayRecord?.checkIn ? (
-                    <div className="space-y-1 text-xs">
-                      <div className="flex items-center gap-2 text-[#1f1f1f]">
-                        <span className="text-[#5f6368]">Check-in Time:</span>
-                        <span className="font-semibold bg-white px-2 py-0.5 rounded border border-[#e0e3e7]">
+                    <div className="space-y-1.5 text-xs">
+                      <div className="flex items-center gap-2 text-[#1f1f1f] whitespace-nowrap">
+                        <span className="text-[#5f6368] whitespace-nowrap">Check-in Time:</span>
+                        <span className="font-semibold text-[#1f1f1f] bg-white px-2.5 py-0.5 rounded-lg border border-[#e0e3e7] whitespace-nowrap shrink-0 shadow-2xs">
                           {new Date(todayRecord.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                         </span>
                       </div>
                       {todayRecord?.checkOut && (
-                        <div className="flex items-center gap-2 text-[#1f1f1f]">
-                          <span className="text-[#5f6368]">Check-out Time:</span>
-                          <span className="font-semibold bg-white px-2 py-0.5 rounded border border-[#e0e3e7]">
+                        <div className="flex items-center gap-2 text-[#1f1f1f] whitespace-nowrap">
+                          <span className="text-[#5f6368] whitespace-nowrap">Check-out Time:</span>
+                          <span className="font-semibold text-[#1f1f1f] bg-white px-2.5 py-0.5 rounded-lg border border-[#e0e3e7] whitespace-nowrap shrink-0 shadow-2xs">
                             {new Date(todayRecord.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                           </span>
                         </div>
                       )}
                     </div>
                   ) : (
-                    <p className="text-xs font-semibold text-[#b06000] bg-[#fef7e0] border border-[#feefc3] px-3 py-1 rounded-full inline-block">
+                    <p className="text-xs font-semibold text-[#b06000] bg-[#fef7e0] border border-[#feefc3] px-3 py-1 rounded-full inline-block whitespace-nowrap">
                       No punch recorded today
                     </p>
                   )}
                 </div>
+
+                {/* Rate Limit Lockout Banner */}
+                {isLocked && (
+                  <div className="w-full rounded-2xl bg-[#fef7e0] border border-[#feefc3] p-3.5 flex items-center justify-between text-xs text-[#b06000] shadow-2xs">
+                    <div className="flex items-center gap-2.5">
+                      <Clock className="w-4 h-4 text-[#b06000] shrink-0 animate-pulse" />
+                      <span className="font-semibold">
+                        Rate limit active: Multiple punches detected. Attendance buttons unlock in <strong className="font-mono">{formatLockoutTimer(lockoutSeconds)}</strong>.
+                      </span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Punch Action Buttons */}
                 <div className="flex flex-wrap gap-2.5 justify-center sm:justify-end">

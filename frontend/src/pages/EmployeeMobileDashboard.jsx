@@ -23,13 +23,14 @@ import {
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 
 const EmployeeMobileDashboard = () => {
   const { profile } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [lockoutSeconds, setLockoutSeconds] = useState(null);
   const [liveSeconds, setLiveSeconds] = useState(0);
@@ -83,6 +84,21 @@ const EmployeeMobileDashboard = () => {
     staleTime: 30 * 1000
   });
 
+  // Dedicated query to poll rate-limit status dynamically
+  const { data: rateLimitStatus } = useQuery({
+    queryKey: ['employee', 'mapsRateLimit'],
+    queryFn: async () => {
+      try {
+        const res = await api.get('/employee/maps-rate-limit-status');
+        return res.data;
+      } catch (e) {
+        return { locked: false, secondsRemaining: null };
+      }
+    },
+    refetchInterval: lockoutSeconds ? 5000 : 30000,
+    staleTime: 4000,
+  });
+
   const attendance = dashboardData?.attendance || [];
   const leaves = dashboardData?.leaves || null;
   const fullProfile = dashboardData?.fullProfile || profile;
@@ -95,25 +111,35 @@ const EmployeeMobileDashboard = () => {
   const upcomingBirthdays = birthdays.slice(0, 3);
 
   useEffect(() => {
-    if (dashboardData?.mapsRateLimit?.locked && dashboardData.mapsRateLimit.secondsRemaining > 0) {
-      setLockoutSeconds(dashboardData.mapsRateLimit.secondsRemaining);
+    const status = rateLimitStatus || dashboardData?.mapsRateLimit;
+    if (status?.locked && status.secondsRemaining > 0) {
+      setLockoutSeconds(status.secondsRemaining);
+    } else if (status && !status.locked) {
+      setLockoutSeconds(null);
     }
-  }, [dashboardData]);
+  }, [rateLimitStatus, dashboardData]);
 
   useEffect(() => {
     if (lockoutSeconds !== null && lockoutSeconds > 0) {
       const timer = setInterval(() => {
-        setLockoutSeconds(prev => (prev > 0 ? prev - 1 : null));
+        setLockoutSeconds(prev => {
+          if (prev && prev > 1) return prev - 1;
+          // When timer expires, immediately invalidate queries to unblock buttons
+          queryClient.invalidateQueries({ queryKey: ['employee', 'mapsRateLimit'] });
+          queryClient.invalidateQueries({ queryKey: ['employee', 'dashboard'] });
+          return null;
+        });
       }, 1000);
       return () => clearInterval(timer);
     }
-  }, [lockoutSeconds]);
+  }, [lockoutSeconds, queryClient]);
 
   const isLocked = lockoutSeconds !== null && lockoutSeconds > 0;
   const formatLockoutTimer = (seconds) => {
+    if (!seconds || seconds <= 0) return 'Locked';
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
-    return `Locked (${m}m ${s}s)`;
+    return `Locked (${m}m ${String(s).padStart(2, '0')}s)`;
   };
 
   const getGreeting = () => {
@@ -296,6 +322,24 @@ const EmployeeMobileDashboard = () => {
           </div>
         </div>
 
+        {/* Rate Limit Lockout Alert Banner */}
+        {isLocked && (
+          <div className="rounded-2xl bg-[#fef7e0] border border-[#feefc3] p-3 flex items-start gap-2.5 text-xs text-[#b06000] animate-in fade-in duration-200 shadow-2xs">
+            <Clock className="w-4 h-4 text-[#b06000] shrink-0 mt-0.5 animate-pulse" />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-1 mb-0.5">
+                <span className="font-bold text-[#b06000]">Punch Rate Limit Active</span>
+                <span className="font-mono font-bold text-[11px] bg-white px-2 py-0.5 rounded-full border border-[#feefc3] text-[#b06000] shadow-2xs">
+                  {Math.floor(lockoutSeconds / 60)}:{String(lockoutSeconds % 60).padStart(2, '0')}
+                </span>
+              </div>
+              <p className="text-[11px] text-[#784000] leading-snug">
+                Multiple punch attempts recorded. Buttons are temporarily locked for security. Unlocks in <span className="font-bold font-mono text-[#b06000]">{Math.floor(lockoutSeconds / 60)}m {String(lockoutSeconds % 60).padStart(2, '0')}s</span>.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Action Buttons */}
         <div className="space-y-2">
           {isOnLeaveToday ? (
@@ -310,25 +354,25 @@ const EmployeeMobileDashboard = () => {
               className="w-full flex items-center justify-center gap-2 bg-[#1a73e8] text-white rounded-full py-3 text-xs font-semibold hover:bg-[#1557b0] disabled:opacity-50 transition-all shadow-xs cursor-pointer"
             >
               <LogIn className="w-4 h-4" />
-              <span>{isLocked ? formatLockoutTimer(lockoutSeconds) : 'Punch Check In'}</span>
+              <span>{isLocked ? `Check In (${formatLockoutTimer(lockoutSeconds)})` : 'Punch Check In'}</span>
             </button>
           ) : checkedIn && !checkOutTime ? (
             <div className="grid grid-cols-2 gap-2.5">
               <button
                 onClick={() => handlePunch('punch')}
                 disabled={isLocked}
-                className="w-full flex items-center justify-center gap-1.5 bg-white border border-[#dadce0] text-[#1f1f1f] rounded-full py-2.5 text-xs font-semibold hover:bg-[#f1f3f4] disabled:opacity-50 transition-all shadow-2xs cursor-pointer"
+                className="w-full flex items-center justify-center gap-1.5 bg-white border border-[#dadce0] text-[#1f1f1f] rounded-full py-2.5 text-xs font-semibold hover:bg-[#f1f3f4] disabled:opacity-50 transition-all shadow-2xs cursor-pointer truncate"
               >
-                <Clock className="w-3.5 h-3.5 text-[#5f6368]" />
-                <span>Interval Punch</span>
+                <Clock className="w-3.5 h-3.5 text-[#5f6368] shrink-0" />
+                <span className="truncate">{isLocked ? formatLockoutTimer(lockoutSeconds) : 'Interval Punch'}</span>
               </button>
               <button
                 onClick={() => handlePunch('check-out')}
                 disabled={isLocked}
-                className="w-full flex items-center justify-center gap-1.5 bg-white border border-[#dadce0] hover:border-[#fad2cf] hover:bg-[#fce8e6] text-[#d93025] rounded-full py-2.5 text-xs font-semibold disabled:opacity-50 transition-all shadow-2xs cursor-pointer"
+                className="w-full flex items-center justify-center gap-1.5 bg-white border border-[#dadce0] hover:border-[#fad2cf] hover:bg-[#fce8e6] text-[#d93025] rounded-full py-2.5 text-xs font-semibold disabled:opacity-50 transition-all shadow-2xs cursor-pointer truncate"
               >
-                <LogOut className="w-3.5 h-3.5" />
-                <span>Punch Check Out</span>
+                <LogOut className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">{isLocked ? formatLockoutTimer(lockoutSeconds) : 'Punch Check Out'}</span>
               </button>
             </div>
           ) : (

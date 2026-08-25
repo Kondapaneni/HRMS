@@ -327,27 +327,27 @@ const EmployeeAttendance = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-between gap-6 p-5 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7]">
-            <div className="space-y-1.5 text-center sm:text-left">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Today's Timestamp Record</span>
+            <div className="space-y-1.5 text-center sm:text-left shrink-0">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368] whitespace-nowrap block">Today's Timestamp Record</span>
               {todayRecord?.checkIn ? (
-                <div className="space-y-1 text-xs">
-                  <div className="flex items-center gap-2 text-[#1f1f1f]">
-                    <span className="text-[#5f6368]">Check-in Time:</span>
-                    <span className="font-semibold bg-white px-2 py-0.5 rounded border border-[#e0e3e7]">
+                <div className="space-y-1.5 text-xs">
+                  <div className="flex items-center gap-2 text-[#1f1f1f] whitespace-nowrap">
+                    <span className="text-[#5f6368] whitespace-nowrap">Check-in Time:</span>
+                    <span className="font-semibold text-[#1f1f1f] bg-white px-2.5 py-0.5 rounded-lg border border-[#e0e3e7] whitespace-nowrap shrink-0 shadow-2xs">
                       {new Date(todayRecord.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                     </span>
                   </div>
                   {todayRecord?.checkOut && (
-                    <div className="flex items-center gap-2 text-[#1f1f1f]">
-                      <span className="text-[#5f6368]">Check-out Time:</span>
-                      <span className="font-semibold bg-white px-2 py-0.5 rounded border border-[#e0e3e7]">
+                    <div className="flex items-center gap-2 text-[#1f1f1f] whitespace-nowrap">
+                      <span className="text-[#5f6368] whitespace-nowrap">Check-out Time:</span>
+                      <span className="font-semibold text-[#1f1f1f] bg-white px-2.5 py-0.5 rounded-lg border border-[#e0e3e7] whitespace-nowrap shrink-0 shadow-2xs">
                         {new Date(todayRecord.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                       </span>
                     </div>
                   )}
                 </div>
               ) : (
-                <p className="text-xs font-semibold text-[#b06000] bg-[#fef7e0] border border-[#feefc3] px-3 py-1 rounded-full inline-block">
+                <p className="text-xs font-semibold text-[#b06000] bg-[#fef7e0] border border-[#feefc3] px-3 py-1 rounded-full inline-block whitespace-nowrap">
                   No punch recorded today
                 </p>
               )}
