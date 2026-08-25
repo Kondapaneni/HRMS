@@ -11,7 +11,10 @@ import {
   User, 
   Users, 
   Shield, 
-  RefreshCw 
+  RefreshCw,
+  Image as ImageIcon,
+  Clock,
+  Sparkles
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
@@ -57,7 +60,7 @@ export function LoanDocumentsSidebar({
     personName: formData.applicant_name || 'Primary Applicant',
     relation: 'Applicant',
     icon: User,
-    badgeBg: 'bg-blue-50 text-blue-700 border-blue-200'
+    badgeBg: 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc]'
   });
 
   // 2. Co-Applicant Photo (Only if Co-Applicant exists)
@@ -72,7 +75,7 @@ export function LoanDocumentsSidebar({
       personName: formData.co_applicant_name || 'Co-Applicant',
       relation: formData.co_relation_with_applicant ? `Relation: ${formData.co_relation_with_applicant}` : 'Co-Applicant',
       icon: Users,
-      badgeBg: 'bg-purple-50 text-purple-700 border-purple-200'
+      badgeBg: 'bg-[#f3e8fd] text-[#9333ea] border-[#e9d5ff]'
     });
   }
 
@@ -84,7 +87,7 @@ export function LoanDocumentsSidebar({
       personName: formData.guarantor_1_name,
       relation: 'Guarantor 1',
       icon: Shield,
-      badgeBg: 'bg-emerald-50 text-emerald-700 border-emerald-200'
+      badgeBg: 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]'
     });
   }
 
@@ -96,7 +99,7 @@ export function LoanDocumentsSidebar({
       personName: formData.guarantor_2_name,
       relation: 'Guarantor 2',
       icon: Shield,
-      badgeBg: 'bg-amber-50 text-amber-700 border-amber-200'
+      badgeBg: 'bg-[#fef7e0] text-[#b06000] border-[#feefc3]'
     });
   }
 
@@ -108,7 +111,7 @@ export function LoanDocumentsSidebar({
       personName: formData.guarantor_3_name,
       relation: 'Guarantor 3',
       icon: Shield,
-      badgeBg: 'bg-rose-50 text-rose-700 border-rose-200'
+      badgeBg: 'bg-[#fce8e6] text-[#c5221f] border-[#fad2cf]'
     });
   }
 
@@ -236,7 +239,7 @@ export function LoanDocumentsSidebar({
       {isOpen && (
         <>
           {/* ========================================================================= */}
-          {/* 1. WEB / DESKTOP VIEW: Right Slide-Over Sidebar Drawer (hidden on mobile)  */}
+          {/* 1. WEB / DESKTOP VIEW: Right Slide-Over Sidebar Drawer                     */}
           {/* ========================================================================= */}
           <div className="hidden md:block">
             {/* Desktop Backdrop */}
@@ -245,38 +248,41 @@ export function LoanDocumentsSidebar({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={onClose}
-              className="fixed inset-0 bg-slate-900/30 backdrop-blur-xs z-50 cursor-pointer"
+              className="fixed inset-0 bg-[#1f1f1f]/30 backdrop-blur-xs z-50 cursor-pointer"
             />
 
-            {/* Desktop Right Sidebar (Matching AddLeadSidebar) */}
+            {/* Desktop Right Sidebar */}
             <motion.div
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed inset-y-0 right-0 w-full max-w-md sm:max-w-lg bg-white shadow-2xl z-50 flex flex-col border-l border-slate-200"
+              className="fixed inset-y-0 right-0 w-full max-w-md sm:max-w-lg bg-white shadow-2xl z-50 flex flex-col border-l border-[#e0e3e7]"
             >
+              {/* Google 4-Color Top Banner */}
+              <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853]" />
+
               {/* Desktop Header */}
-              <div className="flex items-center justify-between p-5 sm:p-6 border-b border-slate-100 bg-slate-50/50 shrink-0">
+              <div className="flex items-center justify-between p-5 sm:p-6 border-b border-[#e0e3e7] bg-[#f8fafd] shrink-0">
                 <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200 font-sans">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
                       {appId}
                     </span>
-                    <span className="text-xs text-slate-500 font-medium">
+                    <span className="text-xs text-[#5f6368] font-medium">
                       {uploadedCount} of {photoSlots.length} photos
                     </span>
                   </div>
-                  <h2 className="text-xl font-bold text-slate-900">
+                  <h2 className="text-lg font-bold text-[#1f1f1f]">
                     Loan Application Photos
                   </h2>
                 </div>
                 <button
                   type="button"
                   onClick={onClose}
-                  className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-2 rounded-full transition-colors cursor-pointer"
+                  className="text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4] p-2 rounded-full transition-all cursor-pointer"
                 >
-                  <X size={20} />
+                  <X size={18} />
                 </button>
               </div>
 
@@ -290,22 +296,22 @@ export function LoanDocumentsSidebar({
                   return (
                     <div 
                       key={slot.key}
-                      className="bg-white border border-slate-200 rounded-xl p-4 shadow-2xs hover:border-slate-300 transition-all"
+                      className="bg-white border border-[#e0e3e7] rounded-2xl p-4 shadow-xs hover:border-[#dadce0] transition-all"
                     >
                       <div className="flex flex-col gap-3">
                         
                         {/* Person Info */}
                         <div className="flex items-center justify-between gap-3 min-w-0">
                           <div className="flex items-center gap-3 min-w-0 flex-1">
-                            <div className={`w-10 h-10 rounded-xl ${uploadedDoc ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-slate-50 text-slate-400 border-slate-200'} border flex items-center justify-center shrink-0 shadow-2xs`}>
+                            <div className={`w-10 h-10 rounded-xl ${uploadedDoc ? 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc]' : 'bg-[#f8fafd] text-[#80868b] border-[#e0e3e7]'} border flex items-center justify-center shrink-0 shadow-2xs`}>
                               <Icon className="w-5 h-5" />
                             </div>
 
                             <div className="min-w-0 flex-1">
-                              <h4 className="text-sm font-bold text-slate-900 truncate">
+                              <h4 className="text-xs sm:text-sm font-bold text-[#1f1f1f] truncate">
                                 {slot.personName}
                               </h4>
-                              <span className={`inline-block px-1.5 py-0.2 rounded text-[10px] font-semibold border ${slot.badgeBg} mt-0.5`}>
+                              <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold border ${slot.badgeBg} mt-0.5`}>
                                 {slot.relation}
                               </span>
                             </div>
@@ -314,22 +320,39 @@ export function LoanDocumentsSidebar({
                           {/* Status Badge */}
                           <div className="shrink-0">
                             {uploadedDoc ? (
-                              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                                <CheckCircle2 size={12} className="text-emerald-600" /> Uploaded
+                              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#137333] bg-[#e6f4ea] px-2.5 py-0.5 rounded-full border border-[#ceead6]">
+                                <CheckCircle2 size={12} className="text-[#137333]" /> Uploaded
                               </span>
                             ) : (
-                              <span className="text-[11px] text-slate-400 italic">
-                                Pending
+                              <span className="inline-flex items-center gap-1 text-[11px] text-[#b06000] bg-[#fef7e0] px-2.5 py-0.5 rounded-full border border-[#feefc3] font-semibold">
+                                <Clock size={11} /> Pending
                               </span>
                             )}
                           </div>
                         </div>
 
+                        {/* Uploaded Photo Thumbnail Preview */}
+                        {uploadedDoc && (
+                          <div className="flex items-center gap-3 bg-[#f8fafd] p-2.5 rounded-xl border border-[#e0e3e7]">
+                            <div className="w-14 h-16 rounded-lg overflow-hidden border border-[#dadce0] shrink-0 bg-white shadow-2xs">
+                              <img
+                                src={uploadedDoc.url}
+                                alt={slot.title}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-semibold text-[#1f1f1f] truncate">{slot.title}</p>
+                              <p className="text-[11px] text-[#5f6368] truncate">Verified and linked to profile</p>
+                            </div>
+                          </div>
+                        )}
+
                         {/* Action Buttons */}
-                        <div className="flex items-center justify-end gap-2 pt-2.5 border-t border-slate-100">
+                        <div className="flex items-center justify-end gap-2 pt-2.5 border-t border-[#f1f3f4]">
                           {isSlotBusy ? (
-                            <div className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-blue-600 bg-blue-50 rounded-lg">
-                              <Loader2 size={14} className="animate-spin" /> Uploading...
+                            <div className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] rounded-full border border-[#d2e3fc]">
+                              <Loader2 size={13} className="animate-spin" /> Uploading...
                             </div>
                           ) : uploadedDoc ? (
                             <>
@@ -348,11 +371,19 @@ export function LoanDocumentsSidebar({
 
                               <button
                                 type="button"
+                                onClick={() => fileInputRefs.current[slot.key]?.click()}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-white hover:bg-[#f1f3f4] border border-[#dadce0] text-[#1f1f1f] transition-all cursor-pointer shadow-2xs"
+                              >
+                                <UploadCloud size={13} className="text-[#5f6368]" /> Replace
+                              </button>
+
+                              <button
+                                type="button"
                                 onClick={() => handleDeletePhoto(slot.key)}
-                                className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-white text-rose-600 hover:bg-rose-50 border border-rose-200 h-10 px-3 transition-colors shadow-2xs cursor-pointer"
+                                className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#c5221f] hover:bg-[#fce8e6] border border-[#fad2cf] p-2 transition-all shadow-2xs cursor-pointer"
                                 title="Delete Photo"
                               >
-                                <Trash2 size={18} />
+                                <Trash2 size={14} />
                               </button>
                             </>
                           ) : (
@@ -373,9 +404,9 @@ export function LoanDocumentsSidebar({
                               <button
                                 type="button"
                                 onClick={() => fileInputRefs.current[slot.key]?.click()}
-                                className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 transition-colors gap-2 shadow-sm cursor-pointer"
+                                className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[#1a73e8] text-white hover:bg-[#1557b0] px-4 py-2 transition-all gap-1.5 shadow-xs cursor-pointer"
                               >
-                                <UploadCloud size={16} /> Upload Photo
+                                <UploadCloud size={14} /> Upload Photo
                               </button>
                             </>
                           )}
@@ -391,80 +422,49 @@ export function LoanDocumentsSidebar({
           </div>
 
           {/* ========================================================================= */}
-          {/* 2. MOBILE VIEW: Full-Screen Page Style (Matching EditMobileProfile.jsx)   */}
+          {/* 2. MOBILE VIEW: Full-Screen Page Style                                    */}
           {/* ========================================================================= */}
-          <div className="md:hidden fixed inset-0 z-[100] bg-slate-50 overflow-y-auto pb-6">
-            {/* Animated Hero Header */}
-            <div className="relative px-6 pt-12 pb-24 rounded-b-[40px] overflow-hidden bg-slate-900 shadow-md">
-              {/* Animated Liquid Background Blobs */}
-              <motion.div
-                animate={{
-                  scale: [1, 1.2, 1],
-                  x: [0, 50, 0],
-                  y: [0, 30, 0],
-                }}
-                transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-                className="absolute -top-20 -left-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-              />
-              <motion.div
-                animate={{
-                  scale: [1, 1.4, 1],
-                  x: [0, -40, 0],
-                  y: [0, 50, 0],
-                }}
-                transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-                className="absolute -top-10 -right-10 w-64 h-64 bg-indigo-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-              />
-              <motion.div
-                animate={{
-                  scale: [1, 1.3, 1],
-                  x: [0, 30, 0],
-                  y: [0, -40, 0],
-                }}
-                transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-                className="absolute bottom-0 left-20 w-80 h-80 bg-emerald-500 rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
-              />
+          <div className="md:hidden fixed inset-0 z-[100] bg-[#f8fafd] overflow-y-auto pb-8">
+            {/* Google Top Color Strip */}
+            <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853]" />
 
-              {/* Glass Overlay */}
-              <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none" />
-
-              <div className="relative z-10 flex items-center justify-between px-2">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center backdrop-blur-md transition-transform active:scale-95 border border-white/20 cursor-pointer shadow-xs"
-                >
-                  <ArrowLeft className="w-5 h-5" />
-                </button>
-                <div className="text-center">
-                  <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">
-                    Origination Module
-                  </p>
-                  <h2 className="text-xl font-bold text-white tracking-tight drop-shadow-sm">
-                    Loan Member Photos
-                  </h2>
-                </div>
-                <div className="w-10 h-10" />
+            {/* Clean Mobile Header */}
+            <div className="bg-white border-b border-[#e0e3e7] p-4 flex items-center justify-between sticky top-0 z-30 shadow-2xs">
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-9 h-9 rounded-full bg-[#f1f3f4] text-[#1f1f1f] flex items-center justify-center transition-transform active:scale-95 border border-[#dadce0] cursor-pointer"
+              >
+                <ArrowLeft className="w-4 h-4" />
+              </button>
+              <div className="text-center">
+                <p className="text-[10px] font-bold text-[#1a73e8] uppercase tracking-widest">
+                  Origination Module
+                </p>
+                <h2 className="text-sm font-bold text-[#1f1f1f]">
+                  Member Photos
+                </h2>
               </div>
+              <div className="w-9 h-9" />
             </div>
 
             {/* Page Content Cards */}
-            <div className="space-y-4 relative z-20 -mt-12 mx-4">
+            <div className="p-4 space-y-3.5">
               {/* Summary / Progress Card */}
-              <div className="bg-white p-5 rounded-[24px] shadow-lg border border-slate-100/80 flex items-center justify-between">
+              <div className="bg-white p-4 rounded-2xl shadow-xs border border-[#e0e3e7] flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                  <span className="text-[10px] font-bold text-[#5f6368] uppercase tracking-wider block">
                     Application ID
                   </span>
-                  <p className="text-base font-bold text-slate-800 font-sans tracking-tight">
+                  <p className="text-sm font-bold text-[#1f1f1f] font-sans">
                     {appId}
                   </p>
                 </div>
                 <div className="text-right">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                  <span className="text-[10px] font-bold text-[#5f6368] uppercase tracking-wider block">
                     Progress
                   </span>
-                  <p className="text-xs font-bold text-blue-600">
+                  <p className="text-xs font-bold text-[#1a73e8]">
                     {uploadedCount} of {photoSlots.length} uploaded
                   </p>
                 </div>
@@ -479,26 +479,26 @@ export function LoanDocumentsSidebar({
                 return (
                   <div
                     key={slot.key}
-                    className="bg-white p-5 rounded-[24px] shadow-lg border border-slate-100/80 space-y-4"
+                    className="bg-white p-4 rounded-2xl shadow-xs border border-[#e0e3e7] space-y-3.5"
                   >
                     {/* Header Row */}
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                      <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-between border-b border-[#f1f3f4] pb-3">
+                      <div className="flex items-center gap-2.5">
                         <div
-                          className={`w-12 h-12 rounded-2xl ${
+                          className={`w-10 h-10 rounded-xl ${
                             uploadedDoc
-                              ? 'bg-blue-50 text-blue-600 border-blue-200'
-                              : 'bg-slate-50 text-slate-400 border-slate-200'
-                          } border flex items-center justify-center shrink-0 shadow-inner`}
+                              ? 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc]'
+                              : 'bg-[#f8fafd] text-[#80868b] border-[#e0e3e7]'
+                          } border flex items-center justify-center shrink-0 shadow-2xs`}
                         >
-                          <Icon className="w-6 h-6" />
+                          <Icon className="w-5 h-5" />
                         </div>
                         <div>
-                          <h4 className="text-sm font-bold text-slate-900 leading-tight">
+                          <h4 className="text-xs font-bold text-[#1f1f1f] leading-tight">
                             {slot.personName}
                           </h4>
                           <span
-                            className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold border ${slot.badgeBg} mt-1`}
+                            className={`inline-block px-2 py-0.2 rounded-full text-[10px] font-bold border ${slot.badgeBg} mt-0.5`}
                           >
                             {slot.relation}
                           </span>
@@ -507,11 +507,11 @@ export function LoanDocumentsSidebar({
 
                       <div>
                         {uploadedDoc ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-                            <CheckCircle2 size={12} className="text-emerald-600" /> Uploaded
+                          <span className="inline-flex items-center gap-1 text-[10.5px] font-bold text-[#137333] bg-[#e6f4ea] px-2.5 py-0.5 rounded-full border border-[#ceead6]">
+                            <CheckCircle2 size={11} className="text-[#137333]" /> Uploaded
                           </span>
                         ) : (
-                          <span className="text-xs text-amber-600 font-bold bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200">
+                          <span className="text-[10.5px] text-[#b06000] font-bold bg-[#fef7e0] px-2.5 py-0.5 rounded-full border border-[#feefc3]">
                             Pending
                           </span>
                         )}
@@ -520,18 +520,18 @@ export function LoanDocumentsSidebar({
 
                     {/* Uploaded Photo Preview */}
                     {uploadedDoc && (
-                      <div className="flex items-center gap-4 bg-slate-50/80 p-3 rounded-2xl border border-slate-100">
-                        <div className="w-20 h-24 rounded-xl overflow-hidden border border-slate-200 shrink-0 bg-white shadow-xs">
+                      <div className="flex items-center gap-3 bg-[#f8fafd] p-2.5 rounded-xl border border-[#e0e3e7]">
+                        <div className="w-16 h-20 rounded-lg overflow-hidden border border-[#dadce0] shrink-0 bg-white shadow-2xs">
                           <img
                             src={uploadedDoc.url}
                             alt={slot.title}
                             className="w-full h-full object-cover"
                           />
                         </div>
-                        <div className="flex-1 space-y-1">
-                          <p className="text-xs font-bold text-slate-800">{slot.title}</p>
-                          <p className="text-[11px] text-slate-500 leading-relaxed">
-                            Photo successfully stored and attached to application record.
+                        <div className="flex-1 space-y-0.5 min-w-0">
+                          <p className="text-xs font-bold text-[#1f1f1f]">{slot.title}</p>
+                          <p className="text-[11px] text-[#5f6368] leading-relaxed">
+                            Stored and attached to application record.
                           </p>
                         </div>
                       </div>
@@ -566,20 +566,34 @@ export function LoanDocumentsSidebar({
                     />
 
                     {/* Action Buttons */}
-                    <div className="flex items-center justify-end gap-2 pt-2.5 border-t border-slate-100">
+                    <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#f1f3f4]">
                       {isSlotBusy ? (
-                        <div className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-blue-600 bg-blue-50 rounded-lg">
-                          <Loader2 size={14} className="animate-spin" /> Uploading...
+                        <div className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] rounded-full border border-[#d2e3fc]">
+                          <Loader2 size={13} className="animate-spin" /> Uploading...
                         </div>
                       ) : uploadedDoc ? (
                         <>
                           <button
                             type="button"
+                            onClick={() => cameraInputRefs.current[slot.key]?.click()}
+                            className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] px-3 py-1.5 transition-all shadow-2xs active:scale-95 cursor-pointer gap-1"
+                          >
+                            <Camera size={13} className="text-[#5f6368]" /> Retake
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => fileInputRefs.current[slot.key]?.click()}
+                            className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] px-3 py-1.5 transition-all shadow-2xs active:scale-95 cursor-pointer gap-1"
+                          >
+                            <UploadCloud size={13} className="text-[#5f6368]" /> Gallery
+                          </button>
+                          <button
+                            type="button"
                             onClick={() => handleDeletePhoto(slot.key)}
-                            className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-white text-rose-600 hover:bg-rose-50 border border-rose-200 h-10 px-3 transition-colors shadow-2xs active:scale-95 cursor-pointer"
+                            className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#c5221f] hover:bg-[#fce8e6] border border-[#fad2cf] p-1.5 transition-all shadow-2xs active:scale-95 cursor-pointer"
                             title="Delete Photo"
                           >
-                            <Trash2 size={18} />
+                            <Trash2 size={14} />
                           </button>
                         </>
                       ) : (
@@ -587,17 +601,17 @@ export function LoanDocumentsSidebar({
                           <button
                             type="button"
                             onClick={() => cameraInputRefs.current[slot.key]?.click()}
-                            className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 transition-colors gap-2 shadow-sm active:scale-95 cursor-pointer"
+                            className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[#1a73e8] text-white hover:bg-[#1557b0] px-3.5 py-1.5 transition-all gap-1.5 shadow-xs active:scale-95 cursor-pointer"
                           >
-                            <Camera size={16} /> Take Photo
+                            <Camera size={13} /> Take Photo
                           </button>
                           <button
                             type="button"
                             onClick={() => fileInputRefs.current[slot.key]?.click()}
-                            className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-white text-slate-700 hover:bg-slate-100 border border-slate-300 h-10 px-3 transition-colors shadow-2xs active:scale-95 cursor-pointer"
+                            className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] px-3 py-1.5 transition-all shadow-2xs active:scale-95 cursor-pointer gap-1"
                             title="Gallery Upload"
                           >
-                            <UploadCloud size={18} />
+                            <UploadCloud size={13} className="text-[#5f6368]" /> Gallery
                           </button>
                         </>
                       )}
@@ -605,7 +619,6 @@ export function LoanDocumentsSidebar({
                   </div>
                 );
               })}
-
 
             </div>
           </div>
