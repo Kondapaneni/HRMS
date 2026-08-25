@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
@@ -244,7 +245,7 @@ const OriginationMobileSaleLeadDetails = () => {
             </span>
             <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7] text-xs text-[#1f1f1f]">
               <Briefcase size={15} className="text-[#1a73e8] shrink-0" />
-              <span className="font-medium">{currentProductType || lead.product_type || 'Savings & Deposits'}</span>
+              <span className="font-medium">{currentProductType || lead.product_type || '—'}</span>
             </div>
           </div>
 
@@ -333,88 +334,86 @@ const OriginationMobileSaleLeadDetails = () => {
         </div>
       </div>
 
-      {/* Convert to Member Modal */}
+      {/* 4. Convert to Member Bottom Sheet Modal */}
       <AnimatePresence>
         {showConvertModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div
+          <div className="fixed inset-0 z-50 flex items-end justify-center p-0">
+            <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/40 backdrop-blur-xs"
               onClick={() => setShowConvertModal(false)}
-              className="absolute inset-0 bg-black/40 backdrop-blur-xs cursor-pointer"
             />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl border border-[#e0e3e7] relative z-10 space-y-4"
+            <motion.div 
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 220 }}
+              className="relative bg-white rounded-t-3xl max-w-md w-full p-5 shadow-2xl z-10 border border-[#e0e3e7] space-y-4 max-h-[85vh] overflow-y-auto"
             >
-              <div className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-[#4285F4]" />
-                <span className="w-2 h-2 rounded-full bg-[#EA4335]" />
-                <span className="w-2 h-2 rounded-full bg-[#FBBC05]" />
-                <span className="w-2 h-2 rounded-full bg-[#34A853]" />
-                <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">
-                  Sales Origination
-                </span>
+              <div className="flex items-center justify-between border-b border-[#e0e3e7] pb-3">
+                <div className="flex items-center gap-2 text-[#137333] font-bold text-sm">
+                  <UserPlus size={18} />
+                  <span>Convert Lead to Member</span>
+                </div>
+                <button 
+                  onClick={() => setShowConvertModal(false)}
+                  className="p-1 rounded-full text-[#5f6368] hover:bg-[#f1f3f4] transition-colors cursor-pointer"
+                >
+                  <X size={16} />
+                </button>
               </div>
 
-              <div>
-                <h3 className="text-base font-bold text-[#1f1f1f]">Convert to Member</h3>
-                <p className="text-xs text-[#5f6368] mt-0.5">
-                  Select product type to finalize conversion for <span className="font-semibold text-[#1f1f1f]">{lead.name}</span>.
-                </p>
-              </div>
+              <p className="text-xs text-[#5f6368] leading-relaxed">
+                Select the product for <span className="font-semibold text-[#1f1f1f]">{lead.name}</span> to register them into active origination.
+              </p>
 
-              <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
-                {saleProductTypeOptions.map((opt) => (
-                  <label
-                    key={opt.value}
-                    onClick={() => setSelectedProductType(opt.value)}
-                    className={`flex items-start gap-2.5 p-3 rounded-2xl border text-xs cursor-pointer transition-all ${
-                      selectedProductType === opt.value
-                        ? 'bg-[#e8f0fe] border-[#1a73e8] text-[#1a73e8]'
-                        : 'bg-[#f8fafd] border-[#dadce0] text-[#1f1f1f] hover:bg-[#f1f3f4]'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="product_type"
-                      checked={selectedProductType === opt.value}
-                      onChange={() => setSelectedProductType(opt.value)}
-                      className="mt-0.5 text-[#1a73e8]"
-                    />
-                    <div className="min-w-0">
-                      <p className="font-semibold">{opt.label}</p>
-                      <p className="text-[10px] text-[#5f6368] mt-0.5">{opt.desc}</p>
+              <div className="space-y-2">
+                {saleProductTypeOptions.map((opt) => {
+                  const isSelected = selectedProductType === opt.value;
+                  return (
+                    <div
+                      key={opt.value}
+                      onClick={() => setSelectedProductType(opt.value)}
+                      className={`p-3 rounded-2xl border flex items-center justify-between cursor-pointer transition-all ${
+                        isSelected 
+                          ? 'border-[#137333] bg-[#e6f4ea] shadow-2xs' 
+                          : 'border-[#e0e3e7] hover:border-[#dadce0] bg-white'
+                      }`}
+                    >
+                      <div>
+                        <p className={`text-xs font-semibold ${isSelected ? 'text-[#137333] font-bold' : 'text-[#1f1f1f]'}`}>
+                          {opt.label}
+                        </p>
+                        <p className="text-[10px] text-[#5f6368]">{opt.desc}</p>
+                      </div>
+                      <div className={`w-4.5 h-4.5 rounded-full flex items-center justify-center border transition-colors ${
+                        isSelected ? 'bg-[#137333] border-[#137333] text-white' : 'border-[#dadce0] bg-white'
+                      }`}>
+                        {isSelected && <Check size={11} strokeWidth={3} />}
+                      </div>
                     </div>
-                  </label>
-                ))}
+                  );
+                })}
               </div>
 
-              <div className="flex items-center gap-2 pt-2">
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#e0e3e7]">
                 <button
                   type="button"
                   onClick={() => setShowConvertModal(false)}
-                  className="flex-1 py-2.5 text-xs font-semibold text-[#444746] hover:bg-[#f1f3f4] rounded-full border border-[#dadce0] transition-colors"
+                  className="px-4 py-2 rounded-full text-xs font-semibold text-[#5f6368] hover:bg-[#f1f3f4] transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
-                  disabled={statusMutation.isPending}
                   onClick={handleConfirmConvert}
-                  className="flex-1 py-2.5 text-xs font-semibold text-white bg-[#1a73e8] hover:bg-[#1557b0] rounded-full shadow-xs transition-all flex items-center justify-center gap-1.5"
+                  disabled={statusMutation.isPending}
+                  className="px-5 py-2 rounded-full text-xs font-semibold bg-[#137333] text-white hover:bg-[#0d5926] transition-colors flex items-center gap-1.5 disabled:opacity-50 shadow-xs cursor-pointer"
                 >
-                  {statusMutation.isPending ? (
-                    <>
-                      <Loader2 size={13} className="animate-spin" />
-                      <span>Converting...</span>
-                    </>
-                  ) : (
-                    <span>Confirm</span>
-                  )}
+                  {statusMutation.isPending ? <Loader2 size={13} className="animate-spin" /> : <UserPlus size={13} />}
+                  <span>Confirm &amp; Convert</span>
                 </button>
               </div>
             </motion.div>

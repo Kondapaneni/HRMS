@@ -233,7 +233,7 @@ const OriginationMobileLoanLeadDetails = () => {
             </span>
             <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7] text-xs text-[#1f1f1f]">
               <Briefcase size={15} className="text-[#1a73e8] shrink-0" />
-              <span className="font-medium">{currentLoanType || lead.loan_type || 'Personal Loan'}</span>
+              <span className="font-medium">{currentLoanType || lead.loan_type || '—'}</span>
             </div>
           </div>
 
