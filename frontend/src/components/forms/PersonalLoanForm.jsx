@@ -1726,7 +1726,7 @@ export function PersonalLoanForm({ isEditMode: propEditMode, application: propAp
             </h3>
             <p className="text-xs text-slate-500 mt-1">Personal Loan requires details for exactly 3 guarantors.</p>
           </div>
-          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          <div className="flex items-center gap-1.5 bg-[#f8fafd] border border-[#dadce0] p-1 rounded-full w-full sm:w-auto">
             {[1, 2, 3].map((gIdx) => {
               const isActive = activeGuarantorTab === gIdx;
               return (
@@ -1734,10 +1734,10 @@ export function PersonalLoanForm({ isEditMode: propEditMode, application: propAp
                   key={gIdx}
                   type="button"
                   onClick={() => setActiveGuarantorTab(gIdx)}
-                  className={`flex-1 sm:flex-none inline-flex items-center justify-center rounded-md text-xs sm:text-sm font-medium h-9 px-3.5 transition-colors gap-1.5 cursor-pointer shadow-xs ${
+                  className={`flex-1 sm:flex-none inline-flex items-center justify-center rounded-full text-xs font-semibold px-4 py-1.5 transition-all gap-1.5 cursor-pointer ${
                     isActive
-                      ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm'
-                      : 'bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 border border-slate-300'
+                      ? 'bg-[#1a73e8] text-white shadow-2xs'
+                      : 'text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4]'
                   }`}
                 >
                   Guarantor {gIdx}
@@ -1750,29 +1750,29 @@ export function PersonalLoanForm({ isEditMode: propEditMode, application: propAp
         {renderGuarantorForm(activeGuarantorTab)}
       </div>
 
-      <div className="pt-6 border-t border-slate-100 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3">
+      <div className="pt-6 border-t border-[#e0e3e7] flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3">
         {isEditMode ? (
           <>
             <button
               type="button"
               onClick={() => navigate(location.state?.from || '/employee/branch-operations/loans-view-applications', { state: location.state })}
               disabled={isSubmitting}
-              className="w-full sm:w-auto inline-flex items-center justify-center rounded-md text-sm font-medium bg-white text-slate-700 hover:bg-slate-50 h-10 px-5 py-2 transition-colors cursor-pointer border border-slate-300 gap-2 disabled:opacity-50 shadow-xs"
+              className="w-full sm:w-auto inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] h-10 px-5 py-2 transition-all cursor-pointer shadow-2xs gap-2 disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full sm:w-auto inline-flex items-center justify-center rounded-md text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 h-10 px-6 py-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50 gap-2"
+              className="w-full sm:w-auto inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[#1a73e8] text-white hover:bg-[#1557b0] h-10 px-6 py-2 transition-all cursor-pointer shadow-xs disabled:opacity-50 gap-2"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" /> Updating...
+                  <Loader2 className="w-4 h-4 animate-spin" /> Updating...
                 </>
               ) : (
                 <>
-                  <CheckCircle2 className="h-4 w-4" /> Update Application
+                  <CheckCircle2 className="w-4 h-4" /> Update Application
                 </>
               )}
             </button>
@@ -1784,31 +1784,31 @@ export function PersonalLoanForm({ isEditMode: propEditMode, application: propAp
                 type="button"
                 onClick={handleDeleteDraft}
                 disabled={isDeleting || isDrafting || isSubmitting}
-                className="w-full sm:w-auto inline-flex items-center justify-center rounded-md text-sm font-medium bg-red-50 text-red-600 hover:bg-red-100 h-10 px-4 py-2 transition-colors cursor-pointer border border-red-200 gap-2 disabled:opacity-50 shadow-xs mr-auto"
+                className="w-full sm:w-auto inline-flex items-center justify-center rounded-full text-xs font-semibold bg-red-50 text-red-600 hover:bg-red-100 h-10 px-4 py-2 transition-all cursor-pointer border border-red-200 gap-2 disabled:opacity-50 shadow-2xs mr-auto"
               >
-                {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />} Delete Draft
+                {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />} Delete Draft
               </button>
             )}
             <button
               type="button"
               onClick={handleSaveDraft}
               disabled={isDrafting || isSubmitting || isLoadingData || isAlreadySubmitted}
-              className="w-full sm:w-auto inline-flex items-center justify-center rounded-md text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 h-10 px-4 py-2 transition-colors cursor-pointer border border-slate-300 gap-2 disabled:opacity-50 shadow-xs"
+              className="w-full sm:w-auto inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] h-10 px-5 py-2 transition-all cursor-pointer border border-[#dadce0] gap-2 disabled:opacity-50 shadow-2xs"
             >
-              {isDrafting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save Draft
+              {isDrafting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 text-[#5f6368]" />} Save Draft
             </button>
             <button
               type="submit"
               disabled={isSubmitting || isDrafting || isLoadingData || isAlreadySubmitted}
-              className="w-full sm:w-auto inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50 gap-2"
+              className="w-full sm:w-auto inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[#1a73e8] text-white hover:bg-[#1557b0] h-10 px-6 py-2 transition-all cursor-pointer shadow-xs disabled:opacity-50 gap-2"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" /> Submitting...
+                  <Loader2 className="w-4 h-4 animate-spin" /> Submitting...
                 </>
               ) : (
                 <>
-                  <Send className="h-4 w-4" /> {isAlreadySubmitted ? 'Application Submitted' : 'Submit Application'}
+                  <Send className="w-4 h-4" /> {isAlreadySubmitted ? 'Application Submitted' : 'Submit Application'}
                 </>
               )}
             </button>

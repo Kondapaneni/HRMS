@@ -100,7 +100,7 @@ export default function OriginationLoanForms() {
         </div>
 
         {/* Form Container */}
-        <div>
+        <div className="bg-white p-6 lg:p-8 rounded-3xl shadow-xs border border-[#e0e3e7]">
           {renderForm()}
         </div>
       </div>
