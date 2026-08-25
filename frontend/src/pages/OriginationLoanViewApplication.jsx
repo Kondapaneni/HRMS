@@ -25,6 +25,7 @@ import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
 import { getLoanApplications, updateLoanApplicationStatus, getBranches } from '../services/loanServices';
+import { preloadAndDecodeImages } from '../utils/imageCompressor';
 import { LoanDetailView } from '../components/forms';
 import { LoanDocumentsSidebar } from '../components/forms/LoanDocumentsSidebar';
 import { SignatureModal } from '../components/forms/SignatureModal';
@@ -79,6 +80,7 @@ export default function OriginationLoanViewApplication() {
   const [isDocsOpen, setIsDocsOpen] = useState(false);
   const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
   const [isTransferring, setIsTransferring] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
   const [previewDoc, setPreviewDoc] = useState(null);
 
   const [currentDocs, setCurrentDocs] = useState(
@@ -147,15 +149,44 @@ export default function OriginationLoanViewApplication() {
     localStatus === 'Rejected' ||
     localTimeline.some((e) => e.stage === 'Branch Operations');
 
-  const handlePrint = () => {
-    const originalTitle = document.title;
-    const documentName =
-      appId && appId !== 'LA-DRAFT' ? appId : `${loanType.replace(/\s+/g, '-')}-Application`;
-    document.title = documentName;
-    window.print();
-    setTimeout(() => {
-      document.title = originalTitle;
-    }, 1000);
+  const handlePrint = async () => {
+    try {
+      setIsPrinting(true);
+
+      // Preload & decode all photos before triggering native print so Chrome/Edge renders the preview instantaneously
+      const docKeys = [
+        'applicant_photo',
+        'co_applicant_photo',
+        'guarantor_1_photo',
+        'guarantor_2_photo',
+        'guarantor_3_photo'
+      ];
+      const urls = docKeys
+        .map((k) => {
+          const doc = currentDocs?.[k];
+          if (!doc) return null;
+          return typeof doc === 'object' ? (doc.url || doc.proxy_url) : doc;
+        })
+        .filter(Boolean);
+
+      if (urls.length > 0) {
+        await preloadAndDecodeImages(urls, 1200);
+      }
+
+      const originalTitle = document.title;
+      const documentName =
+        appId && appId !== 'LA-DRAFT' ? appId : `${loanType.replace(/\s+/g, '-')}-Application`;
+      document.title = documentName;
+      window.print();
+      setTimeout(() => {
+        document.title = originalTitle;
+      }, 1000);
+    } catch (e) {
+      console.warn('Print preparation error:', e);
+      window.print();
+    } finally {
+      setIsPrinting(false);
+    }
   };
 
   const handleCopyId = () => {
@@ -414,10 +445,20 @@ export default function OriginationLoanViewApplication() {
             <button
               type="button"
               onClick={handlePrint}
-              className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white px-4 py-2 transition-all gap-1.5 shadow-xs cursor-pointer"
+              disabled={isPrinting}
+              className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white px-4 py-2 transition-all gap-1.5 shadow-xs cursor-pointer disabled:opacity-75"
             >
-              <Printer className="w-4 h-4" />
-              <span>Print Application</span>
+              {isPrinting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Preparing Print...</span>
+                </>
+              ) : (
+                <>
+                  <Printer className="w-4 h-4" />
+                  <span>Print Application</span>
+                </>
+              )}
             </button>
           </div>
         </div>

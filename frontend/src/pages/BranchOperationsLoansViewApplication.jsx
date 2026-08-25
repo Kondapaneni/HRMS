@@ -11,6 +11,7 @@ import {
   Edit3
 } from 'lucide-react';
 import { getBranchLoanApplications } from '../services/loanServices';
+import { preloadAndDecodeImages } from '../utils/imageCompressor';
 import { LoanDetailView } from '../components/forms';
 import BranchOperationsMobileLoansViewApplication from './BranchOperationsMobileLoansViewApplication';
 
@@ -87,14 +88,37 @@ export default function BranchOperationsLoansViewApplication() {
     formData?.stage === 'Branch Operations' ||
     ['Under Review', 'Created'].includes(localStatus);
 
-  const handlePrint = () => {
-    const originalTitle = document.title;
-    const documentName = appId && appId !== 'LA-PENDING' ? appId : `${loanType.replace(/\s+/g, '-')}-Application`;
-    document.title = documentName;
-    window.print();
-    setTimeout(() => {
-      document.title = originalTitle;
-    }, 1000);
+  const [isPrinting, setIsPrinting] = useState(false);
+
+  const handlePrint = async () => {
+    try {
+      setIsPrinting(true);
+      const docKeys = ['applicant_photo', 'co_applicant_photo', 'guarantor_1_photo', 'guarantor_2_photo', 'guarantor_3_photo'];
+      const urls = docKeys
+        .map((k) => {
+          const doc = currentDocs?.[k];
+          if (!doc) return null;
+          return typeof doc === 'object' ? (doc.url || doc.proxy_url) : doc;
+        })
+        .filter(Boolean);
+
+      if (urls.length > 0) {
+        await preloadAndDecodeImages(urls, 1200);
+      }
+
+      const originalTitle = document.title;
+      const documentName = appId && appId !== 'LA-PENDING' ? appId : `${loanType.replace(/\s+/g, '-')}-Application`;
+      document.title = documentName;
+      window.print();
+      setTimeout(() => {
+        document.title = originalTitle;
+      }, 1000);
+    } catch (e) {
+      console.warn('Print preparation error:', e);
+      window.print();
+    } finally {
+      setIsPrinting(false);
+    }
   };
 
   if (!application && isLoading) {
@@ -167,9 +191,18 @@ export default function BranchOperationsLoansViewApplication() {
             <button
               type="button"
               onClick={handlePrint}
-              className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-[#7C4DFF] text-white hover:bg-[#6a3ae8] h-10 px-4 transition-colors gap-2 shadow-sm shadow-[#7C4DFF]/20 cursor-pointer"
+              disabled={isPrinting}
+              className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-[#7C4DFF] text-white hover:bg-[#6a3ae8] h-10 px-4 transition-colors gap-2 shadow-sm shadow-[#7C4DFF]/20 cursor-pointer disabled:opacity-75"
             >
-              <Printer className="w-4 h-4" /> Print Application Form
+              {isPrinting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" /> Preparing Print...
+                </>
+              ) : (
+                <>
+                  <Printer className="w-4 h-4" /> Print Application Form
+                </>
+              )}
             </button>
           </div>
         </div>

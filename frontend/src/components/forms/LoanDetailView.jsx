@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Building2,
   User,
@@ -21,6 +21,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { preloadAndDecodeImages } from '../../utils/imageCompressor';
 
 // ============================================================================
 // HELPER UTILITIES & CONFIG
@@ -171,6 +172,11 @@ const PassportPhotoBox = ({ doc, label, onPreview, icon: Icon = User, size = 'md
           <img
             src={photoUrl}
             alt={label}
+            width="110"
+            height="140"
+            loading="eager"
+            decoding="async"
+            crossOrigin="anonymous"
             className="w-full h-full object-cover rounded-xl cursor-pointer hover:opacity-90 active:scale-95 transition-all print:w-[102px] print:h-[130px] print:max-h-[130px] print:object-cover shadow-2xs"
             onClick={() => onPreview && onPreview(photoUrl)}
             title="Click to view full size"
@@ -1450,6 +1456,24 @@ export function LoanDetailView({
   onPreviewDoc,
   localTimeline
 }) {
+  // Pre-decode all document photos in background so print previews open instantaneously
+  useEffect(() => {
+    if (!currentDocs) return;
+    const docKeys = [
+      'applicant_photo',
+      'co_applicant_photo',
+      'guarantor_1_photo',
+      'guarantor_2_photo',
+      'guarantor_3_photo'
+    ];
+    const urls = docKeys
+      .map((k) => getDocumentPhotoUrl(currentDocs[k]))
+      .filter(Boolean);
+
+    if (urls.length > 0) {
+      preloadAndDecodeImages(urls, 1000).catch(() => {});
+    }
+  }, [currentDocs]);
   return (
     <>
       {/* Mobile Detail View: Spacious cards (Hidden in Print) */}

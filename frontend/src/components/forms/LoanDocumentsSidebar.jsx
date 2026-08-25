@@ -16,6 +16,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
 import { saveLoanDocuments, deleteLoanDocument } from '../../services/loanServices';
+import { compressImageFile } from '../../utils/imageCompressor';
 import toast from 'react-hot-toast';
 
 export function LoanDocumentsSidebar({ 
@@ -124,7 +125,15 @@ export function LoanDocumentsSidebar({
     try {
       setIsUploadingSlot(slotKey);
 
-      const fileExt = file.name.split('.').pop() || 'jpg';
+      // Auto-compress photo client-side to standard passport document dimensions (~100KB-180KB)
+      // This makes uploads instant and eliminates print preview freezing completely
+      const optimizedFile = await compressImageFile(file, {
+        maxWidth: 1200,
+        maxHeight: 1600,
+        quality: 0.85
+      });
+
+      const fileExt = 'jpg';
       const cleanSlotName = slotKey.replace(/_/g, '-');
       const fileName = `${appId}_${cleanSlotName}_${Date.now()}.${fileExt}`;
       const filePath = fileName;
@@ -143,10 +152,10 @@ export function LoanDocumentsSidebar({
         }
       }
 
-      // 2. Upload new photo to Supabase storage bucket 'loan_documents'
+      // 2. Upload optimized photo to Supabase storage bucket 'loan_documents'
       const { error: uploadError } = await supabase.storage
         .from('loan_documents')
-        .upload(filePath, file, {
+        .upload(filePath, optimizedFile, {
           cacheControl: '3600',
           upsert: true
         });
