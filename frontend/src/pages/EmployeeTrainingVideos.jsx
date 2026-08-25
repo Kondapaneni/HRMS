@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Play, 
   CheckCircle2, 
   Circle, 
   Search, 
-  GraduationCap, 
   Clock, 
   Check, 
   ChevronRight, 
@@ -13,55 +12,20 @@ import {
   LayoutGrid,
   Tv,
   Film,
-  Sparkles,
-  BookOpen,
-  Award
+  BookOpen
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 import api from '../api/axios';
 import EmployeeMobileTrainingVideos from './EmployeeMobileTrainingVideos';
 import PageLoader from '../components/PageLoader';
-import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 
 const EmployeeTrainingVideos = () => {
-  const { user, profile } = useAuth();
+  const queryClient = useQueryClient();
   const [selectedVideoId, setSelectedVideoId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('all'); // 'all' | 'completed' | 'pending'
   const [viewMode, setViewMode] = useState('theater'); // 'theater' | 'grid'
   const videoPlayerRef = useRef(null);
-
-  // Storage key for completed videos
-  const storageKey = `acme_training_completed_${user?.id || profile?.id || 'guest'}`;
-  const [completedIds, setCompletedIds] = useState(() => {
-    try {
-      const saved = localStorage.getItem(storageKey);
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
-
-  const toggleComplete = (id, e) => {
-    if (e) e.stopPropagation();
-    setCompletedIds(prev => {
-      let updated;
-      if (prev.includes(id)) {
-        updated = prev.filter(x => x !== id);
-        toast('Marked as uncompleted', { icon: '↩️' });
-      } else {
-        updated = [...prev, id];
-        toast.success('Module marked as completed!');
-      }
-      try {
-        localStorage.setItem(storageKey, JSON.stringify(updated));
-      } catch (err) {
-        console.error('Failed to save completion state', err);
-      }
-      return updated;
-    });
-  };
 
   const { data: videos = [], isLoading } = useQuery({
     queryKey: ['employee', 'trainingVideos'],
@@ -70,6 +34,44 @@ const EmployeeTrainingVideos = () => {
       return res.data;
     }
   });
+
+  const toggleProgressMutation = useMutation({
+    mutationFn: async ({ videoId, completed }) => {
+      const res = await api.post('/employee/training/progress', {
+        video_id: videoId,
+        completed
+      });
+      return res.data;
+    },
+    onMutate: async ({ videoId, completed }) => {
+      await queryClient.cancelQueries({ queryKey: ['employee', 'trainingVideos'] });
+      const previousVideos = queryClient.getQueryData(['employee', 'trainingVideos']);
+      queryClient.setQueryData(['employee', 'trainingVideos'], (old = []) => {
+        return old.map(v => v.id === videoId ? { ...v, is_completed: completed } : v);
+      });
+      return { previousVideos };
+    },
+    onError: (err, variables, context) => {
+      if (context?.previousVideos) {
+        queryClient.setQueryData(['employee', 'trainingVideos'], context.previousVideos);
+      }
+      toast.error(err.response?.data?.error || 'Failed to update progress');
+    },
+    onSuccess: (data) => {
+      if (data.completed) {
+        toast.success('Module marked as completed!');
+      } else {
+        toast('Marked as uncompleted', { icon: '↩️' });
+      }
+      queryClient.invalidateQueries({ queryKey: ['employee', 'trainingVideos'] });
+    }
+  });
+
+  const toggleComplete = (video, e) => {
+    if (e) e.stopPropagation();
+    const newStatus = !video.is_completed;
+    toggleProgressMutation.mutate({ videoId: video.id, completed: newStatus });
+  };
 
   // Default to first video if not set
   useEffect(() => {
@@ -89,16 +91,15 @@ const EmployeeTrainingVideos = () => {
   const filteredVideos = useMemo(() => {
     return videos.filter(v => {
       const matchesSearch = v.title.toLowerCase().includes(searchQuery.toLowerCase());
-      const isCompleted = completedIds.includes(v.id);
-      if (activeFilter === 'completed') return matchesSearch && isCompleted;
-      if (activeFilter === 'pending') return matchesSearch && !isCompleted;
+      if (activeFilter === 'completed') return matchesSearch && v.is_completed;
+      if (activeFilter === 'pending') return matchesSearch && !v.is_completed;
       return matchesSearch;
     });
-  }, [videos, searchQuery, activeFilter, completedIds]);
+  }, [videos, searchQuery, activeFilter]);
 
   const completedCount = useMemo(() => {
-    return videos.filter(v => completedIds.includes(v.id)).length;
-  }, [videos, completedIds]);
+    return videos.filter(v => v.is_completed).length;
+  }, [videos]);
 
   const progressPercent = videos.length > 0 ? Math.round((completedCount / videos.length) * 100) : 0;
 
@@ -152,7 +153,7 @@ const EmployeeTrainingVideos = () => {
             </p>
           </div>
 
-          {/* View Mode Toggle & Total Counter */}
+          {/* View Mode Toggle */}
           <div className="flex items-center gap-3">
             <div className="flex items-center bg-[#f1f3f4] p-1 rounded-2xl border border-[#e0e3e7]">
               <button
@@ -265,7 +266,7 @@ const EmployeeTrainingVideos = () => {
                           <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
                             Module {activeIndex + 1} of {videos.length}
                           </span>
-                          {completedIds.includes(activeVideo.id) && (
+                          {activeVideo.is_completed && (
                             <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#e6f4ea] text-[#137333] border border-[#ceead6] flex items-center gap-1">
                               <Check className="w-3.5 h-3.5" /> Completed
                             </span>
@@ -299,14 +300,15 @@ const EmployeeTrainingVideos = () => {
 
                       {/* Complete Toggle */}
                       <button
-                        onClick={(e) => toggleComplete(activeVideo.id, e)}
+                        onClick={(e) => toggleComplete(activeVideo, e)}
+                        disabled={toggleProgressMutation.isPending}
                         className={`flex items-center gap-2 py-2 px-5 rounded-2xl text-xs font-semibold transition-all active:scale-95 ${
-                          completedIds.includes(activeVideo.id)
+                          activeVideo.is_completed
                             ? 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6] hover:bg-[#d5eedc]'
                             : 'bg-[#1a73e8] text-white hover:bg-[#1557b0] shadow-xs'
                         }`}
                       >
-                        {completedIds.includes(activeVideo.id) ? (
+                        {activeVideo.is_completed ? (
                           <>
                             <CheckCircle2 className="w-4 h-4" />
                             <span>Completed</span>
@@ -421,7 +423,6 @@ const EmployeeTrainingVideos = () => {
                   ) : (
                     filteredVideos.map((video) => {
                       const isSelected = activeVideo?.id === video.id;
-                      const isCompleted = completedIds.includes(video.id);
                       const originalIndex = videos.findIndex(v => v.id === video.id);
 
                       return (
@@ -439,14 +440,14 @@ const EmployeeTrainingVideos = () => {
                               className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 font-bold text-xs ${
                                 isSelected
                                   ? 'bg-[#1a73e8] text-white shadow-xs'
-                                  : isCompleted
+                                  : video.is_completed
                                   ? 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6]'
                                   : 'bg-[#f1f3f4] text-[#5f6368]'
                               }`}
                             >
                               {isSelected ? (
                                 <Play className="w-4 h-4 fill-white" />
-                              ) : isCompleted ? (
+                              ) : video.is_completed ? (
                                 <CheckCircle2 className="w-4 h-4" />
                               ) : (
                                 <span>#{originalIndex + 1}</span>
@@ -458,7 +459,7 @@ const EmployeeTrainingVideos = () => {
                                 <span className="text-[10px] font-bold text-[#5f6368] uppercase">
                                   Module {originalIndex + 1}
                                 </span>
-                                {isCompleted && (
+                                {video.is_completed && (
                                   <span className="text-[9px] font-bold text-[#137333] bg-[#e6f4ea] px-1.5 rounded">
                                     Done
                                   </span>
@@ -471,15 +472,16 @@ const EmployeeTrainingVideos = () => {
                           </div>
 
                           <button
-                            onClick={(e) => toggleComplete(video.id, e)}
+                            onClick={(e) => toggleComplete(video, e)}
+                            disabled={toggleProgressMutation.isPending}
                             className={`p-1.5 rounded-lg shrink-0 transition-all ${
-                              isCompleted
+                              video.is_completed
                                 ? 'text-[#137333] hover:bg-[#e6f4ea]'
                                 : 'text-[#80868b] hover:text-[#1a73e8] hover:bg-[#f1f3f4]'
                             }`}
-                            title={isCompleted ? 'Mark uncompleted' : 'Mark completed'}
+                            title={video.is_completed ? 'Mark uncompleted' : 'Mark completed'}
                           >
-                            {isCompleted ? (
+                            {video.is_completed ? (
                               <CheckCircle2 className="w-4 h-4" />
                             ) : (
                               <Circle className="w-4 h-4" />
@@ -546,7 +548,6 @@ const EmployeeTrainingVideos = () => {
             {/* Cards Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredVideos.map((video) => {
-                const isCompleted = completedIds.includes(video.id);
                 const originalIndex = videos.findIndex(v => v.id === video.id);
 
                 return (
@@ -570,7 +571,7 @@ const EmployeeTrainingVideos = () => {
                           <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
                             Module {originalIndex + 1}
                           </span>
-                          {isCompleted && (
+                          {video.is_completed && (
                             <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#e6f4ea] text-[#137333] border border-[#ceead6] flex items-center gap-1">
                               <Check className="w-3 h-3" /> Completed
                             </span>
@@ -593,15 +594,16 @@ const EmployeeTrainingVideos = () => {
                           <span>Open in Player</span>
                         </button>
                         <button
-                          onClick={(e) => toggleComplete(video.id, e)}
+                          onClick={(e) => toggleComplete(video, e)}
+                          disabled={toggleProgressMutation.isPending}
                           className={`p-2 rounded-2xl border transition-all ${
-                            isCompleted
+                            video.is_completed
                               ? 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]'
                               : 'bg-[#f1f3f4] text-[#5f6368] border-[#dadce0] hover:bg-[#e3e3e3]'
                           }`}
-                          title={isCompleted ? 'Mark uncompleted' : 'Mark completed'}
+                          title={video.is_completed ? 'Mark uncompleted' : 'Mark completed'}
                         >
-                          {isCompleted ? (
+                          {video.is_completed ? (
                             <CheckCircle2 className="w-4 h-4" />
                           ) : (
                             <Circle className="w-4 h-4" />
