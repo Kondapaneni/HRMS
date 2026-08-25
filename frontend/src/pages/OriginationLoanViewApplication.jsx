@@ -254,7 +254,9 @@ export default function OriginationLoanViewApplication() {
 
   const applicantName = formData?.applicant_name || application?.applicant_name || 'Unnamed Applicant';
   const applicantPhone = formData?.phone_number || application?.phone_number || '';
-  const branchName = application?.branch || formData?.branch || 'Main Branch';
+  const rawBranch = application?.branch_name || application?.branch || formData?.branch_name || formData?.branch;
+  const isUUID = typeof rawBranch === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawBranch.trim());
+  const branchName = (!rawBranch || isUUID) ? 'Main Branch' : rawBranch;
   const createdAt = application?.created_at || formData?.created_at;
 
   return (
