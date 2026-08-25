@@ -393,57 +393,59 @@ export function LoanDocumentsSidebar({
                   }}
                 />
 
-                {/* Action Buttons */}
-                <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#f1f3f4]">
-                  {isSlotBusy ? (
-                    <div className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] rounded-full border border-[#d2e3fc]">
-                      <Loader2 size={13} className="animate-spin" /> Uploading...
-                    </div>
-                  ) : uploadedDoc ? (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => cameraInputRefs.current[slot.key]?.click()}
-                        className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] px-3 py-1.5 transition-all shadow-2xs cursor-pointer gap-1"
-                      >
-                        <Camera size={13} className="text-[#5f6368]" /> Retake
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => fileInputRefs.current[slot.key]?.click()}
-                        className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] px-3 py-1.5 transition-all shadow-2xs cursor-pointer gap-1"
-                      >
-                        <UploadCloud size={13} className="text-[#5f6368]" /> Gallery
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDeletePhoto(slot.key)}
-                        className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#c5221f] hover:bg-[#fce8e6] border border-[#fad2cf] p-1.5 transition-all shadow-2xs cursor-pointer"
-                        title="Delete Photo"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => cameraInputRefs.current[slot.key]?.click()}
-                        className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[#1a73e8] text-white hover:bg-[#1557b0] px-3.5 py-1.5 transition-all gap-1.5 shadow-xs cursor-pointer"
-                      >
-                        <Camera size={13} /> Take Photo
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => fileInputRefs.current[slot.key]?.click()}
-                        className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] px-3 py-1.5 transition-all shadow-2xs cursor-pointer gap-1"
-                        title="Gallery Upload"
-                      >
-                        <UploadCloud size={13} className="text-[#5f6368]" /> Gallery
-                      </button>
-                    </>
-                  )}
-                </div>
+                  {/* Action Buttons */}
+                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#f1f3f4]">
+                    {isSlotBusy ? (
+                      <div className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] rounded-full border border-[#d2e3fc]">
+                        <Loader2 size={13} className="animate-spin" /> Uploading...
+                      </div>
+                    ) : uploadedDoc ? (
+                      <>
+                        {/* Mobile Camera Retake Button (Hidden on Desktop Web) */}
+                        <button
+                          type="button"
+                          onClick={() => cameraInputRefs.current[slot.key]?.click()}
+                          className="inline-flex md:hidden items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] px-3 py-1.5 transition-all shadow-2xs cursor-pointer gap-1"
+                        >
+                          <Camera size={13} className="text-[#5f6368]" /> Retake
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => fileInputRefs.current[slot.key]?.click()}
+                          className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] px-3 py-1.5 transition-all shadow-2xs cursor-pointer gap-1"
+                        >
+                          <UploadCloud size={13} className="text-[#5f6368]" /> Replace Photo
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeletePhoto(slot.key)}
+                          className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#c5221f] hover:bg-[#fce8e6] border border-[#fad2cf] p-1.5 transition-all shadow-2xs cursor-pointer"
+                          title="Delete Photo"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        {/* Mobile Camera Take Photo Button (Hidden on Desktop Web) */}
+                        <button
+                          type="button"
+                          onClick={() => cameraInputRefs.current[slot.key]?.click()}
+                          className="inline-flex md:hidden items-center justify-center rounded-full text-xs font-semibold bg-[#1a73e8] text-white hover:bg-[#1557b0] px-3.5 py-1.5 transition-all gap-1.5 shadow-xs cursor-pointer"
+                        >
+                          <Camera size={13} /> Take Photo
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => fileInputRefs.current[slot.key]?.click()}
+                          className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[#1a73e8] text-white hover:bg-[#1557b0] md:bg-[#1a73e8] md:text-white px-3.5 py-1.5 transition-all shadow-xs cursor-pointer gap-1.5"
+                          title="Upload Image from Files"
+                        >
+                          <UploadCloud size={13} /> Upload Photo
+                        </button>
+                      </>
+                    )}
+                  </div>
 
               </div>
             );
