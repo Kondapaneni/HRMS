@@ -324,19 +324,14 @@ const EmployeeMobileDashboard = () => {
 
         {/* Rate Limit Lockout Alert Banner */}
         {isLocked && (
-          <div className="rounded-2xl bg-[#fef7e0] border border-[#feefc3] p-3 flex items-start gap-2.5 text-xs text-[#b06000] animate-in fade-in duration-200 shadow-2xs">
-            <Clock className="w-4 h-4 text-[#b06000] shrink-0 mt-0.5 animate-pulse" />
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between gap-1 mb-0.5">
-                <span className="font-bold text-[#b06000]">Punch Rate Limit Active</span>
-                <span className="font-mono font-bold text-[11px] bg-white px-2 py-0.5 rounded-full border border-[#feefc3] text-[#b06000] shadow-2xs">
-                  {Math.floor(lockoutSeconds / 60)}:{String(lockoutSeconds % 60).padStart(2, '0')}
-                </span>
-              </div>
-              <p className="text-[11px] text-[#784000] leading-snug">
-                Multiple punch attempts recorded. Buttons are temporarily locked for security. Unlocks in <span className="font-bold font-mono text-[#b06000]">{Math.floor(lockoutSeconds / 60)}m {String(lockoutSeconds % 60).padStart(2, '0')}s</span>.
-              </p>
+          <div className="rounded-2xl bg-[#fef7e0] border border-[#feefc3] p-3 flex items-center justify-between text-xs text-[#b06000] animate-in fade-in duration-200 shadow-2xs">
+            <div className="flex items-center gap-2 min-w-0">
+              <Clock className="w-4 h-4 text-[#b06000] shrink-0 animate-pulse" />
+              <span className="font-bold text-[#b06000] truncate">Punch Rate Limit Active</span>
             </div>
+            <span className="font-mono font-bold text-xs bg-white px-2.5 py-1 rounded-full border border-[#feefc3] text-[#b06000] shadow-2xs shrink-0">
+              Unlocks in {Math.floor(lockoutSeconds / 60)}:{String(lockoutSeconds % 60).padStart(2, '0')}
+            </span>
           </div>
         )}
 
@@ -351,28 +346,28 @@ const EmployeeMobileDashboard = () => {
             <button
               onClick={() => handlePunch('check-in')}
               disabled={isLocked}
-              className="w-full flex items-center justify-center gap-2 bg-[#1a73e8] text-white rounded-full py-3 text-xs font-semibold hover:bg-[#1557b0] disabled:opacity-50 transition-all shadow-xs cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 bg-[#1a73e8] text-white rounded-full py-3 text-xs font-semibold hover:bg-[#1557b0] disabled:opacity-50 transition-all shadow-xs cursor-pointer disabled:cursor-not-allowed"
             >
               <LogIn className="w-4 h-4" />
-              <span>{isLocked ? `Check In (${formatLockoutTimer(lockoutSeconds)})` : 'Punch Check In'}</span>
+              <span>Punch Check In</span>
             </button>
           ) : checkedIn && !checkOutTime ? (
             <div className="grid grid-cols-2 gap-2.5">
               <button
                 onClick={() => handlePunch('punch')}
                 disabled={isLocked}
-                className="w-full flex items-center justify-center gap-1.5 bg-white border border-[#dadce0] text-[#1f1f1f] rounded-full py-2.5 text-xs font-semibold hover:bg-[#f1f3f4] disabled:opacity-50 transition-all shadow-2xs cursor-pointer truncate"
+                className="w-full flex items-center justify-center gap-1.5 bg-white border border-[#dadce0] text-[#1f1f1f] rounded-full py-2.5 text-xs font-semibold hover:bg-[#f1f3f4] disabled:opacity-50 transition-all shadow-2xs cursor-pointer disabled:cursor-not-allowed"
               >
                 <Clock className="w-3.5 h-3.5 text-[#5f6368] shrink-0" />
-                <span className="truncate">{isLocked ? formatLockoutTimer(lockoutSeconds) : 'Interval Punch'}</span>
+                <span>Interval Punch</span>
               </button>
               <button
                 onClick={() => handlePunch('check-out')}
                 disabled={isLocked}
-                className="w-full flex items-center justify-center gap-1.5 bg-white border border-[#dadce0] hover:border-[#fad2cf] hover:bg-[#fce8e6] text-[#d93025] rounded-full py-2.5 text-xs font-semibold disabled:opacity-50 transition-all shadow-2xs cursor-pointer truncate"
+                className="w-full flex items-center justify-center gap-1.5 bg-white border border-[#dadce0] hover:border-[#fad2cf] hover:bg-[#fce8e6] text-[#d93025] rounded-full py-2.5 text-xs font-semibold disabled:opacity-50 transition-all shadow-2xs cursor-pointer disabled:cursor-not-allowed"
               >
                 <LogOut className="w-3.5 h-3.5 shrink-0" />
-                <span className="truncate">{isLocked ? formatLockoutTimer(lockoutSeconds) : 'Punch Check Out'}</span>
+                <span>Punch Check Out</span>
               </button>
             </div>
           ) : (

@@ -377,9 +377,12 @@ const EmployeeDashboard = () => {
                     <div className="flex items-center gap-2.5">
                       <Clock className="w-4 h-4 text-[#b06000] shrink-0 animate-pulse" />
                       <span className="font-semibold">
-                        Rate limit active: Multiple punches detected. Attendance buttons unlock in <strong className="font-mono">{formatLockoutTimer(lockoutSeconds)}</strong>.
+                        Rate limit active: Multiple punches detected. Attendance buttons are temporarily locked.
                       </span>
                     </div>
+                    <span className="font-semibold font-mono bg-white px-3 py-1 rounded-full border border-[#feefc3] text-[#b06000] shadow-2xs shrink-0">
+                      Unlocks in {Math.floor(lockoutSeconds / 60)}:{String(lockoutSeconds % 60).padStart(2, '0')}
+                    </span>
                   </div>
                 )}
 
@@ -396,30 +399,30 @@ const EmployeeDashboard = () => {
                         type="button"
                         onClick={() => handlePunch('check-in')}
                         disabled={punchingAction || checkedIn || checkOutTime || isLocked}
-                        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white disabled:opacity-40 transition-all cursor-pointer shadow-xs"
+                        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white disabled:opacity-40 transition-all cursor-pointer shadow-xs disabled:cursor-not-allowed"
                       >
                         <LogIn className="w-4 h-4" />
-                        <span>{isLocked ? formatLockoutTimer(lockoutSeconds) : (punchingAction === 'check-in' ? 'Checking In...' : 'Check In')}</span>
+                        <span>{punchingAction === 'check-in' ? 'Checking In...' : 'Check In'}</span>
                       </button>
 
                       <button
                         type="button"
                         onClick={() => handlePunch('punch')}
                         disabled={punchingAction || !checkedIn || checkOutTime || isLocked}
-                        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold bg-white border border-[#dadce0] hover:bg-[#f1f3f4] text-[#1f1f1f] disabled:opacity-40 transition-all cursor-pointer shadow-2xs"
+                        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold bg-white border border-[#dadce0] hover:bg-[#f1f3f4] text-[#1f1f1f] disabled:opacity-40 transition-all cursor-pointer shadow-2xs disabled:cursor-not-allowed"
                       >
                         <Clock className="w-4 h-4 text-[#5f6368]" />
-                        <span>{isLocked ? formatLockoutTimer(lockoutSeconds) : (punchingAction === 'punch' ? 'Punching...' : 'Interval Punch')}</span>
+                        <span>{punchingAction === 'punch' ? 'Punching...' : 'Interval Punch'}</span>
                       </button>
 
                       <button
                         type="button"
                         onClick={() => handlePunch('check-out')}
                         disabled={punchingAction || !checkedIn || checkOutTime || isLocked}
-                        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold bg-white border border-[#dadce0] hover:bg-[#f1f3f4] text-[#d93025] hover:border-[#fad2cf] hover:bg-[#fce8e6] disabled:opacity-40 transition-all cursor-pointer shadow-2xs"
+                        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold bg-white border border-[#dadce0] hover:bg-[#f1f3f4] text-[#d93025] hover:border-[#fad2cf] hover:bg-[#fce8e6] disabled:opacity-40 transition-all cursor-pointer shadow-2xs disabled:cursor-not-allowed"
                       >
                         <LogOut className="w-4 h-4" />
-                        <span>{isLocked ? formatLockoutTimer(lockoutSeconds) : (punchingAction === 'check-out' ? 'Checking Out...' : 'Check Out')}</span>
+                        <span>{punchingAction === 'check-out' ? 'Checking Out...' : 'Check Out'}</span>
                       </button>
                     </>
                   )}
