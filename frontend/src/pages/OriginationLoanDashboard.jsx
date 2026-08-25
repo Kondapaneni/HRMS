@@ -233,7 +233,7 @@ const OriginationLoanDashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-base font-semibold text-[#1f1f1f]">
-                  Monthly Origination Performance
+                  Monthly Performance
                 </h3>
                 <p className="text-xs text-[#5f6368]">Historical volumes across last 6 months</p>
               </div>

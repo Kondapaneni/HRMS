@@ -117,7 +117,7 @@ const OriginationSalesLayout = () => {
     },
     { 
       icon: <TrendingUp size={15} />, 
-      label: 'Sales Leads', 
+      label: 'Leads', 
       path: '/employee/sales/origination/leads',
       activePaths: [
         '/employee/sales/origination/leads/add',
@@ -168,12 +168,12 @@ const OriginationSalesLayout = () => {
             </div>
           </div>
 
-          {/* Navigation Links */}
-          <div className="px-2.5 py-4 overflow-y-auto flex-1 custom-scrollbar">
-            <p className="text-[10.5px] font-bold text-[#5f6368] uppercase tracking-wider mb-2 px-3">
+          {/* Navigation Items */}
+          <div className="p-2 overflow-y-auto flex-1 space-y-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5 px-2.5 whitespace-nowrap">
               Sales Modules
             </p>
-            <nav className="space-y-1">
+            <nav className="space-y-0.5">
               {navItems.map((item, idx) => {
                 const isActive = item.activePaths 
                   ? item.activePaths.some(p => location.pathname.startsWith(p)) || location.pathname === item.path
@@ -183,16 +183,14 @@ const OriginationSalesLayout = () => {
                   <Link
                     key={idx}
                     to={item.path}
-                    className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-full text-xs font-semibold transition-all relative ${
-                      isActive
-                        ? 'bg-[#c2e7ff] text-[#001d35] shadow-2xs font-semibold'
-                        : 'text-[#444746] hover:bg-[#f1f3f4] hover:text-[#1f1f1f]'
+                    className={`w-full flex items-center gap-2.5 px-3 py-1.5 rounded-full text-xs transition-all ${
+                      isActive 
+                        ? 'bg-[#c2e7ff]/70 text-[#001d35] font-semibold shadow-xs' 
+                        : 'text-[#444746] hover:bg-[#f1f3f4] hover:text-[#1f1f1f] font-medium'
                     }`}
                   >
-                    <span className={`shrink-0 ${isActive ? 'text-[#001d35]' : 'text-[#5f6368]'}`}>
-                      {item.icon}
-                    </span>
-                    <span className="truncate">{item.label}</span>
+                    <span className={`shrink-0 ${isActive ? 'text-[#1a73e8]' : 'text-[#5f6368]'}`}>{item.icon}</span>
+                    <span className="flex-1 whitespace-nowrap truncate text-[11.5px]">{item.label}</span>
                   </Link>
                 );
               })}
@@ -200,22 +198,22 @@ const OriginationSalesLayout = () => {
           </div>
 
           {/* Bottom Actions */}
-          <div className="p-3 border-t border-[#f1f3f4] mt-auto space-y-1 bg-white">
-            <button
-              type="button"
-              onClick={() => setShowBackModal(true)}
-              className="w-full flex items-center gap-2.5 px-3.5 py-2 rounded-full text-xs font-medium text-[#444746] hover:bg-[#f1f3f4] hover:text-[#1f1f1f] transition-all cursor-pointer text-left"
+          <div className="p-2.5 border-t border-[#f1f3f4] bg-white space-y-1">
+            <Link
+              to="/employee"
+              className="w-full flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-[#444746] rounded-full hover:bg-[#f1f3f4] hover:text-[#1f1f1f] transition-colors cursor-pointer"
             >
-              <ArrowLeft size={15} className="text-[#5f6368] shrink-0" />
-              <span className="truncate">Back to HRMS</span>
-            </button>
+              <ArrowLeft size={15} className="text-[#5f6368]" />
+              <span className="text-[11.5px]">Back to HRMS</span>
+            </Link>
+
             <button
               type="button"
               onClick={() => setShowLogoutModal(true)}
-              className="w-full flex items-center gap-2.5 px-3.5 py-2 rounded-full text-xs font-medium text-[#c5221f] hover:bg-[#fce8e6] transition-all cursor-pointer text-left"
+              className="w-full flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-[#5f6368] rounded-full hover:bg-[#fce8e6] hover:text-[#d93025] transition-colors cursor-pointer"
             >
-              <LogOut size={15} className="text-[#c5221f] shrink-0" />
-              <span className="truncate">Sign Out</span>
+              <LogOut size={15} className="text-[#5f6368]" />
+              <span className="text-[11.5px]">Sign Out</span>
             </button>
           </div>
         </aside>

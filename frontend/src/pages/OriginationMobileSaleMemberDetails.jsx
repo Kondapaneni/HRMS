@@ -1,8 +1,7 @@
 import React from 'react';
-import { ArrowLeft, Phone, MapPin, Calendar, Briefcase, CheckCircle2, Loader2, ArrowRight } from 'lucide-react';
+import { ArrowLeft, Phone, MapPin, Calendar, Briefcase, CheckCircle2, Loader2, Users, ShoppingBag } from 'lucide-react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { format } from 'date-fns';
-import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { getSalesLeads } from '../services/salesServices';
 import { maskPhoneNumber } from '../utils/phoneUtils';
@@ -53,187 +52,183 @@ const OriginationMobileSaleMemberDetails = ({ member: propMember }) => {
 
   if (isLoadingLeads && !member) {
     return (
-      <div className="w-full min-h-[60vh] flex flex-col items-center justify-center p-6 text-slate-500">
-        <Loader2 className="w-8 h-8 text-emerald-600 animate-spin mb-3" />
-        <p className="text-sm font-medium">Loading member details...</p>
+      <div className="w-full min-h-[60vh] flex flex-col items-center justify-center p-6 text-[#5f6368]">
+        <Loader2 className="w-8 h-8 text-[#1a73e8] animate-spin mb-3" />
+        <p className="text-xs font-medium">Loading member details...</p>
       </div>
     );
   }
 
   if (!member) {
     return (
-      <div className="w-full min-h-[60vh] flex flex-col items-center justify-center p-6 text-center text-slate-500 space-y-4">
-        <p className="text-base font-semibold text-slate-700">Member profile not found.</p>
+      <div className="w-full min-h-[60vh] flex flex-col items-center justify-center p-6 text-center text-[#5f6368] space-y-4">
+        <p className="text-sm font-semibold text-[#1f1f1f]">Member profile not found.</p>
         <button
           type="button"
           onClick={() => navigate('/employee/sales/origination/members')}
-          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-slate-900 rounded-xl shadow-sm cursor-pointer"
+          className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-[#1a73e8] hover:bg-[#1557b0] rounded-full shadow-xs cursor-pointer"
         >
-          <ArrowLeft size={16} /> Back to Members
+          <ArrowLeft size={14} /> Back to Members
         </button>
       </div>
     );
   }
 
   return (
-    <div className="w-full pb-8">
-      {/* Animated Hero Header */}
-      <section className="relative px-6 pt-12 pb-24 rounded-b-[40px] overflow-hidden bg-slate-900 shadow-md">
-        {/* Animated Background Blobs */}
-        <motion.div
-          animate={{
-            scale: [1, 1.2, 1],
-            x: [0, 50, 0],
-            y: [0, 30, 0],
-          }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-20 -left-10 w-72 h-72 bg-emerald-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.4, 1],
-            x: [0, -40, 0],
-            y: [0, 50, 0],
-          }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute -top-10 -right-10 w-64 h-64 bg-teal-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.3, 1],
-            x: [0, 30, 0],
-            y: [0, -40, 0],
-          }}
-          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-0 left-20 w-80 h-80 bg-cyan-500 rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
-        />
-        
-        {/* Subtle Glass Overlay */}
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none" />
-
-        <div className="relative z-10 flex items-center justify-between px-2">
-          <button 
-            type="button" 
-            onClick={() => navigate('/employee/sales/origination/members')} 
-            className="w-10 h-10 rounded-full bg-white/20 text-white flex items-center justify-center backdrop-blur-md transition-transform active:scale-95 border border-white/20 cursor-pointer"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div className="text-center">
-            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">
-              Origination Sales Module
-            </p>
-            <h2 className="text-xl font-bold text-white tracking-tight drop-shadow-sm font-sans">
-              Member Details
-            </h2>
-          </div>
-          <div className="w-10 h-10" />
+    <div className="space-y-4 pb-14">
+      {/* 1. Header Card (Google Material 3 Workspace) */}
+      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs relative overflow-hidden bg-gradient-to-br from-white via-[#f8fafd] to-[#e8f0fe]/30 space-y-2">
+        {/* Workspace Tag */}
+        <div className="flex items-center gap-1.5 whitespace-nowrap shrink-0">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4] shrink-0" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335] shrink-0" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05] shrink-0" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[#34A853] shrink-0" />
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368] ml-0.5 whitespace-nowrap">
+            Sales Origination Hub
+          </span>
         </div>
-      </section>
 
-      {/* Profile Card */}
-      <div className="space-y-6 relative z-20 -mt-12 mx-4">
-        <div className="bg-white p-6 rounded-[28px] shadow-xl border border-slate-100 space-y-6">
-          
-          <div className="flex items-center justify-between border-b border-slate-100 pb-5">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-2xl font-bold shrink-0 shadow-inner">
-                {member.name ? member.name.charAt(0).toUpperCase() : 'M'}
-              </div>
-              <div>
-                <h3 className="text-lg font-bold text-slate-900 leading-tight">{member.name}</h3>
-                <span className="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider leading-none bg-emerald-100 text-emerald-700 mt-1.5">
-                  <CheckCircle2 size={12} className="shrink-0" />
-                  <span>Converted Member</span>
-                </span>
-              </div>
+        {/* Heading + Back Button Row */}
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="text-xl font-bold text-[#1f1f1f] tracking-tight">
+            Member Profile
+          </h1>
+
+          <button
+            type="button"
+            onClick={() => navigate('/employee/sales/origination/members')}
+            className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] px-3.5 py-1.5 transition-all gap-1.5 shadow-2xs cursor-pointer shrink-0 whitespace-nowrap"
+          >
+            <ArrowLeft className="w-3.5 h-3.5 text-[#5f6368]" />
+            <span>Back</span>
+          </button>
+        </div>
+
+        {/* Subtitle */}
+        <p className="text-xs text-[#5f6368] truncate">
+          Active Converted Client &bull; Account Records
+        </p>
+      </div>
+
+      {/* 2. Member Identity Card */}
+      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs space-y-4">
+        <div className="flex items-center justify-between gap-3 pb-4 border-b border-[#f1f3f4]">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-14 h-14 rounded-full bg-[#e6f4ea] border-2 border-[#ceead6] flex items-center justify-center text-lg font-bold text-[#137333] shrink-0 shadow-2xs">
+              {member.name ? member.name.charAt(0).toUpperCase() : 'M'}
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-base font-bold text-[#1f1f1f] truncate">
+                {member.name}
+              </h2>
+              <p className="text-xs text-[#5f6368] truncate mt-0.5">
+                Registered Client Account
+              </p>
             </div>
           </div>
-          
+
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#e6f4ea] text-[#137333] border border-[#ceead6] shrink-0">
+            <CheckCircle2 size={10} /> Converted
+          </span>
+        </div>
+
+        {/* Contact Info Rows */}
+        <div className="space-y-3 pt-1">
           {/* Phone */}
-          <div className="space-y-1">
-            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Contact Phone</h3>
-            {member.phone ? (
-              <a 
-                href={`tel:${member.phone}`}
-                className="flex items-center justify-between p-2.5 -mx-2 rounded-2xl bg-emerald-50/50 hover:bg-emerald-50 border border-emerald-100/60 active:scale-[0.98] transition-all cursor-pointer group"
-              >
-                <div className="flex items-center gap-3 text-slate-800">
-                  <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-                    <Phone size={18} />
-                  </div>
-                  <span className="font-bold text-lg text-slate-900 tracking-wide">{maskPhoneNumber(member.phone)}</span>
-                </div>
-                <span className="text-xs font-bold text-emerald-600 bg-white px-2.5 py-1 rounded-full border border-emerald-200 shadow-xs flex items-center gap-1">
-                  <Phone size={12} className="fill-emerald-600 text-emerald-600" /> Call
-                </span>
-              </a>
-            ) : (
-              <div className="flex items-center gap-3 text-slate-400">
-                <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
-                  <Phone size={18} />
-                </div>
-                <span className="font-medium text-lg">—</span>
+          <div className="flex items-center justify-between p-3 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7]">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-full bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center shrink-0">
+                <Phone size={14} />
               </div>
+              <div className="min-w-0">
+                <p className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider">Contact Phone</p>
+                <p className="text-xs font-bold text-[#1f1f1f] truncate">{maskPhoneNumber(member.phone)}</p>
+              </div>
+            </div>
+
+            {member.phone && (
+              <a
+                href={`tel:${member.phone}`}
+                className="inline-flex items-center gap-1 px-3 py-1 bg-[#1a73e8] text-white text-[11px] font-semibold rounded-full shadow-xs active:scale-95 transition-all"
+              >
+                <Phone size={11} /> Call
+              </a>
             )}
           </div>
 
           {/* Location */}
-          <div className="space-y-1">
-            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Location / Address</h3>
-            <div className="flex items-start gap-3 text-slate-700">
-              <div className="w-10 h-10 rounded-full bg-teal-50 flex items-center justify-center shrink-0 mt-1">
-                <MapPin size={18} className="text-teal-600" />
-              </div>
-              <span className="font-medium leading-relaxed pt-2">{member.address || '—'}</span>
+          <div className="p-3 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7] flex items-start gap-2.5">
+            <div className="w-8 h-8 rounded-full bg-[#e6f4ea] text-[#137333] flex items-center justify-center shrink-0 mt-0.5">
+              <MapPin size={14} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider">Address / Location</p>
+              <p className="text-xs text-[#1f1f1f] leading-relaxed pt-0.5">
+                {member.address || '—'}
+              </p>
             </div>
           </div>
 
-          {/* Member Since */}
-          <div className="space-y-1">
-            <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Member Since</h3>
-            <div className="flex items-center gap-3 text-slate-700">
-              <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
-                <Calendar size={18} className="text-emerald-600" />
-              </div>
-              <span className="font-medium">{member.created_at ? format(new Date(member.created_at), 'MMMM d, yyyy - h:mm a') : '—'}</span>
+          {/* Converted Date */}
+          <div className="p-3 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7] flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-full bg-[#f1f3f4] text-[#5f6368] flex items-center justify-center shrink-0">
+              <Calendar size={14} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider">Joined On</p>
+              <p className="text-xs font-semibold text-[#1f1f1f]">
+                {member.created_at ? format(new Date(member.created_at), 'MMMM d, yyyy - h:mm a') : '—'}
+              </p>
             </div>
           </div>
+        </div>
+      </div>
 
+      {/* 3. Associated Products Card */}
+      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs space-y-3">
+        <div className="flex items-center gap-2 pb-3 border-b border-[#f1f3f4]">
+          <div className="w-7 h-7 rounded-full bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center shrink-0">
+            <Briefcase size={14} />
+          </div>
+          <div>
+            <h3 className="text-xs font-bold text-[#1f1f1f] uppercase tracking-wider">
+              Enrolled Products ({member.products?.length || 1})
+            </h3>
+            <p className="text-[10px] text-[#5f6368]">Products assigned to this client</p>
+          </div>
         </div>
 
-        {/* Product History Section */}
-        <div className="bg-white p-6 rounded-[28px] shadow-xl border border-slate-100 space-y-4">
-          <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-            <Briefcase className="w-5 h-5 text-emerald-600" />
-            <h3 className="font-bold text-slate-900 text-base">Product History</h3>
-          </div>
-
-          <div className="space-y-3">
-            {member.products && member.products.length > 0 ? (
-              member.products.map((prod) => (
-                <div key={prod.id} className="bg-slate-50 border border-slate-100 rounded-2xl p-4 space-y-2">
-                  <div className="flex justify-between items-start">
-                    <h4 className="font-semibold text-slate-900 text-sm">{prod.product_type || 'General Member Product'}</h4>
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700">
-                      <CheckCircle2 size={11} /> Converted
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                    <Calendar size={12} />
-                    <span>{prod.created_at ? format(new Date(prod.created_at), 'MMM d, yyyy h:mm a') : '—'}</span>
-                  </div>
-                  <div className="pt-1">
-                    <span className="inline-flex items-center gap-1 text-sm font-medium text-emerald-600 hover:text-emerald-700 transition-all cursor-pointer">
-                      Fill Application <ArrowRight size={14} />
-                    </span>
-                  </div>
+        <div className="space-y-2">
+          {member.products && member.products.length > 0 ? (
+            member.products.map((prod, idx) => (
+              <div key={idx} className="p-3 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7] flex items-center justify-between">
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-[#1f1f1f] truncate">
+                    {prod.product_type || member.product_type || 'Loan / Account'}
+                  </p>
+                  <p className="text-[10px] text-[#5f6368]">
+                    Lead ID: #{String(prod.id || '').substring(0, 8)}
+                  </p>
                 </div>
-              ))
-            ) : (
-              <p className="text-sm text-slate-400 py-3 text-center">No product history available.</p>
-            )}
-          </div>
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#e6f4ea] text-[#137333] border border-[#ceead6] shrink-0">
+                  Active
+                </span>
+              </div>
+            ))
+          ) : (
+            <div className="p-3 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7] flex items-center justify-between">
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-[#1f1f1f] truncate">
+                  {member.product_type || 'Sales Account'}
+                </p>
+                <p className="text-[10px] text-[#5f6368]">Primary Enrolled Service</p>
+              </div>
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#e6f4ea] text-[#137333] border border-[#ceead6] shrink-0">
+                Active
+              </span>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -1,8 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getSalesLeads } from '../services/salesServices';
-import { motion } from 'framer-motion';
-import { Search, MapPin, Phone, Calendar, CheckCircle2, Clock, FileText, Loader2, Plus, MoreVertical, XCircle, RefreshCw } from 'lucide-react';
+import { 
+  Search, 
+  Phone, 
+  MapPin, 
+  Calendar, 
+  CheckCircle2, 
+  Clock, 
+  FileText, 
+  Loader2, 
+  Plus, 
+  XCircle, 
+  RefreshCw,
+  Eye,
+  SlidersHorizontal,
+  X,
+  ShoppingBag,
+  Users
+} from 'lucide-react';
 import { format } from 'date-fns';
 import OriginationMobileSaleLeadsList from './OriginationMobileSaleLeadsList';
 import AddLeadSidebar from '../components/AddLeadSidebar';
@@ -12,6 +28,7 @@ import { maskPhoneNumber } from '../utils/phoneUtils';
 const OriginationSaleLeadsList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState('All');
   const [isAddLeadOpen, setIsAddLeadOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState(null);
 
@@ -21,168 +38,275 @@ const OriginationSaleLeadsList = () => {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  const { data: response, isLoading, error } = useQuery({
+  const { data: response, isLoading, error, refetch } = useQuery({
     queryKey: ['sales', 'leads', 'list', debouncedSearch],
     queryFn: () => getSalesLeads({ search: debouncedSearch }),
   });
 
-  const leads = response?.leads || response?.data || [];
+  const rawLeads = response?.leads || response?.data || [];
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
-  };
+  const filteredLeads = useMemo(() => {
+    if (selectedStatusFilter === 'All') return rawLeads;
+    return rawLeads.filter(lead => {
+      if (selectedStatusFilter === 'Active/In Progress') {
+        return lead.status === 'Active' || lead.status === 'In Progress';
+      }
+      return lead.status === selectedStatusFilter;
+    });
+  }, [rawLeads, selectedStatusFilter]);
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.4 } }
-  };
+  const statusCounts = useMemo(() => {
+    const counts = { All: rawLeads.length, New: 0, 'Follow Up': 0, Converted: 0, 'Not Interested': 0 };
+    rawLeads.forEach(l => {
+      if (counts[l.status] !== undefined) {
+        counts[l.status] += 1;
+      }
+    });
+    return counts;
+  }, [rawLeads]);
 
   const getStatusBadge = (status) => {
     switch (status) {
       case 'New':
-        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700"><Clock size={12} /> New</span>;
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
+            <Clock size={11} /> New
+          </span>
+        );
       case 'Follow Up':
       case 'Contacted':
-        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-violet-100 text-violet-700"><RefreshCw size={12} /> Follow Up</span>;
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#f3e8fd] text-[#8430ce] border border-[#e9d5ff]">
+            <RefreshCw size={11} /> Follow Up
+          </span>
+        );
       case 'Active':
       case 'In Progress':
       case 'Proposal Sent':
       case 'Negotiation':
-        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700"><Clock size={12} /> {status}</span>;
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#fef7e0] text-[#b06000] border border-[#feefc3]">
+            <Clock size={11} /> {status}
+          </span>
+        );
       case 'Converted':
       case 'Won':
-        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700"><CheckCircle2 size={12} /> Converted</span>;
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">
+            <CheckCircle2 size={11} /> Converted
+          </span>
+        );
       case 'Not Interested':
       case 'Lost':
-        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-100 text-rose-700"><XCircle size={12} /> Not Interested</span>;
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf]">
+            <XCircle size={11} /> Not Interested
+          </span>
+        );
       default:
-        return <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">{status}</span>;
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]">
+            {status || '—'}
+          </span>
+        );
     }
   };
 
   return (
     <>
+      {/* Mobile View */}
       <div className="md:hidden">
         <OriginationMobileSaleLeadsList />
       </div>
 
-      <motion.div 
-        className="hidden md:block p-4 md:p-6 space-y-6 md:pb-6"
-        variants={containerVariants}
-      >
-        {/* Header */}
-        <motion.div variants={itemVariants} className="flex justify-between items-center mb-2">
+      {/* Web Desktop Experience (Google Material 3 Workspace UI) */}
+      <div className="hidden md:block space-y-6 pb-12">
+        {/* Header Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900">All Leads</h1>
-            <p className="text-sm text-slate-500 mt-1">Manage and track your sales origination leads.</p>
-          </div>
-          <button 
-            onClick={() => setIsAddLeadOpen(true)}
-            className="inline-flex items-center justify-center rounded-md text-sm font-semibold bg-emerald-600 text-white hover:bg-emerald-700 h-10 px-4 transition-colors gap-2 shadow-sm shadow-emerald-600/20 cursor-pointer active:scale-95"
-          >
-            <Plus size={16} />
-            Add Leads
-          </button>
-        </motion.div>
-
-        {/* Data State */}
-        {error ? (
-          <motion.div variants={itemVariants} className="bg-red-50 text-red-600 p-4 rounded-xl text-center border border-red-100">
-            Failed to load leads. Please try again.
-          </motion.div>
-        ) : (
-          <motion.div variants={itemVariants}>
-            {/* Desktop View: Table */}
-            <div className="rounded-lg border border-slate-200 bg-white shadow-sm mb-6">
-              <div className="p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                  <h3 className="text-lg font-semibold flex items-center gap-2 text-slate-900">
-                    <FileText className="h-5 w-5 text-slate-500" />
-                    Leads Directory
-                  </h3>
-                  <p className="text-sm text-slate-500 mt-1">A comprehensive list of all your sales origination leads and their current status.</p>
-                </div>
-                <div className="relative w-full sm:w-64 shrink-0">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input
-                    type="search"
-                    className="w-full pl-9 pr-4 py-2 text-sm border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-shadow"
-                    placeholder="Search leads..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="p-6 pt-0">
-                <div className="rounded-md border border-slate-200 overflow-x-auto">
-                  <table className="w-full text-sm text-left">
-                    <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-medium">
-                      <tr>
-                        <th className="p-3">Name</th>
-                        <th className="p-3">Contact</th>
-                        <th className="p-3">Location</th>
-                        <th className="p-3">Product Type</th>
-                        <th className="p-3">Status</th>
-                        <th className="p-3">Created Date</th>
-                        <th className="p-3 w-20 text-center">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {isLoading ? (
-                        <tr>
-                          <td colSpan="7" className="p-12 text-center">
-                            <Loader2 className="animate-spin h-8 w-8 text-emerald-600 mx-auto" />
-                            <p className="text-slate-500 mt-4">Searching leads...</p>
-                          </td>
-                        </tr>
-                      ) : leads.length === 0 ? (
-                        <tr>
-                          <td colSpan="7" className="text-center py-12 text-slate-500">
-                            No leads found.
-                          </td>
-                        </tr>
-                      ) : (
-                        leads.map((lead) => (
-                          <motion.tr variants={itemVariants} key={lead.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
-                            <td className="p-3 text-slate-700">
-                              <div className="font-medium text-slate-900">{lead.name}</div>
-                            </td>
-                            <td className="p-3 text-slate-700">
-                              {maskPhoneNumber(lead.phone)}
-                            </td>
-                            <td className="p-3 text-slate-700 max-w-[200px] truncate" title={lead.address}>
-                              {lead.address || '—'}
-                            </td>
-                            <td className="p-3 text-slate-700 font-medium">
-                              {lead.product_type || '—'}
-                            </td>
-                            <td className="p-3">
-                              {getStatusBadge(lead.status)}
-                            </td>
-                            <td className="p-3 text-slate-700">
-                              {lead.created_at ? format(new Date(lead.created_at), 'MMM d, yyyy h:mm a') : '—'}
-                            </td>
-                            <td className="p-3 text-center">
-                              <button 
-                                onClick={() => setSelectedLead(lead)}
-                                className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md transition-colors cursor-pointer"
-                              >
-                                <MoreVertical size={16} />
-                              </button>
-                            </td>
-                          </motion.tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+              <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">
+                Sales Pipeline Directory
+              </span>
             </div>
-          </motion.div>
-        )}
-      </motion.div>
+            <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight flex items-center gap-2">
+              All Leads 
+              <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">
+                {rawLeads.length} Total
+              </span>
+            </h1>
+            <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
+              Manage, qualify, and track your sales origination prospects and conversion pipeline.
+            </p>
+          </div>
+
+          <button 
+            type="button"
+            onClick={() => setIsAddLeadOpen(true)}
+            className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white h-9 px-4.5 transition-all gap-1.5 shadow-xs cursor-pointer active:scale-95 shrink-0 self-start sm:self-auto"
+          >
+            <Plus size={15} />
+            <span>Add Lead</span>
+          </button>
+        </div>
+
+        {/* Search & Filter Bar */}
+        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-4 shadow-xs flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+          {/* Status Filter Chips */}
+          <div className="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {[
+              { id: 'All', label: 'All', count: statusCounts.All },
+              { id: 'New', label: 'New', count: statusCounts.New },
+              { id: 'Follow Up', label: 'Follow Up', count: statusCounts['Follow Up'] },
+              { id: 'Converted', label: 'Converted', count: statusCounts.Converted },
+              { id: 'Not Interested', label: 'Not Interested', count: statusCounts['Not Interested'] },
+            ].map(tab => {
+              const isSelected = selectedStatusFilter === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setSelectedStatusFilter(tab.id)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+                    isSelected
+                      ? 'bg-[#c2e7ff]/70 text-[#001d35] border border-[#b2d7ff]/80 shadow-2xs'
+                      : 'bg-[#f8fafd] text-[#5f6368] hover:bg-[#f1f3f4] hover:text-[#1f1f1f] border border-[#dadce0]'
+                  }`}
+                >
+                  <span>{tab.label}</span>
+                  {tab.count !== undefined && (
+                    <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                      isSelected ? 'bg-[#1a73e8] text-white' : 'bg-[#e0e3e7] text-[#5f6368]'
+                    }`}>
+                      {tab.count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Search Box */}
+          <div className="relative w-full lg:w-72 shrink-0">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#80868b]" />
+            <input
+              type="search"
+              className="w-full pl-9.5 pr-8 py-2 text-xs bg-[#f8fafd] border border-[#dadce0] rounded-full focus:outline-none focus:ring-2 focus:ring-[#1a73e8]/30 focus:border-[#1a73e8] transition-all text-[#1f1f1f] placeholder:text-[#80868b]"
+              placeholder="Search by name, phone, product..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => setSearchTerm('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-[#80868b] hover:text-[#1f1f1f] rounded-full"
+              >
+                <X size={13} />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Data Table */}
+        <div className="bg-white rounded-2xl border border-[#e0e3e7] shadow-xs overflow-hidden">
+          {error ? (
+            <div className="p-8 text-center text-xs text-[#c5221f] bg-[#fce8e6]/30">
+              Failed to load leads. Please check your network or try refreshing.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-[#f8fafd] border-b border-[#e0e3e7] text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider">
+                  <tr>
+                    <th className="py-3 px-3.5 whitespace-nowrap">Applicant Name</th>
+                    <th className="py-3 px-3.5 whitespace-nowrap">Contact</th>
+                    <th className="py-3 px-3.5 whitespace-nowrap">Location</th>
+                    <th className="py-3 px-3.5 text-center whitespace-nowrap">Loan Type</th>
+                    <th className="py-3 px-3.5 whitespace-nowrap">Status</th>
+                    <th className="py-3 px-3.5 whitespace-nowrap">Created Date</th>
+                    <th className="py-3 px-3.5 text-right whitespace-nowrap">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#f1f3f4]">
+                  {isLoading ? (
+                    <tr>
+                      <td colSpan="7" className="p-12 text-center">
+                        <Loader2 className="animate-spin h-6 w-6 text-[#1a73e8] mx-auto mb-2" />
+                        <p className="text-xs text-[#5f6368]">Loading leads directory...</p>
+                      </td>
+                    </tr>
+                  ) : filteredLeads.length === 0 ? (
+                    <tr>
+                      <td colSpan="7" className="text-center py-12 text-xs text-[#5f6368]">
+                        No leads found matching current filter or search criteria.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredLeads.map((lead) => (
+                      <tr 
+                        key={lead.id} 
+                        className="hover:bg-[#f8fafd] transition-colors cursor-pointer"
+                        onClick={() => setSelectedLead(lead)}
+                      >
+                        <td className="py-3 px-3.5 font-semibold text-[#1f1f1f] whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-full bg-[#e8f0fe] text-[#1a73e8] font-bold flex items-center justify-center text-[11px] shrink-0 border border-[#d2e3fc]">
+                              {(lead.name || 'L').charAt(0).toUpperCase()}
+                            </div>
+                            <span className="truncate max-w-[135px]">{lead.name || 'Unnamed Prospect'}</span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-3.5 text-[#5f6368] whitespace-nowrap">
+                          <span className="inline-flex items-center gap-1.5">
+                            <Phone className="w-3.5 h-3.5 text-[#80868b]" />
+                            {maskPhoneNumber(lead.phone)}
+                          </span>
+                        </td>
+                        <td className="py-3 px-3.5 text-[#5f6368] max-w-[160px] truncate" title={lead.address}>
+                          <span className="inline-flex items-center gap-1.5">
+                            <MapPin className="w-3.5 h-3.5 text-[#80868b] shrink-0" />
+                            <span className="truncate max-w-[145px]">{lead.address || '—'}</span>
+                          </span>
+                        </td>
+                        <td className="py-3 px-3.5 text-center min-w-[140px] max-w-[200px]">
+                          {lead.product_type || lead.loan_type ? (
+                            <span className="inline-block px-2.5 py-1 rounded-xl text-[11px] bg-[#f8fafd] border border-[#e0e3e7] text-[#1f1f1f] font-medium text-center leading-snug">
+                              {lead.product_type || lead.loan_type}
+                            </span>
+                          ) : (
+                            <span className="text-[#80868b]">—</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-3.5 whitespace-nowrap">
+                          {getStatusBadge(lead.status)}
+                        </td>
+                        <td className="py-3 px-3.5 text-[#5f6368] whitespace-nowrap">
+                          {lead.created_at ? format(new Date(lead.created_at), 'MMM d, yyyy') : '—'}
+                        </td>
+                        <td className="py-3 px-3.5 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                          <button 
+                            type="button"
+                            onClick={() => setSelectedLead(lead)}
+                            className="px-3 py-1 text-xs font-semibold text-[#1a73e8] hover:bg-[#e8f0fe] rounded-full transition-colors cursor-pointer inline-flex items-center gap-1 whitespace-nowrap"
+                          >
+                            <Eye size={13} />
+                            <span>Details</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
 
       <AddLeadSidebar isOpen={isAddLeadOpen} onClose={() => setIsAddLeadOpen(false)} type="sale" />
       <LeadDetailsSidebar 

@@ -97,36 +97,56 @@ const MemberDetailsSidebar = ({ isOpen, onClose, member, type = 'loan' }) => {
           <div className="space-y-3">
             <h4 className="text-xs font-semibold text-[#5f6368] uppercase tracking-wider flex items-center gap-1.5">
               <Briefcase size={14} className="text-[#1a73e8]" />
-              <span>{isSale ? 'Product History' : 'Loan Product History'}</span>
+              <span>{isSale ? 'Sale Product History' : 'Loan Product History'}</span>
             </h4>
             
             <div className="grid gap-2.5">
               {isSale ? (
                 member.products && member.products.length > 0 ? (
-                  member.products.map((item) => (
-                    <div key={item.id} className="bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl p-4 transition-all hover:border-[#1a73e8]">
+                  member.products.map((item, idx) => (
+                    <div key={item.id || idx} className="bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl p-4 transition-all hover:border-[#1a73e8]">
                       <div className="flex justify-between items-start mb-2">
-                        <div className="font-semibold text-[#1f1f1f] text-xs">
-                          {item.product_type || 'General Member Product'}
+                        <div>
+                          <div className="font-semibold text-[#1f1f1f] text-xs">
+                            {item.product_type || member.product_type || 'General Member Product'}
+                          </div>
+                          {item.id && (
+                            <p className="text-[10.5px] text-[#5f6368] mt-0.5">
+                              Lead ID: #{String(item.id).substring(0, 8)}
+                            </p>
+                          )}
                         </div>
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">
                           <CheckCircle2 size={11} /> Converted
                         </span>
                       </div>
-                      <div className="flex items-center gap-1.5 text-[11px] text-[#80868b]">
+                      <div className="flex items-center gap-1.5 text-[11px] text-[#80868b] pt-1">
                         <Calendar size={11} />
-                        <span>{item.created_at ? format(new Date(item.created_at), 'MMM d, yyyy') : '—'}</span>
-                      </div>
-                      <div className="pt-2">
-                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#1a73e8] hover:underline cursor-pointer">
-                          Fill Application <ArrowRight size={13} />
-                        </span>
+                        <span>Enrolled on {item.created_at ? format(new Date(item.created_at), 'MMM d, yyyy') : '—'}</span>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <div className="text-center p-6 text-[#5f6368] text-xs bg-[#f8fafd] rounded-2xl border border-[#e0e3e7]">
-                    <p>No product history available.</p>
+                  <div className="bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl p-4 transition-all hover:border-[#1a73e8]">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <div className="font-semibold text-[#1f1f1f] text-xs">
+                          {member.product_type || 'Sales Account'}
+                        </div>
+                        {member.lead_id && (
+                          <p className="text-[10.5px] text-[#5f6368] mt-0.5">
+                            Lead ID: #{String(member.lead_id).substring(0, 8)}
+                          </p>
+                        )}
+                      </div>
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">
+                        <CheckCircle2 size={11} /> Converted
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-[11px] text-[#80868b] pt-1">
+                      <Calendar size={11} />
+                      <span>Enrolled on {member.created_at ? format(new Date(member.created_at), 'MMM d, yyyy') : '—'}</span>
+                    </div>
                   </div>
                 )
               ) : (
