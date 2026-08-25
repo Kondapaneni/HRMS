@@ -14,20 +14,7 @@ import {
 } from './index';
 import { validatePersonalLoanForm, capitalizeWords, capitalizeText } from '../../utils/loanValidations';
 import { submitLoanApplication, getLoanApplications, deleteLoanApplication, updateLoanApplicationDetails } from '../../services/loanServices';
-import { 
-  Send, 
-  Save, 
-  Loader2, 
-  CheckCircle2, 
-  ArrowLeft, 
-  ArrowRight,
-  User,
-  MapPin,
-  Briefcase,
-  Users,
-  ShieldCheck,
-  Copy
-} from 'lucide-react';
+import { Send, Save, Loader2, Download, CheckCircle2, Lock, ArrowLeft, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export function PersonalLoanForm({ isEditMode: propEditMode, application: propApplication, onSaved }) {
@@ -35,10 +22,6 @@ export function PersonalLoanForm({ isEditMode: propEditMode, application: propAp
   const location = useLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-
-  // Active step in the stepper navigation (1 to 5)
-  const [activeStep, setActiveStep] = useState(1);
-  const [viewAllSections, setViewAllSections] = useState(false);
 
   // Extract default values from React Router state (passed quietly without query parameters) or user profile from DB
   const initialName = 
@@ -123,11 +106,17 @@ export function PersonalLoanForm({ isEditMode: propEditMode, application: propAp
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDrafting, setIsDrafting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(false);
   const [isAlreadySubmitted, setIsAlreadySubmitted] = useState(false);
   const [loadedAppId, setLoadedAppId] = useState(null);
   const [activeGuarantorTab, setActiveGuarantorTab] = useState(1);
 
   // Conditional field visibility logic:
+  // Male + Yes = Father and Mother Name only
+  // Male + No = Father and Mother Name only
+  // Female + No = Father and Mother Name only
+  // Female + Yes = Father and Mother and Husband Name
   const showParents = !!(formData.gender && formData.marital_status);
   const showHusband = formData.gender === 'Female' && formData.marital_status === 'Yes';
 
@@ -247,7 +236,7 @@ export function PersonalLoanForm({ isEditMode: propEditMode, application: propAp
     if (savedData.permanent_city) updateField('permanent_city', capitalizeWords(savedData.permanent_city));
     if (savedData.permanent_state) updateField('permanent_state', capitalizeWords(savedData.permanent_state));
     if (savedData.permanent_postal_code) updateField('permanent_postal_code', String(savedData.permanent_postal_code).replace(/\D/g, '').slice(0, 6));
-    updateField('employment', savedData.employment || 'Job');
+    updateField('employment', savedData.employment || 'Business');
     if (savedData.job_name) updateField('job_name', capitalizeWords(savedData.job_name));
     if (savedData.job_address) updateField('job_address', capitalizeText(savedData.job_address));
     if (savedData.job_income_per_month) updateField('job_income_per_month', String(savedData.job_income_per_month).replace(/\D/g, ''));
@@ -309,219 +298,205 @@ export function PersonalLoanForm({ isEditMode: propEditMode, application: propAp
     });
   };
 
-  const isEditMode = propEditMode || location.state?.mode === 'edit' || location.state?.isEdit;
-  const targetAppId = propApplication?.id || propApplication?.application_id || location.state?.application?.id || location.state?.application?.application_id || location.state?.id || loadedAppId;
-
-  // Load saved application / draft JSON data directly from database if needed
-  const loadSavedDataFromDB = async () => {
+  // Load saved application / draft JSON data directly from database
+  const loadSavedDataFromDB = async (showToast = false) => {
     try {
       setIsLoadingData(true);
       const res = await getLoanApplications();
-      const passingId = propApplication?.id || location.state?.application?.id || location.state?.id || location.state?.lead_id || formData.lead_id;
+      const passingLeadId = location.state?.lead_id || location.state?.id || location.state?.application?.lead_id || formData.lead_id;
 
       if (res && res.applications && res.applications.length > 0) {
-        // Find existing application matching the target ID or lead_id
-        const existingApp = res.applications.find(app => {
-          if (passingId) {
-            return String(app.id) === String(passingId) || 
-                   String(app.application_id) === String(passingId) || 
-                   String(app.lead_id) === String(passingId);
-          }
-          return app.loan_type === 'Personal Loan' && (app.status === 'Draft' || app.status === 'Created');
-        });
+        // Find existing application specifically matching the passing lead_id
+        const existingApp = res.applications.find(app => 
+          app.loan_type === 'Personal Loan' && 
+          passingLeadId && 
+          String(app.lead_id) === String(passingLeadId) &&
+          (app.status === 'Draft' || app.status === 'Created')
+        );
 
-        if (existingApp) {
-          if (existingApp.status === 'Created' && !isEditMode) {
-            setIsAlreadySubmitted(true);
-          }
-          setLoadedAppId(existingApp.id || existingApp.application_id);
-          if (existingApp.form_data) {
-            populateFromData(existingApp.form_data);
-          } else {
-            populateFromData(existingApp);
-          }
+        if (existingApp && existingApp.status === 'Created') {
+          setIsAlreadySubmitted(true);
         }
+
+        if (existingApp && existingApp.form_data) {
+          setLoadedAppId(existingApp.id || existingApp.application_id);
+          populateFromData(existingApp.form_data);
+          if (showToast) {
+            toast.success('Loaded saved application data!');
+          }
+        } else if (showToast) {
+          toast.error('No saved data found for this application.');
+        }
+      } else if (showToast) {
+        toast.error('No saved data found in database.');
       }
     } catch (err) {
       console.error('Error loading application data from DB:', err);
+      if (showToast) {
+        toast.error('Failed to load application data from database.');
+      }
     } finally {
       setIsLoadingData(false);
     }
   };
 
+  const isEditMode = propEditMode || location.state?.mode === 'edit' || location.state?.isEdit;
+  const targetAppId = propApplication?.id || propApplication?.application_id || location.state?.application?.id || location.state?.application?.application_id || location.state?.id || loadedAppId;
+
   // Auto-populate when profile data or navigation state resolves or on mount
   useEffect(() => {
-    const directData = propApplication?.form_data || location.state?.application?.form_data || location.state?.form_data || propApplication || location.state?.application;
+    const directData = propApplication?.form_data || location.state?.application?.form_data || location.state?.form_data;
+    if (directData) {
+      populateFromData(directData);
+    }
     
-    if (directData && (directData.applicant_name || directData.phone_number || directData.job_name || directData.business_name || directData.current_address || directData.form_data)) {
-      const dataToPopulate = directData.form_data || directData;
-      populateFromData(dataToPopulate);
-      const idToSet = propApplication?.id || location.state?.application?.id || location.state?.id || directData.id || directData.application_id;
-      if (idToSet) {
-        setLoadedAppId(idToSet);
-      }
-    } else {
-      loadSavedDataFromDB();
+    if (propApplication?.id || location.state?.application?.id || location.state?.application?.application_id) {
+      setLoadedAppId(propApplication?.id || location.state?.application?.id || location.state?.application?.application_id);
     }
-  }, [propApplication, location.state]);
 
-  // Copy current address to permanent address
-  const handleCopyCurrentToPermanent = () => {
-    updateField('permanent_address', formData.current_address);
-    updateField('permanent_street', formData.current_street);
-    updateField('permanent_city', formData.current_city);
-    updateField('permanent_state', formData.current_state);
-    updateField('permanent_postal_code', formData.current_postal_code);
-    toast.success('Copied current address to permanent address');
-  };
+    if (!isEditMode && location.state?.application?.status === 'Created') {
+      setIsAlreadySubmitted(true);
+    }
 
-  // Helper to extract sanitized form data
+    const nameFromSource = 
+      location.state?.name || 
+      location.state?.applicant_name || 
+      location.state?.application?.applicant_name ||
+      propApplication?.applicant_name ||
+      profile?.full_name || 
+      profile?.name || 
+      '';
+
+    const phoneFromSource = 
+      location.state?.phone || 
+      location.state?.phone_number || 
+      location.state?.application?.phone_number ||
+      propApplication?.phone_number ||
+      profile?.phone || 
+      profile?.phone_number || 
+      profile?.mobile || 
+      '';
+
+    const leadIdFromSource = location.state?.lead_id || location.state?.id || location.state?.application?.lead_id || propApplication?.lead_id || '';
+
+    if (nameFromSource && !formData.applicant_name) {
+      updateField('applicant_name', capitalizeWords(nameFromSource));
+    }
+    if (phoneFromSource && !formData.phone_number) {
+      updateField('phone_number', String(phoneFromSource).replace(/\D/g, '').slice(0, 10));
+    }
+    if (leadIdFromSource && !formData.lead_id) {
+      updateField('lead_id', leadIdFromSource);
+    }
+
+    // Load database application data if not populated directly
+    if (!directData && !isEditMode) {
+      loadSavedDataFromDB(false);
+    }
+  }, [profile, location.state, propApplication, isEditMode]);
+
   const getCleanFormData = () => {
-    const cleanData = { ...formData };
-    if (!showParents) {
-      delete cleanData.father_name;
-      delete cleanData.mother_name;
-    }
-    if (!showHusband) {
-      delete cleanData.husband_name;
-    }
-    if (cleanData.employment !== 'Job') {
-      delete cleanData.job_name;
-      delete cleanData.job_address;
-      delete cleanData.job_income_per_month;
-    }
-    if (cleanData.employment !== 'Business') {
-      delete cleanData.business_name;
-      delete cleanData.business_address;
-      delete cleanData.business_income_per_month;
-    }
-
-    if (cleanData.has_co_applicant !== 'Yes') {
-      const coKeys = [
-        'co_applicant_name', 'co_relation_with_applicant', 'co_phone_number', 'co_aadhaar_number',
-        'co_age', 'co_gender', 'co_marital_status', 'co_father_name', 'co_mother_name', 'co_husband_name',
-        'co_own_house', 'co_current_address', 'co_current_street', 'co_current_city', 'co_current_state',
-        'co_current_postal_code', 'co_permanent_address', 'co_permanent_street', 'co_permanent_city',
-        'co_permanent_state', 'co_permanent_postal_code', 'co_employment', 'co_job_name', 'co_job_address',
-        'co_job_income_per_month', 'co_business_name', 'co_business_address', 'co_business_income_per_month'
-      ];
-      coKeys.forEach(k => delete cleanData[k]);
-    } else {
-      if (!showCoParents) {
-        delete cleanData.co_father_name;
-        delete cleanData.co_mother_name;
-      }
-      if (!showCoHusband) {
-        delete cleanData.co_husband_name;
-      }
-      if (cleanData.co_employment !== 'Job') {
-        delete cleanData.co_job_name;
-        delete cleanData.co_job_address;
-        delete cleanData.co_job_income_per_month;
-      }
-      if (cleanData.co_employment !== 'Business') {
-        delete cleanData.co_business_name;
-        delete cleanData.co_business_address;
-        delete cleanData.co_business_income_per_month;
-      }
-    }
-
-    [1, 2, 3].forEach(idx => {
-      const pfx = `guarantor_${idx}_`;
-      const gGender = cleanData[`${pfx}gender`];
-      const gMarital = cleanData[`${pfx}marital_status`];
-      const gEmp = cleanData[`${pfx}employment`];
-
-      const showGParents = !!(gGender && gMarital);
-      const showGHusband = gGender === 'Female' && gMarital === 'Yes';
-
-      if (!showGParents) {
-        delete cleanData[`${pfx}father_name`];
-        delete cleanData[`${pfx}mother_name`];
-      }
-      if (!showGHusband) {
-        delete cleanData[`${pfx}husband_name`];
-      }
-      if (gEmp !== 'Job') {
-        delete cleanData[`${pfx}job_name`];
-        delete cleanData[`${pfx}job_address`];
-        delete cleanData[`${pfx}job_income_per_month`];
-      }
-      if (gEmp !== 'Business') {
-        delete cleanData[`${pfx}business_name`];
-        delete cleanData[`${pfx}business_address`];
-        delete cleanData[`${pfx}business_income_per_month`];
+    const cleaned = {};
+    Object.keys(formData).forEach(key => {
+      const val = formData[key];
+      if (val !== null && val !== undefined && String(val).trim() !== '') {
+        cleaned[key] = val;
       }
     });
-
-    return cleanData;
+    return cleaned;
   };
 
-  // Stepper Tabs Definition (Clean 1 to 5)
-  const steps = [
-    { id: 1, title: 'Applicant Details', icon: User },
-    { id: 2, title: 'Residential Addresses', icon: MapPin },
-    { id: 3, title: 'Employment & Income', icon: Briefcase },
-    { id: 4, title: 'Co-Applicant', icon: Users },
-    { id: 5, title: 'Guarantors (1 - 3)', icon: ShieldCheck },
-  ];
-
-  // Save as Draft
   const handleSaveDraft = async () => {
     try {
       setIsDrafting(true);
       const cleanData = getCleanFormData();
-      const existingId = targetAppId || loadedAppId;
-      if (existingId) {
-        await updateLoanApplicationDetails(existingId, cleanData, 'Personal Loan', 'Draft');
-        toast.success('Personal Loan Application draft updated!');
-      } else {
-        const res = await submitLoanApplication('Personal Loan', cleanData, 'Draft');
-        if (res?.application?.id) {
-          setLoadedAppId(res.application.id);
-        }
-        toast.success('Personal Loan Application saved as draft!');
-      }
-      queryClient.invalidateQueries(['origination', 'applications', 'list']);
+      // Save draft directly to DB table public.loan_applications in JSON format
+      await submitLoanApplication('Personal Loan', cleanData, 'Draft');
+      toast.success('Personal Loan draft saved to database!');
     } catch (err) {
-      console.error('Error saving draft:', err);
-      toast.error(err.response?.data?.error || 'Failed to save draft.');
+      console.error('Error saving draft to database:', err);
+      toast.error(err.response?.data?.error || 'Failed to save draft to database.');
     } finally {
       setIsDrafting(false);
     }
   };
 
-  // Final Form Submission
-  const handleSubmit = async (e) => {
-    if (e && e.preventDefault) e.preventDefault();
-
-    if (isReadOnly && !isEditMode) {
-      toast.error('This application is in read-only mode.');
+  const handleDeleteDraft = async () => {
+    if (!loadedAppId) return;
+    
+    if (!window.confirm('Are you sure you want to delete this draft? This action cannot be undone.')) {
       return;
     }
 
+    try {
+      setIsDeleting(true);
+      await deleteLoanApplication(loadedAppId);
+      toast.success('Draft deleted successfully!');
+      queryClient.invalidateQueries({ queryKey: ['origination', 'applications', 'list'] });
+      queryClient.invalidateQueries({ queryKey: ['leadsDashboard'] });
+      navigate('/employee/loans/origination/applications');
+    } catch (err) {
+      console.error('Error deleting draft:', err);
+      toast.error(err.response?.data?.error || 'Failed to delete draft.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Centralized validation from src/utils/loanValidations.js
     const { isValid, errors: validationErrors } = validatePersonalLoanForm(formData);
 
     if (!isValid) {
       setFormErrors(validationErrors);
-      const firstError = Object.values(validationErrors)[0];
-      toast.error(firstError || 'Please complete all required fields correctly.');
-      
-      // Auto-navigate to first error step
-      const errKeys = Object.keys(validationErrors);
-      if (errKeys.some(k => ['applicant_name', 'phone_number', 'aadhaar_number', 'age', 'gender', 'marital_status', 'father_name', 'mother_name', 'husband_name', 'own_house'].includes(k))) {
-        setActiveStep(1);
-      } else if (errKeys.some(k => k.startsWith('current_') || k.startsWith('permanent_'))) {
-        setActiveStep(2);
-      } else if (errKeys.some(k => ['employment', 'job_name', 'job_address', 'job_income_per_month', 'business_name', 'business_address', 'business_income_per_month'].includes(k))) {
-        setActiveStep(3);
-      } else if (errKeys.some(k => k.startsWith('co_') || k === 'has_co_applicant')) {
-        setActiveStep(4);
-      } else if (errKeys.some(k => k.startsWith('guarantor_'))) {
-        setActiveStep(5);
-        if (errKeys.some(k => k.startsWith('guarantor_1_'))) setActiveGuarantorTab(1);
-        else if (errKeys.some(k => k.startsWith('guarantor_2_'))) setActiveGuarantorTab(2);
-        else if (errKeys.some(k => k.startsWith('guarantor_3_'))) setActiveGuarantorTab(3);
+      toast.error('Please resolve validation errors in the form.');
+      return;
+    }
+
+    if (isEditMode) {
+      if (!targetAppId) {
+        toast.error('Application ID not found for update.');
+        return;
+      }
+      try {
+        setIsSubmitting(true);
+        const cleanData = getCleanFormData();
+        const res = await updateLoanApplicationDetails(targetAppId, cleanData, 'Personal Loan');
+        toast.success('Application updated successfully with audit trail!');
+        
+        await queryClient.invalidateQueries({ queryKey: ['branchOperations'] });
+        await queryClient.refetchQueries({ queryKey: ['branchOperations', 'applications', 'list'] });
+
+        const updatedApp = res?.application ? {
+          ...res.application,
+          form_data: cleanData,
+          audit_logs: res?.application?.audit_logs || res?.audit_logs || []
+        } : {
+          ...(propApplication || location.state?.application || {}),
+          form_data: cleanData
+        };
+
+        if (onSaved) {
+          onSaved(updatedApp);
+        } else {
+          const fromPath = location.state?.from || '/employee/branch-operations/loans-view-applications';
+          navigate(fromPath, {
+            state: {
+              application: updatedApp,
+              form_data: cleanData,
+              id: targetAppId,
+              from: '/employee/branch-operations/loans-applications'
+            },
+            replace: true
+          });
+        }
+      } catch (err) {
+        console.error('Error updating application:', err);
+        toast.error(err.response?.data?.error || 'Failed to update application.');
+      } finally {
+        setIsSubmitting(false);
       }
       return;
     }
@@ -529,21 +504,74 @@ export function PersonalLoanForm({ isEditMode: propEditMode, application: propAp
     try {
       setIsSubmitting(true);
       const cleanData = getCleanFormData();
-      const existingId = targetAppId || loadedAppId;
-
-      if (existingId) {
-        await updateLoanApplicationDetails(existingId, cleanData, 'Personal Loan', 'Created');
-        toast.success('Personal Loan Application Submitted Successfully!');
-        if (onSaved) onSaved();
-      } else {
-        await submitLoanApplication('Personal Loan', cleanData, 'Created');
-        toast.success('Personal Loan Application Created Successfully!');
-      }
-
-      queryClient.invalidateQueries(['origination', 'applications', 'list']);
+      // Submit full form data to public.loan_applications in JSON format as Created
+      await submitLoanApplication('Personal Loan', cleanData, 'Created');
+      toast.success('Personal Loan Application Created Successfully!');
       setTimeout(() => {
-        navigate('/employee/loans/origination/applications');
+        navigate('/employee/loans/origination/members');
       }, 1000);
+      resetForm({
+        applicant_name: '',
+        phone_number: '',
+        age: '',
+        gender: '',
+        marital_status: '',
+        own_house: '',
+        father_name: '',
+        mother_name: '',
+        husband_name: '',
+        aadhaar_number: '',
+        current_address: '',
+        current_street: '',
+        current_city: '',
+        current_state: '',
+        current_postal_code: '',
+        permanent_address: '',
+        permanent_street: '',
+        permanent_city: '',
+        permanent_state: '',
+        permanent_postal_code: '',
+        employment: 'Job',
+        job_name: '',
+        job_address: '',
+        job_income_per_month: '',
+        business_name: '',
+        business_address: '',
+        business_income_per_month: '',
+        has_co_applicant: 'No',
+        co_applicant_name: '',
+        co_relation_with_applicant: '',
+        co_phone_number: '',
+        co_aadhaar_number: '',
+        co_age: '',
+        co_gender: '',
+        co_marital_status: '',
+        co_father_name: '',
+        co_mother_name: '',
+        co_husband_name: '',
+        co_own_house: '',
+        co_current_address: '',
+        co_current_street: '',
+        co_current_city: '',
+        co_current_state: '',
+        co_current_postal_code: '',
+        co_permanent_address: '',
+        co_permanent_street: '',
+        co_permanent_city: '',
+        co_permanent_state: '',
+        co_permanent_postal_code: '',
+        co_employment: '',
+        co_job_name: '',
+        co_job_address: '',
+        co_job_income_per_month: '',
+        co_business_name: '',
+        co_business_address: '',
+        co_business_income_per_month: '',
+        guarantor_1_name: '', guarantor_1_phone_number: '', guarantor_1_aadhaar_number: '', guarantor_1_age: '', guarantor_1_gender: '', guarantor_1_marital_status: '', guarantor_1_father_name: '', guarantor_1_mother_name: '', guarantor_1_husband_name: '', guarantor_1_own_house: '', guarantor_1_current_address: '', guarantor_1_current_street: '', guarantor_1_current_city: '', guarantor_1_current_state: '', guarantor_1_current_postal_code: '', guarantor_1_permanent_address: '', guarantor_1_permanent_street: '', guarantor_1_permanent_city: '', guarantor_1_permanent_state: '', guarantor_1_permanent_postal_code: '', guarantor_1_employment: '', guarantor_1_job_name: '', guarantor_1_job_address: '', guarantor_1_job_income_per_month: '', guarantor_1_business_name: '', guarantor_1_business_address: '', guarantor_1_business_income_per_month: '',
+        guarantor_2_name: '', guarantor_2_phone_number: '', guarantor_2_aadhaar_number: '', guarantor_2_age: '', guarantor_2_gender: '', guarantor_2_marital_status: '', guarantor_2_father_name: '', guarantor_2_mother_name: '', guarantor_2_husband_name: '', guarantor_2_own_house: '', guarantor_2_current_address: '', guarantor_2_current_street: '', guarantor_2_current_city: '', guarantor_2_current_state: '', guarantor_2_current_postal_code: '', guarantor_2_permanent_address: '', guarantor_2_permanent_street: '', guarantor_2_permanent_city: '', guarantor_2_permanent_state: '', guarantor_2_permanent_postal_code: '', guarantor_2_employment: '', guarantor_2_job_name: '', guarantor_2_job_address: '', guarantor_2_job_income_per_month: '', guarantor_2_business_name: '', guarantor_2_business_address: '', guarantor_2_business_income_per_month: '',
+        guarantor_3_name: '', guarantor_3_phone_number: '', guarantor_3_aadhaar_number: '', guarantor_3_age: '', guarantor_3_gender: '', guarantor_3_marital_status: '', guarantor_3_father_name: '', guarantor_3_mother_name: '', guarantor_3_husband_name: '', guarantor_3_own_house: '', guarantor_3_current_address: '', guarantor_3_current_street: '', guarantor_3_current_city: '', guarantor_3_current_state: '', guarantor_3_current_postal_code: '', guarantor_3_permanent_address: '', guarantor_3_permanent_street: '', guarantor_3_permanent_city: '', guarantor_3_permanent_state: '', guarantor_3_permanent_postal_code: '', guarantor_3_employment: '', guarantor_3_job_name: '', guarantor_3_job_address: '', guarantor_3_job_income_per_month: '', guarantor_3_business_name: '', guarantor_3_business_address: '', guarantor_3_business_income_per_month: '',
+        lead_id: formData.lead_id
+      });
     } catch (err) {
       console.error('Error submitting loan application:', err);
       toast.error(err.response?.data?.error || 'Failed to submit loan application.');
@@ -554,11 +582,6 @@ export function PersonalLoanForm({ isEditMode: propEditMode, application: propAp
 
   const isReadOnly = Boolean(location.state?.readOnly || location.state?.isReadOnly || isAlreadySubmitted);
 
-  // Hide "Save Draft" when the application is already submitted (status = Created)
-  const appStatus = propApplication?.status || location.state?.application?.status || '';
-  const isCreatedApp = appStatus.toLowerCase() === 'created' || appStatus.toLowerCase() === 'under_review' || appStatus.toLowerCase() === 'approved';
-
-  // Render individual Guarantor Sub-form
   const renderGuarantorForm = (idx) => {
     const pfx = `guarantor_${idx}_`;
     const labelPfx = `Guarantor ${idx}`;
@@ -571,20 +594,20 @@ export function PersonalLoanForm({ isEditMode: propEditMode, application: propAp
     const showGHusband = gGender === 'Female' && gMarital === 'Yes';
 
     return (
-      <div key={idx} className="space-y-6 pt-1">
+      <div key={idx} className="space-y-6">
         {/* Personal Details */}
         <div>
-          <h4 className="text-xs font-bold text-[#1f1f1f] uppercase tracking-wider mb-3 flex items-center gap-1.5">
-            <User className="w-3.5 h-3.5 text-[#1a73e8]" /> {labelPfx} Personal Information
+          <h4 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+            {labelPfx} Personal Details
           </h4>
-          <FormGrid columns={3} gap={5}>
+          <FormGrid columns={3} gap={6}>
             <TextField
               name={`${pfx}name`}
-              label={`${labelPfx} Full Name`}
+              label={`${labelPfx} Name`}
               value={formData[`${pfx}name`]}
               onChange={(val) => updateField(`${pfx}name`, capitalizeWords(val))}
               required
-              placeholder={`Enter full name`}
+              placeholder={`Enter ${labelPfx.toLowerCase()} full name`}
               error={errors[`${pfx}name`]}
             />
 
@@ -703,11 +726,11 @@ export function PersonalLoanForm({ isEditMode: propEditMode, application: propAp
         </div>
 
         {/* Current Address */}
-        <div className="pt-5 border-t border-[#e0e3e7]">
-          <h4 className="text-xs font-bold text-[#1f1f1f] uppercase tracking-wider mb-3 flex items-center gap-1.5">
-            <MapPin className="w-3.5 h-3.5 text-[#1a73e8]" /> Current Address
+        <div className="pt-6 border-t border-slate-200">
+          <h4 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+            {labelPfx} Current Address
           </h4>
-          <FormGrid columns={3} gap={5}>
+          <FormGrid columns={3} gap={6}>
             <div className="col-span-1 sm:col-span-2 md:col-span-3">
               <TextField
                 name={`${pfx}current_address`}
@@ -715,7 +738,7 @@ export function PersonalLoanForm({ isEditMode: propEditMode, application: propAp
                 value={formData[`${pfx}current_address`]}
                 onChange={(val) => updateField(`${pfx}current_address`, capitalizeText(val))}
                 required
-                placeholder="Enter complete current residential address"
+                placeholder={`Enter ${labelPfx.toLowerCase()} current address`}
                 error={errors[`${pfx}current_address`]}
               />
             </div>
@@ -726,7 +749,7 @@ export function PersonalLoanForm({ isEditMode: propEditMode, application: propAp
               value={formData[`${pfx}current_street`]}
               onChange={(val) => updateField(`${pfx}current_street`, capitalizeWords(val))}
               required
-              placeholder="Enter street name"
+              placeholder="Enter street (only text)"
               error={errors[`${pfx}current_street`]}
             />
 
@@ -736,7 +759,7 @@ export function PersonalLoanForm({ isEditMode: propEditMode, application: propAp
               value={formData[`${pfx}current_city`]}
               onChange={(val) => updateField(`${pfx}current_city`, capitalizeWords(val))}
               required
-              placeholder="Enter city"
+              placeholder="Enter city (only text)"
               error={errors[`${pfx}current_city`]}
             />
 
@@ -746,7 +769,7 @@ export function PersonalLoanForm({ isEditMode: propEditMode, application: propAp
               value={formData[`${pfx}current_state`]}
               onChange={(val) => updateField(`${pfx}current_state`, capitalizeWords(val))}
               required
-              placeholder="Enter state"
+              placeholder="Enter state (only text)"
               error={errors[`${pfx}current_state`]}
             />
 
@@ -763,11 +786,28 @@ export function PersonalLoanForm({ isEditMode: propEditMode, application: propAp
         </div>
 
         {/* Permanent Address */}
-        <div className="pt-5 border-t border-[#e0e3e7]">
-          <h4 className="text-xs font-bold text-[#1f1f1f] uppercase tracking-wider mb-3 flex items-center gap-1.5">
-            <MapPin className="w-3.5 h-3.5 text-[#137333]" /> Permanent Address
-          </h4>
-          <FormGrid columns={3} gap={5}>
+        <div className="pt-6 border-t border-slate-200">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+            <h4 className="text-base font-bold text-slate-800 flex items-center gap-2">
+              {labelPfx} Permanent Address
+            </h4>
+            <button
+              type="button"
+              onClick={() => {
+                updateField(`${pfx}permanent_address`, capitalizeText(formData[`${pfx}current_address`] || ''));
+                updateField(`${pfx}permanent_street`, capitalizeWords(formData[`${pfx}current_street`] || ''));
+                updateField(`${pfx}permanent_city`, capitalizeWords(formData[`${pfx}current_city`] || ''));
+                updateField(`${pfx}permanent_state`, capitalizeWords(formData[`${pfx}current_state`] || ''));
+                updateField(`${pfx}permanent_postal_code`, formData[`${pfx}current_postal_code`] || '');
+                toast.success(`Copied ${labelPfx} Current Address to Permanent Address`);
+              }}
+              className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer text-left sm:text-right"
+            >
+              Same as {labelPfx} Current Address
+            </button>
+          </div>
+
+          <FormGrid columns={3} gap={6}>
             <div className="col-span-1 sm:col-span-2 md:col-span-3">
               <TextField
                 name={`${pfx}permanent_address`}
@@ -775,7 +815,7 @@ export function PersonalLoanForm({ isEditMode: propEditMode, application: propAp
                 value={formData[`${pfx}permanent_address`]}
                 onChange={(val) => updateField(`${pfx}permanent_address`, capitalizeText(val))}
                 required
-                placeholder="Enter permanent address"
+                placeholder={`Enter ${labelPfx.toLowerCase()} permanent address`}
                 error={errors[`${pfx}permanent_address`]}
               />
             </div>
@@ -786,7 +826,7 @@ export function PersonalLoanForm({ isEditMode: propEditMode, application: propAp
               value={formData[`${pfx}permanent_street`]}
               onChange={(val) => updateField(`${pfx}permanent_street`, capitalizeWords(val))}
               required
-              placeholder="Enter street name"
+              placeholder="Enter street (only text)"
               error={errors[`${pfx}permanent_street`]}
             />
 
@@ -796,7 +836,7 @@ export function PersonalLoanForm({ isEditMode: propEditMode, application: propAp
               value={formData[`${pfx}permanent_city`]}
               onChange={(val) => updateField(`${pfx}permanent_city`, capitalizeWords(val))}
               required
-              placeholder="Enter city"
+              placeholder="Enter city (only text)"
               error={errors[`${pfx}permanent_city`]}
             />
 
@@ -806,7 +846,7 @@ export function PersonalLoanForm({ isEditMode: propEditMode, application: propAp
               value={formData[`${pfx}permanent_state`]}
               onChange={(val) => updateField(`${pfx}permanent_state`, capitalizeWords(val))}
               required
-              placeholder="Enter state"
+              placeholder="Enter state (only text)"
               error={errors[`${pfx}permanent_state`]}
             />
 
@@ -822,21 +862,21 @@ export function PersonalLoanForm({ isEditMode: propEditMode, application: propAp
           </FormGrid>
         </div>
 
-        {/* Employment & Income */}
-        <div className="pt-5 border-t border-[#e0e3e7]">
-          <h4 className="text-xs font-bold text-[#1f1f1f] uppercase tracking-wider mb-3 flex items-center gap-1.5">
-            <Briefcase className="w-3.5 h-3.5 text-[#8430ce]" /> Employment & Income
+        {/* Employment Details */}
+        <div className="pt-6 border-t border-slate-200">
+          <h4 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+            {labelPfx} Employment Details
           </h4>
           <div className="mb-4">
             <RadioGroup
               name={`${pfx}employment`}
-              label="Employment Type"
+              label="Employment"
               value={formData[`${pfx}employment`]}
               onChange={(val) => updateField(`${pfx}employment`, val)}
               required
               direction="horizontal"
               options={[
-                { label: 'Salaried / Job', value: 'Job' },
+                { label: 'Job', value: 'Job' },
                 { label: 'Business', value: 'Business' }
               ]}
               error={errors[`${pfx}employment`]}
@@ -844,20 +884,20 @@ export function PersonalLoanForm({ isEditMode: propEditMode, application: propAp
           </div>
 
           {gEmp === 'Job' && (
-            <FormGrid columns={3} gap={5}>
+            <FormGrid columns={3} gap={6}>
               <TextField
                 name={`${pfx}job_name`}
-                label="Company / Employer Name"
+                label="Job Name"
                 value={formData[`${pfx}job_name`]}
                 onChange={(val) => updateField(`${pfx}job_name`, capitalizeWords(val))}
                 required
-                placeholder="Enter workplace name"
+                placeholder="Enter job / employer name (only text)"
                 error={errors[`${pfx}job_name`]}
               />
 
               <TextField
                 name={`${pfx}job_address`}
-                label="Workplace Address"
+                label="Job Address"
                 value={formData[`${pfx}job_address`]}
                 onChange={(val) => updateField(`${pfx}job_address`, capitalizeText(val))}
                 required
@@ -867,7 +907,7 @@ export function PersonalLoanForm({ isEditMode: propEditMode, application: propAp
 
               <NumberField
                 name={`${pfx}job_income_per_month`}
-                label="Monthly Net Income (₹)"
+                label="Job Income Per Month"
                 value={formData[`${pfx}job_income_per_month`]}
                 onChange={(val) => updateField(`${pfx}job_income_per_month`, val)}
                 required
@@ -878,14 +918,14 @@ export function PersonalLoanForm({ isEditMode: propEditMode, application: propAp
           )}
 
           {gEmp === 'Business' && (
-            <FormGrid columns={3} gap={5}>
+            <FormGrid columns={3} gap={6}>
               <TextField
                 name={`${pfx}business_name`}
-                label="Business Enterprise Name"
+                label="Business Name"
                 value={formData[`${pfx}business_name`]}
                 onChange={(val) => updateField(`${pfx}business_name`, capitalizeWords(val))}
                 required
-                placeholder="Enter business name"
+                placeholder="Enter business name (only text)"
                 error={errors[`${pfx}business_name`]}
               />
 
@@ -901,7 +941,7 @@ export function PersonalLoanForm({ isEditMode: propEditMode, application: propAp
 
               <NumberField
                 name={`${pfx}business_income_per_month`}
-                label="Monthly Business Income (₹)"
+                label="Business Income Per Month"
                 value={formData[`${pfx}business_income_per_month`]}
                 onChange={(val) => updateField(`${pfx}business_income_per_month`, val)}
                 required
@@ -916,945 +956,865 @@ export function PersonalLoanForm({ isEditMode: propEditMode, application: propAp
   };
 
   return (
-    <div className="space-y-6">
-      {/* Stepper Navigation Header */}
-      <div className="bg-white rounded-2xl border border-[#e0e3e7] p-4 shadow-xs">
-        <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#1a73e8]" />
-            <span className="text-xs font-semibold text-[#1f1f1f]">
-              Section {activeStep} of 5: <span className="text-[#1a73e8]">{steps[activeStep - 1]?.title}</span>
-            </span>
-          </div>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Personal Details Section */}
+      <div>
+        <h3 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+          Personal Details
+        </h3>
+        <FormGrid columns={3} gap={6}>
+        <TextField
+          name="applicant_name"
+          label="Applicant Name"
+          value={formData.applicant_name}
+          onChange={(val) => updateField('applicant_name', capitalizeWords(val))}
+          required
+          placeholder="Enter applicant full name"
+          error={errors.applicant_name}
+        />
 
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setViewAllSections(!viewAllSections)}
-              className="px-3 py-1 text-xs font-semibold text-[#5f6368] hover:text-[#1f1f1f] bg-[#f8fafd] hover:bg-[#f1f3f4] border border-[#dadce0] rounded-full transition-all cursor-pointer"
-            >
-              {viewAllSections ? 'Step by Step Mode' : 'View All Sections'}
-            </button>
-          </div>
-        </div>
+        <PhoneField
+          name="phone_number"
+          label="Phone Number"
+          value={formData.phone_number}
+          onChange={(val) => updateField('phone_number', val)}
+          required
+          placeholder="Enter 10-digit mobile number"
+          error={errors.phone_number}
+        />
 
-        {/* Stepper Tabs Bar */}
-        <div className="flex overflow-x-auto gap-2 pb-1 hide-scrollbar sm:grid sm:grid-cols-3 lg:grid-cols-5">
-          {steps.map((step) => {
-            const isActive = activeStep === step.id && !viewAllSections;
+        <AadhaarField
+          name="aadhaar_number"
+          label="Aadhaar Number"
+          value={formData.aadhaar_number}
+          onChange={(val) => updateField('aadhaar_number', val)}
+          required
+          placeholder="1234 5678 9012"
+          error={errors.aadhaar_number}
+        />
 
-            return (
-              <button
-                key={step.id}
-                type="button"
-                onClick={() => {
-                  setActiveStep(step.id);
-                  setViewAllSections(false);
-                }}
-                className={`flex items-center gap-2 p-2.5 rounded-xl border text-left transition-all cursor-pointer shrink-0 sm:shrink min-w-[130px] sm:min-w-0 ${
-                  isActive
-                    ? 'bg-[#e8f0fe] border-[#1a73e8] text-[#1a73e8] shadow-2xs font-semibold'
-                    : 'bg-[#f8fafd] border-[#dadce0] text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4]'
-                }`}
-              >
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
-                  isActive
-                    ? 'bg-[#1a73e8] text-white'
-                    : 'bg-white border border-[#dadce0] text-[#5f6368]'
-                }`}>
-                  {step.id}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[11px] font-semibold truncate leading-tight">
-                    {step.title}
-                  </p>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
+        <NumberField
+          name="age"
+          label="Age"
+          value={formData.age}
+          onChange={(val) => updateField('age', val)}
+          required
+          min={18}
+          max={60}
+          maxLength={2}
+          placeholder="e.g. 35"
+          error={errors.age}
+        />
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* SECTION 1: APPLICANT PERSONAL DETAILS */}
-        {(viewAllSections || activeStep === 1) && (
-          <div className="bg-white rounded-2xl border border-[#e0e3e7] shadow-xs p-6 space-y-5">
-            <div className="border-b border-[#e0e3e7] pb-3 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-xl bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
-                  <User className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-[#1f1f1f]">1. Applicant Personal Information</h3>
-                  <p className="text-[11px] text-[#5f6368]">Primary borrower KYC identity and demographic profile</p>
-                </div>
-              </div>
-              <span className="text-[10.5px] font-semibold text-[#1a73e8] bg-[#e8f0fe] px-2.5 py-0.5 rounded-full border border-[#d2e3fc]">
-                Required Section
-              </span>
-            </div>
+        <SelectField
+          name="gender"
+          label="Gender"
+          value={formData.gender}
+          onChange={(val) => updateField('gender', val)}
+          required
+          placeholder="Select gender"
+          options={[
+            { label: 'Male', value: 'Male' },
+            { label: 'Female', value: 'Female' },
+            { label: 'Other', value: 'Other' }
+          ]}
+          error={errors.gender}
+        />
 
-            <FormGrid columns={3} gap={5}>
-              <TextField
-                name="applicant_name"
-                label="Applicant Full Name"
-                value={formData.applicant_name}
-                onChange={(val) => updateField('applicant_name', capitalizeWords(val))}
-                required
-                placeholder="Enter applicant full name"
-                error={errors.applicant_name}
-              />
+        <RadioGroup
+          name="marital_status"
+          label="Marital Status"
+          value={formData.marital_status}
+          onChange={(val) => updateField('marital_status', val)}
+          required
+          direction="horizontal"
+          options={[
+            { label: 'Yes', value: 'Yes' },
+            { label: 'No', value: 'No' }
+          ]}
+          error={errors.marital_status}
+        />
 
-              <PhoneField
-                name="phone_number"
-                label="Phone Number"
-                value={formData.phone_number}
-                onChange={(val) => updateField('phone_number', val)}
-                required
-                placeholder="Enter 10-digit mobile number"
-                error={errors.phone_number}
-              />
 
-              <AadhaarField
-                name="aadhaar_number"
-                label="Aadhaar Number"
-                value={formData.aadhaar_number}
-                onChange={(val) => updateField('aadhaar_number', val)}
-                required
-                placeholder="1234 5678 9012"
-                error={errors.aadhaar_number}
-              />
 
-              <NumberField
-                name="age"
-                label="Age"
-                value={formData.age}
-                onChange={(val) => updateField('age', val)}
-                required
-                min={18}
-                max={60}
-                maxLength={2}
-                placeholder="e.g. 35"
-                error={errors.age}
-              />
+        {showParents && (
+          <>
+            <TextField
+              name="father_name"
+              label="Father Name"
+              value={formData.father_name}
+              onChange={(val) => updateField('father_name', capitalizeWords(val))}
+              required
+              placeholder="Enter father full name"
+              error={errors.father_name}
+            />
 
-              <SelectField
-                name="gender"
-                label="Gender"
-                value={formData.gender}
-                onChange={(val) => updateField('gender', val)}
-                required
-                placeholder="Select gender"
-                options={[
-                  { label: 'Male', value: 'Male' },
-                  { label: 'Female', value: 'Female' },
-                  { label: 'Other', value: 'Other' }
-                ]}
-                error={errors.gender}
-              />
-
-              <RadioGroup
-                name="marital_status"
-                label="Marital Status"
-                value={formData.marital_status}
-                onChange={(val) => updateField('marital_status', val)}
-                required
-                direction="horizontal"
-                options={[
-                  { label: 'Yes', value: 'Yes' },
-                  { label: 'No', value: 'No' }
-                ]}
-                error={errors.marital_status}
-              />
-
-              {showParents && (
-                <>
-                  <TextField
-                    name="father_name"
-                    label="Father Name"
-                    value={formData.father_name}
-                    onChange={(val) => updateField('father_name', capitalizeWords(val))}
-                    required
-                    placeholder="Enter father full name"
-                    error={errors.father_name}
-                  />
-
-                  <TextField
-                    name="mother_name"
-                    label="Mother Name"
-                    value={formData.mother_name}
-                    onChange={(val) => updateField('mother_name', capitalizeWords(val))}
-                    required
-                    placeholder="Enter mother full name"
-                    error={errors.mother_name}
-                  />
-                </>
-              )}
-
-              {showHusband && (
-                <TextField
-                  name="husband_name"
-                  label="Husband Name"
-                  value={formData.husband_name}
-                  onChange={(val) => updateField('husband_name', capitalizeWords(val))}
-                  required
-                  placeholder="Enter husband full name"
-                  error={errors.husband_name}
-                />
-              )}
-
-              <RadioGroup
-                name="own_house"
-                label="Own House"
-                value={formData.own_house}
-                onChange={(val) => updateField('own_house', val)}
-                required
-                direction="horizontal"
-                options={[
-                  { label: 'Yes', value: 'Yes' },
-                  { label: 'No', value: 'No' }
-                ]}
-                error={errors.own_house}
-              />
-            </FormGrid>
-
-          </div>
+            <TextField
+              name="mother_name"
+              label="Mother Name"
+              value={formData.mother_name}
+              onChange={(val) => updateField('mother_name', capitalizeWords(val))}
+              required
+              placeholder="Enter mother full name"
+              error={errors.mother_name}
+            />
+          </>
         )}
 
-        {/* SECTION 2: RESIDENTIAL ADDRESSES */}
-        {(viewAllSections || activeStep === 2) && (
-          <div className="bg-white rounded-2xl border border-[#e0e3e7] shadow-xs p-6 space-y-6">
-            <div className="border-b border-[#e0e3e7] pb-3 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-xl bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
-                  <MapPin className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-[#1f1f1f]">2. Residential Addresses</h3>
-                  <p className="text-[11px] text-[#5f6368]">Current staying and permanent address verification</p>
-                </div>
-              </div>
-            </div>
 
-            {/* Current Address */}
-            <div className="space-y-4">
-              <h4 className="text-xs font-bold text-[#1f1f1f] uppercase tracking-wider flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-[#1a73e8]" /> Current Residential Address
+        {showHusband && (
+          <TextField
+            name="husband_name"
+            label="Husband Name"
+            value={formData.husband_name}
+            onChange={(val) => updateField('husband_name', capitalizeWords(val))}
+            required
+            placeholder="Enter husband full name"
+            error={errors.husband_name}
+          />
+        )}
+
+        <RadioGroup
+          name="own_house"
+          label="Own House"
+          value={formData.own_house}
+          onChange={(val) => updateField('own_house', val)}
+          required
+          direction="horizontal"
+          options={[
+            { label: 'Yes', value: 'Yes' },
+            { label: 'No', value: 'No' }
+          ]}
+          error={errors.own_house}
+        />
+      </FormGrid>
+      </div>
+
+      {/* Current Address Section */}
+      <div className="pt-6 border-t border-slate-200">
+        <h3 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+          Current Address
+        </h3>
+        <FormGrid columns={3} gap={6}>
+          <div className="col-span-1 sm:col-span-2 md:col-span-3">
+            <TextField
+              name="current_address"
+              label="Current Address"
+              value={formData.current_address}
+              onChange={(val) => updateField('current_address', capitalizeText(val))}
+              required
+              placeholder="Enter current address (accepts letters, numbers, special characters)"
+              error={errors.current_address}
+            />
+          </div>
+
+          <TextField
+            name="current_street"
+            label="Street"
+            value={formData.current_street}
+            onChange={(val) => updateField('current_street', capitalizeWords(val))}
+            required
+            placeholder="Enter street name (only text)"
+            error={errors.current_street}
+          />
+
+          <TextField
+            name="current_city"
+            label="City"
+            value={formData.current_city}
+            onChange={(val) => updateField('current_city', capitalizeWords(val))}
+            required
+            placeholder="Enter city (only text)"
+            error={errors.current_city}
+          />
+
+          <TextField
+            name="current_state"
+            label="State"
+            value={formData.current_state}
+            onChange={(val) => updateField('current_state', capitalizeWords(val))}
+            required
+            placeholder="Enter state (only text)"
+            error={errors.current_state}
+          />
+
+          <TextField
+            name="current_postal_code"
+            label="Postal Code"
+            value={formData.current_postal_code}
+            onChange={(val) => updateField('current_postal_code', val.replace(/\D/g, '').slice(0, 6))}
+            required
+            placeholder="Enter 6-digit postal code"
+            error={errors.current_postal_code}
+          />
+        </FormGrid>
+      </div>
+
+      {/* Permanent Address Section */}
+      <div className="pt-6 border-t border-slate-200">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
+            Permanent Address
+          </h3>
+          <button
+            type="button"
+            onClick={() => {
+              updateField('permanent_address', capitalizeText(formData.current_address || ''));
+              updateField('permanent_street', capitalizeWords(formData.current_street || ''));
+              updateField('permanent_city', capitalizeWords(formData.current_city || ''));
+              updateField('permanent_state', capitalizeWords(formData.current_state || ''));
+              updateField('permanent_postal_code', formData.current_postal_code || '');
+              toast.success('Copied Current Address to Permanent Address');
+            }}
+            className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer"
+          >
+            Same as Current Address
+          </button>
+        </div>
+
+        <FormGrid columns={3} gap={6}>
+          <div className="col-span-1 sm:col-span-2 md:col-span-3">
+            <TextField
+              name="permanent_address"
+              label="Permanent Address"
+              value={formData.permanent_address}
+              onChange={(val) => updateField('permanent_address', capitalizeText(val))}
+              required
+              placeholder="Enter permanent address (accepts letters, numbers, special characters)"
+              error={errors.permanent_address}
+            />
+          </div>
+
+          <TextField
+            name="permanent_street"
+            label="Street"
+            value={formData.permanent_street}
+            onChange={(val) => updateField('permanent_street', capitalizeWords(val))}
+            required
+            placeholder="Enter street name (only text)"
+            error={errors.permanent_street}
+          />
+
+          <TextField
+            name="permanent_city"
+            label="City"
+            value={formData.permanent_city}
+            onChange={(val) => updateField('permanent_city', capitalizeWords(val))}
+            required
+            placeholder="Enter city (only text)"
+            error={errors.permanent_city}
+          />
+
+          <TextField
+            name="permanent_state"
+            label="State"
+            value={formData.permanent_state}
+            onChange={(val) => updateField('permanent_state', capitalizeWords(val))}
+            required
+            placeholder="Enter state (only text)"
+            error={errors.permanent_state}
+          />
+
+          <TextField
+            name="permanent_postal_code"
+            label="Postal Code"
+            value={formData.permanent_postal_code}
+            onChange={(val) => updateField('permanent_postal_code', val.replace(/\D/g, '').slice(0, 6))}
+            required
+            placeholder="Enter 6-digit postal code"
+            error={errors.permanent_postal_code}
+          />
+        </FormGrid>
+      </div>
+
+      {/* Employment Details Section */}
+      <div className="pt-6 border-t border-slate-200">
+        <h3 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+          Employment Details
+        </h3>
+        <div className="mb-6">
+          <RadioGroup
+            name="employment"
+            label="Employment"
+            value={formData.employment || 'Job'}
+            onChange={(val) => {
+              if (val !== 'Business') {
+                updateField('employment', val);
+              }
+            }}
+            required
+            direction="horizontal"
+            options={[
+              { label: 'Job', value: 'Job' },
+              { label: 'Business', value: 'Business', disabled: true }
+            ]}
+            error={errors.employment}
+          />
+        </div>
+
+        {formData.employment === 'Job' && (
+          <FormGrid columns={3} gap={6}>
+            <TextField
+              name="job_name"
+              label="Job Name"
+              value={formData.job_name}
+              onChange={(val) => updateField('job_name', capitalizeWords(val))}
+              required
+              placeholder="Enter job / employer name (only text)"
+              error={errors.job_name}
+            />
+
+            <TextField
+              name="job_address"
+              label="Job Address"
+              value={formData.job_address}
+              onChange={(val) => updateField('job_address', capitalizeText(val))}
+              required
+              placeholder="Enter workplace address"
+              error={errors.job_address}
+            />
+
+            <NumberField
+              name="job_income_per_month"
+              label="Job Income Per Month"
+              value={formData.job_income_per_month}
+              onChange={(val) => updateField('job_income_per_month', val)}
+              required
+              placeholder="e.g. 45000"
+              error={errors.job_income_per_month}
+            />
+          </FormGrid>
+        )}
+
+        {formData.employment === 'Business' && (
+          <FormGrid columns={3} gap={6}>
+            <TextField
+              name="business_name"
+              label="Business Name"
+              value={formData.business_name}
+              onChange={(val) => updateField('business_name', capitalizeWords(val))}
+              required
+              placeholder="Enter business name (only text)"
+              error={errors.business_name}
+            />
+
+            <TextField
+              name="business_address"
+              label="Business Address"
+              value={formData.business_address}
+              onChange={(val) => updateField('business_address', capitalizeText(val))}
+              required
+              placeholder="Enter business address"
+              error={errors.business_address}
+            />
+
+            <NumberField
+              name="business_income_per_month"
+              label="Business Income Per Month"
+              value={formData.business_income_per_month}
+              onChange={(val) => updateField('business_income_per_month', val)}
+              required
+              placeholder="e.g. 75000"
+              error={errors.business_income_per_month}
+            />
+          </FormGrid>
+        )}
+      </div>
+
+      {/* Co-Applicant Section */}
+      <div className="pt-6 border-t border-slate-200">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
+            Co-Applicant Details
+          </h3>
+        </div>
+
+        <div className="mb-6">
+          <RadioGroup
+            name="has_co_applicant"
+            label="Do you want to add a Co-Applicant?"
+            value={formData.has_co_applicant}
+            onChange={(val) => updateField('has_co_applicant', val)}
+            required
+            direction="horizontal"
+            options={[
+              { label: 'Yes', value: 'Yes' },
+              { label: 'No', value: 'No' }
+            ]}
+            error={errors.has_co_applicant}
+          />
+        </div>
+
+        {formData.has_co_applicant === 'Yes' && (
+          <div className="space-y-6 pt-4 border-t border-slate-200">
+            {/* Co-Applicant Personal Details */}
+            <div>
+              <h4 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+                Co-Applicant Personal Details
               </h4>
-              <FormGrid columns={3} gap={5}>
-                <div className="col-span-1 sm:col-span-2 md:col-span-3">
+              <FormGrid columns={3} gap={6}>
+                <TextField
+                  name="co_applicant_name"
+                  label="Co-Applicant Name"
+                  value={formData.co_applicant_name}
+                  onChange={(val) => updateField('co_applicant_name', capitalizeWords(val))}
+                  required
+                  placeholder="Enter co-applicant full name"
+                  error={errors.co_applicant_name}
+                />
+
+                <TextField
+                  name="co_relation_with_applicant"
+                  label="Relation with Applicant"
+                  value={formData.co_relation_with_applicant}
+                  onChange={(val) => updateField('co_relation_with_applicant', capitalizeWords(val))}
+                  required
+                  placeholder="e.g. Spouse, Father, Partner"
+                  error={errors.co_relation_with_applicant}
+                />
+
+                <PhoneField
+                  name="co_phone_number"
+                  label="Phone Number"
+                  value={formData.co_phone_number}
+                  onChange={(val) => updateField('co_phone_number', val)}
+                  required
+                  placeholder="Enter 10-digit mobile number"
+                  error={errors.co_phone_number}
+                />
+
+                <AadhaarField
+                  name="co_aadhaar_number"
+                  label="Aadhaar Number"
+                  value={formData.co_aadhaar_number}
+                  onChange={(val) => updateField('co_aadhaar_number', val)}
+                  required
+                  placeholder="1234 5678 9012"
+                  error={errors.co_aadhaar_number}
+                />
+
+                <NumberField
+                  name="co_age"
+                  label="Age"
+                  value={formData.co_age}
+                  onChange={(val) => updateField('co_age', val)}
+                  required
+                  min={18}
+                  max={60}
+                  maxLength={2}
+                  placeholder="e.g. 35"
+                  error={errors.co_age}
+                />
+
+                <SelectField
+                  name="co_gender"
+                  label="Gender"
+                  value={formData.co_gender}
+                  onChange={(val) => updateField('co_gender', val)}
+                  required
+                  placeholder="Select gender"
+                  options={[
+                    { label: 'Male', value: 'Male' },
+                    { label: 'Female', value: 'Female' },
+                    { label: 'Other', value: 'Other' }
+                  ]}
+                  error={errors.co_gender}
+                />
+
+                <RadioGroup
+                  name="co_marital_status"
+                  label="Marital Status"
+                  value={formData.co_marital_status}
+                  onChange={(val) => updateField('co_marital_status', val)}
+                  required
+                  direction="horizontal"
+                  options={[
+                    { label: 'Yes', value: 'Yes' },
+                    { label: 'No', value: 'No' }
+                  ]}
+                  error={errors.co_marital_status}
+                />
+
+                {showCoParents && (
+                  <>
+                    <TextField
+                      name="co_father_name"
+                      label="Father Name"
+                      value={formData.co_father_name}
+                      onChange={(val) => updateField('co_father_name', capitalizeWords(val))}
+                      required
+                      placeholder="Enter father full name"
+                      error={errors.co_father_name}
+                    />
+
+                    <TextField
+                      name="co_mother_name"
+                      label="Mother Name"
+                      value={formData.co_mother_name}
+                      onChange={(val) => updateField('co_mother_name', capitalizeWords(val))}
+                      required
+                      placeholder="Enter mother full name"
+                      error={errors.co_mother_name}
+                    />
+                  </>
+                )}
+
+                {showCoHusband && (
                   <TextField
-                    name="current_address"
-                    label="Current Address"
-                    value={formData.current_address}
-                    onChange={(val) => updateField('current_address', capitalizeText(val))}
+                    name="co_husband_name"
+                    label="Husband Name"
+                    value={formData.co_husband_name}
+                    onChange={(val) => updateField('co_husband_name', capitalizeWords(val))}
                     required
-                    placeholder="Enter complete current residential address"
-                    error={errors.current_address}
+                    placeholder="Enter husband full name"
+                    error={errors.co_husband_name}
                   />
-                </div>
+                )}
 
-                <TextField
-                  name="current_street"
-                  label="Street"
-                  value={formData.current_street}
-                  onChange={(val) => updateField('current_street', capitalizeWords(val))}
+                <RadioGroup
+                  name="co_own_house"
+                  label="Own House"
+                  value={formData.co_own_house}
+                  onChange={(val) => updateField('co_own_house', val)}
                   required
-                  placeholder="Enter street name"
-                  error={errors.current_street}
-                />
-
-                <TextField
-                  name="current_city"
-                  label="City"
-                  value={formData.current_city}
-                  onChange={(val) => updateField('current_city', capitalizeWords(val))}
-                  required
-                  placeholder="Enter city"
-                  error={errors.current_city}
-                />
-
-                <TextField
-                  name="current_state"
-                  label="State"
-                  value={formData.current_state}
-                  onChange={(val) => updateField('current_state', capitalizeWords(val))}
-                  required
-                  placeholder="Enter state"
-                  error={errors.current_state}
-                />
-
-                <TextField
-                  name="current_postal_code"
-                  label="Postal Code"
-                  value={formData.current_postal_code}
-                  onChange={(val) => updateField('current_postal_code', val.replace(/\D/g, '').slice(0, 6))}
-                  required
-                  placeholder="Enter 6-digit postal code"
-                  error={errors.current_postal_code}
+                  direction="horizontal"
+                  options={[
+                    { label: 'Yes', value: 'Yes' },
+                    { label: 'No', value: 'No' }
+                  ]}
+                  error={errors.co_own_house}
                 />
               </FormGrid>
             </div>
 
-            {/* Permanent Address */}
-            <div className="space-y-4 pt-5 border-t border-[#e0e3e7]">
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <h4 className="text-xs font-bold text-[#1f1f1f] uppercase tracking-wider flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-[#137333]" /> Permanent Address
-                </h4>
+            {/* Co-Applicant Current Address */}
+            <div className="pt-6 border-t border-slate-200">
+              <h4 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+                Co-Applicant Current Address
+              </h4>
+              <FormGrid columns={3} gap={6}>
+                <div className="col-span-1 sm:col-span-2 md:col-span-3">
+                  <TextField
+                    name="co_current_address"
+                    label="Current Address"
+                    value={formData.co_current_address}
+                    onChange={(val) => updateField('co_current_address', capitalizeText(val))}
+                    required
+                    placeholder="Enter co-applicant current address"
+                    error={errors.co_current_address}
+                  />
+                </div>
 
+                <TextField
+                  name="co_current_street"
+                  label="Street"
+                  value={formData.co_current_street}
+                  onChange={(val) => updateField('co_current_street', capitalizeWords(val))}
+                  required
+                  placeholder="Enter street (only text)"
+                  error={errors.co_current_street}
+                />
+
+                <TextField
+                  name="co_current_city"
+                  label="City"
+                  value={formData.co_current_city}
+                  onChange={(val) => updateField('co_current_city', capitalizeWords(val))}
+                  required
+                  placeholder="Enter city (only text)"
+                  error={errors.co_current_city}
+                />
+
+                <TextField
+                  name="co_current_state"
+                  label="State"
+                  value={formData.co_current_state}
+                  onChange={(val) => updateField('co_current_state', capitalizeWords(val))}
+                  required
+                  placeholder="Enter state (only text)"
+                  error={errors.co_current_state}
+                />
+
+                <TextField
+                  name="co_current_postal_code"
+                  label="Postal Code"
+                  value={formData.co_current_postal_code}
+                  onChange={(val) => updateField('co_current_postal_code', val.replace(/\D/g, '').slice(0, 6))}
+                  required
+                  placeholder="Enter 6-digit postal code"
+                  error={errors.co_current_postal_code}
+                />
+              </FormGrid>
+            </div>
+
+            {/* Co-Applicant Permanent Address */}
+            <div className="pt-6 border-t border-slate-200">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="text-base font-bold text-slate-800 flex items-center gap-2">
+                  Co-Applicant Permanent Address
+                </h4>
                 <button
                   type="button"
-                  onClick={handleCopyCurrentToPermanent}
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-[#1a73e8] hover:text-[#1557b0] bg-[#e8f0fe] hover:bg-[#d2e3fc] px-3 py-1 rounded-full transition-colors cursor-pointer"
+                  onClick={() => {
+                    updateField('co_permanent_address', capitalizeText(formData.co_current_address || ''));
+                    updateField('co_permanent_street', capitalizeWords(formData.co_current_street || ''));
+                    updateField('co_permanent_city', capitalizeWords(formData.co_current_city || ''));
+                    updateField('co_permanent_state', capitalizeWords(formData.co_current_state || ''));
+                    updateField('co_permanent_postal_code', formData.co_current_postal_code || '');
+                    toast.success('Copied Co-Applicant Current Address to Permanent Address');
+                  }}
+                  className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline cursor-pointer"
                 >
-                  <Copy size={12} />
-                  <span>Same as Current Address</span>
+                  Same as Co-Applicant Current Address
                 </button>
               </div>
 
-              <FormGrid columns={3} gap={5}>
+              <FormGrid columns={3} gap={6}>
                 <div className="col-span-1 sm:col-span-2 md:col-span-3">
                   <TextField
-                    name="permanent_address"
+                    name="co_permanent_address"
                     label="Permanent Address"
-                    value={formData.permanent_address}
-                    onChange={(val) => updateField('permanent_address', capitalizeText(val))}
+                    value={formData.co_permanent_address}
+                    onChange={(val) => updateField('co_permanent_address', capitalizeText(val))}
                     required
-                    placeholder="Enter complete permanent residential address"
-                    error={errors.permanent_address}
+                    placeholder="Enter co-applicant permanent address"
+                    error={errors.co_permanent_address}
                   />
                 </div>
 
                 <TextField
-                  name="permanent_street"
+                  name="co_permanent_street"
                   label="Street"
-                  value={formData.permanent_street}
-                  onChange={(val) => updateField('permanent_street', capitalizeWords(val))}
+                  value={formData.co_permanent_street}
+                  onChange={(val) => updateField('co_permanent_street', capitalizeWords(val))}
                   required
-                  placeholder="Enter street name"
-                  error={errors.permanent_street}
+                  placeholder="Enter street (only text)"
+                  error={errors.co_permanent_street}
                 />
 
                 <TextField
-                  name="permanent_city"
+                  name="co_permanent_city"
                   label="City"
-                  value={formData.permanent_city}
-                  onChange={(val) => updateField('permanent_city', capitalizeWords(val))}
+                  value={formData.co_permanent_city}
+                  onChange={(val) => updateField('co_permanent_city', capitalizeWords(val))}
                   required
-                  placeholder="Enter city"
-                  error={errors.permanent_city}
+                  placeholder="Enter city (only text)"
+                  error={errors.co_permanent_city}
                 />
 
                 <TextField
-                  name="permanent_state"
+                  name="co_permanent_state"
                   label="State"
-                  value={formData.permanent_state}
-                  onChange={(val) => updateField('permanent_state', capitalizeWords(val))}
+                  value={formData.co_permanent_state}
+                  onChange={(val) => updateField('co_permanent_state', capitalizeWords(val))}
                   required
-                  placeholder="Enter state"
-                  error={errors.permanent_state}
+                  placeholder="Enter state (only text)"
+                  error={errors.co_permanent_state}
                 />
 
                 <TextField
-                  name="permanent_postal_code"
+                  name="co_permanent_postal_code"
                   label="Postal Code"
-                  value={formData.permanent_postal_code}
-                  onChange={(val) => updateField('permanent_postal_code', val.replace(/\D/g, '').slice(0, 6))}
+                  value={formData.co_permanent_postal_code}
+                  onChange={(val) => updateField('co_permanent_postal_code', val.replace(/\D/g, '').slice(0, 6))}
                   required
                   placeholder="Enter 6-digit postal code"
-                  error={errors.permanent_postal_code}
+                  error={errors.co_permanent_postal_code}
                 />
               </FormGrid>
             </div>
 
-          </div>
-        )}
-
-        {/* SECTION 3: EMPLOYMENT & INCOME */}
-        {(viewAllSections || activeStep === 3) && (
-          <div className="bg-white rounded-2xl border border-[#e0e3e7] shadow-xs p-6 space-y-5">
-            <div className="border-b border-[#e0e3e7] pb-3 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-xl bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
-                  <Briefcase className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-[#1f1f1f]">3. Employment & Income Profile</h3>
-                  <p className="text-[11px] text-[#5f6368]">Salaried or business occupation and monthly net income</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="mb-4">
-              <RadioGroup
-                name="employment"
-                label="Employment"
-                value={formData.employment || 'Job'}
-                onChange={(val) => {
-                  if (val !== 'Business') {
-                    updateField('employment', val);
-                  }
-                }}
-                required
-                direction="horizontal"
-                options={[
-                  { label: 'Job', value: 'Job' },
-                  { label: 'Business', value: 'Business', disabled: true }
-                ]}
-                error={errors.employment}
-              />
-            </div>
-
-            {formData.employment === 'Job' && (
-              <FormGrid columns={3} gap={5}>
-                <TextField
-                  name="job_name"
-                  label="Company / Employer Name"
-                  value={formData.job_name}
-                  onChange={(val) => updateField('job_name', capitalizeWords(val))}
-                  required
-                  placeholder="Enter company name"
-                  error={errors.job_name}
-                />
-
-                <TextField
-                  name="job_address"
-                  label="Workplace Address"
-                  value={formData.job_address}
-                  onChange={(val) => updateField('job_address', capitalizeText(val))}
-                  required
-                  placeholder="Enter workplace address"
-                  error={errors.job_address}
-                />
-
-                <NumberField
-                  name="job_income_per_month"
-                  label="Monthly Net Income (₹)"
-                  value={formData.job_income_per_month}
-                  onChange={(val) => updateField('job_income_per_month', val)}
-                  required
-                  placeholder="e.g. 45000"
-                  error={errors.job_income_per_month}
-                />
-              </FormGrid>
-            )}
-
-            {formData.employment === 'Business' && (
-              <FormGrid columns={3} gap={5}>
-                <TextField
-                  name="business_name"
-                  label="Business Enterprise Name"
-                  value={formData.business_name}
-                  onChange={(val) => updateField('business_name', capitalizeWords(val))}
-                  required
-                  placeholder="Enter registered business name"
-                  error={errors.business_name}
-                />
-
-                <TextField
-                  name="business_address"
-                  label="Business Establishment Address"
-                  value={formData.business_address}
-                  onChange={(val) => updateField('business_address', capitalizeText(val))}
-                  required
-                  placeholder="Enter business location address"
-                  error={errors.business_address}
-                />
-
-                <NumberField
-                  name="business_income_per_month"
-                  label="Monthly Business Income (₹)"
-                  value={formData.business_income_per_month}
-                  onChange={(val) => updateField('business_income_per_month', val)}
-                  required
-                  placeholder="e.g. 75000"
-                  error={errors.business_income_per_month}
-                />
-              </FormGrid>
-            )}
-
-          </div>
-        )}
-
-        {/* SECTION 4: CO-APPLICANT PROFILE */}
-        {(viewAllSections || activeStep === 4) && (
-          <div className="bg-white rounded-2xl border border-[#e0e3e7] shadow-xs p-6 space-y-5">
-            <div className="border-b border-[#e0e3e7] pb-3 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-xl bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
-                  <Users className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-[#1f1f1f]">4. Co-Applicant Information</h3>
-                  <p className="text-[11px] text-[#5f6368]">Add joint borrower or co-applicant to strengthen eligibility</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
+            {/* Co-Applicant Employment Details */}
+            <div className="pt-6 border-t border-slate-200">
+              <h4 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+                Co-Applicant Employment Details
+              </h4>
+              <div className="mb-4">
                 <RadioGroup
-                  name="has_co_applicant"
-                  label=""
-                  value={formData.has_co_applicant}
-                  onChange={(val) => updateField('has_co_applicant', val)}
+                  name="co_employment"
+                  label="Employment"
+                  value={formData.co_employment}
+                  onChange={(val) => updateField('co_employment', val)}
+                  required
                   direction="horizontal"
                   options={[
-                    { label: 'No Co-Applicant', value: 'No' },
-                    { label: 'Yes, Add Co-Applicant', value: 'Yes' }
+                    { label: 'Job', value: 'Job' },
+                    { label: 'Business', value: 'Business' }
                   ]}
-                  error={errors.has_co_applicant}
+                  error={errors.co_employment}
                 />
               </div>
+
+              {formData.co_employment === 'Job' && (
+                <FormGrid columns={3} gap={6}>
+                  <TextField
+                    name="co_job_name"
+                    label="Job Name"
+                    value={formData.co_job_name}
+                    onChange={(val) => updateField('co_job_name', capitalizeWords(val))}
+                    required
+                    placeholder="Enter job / employer name (only text)"
+                    error={errors.co_job_name}
+                  />
+
+                  <TextField
+                    name="co_job_address"
+                    label="Job Address"
+                    value={formData.co_job_address}
+                    onChange={(val) => updateField('co_job_address', capitalizeText(val))}
+                    required
+                    placeholder="Enter workplace address"
+                    error={errors.co_job_address}
+                  />
+
+                  <NumberField
+                    name="co_job_income_per_month"
+                    label="Job Income Per Month"
+                    value={formData.co_job_income_per_month}
+                    onChange={(val) => updateField('co_job_income_per_month', val)}
+                    required
+                    placeholder="e.g. 45000"
+                    error={errors.co_job_income_per_month}
+                  />
+                </FormGrid>
+              )}
+
+              {formData.co_employment === 'Business' && (
+                <FormGrid columns={3} gap={6}>
+                  <TextField
+                    name="co_business_name"
+                    label="Business Name"
+                    value={formData.co_business_name}
+                    onChange={(val) => updateField('co_business_name', capitalizeWords(val))}
+                    required
+                    placeholder="Enter business name (only text)"
+                    error={errors.co_business_name}
+                  />
+
+                  <TextField
+                    name="co_business_address"
+                    label="Business Address"
+                    value={formData.co_business_address}
+                    onChange={(val) => updateField('co_business_address', capitalizeText(val))}
+                    required
+                    placeholder="Enter business address"
+                    error={errors.co_business_address}
+                  />
+
+                  <NumberField
+                    name="co_business_income_per_month"
+                    label="Business Income Per Month"
+                    value={formData.co_business_income_per_month}
+                    onChange={(val) => updateField('co_business_income_per_month', val)}
+                    required
+                    placeholder="e.g. 75000"
+                    error={errors.co_business_income_per_month}
+                  />
+                </FormGrid>
+              )}
             </div>
-
-            {formData.has_co_applicant === 'Yes' ? (
-              <div className="space-y-6 pt-2">
-                <div>
-                  <h4 className="text-xs font-bold text-[#1f1f1f] uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                    <User className="w-3.5 h-3.5 text-[#1a73e8]" /> Co-Applicant Personal Details
-                  </h4>
-                  <FormGrid columns={3} gap={5}>
-                    <TextField
-                      name="co_applicant_name"
-                      label="Co-Applicant Full Name"
-                      value={formData.co_applicant_name}
-                      onChange={(val) => updateField('co_applicant_name', capitalizeWords(val))}
-                      required
-                      placeholder="Enter co-applicant full name"
-                      error={errors.co_applicant_name}
-                    />
-
-                    <TextField
-                      name="co_relation_with_applicant"
-                      label="Relationship with Applicant"
-                      value={formData.co_relation_with_applicant}
-                      onChange={(val) => updateField('co_relation_with_applicant', capitalizeWords(val))}
-                      required
-                      placeholder="e.g. Spouse, Brother, Father"
-                      error={errors.co_relation_with_applicant}
-                    />
-
-                    <PhoneField
-                      name="co_phone_number"
-                      label="Phone Number"
-                      value={formData.co_phone_number}
-                      onChange={(val) => updateField('co_phone_number', val)}
-                      required
-                      placeholder="Enter 10-digit mobile number"
-                      error={errors.co_phone_number}
-                    />
-
-                    <AadhaarField
-                      name="co_aadhaar_number"
-                      label="Aadhaar Number"
-                      value={formData.co_aadhaar_number}
-                      onChange={(val) => updateField('co_aadhaar_number', val)}
-                      required
-                      placeholder="1234 5678 9012"
-                      error={errors.co_aadhaar_number}
-                    />
-
-                    <NumberField
-                      name="co_age"
-                      label="Age"
-                      value={formData.co_age}
-                      onChange={(val) => updateField('co_age', val)}
-                      required
-                      min={18}
-                      max={60}
-                      maxLength={2}
-                      placeholder="e.g. 32"
-                      error={errors.co_age}
-                    />
-
-                    <SelectField
-                      name="co_gender"
-                      label="Gender"
-                      value={formData.co_gender}
-                      onChange={(val) => updateField('co_gender', val)}
-                      required
-                      placeholder="Select gender"
-                      options={[
-                        { label: 'Male', value: 'Male' },
-                        { label: 'Female', value: 'Female' },
-                        { label: 'Other', value: 'Other' }
-                      ]}
-                      error={errors.co_gender}
-                    />
-
-                    <RadioGroup
-                      name="co_marital_status"
-                      label="Marital Status"
-                      value={formData.co_marital_status}
-                      onChange={(val) => updateField('co_marital_status', val)}
-                      required
-                      direction="horizontal"
-                      options={[
-                        { label: 'Yes', value: 'Yes' },
-                        { label: 'No', value: 'No' }
-                      ]}
-                      error={errors.co_marital_status}
-                    />
-
-                    {showCoParents && (
-                      <>
-                        <TextField
-                          name="co_father_name"
-                          label="Father Name"
-                          value={formData.co_father_name}
-                          onChange={(val) => updateField('co_father_name', capitalizeWords(val))}
-                          required
-                          placeholder="Enter father full name"
-                          error={errors.co_father_name}
-                        />
-
-                        <TextField
-                          name="co_mother_name"
-                          label="Mother Name"
-                          value={formData.co_mother_name}
-                          onChange={(val) => updateField('co_mother_name', capitalizeWords(val))}
-                          required
-                          placeholder="Enter mother full name"
-                          error={errors.co_mother_name}
-                        />
-                      </>
-                    )}
-
-                    {showCoHusband && (
-                      <TextField
-                        name="co_husband_name"
-                        label="Husband Name"
-                        value={formData.co_husband_name}
-                        onChange={(val) => updateField('co_husband_name', capitalizeWords(val))}
-                        required
-                        placeholder="Enter husband full name"
-                        error={errors.co_husband_name}
-                      />
-                    )}
-
-                    <RadioGroup
-                      name="co_own_house"
-                      label="Own House"
-                      value={formData.co_own_house}
-                      onChange={(val) => updateField('co_own_house', val)}
-                      required
-                      direction="horizontal"
-                      options={[
-                        { label: 'Yes', value: 'Yes' },
-                        { label: 'No', value: 'No' }
-                      ]}
-                      error={errors.co_own_house}
-                    />
-                  </FormGrid>
-                </div>
-
-                {/* Co-applicant Addresses */}
-                <div className="pt-5 border-t border-[#e0e3e7]">
-                  <h4 className="text-xs font-bold text-[#1f1f1f] uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-[#1a73e8]" /> Co-Applicant Residential Address
-                  </h4>
-                  <FormGrid columns={3} gap={5}>
-                    <div className="col-span-1 sm:col-span-2 md:col-span-3">
-                      <TextField
-                        name="co_current_address"
-                        label="Current Address"
-                        value={formData.co_current_address}
-                        onChange={(val) => updateField('co_current_address', capitalizeText(val))}
-                        required
-                        placeholder="Enter complete current residential address"
-                        error={errors.co_current_address}
-                      />
-                    </div>
-
-                    <TextField
-                      name="co_current_street"
-                      label="Street"
-                      value={formData.co_current_street}
-                      onChange={(val) => updateField('co_current_street', capitalizeWords(val))}
-                      required
-                      placeholder="Enter street name"
-                      error={errors.co_current_street}
-                    />
-
-                    <TextField
-                      name="co_current_city"
-                      label="City"
-                      value={formData.co_current_city}
-                      onChange={(val) => updateField('co_current_city', capitalizeWords(val))}
-                      required
-                      placeholder="Enter city"
-                      error={errors.co_current_city}
-                    />
-
-                    <TextField
-                      name="co_current_state"
-                      label="State"
-                      value={formData.co_current_state}
-                      onChange={(val) => updateField('co_current_state', capitalizeWords(val))}
-                      required
-                      placeholder="Enter state"
-                      error={errors.co_current_state}
-                    />
-
-                    <TextField
-                      name="co_current_postal_code"
-                      label="Postal Code"
-                      value={formData.co_current_postal_code}
-                      onChange={(val) => updateField('co_current_postal_code', val.replace(/\D/g, '').slice(0, 6))}
-                      required
-                      placeholder="Enter 6-digit postal code"
-                      error={errors.co_current_postal_code}
-                    />
-                  </FormGrid>
-                </div>
-
-                {/* Co-applicant Employment */}
-                <div className="pt-5 border-t border-[#e0e3e7]">
-                  <h4 className="text-xs font-bold text-[#1f1f1f] uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                    <Briefcase className="w-3.5 h-3.5 text-[#8430ce]" /> Co-Applicant Income
-                  </h4>
-                  <div className="mb-3">
-                    <RadioGroup
-                      name="co_employment"
-                      label="Employment Type"
-                      value={formData.co_employment}
-                      onChange={(val) => updateField('co_employment', val)}
-                      required
-                      direction="horizontal"
-                      options={[
-                        { label: 'Salaried / Job', value: 'Job' },
-                        { label: 'Business', value: 'Business' }
-                      ]}
-                      error={errors.co_employment}
-                    />
-                  </div>
-
-                  {formData.co_employment === 'Job' && (
-                    <FormGrid columns={3} gap={5}>
-                      <TextField
-                        name="co_job_name"
-                        label="Employer Name"
-                        value={formData.co_job_name}
-                        onChange={(val) => updateField('co_job_name', capitalizeWords(val))}
-                        required
-                        placeholder="Enter workplace name"
-                        error={errors.co_job_name}
-                      />
-
-                      <TextField
-                        name="co_job_address"
-                        label="Workplace Address"
-                        value={formData.co_job_address}
-                        onChange={(val) => updateField('co_job_address', capitalizeText(val))}
-                        required
-                        placeholder="Enter workplace address"
-                        error={errors.co_job_address}
-                      />
-
-                      <NumberField
-                        name="co_job_income_per_month"
-                        label="Monthly Net Income (₹)"
-                        value={formData.co_job_income_per_month}
-                        onChange={(val) => updateField('co_job_income_per_month', val)}
-                        required
-                        placeholder="e.g. 40000"
-                        error={errors.co_job_income_per_month}
-                      />
-                    </FormGrid>
-                  )}
-
-                  {formData.co_employment === 'Business' && (
-                    <FormGrid columns={3} gap={5}>
-                      <TextField
-                        name="co_business_name"
-                        label="Business Name"
-                        value={formData.co_business_name}
-                        onChange={(val) => updateField('co_business_name', capitalizeWords(val))}
-                        required
-                        placeholder="Enter business name"
-                        error={errors.co_business_name}
-                      />
-
-                      <TextField
-                        name="co_business_address"
-                        label="Business Address"
-                        value={formData.co_business_address}
-                        onChange={(val) => updateField('co_business_address', capitalizeText(val))}
-                        required
-                        placeholder="Enter business address"
-                        error={errors.co_business_address}
-                      />
-
-                      <NumberField
-                        name="co_business_income_per_month"
-                        label="Monthly Business Income (₹)"
-                        value={formData.co_business_income_per_month}
-                        onChange={(val) => updateField('co_business_income_per_month', val)}
-                        required
-                        placeholder="e.g. 60000"
-                        error={errors.co_business_income_per_month}
-                      />
-                    </FormGrid>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="py-8 text-center bg-[#f8fafd] rounded-xl border border-dashed border-[#dadce0]">
-                <Users className="w-8 h-8 text-[#80868b] mx-auto mb-2 opacity-50" />
-                <p className="text-xs font-semibold text-[#1f1f1f]">No Co-Applicant Selected</p>
-                <p className="text-[11px] text-[#5f6368] mt-0.5">Toggle to 'Yes, Add Co-Applicant' above if required.</p>
-              </div>
-            )}
-
           </div>
         )}
+      </div>
 
-        {/* SECTION 5: GUARANTORS (1, 2, 3) */}
-        {(viewAllSections || activeStep === 5) && (
-          <div className="bg-white rounded-2xl border border-[#e0e3e7] shadow-xs p-6 space-y-5">
-            <div className="border-b border-[#e0e3e7] pb-3 flex items-center justify-between flex-wrap gap-2">
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-xl bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
-                  <ShieldCheck className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-[#1f1f1f]">5. Guarantors Verification (3 Required)</h3>
-                  <p className="text-[11px] text-[#5f6368]">Enter verified contact and residential details for 3 guarantors</p>
-                </div>
-              </div>
-
-              {/* Guarantor Sub Tabs */}
-              <div className="flex items-center gap-1.5 bg-[#f8fafd] border border-[#dadce0] p-1 rounded-full">
-                {[1, 2, 3].map((idx) => {
-                  const isActive = activeGuarantorTab === idx;
-
-                  return (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => setActiveGuarantorTab(idx)}
-                      className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                        isActive
-                          ? 'bg-[#1a73e8] text-white shadow-2xs'
-                          : 'text-[#5f6368] hover:text-[#1f1f1f]'
-                      }`}
-                    >
-                      <span>Guarantor {idx}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Active Guarantor Form */}
-            <div>
-              {renderGuarantorForm(activeGuarantorTab)}
-            </div>
-
+      {/* Guarantor Section */}
+      <div className="pt-6 border-t border-slate-200">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div>
+            <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
+              Guarantor Details <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200">3 Required</span>
+            </h3>
+            <p className="text-xs text-slate-500 mt-1">Personal Loan requires details for exactly 3 guarantors.</p>
           </div>
-        )}
-
-        {/* Action Controls & Submission Unified Sticky Footer */}
-        <div className="bg-white/95 backdrop-blur-md rounded-2xl border border-[#e0e3e7] p-3 sm:p-3.5 shadow-md flex flex-col sm:flex-row items-center justify-between gap-3 sticky bottom-1 sm:bottom-2 z-20">
-          {/* Left Side: Step Indicator or Previous Button */}
-          <div className="flex items-center gap-2.5 w-full sm:w-auto justify-between sm:justify-start">
-            {!viewAllSections && activeStep > 1 ? (
-              <button
-                type="button"
-                onClick={() => {
-                  if (activeStep === 5 && activeGuarantorTab > 1) {
-                    setActiveGuarantorTab(activeGuarantorTab - 1);
-                  } else {
-                    setActiveStep(activeStep - 1);
-                  }
-                }}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-white hover:bg-[#f1f3f4] border border-[#dadce0] text-[#1f1f1f] transition-all cursor-pointer shadow-2xs"
-              >
-                <ArrowLeft className="w-4 h-4 text-[#5f6368]" />
-                <span>{activeStep === 5 && activeGuarantorTab > 1 ? `Guarantor ${activeGuarantorTab - 1}` : 'Previous'}</span>
-              </button>
-            ) : (
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-[#1f1f1f]">
-                  {viewAllSections ? 'Full Form' : `Step ${activeStep} of 5`}
-                </span>
-                <span className="text-[11px] text-[#5f6368] hidden sm:inline">
-                  • {viewAllSections ? 'Viewing all sections' : steps.find(s => s.id === activeStep)?.title}
-                </span>
-              </div>
-            )}
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            {[1, 2, 3].map((gIdx) => {
+              const isActive = activeGuarantorTab === gIdx;
+              return (
+                <button
+                  key={gIdx}
+                  type="button"
+                  onClick={() => setActiveGuarantorTab(gIdx)}
+                  className={`flex-1 sm:flex-none inline-flex items-center justify-center rounded-md text-xs sm:text-sm font-medium h-9 px-3.5 transition-colors gap-1.5 cursor-pointer shadow-xs ${
+                    isActive
+                      ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm'
+                      : 'bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 border border-slate-300'
+                  }`}
+                >
+                  Guarantor {gIdx}
+                </button>
+              );
+            })}
           </div>
+        </div>
 
-          {/* Right Side: Step Continue / Next Guarantor + Save Draft + Submit */}
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
-            {/* Step Continue Button (In Step-by-Step Mode) */}
-            {!viewAllSections && activeStep < 5 && (
-              <button
-                type="button"
-                onClick={() => setActiveStep(activeStep + 1)}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-[#e8f0fe] hover:bg-[#d2e3fc] text-[#1a73e8] border border-[#d2e3fc] transition-all cursor-pointer shadow-2xs"
-              >
-                <span>
-                  {activeStep === 1
-                    ? 'Continue to Addresses'
-                    : activeStep === 2
-                    ? 'Continue to Employment'
-                    : activeStep === 3
-                    ? 'Continue to Co-Applicant'
-                    : 'Continue to Guarantors'}
-                </span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            )}
+        {renderGuarantorForm(activeGuarantorTab)}
+      </div>
 
-            {/* Next Guarantor Tab Button (If on Step 5 and not on last tab) */}
-            {!viewAllSections && activeStep === 5 && activeGuarantorTab < 3 && (
-              <button
-                type="button"
-                onClick={() => setActiveGuarantorTab(activeGuarantorTab + 1)}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-[#e8f0fe] hover:bg-[#d2e3fc] text-[#1a73e8] border border-[#d2e3fc] transition-all cursor-pointer shadow-2xs"
-              >
-                <span>Next: Guarantor {activeGuarantorTab + 1}</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            )}
-
-            {/* Save as Draft — hidden when the application is already created/submitted */}
-            {!isReadOnly && !isCreatedApp && (
-              <button
-                type="button"
-                onClick={handleSaveDraft}
-                disabled={isDrafting || isSubmitting}
-                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer shadow-2xs disabled:opacity-50"
-              >
-                {isDrafting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5 text-[#5f6368]" />}
-                <span>{isDrafting ? 'Saving...' : 'Save Draft'}</span>
-              </button>
-            )}
-
-            {/* Primary Submit */}
+      <div className="pt-6 border-t border-slate-100 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3">
+        {isEditMode ? (
+          <>
+            <button
+              type="button"
+              onClick={() => navigate(location.state?.from || '/employee/branch-operations/loans-view-applications', { state: location.state })}
+              disabled={isSubmitting}
+              className="w-full sm:w-auto inline-flex items-center justify-center rounded-md text-sm font-medium bg-white text-slate-700 hover:bg-slate-50 h-10 px-5 py-2 transition-colors cursor-pointer border border-slate-300 gap-2 disabled:opacity-50 shadow-xs"
+            >
+              Cancel
+            </button>
             <button
               type="submit"
-              disabled={isSubmitting || isDrafting || (isReadOnly && !isEditMode)}
-              className="inline-flex items-center justify-center gap-1.5 px-5 py-2 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs transition-all cursor-pointer disabled:opacity-50"
+              disabled={isSubmitting}
+              className="w-full sm:w-auto inline-flex items-center justify-center rounded-md text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 h-10 px-6 py-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50 gap-2"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  <span>Submitting...</span>
+                  <Loader2 className="h-4 w-4 animate-spin" /> Updating...
                 </>
               ) : (
                 <>
-                  <Send className="w-3.5 h-3.5" />
-                  <span>{isEditMode ? 'Update Application' : 'Submit Loan Application'}</span>
+                  <CheckCircle2 className="h-4 w-4" /> Update Application
                 </>
               )}
             </button>
-          </div>
-        </div>
-      </form>
-    </div>
+          </>
+        ) : (
+          <>
+            {loadedAppId && !isAlreadySubmitted && (
+              <button
+                type="button"
+                onClick={handleDeleteDraft}
+                disabled={isDeleting || isDrafting || isSubmitting}
+                className="w-full sm:w-auto inline-flex items-center justify-center rounded-md text-sm font-medium bg-red-50 text-red-600 hover:bg-red-100 h-10 px-4 py-2 transition-colors cursor-pointer border border-red-200 gap-2 disabled:opacity-50 shadow-xs mr-auto"
+              >
+                {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />} Delete Draft
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={handleSaveDraft}
+              disabled={isDrafting || isSubmitting || isLoadingData || isAlreadySubmitted}
+              className="w-full sm:w-auto inline-flex items-center justify-center rounded-md text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 h-10 px-4 py-2 transition-colors cursor-pointer border border-slate-300 gap-2 disabled:opacity-50 shadow-xs"
+            >
+              {isDrafting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save Draft
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting || isDrafting || isLoadingData || isAlreadySubmitted}
+              className="w-full sm:w-auto inline-flex items-center justify-center rounded-md text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 transition-colors cursor-pointer shadow-sm disabled:opacity-50 gap-2"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" /> Submitting...
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4" /> {isAlreadySubmitted ? 'Application Submitted' : 'Submit Application'}
+                </>
+              )}
+            </button>
+          </>
+        )}
+      </div>
+    </form>
   );
 }
-
-export default PersonalLoanForm;

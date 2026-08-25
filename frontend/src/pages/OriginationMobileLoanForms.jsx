@@ -1,13 +1,13 @@
 import React from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import OriginationMobileFormEngine from '../components/forms/OriginationMobileFormEngine';
+import { BusinessLoanForm, PersonalLoanForm } from '../components/forms';
 
 const OriginationMobileLoanForms = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const fromPath = location.state?.from || '/employee/loans/origination/applications';
-  const loanType = location.state?.loan_type || location.state?.loanType || location.state?.application?.loan_type || 'Personal Loan';
+  const loanType = location.state?.loan_type || location.state?.loanType || location.state?.application?.loan_type || 'Business Loan';
   const application = location.state?.application;
 
   const isEditMode = Boolean(
@@ -31,11 +31,36 @@ const OriginationMobileLoanForms = () => {
     }
   };
 
+  const renderForm = () => {
+    switch (loanType) {
+      case 'Personal Loan':
+        return (
+          <PersonalLoanForm 
+            application={application} 
+            isEditMode={isEditMode} 
+          />
+        );
+      case 'Business Loan':
+        return (
+          <BusinessLoanForm 
+            application={application} 
+            isEditMode={isEditMode} 
+          />
+        );
+      default:
+        return (
+          <div className="p-8 text-center text-xs text-[#5f6368] font-medium bg-[#f8fafd] rounded-2xl border border-[#e0e3e7]">
+            Invalid or Unsupported Loan Type Selected.
+          </div>
+        );
+    }
+  };
+
   return (
     <div className="space-y-4 pb-14 w-full">
 
       {/* 1. Header Card (Google Material 3 Workspace) */}
-      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs relative overflow-hidden bg-gradient-to-br from-white via-[#f8fafd] to-[#e8f0fe]/30 space-y-2">
+      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-4 sm:p-5 shadow-xs relative overflow-hidden bg-gradient-to-br from-white via-[#f8fafd] to-[#e8f0fe]/30 space-y-2.5">
         {/* Workspace Tag */}
         <div className="flex items-center gap-1.5 whitespace-nowrap shrink-0">
           <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4] shrink-0" />
@@ -49,7 +74,7 @@ const OriginationMobileLoanForms = () => {
 
         {/* Heading + Back Button Row (Same Line) */}
         <div className="flex items-center justify-between gap-3">
-          <h1 className="text-xl font-bold text-[#1f1f1f] tracking-tight">
+          <h1 className="text-xl font-bold text-[#1f1f1f] tracking-tight whitespace-nowrap truncate">
             {loanType} Form
           </h1>
 
@@ -63,7 +88,7 @@ const OriginationMobileLoanForms = () => {
           </button>
         </div>
 
-        {/* Subtitle Row (Full Width - Always Single Line) */}
+        {/* Subtitle Row */}
         <div className="flex items-center gap-2 text-xs text-[#5f6368] whitespace-nowrap pt-0.5">
           <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full shrink-0">
             {isEditMode ? 'Edit Mode' : 'New Application'}
@@ -73,12 +98,10 @@ const OriginationMobileLoanForms = () => {
         </div>
       </div>
 
-      {/* 2. Bespoke Mobile Form Engine */}
-      <OriginationMobileFormEngine
-        loanType={loanType}
-        isEditMode={isEditMode}
-        application={application}
-      />
+      {/* 2. Direct Loan Form Container */}
+      <div className="bg-white p-4 sm:p-5 rounded-3xl shadow-xs border border-[#e0e3e7]">
+        {renderForm()}
+      </div>
 
     </div>
   );
