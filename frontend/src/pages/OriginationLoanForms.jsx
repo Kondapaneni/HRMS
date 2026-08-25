@@ -10,10 +10,12 @@ export default function OriginationLoanForms() {
   const fromPath = location.state?.from || '/employee/loans/origination/applications';
   const loanType = location.state?.loan_type || location.state?.loanType || location.state?.application?.loan_type || 'Business Loan';
 
+  const isDraft = Boolean(
+    location.state?.application?.status === 'Draft' || 
+    location.state?.status === 'Draft'
+  );
   const isEditMode = Boolean(
-    location.state?.mode === 'edit' || 
-    location.state?.isEdit || 
-    location.state?.application?.status === 'Draft'
+    (location.state?.mode === 'edit' || location.state?.isEdit) && !isDraft
   );
 
   const application = location.state?.application;
@@ -65,7 +67,7 @@ export default function OriginationLoanForms() {
             <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight flex items-center gap-2.5">
               {loanType} Application
               <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">
-                {isEditMode ? 'Edit Mode' : 'Application Studio'}
+                {isDraft ? 'Draft Application' : isEditMode ? 'Edit Mode' : 'Application Studio'}
               </span>
             </h1>
             <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">

@@ -340,7 +340,12 @@ export function PersonalLoanForm({ isEditMode: propEditMode, application: propAp
     }
   };
 
-  const isEditMode = propEditMode || location.state?.mode === 'edit' || location.state?.isEdit;
+  const isDraft = Boolean(
+    location.state?.application?.status === 'Draft' ||
+    propApplication?.status === 'Draft' ||
+    location.state?.status === 'Draft'
+  );
+  const isEditMode = Boolean((propEditMode || location.state?.mode === 'edit' || location.state?.isEdit) && !isDraft);
   const targetAppId = propApplication?.id || propApplication?.application_id || location.state?.application?.id || location.state?.application?.application_id || location.state?.id || loadedAppId;
 
   // Auto-populate when profile data or navigation state resolves or on mount
@@ -410,9 +415,13 @@ export function PersonalLoanForm({ isEditMode: propEditMode, application: propAp
     try {
       setIsDrafting(true);
       const cleanData = getCleanFormData();
+      if (targetAppId || loadedAppId) {
+        cleanData.id = targetAppId || loadedAppId;
+      }
       // Save draft directly to DB table public.loan_applications in JSON format
       await submitLoanApplication('Personal Loan', cleanData, 'Draft');
       toast.success('Personal Loan draft saved to database!');
+      queryClient.invalidateQueries({ queryKey: ['origination', 'applications', 'list'] });
     } catch (err) {
       console.error('Error saving draft to database:', err);
       toast.error(err.response?.data?.error || 'Failed to save draft to database.');
@@ -422,7 +431,7 @@ export function PersonalLoanForm({ isEditMode: propEditMode, application: propAp
   };
 
   const handleDeleteDraft = async () => {
-    if (!loadedAppId) return;
+    if (!loadedAppId && !targetAppId) return;
     
     if (!window.confirm('Are you sure you want to delete this draft? This action cannot be undone.')) {
       return;
@@ -430,7 +439,7 @@ export function PersonalLoanForm({ isEditMode: propEditMode, application: propAp
 
     try {
       setIsDeleting(true);
-      await deleteLoanApplication(loadedAppId);
+      await deleteLoanApplication(loadedAppId || targetAppId);
       toast.success('Draft deleted successfully!');
       queryClient.invalidateQueries({ queryKey: ['origination', 'applications', 'list'] });
       queryClient.invalidateQueries({ queryKey: ['leadsDashboard'] });
@@ -504,11 +513,16 @@ export function PersonalLoanForm({ isEditMode: propEditMode, application: propAp
     try {
       setIsSubmitting(true);
       const cleanData = getCleanFormData();
+      if (targetAppId || loadedAppId) {
+        cleanData.id = targetAppId || loadedAppId;
+      }
       // Submit full form data to public.loan_applications in JSON format as Created
       await submitLoanApplication('Personal Loan', cleanData, 'Created');
       toast.success('Personal Loan Application Created Successfully!');
+      queryClient.invalidateQueries({ queryKey: ['origination', 'applications', 'list'] });
+      queryClient.invalidateQueries({ queryKey: ['leadsDashboard'] });
       setTimeout(() => {
-        navigate('/employee/loans/origination/members');
+        navigate('/employee/loans/origination/applications');
       }, 1000);
       resetForm({
         applicant_name: '',

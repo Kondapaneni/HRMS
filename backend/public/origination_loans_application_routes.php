@@ -193,7 +193,19 @@ $app->post('/api/loans/applications', function (Request $request, Response $resp
         $userBranch = $emp['branch'] ?? null;
 
         $existingDraft = null;
-        if (!empty($leadId)) {
+        $appId = $data['id'] ?? $data['application_id'] ?? $formData['id'] ?? $formData['application_id'] ?? null;
+        if (!empty($appId)) {
+            $checkStmt = $conn->prepare('
+                SELECT id, application_id FROM public.loan_applications
+                WHERE (id::text = ? OR application_id = ?) AND status = \'Draft\'
+                ORDER BY created_at DESC
+                LIMIT 1
+            ');
+            $checkStmt->execute([(string)$appId, (string)$appId]);
+            $existingDraft = $checkStmt->fetch(PDO::FETCH_ASSOC);
+        }
+
+        if (!$existingDraft && !empty($leadId)) {
             $checkStmt = $conn->prepare('
                 SELECT id, application_id FROM public.loan_applications
                 WHERE lead_id = ? AND loan_type = ? AND status = \'Draft\'

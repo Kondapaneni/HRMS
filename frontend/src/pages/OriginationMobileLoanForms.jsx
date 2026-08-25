@@ -10,10 +10,12 @@ const OriginationMobileLoanForms = () => {
   const loanType = location.state?.loan_type || location.state?.loanType || location.state?.application?.loan_type || 'Business Loan';
   const application = location.state?.application;
 
+  const isDraft = Boolean(
+    location.state?.application?.status === 'Draft' || 
+    location.state?.status === 'Draft'
+  );
   const isEditMode = Boolean(
-    location.state?.mode === 'edit' || 
-    location.state?.isEdit || 
-    location.state?.application?.status === 'Draft'
+    (location.state?.mode === 'edit' || location.state?.isEdit) && !isDraft
   );
 
   const handleBack = () => {
@@ -91,7 +93,7 @@ const OriginationMobileLoanForms = () => {
         {/* Subtitle Row */}
         <div className="flex items-center gap-2 text-xs text-[#5f6368] whitespace-nowrap pt-0.5">
           <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full shrink-0">
-            {isEditMode ? 'Edit Mode' : 'New Application'}
+            {isDraft ? 'Draft Application' : isEditMode ? 'Edit Mode' : 'New Application'}
           </span>
           <span>&bull;</span>
           <span className="truncate">Fill all verified details</span>
