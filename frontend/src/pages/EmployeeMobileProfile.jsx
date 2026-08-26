@@ -25,11 +25,14 @@ const EmployeeMobileProfile = () => {
   useEffect(() => {
     if (activeSection) {
       document.body.style.overflow = 'hidden';
+      document.body.classList.add('hide-mobile-nav');
     } else {
       document.body.style.overflow = '';
+      document.body.classList.remove('hide-mobile-nav');
     }
     return () => {
       document.body.style.overflow = '';
+      document.body.classList.remove('hide-mobile-nav');
     };
   }, [activeSection]);
 
@@ -108,29 +111,29 @@ const EmployeeMobileProfile = () => {
   };
 
   const sections = [
-    { id: 'personal', label: 'Personal Details', icon: User, color: 'text-[#1a73e8]', bg: 'bg-[#e8f0fe]' },
-    { id: 'work', label: 'Work Information', icon: Briefcase, color: 'text-[#8430ce]', bg: 'bg-[#f3e8fd]' },
-    { id: 'shift', label: 'Shift & Working Hours', icon: Clock3, color: 'text-[#b06000]', bg: 'bg-[#fef7e0]' },
-    { id: 'emergency', label: 'Emergency Contact', icon: Shield, color: 'text-[#c5221f]', bg: 'bg-[#fce8e6]' },
-    { id: 'my-team', label: 'My Team & Manager', icon: Users, color: 'text-[#137333]', bg: 'bg-[#e6f4ea]' },
-    { id: 'assets', label: 'Assigned Assets', icon: Laptop, color: 'text-[#0284c7]', bg: 'bg-[#e0f2fe]' },
-    { id: 'timeline', label: 'Career Timeline', icon: Clock, color: 'text-[#4f46e5]', bg: 'bg-[#eef2ff]' }
+    { id: 'personal', label: 'Personal Details', icon: User, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { id: 'work', label: 'Work Information', icon: Briefcase, color: 'text-purple-600', bg: 'bg-purple-50' },
+    { id: 'shift', label: 'Shift & Working Hours', icon: Clock3, color: 'text-amber-600', bg: 'bg-amber-50' },
+    { id: 'emergency', label: 'Emergency Contact', icon: Shield, color: 'text-rose-600', bg: 'bg-rose-50' },
+    { id: 'my-team', label: 'My Team & Manager', icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { id: 'assets', label: 'Assigned Assets', icon: Laptop, color: 'text-cyan-600', bg: 'bg-cyan-50' },
+    { id: 'timeline', label: 'Career Timeline', icon: Clock, color: 'text-indigo-600', bg: 'bg-indigo-50' }
   ];
 
   const DetailItem = ({ icon: Icon, label, value }) => {
     const currentSection = sections.find(s => s.id === activeSection);
-    const iconColor = currentSection?.color || 'text-[#1a73e8]';
-    const iconBg = currentSection?.bg || 'bg-[#e8f0fe]';
+    const iconColor = currentSection?.color || 'text-blue-600';
+    const iconBg = currentSection?.bg || 'bg-blue-50';
 
     return (
-      <div className="flex items-center gap-3 p-3 bg-[#f8fafd] hover:bg-[#f1f3f4]/60 rounded-2xl border border-[#e0e3e7] transition-colors">
-        <div className={`w-8 h-8 rounded-xl ${iconBg} ${iconColor} flex items-center justify-center shrink-0 shadow-2xs`}>
+      <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-100">
+        <div className={`w-9 h-9 rounded-xl ${iconBg} ${iconColor} flex items-center justify-center shrink-0 shadow-2xs`}>
           <Icon className="w-4 h-4" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-bold text-[#5f6368] uppercase tracking-wider">{label}</p>
-          <p className="text-xs font-semibold text-[#1f1f1f] break-words mt-0.5 select-all">
-            {value || <span className="text-[#80868b] font-normal italic">Not provided</span>}
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{label}</p>
+          <p className="text-xs font-bold text-slate-800 break-words mt-0.5">
+            {value || <span className="text-slate-400 font-normal italic">Not provided</span>}
           </p>
         </div>
       </div>
@@ -141,8 +144,8 @@ const EmployeeMobileProfile = () => {
     if (!employee) return null;
     const initial = `${(employee.firstName || '').charAt(0)}${(employee.lastName || '').charAt(0)}`.toUpperCase() || 'U';
     return (
-      <div className="flex items-center gap-3 p-3 bg-[#f8fafd] rounded-2xl border border-[#e0e3e7]">
-        <div className="w-9 h-9 rounded-full bg-[#e8f0fe] flex items-center justify-center shrink-0 overflow-hidden font-bold text-[#1a73e8] border border-[#d2e3fc] shadow-2xs">
+      <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-100">
+        <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0 overflow-hidden font-bold text-blue-600 border border-blue-100 shadow-2xs">
           {employee.avatar ? (
             <img src={employee.avatar} alt="Avatar" className="w-full h-full object-cover" />
           ) : (
@@ -150,8 +153,8 @@ const EmployeeMobileProfile = () => {
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-bold text-[#1f1f1f] truncate">{employee.firstName} {employee.lastName}</p>
-          <p className="text-[10px] font-medium text-[#5f6368] truncate">{employee.position || 'Employee'}</p>
+          <p className="text-xs font-bold text-slate-800 truncate">{employee.firstName} {employee.lastName}</p>
+          <p className="text-[10px] font-medium text-slate-400 truncate">{employee.position || 'Employee'}</p>
         </div>
       </div>
     );
@@ -193,15 +196,15 @@ const EmployeeMobileProfile = () => {
     history.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     return (
-      <div className="relative border-l-2 border-[#dadce0] ml-3 space-y-4">
+      <div className="relative border-l-2 border-slate-200 ml-3 space-y-4">
         {history.map((event, idx) => (
           <div key={idx} className="relative pl-5">
-            <div className="absolute -left-[7px] top-1.5 w-3 h-3 rounded-full bg-[#1a73e8] border-2 border-white ring-2 ring-[#e8f0fe]" />
+            <div className="absolute -left-[7px] top-1.5 w-3 h-3 rounded-full bg-blue-600 border-2 border-white ring-2 ring-blue-100" />
             <div className="flex items-center justify-between mb-0.5">
-              <h4 className="text-xs font-bold text-[#1f1f1f]">{event.title}</h4>
-              <time className="text-[10px] text-[#5f6368] font-medium">{formatDate(event.date)}</time>
+              <h4 className="text-xs font-bold text-slate-800">{event.title}</h4>
+              <time className="text-[10px] text-slate-400 font-medium">{formatDate(event.date)}</time>
             </div>
-            <p className="text-[11px] text-[#5f6368]">{event.description}</p>
+            <p className="text-[11px] text-slate-500">{event.description}</p>
           </div>
         ))}
       </div>
@@ -249,69 +252,54 @@ const EmployeeMobileProfile = () => {
       case 'emergency':
         return (
           <div className="space-y-2.5">
-            <DetailItem icon={User} label="Emergency Contact Person" value={emergencyContact} />
-            <DetailItem icon={Phone} label="Emergency Phone Number" value={emergencyPhone} />
+            <DetailItem icon={User} label="Contact Name" value={emergencyContact} />
+            <DetailItem icon={Phone} label="Emergency Phone" value={emergencyPhone} />
           </div>
         );
       case 'my-team':
         return (
-          <div className="space-y-4">
-            {!teamData ? (
-              <div className="text-center py-6 bg-[#f8fafd] rounded-2xl border border-[#e0e3e7]">
-                <Users className="w-8 h-8 text-[#5f6368] mx-auto mb-2 opacity-50" />
-                <p className="text-xs text-[#5f6368]">No team hierarchy configured.</p>
+          <div className="space-y-3">
+            {teamData?.manager && (
+              <div>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Reporting Manager</p>
+                <TeamMemberCard employee={teamData.manager} />
               </div>
-            ) : (
-              <>
-                {teamData.manager && (
-                  <div className="space-y-2">
-                    <h4 className="text-[10px] font-bold text-[#5f6368] uppercase tracking-wider pl-1">Reporting Manager</h4>
-                    <TeamMemberCard employee={teamData.manager} />
-                  </div>
-                )}
-                
-                {teamData.peers?.length > 0 && (
-                  <div className="space-y-2">
-                    <h4 className="text-[10px] font-bold text-[#5f6368] uppercase tracking-wider pl-1">Team Peers ({teamData.peers.length})</h4>
-                    <div className="space-y-2">
-                      {teamData.peers.map(peer => <TeamMemberCard key={peer.id} employee={peer} />)}
-                    </div>
-                  </div>
-                )}
-
-                {teamData.subordinates?.length > 0 && (
-                  <div className="space-y-2">
-                    <h4 className="text-[10px] font-bold text-[#5f6368] uppercase tracking-wider pl-1">Direct Reports ({teamData.subordinates.length})</h4>
-                    <div className="space-y-2">
-                      {teamData.subordinates.map(sub => <TeamMemberCard key={sub.id} employee={sub} />)}
-                    </div>
-                  </div>
-                )}
-              </>
             )}
+            <div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Department Colleagues ({teamData?.peers?.length || 0})</p>
+              <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                {teamData?.peers?.length ? (
+                  teamData.peers.map((peer) => (
+                    <TeamMemberCard key={peer.id} employee={peer} />
+                  ))
+                ) : (
+                  <p className="text-xs text-slate-400 py-3 text-center">No colleagues found.</p>
+                )}
+              </div>
+            </div>
           </div>
         );
       case 'assets':
         return (
           <div className="space-y-2.5">
-            {assetsData?.length === 0 ? (
-              <div className="text-center py-6 bg-[#f8fafd] rounded-2xl border border-[#e0e3e7]">
-                <Laptop className="w-8 h-8 text-[#5f6368] mx-auto mb-2 opacity-50" />
-                <p className="text-xs text-[#5f6368]">No company assets assigned.</p>
+            {!assetsData || assetsData.length === 0 ? (
+              <div className="p-6 text-center bg-slate-50 rounded-2xl border border-slate-100">
+                <Laptop className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                <p className="text-xs text-slate-500 font-medium">No company assets assigned.</p>
               </div>
             ) : (
-              assetsData?.map((asset, i) => (
-                <div key={i} className="p-3.5 bg-[#f8fafd] rounded-2xl border border-[#e0e3e7] space-y-2">
+              assetsData.map((asset, i) => (
+                <div key={i} className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 space-y-2">
                   <div className="flex justify-between items-start">
                     <div>
-                      <h4 className="font-bold text-xs text-[#1f1f1f]">{asset.name}</h4>
-                      <p className="text-[10px] text-[#5f6368]">{asset.category}</p>
+                      <h4 className="font-bold text-xs text-slate-800">{asset.name}</h4>
+                      <p className="text-[10px] text-slate-400">{asset.category}</p>
                     </div>
-                    <span className="text-[10px] font-bold px-2 py-0.5 bg-[#e8f0fe] text-[#1a73e8] rounded-full border border-[#d2e3fc]">
+                    <span className="text-[10px] font-bold px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full border border-blue-100">
                       {asset.status}
                     </span>
                   </div>
-                  <div className="text-[11px] font-mono text-[#5f6368] bg-white p-2 rounded-xl border border-[#e0e3e7]">
+                  <div className="text-[11px] font-mono text-slate-500 bg-white p-2 rounded-xl border border-slate-200">
                     S/N: {asset.serial_number || 'N/A'}
                   </div>
                 </div>
@@ -321,7 +309,7 @@ const EmployeeMobileProfile = () => {
         );
       case 'timeline':
         return (
-          <div className="p-4 bg-[#f8fafd] rounded-2xl border border-[#e0e3e7]">
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
             {renderTimeline()}
           </div>
         );
@@ -332,47 +320,48 @@ const EmployeeMobileProfile = () => {
   if (loading) return <PageLoader message="Loading Profile Data..." />;
 
   return (
-    <div className="space-y-4 pb-8">
+    <div className="space-y-6 pb-4">
 
-      {/* Header Card */}
-      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <div className="flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368] ml-1">
-                Account &amp; Info
-              </span>
+      {/* Hero Section with Animated Motion Graphics */}
+      <section className="-mx-4 -mt-4 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900">
+        {/* Animated Liquid Orbs */}
+        <motion.div
+          animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -top-20 -left-10 w-72 h-72 bg-[#ff928b] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+        />
+        <motion.div
+          animate={{ scale: [1, 1.4, 1], x: [0, -40, 0], y: [0, 50, 0] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute -top-10 -right-10 w-64 h-64 bg-[#7bdff2] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+        />
+        <motion.div
+          animate={{ scale: [1, 1.3, 1], x: [0, 30, 0], y: [0, -40, 0] }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          className="absolute bottom-0 left-20 w-80 h-80 bg-[#84dcc6] rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
+        />
+        
+        {/* Subtle Glass Overlay */}
+        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
+
+        <div className="relative z-10 px-2 mb-2">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">My Profile</p>
+              <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">Account &amp; Info</h2>
+              <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">Personal credentials, settings &amp; assets</p>
             </div>
-            <h1 className="text-xl font-bold text-[#1f1f1f] tracking-tight">
-              My Profile
-            </h1>
-            <p className="text-xs text-[#5f6368]">
-              Personal credentials, work settings, and assigned assets
-            </p>
           </div>
-
-          <button
-            type="button"
-            onClick={handleEditClick}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold shadow-2xs transition-all cursor-pointer active:scale-95"
-          >
-            <Edit2 className="w-3.5 h-3.5" />
-            <span>Edit</span>
-          </button>
         </div>
-      </div>
+      </section>
 
-      {/* Profile Identity Card */}
-      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs">
+      {/* Profile Identity Card (Elevated Floating Card) */}
+      <section className="bg-white rounded-[1.5rem] border border-slate-100 shadow-md p-5 relative z-20 -mt-10 mx-0.5 space-y-4">
         <div className="flex flex-col items-center text-center space-y-3">
           
           {/* Avatar Container with Upload Badge */}
           <div className="relative">
-            <div className="w-20 h-20 rounded-full border-2 border-[#e8f0fe] shadow-sm bg-[#f8fafd] overflow-hidden flex items-center justify-center text-xl font-bold text-[#1a73e8]">
+            <div className="w-20 h-20 rounded-full border-2 border-slate-100 shadow-sm bg-slate-50 overflow-hidden flex items-center justify-center text-xl font-black text-slate-700">
               {avatar ? (
                 <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
@@ -385,7 +374,7 @@ const EmployeeMobileProfile = () => {
               )}
             </div>
 
-            <label className="absolute bottom-0 right-0 w-7 h-7 bg-[#1a73e8] hover:bg-[#1557b0] border-2 border-white rounded-full flex items-center justify-center text-white cursor-pointer shadow-xs active:scale-95 transition-all">
+            <label className="absolute bottom-0 right-0 w-7 h-7 bg-blue-600 hover:bg-blue-700 border-2 border-white rounded-full flex items-center justify-center text-white cursor-pointer shadow-xs active:scale-95 transition-all">
               <Camera className="w-3.5 h-3.5" />
               <input
                 type="file"
@@ -398,50 +387,63 @@ const EmployeeMobileProfile = () => {
           </div>
 
           <div>
-            <h2 className="text-base font-bold text-[#1f1f1f]">{fullName}</h2>
-            <p className="text-xs text-[#5f6368]">{position || 'Employee'}</p>
+            <h2 className="text-lg font-black text-slate-900 tracking-tight">{fullName}</h2>
+            <p className="text-xs font-semibold text-slate-400 mt-0.5">{position || 'Employee'}</p>
           </div>
 
-          <div className="grid grid-cols-2 gap-2.5 w-full pt-1">
-            <div className="bg-[#f8fafd] rounded-2xl p-2.5 text-center border border-[#e0e3e7]">
-              <p className="text-[9px] uppercase font-bold text-[#5f6368]">Employee ID</p>
-              <p className="font-bold text-xs text-[#1f1f1f] mt-0.5">{employeeId || '-'}</p>
+          {/* Edit Profile Google Pill Button */}
+          <button
+            type="button"
+            onClick={handleEditClick}
+            className="flex items-center gap-1.5 px-5 py-2 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white text-xs font-semibold shadow-xs hover:shadow transition-all cursor-pointer active:scale-95"
+          >
+            <Edit2 className="w-3.5 h-3.5" />
+            <span>Edit Profile</span>
+          </button>
+
+          {/* Compact 2-column details */}
+          <div className="grid grid-cols-2 gap-2.5 w-full pt-2 border-t border-slate-100">
+            <div className="bg-slate-50 rounded-2xl p-2.5 text-center border border-slate-100">
+              <p className="text-[9px] uppercase font-bold text-slate-400">Employee ID</p>
+              <p className="font-black text-xs text-slate-800 mt-0.5">{employeeId || '-'}</p>
             </div>
-            <div className="bg-[#f8fafd] rounded-2xl p-2.5 text-center border border-[#e0e3e7]">
-              <p className="text-[9px] uppercase font-bold text-[#5f6368]">Department</p>
-              <p className="font-bold text-xs text-[#1f1f1f] mt-0.5 truncate">{department || '-'}</p>
+            <div className="bg-slate-50 rounded-2xl p-2.5 text-center border border-slate-100">
+              <p className="text-[9px] uppercase font-bold text-slate-400">Department</p>
+              <p className="font-black text-xs text-slate-800 mt-0.5 truncate">{department || '-'}</p>
             </div>
           </div>
 
         </div>
-      </div>
+      </section>
 
       {/* Profile Section Navigation Cards */}
-      <div className="space-y-2.5">
+      <section className="space-y-3">
         <div className="px-1">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-[#1f1f1f]">Profile Categories</h3>
+          <h3 className="text-base font-bold text-slate-900 tracking-tight">Profile Categories</h3>
         </div>
 
-        {sections.map((section) => {
-          const Icon = section.icon;
-          return (
-            <button
-              key={section.id}
-              type="button"
-              onClick={() => setActiveSection(section.id)}
-              className="w-full bg-white p-3.5 rounded-2xl border border-[#e0e3e7] shadow-xs flex items-center justify-between hover:bg-[#f8fafd] active:scale-98 transition-all cursor-pointer"
-            >
-              <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-xl ${section.bg} ${section.color} flex items-center justify-center shrink-0`}>
-                  <Icon className="w-5 h-5" />
+        <div className="space-y-2.5">
+          {sections.map((section) => {
+            const Icon = section.icon;
+            return (
+              <button
+                key={section.id}
+                type="button"
+                onClick={() => setActiveSection(section.id)}
+                className="w-full bg-white p-4 rounded-[1.5rem] border border-slate-200 shadow-sm flex items-center justify-between hover:bg-slate-50 active:scale-[0.98] transition-all cursor-pointer text-left"
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-full ${section.bg} ${section.color} flex items-center justify-center shrink-0`}>
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <span className="text-sm font-bold text-slate-800">{section.label}</span>
                 </div>
-                <span className="text-xs font-bold text-[#1f1f1f] text-left">{section.label}</span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-[#5f6368]" />
-            </button>
-          );
-        })}
-      </div>
+                <ChevronRight className="w-4 h-4 text-slate-400" />
+              </button>
+            );
+          })}
+        </div>
+      </section>
 
       {/* Slide-Up Bottom Sheet Drawer (Mounted via createPortal with Framer Motion) */}
       {createPortal(
@@ -464,29 +466,25 @@ const EmployeeMobileProfile = () => {
                 animate={{ y: 0 }}
                 exit={{ y: '100%' }}
                 transition={{ type: 'spring', damping: 28, stiffness: 300, mass: 0.8 }}
-                className="bg-white rounded-t-[2rem] shadow-2xl border-t border-[#e0e3e7] w-full max-w-md mx-auto max-h-[85vh] flex flex-col overflow-hidden relative z-10"
+                className="bg-white rounded-t-[2rem] shadow-2xl border-t border-slate-200 w-full max-w-md mx-auto max-h-[85vh] flex flex-col overflow-hidden relative z-10"
               >
                 {/* Top Drag Indicator */}
-                <div className="w-10 h-1 bg-[#dadce0] rounded-full mx-auto my-2.5 shrink-0" />
-
-                {/* Top 4-Color Gradient Line */}
-                <div className="h-1 bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] shrink-0" />
+                <div className="w-10 h-1 bg-slate-300 rounded-full mx-auto my-2.5 shrink-0" />
 
                 {/* Bottom Sheet Header */}
-                <div className="px-5 py-3.5 border-b border-[#e0e3e7] flex items-center justify-between bg-white shrink-0">
+                <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
                   <div className="flex items-center gap-2.5">
-                    <div className={`w-8 h-8 rounded-xl ${sections.find(s => s.id === activeSection)?.bg} ${sections.find(s => s.id === activeSection)?.color} flex items-center justify-center shrink-0 shadow-2xs`}>
-                      {React.createElement(sections.find(s => s.id === activeSection)?.icon || User, { className: 'w-4 h-4' })}
-                    </div>
+                    {(() => {
+                      const current = sections.find(s => s.id === activeSection);
+                      const Icon = current?.icon || User;
+                      return (
+                        <div className={`w-8 h-8 rounded-full ${current?.bg || 'bg-blue-50'} ${current?.color || 'text-blue-600'} flex items-center justify-center shrink-0`}>
+                          <Icon className="w-4 h-4" />
+                        </div>
+                      );
+                    })()}
                     <div>
-                      <div className="flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-                        <span className="text-[9.5px] font-bold uppercase tracking-wider text-[#5f6368] ml-0.5">Profile Info</span>
-                      </div>
-                      <h3 className="text-sm font-bold text-[#1f1f1f]">
+                      <h3 className="text-sm font-bold text-slate-900">
                         {sections.find(s => s.id === activeSection)?.label}
                       </h3>
                     </div>
@@ -494,25 +492,25 @@ const EmployeeMobileProfile = () => {
                   <button
                     type="button"
                     onClick={() => setActiveSection(null)}
-                    className="w-8 h-8 rounded-full bg-[#f1f3f4] hover:bg-[#e8eaed] text-[#5f6368] hover:text-[#1f1f1f] flex items-center justify-center transition-colors cursor-pointer"
+                    className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
                   >
                     <X className="w-4 h-4" />
                   </button>
                 </div>
 
-                {/* Content Body */}
-                <div className="p-4 sm:p-5 overflow-y-auto space-y-2.5 flex-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {/* Scrollable Content */}
+                <div className="p-4 sm:p-5 overflow-y-auto space-y-3 flex-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                   {renderContent()}
                 </div>
 
-                {/* Bottom Actions */}
-                <div className="p-4 border-t border-[#e0e3e7] bg-white flex items-center gap-2.5 shrink-0">
+                {/* Bottom Close Button */}
+                <div className="p-4 border-t border-slate-100 bg-white shrink-0">
                   <button
                     type="button"
                     onClick={() => setActiveSection(null)}
-                    className="w-full py-3 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold shadow-xs flex items-center justify-center gap-2 active:scale-98 transition-all cursor-pointer"
+                    className="w-full py-2.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold transition-all cursor-pointer text-center"
                   >
-                    Done
+                    Close
                   </button>
                 </div>
               </motion.div>
