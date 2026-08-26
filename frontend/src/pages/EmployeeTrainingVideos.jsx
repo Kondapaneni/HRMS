@@ -555,10 +555,10 @@ const EmployeeTrainingVideos = () => {
                     key={video.id}
                     className="bg-white rounded-3xl border border-[#e0e3e7] overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col group"
                   >
-                    <div className="aspect-video bg-black relative">
+                    <div className="w-full h-48 sm:h-52 bg-slate-950 relative overflow-hidden flex items-center justify-center">
                       <video
                         src={video.video_url}
-                        className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+                        className="w-full h-full object-contain max-h-full opacity-90 group-hover:opacity-100 transition-opacity"
                         controls
                         playsInline
                         preload="metadata"
