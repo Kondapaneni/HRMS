@@ -191,13 +191,13 @@ const AdminLeaves = () => {
           <table className="w-full text-xs text-left">
             <thead className="bg-[#f8fafd] border-b border-[#e0e3e7]">
               <tr>
-                <th className="h-10 px-4 font-semibold text-[#5f6368] text-[11px] uppercase tracking-wider">Employee</th>
-                <th className="h-10 px-4 font-semibold text-[#5f6368] text-[11px] uppercase tracking-wider">Type</th>
-                <th className="h-10 px-4 font-semibold text-[#5f6368] text-[11px] uppercase tracking-wider">Duration</th>
-                <th className="h-10 px-4 font-semibold text-[#5f6368] text-[11px] uppercase tracking-wider">Days</th>
-                <th className="h-10 px-4 font-semibold text-[#5f6368] text-[11px] uppercase tracking-wider">Reason</th>
-                <th className="h-10 px-4 font-semibold text-[#5f6368] text-[11px] uppercase tracking-wider">Status</th>
-                <th className="h-10 px-4 font-semibold text-[#5f6368] text-[11px] uppercase tracking-wider text-right">Actions</th>
+                <th className="h-10 px-4 font-semibold text-[#5f6368] text-[11px] uppercase tracking-wider whitespace-nowrap">Employee</th>
+                <th className="h-10 px-4 font-semibold text-[#5f6368] text-[11px] uppercase tracking-wider whitespace-nowrap">Type</th>
+                <th className="h-10 px-4 font-semibold text-[#5f6368] text-[11px] uppercase tracking-wider whitespace-nowrap">Duration</th>
+                <th className="h-10 px-4 font-semibold text-[#5f6368] text-[11px] uppercase tracking-wider whitespace-nowrap">Days</th>
+                <th className="h-10 px-4 font-semibold text-[#5f6368] text-[11px] uppercase tracking-wider min-w-[160px]">Reason</th>
+                <th className="h-10 px-4 font-semibold text-[#5f6368] text-[11px] uppercase tracking-wider whitespace-nowrap">Status</th>
+                <th className="h-10 px-4 font-semibold text-[#5f6368] text-[11px] uppercase tracking-wider text-right whitespace-nowrap">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#f1f3f4]">
@@ -214,7 +214,7 @@ const AdminLeaves = () => {
               ) : (
                 leaves.map((leave) => (
                   <tr key={leave.id} className="hover:bg-[#f8fafd] transition-colors">
-                    <td className="px-4 py-3 font-semibold text-[#1f1f1f]">
+                    <td className="px-4 py-3 font-semibold text-[#1f1f1f] whitespace-nowrap">
                       <div className="flex items-center gap-2.5">
                         <div className="w-7 h-7 rounded-full bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center font-bold text-[10px] shrink-0 border border-[#d2e3fc]">
                           {leave.employeeName?.split(' ').map(n => n.charAt(0)).join('').toUpperCase().slice(0, 2) || <User size={12} />}
@@ -225,8 +225,8 @@ const AdminLeaves = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3">
-                      <span className="capitalize font-medium text-xs text-[#444746] bg-[#f1f3f4] px-2.5 py-0.5 rounded-full">
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <span className="capitalize font-medium text-xs text-[#444746] bg-[#f1f3f4] px-2.5 py-0.5 rounded-full inline-block whitespace-nowrap">
                         {leave.leaveType}
                       </span>
                     </td>
@@ -236,25 +236,25 @@ const AdminLeaves = () => {
                         <p className="text-[10px] text-[#5f6368]">to {leave.endDate}</p>
                       )}
                     </td>
-                    <td className="px-4 py-3 font-semibold text-xs text-[#1f1f1f]">
-                      <span className="bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] px-2 py-0.5 rounded-full font-bold text-[10px]">
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <span className="inline-flex items-center whitespace-nowrap bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full font-bold text-[10px]">
                         {leave.days} {leave.days === 1 ? 'day' : 'days'}
                       </span>
                     </td>
-                    <td className="px-4 py-3 max-w-[200px]">
-                      <p className="truncate text-xs text-[#5f6368]" title={leave.reason}>{leave.reason || '-'}</p>
+                    <td className="px-4 py-3 max-w-[240px]">
+                      <p className="text-xs text-[#5f6368] break-words line-clamp-2" title={leave.reason}>{leave.reason || '-'}</p>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 whitespace-nowrap">
                       <div>
                         {getStatusBadge(leave.status)}
                         {leave.status !== 'pending' && leave.approvedByName && (
-                          <p className="text-[9.5px] text-[#5f6368] mt-1 truncate max-w-[120px]">
+                          <p className="text-[9.5px] text-[#5f6368] mt-1 whitespace-nowrap">
                             by {leave.approvedByName}
                           </p>
                         )}
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-3 text-right whitespace-nowrap">
                       {leave.status === 'pending' ? (
                         <div className="flex items-center justify-end gap-1.5">
                           <button 
