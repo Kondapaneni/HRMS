@@ -8,11 +8,9 @@ import {
   XCircle, 
   AlertCircle, 
   CalendarDays,
-  Sparkles,
-  ChevronRight,
-  TrendingUp,
   FileText
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
@@ -54,24 +52,28 @@ const EmployeeMobileLeaves = () => {
     const s = (status || '').toLowerCase();
     if (s === 'approved') {
       return {
-        bg: 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]',
+        bg: 'bg-emerald-100 text-emerald-700 border-emerald-200/60',
+        icon: <CheckCircle2 className="w-4 h-4 text-emerald-600" />,
         label: 'Approved'
       };
     }
     if (s === 'rejected') {
       return {
-        bg: 'bg-[#fce8e6] text-[#c5221f] border-[#fad2cf]',
+        bg: 'bg-rose-100 text-rose-700 border-rose-200/60',
+        icon: <XCircle className="w-4 h-4 text-rose-600" />,
         label: 'Rejected'
       };
     }
     if (s === 'cancelled') {
       return {
-        bg: 'bg-[#f1f3f4] text-[#5f6368] border-[#dadce0]',
+        bg: 'bg-slate-100 text-slate-600 border-slate-200/60',
+        icon: <XCircle className="w-4 h-4 text-slate-500" />,
         label: 'Cancelled'
       };
     }
     return {
-      bg: 'bg-[#fef7e0] text-[#b06000] border-[#feefc3]',
+      bg: 'bg-amber-100 text-amber-800 border-amber-200/60',
+      icon: <Clock className="w-4 h-4 text-amber-600" />,
       label: 'Pending'
     };
   };
@@ -79,136 +81,151 @@ const EmployeeMobileLeaves = () => {
   if (loading) return <PageLoader message="Loading Leaves Data..." />;
 
   return (
-    <div className="space-y-4 pb-8">
+    <div className="space-y-6 pb-4">
 
-      {/* Header Card with Apply Button */}
-      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <div className="flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368] ml-1">
-                Time Off Hub
-              </span>
+      {/* Hero Section with Animated Motion Graphics */}
+      <section className="-mx-4 -mt-4 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900">
+        {/* Animated Liquid Orbs */}
+        <motion.div
+          animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -top-20 -left-10 w-72 h-72 bg-[#ff928b] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+        />
+        <motion.div
+          animate={{ scale: [1, 1.4, 1], x: [0, -40, 0], y: [0, 50, 0] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute -top-10 -right-10 w-64 h-64 bg-[#7bdff2] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+        />
+        <motion.div
+          animate={{ scale: [1, 1.3, 1], x: [0, 30, 0], y: [0, -40, 0] }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          className="absolute bottom-0 left-20 w-80 h-80 bg-[#84dcc6] rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
+        />
+
+        {/* Subtle Glass Overlay */}
+        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
+
+        <div className="relative z-10 px-2 mb-2">
+          <div className="flex justify-between items-start mb-5">
+            <div>
+              <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">My Leaves</p>
+              <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">Balance & History</h2>
+              <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">Manage your annual time off & leave records</p>
             </div>
-            <h1 className="text-xl font-bold text-[#1f1f1f] tracking-tight">
-              My Leaves
-            </h1>
-            <p className="text-xs text-[#5f6368]">
-              Annual leave balance and request records
-            </p>
           </div>
 
-          <div className="p-3 rounded-2xl bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
-            <CalendarDays className="w-5 h-5" />
+          {/* Premium White Apply for Leave Button */}
+          <Link
+            to="/employee/leaves/apply"
+            className="w-full flex items-center justify-center gap-2 bg-white hover:bg-slate-50 active:scale-[0.98] text-slate-900 rounded-full py-3.5 text-sm font-bold tracking-wide shadow-md transition-all cursor-pointer"
+          >
+            <Plus className="w-4 h-4 text-slate-900" />
+            <span>Apply for Leave</span>
+          </Link>
+        </div>
+      </section>
+
+      {/* KPI Stats Grid (4 Cards in Dashboard Elevated Aesthetic) */}
+      <section className="grid grid-cols-2 gap-3 relative z-20 -mt-10 mx-0.5">
+        {/* Paid Left */}
+        <div className="bg-white rounded-[1.5rem] p-4 flex flex-col justify-between border border-slate-100 shadow-md">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Paid Left</span>
+            <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <CheckCircle2 className="w-4 h-4" />
+            </div>
           </div>
+          <div className="my-1.5">
+            <span className="text-2xl font-black text-emerald-600 tracking-tight">{paidRemaining} Days</span>
+          </div>
+          <span className="text-[11px] font-medium text-slate-400">Available to book</span>
         </div>
 
-        <Link
-          to="/employee/leaves/apply"
-          className="w-full flex items-center justify-center gap-2 py-3 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold shadow-xs transition-all cursor-pointer active:scale-98"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Apply for New Leave</span>
-        </Link>
-      </div>
+        {/* Paid Used */}
+        <div className="bg-white rounded-[1.5rem] p-4 flex flex-col justify-between border border-slate-100 shadow-md">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Paid Used</span>
+            <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+              <Clock className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="my-1.5">
+            <span className="text-2xl font-black text-blue-600 tracking-tight">{balance.paidUsed || 0} Days</span>
+          </div>
+          <span className="text-[11px] font-medium text-slate-400">Quota deducted</span>
+        </div>
+
+        {/* Unpaid (LOP) */}
+        <div className="bg-white rounded-[1.5rem] p-4 flex flex-col justify-between border border-slate-100 shadow-md">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Unpaid (LOP)</span>
+            <div className="w-8 h-8 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center">
+              <AlertCircle className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="my-1.5">
+            <span className="text-2xl font-black text-rose-600 tracking-tight">{balance.unpaidUsed || 0} Days</span>
+          </div>
+          <span className="text-[11px] font-medium text-slate-400">Loss of pay</span>
+        </div>
+
+        {/* Total Approved */}
+        <div className="bg-white rounded-[1.5rem] p-4 flex flex-col justify-between border border-slate-100 shadow-md">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Approved</span>
+            <div className="w-8 h-8 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center">
+              <CalendarDays className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="my-1.5">
+            <span className="text-2xl font-black text-purple-600 tracking-tight">{balance.totalApproved || 0} Days</span>
+          </div>
+          <span className="text-[11px] font-medium text-slate-400">Lifetime approved</span>
+        </div>
+      </section>
 
       {/* Paid Leave Quota Progress Card */}
-      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-4 shadow-xs space-y-2.5">
+      <section className="bg-white rounded-[1.5rem] border border-slate-200 shadow-sm p-4 mx-0.5 space-y-2.5">
         <div className="flex items-center justify-between text-xs">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-[#1f1f1f]">Annual Paid Leave Quota</span>
-            <span className="text-[10px] text-[#5f6368]">({balance.paidTotal || 12} Days Total)</span>
+            <span className="font-bold text-slate-800">Annual Paid Leave Quota</span>
+            <span className="text-[11px] text-slate-400">({balance.paidTotal || 12} Days Total)</span>
           </div>
           <span className="font-bold text-[#1a73e8]">{percentUsed}% Used</span>
         </div>
 
-        <div className="w-full bg-[#f1f3f4] h-2.5 rounded-full overflow-hidden">
+        <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
           <div 
             className="bg-[#1a73e8] h-full rounded-full transition-all duration-500"
             style={{ width: `${percentUsed}%` }}
           />
         </div>
 
-        <div className="flex items-center justify-between text-[11px] text-[#5f6368] pt-0.5">
+        <div className="flex items-center justify-between text-[11px] text-slate-500 pt-0.5">
           <span>{balance.paidUsed || 0} Days Consumed</span>
-          <span className="font-semibold text-[#137333]">{paidRemaining} Days Remaining</span>
+          <span className="font-bold text-emerald-600">{paidRemaining} Days Remaining</span>
         </div>
-      </div>
-
-      {/* KPI Stats Grid (4 Cards) */}
-      <div className="grid grid-cols-2 gap-3">
-        {/* Paid Left */}
-        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3.5 shadow-xs space-y-1">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Paid Left</span>
-            <div className="p-1.5 rounded-lg bg-[#e6f4ea] text-[#137333]">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-            </div>
-          </div>
-          <p className="text-xl font-bold text-[#137333]">{paidRemaining} Days</p>
-          <p className="text-[10px] text-[#5f6368]">Available to book</p>
-        </div>
-
-        {/* Paid Used */}
-        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3.5 shadow-xs space-y-1">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Paid Used</span>
-            <div className="p-1.5 rounded-lg bg-[#e8f0fe] text-[#1a73e8]">
-              <Clock className="w-3.5 h-3.5" />
-            </div>
-          </div>
-          <p className="text-xl font-bold text-[#1a73e8]">{balance.paidUsed || 0} Days</p>
-          <p className="text-[10px] text-[#5f6368]">Quota deducted</p>
-        </div>
-
-        {/* Unpaid / LOP */}
-        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3.5 shadow-xs space-y-1">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Unpaid (LOP)</span>
-            <div className="p-1.5 rounded-lg bg-[#fef7e0] text-[#b06000]">
-              <AlertCircle className="w-3.5 h-3.5" />
-            </div>
-          </div>
-          <p className="text-xl font-bold text-[#b06000]">{balance.unpaidUsed || 0} Days</p>
-          <p className="text-[10px] text-[#5f6368]">Loss of pay</p>
-        </div>
-
-        {/* Total Approved */}
-        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3.5 shadow-xs space-y-1">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Approved</span>
-            <div className="p-1.5 rounded-lg bg-[#f3e8fd] text-[#8430ce]">
-              <CalendarDays className="w-3.5 h-3.5" />
-            </div>
-          </div>
-          <p className="text-xl font-bold text-[#8430ce]">{balance.totalApproved || 0} Days</p>
-          <p className="text-[10px] text-[#5f6368]">Lifetime approved</p>
-        </div>
-      </div>
+      </section>
 
       {/* Leave Application History Feed */}
-      <div className="space-y-3">
+      <section className="space-y-3">
         <div className="flex items-center justify-between px-1">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-[#1f1f1f]">Recent Applications</h3>
-          <span className="text-[10px] text-[#5f6368]">{history.length} Total Requests</span>
+          <h3 className="text-base font-bold text-slate-900 tracking-tight">Recent Applications</h3>
+          <span className="text-xs font-semibold text-slate-400">{history.length} Total Requests</span>
         </div>
 
         {error ? (
-          <div className="bg-[#fce8e6] p-4 rounded-2xl text-[#c5221f] text-xs font-medium text-center border border-[#fad2cf]">
+          <div className="bg-red-50 p-4 rounded-2xl text-red-600 text-xs font-medium text-center border border-red-100">
             {error}
           </div>
         ) : history.length === 0 ? (
-          <div className="bg-white p-8 rounded-3xl text-center border border-[#e0e3e7] shadow-xs space-y-2">
-            <AlertCircle className="w-8 h-8 text-[#5f6368] mx-auto opacity-50" />
-            <p className="text-xs font-semibold text-[#1f1f1f]">No leave history found</p>
-            <p className="text-[11px] text-[#5f6368]">You have not submitted any leave requests yet.</p>
+          <div className="bg-white p-8 rounded-[1.5rem] text-center border border-slate-200 shadow-sm space-y-2">
+            <AlertCircle className="w-8 h-8 text-slate-400 mx-auto opacity-60" />
+            <p className="text-sm font-bold text-slate-800">No leave history found</p>
+            <p className="text-xs text-slate-500">You have not submitted any leave requests yet.</p>
           </div>
         ) : (
-          <div className="space-y-2.5">
+          <div className="space-y-3">
             {history.slice(0, 15).map((record, index) => {
               const start = new Date(record.startDate);
               const end = new Date(record.endDate);
@@ -216,48 +233,51 @@ const EmployeeMobileLeaves = () => {
               const isPending = (record.status || '').toLowerCase() === 'pending';
 
               return (
-                <div key={record.id || index} className="bg-white p-4 rounded-2xl border border-[#e0e3e7] shadow-xs space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="text-sm font-bold text-[#1f1f1f] capitalize">
-                        {record.leaveType} Leave
-                      </h4>
-                      <p className="text-[10px] font-semibold text-[#5f6368] mt-0.5">
-                        {start.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                        {record.startDate !== record.endDate && ` – ${end.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`}
-                      </p>
+                <div key={record.id || index} className="bg-white p-4 rounded-[1.5rem] border border-slate-200 shadow-sm flex flex-col gap-3">
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0">
+                        {badge.icon}
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-black text-slate-900 uppercase tracking-wider">
+                          {record.leaveType} Leave
+                        </h4>
+                        <p className="text-[11px] font-bold text-slate-400 mt-0.5">
+                          {start.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                          {record.startDate !== record.endDate && ` - ${end.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`}
+                        </p>
+                      </div>
                     </div>
-                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${badge.bg}`}>
+                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${badge.bg}`}>
                       {badge.label}
                     </span>
                   </div>
 
                   {record.reason && (
-                    <div className="bg-[#f8fafd] rounded-xl p-2.5 border border-[#e0e3e7]">
-                      <p className="text-xs text-[#5f6368] italic line-clamp-2">
+                    <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                      <p className="text-xs text-slate-600 italic line-clamp-2">
                         &ldquo;{record.reason}&rdquo;
                       </p>
                     </div>
                   )}
 
                   {isPending && (
-                    <div className="pt-1">
-                      <button
-                        type="button"
-                        onClick={() => cancelLeaveMutation.mutate(record.id)}
-                        disabled={cancelLeaveMutation.isPending}
-                        className="w-full py-2 rounded-full border border-[#fad2cf] bg-[#fce8e6]/50 hover:bg-[#fce8e6] text-[#c5221f] font-semibold text-xs transition-all cursor-pointer disabled:opacity-50"
-                      >
-                        {cancelLeaveMutation.isPending ? 'Cancelling Request...' : 'Cancel Leave Request'}
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => cancelLeaveMutation.mutate(record.id)}
+                      disabled={cancelLeaveMutation.isPending}
+                      className="w-full flex items-center justify-center gap-2 bg-[#d93025] hover:bg-[#b3261e] active:bg-[#a51d14] text-white rounded-full py-2.5 text-xs font-semibold shadow-xs transition-all cursor-pointer disabled:opacity-50"
+                    >
+                      <span>{cancelLeaveMutation.isPending ? 'Cancelling...' : 'Cancel Leave'}</span>
+                    </button>
                   )}
                 </div>
               );
             })}
           </div>
         )}
-      </div>
+      </section>
 
     </div>
   );
