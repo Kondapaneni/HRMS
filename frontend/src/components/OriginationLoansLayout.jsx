@@ -431,11 +431,11 @@ const OriginationLoansLayout = () => {
               </div>
 
               {/* Actions */}
-              <div className="grid grid-cols-2 gap-2.5 pt-2">
+              <div className="grid grid-cols-2 gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowBackModal(false)}
-                  className="w-full py-3 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all cursor-pointer"
+                  className="w-full py-3.5 px-4 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-bold transition-all cursor-pointer shadow-2xs"
                 >
                   Cancel
                 </button>
@@ -445,7 +445,7 @@ const OriginationLoansLayout = () => {
                     setShowBackModal(false);
                     navigate('/employee');
                   }}
-                  className="w-full py-3 rounded-full text-white text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95 bg-[#1a73e8] hover:bg-[#1557b0]"
+                  className="w-full py-3.5 px-4 rounded-full text-white text-sm font-bold transition-all cursor-pointer shadow-xs active:scale-95 bg-[#1a73e8] hover:bg-[#1557b0]"
                 >
                   Yes, Return
                 </button>

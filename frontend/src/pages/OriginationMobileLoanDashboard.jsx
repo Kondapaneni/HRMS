@@ -24,7 +24,7 @@ import {
   Area,
   AreaChart
 } from 'recharts';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
@@ -34,6 +34,7 @@ import { maskPhoneNumber } from '../utils/phoneUtils';
 
 const OriginationMobileLoanDashboard = () => {
   const { profile } = useAuth();
+  const navigate = useNavigate();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [chartTab, setChartTab] = useState('daily'); // 'daily' | 'monthly'
 

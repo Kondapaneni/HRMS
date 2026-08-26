@@ -14,8 +14,6 @@ import {
   MapPin
 } from 'lucide-react';
 import {
-  LineChart,
-  Line,
   BarChart,
   Bar,
   XAxis,
@@ -27,15 +25,17 @@ import {
   Area,
   AreaChart
 } from 'recharts';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { format } from 'date-fns';
+import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { getSalesDashboardData, getSalesLeads } from '../services/salesServices';
 import PageLoader from '../components/PageLoader';
 import { maskPhoneNumber } from '../utils/phoneUtils';
-import { format } from 'date-fns';
 
 const OriginationMobileSaleDashboard = () => {
   const { profile } = useAuth();
+  const navigate = useNavigate();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [chartTab, setChartTab] = useState('daily'); // 'daily' | 'monthly'
 
@@ -123,45 +123,43 @@ const OriginationMobileSaleDashboard = () => {
 
   return (
     <div className="space-y-4 pb-12">
-      {/* 1. Hero Welcome Header Card */}
-      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs relative overflow-hidden bg-gradient-to-br from-white via-[#f8fafd] to-[#e8f0fe]/30">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <div className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368] ml-0.5">
-                {getGreeting()}
-              </span>
-            </div>
-            <h1 className="text-xl font-bold text-[#1f1f1f] tracking-tight">
-              {profile?.firstName || profile?.name?.split(' ')[0] || 'Sales'} {profile?.lastName || profile?.name?.split(' ')[1] || 'Officer'}
-            </h1>
-            <p className="text-xs text-[#5f6368] flex items-center gap-1.5">
-              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2 py-0.5 rounded-full">
-                <ShoppingBag size={11} /> Sales Origination
-              </span>
-              <span>&bull;</span>
-              <span>{currentTime.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}</span>
-            </p>
-          </div>
+      {/* 1. Hero Section with Animated Emerald/Teal Motion Graphics for Sales */}
+      <section className="-mx-4 -mt-4 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900">
+        {/* Animated Liquid Orbs with Sales Origination Emerald, Teal & Cyan Theme */}
+        <motion.div
+          animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
+          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+          className="absolute -top-20 -left-10 w-72 h-72 bg-emerald-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+        />
+        <motion.div
+          animate={{ scale: [1, 1.4, 1], x: [0, -40, 0], y: [0, 50, 0] }}
+          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+          className="absolute -top-10 -right-10 w-64 h-64 bg-teal-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+        />
+        <motion.div
+          animate={{ scale: [1, 1.3, 1], x: [0, 30, 0], y: [0, -40, 0] }}
+          transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+          className="absolute bottom-0 left-20 w-80 h-80 bg-cyan-400 rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
+        />
 
-          <div className="h-13 w-13 rounded-full bg-[#e8f0fe] border-2 border-[#d2e3fc] flex items-center justify-center overflow-hidden shrink-0 shadow-xs">
-            {profile?.avatar ? (
-              <img src={profile.avatar} alt="Profile" className="h-full w-full object-cover" />
-            ) : (
-              <span className="text-base font-bold text-[#1a73e8]">
-                {profile?.firstName?.[0] || profile?.name?.split(' ')?.[0]?.[0] || 'S'}{profile?.lastName?.[0] || profile?.name?.split(' ')?.[1]?.[0] || 'O'}
-              </span>
-            )}
-          </div>
+        {/* Subtle Glass Overlay */}
+        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none" />
+
+        <div className="relative z-10 px-2">
+          <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">
+            {getGreeting()} &bull; Sales Origination
+          </p>
+          <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">
+            {profile?.firstName || profile?.name?.split(' ')[0] || 'Sales'} {profile?.lastName || profile?.name?.split(' ')[1] || 'Officer'}
+          </h2>
+          <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">
+            {currentTime.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })} &bull; Performance &amp; Leads
+          </p>
         </div>
-      </div>
+      </section>
 
-      {/* 2. 4 KPI Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+      {/* 2. Exactly the 4 KPI Metric Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 relative z-20 -mt-8 mx-0.5">
         {/* Card 1: Total Leads */}
         <div className="bg-white rounded-2xl border border-[#e0e3e7] p-4.5 shadow-xs flex items-center justify-between">
           <div className="space-y-1">
@@ -183,7 +181,7 @@ const OriginationMobileSaleDashboard = () => {
             </div>
             <p className="text-xs text-[#5f6368] font-normal pt-0.5">Vs previous month</p>
           </div>
-          <div className="p-3 rounded-2xl bg-[#e8f0fe] text-[#1a73e8] shrink-0">
+          <div className="p-3 rounded-2xl bg-[#e6f4ea] text-[#137333] shrink-0">
             <Users className="w-5 h-5" />
           </div>
         </div>
@@ -221,7 +219,7 @@ const OriginationMobileSaleDashboard = () => {
               Converted Leads
             </p>
             <div className="flex items-baseline gap-2">
-              <p className="text-2xl font-bold text-[#1f1f1f] tracking-tight">
+              <p className="text-2xl font-bold text-[#137333] tracking-tight">
                 {stats.converted_leads}
               </p>
               <span className={`inline-flex items-center text-xs font-bold ${stats.percent_change_converted >= 0 ? 'text-[#137333]' : 'text-[#c5221f]'}`}>
@@ -247,7 +245,7 @@ const OriginationMobileSaleDashboard = () => {
               Conversion Rate
             </p>
             <div className="flex items-baseline gap-2">
-              <p className="text-2xl font-bold text-[#1a73e8] tracking-tight">
+              <p className="text-2xl font-bold text-[#137333] tracking-tight">
                 {conversionRate}%
               </p>
               <span className="text-xs font-semibold text-[#137333]">Active</span>
@@ -278,7 +276,7 @@ const OriginationMobileSaleDashboard = () => {
               onClick={() => setChartTab('daily')}
               className={`whitespace-nowrap px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
                 chartTab === 'daily'
-                  ? 'bg-white text-[#1a73e8] shadow-2xs'
+                  ? 'bg-white text-[#137333] shadow-2xs'
                   : 'text-[#5f6368] hover:text-[#1f1f1f]'
               }`}
             >
@@ -289,7 +287,7 @@ const OriginationMobileSaleDashboard = () => {
               onClick={() => setChartTab('monthly')}
               className={`whitespace-nowrap px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
                 chartTab === 'monthly'
-                  ? 'bg-white text-[#1a73e8] shadow-2xs'
+                  ? 'bg-white text-[#137333] shadow-2xs'
                   : 'text-[#5f6368] hover:text-[#1f1f1f]'
               }`}
             >
@@ -303,13 +301,13 @@ const OriginationMobileSaleDashboard = () => {
             {chartTab === 'daily' ? (
               <AreaChart data={dailyData} margin={{ top: 10, right: 10, bottom: 5, left: -20 }}>
                 <defs>
-                  <linearGradient id="leadsGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#1a73e8" stopOpacity={0.25}/>
-                    <stop offset="95%" stopColor="#1a73e8" stopOpacity={0}/>
+                  <linearGradient id="salesLeadsGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.25}/>
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
                   </linearGradient>
-                  <linearGradient id="convertedGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#34a853" stopOpacity={0.25}/>
-                    <stop offset="95%" stopColor="#34a853" stopOpacity={0}/>
+                  <linearGradient id="salesConvertedGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.25}/>
+                    <stop offset="95%" stopColor="#06b6d4" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f3f4" />
@@ -325,8 +323,8 @@ const OriginationMobileSaleDashboard = () => {
                   }}
                 />
                 <Legend iconType="circle" wrapperStyle={{ paddingTop: '10px', fontSize: '11px' }} />
-                <Area type="monotone" dataKey="leads" name="Total Leads" stroke="#1a73e8" strokeWidth={2} fillOpacity={1} fill="url(#leadsGradient)" />
-                <Area type="monotone" dataKey="converted" name="Converted" stroke="#34a853" strokeWidth={2} fillOpacity={1} fill="url(#convertedGradient)" />
+                <Area type="monotone" dataKey="leads" name="Total Leads" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#salesLeadsGradient)" />
+                <Area type="monotone" dataKey="converted" name="Converted" stroke="#06b6d4" strokeWidth={2} fillOpacity={1} fill="url(#salesConvertedGradient)" />
               </AreaChart>
             ) : (
               <BarChart data={monthlyData} margin={{ top: 10, right: 10, bottom: 5, left: -20 }}>
@@ -344,33 +342,33 @@ const OriginationMobileSaleDashboard = () => {
                   cursor={{ fill: '#f8fafd' }}
                 />
                 <Legend iconType="circle" wrapperStyle={{ paddingTop: '10px', fontSize: '11px' }} />
-                <Bar dataKey="leads" name="Leads" fill="#1a73e8" radius={[4, 4, 0, 0]} barSize={12} />
-                <Bar dataKey="converted" name="Converted" fill="#34a853" radius={[4, 4, 0, 0]} barSize={12} />
+                <Bar dataKey="leads" name="Leads" fill="#10b981" radius={[4, 4, 0, 0]} barSize={12} />
+                <Bar dataKey="converted" name="Converted" fill="#06b6d4" radius={[4, 4, 0, 0]} barSize={12} />
               </BarChart>
             )}
           </ResponsiveContainer>
         </div>
       </div>
 
-      {/* 4. Recent Sales Leads Feed */}
+      {/* 4. Recent Pipeline Leads Feed */}
       <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs space-y-3">
         <div className="flex items-center justify-between border-b border-[#f1f3f4] pb-3">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center">
-              <TrendingUp size={14} />
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-full bg-[#e6f4ea] text-[#137333] flex items-center justify-center shrink-0">
+              <TrendingUp size={16} />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-[#1f1f1f]">Recent Sales Leads</h3>
+              <h3 className="text-sm font-bold text-[#1f1f1f]">Recent Pipeline Leads</h3>
               <p className="text-[11px] text-[#5f6368]">Latest prospects registered</p>
             </div>
           </div>
 
           <Link
             to="/employee/sales/origination/leads"
-            className="inline-flex items-center gap-1.5 text-[13.5px] font-bold text-[#1a73e8] hover:text-[#1557b0] transition-colors"
+            className="inline-flex items-center gap-1 text-[13px] font-bold text-[#137333] hover:text-[#0b5324] transition-colors shrink-0"
           >
             <span>View All</span>
-            <ChevronRight size={16} />
+            <ChevronRight size={15} />
           </Link>
         </div>
 
@@ -378,7 +376,7 @@ const OriginationMobileSaleDashboard = () => {
           {leadsLoading ? (
             <p className="text-center py-6 text-xs text-[#5f6368]">Loading recent leads...</p>
           ) : recentLeads.length === 0 ? (
-            <p className="text-center py-6 text-xs text-[#5f6368]">No sales leads recorded yet.</p>
+            <p className="text-center py-6 text-xs text-[#5f6368]">No pipeline leads recorded yet.</p>
           ) : (
             recentLeads.map((lead) => {
               const displayName = lead.name || lead.full_name || 'Unnamed Prospect';
@@ -391,7 +389,7 @@ const OriginationMobileSaleDashboard = () => {
                   className="py-3.5 flex items-center justify-between gap-2 cursor-pointer hover:bg-[#f8fafd] transition-colors rounded-xl px-1.5 -mx-1.5"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-10 h-10 rounded-full bg-[#e8f0fe] text-[#1a73e8] font-bold text-xs flex items-center justify-center shrink-0 border border-[#d2e3fc]">
+                    <div className="w-10 h-10 rounded-full bg-[#e6f4ea] text-[#137333] font-bold text-xs flex items-center justify-center shrink-0 border border-[#ceead6]">
                       {initials}
                     </div>
                     <div className="min-w-0 space-y-0.5">
@@ -406,7 +404,7 @@ const OriginationMobileSaleDashboard = () => {
                         {lead.product_type && (
                           <>
                             <span>&bull;</span>
-                            <span className="truncate text-[#1a73e8] font-semibold">{lead.product_type}</span>
+                            <span className="truncate text-[#137333] font-semibold">{lead.product_type}</span>
                           </>
                         )}
                       </div>

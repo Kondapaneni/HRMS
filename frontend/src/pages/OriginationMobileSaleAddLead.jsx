@@ -122,8 +122,8 @@ const OriginationMobileSaleAddLead = () => {
             <label className="text-[11px] font-bold text-[#5f6368] uppercase tracking-wider block">
               Prospect Full Name <span className="text-[#d93025]">*</span>
             </label>
-            <div className="relative">
-              <User size={15} className="text-[#80868b] absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <div className="relative flex items-center">
+              <User size={16} className="text-[#80868b] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none z-10" />
               <input
                 type="text"
                 value={formData.name}
@@ -143,8 +143,8 @@ const OriginationMobileSaleAddLead = () => {
             <label className="text-[11px] font-bold text-[#5f6368] uppercase tracking-wider block">
               Mobile Number <span className="text-[#d93025]">*</span>
             </label>
-            <div className="relative">
-              <Phone size={15} className="text-[#80868b] absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <div className="relative flex items-center">
+              <Phone size={16} className="text-[#80868b] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none z-10" />
               <input
                 type="tel"
                 maxLength={10}
@@ -166,7 +166,7 @@ const OriginationMobileSaleAddLead = () => {
               Residential / Business Address <span className="text-[#d93025]">*</span>
             </label>
             <div className="relative">
-              <MapPin size={15} className="text-[#80868b] absolute left-4 top-3.5 pointer-events-none" />
+              <MapPin size={16} className="text-[#80868b] absolute left-3.5 top-3.5 pointer-events-none z-10" />
               <textarea
                 rows={3}
                 value={formData.address}
