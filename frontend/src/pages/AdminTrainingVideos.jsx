@@ -456,23 +456,24 @@ const AdminTrainingVideos = () => {
         </div>
       )}
 
-      {/* Upload Video Modal with In-Browser Compression & Progress Bar */}
+      {/* Upload Video Slideover Right Drawer with In-Browser Compression & Progress Bar */}
       {isModalOpen && createPortal(
         <div 
           onClick={(e) => { if (e.target === e.currentTarget && !isBusy) setIsModalOpen(false); }}
-          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm"
         >
           <motion.div 
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.95, opacity: 0 }}
-            className="bg-white rounded-3xl shadow-2xl border border-[#e0e3e7] w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]"
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
+            className="bg-white shadow-2xl w-full max-w-md h-[100dvh] flex flex-col overflow-hidden relative z-10 border-l border-[#e0e3e7]"
           >
             {/* Top 4-Color Google Accent Line */}
-            <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853]" />
+            <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
 
             {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd] shrink-0">
+            <div className="px-6 py-4 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd] mt-1 shrink-0">
               <div>
                 <div className="flex items-center gap-1 mb-0.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />

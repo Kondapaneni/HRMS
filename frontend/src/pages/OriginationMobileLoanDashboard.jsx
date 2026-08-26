@@ -124,54 +124,42 @@ const OriginationMobileLoanDashboard = () => {
     <div className="space-y-4 pb-12">
 
       {/* 1. Hero Section with Animated Motion Graphics */}
-      <section className="-mx-4 -mt-4 px-4 pt-8 pb-9 relative overflow-hidden bg-slate-900">
-        {/* Animated Liquid Orbs */}
+      <section className="-mx-4 -mt-4 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900">
+        {/* Animated Liquid Orbs with Loans Origination Blue & Indigo Theme */}
         <motion.div
           animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-20 -left-10 w-72 h-72 bg-[#ff928b] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+          className="absolute -top-20 -left-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
         />
         <motion.div
           animate={{ scale: [1, 1.4, 1], x: [0, -40, 0], y: [0, 50, 0] }}
           transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute -top-10 -right-10 w-64 h-64 bg-[#7bdff2] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+          className="absolute -top-10 -right-10 w-64 h-64 bg-indigo-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
         />
         <motion.div
           animate={{ scale: [1, 1.3, 1], x: [0, 30, 0], y: [0, -40, 0] }}
           transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-0 left-20 w-80 h-80 bg-[#84dcc6] rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
+          className="absolute bottom-0 left-20 w-80 h-80 bg-sky-400 rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
         />
         
         {/* Subtle Glass Overlay */}
         <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
 
-        <div className="relative z-10 px-2 flex items-start justify-between">
-          <div>
-            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">
-              {getGreeting()} &bull; Loan Origination
-            </p>
-            <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">
-              {profile?.firstName || 'Origination'} {profile?.lastName || 'Officer'}
-            </h2>
-            <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">
-              {currentTime.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })} &bull; Performance &amp; Leads
-            </p>
-          </div>
-
-          <div className="h-12 w-12 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center overflow-hidden shrink-0 shadow-md mt-1">
-            {profile?.avatar ? (
-              <img src={profile.avatar} alt="Profile" className="h-full w-full object-cover" />
-            ) : (
-              <span className="text-sm font-black text-white">
-                {profile?.firstName?.[0] || 'L'}{profile?.lastName?.[0] || 'O'}
-              </span>
-            )}
-          </div>
+        <div className="relative z-10 px-2">
+          <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">
+            {getGreeting()} &bull; Loan Origination
+          </p>
+          <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">
+            {profile?.firstName || 'Origination'} {profile?.lastName || 'Officer'}
+          </h2>
+          <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">
+            {currentTime.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })} &bull; Performance &amp; Leads
+          </p>
         </div>
       </section>
 
       {/* 2. Exactly the 4 KPI Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 relative z-20 -mt-4 mx-0.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 relative z-20 -mt-8 mx-0.5">
         
         {/* Card 1: Total Leads */}
         <div className="bg-white rounded-2xl border border-[#e0e3e7] p-4.5 shadow-xs flex items-center justify-between">

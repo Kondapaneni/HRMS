@@ -404,57 +404,51 @@ const OriginationLoansLayout = () => {
 
         {/* Back to HRMS Confirmation Modal */}
         {showBackModal && createPortal(
-          <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+          <div 
+            onClick={() => setShowBackModal(false)}
+            className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200"
+          >
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowBackModal(false)}
-              className="fixed inset-0 bg-black/40 backdrop-blur-xs cursor-pointer"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 8 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 8 }}
-              transition={{ duration: 0.2 }}
-              className="w-full max-w-sm bg-white rounded-3xl border border-[#e0e3e7] shadow-2xl overflow-hidden relative z-10 flex flex-col"
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-sm overflow-hidden p-6 space-y-4 text-center"
             >
-              {/* Top 4-Color Gradient Accent Line */}
-              <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853]" />
+              {/* Top Icon Badge */}
+              <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
+                <ArrowLeft className="w-7 h-7" />
+              </div>
 
-              <div className="p-6 text-center space-y-4">
-                <div className="w-12 h-12 rounded-2xl bg-[#e8f0fe] border border-[#d2e3fc] text-[#1a73e8] flex items-center justify-center mx-auto shadow-2xs">
-                  <ArrowLeft className="w-6 h-6" />
-                </div>
+              {/* Content */}
+              <div className="space-y-1.5">
+                <h3 className="text-base font-bold text-slate-900">
+                  Back to HRMS Dashboard?
+                </h3>
+                <p className="text-xs text-slate-500 font-medium">
+                  Return to the main Employee Workspace and attendance portal.
+                </p>
+              </div>
 
-                <div className="space-y-1">
-                  <h3 className="text-lg font-semibold text-[#1f1f1f] tracking-tight">
-                    Back to HRMS Dashboard?
-                  </h3>
-                  <p className="text-xs text-[#5f6368] leading-relaxed">
-                    Return to the main Employee Workspace and attendance portal.
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2.5 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowBackModal(false)}
-                    className="flex-1 py-3 px-4 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-xs font-semibold text-[#1f1f1f] transition-all cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowBackModal(false);
-                      navigate('/employee');
-                    }}
-                    className="flex-1 py-3 px-4 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold shadow-xs transition-all cursor-pointer"
-                  >
-                    Return to HRMS
-                  </button>
-                </div>
+              {/* Actions */}
+              <div className="grid grid-cols-2 gap-2.5 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowBackModal(false)}
+                  className="w-full py-3 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowBackModal(false);
+                    navigate('/employee');
+                  }}
+                  className="w-full py-3 rounded-full text-white text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95 bg-[#1a73e8] hover:bg-[#1557b0]"
+                >
+                  Yes, Return
+                </button>
               </div>
             </motion.div>
           </div>,

@@ -536,7 +536,7 @@ const EmployeeMobileTrainingVideos = () => {
               <button
                 type="button"
                 onClick={() => setConfirmingVideo(null)}
-                className="w-full py-2.5 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all cursor-pointer"
+                className="w-full py-3 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all cursor-pointer"
               >
                 Cancel
               </button>
@@ -544,7 +544,7 @@ const EmployeeMobileTrainingVideos = () => {
                 type="button"
                 onClick={handleConfirmToggle}
                 disabled={toggleProgressMutation.isPending}
-                className={`w-full py-2.5 rounded-full text-white text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95 ${
+                className={`w-full py-3 rounded-full text-white text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95 ${
                   confirmingVideo.is_completed
                     ? 'bg-[#d93025] hover:bg-[#b31412]'
                     : 'bg-[#1a73e8] hover:bg-[#1557b0]'
