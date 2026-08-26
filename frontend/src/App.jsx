@@ -223,6 +223,7 @@ function App() {
                 <Route path="assessments" element={<EmployeeAssessments />} />
                 <Route path="assessments/instructions" element={<EmployeeAssessmentInstructions />} />
                 <Route path="training" element={<EmployeeTrainingVideos />} />
+                <Route path="birthdays" element={<EmployeeMobileBirthdays />} />
                 <Route path="profile" element={<EmployeeProfile />} />
                 <Route path="profile/edit" element={<EditProfile />} />
               </Route>
@@ -325,19 +326,11 @@ function App() {
               />
               <Route
                 path="/employee/mobile/holidays"
-                element={
-                  <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
-                    <EmployeeMobileHolidays />
-                  </ProtectedRoute>
-                }
+                element={<Navigate to="/employee/holidays" replace />}
               />
               <Route
                 path="/employee/mobile/birthdays"
-                element={
-                  <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
-                    <EmployeeMobileBirthdays />
-                  </ProtectedRoute>
-                }
+                element={<Navigate to="/employee/birthdays" replace />}
               />
               <Route
                 path="/employee/mobile/applyleave"

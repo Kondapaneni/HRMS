@@ -8,53 +8,77 @@ import {
   CheckCircle2, 
   XCircle, 
   Clock, 
-  ArrowLeft, 
+  ChevronLeft, 
+  ChevronDown,
   Receipt,
   X,
   Sparkles,
-  DollarSign,
-  AlertCircle,
-  ExternalLink,
-  Send,
-  Loader2
+  AlertCircle, 
+  ExternalLink, 
+  Save,
+  Send, 
+  Loader2,
+  Car,
+  Utensils,
+  Laptop,
+  Package,
+  Trash2
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
-import toast from 'react-hot-toast';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import { supabase } from '../lib/supabase';
+
+const CATEGORY_OPTIONS = ['Travel', 'Meals', 'Supplies', 'Software', 'Hardware', 'Other'];
+
+const getCategoryIcon = (category) => {
+  const c = (category || '').toLowerCase();
+  if (c.includes('travel') || c.includes('transport') || c.includes('taxi')) return Car;
+  if (c.includes('meal') || c.includes('food') || c.includes('dinner')) return Utensils;
+  if (c.includes('soft') || c.includes('hard') || c.includes('tech') || c.includes('laptop')) return Laptop;
+  if (c.includes('suppl') || c.includes('office') || c.includes('station')) return Package;
+  return Receipt;
+};
 
 const EmployeeMobileExpenses = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [filterStatus, setFilterStatus] = useState('all'); // 'all' | 'pending' | 'approved' | 'rejected'
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('Travel');
   const [billFile, setBillFile] = useState(null);
   const [selectedBillUrl, setSelectedBillUrl] = useState(null);
+  const controls = useDragControls();
 
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    if (selectedBillUrl || isFormOpen) {
+    window.dispatchEvent(new CustomEvent('toggle-mobile-bottom-nav', { detail: isFormOpen || !!selectedBillUrl }));
+    if (selectedBillUrl) {
       document.body.style.overflow = 'hidden';
+      document.body.classList.add('hide-mobile-nav');
     } else {
       document.body.style.overflow = '';
+      document.body.classList.remove('hide-mobile-nav');
     }
     return () => {
       document.body.style.overflow = '';
+      document.body.classList.remove('hide-mobile-nav');
     };
-  }, [selectedBillUrl, isFormOpen]);
+  }, [isFormOpen, selectedBillUrl]);
 
   const { data: expensesData = [], isLoading } = useQuery({
     queryKey: ['employee', 'expenses'],
     queryFn: async () => {
       const res = await api.get('/employee/expenses');
       return res.data.expenses || [];
-    }
+    },
+    staleTime: 30000
   });
 
   const submitExpenseMutation = useMutation({
@@ -81,8 +105,9 @@ const EmployeeMobileExpenses = () => {
       return res.data;
     },
     onSuccess: () => {
-      toast.success('Expense claim submitted successfully');
+      toast.success('Expense claim submitted successfully!');
       queryClient.invalidateQueries({ queryKey: ['employee', 'expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['employee', 'dashboard'] });
       handleCloseForm();
     },
     onError: (err) => {
@@ -100,9 +125,9 @@ const EmployeeMobileExpenses = () => {
   };
 
   const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!title || !amount || !category) {
-      toast.error('Please fill all required fields');
+    if (e) e.preventDefault();
+    if (!title.trim() || !amount || !category) {
+      toast.error('Please fill in title, amount, and category');
       return;
     }
     submitExpenseMutation.mutate();
@@ -112,7 +137,7 @@ const EmployeeMobileExpenses = () => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
-      maximumFractionDigits: 2
+      maximumFractionDigits: 0
     }).format(val || 0);
   };
 
@@ -120,9 +145,15 @@ const EmployeeMobileExpenses = () => {
   const pendingExpenses = expensesData.filter(e => (e.status || '').toLowerCase() === 'pending');
   const rejectedExpenses = expensesData.filter(e => (e.status || '').toLowerCase() === 'rejected');
 
+  const totalClaimed = expensesData.reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
   const totalApproved = approvedExpenses.reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
   const totalPending = pendingExpenses.reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
   const totalRejected = rejectedExpenses.reduce((sum, e) => sum + parseFloat(e.amount || 0), 0);
+
+  const filteredExpenses = expensesData.filter(e => {
+    if (filterStatus === 'all') return true;
+    return (e.status || '').toLowerCase() === filterStatus;
+  });
 
   const getStatusBadge = (status) => {
     const s = (status || '').toLowerCase();
@@ -149,125 +180,377 @@ const EmployeeMobileExpenses = () => {
 
   if (isLoading) return <PageLoader message="Loading Expenses..." />;
 
-  return (
-    <div className="space-y-4 pb-8">
+  // ==========================================
+  // VIEW 1: FULL-PAGE NEW EXPENSE CLAIM FORM
+  // (Styled exactly like EditMobileProfile.jsx)
+  // ==========================================
+  if (isFormOpen) {
+    const isSubmitting = submitExpenseMutation.isPending;
 
-      {/* Header Card */}
-      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
+    return (
+      <div className="space-y-6 pb-6">
+
+        {/* Hero Section with Animated Motion Graphics */}
+        <section className="-mx-4 -mt-4 px-4 pt-8 pb-14 relative overflow-hidden bg-slate-900">
+          {/* Animated Liquid Orbs */}
+          <motion.div
+            animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
+            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute -top-20 -left-10 w-72 h-72 bg-[#ff928b] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+          />
+          <motion.div
+            animate={{ scale: [1, 1.4, 1], x: [0, -40, 0], y: [0, 50, 0] }}
+            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+            className="absolute -top-10 -right-10 w-64 h-64 bg-[#7bdff2] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+          />
+          <motion.div
+            animate={{ scale: [1, 1.3, 1], x: [0, 30, 0], y: [0, -40, 0] }}
+            transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+            className="absolute bottom-0 left-20 w-80 h-80 bg-[#84dcc6] rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
+          />
+          
+          {/* Subtle Glass Overlay */}
+          <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none" />
+
+          <div className="relative z-10 flex items-center justify-between px-2">
+            <button 
               type="button"
-              onClick={() => navigate('/employee')}
-              className="p-2 rounded-full border border-[#dadce0] bg-[#f8fafd] hover:bg-[#e8f0fe] text-[#1f1f1f] transition-all cursor-pointer shadow-2xs active:scale-95 shrink-0"
-              title="Back to Home"
+              onClick={handleCloseForm} 
+              className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center backdrop-blur-md transition-all active:scale-95 cursor-pointer"
+              title="Back to Claims"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ChevronLeft className="w-5 h-5" />
             </button>
-            <div>
-              <div className="flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-                <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-                <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-                <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368] ml-1">
-                  Reimbursements Hub
-                </span>
+            
+            <div className="text-center">
+              <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest drop-shadow-md">Expense Reimbursements</p>
+              <h2 className="text-xl font-black text-white tracking-tight drop-shadow-sm">New Expense Claim</h2>
+            </div>
+
+            <button 
+              type="button"
+              onClick={handleSubmit} 
+              disabled={isSubmitting} 
+              className="px-4 py-3 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white text-xs font-semibold flex items-center gap-1.5 shadow-md disabled:opacity-50 transition-all active:scale-95 cursor-pointer"
+            >
+              {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+              <span>Save</span>
+            </button>
+          </div>
+        </section>
+
+        {/* Claim Form Cards */}
+        <form onSubmit={handleSubmit} className="space-y-4 relative z-20 -mt-10 mx-0.5">
+          
+          {/* Expense Information Card */}
+          <div className="bg-white p-5 rounded-[1.5rem] border border-slate-100 shadow-md space-y-4">
+            <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">
+              Expense Details
+            </h3>
+
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-slate-500 uppercase">Expense Title *</label>
+              <input 
+                type="text" 
+                required
+                value={title} 
+                onChange={(e) => setTitle(e.target.value)} 
+                placeholder="e.g. Travel Taxi to Client Office"
+                className="w-full bg-slate-50 border border-slate-200 rounded-full px-4 py-2.5 text-xs font-semibold text-slate-800 focus:bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-slate-500 uppercase">Amount (₹) *</label>
+                <input 
+                  type="number" 
+                  step="0.01" 
+                  min="0"
+                  required
+                  value={amount} 
+                  onChange={(e) => setAmount(e.target.value)} 
+                  placeholder="0.00"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-full px-4 py-2.5 text-xs font-semibold text-slate-800 focus:bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                />
               </div>
-              <h1 className="text-xl font-bold text-[#1f1f1f] tracking-tight mt-0.5">
-                My Expenses
-              </h1>
+
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-slate-500 uppercase">Category *</label>
+                <div className="relative">
+                  <select 
+                    value={category} 
+                    onChange={(e) => setCategory(e.target.value)} 
+                    className="w-full bg-slate-50 border border-slate-200 rounded-full px-4 py-2.5 pr-9 text-xs font-semibold text-slate-800 focus:bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all appearance-none cursor-pointer"
+                  >
+                    {CATEGORY_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                  </select>
+                  <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-slate-500 uppercase">Description &amp; Purpose</label>
+              <textarea 
+                rows="3"
+                value={description} 
+                onChange={(e) => setDescription(e.target.value)} 
+                placeholder="Provide additional details regarding this expenditure..."
+                className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-xs font-semibold text-slate-800 focus:bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all resize-none"
+              />
             </div>
           </div>
 
-          <div className="p-3 rounded-2xl bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
-            <Receipt className="w-5 h-5" />
-          </div>
-        </div>
+          {/* Receipt & Bill Document Card */}
+          <div className="bg-white p-5 rounded-[1.5rem] border border-slate-100 shadow-md space-y-4">
+            <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">
+              Bill / Receipt Attachment
+            </h3>
 
-        <button
-          type="button"
-          onClick={() => setIsFormOpen(true)}
-          className="w-full mt-4 flex items-center justify-center gap-2 py-3 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold shadow-xs transition-all cursor-pointer active:scale-98"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Claim New Expense</span>
-        </button>
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              onChange={(e) => setBillFile(e.target.files[0])} 
+              className="hidden" 
+              accept="image/*,.pdf" 
+            />
+
+            {billFile ? (
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                    <FileText className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-slate-900 truncate">{billFile.name}</p>
+                    <p className="text-[10px] text-slate-500">{(billFile.size / 1024).toFixed(1)} KB</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setBillFile(null)}
+                  className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                  title="Remove File"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <div 
+                onClick={() => fileInputRef.current?.click()} 
+                className="w-full p-6 border-2 border-dashed border-slate-200 hover:border-blue-500 bg-slate-50 rounded-2xl text-center cursor-pointer active:scale-98 transition-all"
+              >
+                <Upload className="w-6 h-6 text-[#1a73e8] mx-auto mb-2" />
+                <span className="text-xs font-bold text-[#1a73e8] block">
+                  Tap to Upload Bill / Invoice (Image or PDF)
+                </span>
+                <span className="text-[10px] text-slate-500 block mt-1">Supports PNG, JPG, JPEG, and PDF receipts</span>
+              </div>
+            )}
+          </div>
+
+
+        </form>
+
       </div>
+    );
+  }
 
-      {/* KPI Stats Grid (3 Cards) */}
-      <div className="grid grid-cols-3 gap-2.5">
-        {/* Approved */}
-        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3 shadow-xs space-y-1">
-          <div className="flex items-center justify-between">
-            <span className="text-[9px] font-bold uppercase tracking-wider text-[#5f6368]">Approved</span>
-            <div className="p-1 rounded-md bg-[#e6f4ea] text-[#137333]">
-              <CheckCircle2 className="w-3 h-3" />
+  // ==========================================
+  // VIEW 2: EXPENSES DASHBOARD & CLAIM HISTORY
+  // ==========================================
+  return (
+    <div className="space-y-6 pb-4">
+
+      {/* Hero Section with Animated Motion Graphics */}
+      <section className="-mx-4 -mt-4 px-4 pt-8 pb-14 relative overflow-hidden bg-slate-900">
+        {/* Animated Liquid Orbs */}
+        <motion.div
+          animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -top-20 -left-10 w-72 h-72 bg-[#ff928b] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+        />
+        <motion.div
+          animate={{ scale: [1, 1.4, 1], x: [0, -40, 0], y: [0, 50, 0] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute -top-10 -right-10 w-64 h-64 bg-[#7bdff2] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+        />
+        <motion.div
+          animate={{ scale: [1, 1.3, 1], x: [0, 30, 0], y: [0, -40, 0] }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          className="absolute bottom-0 left-20 w-80 h-80 bg-[#84dcc6] rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
+        />
+
+        {/* Subtle Glass Overlay */}
+        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none" />
+
+        <div className="relative z-10 px-2 mb-2">
+          <div className="flex justify-between items-start mb-5">
+            <div>
+              <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">My Expenses</p>
+              <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">Claims &amp; History</h2>
+              <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">Track your corporate expenses and claim payouts</p>
             </div>
           </div>
-          <p className="text-sm font-bold text-[#137333] truncate">{formatCurrency(totalApproved)}</p>
-          <p className="text-[9px] text-[#5f6368]">{approvedExpenses.length} Claims</p>
+
+          {/* Premium White Claim New Expense Button */}
+          <button
+            type="button"
+            onClick={() => setIsFormOpen(true)}
+            className="w-full flex items-center justify-center gap-2 bg-white hover:bg-slate-50 active:scale-[0.98] text-slate-900 rounded-full py-3.5 text-sm font-bold tracking-wide shadow-md transition-all cursor-pointer"
+          >
+            <Plus className="w-4 h-4 text-slate-900" />
+            <span>Claim New Expense</span>
+          </button>
+        </div>
+      </section>
+
+      {/* KPI Stats Grid (2x2 Grid) */}
+      <section className="grid grid-cols-2 gap-3 relative z-20 -mt-10 mx-0.5">
+        {/* Approved */}
+        <div 
+          onClick={() => setFilterStatus(filterStatus === 'approved' ? 'all' : 'approved')}
+          className={`bg-white rounded-2xl border p-3.5 shadow-xs space-y-1 cursor-pointer transition-all ${
+            filterStatus === 'approved' ? 'border-[#137333] ring-2 ring-[#ceead6]' : 'border-[#e0e3e7]'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Approved</span>
+            <div className="p-1.5 rounded-lg bg-[#e6f4ea] text-[#137333]">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <p className="text-base font-bold text-[#137333] truncate">{formatCurrency(totalApproved)}</p>
+          <p className="text-[10px] text-[#5f6368]">{approvedExpenses.length} Approved claims</p>
         </div>
 
         {/* Pending */}
-        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3 shadow-xs space-y-1">
+        <div 
+          onClick={() => setFilterStatus(filterStatus === 'pending' ? 'all' : 'pending')}
+          className={`bg-white rounded-2xl border p-3.5 shadow-xs space-y-1 cursor-pointer transition-all ${
+            filterStatus === 'pending' ? 'border-[#b06000] ring-2 ring-[#feefc3]' : 'border-[#e0e3e7]'
+          }`}
+        >
           <div className="flex items-center justify-between">
-            <span className="text-[9px] font-bold uppercase tracking-wider text-[#5f6368]">Pending</span>
-            <div className="p-1 rounded-md bg-[#fef7e0] text-[#b06000]">
-              <Clock className="w-3 h-3" />
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Pending</span>
+            <div className="p-1.5 rounded-lg bg-[#fef7e0] text-[#b06000]">
+              <Clock className="w-3.5 h-3.5" />
             </div>
           </div>
-          <p className="text-sm font-bold text-[#b06000] truncate">{formatCurrency(totalPending)}</p>
-          <p className="text-[9px] text-[#5f6368]">{pendingExpenses.length} Claims</p>
+          <p className="text-base font-bold text-[#b06000] truncate">{formatCurrency(totalPending)}</p>
+          <p className="text-[10px] text-[#5f6368]">{pendingExpenses.length} Awaiting review</p>
         </div>
 
         {/* Rejected */}
-        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3 shadow-xs space-y-1">
+        <div 
+          onClick={() => setFilterStatus(filterStatus === 'rejected' ? 'all' : 'rejected')}
+          className={`bg-white rounded-2xl border p-3.5 shadow-xs space-y-1 cursor-pointer transition-all ${
+            filterStatus === 'rejected' ? 'border-[#c5221f] ring-2 ring-[#fad2cf]' : 'border-[#e0e3e7]'
+          }`}
+        >
           <div className="flex items-center justify-between">
-            <span className="text-[9px] font-bold uppercase tracking-wider text-[#5f6368]">Rejected</span>
-            <div className="p-1 rounded-md bg-[#fce8e6] text-[#c5221f]">
-              <XCircle className="w-3 h-3" />
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Rejected</span>
+            <div className="p-1.5 rounded-lg bg-[#fce8e6] text-[#c5221f]">
+              <XCircle className="w-3.5 h-3.5" />
             </div>
           </div>
-          <p className="text-sm font-bold text-[#c5221f] truncate">{formatCurrency(totalRejected)}</p>
-          <p className="text-[9px] text-[#5f6368]">{rejectedExpenses.length} Claims</p>
+          <p className="text-base font-bold text-[#c5221f] truncate">{formatCurrency(totalRejected)}</p>
+          <p className="text-[10px] text-[#5f6368]">{rejectedExpenses.length} Rejected claims</p>
         </div>
+
+        {/* Total Claimed */}
+        <div 
+          onClick={() => setFilterStatus('all')}
+          className={`bg-white rounded-2xl border p-3.5 shadow-xs space-y-1 cursor-pointer transition-all ${
+            filterStatus === 'all' ? 'border-[#1a73e8] ring-2 ring-[#d2e3fc]' : 'border-[#e0e3e7]'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Total Claimed</span>
+            <div className="p-1.5 rounded-lg bg-[#e8f0fe] text-[#1a73e8]">
+              <Receipt className="w-3.5 h-3.5" />
+            </div>
+          </div>
+          <p className="text-base font-bold text-[#1a73e8] truncate">{formatCurrency(totalClaimed)}</p>
+          <p className="text-[10px] text-[#5f6368]">{expensesData.length} Total submissions</p>
+        </div>
+      </section>
+
+      {/* Horizontal Scrollable Status Filter Chips */}
+      <div className="flex overflow-x-auto gap-2 py-0.5 hide-scrollbar [scrollbar-width:none] [&::-webkit-scrollbar]:hidden mx-0.5">
+        {[
+          { key: 'all', label: 'All', count: expensesData.length },
+          { key: 'pending', label: 'Pending', count: pendingExpenses.length },
+          { key: 'approved', label: 'Approved', count: approvedExpenses.length },
+          { key: 'rejected', label: 'Rejected', count: rejectedExpenses.length },
+        ].map((tab) => (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => setFilterStatus(tab.key)}
+            className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
+              filterStatus === tab.key
+                ? 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc] shadow-2xs font-bold'
+                : 'bg-white text-[#5f6368] border-[#e0e3e7] hover:bg-[#f8fafd]'
+            }`}
+          >
+            <span>{tab.label}</span>
+            <span className={`inline-flex items-center justify-center h-[18px] min-w-[18px] px-1.5 rounded-full text-[11px] font-bold leading-none tabular-nums ${
+              filterStatus === tab.key
+                ? 'bg-[#1a73e8] text-white'
+                : 'bg-[#f1f3f4] text-[#5f6368]'
+            }`}>
+              {tab.count}
+            </span>
+          </button>
+        ))}
       </div>
 
       {/* Expense Records Feed */}
-      <div className="space-y-3">
+      <div className="space-y-3 mx-0.5">
         <div className="flex items-center justify-between px-1">
           <h3 className="text-xs font-bold uppercase tracking-wider text-[#1f1f1f]">Claim History</h3>
-          <span className="text-[10px] text-[#5f6368]">{expensesData.length} Total Submitted</span>
+          <span className="text-[10px] text-[#5f6368]">{filteredExpenses.length} Claims Displayed</span>
         </div>
 
-        {expensesData.length === 0 ? (
+        {filteredExpenses.length === 0 ? (
           <div className="bg-white p-8 rounded-3xl text-center border border-[#e0e3e7] shadow-xs space-y-2">
             <AlertCircle className="w-8 h-8 text-[#5f6368] mx-auto opacity-50" />
             <p className="text-xs font-semibold text-[#1f1f1f]">No expense claims found</p>
-            <p className="text-[11px] text-[#5f6368]">You have not submitted any reimbursement requests yet.</p>
+            <p className="text-[11px] text-[#5f6368]">
+              {filterStatus === 'all' 
+                ? 'You have not submitted any reimbursement requests yet.' 
+                : `No expense claims under ${filterStatus} status.`}
+            </p>
           </div>
         ) : (
           <div className="space-y-2.5">
-            {expensesData.map((exp) => {
+            {filteredExpenses.map((exp) => {
               const badge = getStatusBadge(exp.status);
+              const CategoryIcon = getCategoryIcon(exp.category);
               const formattedDate = new Date(exp.created_at || exp.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 
               return (
                 <div key={exp.id} className="bg-white p-4 rounded-2xl border border-[#e0e3e7] shadow-xs space-y-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="space-y-0.5">
-                      <div className="flex items-center gap-1.5">
-                        <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]">
-                          {exp.category}
-                        </span>
-                        <span className="text-[10px] font-semibold text-[#5f6368]">{formattedDate}</span>
+                  <div className="flex items-start justify-between gap-2.5">
+                    <div className="flex items-start gap-3 min-w-0">
+                      <div className="w-9 h-9 rounded-xl bg-[#f8fafd] border border-[#dadce0] flex items-center justify-center text-[#1a73e8] shrink-0 mt-0.5">
+                        <CategoryIcon className="w-4 h-4" />
                       </div>
-                      <h4 className="text-xs font-bold text-[#1f1f1f]">{exp.title}</h4>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]">
+                            {exp.category}
+                          </span>
+                          <span className="text-[10px] font-semibold text-[#5f6368]">{formattedDate}</span>
+                        </div>
+                        <h4 className="text-xs font-bold text-[#1f1f1f] mt-1 break-words">{exp.title}</h4>
+                      </div>
                     </div>
 
                     <div className="text-right shrink-0">
-                      <span className="text-sm font-bold text-[#1f1f1f]">{formatCurrency(exp.amount)}</span>
+                      <span className="text-sm font-bold text-[#1f1f1f] block">{formatCurrency(exp.amount)}</span>
                       <div className="mt-1">
                         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${badge.bg}`}>
                           {badge.icon}
@@ -278,14 +561,14 @@ const EmployeeMobileExpenses = () => {
                   </div>
 
                   {exp.description && (
-                    <p className="text-xs text-[#5f6368] line-clamp-2">
+                    <p className="text-xs text-[#5f6368] line-clamp-2 leading-relaxed bg-[#f8fafd] p-2.5 rounded-xl border border-[#e0e3e7]">
                       {exp.description}
                     </p>
                   )}
 
                   {exp.remarks && (
-                    <div className="p-2.5 rounded-xl bg-[#fce8e6]/50 border border-[#fad2cf] text-[11px] text-[#c5221f]">
-                      <span className="font-bold uppercase tracking-wider mr-1">Admin Note:</span> {exp.remarks}
+                    <div className="p-2.5 rounded-xl bg-[#fce8e6]/60 border border-[#fad2cf] text-[11px] text-[#c5221f]">
+                      <span className="font-bold uppercase tracking-wider mr-1">Admin Remark:</span> {exp.remarks}
                     </div>
                   )}
 
@@ -294,7 +577,7 @@ const EmployeeMobileExpenses = () => {
                       <button
                         type="button"
                         onClick={() => setSelectedBillUrl(exp.bill_url)}
-                        className="flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-semibold text-[#1a73e8] bg-[#e8f0fe] hover:bg-[#d2e3fc] transition-all cursor-pointer"
+                        className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[11px] font-semibold text-[#1a73e8] bg-[#e8f0fe] hover:bg-[#d2e3fc] transition-all cursor-pointer active:scale-95"
                       >
                         <FileText className="w-3.5 h-3.5" />
                         <span>View Bill Receipt</span>
@@ -308,183 +591,7 @@ const EmployeeMobileExpenses = () => {
         )}
       </div>
 
-      {/* New Expense Modal (Mounted via createPortal with Framer Motion) */}
-      {createPortal(
-        <AnimatePresence>
-          {isFormOpen && (
-            <div className="fixed inset-0 z-[10000] flex flex-col justify-end">
-              {/* Smooth Backdrop */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.25, ease: 'easeOut' }}
-                onClick={handleCloseForm}
-                className="fixed inset-0 bg-black/50 backdrop-blur-xs cursor-pointer"
-              />
-
-              {/* Smooth Slide-Up Sheet */}
-              <motion.div
-                initial={{ y: '100%' }}
-                animate={{ y: 0 }}
-                exit={{ y: '100%' }}
-                transition={{ type: 'spring', damping: 28, stiffness: 300, mass: 0.8 }}
-                className="bg-white rounded-t-[2rem] shadow-2xl border-t border-[#e0e3e7] w-full max-w-md mx-auto max-h-[90vh] flex flex-col overflow-hidden relative z-10"
-              >
-                {/* Top Drag Indicator */}
-                <div className="w-10 h-1 bg-[#dadce0] rounded-full mx-auto my-2.5 shrink-0" />
-
-                {/* Top 4-Color Gradient Line */}
-                <div className="h-1 bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] shrink-0" />
-
-                {/* Modal Header */}
-                <div className="px-5 py-3.5 border-b border-[#e0e3e7] flex items-center justify-between bg-white shrink-0">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center shrink-0 shadow-2xs">
-                      <Receipt className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-                        <span className="text-[9.5px] font-bold uppercase tracking-wider text-[#5f6368] ml-0.5">Expenses</span>
-                      </div>
-                      <h3 className="text-sm font-bold text-[#1f1f1f]">
-                        New Expense Claim
-                      </h3>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleCloseForm}
-                    className="w-8 h-8 rounded-full bg-[#f1f3f4] hover:bg-[#e8eaed] text-[#5f6368] hover:text-[#1f1f1f] flex items-center justify-center transition-colors cursor-pointer"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-
-                {/* Modal Form Content */}
-                <div className="p-4 sm:p-5 overflow-y-auto space-y-3.5 flex-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                  <form id="mobileExpenseForm" onSubmit={handleSubmit} className="space-y-3.5">
-                    
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-[#5f6368] uppercase tracking-wider">Expense Title *</label>
-                      <input 
-                        type="text" 
-                        required 
-                        value={title} 
-                        onChange={(e) => setTitle(e.target.value)} 
-                        className="w-full bg-[#f8fafd] border border-[#dadce0] rounded-full px-4 py-2.5 text-xs text-[#1f1f1f] font-medium focus:bg-white focus:border-[#1a73e8] outline-none transition-colors" 
-                        placeholder="e.g. Travel Taxi to Client Office" 
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2.5">
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-[#5f6368] uppercase tracking-wider">Amount (₹) *</label>
-                        <input 
-                          type="number" 
-                          step="0.01" 
-                          min="0" 
-                          required 
-                          value={amount} 
-                          onChange={(e) => setAmount(e.target.value)} 
-                          className="w-full bg-[#f8fafd] border border-[#dadce0] rounded-full px-4 py-2.5 text-xs text-[#1f1f1f] font-medium focus:bg-white focus:border-[#1a73e8] outline-none transition-colors" 
-                          placeholder="0.00" 
-                        />
-                      </div>
-
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-[#5f6368] uppercase tracking-wider">Category *</label>
-                        <select 
-                          value={category} 
-                          onChange={(e) => setCategory(e.target.value)} 
-                          className="w-full bg-[#f8fafd] border border-[#dadce0] rounded-full px-3.5 py-2.5 text-xs text-[#1f1f1f] font-medium focus:bg-white focus:border-[#1a73e8] outline-none cursor-pointer transition-colors"
-                        >
-                          <option value="Travel">Travel</option>
-                          <option value="Meals">Meals</option>
-                          <option value="Supplies">Supplies</option>
-                          <option value="Software">Software</option>
-                          <option value="Hardware">Hardware</option>
-                          <option value="Other">Other</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-[#5f6368] uppercase tracking-wider">Description &amp; Purpose</label>
-                      <textarea 
-                        value={description} 
-                        onChange={(e) => setDescription(e.target.value)} 
-                        rows={2} 
-                        className="w-full bg-[#f8fafd] border border-[#dadce0] rounded-2xl p-3 text-xs text-[#1f1f1f] font-medium focus:bg-white focus:border-[#1a73e8] outline-none resize-none transition-colors" 
-                        placeholder="Provide additional details regarding this expenditure..."
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-bold text-[#5f6368] uppercase tracking-wider">Bill / Receipt Document</label>
-                      <input 
-                        type="file" 
-                        ref={fileInputRef} 
-                        onChange={(e) => setBillFile(e.target.files[0])} 
-                        className="hidden" 
-                        accept="image/*,.pdf" 
-                      />
-                      <div 
-                        onClick={() => fileInputRef.current?.click()} 
-                        className="w-full p-4 border-2 border-dashed border-[#dadce0] hover:border-[#1a73e8] bg-[#f8fafd] rounded-2xl text-center cursor-pointer active:scale-98 transition-all"
-                      >
-                        <Upload className="w-5 h-5 text-[#1a73e8] mx-auto mb-1.5" />
-                        <span className="text-xs font-semibold text-[#1a73e8] block">
-                          {billFile ? billFile.name : 'Tap to Upload Bill / Invoice (Image or PDF)'}
-                        </span>
-                        <span className="text-[10px] text-[#5f6368] block mt-0.5">Supports PNG, JPG, JPEG, and PDF documents</span>
-                      </div>
-                    </div>
-
-                  </form>
-                </div>
-
-                {/* Modal Actions */}
-                <div className="p-4 border-t border-[#e0e3e7] bg-white flex items-center gap-2.5 shrink-0">
-                  <button
-                    type="button"
-                    onClick={handleCloseForm}
-                    className="flex-1 py-2.5 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-xs font-semibold text-[#1f1f1f] transition-all cursor-pointer shadow-2xs active:scale-98"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    form="mobileExpenseForm"
-                    disabled={submitExpenseMutation.isPending}
-                    className="flex-1 py-2.5 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs disabled:opacity-50 active:scale-98"
-                  >
-                    {submitExpenseMutation.isPending ? (
-                      <>
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        <span>Submitting...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Send className="w-3.5 h-3.5" />
-                        <span>Submit Claim</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>,
-        document.body
-      )}
-
-      {/* Bill Viewer Modal (Mounted via createPortal with Framer Motion) */}
+      {/* Slide-Up Bottom Sheet Drawer (Mounted via createPortal with Framer Motion) */}
       {createPortal(
         <AnimatePresence>
           {selectedBillUrl && (
@@ -499,77 +606,94 @@ const EmployeeMobileExpenses = () => {
                 className="fixed inset-0 bg-black/50 backdrop-blur-xs cursor-pointer"
               />
 
-              {/* Smooth Slide-Up Sheet */}
+              {/* Smooth Slide-Up Sheet with Drag Down To Close */}
               <motion.div
                 initial={{ y: '100%' }}
                 animate={{ y: 0 }}
                 exit={{ y: '100%' }}
                 transition={{ type: 'spring', damping: 28, stiffness: 300, mass: 0.8 }}
-                className="bg-white rounded-t-[2rem] shadow-2xl border-t border-[#e0e3e7] w-full max-w-md mx-auto h-[80vh] flex flex-col overflow-hidden relative z-10"
+                drag="y"
+                dragControls={controls}
+                dragListener={false}
+                dragConstraints={{ top: 0 }}
+                dragElastic={{ top: 0, bottom: 0.6 }}
+                onDragEnd={(e, info) => {
+                  if (info.offset.y > 100 || info.velocity.y > 400) {
+                    setSelectedBillUrl(null);
+                  }
+                }}
+                className="bg-white rounded-t-[2rem] shadow-2xl border-t border-slate-200 w-full max-w-md mx-auto max-h-[85vh] h-[80vh] flex flex-col overflow-hidden relative z-10"
               >
-                {/* Top Drag Indicator */}
-                <div className="w-10 h-1 bg-[#dadce0] rounded-full mx-auto my-2.5 shrink-0" />
+                {/* Top Drag Indicator Area */}
+                <div 
+                  className="w-full pt-3 pb-2 flex flex-col items-center cursor-grab active:cursor-grabbing select-none shrink-0"
+                  onPointerDown={(e) => controls.start(e)}
+                  style={{ touchAction: 'none' }}
+                >
+                  <div className="w-12 h-1.5 bg-slate-300 rounded-full pointer-events-none" />
+                </div>
 
-                {/* Top 4-Color Gradient Line */}
-                <div className="h-1 bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] shrink-0" />
-
-                {/* Header */}
-                <div className="px-5 py-3.5 border-b border-[#e0e3e7] flex items-center justify-between bg-white shrink-0">
+                {/* Bottom Sheet Header */}
+                <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center shrink-0 shadow-2xs">
+                    <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
                       <FileText className="w-4 h-4" />
                     </div>
                     <div>
-                      <div className="flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-                        <span className="text-[9.5px] font-bold uppercase tracking-wider text-[#5f6368] ml-0.5">Attachment</span>
-                      </div>
-                      <h3 className="text-sm font-bold text-[#1f1f1f]">Attached Receipt Document</h3>
+                      <h3 className="text-sm font-bold text-slate-900">
+                        Attached Receipt Document
+                      </h3>
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => setSelectedBillUrl(null)}
-                    className="w-8 h-8 rounded-full bg-[#f1f3f4] hover:bg-[#e8eaed] text-[#5f6368] hover:text-[#1f1f1f] flex items-center justify-center transition-colors cursor-pointer"
+                    className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
                   >
                     <X className="w-4 h-4" />
                   </button>
                 </div>
 
-                {/* Content Preview */}
-                <div className="flex-1 overflow-hidden bg-[#f8fafd] p-4 flex flex-col items-center justify-center">
+                {/* Scrollable Content */}
+                <div className="p-4 sm:p-5 overflow-y-auto flex-1 bg-slate-50 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden flex flex-col items-center justify-center">
                   {selectedBillUrl.toLowerCase().endsWith('.pdf') ? (
                     <div className="w-full h-full flex flex-col items-center justify-center space-y-4">
-                      <FileText className="w-16 h-16 text-[#1a73e8] opacity-80" />
-                      <p className="text-xs text-[#5f6368] text-center font-medium">PDF Document Receipt</p>
+                      <div className="w-16 h-16 rounded-2xl bg-blue-100/60 text-blue-600 flex items-center justify-center">
+                        <FileText className="w-8 h-8" />
+                      </div>
+                      <div className="text-center space-y-1">
+                        <p className="text-sm font-bold text-slate-900">PDF Document Receipt</p>
+                        <p className="text-xs text-slate-500">Tap below to view or download full document</p>
+                      </div>
                       <a 
                         href={selectedBillUrl} 
                         target="_blank" 
                         rel="noopener noreferrer" 
-                        className="flex items-center gap-1.5 px-5 py-2.5 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-full text-xs font-semibold shadow-xs active:scale-98 transition-all"
+                        className="flex items-center gap-2 px-6 py-3 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-full text-xs font-bold shadow-md active:scale-95 transition-all"
                       >
-                        <ExternalLink className="w-3.5 h-3.5" />
+                        <ExternalLink className="w-4 h-4" />
                         <span>Open PDF in New Window</span>
                       </a>
                     </div>
                   ) : (
-                    <div className="w-full h-full overflow-y-auto flex flex-col items-center">
-                      <img src={selectedBillUrl} alt="Receipt Document" className="w-full h-auto object-contain rounded-2xl shadow-sm border border-[#e0e3e7]" />
+                    <div className="w-full h-full overflow-y-auto flex flex-col items-center justify-center">
+                      <img 
+                        src={selectedBillUrl} 
+                        alt="Receipt Document" 
+                        className="max-h-full max-w-full object-contain rounded-2xl shadow-sm border border-slate-200" 
+                      />
                     </div>
                   )}
                 </div>
 
-                {/* Bottom Actions */}
-                <div className="p-4 border-t border-[#e0e3e7] bg-white shrink-0">
+                {/* Bottom Close Button */}
+                <div className="p-4 border-t border-slate-100 bg-white shrink-0">
                   <button
                     type="button"
                     onClick={() => setSelectedBillUrl(null)}
-                    className="w-full py-2.5 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-xs font-semibold text-[#1f1f1f] transition-all cursor-pointer shadow-2xs active:scale-98"
+                    className="w-full py-2.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold transition-all cursor-pointer text-center"
                   >
-                    Close Viewer
+                    Close
                   </button>
                 </div>
 

@@ -23,8 +23,18 @@ const EmployeeLayout = () => {
   const [swipePath, setSwipePath] = useState(null);
   const [isDevBypassed, setIsDevBypassed] = useState(() => localStorage.getItem('dev_bypass_maintenance_session') === 'true');
   
-  const hideBottomNavRoutes = ['/employee/leaves/apply', '/employee/profile/edit'];
-  const shouldHideBottomNav = hideBottomNavRoutes.some(p => location.pathname === p || location.pathname.startsWith(`${p}/`));
+  const [forceHideBottomNav, setForceHideBottomNav] = useState(false);
+
+  useEffect(() => {
+    const handleToggle = (e) => {
+      setForceHideBottomNav(!!e.detail);
+    };
+    window.addEventListener('toggle-mobile-bottom-nav', handleToggle);
+    return () => window.removeEventListener('toggle-mobile-bottom-nav', handleToggle);
+  }, []);
+
+  const hideBottomNavRoutes = ['/employee/leaves/apply', '/employee/profile/edit', '/employee/expenses/claim'];
+  const shouldHideBottomNav = forceHideBottomNav || hideBottomNavRoutes.some(p => location.pathname === p || location.pathname.startsWith(`${p}/`));
 
   const scrollContainerRef = useRef(null);
   const swipeRafRef = useRef(null);

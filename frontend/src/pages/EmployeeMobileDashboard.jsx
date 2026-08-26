@@ -494,7 +494,7 @@ const EmployeeMobileDashboard = () => {
 
       {/* Upcoming Holidays */}
       <section className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
-        <Link to="/employee/mobile/holidays" className="px-6 pt-6 pb-4 border-b border-slate-100 flex justify-between items-center active:bg-slate-50 transition-colors">
+        <Link to="/employee/holidays" className="px-6 pt-6 pb-4 border-b border-slate-100 flex justify-between items-center active:bg-slate-50 transition-colors">
           <div className="flex items-center gap-3">
             <div className="bg-emerald-50 p-2 rounded-lg">
               <Calendar className="w-5 h-5 text-emerald-500" />
@@ -539,7 +539,7 @@ const EmployeeMobileDashboard = () => {
 
       {/* Upcoming Birthdays */}
       <section className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
-        <Link to="/employee/mobile/birthdays" className="px-6 pt-6 pb-4 border-b border-slate-100 flex justify-between items-center active:bg-slate-50 transition-colors">
+        <Link to="/employee/birthdays" className="px-6 pt-6 pb-4 border-b border-slate-100 flex justify-between items-center active:bg-slate-50 transition-colors">
           <div className="flex items-center gap-3">
             <div className="bg-purple-50 p-2 rounded-lg">
               <Cake className="w-5 h-5 text-purple-500" />
