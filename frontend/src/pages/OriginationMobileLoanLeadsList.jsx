@@ -153,7 +153,7 @@ const OriginationMobileLoanLeadsList = () => {
 
           <button
             onClick={() => navigate('/employee/loans/origination/leads/add')}
-            className="inline-flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white px-4 py-3.5 rounded-full text-xs font-bold backdrop-blur-md border border-white/30 shadow-xs transition-all active:scale-95 cursor-pointer shrink-0"
+            className="inline-flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white px-4 py-3 rounded-full text-xs font-bold backdrop-blur-md border border-white/30 shadow-xs transition-all active:scale-95 cursor-pointer shrink-0"
           >
             <Plus size={14} />
             <span>Add Lead</span>

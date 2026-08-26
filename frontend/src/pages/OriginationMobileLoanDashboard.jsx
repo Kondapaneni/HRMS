@@ -83,33 +83,33 @@ const OriginationMobileLoanDashboard = () => {
     switch (status) {
       case 'New':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-semibold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
-            <Clock size={10} /> New
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] shrink-0 shadow-2xs">
+            <Clock size={14} /> New
           </span>
         );
       case 'Follow Up':
       case 'Contacted':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-semibold bg-[#f3e8fd] text-[#8430ce] border border-[#e9d5ff]">
-            <TrendingUp size={10} /> Follow Up
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold bg-[#f3e8fd] text-[#8430ce] border border-[#e9d5ff] shrink-0 shadow-2xs">
+            <TrendingUp size={14} /> Follow Up
           </span>
         );
       case 'Active':
       case 'In Progress':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-semibold bg-[#fef7e0] text-[#b06000] border border-[#feefc3]">
-            <Clock size={10} /> {status}
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold bg-[#fef7e0] text-[#b06000] border border-[#feefc3] shrink-0 shadow-2xs">
+            <Clock size={14} /> {status}
           </span>
         );
       case 'Converted':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-semibold bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">
-            <CheckCircle2 size={10} /> Converted
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold bg-[#e6f4ea] text-[#137333] border border-[#ceead6] shrink-0 shadow-2xs">
+            <CheckCircle2 size={14} /> Converted
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-semibold bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]">
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0] shrink-0 shadow-2xs">
             {status || 'Pending'}
           </span>
         );
@@ -262,21 +262,21 @@ const OriginationMobileLoanDashboard = () => {
 
       {/* 3. Switchable Chart Card */}
       <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="text-sm font-bold text-[#1f1f1f]">
+        <div className="flex items-center justify-between gap-2 mb-4">
+          <div className="min-w-0 pr-1">
+            <h3 className="text-sm font-bold text-[#1f1f1f] truncate">
               {chartTab === 'daily' ? 'Daily Leads (Last 7 Days)' : 'Monthly Performance'}
             </h3>
-            <p className="text-[11px] text-[#5f6368]">
+            <p className="text-[11px] text-[#5f6368] truncate">
               {chartTab === 'daily' ? 'Daily acquisition & conversion' : '6-month performance trend'}
             </p>
           </div>
 
-          <div className="flex items-center bg-[#f1f3f4] p-0.5 rounded-full">
+          <div className="flex items-center bg-[#f1f3f4] p-1 rounded-full shrink-0">
             <button
               type="button"
               onClick={() => setChartTab('daily')}
-              className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+              className={`whitespace-nowrap px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
                 chartTab === 'daily'
                   ? 'bg-white text-[#1a73e8] shadow-2xs'
                   : 'text-[#5f6368] hover:text-[#1f1f1f]'
@@ -287,7 +287,7 @@ const OriginationMobileLoanDashboard = () => {
             <button
               type="button"
               onClick={() => setChartTab('monthly')}
-              className={`px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+              className={`whitespace-nowrap px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
                 chartTab === 'monthly'
                   ? 'bg-white text-[#1a73e8] shadow-2xs'
                   : 'text-[#5f6368] hover:text-[#1f1f1f]'
@@ -380,29 +380,48 @@ const OriginationMobileLoanDashboard = () => {
           ) : recentLeads.length === 0 ? (
             <p className="text-center py-6 text-xs text-[#5f6368]">No pipeline leads recorded yet.</p>
           ) : (
-            recentLeads.map((lead) => (
-              <div key={lead.id} className="py-3 flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-8 h-8 rounded-full bg-[#e8f0fe] text-[#1a73e8] font-bold text-xs flex items-center justify-center border border-[#d2e3fc] shrink-0">
-                    {(lead.name || 'L').charAt(0).toUpperCase()}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold text-[#1f1f1f] truncate">{lead.name}</p>
-                    <p className="text-[11px] text-[#5f6368] flex items-center gap-1 mt-0.5">
-                      <Phone size={10} className="text-[#80868b]" />
-                      <span>{maskPhoneNumber(lead.phone)}</span>
-                    </p>
-                  </div>
-                </div>
+            recentLeads.map((lead) => {
+              const displayName = lead.name || lead.full_name || 'Unnamed Prospect';
+              const initials = displayName.split(' ').map(n => n[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || 'L';
 
-                <div className="flex flex-col items-end shrink-0 gap-1">
-                  {getStatusBadge(lead.status)}
-                  <span className="text-[10px] text-[#80868b]">
-                    {lead.created_at ? format(new Date(lead.created_at), 'dd MMM') : ''}
-                  </span>
+              return (
+                <div 
+                  key={lead.id} 
+                  onClick={() => navigate('/employee/loans/origination/leads/details', { state: { lead } })}
+                  className="py-3.5 flex items-center justify-between gap-2 cursor-pointer hover:bg-[#f8fafd] transition-colors rounded-xl px-1.5 -mx-1.5"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-full bg-[#e8f0fe] text-[#1a73e8] font-bold text-xs flex items-center justify-center shrink-0 border border-[#d2e3fc]">
+                      {initials}
+                    </div>
+                    <div className="min-w-0 space-y-0.5">
+                      <h4 className="font-bold text-[#1f1f1f] text-sm truncate">
+                        {displayName}
+                      </h4>
+                      <div className="flex items-center gap-2 text-[10.5px] text-[#5f6368]">
+                        <span className="inline-flex items-center gap-1 font-medium text-[#5f6368]">
+                          <Phone size={10} className="text-[#80868b]" />
+                          {lead.phone ? maskPhoneNumber(lead.phone) : '—'}
+                        </span>
+                        {lead.loan_type && (
+                          <>
+                            <span>&bull;</span>
+                            <span className="truncate text-[#1a73e8] font-semibold">{lead.loan_type}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-end shrink-0 gap-1.5">
+                    {getStatusBadge(lead.status)}
+                    <span className="text-[10.5px] font-medium text-[#80868b]">
+                      {lead.created_at ? format(new Date(lead.created_at), 'dd MMM') : ''}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>
