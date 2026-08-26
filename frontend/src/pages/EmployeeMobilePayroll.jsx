@@ -14,7 +14,7 @@ import {
   X,
   Receipt
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axios';
@@ -22,6 +22,7 @@ import { pdf } from '@react-pdf/renderer';
 import PayslipPDF from '../components/PayslipPDF';
 
 const EmployeeMobilePayroll = ({ profile }) => {
+  const controls = useDragControls();
   const { data: payslips = [], isLoading: loading } = useQuery({
     queryKey: ['employee', 'payroll'],
     queryFn: async () => {
@@ -323,16 +324,32 @@ const EmployeeMobilePayroll = ({ profile }) => {
                 className="fixed inset-0 bg-black/50 backdrop-blur-xs cursor-pointer"
               />
 
-              {/* Smooth Slide-Up Sheet */}
+              {/* Smooth Slide-Up Sheet with Drag Down To Close */}
               <motion.div
                 initial={{ y: '100%' }}
                 animate={{ y: 0 }}
                 exit={{ y: '100%' }}
                 transition={{ type: 'spring', damping: 28, stiffness: 300, mass: 0.8 }}
+                drag="y"
+                dragControls={controls}
+                dragListener={false}
+                dragConstraints={{ top: 0 }}
+                dragElastic={{ top: 0, bottom: 0.6 }}
+                onDragEnd={(e, info) => {
+                  if (info.offset.y > 100 || info.velocity.y > 400) {
+                    setSelectedPayslip(null);
+                  }
+                }}
                 className="bg-white rounded-t-[2rem] shadow-2xl border-t border-[#e0e3e7] w-full max-w-md mx-auto max-h-[85vh] flex flex-col overflow-hidden relative z-10"
               >
-                {/* Top Drag Indicator */}
-                <div className="w-10 h-1 bg-[#dadce0] rounded-full mx-auto my-2.5 shrink-0" />
+                {/* Top Drag Handle Bar */}
+                <div 
+                  className="w-full pt-3 pb-2 flex flex-col items-center cursor-grab active:cursor-grabbing select-none shrink-0"
+                  onPointerDown={(e) => controls.start(e)}
+                  style={{ touchAction: 'none' }}
+                >
+                  <div className="w-12 h-1.5 bg-[#dadce0] rounded-full pointer-events-none" />
+                </div>
 
                 {/* Bottom Sheet Header */}
                 <div className="px-5 py-3.5 border-b border-[#e0e3e7] flex items-center justify-between bg-white shrink-0">

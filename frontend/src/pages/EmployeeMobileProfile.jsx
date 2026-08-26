@@ -12,7 +12,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 
 const EmployeeMobileProfile = () => {
@@ -21,6 +21,7 @@ const EmployeeMobileProfile = () => {
   const { fetchProfile } = useAuth();
   const [activeSection, setActiveSection] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const controls = useDragControls();
 
   useEffect(() => {
     if (activeSection) {
@@ -401,15 +402,15 @@ const EmployeeMobileProfile = () => {
             <span>Edit Profile</span>
           </button>
 
-          {/* Compact 2-column details */}
+          {/* Compact 2-column details with vibrant themed colors */}
           <div className="grid grid-cols-2 gap-2.5 w-full pt-2 border-t border-slate-100">
-            <div className="bg-slate-50 rounded-2xl p-2.5 text-center border border-slate-100">
-              <p className="text-[9px] uppercase font-bold text-slate-400">Employee ID</p>
-              <p className="font-black text-xs text-slate-800 mt-0.5">{employeeId || '-'}</p>
+            <div className="bg-[#e8f0fe] rounded-2xl p-2.5 text-center border border-[#d2e3fc]">
+              <p className="text-[9px] uppercase font-bold text-[#1a73e8] tracking-wider">Employee ID</p>
+              <p className="font-black text-xs text-[#1a73e8] mt-0.5">{employeeId || '-'}</p>
             </div>
-            <div className="bg-slate-50 rounded-2xl p-2.5 text-center border border-slate-100">
-              <p className="text-[9px] uppercase font-bold text-slate-400">Department</p>
-              <p className="font-black text-xs text-slate-800 mt-0.5 truncate">{department || '-'}</p>
+            <div className="bg-[#f3e8fd] rounded-2xl p-2.5 text-center border border-[#e9d2fd]">
+              <p className="text-[9px] uppercase font-bold text-[#8430ce] tracking-wider">Department</p>
+              <p className="font-black text-xs text-[#8430ce] mt-0.5 truncate">{department || '-'}</p>
             </div>
           </div>
 
@@ -460,16 +461,32 @@ const EmployeeMobileProfile = () => {
                 className="fixed inset-0 bg-black/50 backdrop-blur-xs cursor-pointer"
               />
 
-              {/* Smooth Slide-Up Sheet */}
+              {/* Smooth Slide-Up Sheet with Drag Down To Close */}
               <motion.div
                 initial={{ y: '100%' }}
                 animate={{ y: 0 }}
                 exit={{ y: '100%' }}
                 transition={{ type: 'spring', damping: 28, stiffness: 300, mass: 0.8 }}
+                drag="y"
+                dragControls={controls}
+                dragListener={false}
+                dragConstraints={{ top: 0 }}
+                dragElastic={{ top: 0, bottom: 0.6 }}
+                onDragEnd={(e, info) => {
+                  if (info.offset.y > 100 || info.velocity.y > 400) {
+                    setActiveSection(null);
+                  }
+                }}
                 className="bg-white rounded-t-[2rem] shadow-2xl border-t border-slate-200 w-full max-w-md mx-auto max-h-[85vh] flex flex-col overflow-hidden relative z-10"
               >
-                {/* Top Drag Indicator */}
-                <div className="w-10 h-1 bg-slate-300 rounded-full mx-auto my-2.5 shrink-0" />
+                {/* Top Drag Indicator Area */}
+                <div 
+                  className="w-full pt-3 pb-2 flex flex-col items-center cursor-grab active:cursor-grabbing select-none shrink-0"
+                  onPointerDown={(e) => controls.start(e)}
+                  style={{ touchAction: 'none' }}
+                >
+                  <div className="w-12 h-1.5 bg-slate-300 rounded-full pointer-events-none" />
+                </div>
 
                 {/* Bottom Sheet Header */}
                 <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
