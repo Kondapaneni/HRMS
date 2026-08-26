@@ -395,7 +395,7 @@ const EmployeeMobileProfile = () => {
           <button
             type="button"
             onClick={handleEditClick}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border border-slate-200 hover:bg-slate-50 active:scale-95 text-slate-900 text-xs font-bold shadow-xs transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-3 rounded-full bg-white border border-slate-200 hover:bg-slate-50 active:scale-95 text-slate-900 text-xs font-bold shadow-xs transition-all cursor-pointer"
           >
             <Edit2 className="w-3.5 h-3.5 text-slate-900" />
             <span>Edit Profile</span>

@@ -13,7 +13,8 @@ import {
   Globe, 
   CalendarDays, 
   Shield,
-  ChevronLeft
+  ChevronLeft,
+  ChevronDown
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -153,7 +154,7 @@ const EditMobileProfile = () => {
             type="button"
             onClick={handleSaveProfile} 
             disabled={isSaving} 
-            className="px-4 py-2 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white text-xs font-semibold flex items-center gap-1.5 shadow-md disabled:opacity-50 transition-all active:scale-95 cursor-pointer"
+            className="px-4 py-3 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white text-xs font-semibold flex items-center gap-1.5 shadow-md disabled:opacity-50 transition-all active:scale-95 cursor-pointer"
           >
             {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
             <span>Save</span>
@@ -177,7 +178,7 @@ const EditMobileProfile = () => {
                 type="text" 
                 value={formData.firstName} 
                 disabled 
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-400 cursor-not-allowed outline-none"
+                className="w-full bg-slate-50 border border-slate-200 rounded-full px-4 py-2.5 text-xs font-semibold text-slate-400 cursor-not-allowed outline-none"
               />
             </div>
             <div className="space-y-1.5">
@@ -186,7 +187,7 @@ const EditMobileProfile = () => {
                 type="text" 
                 value={formData.lastName} 
                 disabled 
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-400 cursor-not-allowed outline-none"
+                className="w-full bg-slate-50 border border-slate-200 rounded-full px-4 py-2.5 text-xs font-semibold text-slate-400 cursor-not-allowed outline-none"
               />
             </div>
           </div>
@@ -197,7 +198,7 @@ const EditMobileProfile = () => {
               type="email" 
               value={formData.email} 
               disabled 
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-400 cursor-not-allowed outline-none"
+              className="w-full bg-slate-50 border border-slate-200 rounded-full px-4 py-2.5 text-xs font-semibold text-slate-400 cursor-not-allowed outline-none"
             />
           </div>
 
@@ -208,7 +209,7 @@ const EditMobileProfile = () => {
               value={formData.phone} 
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })} 
               placeholder="+91 98765 43210"
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-800 focus:bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              className="w-full bg-slate-50 border border-slate-200 rounded-full px-4 py-2.5 text-xs font-semibold text-slate-800 focus:bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
             />
           </div>
 
@@ -218,59 +219,71 @@ const EditMobileProfile = () => {
               type="date" 
               value={formData.dateOfBirth} 
               onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })} 
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-800 focus:bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              className="w-full bg-slate-50 border border-slate-200 rounded-full px-4 py-2.5 text-xs font-semibold text-slate-800 focus:bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <label className="text-[11px] font-bold text-slate-500 uppercase">Gender</label>
-              <select 
-                value={formData.gender} 
-                onChange={(e) => setFormData({ ...formData, gender: e.target.value })} 
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-800 focus:bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all appearance-none cursor-pointer"
-              >
-                <option value="">Select Gender</option>
-                {GENDER_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-              </select>
+              <div className="relative">
+                <select 
+                  value={formData.gender} 
+                  onChange={(e) => setFormData({ ...formData, gender: e.target.value })} 
+                  className="w-full bg-slate-50 border border-slate-200 rounded-full px-4 py-2.5 pr-9 text-xs font-semibold text-slate-800 focus:bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all appearance-none cursor-pointer"
+                >
+                  <option value="">Select Gender</option>
+                  {GENDER_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                </select>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
             </div>
 
             <div className="space-y-1.5">
               <label className="text-[11px] font-bold text-slate-500 uppercase">Blood Group</label>
-              <select 
-                value={formData.bloodGroup} 
-                onChange={(e) => setFormData({ ...formData, bloodGroup: e.target.value })} 
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-800 focus:bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all appearance-none cursor-pointer"
-              >
-                <option value="">Select Group</option>
-                {BLOOD_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-              </select>
+              <div className="relative">
+                <select 
+                  value={formData.bloodGroup} 
+                  onChange={(e) => setFormData({ ...formData, bloodGroup: e.target.value })} 
+                  className="w-full bg-slate-50 border border-slate-200 rounded-full px-4 py-2.5 pr-9 text-xs font-semibold text-slate-800 focus:bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all appearance-none cursor-pointer"
+                >
+                  <option value="">Select Group</option>
+                  {BLOOD_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                </select>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <label className="text-[11px] font-bold text-slate-500 uppercase">Marital Status</label>
-              <select 
-                value={formData.maritalStatus} 
-                onChange={(e) => setFormData({ ...formData, maritalStatus: e.target.value })} 
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-800 focus:bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all appearance-none cursor-pointer"
-              >
-                <option value="">Select Status</option>
-                {MARITAL_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-              </select>
+              <div className="relative">
+                <select 
+                  value={formData.maritalStatus} 
+                  onChange={(e) => setFormData({ ...formData, maritalStatus: e.target.value })} 
+                  className="w-full bg-slate-50 border border-slate-200 rounded-full px-4 py-2.5 pr-9 text-xs font-semibold text-slate-800 focus:bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all appearance-none cursor-pointer"
+                >
+                  <option value="">Select Status</option>
+                  {MARITAL_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                </select>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
             </div>
 
             <div className="space-y-1.5">
               <label className="text-[11px] font-bold text-slate-500 uppercase">Nationality</label>
-              <select 
-                value={formData.nationality} 
-                onChange={(e) => setFormData({ ...formData, nationality: e.target.value })} 
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-800 focus:bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all appearance-none cursor-pointer"
-              >
-                <option value="">Select</option>
-                {NATIONALITY_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-              </select>
+              <div className="relative">
+                <select 
+                  value={formData.nationality} 
+                  onChange={(e) => setFormData({ ...formData, nationality: e.target.value })} 
+                  className="w-full bg-slate-50 border border-slate-200 rounded-full px-4 py-2.5 pr-9 text-xs font-semibold text-slate-800 focus:bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all appearance-none cursor-pointer"
+                >
+                  <option value="">Select</option>
+                  {NATIONALITY_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                </select>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
             </div>
           </div>
 
@@ -281,7 +294,7 @@ const EditMobileProfile = () => {
               value={formData.address} 
               onChange={(e) => setFormData({ ...formData, address: e.target.value })} 
               placeholder="Enter current residential address..."
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-semibold text-slate-800 focus:bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all resize-none"
+              className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-xs font-semibold text-slate-800 focus:bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all resize-none"
             />
           </div>
         </div>
@@ -299,7 +312,7 @@ const EditMobileProfile = () => {
               value={formData.emergencyContact} 
               onChange={(e) => setFormData({ ...formData, emergencyContact: e.target.value })} 
               placeholder="e.g. John Doe (Spouse)"
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-800 focus:bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              className="w-full bg-slate-50 border border-slate-200 rounded-full px-4 py-2.5 text-xs font-semibold text-slate-800 focus:bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
             />
           </div>
 
@@ -310,7 +323,7 @@ const EditMobileProfile = () => {
               value={formData.emergencyPhone} 
               onChange={(e) => setFormData({ ...formData, emergencyPhone: e.target.value })} 
               placeholder="+91 98765 43210"
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-semibold text-slate-800 focus:bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              className="w-full bg-slate-50 border border-slate-200 rounded-full px-4 py-2.5 text-xs font-semibold text-slate-800 focus:bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
             />
           </div>
         </div>
