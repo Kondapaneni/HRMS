@@ -238,11 +238,16 @@ export const uploadToSupabaseWithProgress = ({
     const xhr = new XMLHttpRequest();
     const url = `${supabaseUrl}/storage/v1/object/${bucket}/${fileName}`;
     
+    // Prepare standard multipart FormData payload for Supabase Storage REST API
+    const formData = new FormData();
+    formData.append('cacheControl', '3600');
+    formData.append('', fileBlob, fileName);
+
     xhr.open('POST', url, true);
     xhr.setRequestHeader('apikey', supabaseAnonKey);
     xhr.setRequestHeader('Authorization', `Bearer ${supabaseAnonKey}`);
-    xhr.setRequestHeader('Content-Type', fileBlob.type || 'video/mp4');
     xhr.setRequestHeader('x-upsert', 'false');
+    // Note: Do NOT set Content-Type header; browser automatically sets multipart/form-data with boundary
 
     let startTime = Date.now();
 
@@ -271,10 +276,10 @@ export const uploadToSupabaseWithProgress = ({
           resolve({ Key: `${bucket}/${fileName}` });
         }
       } else {
-        let errorMsg = 'Upload failed';
+        let errorMsg = `Upload failed (${xhr.status})`;
         try {
           const errRes = JSON.parse(xhr.responseText);
-          errorMsg = errRes.message || errRes.error || errorMsg;
+          errorMsg = errRes.message || errRes.error || errRes.msg || errorMsg;
         } catch {}
         reject(new Error(errorMsg));
       }
@@ -288,7 +293,7 @@ export const uploadToSupabaseWithProgress = ({
       reject(new Error('Upload was cancelled'));
     };
 
-    xhr.send(fileBlob);
+    xhr.send(formData);
   });
 };
 
