@@ -226,10 +226,9 @@ const EmployeeMobileAttendance = () => {
             <ChevronLeft className="w-4 h-4" />
           </button>
 
-          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-50 border border-slate-200 text-xs font-bold text-slate-800 shadow-xs select-none">
-            <CalendarIcon className="w-4 h-4 text-[#1a73e8]" />
-            <span>{format(new Date(selectedMonth + '-01'), 'MMMM yyyy')}</span>
-          </div>
+          <span className="text-sm font-bold text-slate-800 select-none">
+            {format(new Date(selectedMonth + '-01'), 'MMMM yyyy')}
+          </span>
 
           <button
             type="button"

@@ -282,10 +282,9 @@ const ApplyMobileLeave = () => {
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
-                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#f8fafd] border border-[#dadce0] text-xs font-bold text-[#1f1f1f] select-none">
-                  <CalendarIcon className="w-3.5 h-3.5 text-[#1a73e8]" />
-                  <span>{calendarDate.toLocaleString(undefined, { month: 'long', year: 'numeric' })}</span>
-                </div>
+                <span className="text-sm font-bold text-[#1f1f1f] select-none">
+                  {calendarDate.toLocaleString(undefined, { month: 'long', year: 'numeric' })}
+                </span>
                 <button
                   type="button"
                   onClick={() => {
