@@ -49,31 +49,31 @@ const EmployeeMobileLeaves = () => {
   const error = queryError ? 'Failed to load leaves data.' : null;
 
   const getStatusBadge = (status) => {
-    const s = (status || '').toLowerCase();
+    const s = (status || '').toLowerCase().trim();
     if (s === 'approved') {
       return {
-        bg: 'bg-emerald-100 text-emerald-700 border-emerald-200/60',
-        icon: <CheckCircle2 className="w-4 h-4 text-emerald-600" />,
+        bg: 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6]',
+        icon: <CheckCircle2 className="w-4 h-4 text-[#137333]" />,
         label: 'Approved'
       };
     }
     if (s === 'rejected') {
       return {
-        bg: 'bg-rose-100 text-rose-700 border-rose-200/60',
-        icon: <XCircle className="w-4 h-4 text-rose-600" />,
+        bg: 'bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf]',
+        icon: <XCircle className="w-4 h-4 text-[#c5221f]" />,
         label: 'Rejected'
       };
     }
     if (s === 'cancelled') {
       return {
-        bg: 'bg-slate-100 text-slate-600 border-slate-200/60',
-        icon: <XCircle className="w-4 h-4 text-slate-500" />,
+        bg: 'bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]',
+        icon: <XCircle className="w-4 h-4 text-[#5f6368]" />,
         label: 'Cancelled'
       };
     }
     return {
-      bg: 'bg-amber-100 text-amber-800 border-amber-200/60',
-      icon: <Clock className="w-4 h-4 text-amber-600" />,
+      bg: 'bg-[#fef7e0] text-[#b06000] border border-[#feefc3]',
+      icon: <Clock className="w-4 h-4 text-[#b06000]" />,
       label: 'Pending'
     };
   };
@@ -241,7 +241,7 @@ const EmployeeMobileLeaves = () => {
                         </p>
                       </div>
                     </div>
-                    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${badge.bg}`}>
+                    <span className={`inline-flex items-center px-3.5 py-1.5 rounded-full text-[12.5px] font-bold shrink-0 shadow-2xs ${badge.bg}`}>
                       {badge.label}
                     </span>
                   </div>

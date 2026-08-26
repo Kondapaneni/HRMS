@@ -344,22 +344,6 @@ export default function OriginationLoanViewApplication() {
                 {loanType} Application
               </h1>
 
-              {/* ID Badge with copy */}
-              <button
-                type="button"
-                onClick={handleCopyId}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] hover:bg-[#d2e3fc] transition-colors cursor-pointer whitespace-nowrap"
-                title="Click to copy Application ID"
-              >
-                <span>{appId}</span>
-                <Copy size={12} />
-              </button>
-
-              {/* Status Pill */}
-              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border whitespace-nowrap ${getStatusBadgeStyle(localStatus)}`}>
-                {localStatus}
-              </span>
-
               {/* Read Only Indicator */}
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#f8fafd] text-[#5f6368] border border-[#dadce0] whitespace-nowrap">
                 <Lock size={12} className="text-[#5f6368]" /> Read-Only
@@ -463,46 +447,6 @@ export default function OriginationLoanViewApplication() {
           </div>
         </div>
 
-        {/* Application Summary KPI Card Strip */}
-        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-4 shadow-xs grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3 print:hidden">
-          <div className="p-3 bg-[#f8fafd] rounded-xl border border-[#e0e3e7]">
-            <p className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider">Primary Applicant</p>
-            <p className="text-xs font-bold text-[#1f1f1f] truncate mt-0.5">{applicantName}</p>
-            <p className="text-[11px] text-[#5f6368] font-mono mt-0.5">{applicantPhone ? maskPhoneNumber(applicantPhone) : '—'}</p>
-          </div>
-
-          <div className="p-3 bg-[#f8fafd] rounded-xl border border-[#e0e3e7]">
-            <p className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider">Loan Category</p>
-            <p className="text-xs font-bold text-[#1a73e8] truncate mt-0.5">{loanType}</p>
-            <p className="text-[11px] text-[#5f6368] mt-0.5">{hasCoApplicant ? 'With Co-Applicant' : 'Single Applicant'}</p>
-          </div>
-
-          <div className="p-3 bg-[#f8fafd] rounded-xl border border-[#e0e3e7]">
-            <p className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider">Originating Branch</p>
-            <p className="text-xs font-bold text-[#1f1f1f] truncate mt-0.5">{branchName}</p>
-            <p className="text-[11px] text-[#5f6368] mt-0.5">Origination Desk</p>
-          </div>
-
-          <div className="p-3 bg-[#f8fafd] rounded-xl border border-[#e0e3e7]">
-            <p className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider">Submission Date</p>
-            <p className="text-xs font-bold text-[#1f1f1f] mt-0.5">{formatDateSafe(createdAt)}</p>
-            <p className="text-[11px] text-[#5f6368] mt-0.5">Origination Log</p>
-          </div>
-
-          <div className="col-span-2 sm:col-span-4 lg:col-span-1 p-3 bg-[#f8fafd] rounded-xl border border-[#e0e3e7]">
-            <p className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider">KYC Photos</p>
-            <div className="flex items-center gap-2 mt-1">
-              <div className="flex-1 bg-[#e0e3e7] h-2 rounded-full overflow-hidden">
-                <div 
-                  className={`h-full transition-all ${isAllUploaded ? 'bg-[#137333]' : 'bg-[#1a73e8]'}`}
-                  style={{ width: `${Math.min(100, (uploadedCount / Math.max(1, requiredSlots)) * 100)}%` }}
-                />
-              </div>
-              <span className="text-xs font-bold text-[#1f1f1f]">{uploadedCount}/{requiredSlots}</span>
-            </div>
-            <p className="text-[10px] text-[#5f6368] mt-1">{isAllUploaded ? '✓ All Photos Verified' : 'Photos Pending'}</p>
-          </div>
-        </div>
 
         {/* Main Loan Application Detail Paper View Component */}
         <div className="bg-white rounded-2xl border border-[#e0e3e7] shadow-xs overflow-hidden">

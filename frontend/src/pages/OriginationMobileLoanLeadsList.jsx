@@ -144,10 +144,10 @@ const OriginationMobileLoanLeadsList = () => {
               Origination &bull; Loan Pipeline
             </p>
             <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">
-              All Leads Pool
+              All Leads
             </h2>
             <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">
-              {rawLeads.length} total prospect entries
+              {rawLeads.length} Total Prospect Entries
             </p>
           </div>
 
@@ -165,7 +165,7 @@ const OriginationMobileLoanLeadsList = () => {
       <div className="relative z-20 -mt-8 mx-0.5 space-y-3.5">
 
         {/* Search Box */}
-        <div className="bg-white rounded-full border border-[#e0e3e7] px-4 py-4 shadow-xs flex items-center gap-2.5">
+        <div className="bg-white rounded-full border border-[#e0e3e7] px-4 py-2.5 shadow-xs flex items-center gap-2.5">
           <Search className="w-4.5 h-4.5 text-[#5f6368] shrink-0" />
           <input
             type="text"

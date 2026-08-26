@@ -1740,7 +1740,7 @@ export function PersonalLoanForm({ isEditMode: propEditMode, application: propAp
             </h3>
             <p className="text-xs text-slate-500 mt-1">Personal Loan requires details for exactly 3 guarantors.</p>
           </div>
-          <div className="flex items-center gap-1.5 bg-[#f8fafd] border border-[#dadce0] p-1 rounded-full w-full sm:w-auto">
+          <div className="flex items-center gap-1.5 bg-[#f8fafd] border border-[#dadce0] p-1.5 rounded-full w-full sm:w-auto shadow-2xs overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {[1, 2, 3].map((gIdx) => {
               const isActive = activeGuarantorTab === gIdx;
               return (
@@ -1748,7 +1748,7 @@ export function PersonalLoanForm({ isEditMode: propEditMode, application: propAp
                   key={gIdx}
                   type="button"
                   onClick={() => setActiveGuarantorTab(gIdx)}
-                  className={`flex-1 sm:flex-none inline-flex items-center justify-center rounded-full text-xs font-semibold px-4 py-1.5 transition-all gap-1.5 cursor-pointer ${
+                  className={`flex-1 sm:flex-none inline-flex items-center justify-center rounded-full text-xs font-bold px-5 py-2.5 transition-all gap-1.5 cursor-pointer leading-none whitespace-nowrap shrink-0 ${
                     isActive
                       ? 'bg-[#1a73e8] text-white shadow-2xs'
                       : 'text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4]'

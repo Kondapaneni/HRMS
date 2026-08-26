@@ -203,39 +203,44 @@ const EmployeeMobileDashboard = () => {
   };
 
   const getAttendanceBadge = (status) => {
-    if (!status) return { label: 'Not Marked', className: 'bg-slate-100 text-slate-600 border border-slate-200/60' };
-    const s = String(status).toLowerCase();
+    if (!status) return { label: 'Not Marked', className: 'bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]' };
+    const s = String(status).toLowerCase().trim();
+    const capitalize = (str) => String(str).replace(/\b\w/g, c => c.toUpperCase());
+
     if (s === 'present') {
-      return { label: 'Present', className: 'bg-emerald-100 text-emerald-700 border border-emerald-200/60' };
+      return { label: 'Present', className: 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6]' };
     }
     if (s.includes('late') || s.includes('checkout missing')) {
       return { 
         label: s.includes('checkout missing') ? 'Checkout Missing' : 'Present (Late)', 
-        className: 'bg-amber-100 text-amber-800 border border-amber-200/60' 
+        className: 'bg-[#fef7e0] text-[#b06000] border border-[#feefc3]' 
       };
     }
     if (s.includes('early')) {
-      return { label: 'Present (Early)', className: 'bg-amber-100 text-amber-800 border border-amber-200/60' };
+      return { label: 'Present (Early)', className: 'bg-[#fef7e0] text-[#b06000] border border-[#feefc3]' };
     }
     if (s.includes('leave') || s === 'on leave') {
-      return { label: status, className: 'bg-blue-100 text-blue-700 border border-blue-200/60' };
+      return { label: capitalize(status), className: 'bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]' };
     }
     if (s.includes('half')) {
-      return { label: 'Half Day', className: 'bg-purple-100 text-purple-700 border border-purple-200/60' };
+      return { label: 'Half Day', className: 'bg-[#f3e8fd] text-[#8430ce] border border-[#e9d5ff]' };
+    }
+    if (s === 'missed') {
+      return { label: 'Missed', className: 'bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]' };
     }
     if (s === 'absent' || s === 'missing') {
-      return { label: 'Absent', className: 'bg-rose-100 text-rose-700 border border-rose-200/60' };
+      return { label: 'Absent', className: 'bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf]' };
     }
     if (s === 'regularized') {
-      return { label: 'Regularized', className: 'bg-emerald-100 text-emerald-700 border border-emerald-200/60' };
+      return { label: 'Regularized', className: 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6]' };
     }
     if (s === 'holiday') {
-      return { label: 'Holiday', className: 'bg-indigo-100 text-indigo-700 border border-indigo-200/60' };
+      return { label: 'Holiday', className: 'bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]' };
     }
     if (s.includes('weekend') || s.includes('week off')) {
-      return { label: status, className: 'bg-slate-100 text-slate-600 border border-slate-200/60' };
+      return { label: capitalize(status), className: 'bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]' };
     }
-    return { label: status, className: 'bg-slate-100 text-slate-600 border border-slate-200/60' };
+    return { label: capitalize(status), className: 'bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]' };
   };
 
   const isActiveSession = checkedIn && !checkOutTime;
@@ -295,7 +300,7 @@ const EmployeeMobileDashboard = () => {
             <h2 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">Attendance Tracker</h2>
             <p className="text-[11px] font-medium text-slate-500 mt-1 uppercase tracking-wider">Today's Check-In Status</p>
           </div>
-          <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${attendanceBadge.className}`}>
+          <span className={`inline-flex items-center px-3.5 py-1.5 rounded-full text-[12.5px] font-bold shrink-0 shadow-2xs ${attendanceBadge.className}`}>
             {attendanceBadge.label}
           </span>
         </div>
@@ -401,7 +406,9 @@ const EmployeeMobileDashboard = () => {
               <h2 className="text-base font-bold text-slate-900 tracking-tight leading-tight">Business Apps</h2>
               <p className="text-[11px] font-medium text-slate-500 mt-0.5">Tap to open application</p>
             </div>
-            <span className="text-[10px] font-bold text-blue-600 bg-blue-50 border border-blue-100 px-2.5 py-0.5 rounded-full">Apps</span>
+            <span className="inline-flex items-center px-3.5 py-1.5 rounded-full text-[12.5px] font-bold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] shrink-0 shadow-2xs">
+              Apps
+            </span>
           </div>
 
           <div className="grid grid-cols-4 gap-2 pt-1">

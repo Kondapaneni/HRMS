@@ -10,12 +10,13 @@ import {
   Camera,
   Loader2,
   X,
+  FileText,
   Copy,
   Building2,
   FileEdit,
-  Send,
-  Sparkles
+  Send
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
@@ -31,22 +32,6 @@ const formatDateSafe = (dateStr) => {
     return isNaN(d.getTime()) ? null : format(d, 'dd MMM yyyy, hh:mm a');
   } catch {
     return null;
-  }
-};
-
-const getStatusBadgeStyle = (status) => {
-  switch (status) {
-    case 'Created':
-      return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-    case 'Under Review':
-      return 'bg-blue-50 text-blue-700 border-blue-200';
-    case 'Approved':
-      return 'bg-emerald-100 text-emerald-800 border-emerald-300';
-    case 'Rejected':
-      return 'bg-red-50 text-red-700 border-red-200';
-    case 'Draft':
-    default:
-      return 'bg-amber-50 text-amber-700 border-amber-200';
   }
 };
 
@@ -220,20 +205,20 @@ export default function OriginationMobileLoanViewApplications({
 
   if (!application && isLoading) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-[#5f6368]">
-        <Loader2 className="animate-spin h-8 w-8 text-[#1a73e8] mb-3" />
-        <p className="text-xs font-semibold">Loading application details...</p>
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-slate-500">
+        <Loader2 className="animate-spin h-8 w-8 text-blue-600 mb-3" />
+        <p className="text-sm font-medium">Loading application details...</p>
       </div>
     );
   }
 
   if (!application && !isLoading) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-center space-y-4">
-        <p className="text-sm font-medium text-[#5f6368]">No application details found.</p>
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-slate-500">
+        <p className="text-sm font-medium mb-4">No application details found.</p>
         <button
           onClick={() => navigate(fromPath)}
-          className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[#1a73e8] text-white hover:bg-[#1557b0] px-5 py-2 transition-all shadow-xs cursor-pointer"
+          className="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors"
         >
           Back to Applications
         </button>
@@ -242,139 +227,166 @@ export default function OriginationMobileLoanViewApplications({
   }
 
   return (
-    <div className="space-y-4 pb-14 w-full">
-      {/* 1. Google Material 3 Workspace Header Card */}
-      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-4 sm:p-5 shadow-xs relative overflow-hidden bg-gradient-to-br from-white via-[#f8fafd] to-[#e8f0fe]/30 space-y-3">
-        {/* Workspace Tag */}
-        <div className="flex items-center gap-1.5 whitespace-nowrap shrink-0">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4] shrink-0" />
-          <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335] shrink-0" />
-          <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05] shrink-0" />
-          <span className="w-1.5 h-1.5 rounded-full bg-[#34A853] shrink-0" />
-          <span className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368] ml-0.5 whitespace-nowrap">
-            Origination Workspace
-          </span>
-        </div>
+    <div className="space-y-4 pb-14">
+      {/* 1. Hero Section with Animated Motion Graphics */}
+      <section className="-mx-4 -mt-4 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900">
+        {/* Animated Liquid Orbs with Loans Origination Blue & Indigo Theme */}
+        <motion.div
+          animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
+          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+          className="absolute -top-20 -left-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+        />
+        <motion.div
+          animate={{ scale: [1, 1.4, 1], x: [0, -40, 0], y: [0, 50, 0] }}
+          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+          className="absolute -top-10 -right-10 w-64 h-64 bg-indigo-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+        />
+        <motion.div
+          animate={{ scale: [1, 1.3, 1], x: [0, 30, 0], y: [0, -40, 0] }}
+          transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+          className="absolute bottom-0 left-20 w-80 h-80 bg-sky-400 rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
+        />
 
-        {/* Heading + Back Button Row */}
-        <div className="flex items-center justify-between gap-3">
-          <h1 className="text-xl font-bold text-[#1f1f1f] tracking-tight whitespace-nowrap truncate">
-            Application Details
-          </h1>
+        {/* Subtle Glass Overlay */}
+        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none" />
+
+        <div className="relative z-10 px-2 flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">
+              Origination &bull; Loan Pipeline
+            </p>
+            <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">
+              Application Details
+            </h2>
+            <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">
+              Review and Verification
+            </p>
+          </div>
 
           <button
             type="button"
             onClick={() => navigate(fromPath)}
-            className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] px-3.5 py-1.5 transition-all gap-1.5 shadow-2xs cursor-pointer shrink-0 whitespace-nowrap"
+            className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center backdrop-blur-md border border-white/30 shadow-xs transition-all active:scale-95 cursor-pointer shrink-0"
+            title="Back"
           >
-            <ArrowLeft className="w-3.5 h-3.5 text-[#5f6368]" />
-            <span>Back</span>
+            <ArrowLeft size={18} />
           </button>
         </div>
+      </section>
 
-        {/* Subtitle / Status Meta Row */}
-        <div className="flex flex-wrap items-center gap-2 pt-0.5">
-          {/* App ID Badge with Copy */}
-          <button
-            type="button"
-            onClick={handleCopyId}
-            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] hover:bg-[#d2e3fc] transition-colors cursor-pointer shrink-0 whitespace-nowrap"
-            title="Click to copy Application ID"
-          >
-            <span>{appId}</span>
-            <Copy className="w-3 h-3 text-[#1a73e8]" />
-          </button>
+      {/* 2. Elevated Content Layer */}
+      <div className="relative z-20 -mt-8 mx-0.5 space-y-4">
+        {/* Application Overview & Status Card */}
+        <div className="bg-white p-5 rounded-3xl shadow-xs border border-[#e0e3e7] space-y-4">
+          <div className="flex items-center justify-between gap-3 pb-4 border-b border-[#f1f3f4]">
+            <div className="min-w-0 space-y-0.5">
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-bold text-[#1f1f1f] tracking-tight font-mono">
+                  {appId}
+                </span>
+                {appId !== 'LA-DRAFT' && (
+                  <button
+                    type="button"
+                    onClick={handleCopyId}
+                    className="p-1 rounded-full text-[#5f6368] hover:bg-[#f1f3f4] transition-colors cursor-pointer"
+                    title="Copy App ID"
+                  >
+                    <Copy size={13} />
+                  </button>
+                )}
+              </div>
+              <p className="text-xs font-semibold text-[#1a73e8] truncate">{loanType}</p>
+            </div>
 
-          {/* Status Pill */}
-          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wider whitespace-nowrap shrink-0 ${getStatusBadgeStyle(localStatus)}`}>
-            {localStatus === 'Created' ? <CheckCircle2 className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
-            <span>{localStatus}</span>
-          </span>
+            <span className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-bold shrink-0 shadow-2xs border ${
+              appStatus === 'Created' || appStatus === 'Approved'
+                ? 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]'
+                : appStatus === 'Under Review'
+                ? 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc]'
+                : 'bg-[#fef7e0] text-[#b06000] border-[#feefc3]'
+            }`}>
+              {appStatus === 'Created' || appStatus === 'Approved' ? <CheckCircle2 size={15} /> : <Clock size={15} />}
+              <span>{appStatus}</span>
+            </span>
+          </div>
 
-          <span className="text-[#5f6368]">&bull;</span>
-          <span className="text-xs font-medium text-[#5f6368] truncate">{loanType}</span>
-        </div>
-
-        {/* Subtitle Date & Branch */}
-        <div className="text-[11px] text-[#5f6368] flex items-center gap-1.5 flex-wrap pt-0.5">
-          <span>{isCreated ? `Created on ${formattedDate}` : `Draft saved on ${formattedDate}`}</span>
-          {branchName && (
-            <>
-              <span>&bull;</span>
-              <span className="inline-flex items-center gap-1 truncate">
-                <Building2 className="w-3 h-3 text-[#5f6368] shrink-0" />
+          <div className="text-[11px] text-[#5f6368] space-y-1">
+            <p>{isCreated ? `Created on ${formattedDate}` : `Draft saved on ${formattedDate}`}</p>
+            {branchName && (
+              <p className="flex items-center gap-1.5 truncate">
+                <Building2 size={12} className="text-[#80868b] shrink-0" />
                 <span className="truncate">{branchName}</span>
-              </span>
-            </>
+              </p>
+            )}
+          </div>
+
+          {/* Action Controls for Draft / Created Applications */}
+          {isDraft && (
+            <div className="pt-2 border-t border-[#f1f3f4]">
+              <button
+                type="button"
+                onClick={() => {
+                  navigate('/employee/loans/form', {
+                    state: {
+                      application,
+                      form_data: formData,
+                      loan_type: loanType,
+                      mode: 'edit',
+                      isEdit: true,
+                      from: `/employee/loans/view-application?id=${encodeURIComponent(appId)}`
+                    }
+                  });
+                }}
+                className="w-full inline-flex items-center justify-center rounded-full text-xs font-bold bg-[#1a73e8] text-white hover:bg-[#1557b0] py-3.5 px-4 transition-all gap-1.5 shadow-xs cursor-pointer active:scale-[0.98]"
+              >
+                <FileEdit size={14} />
+                <span>Continue / Complete Application</span>
+              </button>
+            </div>
+          )}
+
+          {isCreated && !hasTransferred && (
+            <div className="pt-2 border-t border-[#f1f3f4] flex flex-col gap-2.5">
+              <button
+                type="button"
+                onClick={() => setIsDocsOpen(true)}
+                className="w-full inline-flex items-center justify-center rounded-full text-xs font-bold bg-[#e8f0fe] text-[#1a73e8] hover:bg-[#d2e3fc] border border-[#d2e3fc] py-3 px-4 transition-all gap-1.5 shadow-2xs cursor-pointer active:scale-[0.98]"
+              >
+                <Camera size={15} />
+                <span>Upload Photos ({uploadedCount}/{requiredSlots})</span>
+              </button>
+
+              {isAllUploaded && (
+                <button
+                  type="button"
+                  onClick={() => setIsSignatureModalOpen(true)}
+                  disabled={isTransferring}
+                  className="w-full inline-flex items-center justify-center rounded-full text-xs font-bold bg-[#137333] text-white hover:bg-[#0d5926] py-3.5 px-4 transition-all gap-1.5 shadow-xs disabled:opacity-50 cursor-pointer active:scale-[0.98]"
+                >
+                  {isTransferring ? (
+                    <>
+                      <Loader2 size={15} className="animate-spin" /> Transferring...
+                    </>
+                  ) : (
+                    <>
+                      <Send size={14} /> Transfer to Branch Operations
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
           )}
         </div>
 
-        {/* Action Controls for Draft / Created Applications */}
-        {isDraft && (
-          <div className="pt-2 border-t border-[#e0e3e7]">
-            <button
-              type="button"
-              onClick={() => {
-                navigate('/employee/loans/form', {
-                  state: {
-                    application,
-                    form_data: formData,
-                    loan_type: loanType,
-                    mode: 'edit',
-                    isEdit: true,
-                    from: `/employee/loans/view-application?id=${encodeURIComponent(appId)}`
-                  }
-                });
-              }}
-              className="w-full inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[#1a73e8] text-white hover:bg-[#1557b0] py-2.5 px-4 transition-all gap-1.5 shadow-xs cursor-pointer active:scale-[0.98]"
-            >
-              <FileEdit className="w-4 h-4" />
-              <span>Continue / Complete Application</span>
-            </button>
-          </div>
-        )}
-
-        {isCreated && !hasTransferred && (
-          <div className="pt-2 border-t border-[#e0e3e7] flex flex-col gap-2">
-            <button
-              type="button"
-              onClick={() => setIsDocsOpen(true)}
-              className="w-full inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1a73e8] hover:bg-[#e8f0fe] border border-[#d2e3fc] py-2.5 px-4 transition-all gap-1.5 shadow-2xs cursor-pointer active:scale-[0.98]"
-            >
-              <Camera className="w-4 h-4 text-[#1a73e8]" />
-              <span>Upload Photos ({uploadedCount}/{requiredSlots})</span>
-            </button>
-
-            {isAllUploaded && (
-              <button
-                type="button"
-                onClick={() => setIsSignatureModalOpen(true)}
-                disabled={isTransferring}
-                className="w-full inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[#1a73e8] text-white hover:bg-[#1557b0] py-2.5 px-4 transition-all gap-1.5 shadow-xs disabled:opacity-50 cursor-pointer active:scale-[0.98]"
-              >
-                {isTransferring ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" /> Transferring...
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-4 h-4" /> Transfer to Branch Operations
-                  </>
-                )}
-              </button>
-            )}
-          </div>
-        )}
+        {/* ━━━ Loan Details Content rendered from LoanDetailView ━━━ */}
+        <LoanDetailView
+          formData={formData || {}}
+          application={application || {}}
+          currentDocs={currentDocs}
+          onPreviewDoc={setPreviewDoc}
+          localTimeline={localTimeline}
+        />
       </div>
-
-      {/* 2. Main Content Card with Loan Details */}
-      <LoanDetailView
-        formData={formData || {}}
-        application={application || {}}
-        currentDocs={currentDocs}
-        onPreviewDoc={setPreviewDoc}
-        localTimeline={localTimeline}
-      />
 
       {/* Loan Documents Sidebar */}
       <LoanDocumentsSidebar

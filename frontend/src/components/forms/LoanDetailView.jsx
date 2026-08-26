@@ -259,7 +259,8 @@ function MobileDetailView({
   application = {},
   currentDocs: externalDocs,
   onPreviewDoc,
-  localTimeline: externalTimeline
+  localTimeline: externalTimeline,
+  hideHeader = true
 }) {
   const [activeGuarantorTab, setActiveGuarantorTab] = useState(1);
   const currentDocs =
@@ -320,26 +321,28 @@ function MobileDetailView({
   return (
     <div className="space-y-4 pb-12">
       {/* Mobile Header Card */}
-      <div className="bg-white rounded-2xl border border-[#e0e3e7] shadow-xs overflow-hidden">
-        <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853]" />
-        <div className="p-5">
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
-              <Building2 className="w-3.5 h-3.5" />
-              {loanType}
-            </span>
-            <span className="text-xs text-[#5f6368] font-medium">
-              {formattedDate}
-            </span>
+      {!hideHeader && (
+        <div className="bg-white rounded-2xl border border-[#e0e3e7] shadow-xs overflow-hidden">
+          <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853]" />
+          <div className="p-5">
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
+                <Building2 className="w-3.5 h-3.5" />
+                {loanType}
+              </span>
+              <span className="text-xs text-[#5f6368] font-medium">
+                {formattedDate}
+              </span>
+            </div>
+            <h2 className="text-lg font-bold text-[#1f1f1f]">
+              {formData.applicant_name || 'Loan Application'}
+            </h2>
+            <p className="text-xs text-[#5f6368] mt-0.5">
+              ID: <strong className="text-[#1a73e8]">{appId}</strong>
+            </p>
           </div>
-          <h2 className="text-lg font-bold text-[#1f1f1f]">
-            {formData.applicant_name || 'Loan Application'}
-          </h2>
-          <p className="text-xs text-[#5f6368] mt-0.5">
-            ID: <strong className="text-[#1a73e8]">{appId}</strong>
-          </p>
         </div>
-      </div>
+      )}
 
       {/* ── 1. Applicant Personal Details ── */}
       <SectionCard number="1" title="Applicant Personal Details" icon={User}>
@@ -570,7 +573,7 @@ function MobileDetailView({
       {/* ── 5. Guarantors Verification (3 Required) ── */}
       <SectionCard number="5" title="Guarantors Verification (3 Required)" icon={ShieldCheck}>
         {/* Guarantor Tab Buttons */}
-        <div className="flex items-center gap-1.5 p-1 bg-[#f8fafd] rounded-full border border-[#dadce0] mb-4">
+        <div className="flex items-center gap-1.5 p-1.5 bg-[#f8fafd] rounded-full border border-[#dadce0] mb-4 shadow-2xs overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {[1, 2, 3].map((idx) => {
             const isActive = activeGuarantorTab === idx;
             const gName = formData[`guarantor_${idx}_name`];
@@ -581,10 +584,10 @@ function MobileDetailView({
                 key={idx}
                 type="button"
                 onClick={() => setActiveGuarantorTab(idx)}
-                className={`flex-1 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer text-center ${
+                className={`flex-1 min-w-fit py-3 px-4 rounded-full text-xs font-bold transition-all cursor-pointer text-center leading-none whitespace-nowrap shrink-0 ${
                   isActive
                     ? 'bg-[#1a73e8] text-white shadow-xs'
-                    : 'text-[#5f6368] hover:text-[#1f1f1f]'
+                    : 'text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4]'
                 }`}
               >
                 G{idx}{shortName}
@@ -1326,7 +1329,7 @@ function DesktopPaperView({
             </div>
 
             {/* Guarantor Tabs Styled Like Google Pill Buttons */}
-            <div className="flex flex-wrap items-center gap-2 print:hidden">
+            <div className="flex items-center gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] print:hidden">
               {[1, 2, 3].map((gIdx) => {
                 const isActive = activeGuarantorTab === gIdx;
                 const gName = formData[`guarantor_${gIdx}_name`];
@@ -1337,7 +1340,7 @@ function DesktopPaperView({
                     key={gIdx}
                     type="button"
                     onClick={() => setActiveGuarantorTab(gIdx)}
-                    className={`inline-flex items-center justify-center rounded-full text-xs font-semibold px-4 py-1.5 transition-all gap-1.5 cursor-pointer shadow-2xs ${
+                    className={`inline-flex items-center justify-center rounded-full text-xs font-bold px-5 py-2.5 transition-all gap-1.5 cursor-pointer shadow-2xs whitespace-nowrap shrink-0 ${
                       isActive
                         ? 'bg-[#1a73e8] text-white shadow-xs'
                         : 'bg-white text-[#3c4043] hover:bg-[#f1f3f4] hover:text-[#1f1f1f] border border-[#dadce0]'
@@ -1453,7 +1456,8 @@ export function LoanDetailView({
   application = {},
   currentDocs,
   onPreviewDoc,
-  localTimeline
+  localTimeline,
+  hideHeader = true
 }) {
   // Pre-decode all document photos in background so print previews open instantaneously
   useEffect(() => {
@@ -1483,6 +1487,7 @@ export function LoanDetailView({
           currentDocs={currentDocs}
           onPreviewDoc={onPreviewDoc}
           localTimeline={localTimeline}
+          hideHeader={hideHeader}
         />
       </div>
 
