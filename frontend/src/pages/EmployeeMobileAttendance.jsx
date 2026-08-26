@@ -158,62 +158,54 @@ const EmployeeMobileAttendance = () => {
         </div>
       </section>
 
-      {/* KPI Stats Cards (4 Cards in Dashboard Elevated Aesthetic) */}
+      {/* KPI Stats Cards (2x2 Grid) */}
       <section className="grid grid-cols-2 gap-3 relative z-20 -mt-10 mx-0.5">
         {/* Present */}
-        <div className="bg-white rounded-[1.5rem] p-4 flex flex-col justify-between border border-slate-100 shadow-md">
+        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3.5 shadow-xs space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Present</span>
-            <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
-              <CheckCircle2 className="w-4 h-4" />
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Present</span>
+            <div className="p-1.5 rounded-lg bg-[#e6f4ea] text-[#137333]">
+              <CheckCircle2 className="w-3.5 h-3.5" />
             </div>
           </div>
-          <div className="my-1.5">
-            <span className="text-2xl font-black text-emerald-600 tracking-tight">{presentCount} Days</span>
-          </div>
-          <span className="text-[11px] font-medium text-slate-400">Logged present</span>
+          <p className="text-base font-bold text-[#137333]">{presentCount} Days</p>
+          <p className="text-[10px] text-[#5f6368]">Logged present</p>
         </div>
 
         {/* On Leave */}
-        <div className="bg-white rounded-[1.5rem] p-4 flex flex-col justify-between border border-slate-100 shadow-md">
+        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3.5 shadow-xs space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">On Leave</span>
-            <div className="w-8 h-8 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center">
-              <CalendarDays className="w-4 h-4" />
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">On Leave</span>
+            <div className="p-1.5 rounded-lg bg-[#f3e8fd] text-[#8430ce]">
+              <CalendarDays className="w-3.5 h-3.5" />
             </div>
           </div>
-          <div className="my-1.5">
-            <span className="text-2xl font-black text-purple-600 tracking-tight">{leaveCount} Days</span>
-          </div>
-          <span className="text-[11px] font-medium text-slate-400">Approved leaves</span>
+          <p className="text-base font-bold text-[#8430ce]">{leaveCount} Days</p>
+          <p className="text-[10px] text-[#5f6368]">Approved leaves</p>
         </div>
 
         {/* Paid Leaves */}
-        <div className="bg-white rounded-[1.5rem] p-4 flex flex-col justify-between border border-slate-100 shadow-md">
+        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3.5 shadow-xs space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Paid Leaves</span>
-            <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
-              <Clock className="w-4 h-4" />
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Paid Leaves</span>
+            <div className="p-1.5 rounded-lg bg-[#e8f0fe] text-[#1a73e8]">
+              <Clock className="w-3.5 h-3.5" />
             </div>
           </div>
-          <div className="my-1.5">
-            <span className="text-2xl font-black text-blue-600 tracking-tight">{paidLeaveCount} Days</span>
-          </div>
-          <span className="text-[11px] font-medium text-slate-400">Quota deducted</span>
+          <p className="text-base font-bold text-[#1a73e8]">{paidLeaveCount} Days</p>
+          <p className="text-[10px] text-[#5f6368]">Quota deducted</p>
         </div>
 
         {/* Unpaid / LOP */}
-        <div className="bg-white rounded-[1.5rem] p-4 flex flex-col justify-between border border-slate-100 shadow-md">
+        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3.5 shadow-xs space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Unpaid (LOP)</span>
-            <div className="w-8 h-8 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center">
-              <AlertCircle className="w-4 h-4" />
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Unpaid (LOP)</span>
+            <div className="p-1.5 rounded-lg bg-[#fce8e6] text-[#c5221f]">
+              <AlertCircle className="w-3.5 h-3.5" />
             </div>
           </div>
-          <div className="my-1.5">
-            <span className="text-2xl font-black text-rose-600 tracking-tight">{unpaidLeaveCount} Days</span>
-          </div>
-          <span className="text-[11px] font-medium text-slate-400">Loss of pay</span>
+          <p className="text-base font-bold text-[#c5221f]">{unpaidLeaveCount} Days</p>
+          <p className="text-[10px] text-[#5f6368]">Loss of pay</p>
         </div>
       </section>
 

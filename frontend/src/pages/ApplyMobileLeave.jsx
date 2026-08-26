@@ -216,15 +216,18 @@ const ApplyMobileLeave = () => {
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   <span>Paid leave quota is fully exhausted. This request will be submitted as Unpaid (LOP).</span>
                 </div>
-                <select 
-                  name="leaveType" 
-                  value={leaveType} 
-                  onChange={e => setLeaveType(e.target.value)} 
-                  required 
-                  className="w-full bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl px-4 py-3 text-xs font-semibold text-[#1f1f1f] focus:bg-white focus:ring-1 focus:ring-[#1a73e8] focus:border-[#1a73e8] outline-none appearance-none cursor-pointer shadow-2xs"
-                >
-                  <option value="unpaid">Unpaid Leave (Loss of Pay)</option>
-                </select>
+                <div className="relative">
+                  <select 
+                    name="leaveType" 
+                    value={leaveType} 
+                    onChange={e => setLeaveType(e.target.value)} 
+                    required 
+                    className="w-full bg-[#f8fafd] border border-[#e0e3e7] rounded-full px-5 py-3 text-xs font-semibold text-[#1f1f1f] focus:bg-white focus:ring-1 focus:ring-[#1a73e8] focus:border-[#1a73e8] outline-none appearance-none cursor-pointer shadow-2xs pr-10"
+                  >
+                    <option value="unpaid">Unpaid Leave (Loss of Pay)</option>
+                  </select>
+                  <ChevronRight className="w-4 h-4 text-[#5f6368] absolute right-4 top-1/2 -translate-y-1/2 rotate-90 pointer-events-none" />
+                </div>
               </div>
             ) : hasPaidLeaveThisMonth() ? (
               <div className="space-y-2">
@@ -232,34 +235,40 @@ const ApplyMobileLeave = () => {
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   <span>You already have a Paid Leave in this calendar month. Additional days are Unpaid.</span>
                 </div>
+                <div className="relative">
+                  <select 
+                    name="leaveType" 
+                    value={leaveType} 
+                    onChange={e => setLeaveType(e.target.value)} 
+                    required 
+                    className="w-full bg-[#f8fafd] border border-[#e0e3e7] rounded-full px-5 py-3 text-xs font-semibold text-[#1f1f1f] focus:bg-white focus:ring-1 focus:ring-[#1a73e8] focus:border-[#1a73e8] outline-none appearance-none cursor-pointer shadow-2xs pr-10"
+                  >
+                    <option value="unpaid">Unpaid Leave (Loss of Pay)</option>
+                  </select>
+                  <ChevronRight className="w-4 h-4 text-[#5f6368] absolute right-4 top-1/2 -translate-y-1/2 rotate-90 pointer-events-none" />
+                </div>
+              </div>
+            ) : (
+              <div className="relative">
                 <select 
                   name="leaveType" 
                   value={leaveType} 
                   onChange={e => setLeaveType(e.target.value)} 
                   required 
-                  className="w-full bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl px-4 py-3 text-xs font-semibold text-[#1f1f1f] focus:bg-white focus:ring-1 focus:ring-[#1a73e8] focus:border-[#1a73e8] outline-none appearance-none cursor-pointer shadow-2xs"
+                  className="w-full bg-[#f8fafd] border border-[#e0e3e7] rounded-full px-5 py-3 text-xs font-semibold text-[#1f1f1f] focus:bg-white focus:ring-1 focus:ring-[#1a73e8] focus:border-[#1a73e8] outline-none appearance-none cursor-pointer shadow-2xs pr-10"
                 >
+                  <option value="paid">Paid Leave ({paidRemaining} Days Remaining)</option>
                   <option value="unpaid">Unpaid Leave (Loss of Pay)</option>
                 </select>
+                <ChevronRight className="w-4 h-4 text-[#5f6368] absolute right-4 top-1/2 -translate-y-1/2 rotate-90 pointer-events-none" />
               </div>
-            ) : (
-              <select 
-                name="leaveType" 
-                value={leaveType} 
-                onChange={e => setLeaveType(e.target.value)} 
-                required 
-                className="w-full bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl px-4 py-3 text-xs font-semibold text-[#1f1f1f] focus:bg-white focus:ring-1 focus:ring-[#1a73e8] focus:border-[#1a73e8] outline-none appearance-none cursor-pointer shadow-2xs"
-              >
-                <option value="paid">Paid Leave ({paidRemaining} Days Remaining)</option>
-                <option value="unpaid">Unpaid Leave (Loss of Pay)</option>
-              </select>
             )}
           </div>
 
           {/* Interactive Calendar Date Picker */}
           <div className="space-y-2.5">
             <label className="text-[11px] font-bold text-[#5f6368] uppercase tracking-wider">Select Dates on Calendar *</label>
-            <div className="rounded-2xl border border-[#e0e3e7] bg-[#f8fafd] p-4 space-y-3 shadow-inner">
+            <div className="rounded-2xl border border-[#e0e3e7] bg-white p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <button
                   type="button"
@@ -273,7 +282,7 @@ const ApplyMobileLeave = () => {
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
-                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-[#dadce0] text-xs font-bold text-[#1f1f1f] shadow-2xs select-none">
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#f8fafd] border border-[#dadce0] text-xs font-bold text-[#1f1f1f] select-none">
                   <CalendarIcon className="w-3.5 h-3.5 text-[#1a73e8]" />
                   <span>{calendarDate.toLocaleString(undefined, { month: 'long', year: 'numeric' })}</span>
                 </div>
