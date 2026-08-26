@@ -13,7 +13,8 @@ import {
   FileText,
   Plus,
   X,
-  Calendar
+  Calendar,
+  ChevronDown
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
@@ -187,25 +188,47 @@ const OriginationMobileLoanApplicationsList = () => {
       {/* 2. Elevated Content Layer */}
       <div className="relative z-20 -mt-8 mx-0.5 space-y-3.5">
 
-        {/* Search Box */}
-        <div className="bg-white rounded-full border border-[#e0e3e7] px-4 py-2.5 shadow-xs flex items-center gap-2.5">
-          <Search className="w-4.5 h-4.5 text-[#5f6368] shrink-0" />
-          <input
-            type="text"
-            placeholder="Search by name, phone, App ID..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full text-[13.5px] font-medium bg-transparent border-none outline-none text-[#1f1f1f] placeholder:text-[#80868b] placeholder:text-[13px] pr-1"
-          />
-          {searchTerm && (
-            <button
-              type="button"
-              onClick={() => setSearchTerm('')}
-              className="p-1 rounded-full text-[#5f6368] hover:bg-[#f1f3f4] hover:text-[#1f1f1f] shrink-0 cursor-pointer transition-colors"
-            >
-              <X size={14} />
-            </button>
-          )}
+        {/* Search & Loan Type Filter Controls */}
+        <div className="space-y-2.5">
+          {/* Search Box */}
+          <div className="bg-white rounded-full border border-[#e0e3e7] px-4 py-2.5 shadow-xs flex items-center gap-2.5">
+            <Search className="w-4.5 h-4.5 text-[#5f6368] shrink-0" />
+            <input
+              type="text"
+              placeholder="Search by name, phone, App ID..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full text-[13.5px] font-medium bg-transparent border-none outline-none text-[#1f1f1f] placeholder:text-[#80868b] placeholder:text-[13px] pr-1"
+            />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => setSearchTerm('')}
+                className="p-1 rounded-full text-[#5f6368] hover:bg-[#f1f3f4] hover:text-[#1f1f1f] shrink-0 cursor-pointer transition-colors"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+
+          {/* Loan Type Pill Select */}
+          <div className="bg-white rounded-full border border-[#e0e3e7] px-4 py-2.5 shadow-xs flex items-center gap-2.5 relative">
+            <div className="text-[#1a73e8] shrink-0">
+              <Briefcase size={16} />
+            </div>
+            <div className="relative flex-1">
+              <select
+                value={loanTypeFilter}
+                onChange={(e) => setLoanTypeFilter(e.target.value)}
+                className="w-full bg-transparent text-[13px] font-semibold text-[#1f1f1f] appearance-none cursor-pointer outline-none pr-6"
+              >
+                <option value="All">All Loan Types ({applications.length})</option>
+                <option value="Personal Loan">Personal Loans</option>
+                <option value="Business Loan">Business Loans</option>
+              </select>
+              <ChevronDown size={14} className="absolute right-0 top-1/2 -translate-y-1/2 text-[#5f6368] pointer-events-none" />
+            </div>
+          </div>
         </div>
 
         {/* Horizontal Scrollable Status Filter Chips */}

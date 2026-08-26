@@ -1,94 +1,236 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { getBranchLoanApplications } from '../services/loanServices';
-import PageLoader from '../components/PageLoader';
+import { motion } from 'framer-motion';
 import { 
   Search, 
   CheckCircle2, 
-  Briefcase, 
   Clock, 
-  Building2, 
   XCircle, 
-  ChevronDown,
-  Eye,
-  ArrowUpRight,
-  FileEdit,
+  Briefcase, 
+  Building2, 
+  User, 
+  FileText, 
+  ChevronLeft, 
+  ChevronRight, 
+  Eye, 
+  ArrowUpRight, 
+  RefreshCw, 
+  ExternalLink, 
+  Calendar, 
+  ShieldCheck, 
+  Phone, 
   X,
-  Copy,
-  Phone,
-  Calendar,
-  User,
-  Lock,
-  ChevronRight,
-  ShieldCheck,
   Check,
-  ExternalLink
+  FileEdit
 } from 'lucide-react';
 import { format } from 'date-fns';
-import toast from 'react-hot-toast';
+import { getBranchLoanApplications } from '../services/loanServices';
 import BranchOperationsMobileLoansApplicationsList from './BranchOperationsMobileLoansApplicationsList';
 import { maskPhoneNumber } from '../utils/phoneUtils';
+
+// Helper: Safe date formatter
+const formatDateSafe = (dateStr, formatPattern = 'MMM d, yyyy') => {
+  if (!dateStr) return '—';
+  try {
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? '—' : format(d, formatPattern);
+  } catch (e) {
+    return '—';
+  }
+};
+
+// Google Workspace KPI Stat Card
+const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme = 'blue' }) => {
+  const themeClasses = {
+    purple: {
+      bg: 'bg-[#7C4DFF]/10',
+      text: 'text-[#7C4DFF]',
+      border: 'border-[#7C4DFF]/20',
+    },
+    blue: {
+      bg: 'bg-[#e8f0fe]',
+      text: 'text-[#1a73e8]',
+      border: 'border-[#d2e3fc]',
+    },
+    green: {
+      bg: 'bg-[#e6f4ea]',
+      text: 'text-[#137333]',
+      border: 'border-[#ceead6]',
+    },
+    amber: {
+      bg: 'bg-[#fef7e0]',
+      text: 'text-[#b06000]',
+      border: 'border-[#feefc3]',
+    },
+    red: {
+      bg: 'bg-[#fce8e6]',
+      text: 'text-[#c5221f]',
+      border: 'border-[#fad2cf]',
+    }
+  }[colorTheme] || {
+    bg: 'bg-[#7C4DFF]/10',
+    text: 'text-[#7C4DFF]',
+    border: 'border-[#7C4DFF]/20',
+  };
+
+  return (
+    <div className="bg-white rounded-2xl border border-[#e0e3e7] p-4.5 shadow-xs flex flex-col justify-between hover:shadow-sm transition-shadow">
+      <div className="flex items-start justify-between">
+        <div>
+          <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider block mb-1">
+            {title}
+          </span>
+          <h3 className="text-2xl font-normal text-[#1f1f1f] tracking-tight">
+            {value}
+          </h3>
+        </div>
+        <div className={`p-2.5 rounded-2xl ${themeClasses.bg} ${themeClasses.text} border ${themeClasses.border} shrink-0`}>
+          <Icon className="w-5 h-5" />
+        </div>
+      </div>
+      {subtitle && (
+        <div className="mt-3 pt-2.5 border-t border-[#f1f3f4] flex items-center justify-between text-xs text-[#5f6368]">
+          <span>{subtitle}</span>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const BranchOperationsLoansApplicationsList = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [loanTypeFilter, setLoanTypeFilter] = useState('All');
+  const [sortBy, setSortBy] = useState('newest');
+  const [page, setPage] = useState(1);
+  const limit = 10;
+
+  // Selected application for slideover drawer
   const [selectedApp, setSelectedApp] = useState(null);
+
+  // Debounce search input (300ms)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   const { data: response, isLoading, error } = useQuery({
     queryKey: ['branchOperations', 'applications', 'list'],
     queryFn: getBranchLoanApplications,
+    staleTime: 2 * 60 * 1000,
   });
 
   const branch = response?.branch || { name: 'Assigned Branch' };
   const applications = response?.applications || [];
 
-  const filteredApps = applications.filter((app) => {
-    const name = app.applicant_name || app.form_data?.applicant_name || '';
-    const phone = app.phone_number || app.form_data?.phone_number || '';
-    const appId = app.application_id || '';
-    const leadId = app.lead_id || '';
-    const appLoanType = app.loan_type || app.form_data?.loan_type || 'Personal Loan';
+  // Compute Metrics & Stats across all applications
+  const stats = useMemo(() => {
+    let approvedCount = 0;
+    let inReviewCount = 0;
+    let draftCount = 0;
 
-    const matchesSearch = 
-      name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      phone.includes(searchTerm) ||
-      appId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      String(leadId).includes(searchTerm);
+    applications.forEach((app) => {
+      const st = (app.status || '').toLowerCase();
+      if (st === 'approved') {
+        approvedCount += 1;
+      } else if (st === 'under review' || st === 'under_review' || st === 'created') {
+        inReviewCount += 1;
+      } else if (st === 'draft') {
+        draftCount += 1;
+      }
+    });
 
-    const matchesStatus = statusFilter === 'All' ? true : app.status === statusFilter;
-    const matchesLoanType = loanTypeFilter === 'All' ? true : appLoanType === loanTypeFilter;
+    return {
+      totalCount: applications.length,
+      approvedCount,
+      inReviewCount,
+      draftCount,
+    };
+  }, [applications]);
 
-    return matchesSearch && matchesStatus && matchesLoanType;
-  });
+  // Filter and Sort applications
+  const filteredApps = useMemo(() => {
+    const filtered = applications.filter((app) => {
+      const name = app.applicant_name || app.form_data?.applicant_name || app.form_data?.name || '';
+      const phone = app.phone_number || app.form_data?.phone_number || app.form_data?.phone || '';
+      const appId = app.application_id || '';
+      const leadId = app.lead_id || '';
+      const appLoanType = app.loan_type || app.form_data?.loan_type || 'Personal Loan';
+      const status = app.status || 'Draft';
 
-  const formatDateSafe = (dateStr, formatTemplate = 'MMM d, yyyy') => {
-    if (!dateStr) return '—';
-    try {
-      const d = new Date(dateStr);
-      return isNaN(d.getTime()) ? '—' : format(d, formatTemplate);
-    } catch (e) {
-      return '—';
-    }
-  };
+      const matchesSearch = 
+        name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+        phone.includes(debouncedSearch) ||
+        appId.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+        String(leadId).includes(debouncedSearch) ||
+        appLoanType.toLowerCase().includes(debouncedSearch.toLowerCase());
 
+      const matchesStatus = 
+        statusFilter === 'All' 
+          ? true 
+          : statusFilter === 'Under Review'
+          ? (status === 'Under Review' || status === 'under_review')
+          : status === statusFilter;
+
+      const matchesLoanType = loanTypeFilter === 'All' ? true : appLoanType === loanTypeFilter;
+
+      return matchesSearch && matchesStatus && matchesLoanType;
+    });
+
+    // Sorting
+    filtered.sort((a, b) => {
+      if (sortBy === 'newest') {
+        return new Date(b.created_at || b.updated_at || 0) - new Date(a.created_at || a.updated_at || 0);
+      }
+      if (sortBy === 'oldest') {
+        return new Date(a.created_at || a.updated_at || 0) - new Date(b.created_at || b.updated_at || 0);
+      }
+      if (sortBy === 'name_asc') {
+        const nameA = a.applicant_name || a.form_data?.applicant_name || '';
+        const nameB = b.applicant_name || b.form_data?.applicant_name || '';
+        return nameA.localeCompare(nameB);
+      }
+      if (sortBy === 'name_desc') {
+        const nameA = a.applicant_name || a.form_data?.applicant_name || '';
+        const nameB = b.applicant_name || b.form_data?.applicant_name || '';
+        return nameB.localeCompare(nameA);
+      }
+      return 0;
+    });
+
+    return filtered;
+  }, [applications, debouncedSearch, statusFilter, loanTypeFilter, sortBy]);
+
+  // Paginate list
+  const totalFilteredCount = filteredApps.length;
+  const totalPages = Math.max(1, Math.ceil(totalFilteredCount / limit));
+  const paginatedApps = useMemo(() => {
+    const start = (page - 1) * limit;
+    return filteredApps.slice(start, start + limit);
+  }, [filteredApps, page, limit]);
+
+  // Direct Application Studio Navigator
   const handleOpenStudio = (app) => {
     navigate('/employee/branch-operations/loans-view-applications', {
       state: {
         application: app,
         form_data: app.form_data,
         lead_id: app.lead_id,
-        name: app.applicant_name || app.form_data?.applicant_name,
-        phone: app.phone_number || app.form_data?.phone_number,
+        name: app.applicant_name || app.form_data?.applicant_name || app.form_data?.name,
+        phone: app.phone_number || app.form_data?.phone_number || app.form_data?.phone,
         from: '/employee/branch-operations/loans-applications',
       },
     });
   };
 
+  // Direct Application Editor
   const handleEditApplication = (app) => {
     navigate('/employee/branch-operations/loans-edit-application', {
       state: {
@@ -100,49 +242,66 @@ const BranchOperationsLoansApplicationsList = () => {
     });
   };
 
-  const handleCopyId = (e, id) => {
-    e.stopPropagation();
-    if (!id) return;
-    navigator.clipboard.writeText(id);
-    toast.success(`Copied Application ID: ${id}`);
-  };
-
   const getStatusBadge = (status) => {
-    const isCreated = status === 'Created' || status === 'Approved';
-    const isUnderReview = status === 'Under Review';
-    const isRejected = status === 'Rejected';
-
-    if (isCreated) {
+    const s = String(status || 'Draft').toLowerCase();
+    if (s === 'approved') {
       return (
         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#e6f4ea] text-[#137333] border border-[#ceead6] whitespace-nowrap">
-          <CheckCircle2 size={11} /> {status}
+          <CheckCircle2 className="w-3 h-3" /> Approved
         </span>
       );
     }
-    if (isUnderReview) {
+    if (s === 'under review' || s === 'under_review') {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] whitespace-nowrap">
-          <Clock size={11} /> Under Review
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#7C4DFF]/10 text-[#7C4DFF] border border-[#7C4DFF]/20 whitespace-nowrap">
+          <Clock className="w-3 h-3" /> Under Review
         </span>
       );
     }
-    if (isRejected) {
+    if (s === 'created') {
+      return (
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#e0f2fe] text-[#0369a1] border border-[#bae6fd] whitespace-nowrap">
+          <CheckCircle2 className="w-3 h-3" /> Created
+        </span>
+      );
+    }
+    if (s === 'rejected') {
       return (
         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf] whitespace-nowrap">
-          <XCircle size={11} /> Rejected
+          <XCircle className="w-3 h-3" /> Rejected
         </span>
       );
     }
     return (
       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#fef7e0] text-[#b06000] border border-[#feefc3] whitespace-nowrap">
-        <Clock size={11} /> {status}
+        <Clock className="w-3 h-3" /> {status || 'Draft'}
       </span>
     );
   };
 
-  if (isLoading) {
-    return <PageLoader message="Loading Loan Applications..." />;
-  }
+  const getLoanTypeBadge = (loanType) => {
+    const isBusiness = String(loanType).toLowerCase().includes('business');
+    return (
+      <span className={`inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium border whitespace-nowrap text-center ${
+        isBusiness 
+          ? 'bg-[#f3e8fd] text-[#8430ce] border-[#e9d5ff]' 
+          : 'bg-[#f1f3f4] text-[#3c4043] border-[#dadce0]'
+      }`}>
+        {isBusiness ? <Building2 className="w-3 h-3 text-[#8430ce]" /> : <User className="w-3 h-3 text-[#5f6368]" />}
+        <span className="text-center">{loanType || 'Personal Loan'}</span>
+      </span>
+    );
+  };
+
+  // Status Filter options with counts
+  const statusTabs = [
+    { key: 'All', label: 'All Applications', count: applications.length },
+    { key: 'Created', label: 'Created', count: applications.filter(a => (a.status || '').toLowerCase() === 'created').length },
+    { key: 'Under Review', label: 'Under Review', count: applications.filter(a => (a.status || '').toLowerCase() === 'under review' || (a.status || '').toLowerCase() === 'under_review').length },
+    { key: 'Approved', label: 'Approved', count: applications.filter(a => (a.status || '').toLowerCase() === 'approved').length },
+    { key: 'Rejected', label: 'Rejected', count: applications.filter(a => (a.status || '').toLowerCase() === 'rejected').length },
+    { key: 'Draft', label: 'Drafts', count: applications.filter(a => (a.status || '').toLowerCase() === 'draft').length },
+  ];
 
   return (
     <>
@@ -151,223 +310,321 @@ const BranchOperationsLoansApplicationsList = () => {
         <BranchOperationsMobileLoansApplicationsList />
       </div>
 
-      {/* Desktop Screen View */}
+      {/* Web Desktop View (Google Material 3 Workspace UI) */}
       <div className="hidden md:block space-y-6 pb-12">
-        {/* Header */}
+        {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <div className="flex items-center gap-1.5 mb-1">
               <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#7C4DFF]" />
               <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
               <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-              <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">
-                Branch Loan Applications
-              </span>
+              <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Branch Operations Hub</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight flex items-center gap-2">
+            <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight flex items-center gap-2.5">
               Loan Applications
-              <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">
-                {branch.name}
+              <span className="text-xs font-semibold text-[#7C4DFF] bg-[#7C4DFF]/10 border border-[#7C4DFF]/25 px-2.5 py-0.5 rounded-full">
+                {branch.name} &bull; {applications.length} Total Applications
               </span>
             </h1>
             <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
-              View and manage all loan applications processed through {branch.name}.
+              Review and manage branch loan proposals, inspect applicant KYC & supporting documents, and track approval lifecycle.
             </p>
           </div>
         </div>
 
-        {/* Directory Card */}
+        {/* KPI Stats Cards */}
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard 
+            title="Total Applications" 
+            value={stats.totalCount} 
+            subtitle="All submitted & drafts" 
+            icon={Briefcase} 
+            colorTheme="purple" 
+          />
+          <StatCard 
+            title="Approved Loans" 
+            value={stats.approvedCount} 
+            subtitle="Sanctioned applications" 
+            icon={CheckCircle2} 
+            colorTheme="green" 
+          />
+          <StatCard 
+            title="Under Review" 
+            value={stats.inReviewCount} 
+            subtitle="Active in pipeline" 
+            icon={Clock} 
+            colorTheme="amber" 
+          />
+          <StatCard 
+            title="Draft Submissions" 
+            value={stats.draftCount} 
+            subtitle="Incomplete drafts" 
+            icon={FileText} 
+            colorTheme="blue" 
+          />
+        </div>
+
+        {/* Filter Tabs Bar */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 custom-scrollbar">
+          {statusTabs.map((tab) => {
+            const isActive = statusFilter === tab.key;
+            return (
+              <button
+                key={tab.key}
+                onClick={() => {
+                  setStatusFilter(tab.key);
+                  setPage(1);
+                }}
+                className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
+                  isActive
+                    ? 'bg-[#7C4DFF] text-white border-[#7C4DFF] shadow-2xs font-bold'
+                    : 'bg-white text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4] border-[#dadce0]'
+                }`}
+              >
+                <span>{tab.label}</span>
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                  isActive ? 'bg-white/20 text-white' : 'bg-[#f1f3f4] text-[#5f6368]'
+                }`}>
+                  {tab.count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Search, Loan Type & Sort Toolbar */}
+        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3.5 shadow-xs flex flex-col md:flex-row items-center justify-between gap-3">
+          {/* Search Box */}
+          <div className="relative w-full md:w-80">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#80868b]" />
+            <input
+              type="search"
+              placeholder="Search by name, phone, App ID..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-9.5 pr-8 py-2 text-xs bg-[#f8fafd] border border-[#dadce0] rounded-full focus:outline-none focus:ring-2 focus:ring-[#7C4DFF]/30 focus:border-[#7C4DFF] transition-all text-[#1f1f1f] placeholder:text-[#80868b]"
+            />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => setSearchTerm('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-[#80868b] hover:text-[#1f1f1f] rounded-full"
+              >
+                <X size={13} />
+              </button>
+            )}
+          </div>
+
+          {/* Controls */}
+          <div className="flex items-center gap-2.5 w-full md:w-auto justify-end flex-wrap">
+            {/* Loan Type Filter */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-semibold text-[#5f6368]">Type:</span>
+              <select
+                value={loanTypeFilter}
+                onChange={(e) => {
+                  setLoanTypeFilter(e.target.value);
+                  setPage(1);
+                }}
+                className="h-8 px-3 rounded-full border border-[#dadce0] bg-[#f8fafd] text-xs font-semibold text-[#1f1f1f] focus:outline-none focus:ring-2 focus:ring-[#7C4DFF]/30 cursor-pointer"
+              >
+                <option value="All">All Types ({applications.length})</option>
+                <option value="Personal Loan">Personal Loan</option>
+                <option value="Business Loan">Business Loan</option>
+              </select>
+            </div>
+
+            {/* Sort Order */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-semibold text-[#5f6368]">Sort:</span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="h-8 px-3 rounded-full border border-[#dadce0] bg-[#f8fafd] text-xs font-semibold text-[#1f1f1f] focus:outline-none focus:ring-2 focus:ring-[#7C4DFF]/30 cursor-pointer"
+              >
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="name_asc">Applicant (A - Z)</option>
+                <option value="name_desc">Applicant (Z - A)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Data Table Card */}
         <div className="bg-white rounded-2xl border border-[#e0e3e7] shadow-xs overflow-hidden">
-          <div className="p-5 border-b border-[#f1f3f4] flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center">
-                <Briefcase size={16} />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-[#1f1f1f]">Applications Directory</h3>
-                <p className="text-xs text-[#5f6368]">Total {filteredApps.length} records found</p>
-              </div>
+          {error ? (
+            <div className="p-8 text-center text-xs text-[#c5221f] bg-[#fce8e6]/30">
+              Failed to load branch loan applications. Please verify server connection.
             </div>
-
-            <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
-              {/* Search Bar */}
-              <div className="relative flex-1 sm:w-64">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368]" />
-                <input
-                  type="text"
-                  placeholder="Search applications..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 bg-[#f8fafd] border border-[#dadce0] rounded-full text-xs font-medium text-[#1f1f1f] placeholder:text-[#5f6368] focus:outline-none focus:ring-2 focus:ring-[#1a73e8]/20 focus:border-[#1a73e8] transition-all"
-                />
-              </div>
-
-              {/* Loan Type Filter Dropdown */}
-              <div className="relative">
-                <select
-                  value={loanTypeFilter}
-                  onChange={(e) => setLoanTypeFilter(e.target.value)}
-                  className="h-9 px-3.5 pr-8 rounded-full border border-[#dadce0] bg-white text-xs font-semibold text-[#1f1f1f] shadow-2xs hover:border-[#1a73e8] focus:outline-none focus:ring-2 focus:ring-[#1a73e8]/20 appearance-none cursor-pointer"
-                >
-                  <option value="All">All Types ({applications.length})</option>
-                  <option value="Personal Loan">
-                    Personal Loan ({applications.filter(a => (a.loan_type || a.form_data?.loan_type) === 'Personal Loan').length})
-                  </option>
-                  <option value="Business Loan">
-                    Business Loan ({applications.filter(a => (a.loan_type || a.form_data?.loan_type) === 'Business Loan').length})
-                  </option>
-                </select>
-                <ChevronDown size={13} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5f6368] pointer-events-none" />
-              </div>
-
-              {/* Status Filter Dropdown */}
-              <div className="relative">
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="h-9 px-3.5 pr-8 rounded-full border border-[#dadce0] bg-white text-xs font-semibold text-[#1f1f1f] shadow-2xs hover:border-[#1a73e8] focus:outline-none focus:ring-2 focus:ring-[#1a73e8]/20 appearance-none cursor-pointer"
-                >
-                  <option value="All">All Status ({applications.length})</option>
-                  <option value="Under Review">
-                    Under Review ({applications.filter(a => a.status === 'Under Review').length})
-                  </option>
-                  <option value="Approved">
-                    Approved ({applications.filter(a => a.status === 'Approved').length})
-                  </option>
-                  <option value="Draft">
-                    Draft ({applications.filter(a => a.status === 'Draft').length})
-                  </option>
-                  <option value="Rejected">
-                    Rejected ({applications.filter(a => a.status === 'Rejected').length})
-                  </option>
-                </select>
-                <ChevronDown size={13} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5f6368] pointer-events-none" />
-              </div>
-            </div>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-[#f8fafd] border-b border-[#e0e3e7] text-[#5f6368] font-semibold uppercase tracking-wider">
-                <tr>
-                  <th className="px-5 py-3">App ID</th>
-                  <th className="px-4 py-3">Applicant Name</th>
-                  <th className="px-4 py-3">Contact</th>
-                  <th className="px-4 py-3 text-center whitespace-nowrap">Loan Type</th>
-                  <th className="px-4 py-3">Created By</th>
-                  <th className="px-4 py-3 text-center">Status</th>
-                  <th className="px-4 py-3">Created At</th>
-                  <th className="px-5 py-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#f1f3f4]">
-                {filteredApps.length === 0 ? (
+          ) : (
+            <div className="overflow-x-auto custom-scrollbar">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-[#f8fafd] border-b border-[#e0e3e7] text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider">
                   <tr>
-                    <td colSpan="8" className="text-center py-12 text-xs text-[#5f6368]">
-                      No applications found matching the selected filters.
-                    </td>
+                    <th className="py-3.5 px-4 whitespace-nowrap">Application ID</th>
+                    <th className="py-3.5 px-4 whitespace-nowrap">Applicant</th>
+                    <th className="py-3.5 px-4 whitespace-nowrap text-center">Loan Product</th>
+                    <th className="py-3.5 px-4 whitespace-nowrap text-center">Status</th>
+                    <th className="py-3.5 px-4 whitespace-nowrap">Submitted On</th>
+                    <th className="py-3.5 px-4 whitespace-nowrap text-right">Actions</th>
                   </tr>
-                ) : (
-                  filteredApps.map((app) => {
-                    const name = app.applicant_name || app.form_data?.applicant_name || 'Applicant';
-                    const phone = app.phone_number || app.form_data?.phone_number || '—';
+                </thead>
+                <tbody className="divide-y divide-[#f1f3f4]">
+                  {isLoading ? (
+                    <tr>
+                      <td colSpan="6" className="p-14 text-center">
+                        <div className="flex flex-col items-center justify-center">
+                          <RefreshCw className="animate-spin h-6 w-6 text-[#7C4DFF] mb-2" />
+                          <p className="text-xs text-[#5f6368]">Loading branch loan applications directory...</p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : paginatedApps.length === 0 ? (
+                    <tr>
+                      <td colSpan="6" className="py-14 text-center text-xs text-[#5f6368]">
+                        <div className="flex flex-col items-center justify-center">
+                          <Briefcase className="w-8 h-8 text-[#dadce0] mb-2" />
+                          <p className="text-xs font-semibold text-[#1f1f1f]">No applications match your criteria</p>
+                          <p className="text-[11px] text-[#5f6368] mt-0.5">Try clearing search filters or check another status</p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    paginatedApps.map((app) => {
+                      const name = app.applicant_name || app.form_data?.applicant_name || app.form_data?.name || 'Unnamed Applicant';
+                      const phone = app.phone_number || app.form_data?.phone_number || app.form_data?.phone;
+                      const appId = app.application_id || 'LA-DRAFT';
+                      const loanType = app.loan_type || app.form_data?.loan_type || 'Personal Loan';
+                      const createdAt = app.created_at || app.updated_at;
 
-                    return (
-                      <tr 
-                        key={app.id || app.application_id} 
-                        onClick={() => setSelectedApp(app)}
-                        className="hover:bg-[#f8fafd] transition-colors cursor-pointer"
-                      >
-                        <td className="px-5 py-3.5 whitespace-nowrap">
-                          <span className="font-mono font-semibold text-[#1a73e8] bg-[#e8f0fe] px-2.5 py-0.5 rounded-full text-[11px] border border-[#d2e3fc]">
-                            {app.application_id || 'LA-PENDING'}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3.5 font-semibold text-[#1f1f1f] whitespace-nowrap">
-                          {name}
-                        </td>
-                        <td className="px-4 py-3.5 text-[#5f6368] whitespace-nowrap">
-                          {maskPhoneNumber(phone)}
-                        </td>
-                        <td className="px-4 py-3.5 text-center whitespace-nowrap">
-                          <span className="inline-flex items-center justify-center px-3 py-1 rounded-full text-[11px] font-medium bg-[#f1f3f4] text-[#444746] whitespace-nowrap text-center">
-                            {app.loan_type || app.form_data?.loan_type || 'Personal Loan'}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3.5 font-medium text-[#444746] whitespace-nowrap">
-                          {app.creator_name || 'Branch Officer'}
-                        </td>
-                        <td className="px-4 py-3.5 text-center whitespace-nowrap">
-                          {getStatusBadge(app.status)}
-                        </td>
-                        <td className="px-4 py-3.5 text-[#5f6368] whitespace-nowrap">
-                          {formatDateSafe(app.created_at || app.updated_at)}
-                        </td>
-                        <td className="px-5 py-3.5 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center justify-end gap-1.5">
-                            {app.status === 'Draft' ? (
-                              <>
-                                <button
-                                  type="button"
-                                  onClick={() => handleEditApplication(app)}
-                                  className="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] hover:bg-[#d2e3fc] border border-[#d2e3fc] rounded-full transition-colors cursor-pointer"
-                                  title="Edit Application"
-                                >
-                                  <FileEdit className="w-3.5 h-3.5" />
-                                  <span>Edit</span>
-                                </button>
+                      return (
+                        <tr
+                          key={app.id || app.application_id}
+                          onClick={() => setSelectedApp(app)}
+                          className="hover:bg-[#f8fafd] transition-colors cursor-pointer"
+                        >
+                          {/* Application ID */}
+                          <td className="py-3.5 px-4 whitespace-nowrap">
+                            <span className="font-mono text-xs font-semibold text-[#7C4DFF] bg-[#7C4DFF]/10 px-2.5 py-1 rounded-md border border-[#7C4DFF]/20">
+                              {appId}
+                            </span>
+                          </td>
 
-                                <button
-                                  type="button"
-                                  onClick={() => setSelectedApp(app)}
-                                  className="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold text-[#1f1f1f] bg-white hover:bg-[#f1f3f4] border border-[#dadce0] rounded-full transition-colors cursor-pointer shadow-none hover:shadow-xs"
-                                  title="Quick Overview"
-                                >
-                                  <Eye className="w-3.5 h-3.5 text-[#5f6368]" />
-                                  <span>Preview</span>
-                                </button>
-                              </>
-                            ) : (
-                              <>
-                                <button
-                                  type="button"
-                                  onClick={() => setSelectedApp(app)}
-                                  className="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold text-[#1f1f1f] bg-white hover:bg-[#f1f3f4] border border-[#dadce0] rounded-full transition-colors cursor-pointer shadow-none hover:shadow-xs"
-                                  title="Quick Overview"
-                                >
-                                  <Eye className="w-3.5 h-3.5 text-[#5f6368]" />
-                                  <span>Preview</span>
-                                </button>
+                          {/* Applicant */}
+                          <td className="py-3.5 px-4 whitespace-nowrap">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-8 h-8 rounded-full bg-[#7C4DFF]/10 text-[#7C4DFF] font-bold flex items-center justify-center text-xs shrink-0 border border-[#7C4DFF]/20">
+                                {name.charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <p className="font-semibold text-xs text-[#1f1f1f]">{name}</p>
+                                <p className="text-[11px] text-[#5f6368] flex items-center gap-1">
+                                  <Phone className="w-3 h-3 text-[#80868b]" />
+                                  {maskPhoneNumber(phone)}
+                                </p>
+                              </div>
+                            </div>
+                          </td>
 
-                                <button
-                                  type="button"
-                                  onClick={() => handleOpenStudio(app)}
-                                  className="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] hover:bg-[#d2e3fc] border border-[#d2e3fc] rounded-full transition-colors cursor-pointer"
-                                  title="Open Full Application Studio"
-                                >
-                                  <span>Studio</span>
-                                  <ArrowUpRight className="w-3.5 h-3.5" />
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
+                          {/* Loan Product */}
+                          <td className="py-3.5 px-4 whitespace-nowrap text-center">
+                            {getLoanTypeBadge(loanType)}
+                          </td>
+
+                          {/* Status */}
+                          <td className="py-3.5 px-4 whitespace-nowrap text-center">
+                            {getStatusBadge(app.status)}
+                          </td>
+
+                          {/* Submitted Date */}
+                          <td className="py-3.5 px-4 whitespace-nowrap text-[#5f6368]">
+                            <span className="flex items-center gap-1.5">
+                              <Calendar className="w-3 h-3 text-[#80868b]" />
+                              {formatDateSafe(createdAt, 'MMM d, yyyy')}
+                            </span>
+                          </td>
+
+                          {/* Actions */}
+                          <td className="py-3.5 px-4 whitespace-nowrap text-right" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => setSelectedApp(app)}
+                                className="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold text-[#1f1f1f] bg-white hover:bg-[#f1f3f4] border border-[#dadce0] rounded-full transition-colors cursor-pointer shadow-none hover:shadow-xs"
+                                title="Quick Overview"
+                              >
+                                <Eye className="w-3.5 h-3.5 text-[#5f6368]" />
+                                <span>Preview</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => handleOpenStudio(app)}
+                                className="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold text-[#7C4DFF] bg-[#7C4DFF]/10 hover:bg-[#7C4DFF]/20 border border-[#7C4DFF]/20 rounded-full transition-colors cursor-pointer"
+                                title="Open Full Loan Application Studio"
+                              >
+                                <span>Studio</span>
+                                <ArrowUpRight className="w-3.5 h-3.5" />
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => handleEditApplication(app)}
+                                className="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold text-[#5f6368] hover:text-[#1f1f1f] bg-white hover:bg-[#f1f3f4] border border-[#dadce0] rounded-full transition-colors cursor-pointer shadow-none hover:shadow-xs"
+                                title="Edit Application"
+                              >
+                                <FileEdit className="w-3.5 h-3.5" />
+                                <span>Edit</span>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Pagination Footer */}
+          {totalPages > 1 && (
+            <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <p className="text-[#5f6368]">
+                Showing <span className="font-semibold text-[#1f1f1f]">{((page - 1) * limit) + 1}</span> to <span className="font-semibold text-[#1f1f1f]">{Math.min(page * limit, totalFilteredCount)}</span> of <span className="font-semibold text-[#1f1f1f]">{totalFilteredCount}</span> applications
+              </p>
+              <div className="flex items-center gap-1.5 self-end sm:self-auto">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="p-1.5 rounded-full text-[#5f6368] hover:bg-[#e8eaed] disabled:opacity-30 disabled:cursor-not-allowed transition-all border border-[#dadce0] cursor-pointer"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <span className="px-3 py-1 text-xs font-medium text-[#1f1f1f] bg-white border border-[#dadce0] rounded-full">
+                  Page {page} of {totalPages}
+                </span>
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="p-1.5 rounded-full text-[#5f6368] hover:bg-[#e8eaed] disabled:opacity-30 disabled:cursor-not-allowed transition-all border border-[#dadce0] cursor-pointer"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Slideover Application Quick Details Drawer (Desktop) - 100% Parity with Origination */}
+      {/* Slideover Application Quick Details Drawer (Desktop) */}
       {selectedApp && createPortal(
         <div
           onClick={(e) => { if (e.target === e.currentTarget) setSelectedApp(null); }}
-          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-xs"
+          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm"
         >
           <motion.div
             initial={{ x: '100%' }}
@@ -376,23 +633,23 @@ const BranchOperationsLoansApplicationsList = () => {
             transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
             className="bg-white shadow-2xl w-full max-w-lg h-[100dvh] flex flex-col overflow-hidden relative z-10 border-l border-[#e0e3e7]"
           >
-            {/* Top 4-Color Google Accent Line */}
-            <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
+            {/* Top Google & Purple Accent Line */}
+            <div className="h-1.5 w-full bg-gradient-to-r from-[#7C4DFF] via-[#4285F4] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
 
             {/* Drawer Header */}
             <div className="px-6 py-4 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd] mt-1 shrink-0">
               <div>
                 <div className="flex items-center gap-1 mb-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#7C4DFF]" />
                   <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
                   <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
                   <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-                  <span className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Branch Operations</span>
+                  <span className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Branch Operations Hub</span>
                 </div>
                 <h2 className="text-lg font-semibold text-[#1f1f1f] flex items-center gap-2">
                   Application Details
-                  <span className="text-xs font-mono font-normal text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2 py-0.5 rounded">
-                    {selectedApp.application_id || 'LA-PENDING'}
+                  <span className="text-xs font-mono font-normal text-[#7C4DFF] bg-[#7C4DFF]/10 border border-[#7C4DFF]/20 px-2 py-0.5 rounded">
+                    {selectedApp.application_id || 'LA-DRAFT'}
                   </span>
                 </h2>
               </div>
@@ -409,7 +666,7 @@ const BranchOperationsLoansApplicationsList = () => {
               {/* Applicant Overview Card */}
               <div className="bg-[#f8fafd] p-4 rounded-2xl border border-[#e0e3e7] space-y-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#e8f0fe] text-[#1a73e8] font-bold flex items-center justify-center text-sm border border-[#d2e3fc] shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-[#7C4DFF]/10 text-[#7C4DFF] font-bold flex items-center justify-center text-sm border border-[#7C4DFF]/20 shrink-0">
                     {(selectedApp.applicant_name || selectedApp.form_data?.applicant_name || 'A').charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -440,9 +697,9 @@ const BranchOperationsLoansApplicationsList = () => {
                     </span>
                   </div>
                   <div>
-                    <span className="text-[#5f6368] block">Own House</span>
+                    <span className="text-[#5f6368] block">Branch</span>
                     <span className="font-semibold text-[#1f1f1f] block">
-                      {selectedApp.form_data?.own_house || '—'}
+                      {branch.name}
                     </span>
                   </div>
                   <div>
@@ -455,31 +712,31 @@ const BranchOperationsLoansApplicationsList = () => {
               </div>
 
               {/* Product Category & Submission Highlights */}
-              <div className="bg-[#e8f0fe] border border-[#d2e3fc] rounded-2xl p-4 space-y-2.5">
+              <div className="bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl p-4 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] font-bold text-[#1a73e8] uppercase tracking-wider block">Product Category</span>
+                    <span className="text-[10px] font-bold text-[#7C4DFF] uppercase tracking-wider block">Product Category</span>
                     <span className="text-base font-bold text-[#1f1f1f] mt-0.5 block">
                       {selectedApp.loan_type || selectedApp.form_data?.loan_type || 'Personal Loan'}
                     </span>
                   </div>
                   <div className="text-right">
-                    <span className="text-[10px] font-bold text-[#1a73e8] uppercase tracking-wider block">Application Status</span>
+                    <span className="text-[10px] font-bold text-[#7C4DFF] uppercase tracking-wider block">Application Status</span>
                     <div className="mt-1">
                       {getStatusBadge(selectedApp.status)}
                     </div>
                   </div>
                 </div>
 
-                <div className="pt-2.5 border-t border-[#d2e3fc]/60 grid grid-cols-2 gap-2 text-xs">
+                <div className="pt-2.5 border-t border-[#e0e3e7] grid grid-cols-2 gap-2 text-xs">
                   <div>
-                    <span className="text-[10px] font-semibold text-[#1a73e8] uppercase tracking-wider block">Application ID</span>
-                    <p className="font-mono font-semibold text-[#1f1f1f] mt-0.5">
-                      {selectedApp.application_id || 'LA-PENDING'}
+                    <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider block">Application ID</span>
+                    <p className="font-mono font-semibold text-[#7C4DFF] mt-0.5">
+                      {selectedApp.application_id || 'LA-DRAFT'}
                     </p>
                   </div>
                   <div>
-                    <span className="text-[10px] font-semibold text-[#1a73e8] uppercase tracking-wider block">Employment Mode</span>
+                    <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider block">Employment Mode</span>
                     <p className="font-semibold text-[#1f1f1f] mt-0.5">
                       {selectedApp.form_data?.employment || (selectedApp.loan_type === 'Business Loan' ? 'Business' : 'Salaried / Job')}
                     </p>
@@ -491,7 +748,7 @@ const BranchOperationsLoansApplicationsList = () => {
               {(selectedApp.form_data?.business_name || selectedApp.loan_type === 'Business Loan') && (
                 <div className="bg-[#f8fafd] p-4 rounded-2xl border border-[#e0e3e7] space-y-2.5">
                   <span className="font-semibold text-[#1f1f1f] text-xs flex items-center gap-1.5">
-                    <Building2 className="w-3.5 h-3.5 text-[#1a73e8]" /> Business Information
+                    <Building2 className="w-3.5 h-3.5 text-[#7C4DFF]" /> Business Information
                   </span>
                   <div className="grid grid-cols-2 gap-3 text-xs pt-1">
                     <div>
@@ -535,7 +792,7 @@ const BranchOperationsLoansApplicationsList = () => {
                             href={val}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-[#1a73e8] hover:underline font-semibold text-[11px]"
+                            className="inline-flex items-center gap-1 text-[#7C4DFF] hover:underline font-semibold text-[11px]"
                           >
                             <ExternalLink size={12} /> View File
                           </a>
@@ -565,48 +822,31 @@ const BranchOperationsLoansApplicationsList = () => {
 
             {/* Drawer Footer Actions */}
             <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex items-center gap-2.5 shrink-0 flex-wrap">
-              {selectedApp.status === 'Draft' ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const target = selectedApp;
-                      setSelectedApp(null);
-                      handleEditApplication(target);
-                    }}
-                    className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs transition-all cursor-pointer"
-                  >
-                    <FileEdit className="w-4 h-4" />
-                    <span>Continue / Edit Draft</span>
-                  </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const target = selectedApp;
+                  setSelectedApp(null);
+                  handleOpenStudio(target);
+                }}
+                className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-full text-xs font-semibold bg-[#7C4DFF] hover:bg-[#673AB7] text-white shadow-xs transition-all cursor-pointer"
+              >
+                <span>Open in Studio</span>
+                <ArrowUpRight className="w-4 h-4" />
+              </button>
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const target = selectedApp;
-                      setSelectedApp(null);
-                      handleOpenStudio(target);
-                    }}
-                    className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer"
-                  >
-                    <span>Studio</span>
-                    <ArrowUpRight className="w-3.5 h-3.5" />
-                  </button>
-                </>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => {
-                    const target = selectedApp;
-                    setSelectedApp(null);
-                    handleOpenStudio(target);
-                  }}
-                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs transition-all cursor-pointer"
-                >
-                  <span>Open in Loan Application Studio</span>
-                  <ArrowUpRight className="w-4 h-4" />
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => {
+                  const target = selectedApp;
+                  setSelectedApp(null);
+                  handleEditApplication(target);
+                }}
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer"
+              >
+                <FileEdit className="w-3.5 h-3.5" />
+                <span>Edit Application</span>
+              </button>
 
               <button
                 type="button"

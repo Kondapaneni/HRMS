@@ -1,20 +1,24 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { getBranchLoanApplications } from '../services/loanServices';
-import PageLoader from '../components/PageLoader';
 import { 
   Search, 
   CheckCircle2, 
   Clock, 
   Phone, 
   Briefcase, 
-  Building2, 
-  XCircle, 
-  ChevronRight,
+  Loader2, 
+  ChevronRight, 
+  XCircle,
+  FileText,
+  X,
+  Calendar,
+  Building2,
   ChevronDown
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { format } from 'date-fns';
+import { getBranchLoanApplications } from '../services/loanServices';
 import { maskPhoneNumber } from '../utils/phoneUtils';
 
 const BranchOperationsMobileLoansApplicationsList = () => {
@@ -32,7 +36,7 @@ const BranchOperationsMobileLoansApplicationsList = () => {
   const applications = response?.applications || [];
 
   const statusCounts = useMemo(() => {
-    const counts = { All: applications.length, 'Under Review': 0, Approved: 0, Created: 0, Draft: 0, Rejected: 0 };
+    const counts = { All: applications.length, Created: 0, 'Under Review': 0, Approved: 0, Draft: 0, Rejected: 0 };
     applications.forEach((app) => {
       if (counts[app.status] !== undefined) {
         counts[app.status] += 1;
@@ -75,33 +79,38 @@ const BranchOperationsMobileLoansApplicationsList = () => {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'Created':
-      case 'Approved':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">
-            <CheckCircle2 size={10} /> {status}
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold shrink-0 shadow-2xs bg-[#e0f2fe] text-[#0369a1] border border-[#bae6fd]">
+            <CheckCircle2 size={13} /> Created
           </span>
         );
       case 'Under Review':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
-            <Clock size={10} /> Under Review
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold shrink-0 shadow-2xs bg-[#7C4DFF]/10 text-[#7C4DFF] border border-[#7C4DFF]/20">
+            <Clock size={13} /> Under Review
+          </span>
+        );
+      case 'Approved':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold shrink-0 shadow-2xs bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">
+            <CheckCircle2 size={13} /> Approved
           </span>
         );
       case 'Draft':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#fef7e0] text-[#b06000] border border-[#feefc3]">
-            <Clock size={10} /> Draft
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold shrink-0 shadow-2xs bg-[#fef7e0] text-[#b06000] border border-[#feefc3]">
+            <Clock size={13} /> Draft
           </span>
         );
       case 'Rejected':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf]">
-            <XCircle size={10} /> Rejected
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold shrink-0 shadow-2xs bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf]">
+            <XCircle size={13} /> Rejected
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]">
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold shrink-0 shadow-2xs bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]">
             {status || '—'}
           </span>
         );
@@ -123,137 +132,227 @@ const BranchOperationsMobileLoansApplicationsList = () => {
 
   const filterTabs = [
     { key: 'All', label: 'All', count: statusCounts.All },
+    { key: 'Created', label: 'Created', count: statusCounts.Created },
     { key: 'Under Review', label: 'Under Review', count: statusCounts['Under Review'] },
     { key: 'Approved', label: 'Approved', count: statusCounts.Approved },
     { key: 'Draft', label: 'Draft', count: statusCounts.Draft },
   ];
 
-  if (isLoading) {
-    return <PageLoader message="Loading Loan Applications..." />;
-  }
-
   return (
-    <div className="space-y-4 pb-12">
-      {/* 1. Header Card */}
-      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs bg-gradient-to-br from-white via-[#f8fafd] to-[#e8f0fe]/30">
-        <div className="space-y-1">
-          <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368] ml-0.5">
-              Branch Operations
-            </span>
+    <div className="space-y-4 pb-14">
+
+      {/* 1. Hero Section with Animated Motion Graphics */}
+      <section className="-mx-4 -mt-4 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900">
+        {/* Animated Liquid Orbs with Branch Operations Purple/Violet Theme */}
+        <motion.div
+          animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
+          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+          className="absolute -top-20 -left-10 w-72 h-72 bg-[#7C4DFF] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+        />
+        <motion.div
+          animate={{ scale: [1, 1.4, 1], x: [0, -40, 0], y: [0, 50, 0] }}
+          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+          className="absolute -top-10 -right-10 w-64 h-64 bg-[#9575FF] rounded-full mix-blend-screen filter blur-[40px] opacity-50 pointer-events-none"
+        />
+        <motion.div
+          animate={{ scale: [1, 1.3, 1], x: [0, 30, 0], y: [0, -40, 0] }}
+          transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+          className="absolute bottom-0 left-20 w-80 h-80 bg-[#B388FF] rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
+        />
+        
+        {/* Subtle Glass Overlay */}
+        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none" />
+
+        <div className="relative z-10 px-2 flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">
+              Branch Operations &bull; Loan Pipeline
+            </p>
+            <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">
+              Loan Applications
+            </h2>
+            <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90 flex items-center gap-1.5 flex-wrap">
+              <span>{applications.length} Total Applications</span>
+              <span>&bull;</span>
+              <span className="inline-flex items-center gap-1 font-bold text-[#D1C4E9]">
+                <Building2 size={13} className="text-[#B388FF]" /> {branch.name}
+              </span>
+            </p>
           </div>
-          <h1 className="text-xl font-bold text-[#1f1f1f] tracking-tight">
-            Loan Applications
-          </h1>
-          <p className="text-xs text-[#5f6368] flex items-center gap-1">
-            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2 py-0.5 rounded-full">
-              <Building2 size={11} /> {branch.name}
-            </span>
-            <span>&bull;</span>
-            <span>{applications.length} Total Applications</span>
-          </p>
         </div>
-      </div>
+      </section>
 
-      {/* 2. Search & Loan Type Filter */}
-      <div className="space-y-2.5">
-        <div className="relative">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368]" />
-          <input
-            type="search"
-            placeholder="Search by name, phone, App ID..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#dadce0] rounded-full text-xs font-medium text-[#1f1f1f] placeholder:text-[#5f6368] focus:outline-none focus:ring-2 focus:ring-[#1a73e8]/20 focus:border-[#1a73e8] shadow-xs"
-          />
-        </div>
+      {/* 2. Elevated Content Layer */}
+      <div className="relative z-20 -mt-8 mx-0.5 space-y-3.5">
 
-        {/* Loan Type Pill Select */}
-        <div className="relative">
-          <select
-            value={loanTypeFilter}
-            onChange={(e) => setLoanTypeFilter(e.target.value)}
-            className="w-full h-10 pl-4 pr-10 rounded-full bg-white border border-[#dadce0] text-xs font-semibold text-[#1f1f1f] shadow-xs appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#1a73e8]/20 focus:border-[#1a73e8]"
-          >
-            <option value="All">All Loan Types</option>
-            <option value="Personal Loan">Personal Loans</option>
-            <option value="Business Loan">Business Loans</option>
-          </select>
-          <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#5f6368] pointer-events-none" />
-        </div>
-      </div>
-
-      {/* 3. Horizontal Status Filter Pills */}
-      <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {filterTabs.map((tab) => (
-          <button
-            key={tab.key}
-            type="button"
-            onClick={() => setStatusFilter(tab.key)}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
-              statusFilter === tab.key
-                ? 'bg-[#1a73e8] text-white shadow-xs'
-                : 'bg-white text-[#444746] border border-[#dadce0] hover:bg-[#f1f3f4]'
-            }`}
-          >
-            <span>{tab.label}</span>
-            <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-              statusFilter === tab.key ? 'bg-white/20 text-white' : 'bg-[#f1f3f4] text-[#5f6368]'
-            }`}>
-              {tab.count || 0}
-            </span>
-          </button>
-        ))}
-      </div>
-
-      {/* 4. Applications List Cards */}
-      <div className="space-y-3">
-        {filteredApps.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-[#e0e3e7] p-8 text-center text-xs text-[#5f6368]">
-            No loan applications found matching your search criteria.
-          </div>
-        ) : (
-          filteredApps.map((app) => {
-            const name = app.applicant_name || app.form_data?.applicant_name || 'Applicant';
-            const phone = app.phone_number || app.form_data?.phone_number || '—';
-            const loanType = app.loan_type || app.form_data?.loan_type || 'Personal Loan';
-
-            return (
-              <div
-                key={app.id || app.application_id}
-                onClick={() => handleViewDetails(app)}
-                className="bg-white rounded-2xl border border-[#e0e3e7] p-4 shadow-xs hover:border-[#1a73e8] transition-all cursor-pointer space-y-3"
+        {/* Search & Loan Type Filter Controls */}
+        <div className="space-y-2.5">
+          {/* Search Box */}
+          <div className="bg-white rounded-full border border-[#e0e3e7] px-4 py-2.5 shadow-xs flex items-center gap-2.5">
+            <Search className="w-4.5 h-4.5 text-[#5f6368] shrink-0" />
+            <input
+              type="text"
+              placeholder="Search by name, phone, App ID..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full text-[13.5px] font-medium bg-transparent border-none outline-none text-[#1f1f1f] placeholder:text-[#80868b] placeholder:text-[13px] pr-1"
+            />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => setSearchTerm('')}
+                className="p-1 rounded-full text-[#5f6368] hover:bg-[#f1f3f4] hover:text-[#1f1f1f] shrink-0 cursor-pointer transition-colors"
               >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-mono text-[11px] font-bold text-[#1a73e8] bg-[#e8f0fe] px-2.5 py-0.5 rounded-full border border-[#d2e3fc]">
-                    {app.application_id || 'LA-PENDING'}
-                  </span>
-                  {getStatusBadge(app.status)}
-                </div>
+                <X size={14} />
+              </button>
+            )}
+          </div>
 
-                <div>
-                  <h3 className="text-sm font-bold text-[#1f1f1f]">{name}</h3>
-                  <p className="text-xs text-[#5f6368] mt-0.5">
-                    {maskPhoneNumber(phone)} &bull; {loanType}
-                  </p>
-                </div>
+          {/* Loan Type Pill Select */}
+          <div className="bg-white rounded-full border border-[#e0e3e7] px-4 py-2.5 shadow-xs flex items-center gap-2.5 relative">
+            <div className="text-[#7C4DFF] shrink-0">
+              <Briefcase size={16} />
+            </div>
+            <div className="relative flex-1">
+              <select
+                value={loanTypeFilter}
+                onChange={(e) => setLoanTypeFilter(e.target.value)}
+                className="w-full bg-transparent text-[13px] font-semibold text-[#1f1f1f] appearance-none cursor-pointer outline-none pr-6"
+              >
+                <option value="All">All Loan Types ({applications.length})</option>
+                <option value="Personal Loan">Personal Loans</option>
+                <option value="Business Loan">Business Loans</option>
+              </select>
+              <ChevronDown size={14} className="absolute right-0 top-1/2 -translate-y-1/2 text-[#5f6368] pointer-events-none" />
+            </div>
+          </div>
+        </div>
 
-                <div className="pt-2 border-t border-[#f1f3f4] flex items-center justify-between text-[11px] text-[#5f6368]">
-                  <span>By {app.creator_name || 'Branch Officer'}</span>
-                  <div className="flex items-center gap-1 text-[#1a73e8] font-semibold">
-                    <span>{formatDateSafe(app.created_at || app.updated_at)}</span>
-                    <ChevronRight size={14} />
+        {/* Horizontal Scrollable Status Filter Chips */}
+        <div className="flex overflow-x-auto gap-2 py-0.5 hide-scrollbar">
+          {filterTabs.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setStatusFilter(tab.key)}
+              className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
+                statusFilter === tab.key
+                  ? 'bg-[#7C4DFF]/10 text-[#7C4DFF] border-[#7C4DFF]/20 shadow-2xs font-bold'
+                  : 'bg-white text-[#5f6368] border-[#e0e3e7] hover:bg-[#f8fafd]'
+              }`}
+            >
+              <span>{tab.label}</span>
+              <span className={`inline-flex items-center justify-center h-[18px] min-w-[18px] px-1.5 rounded-full text-[11px] font-bold leading-none tabular-nums ${
+                statusFilter === tab.key
+                  ? 'bg-[#7C4DFF] text-white'
+                  : 'bg-[#f1f3f4] text-[#5f6368]'
+              }`}>
+                {tab.count}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* Applications Card List */}
+        <div className="space-y-3">
+          {error ? (
+            <div className="bg-[#fce8e6] text-[#c5221f] p-4 rounded-2xl text-center border border-[#fad2cf] text-xs">
+              Failed to load branch loan applications. Please try again.
+            </div>
+          ) : isLoading ? (
+            <div className="flex justify-center items-center py-16">
+              <Loader2 className="animate-spin h-7 w-7 text-[#7C4DFF]" />
+            </div>
+          ) : filteredApps.length === 0 ? (
+            <div className="bg-white rounded-3xl border border-[#e0e3e7] p-8 text-center space-y-2 shadow-xs">
+              <div className="w-12 h-12 rounded-full bg-[#f8fafd] border border-[#e0e3e7] flex items-center justify-center mx-auto text-[#80868b]">
+                <FileText size={20} />
+              </div>
+              <p className="text-sm font-bold text-[#1f1f1f]">No applications found</p>
+              <p className="text-xs text-[#5f6368]">
+                {searchTerm ? 'No results matched your search query.' : 'No loan applications in this filter status.'}
+              </p>
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="mt-2 inline-flex items-center text-xs font-semibold text-[#7C4DFF] hover:underline cursor-pointer"
+                >
+                  Clear search query
+                </button>
+              )}
+            </div>
+          ) : (
+            filteredApps.map((app) => {
+              const name = app.applicant_name || app.form_data?.applicant_name || 'Unnamed Applicant';
+              const phone = app.phone_number || app.form_data?.phone_number || '';
+              const appId = app.application_id || 'LA-DRAFT';
+              const loanType = app.loan_type || app.form_data?.loan_type || 'Personal Loan';
+              const loanAmount = app.form_data?.loan_amount || app.form_data?.required_loan_amount || app.loan_amount;
+              const initials = name.split(' ').map(n => n[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || 'A';
+
+              return (
+                <div 
+                  key={app.id || app.application_id} 
+                  onClick={() => handleViewDetails(app)}
+                  className="bg-white rounded-2xl border border-[#e0e3e7] hover:border-[#dadce0] p-4 shadow-xs transition-all active:scale-[0.99] active:bg-[#f8fafd] cursor-pointer space-y-2.5 group"
+                >
+                  {/* Top Row: Avatar, Name, Phone & Status */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="w-10 h-10 rounded-full bg-[#7C4DFF]/10 text-[#7C4DFF] font-bold text-xs flex items-center justify-center shrink-0 border border-[#7C4DFF]/20 shadow-2xs">
+                        {initials}
+                      </div>
+                      <div className="min-w-0 flex-1 space-y-0.5">
+                        <h3 className="font-bold text-[#1f1f1f] text-sm truncate group-hover:text-[#7C4DFF] transition-colors">
+                          {name}
+                        </h3>
+                        <div className="flex items-center gap-1 font-medium text-[11px] text-[#5f6368]">
+                          <Phone size={10} className="text-[#80868b] shrink-0" />
+                          <span className="truncate">{phone ? maskPhoneNumber(phone) : '—'}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="shrink-0">
+                      {getStatusBadge(app.status)}
+                    </div>
+                  </div>
+
+                  {/* Middle Row: Prominent Loan Type & Creation Date */}
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#f1f3f4] text-[11px] text-[#5f6368]">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <Briefcase size={12} className="text-[#7C4DFF] shrink-0" />
+                      <span className="font-bold text-[#7C4DFF] text-xs truncate">{loanType}</span>
+                    </div>
+                    <div className="flex items-center justify-end gap-1.5 text-right min-w-0 text-[#80868b]">
+                      <Calendar size={11} className="text-[#80868b] shrink-0" />
+                      <span>{formatDateSafe(app.created_at || app.updated_at)}</span>
+                    </div>
+                  </div>
+
+                  {/* Bottom Row: App ID, Requested Amount & Arrow */}
+                  <div className="pt-2 border-t border-[#f1f3f4] flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="font-mono font-bold text-[#7C4DFF] bg-[#7C4DFF]/10 px-2.5 py-0.5 rounded-full border border-[#7C4DFF]/20 text-[10.5px] shrink-0">
+                        {appId}
+                      </span>
+                      {loanAmount && (
+                        <span className="font-bold text-[#137333] text-[11px] truncate">
+                          ₹{Number(loanAmount).toLocaleString('en-IN')}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="w-6 h-6 rounded-full bg-[#f8fafd] border border-[#dadce0] flex items-center justify-center text-[#5f6368] group-hover:bg-[#7C4DFF]/10 group-hover:text-[#7C4DFF] group-hover:border-[#7C4DFF]/20 transition-colors shrink-0">
+                      <ChevronRight size={13} />
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })
-        )}
+              );
+            })
+          )}
+        </div>
       </div>
+
     </div>
   );
 };

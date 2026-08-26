@@ -277,7 +277,7 @@ const OriginationMobileLoanDashboard = () => {
             <button
               type="button"
               onClick={() => setChartTab('daily')}
-              className={`whitespace-nowrap px-3 py-1 rounded-full text-[11.5px] font-semibold transition-all cursor-pointer ${
+              className={`whitespace-nowrap px-3 py-[7px] rounded-full text-[11.5px] font-semibold transition-all cursor-pointer ${
                 chartTab === 'daily'
                   ? 'bg-white text-[#1a73e8] shadow-2xs font-bold'
                   : 'text-[#5f6368] hover:text-[#1f1f1f]'
@@ -288,7 +288,7 @@ const OriginationMobileLoanDashboard = () => {
             <button
               type="button"
               onClick={() => setChartTab('monthly')}
-              className={`whitespace-nowrap px-3 py-1 rounded-full text-[11.5px] font-semibold transition-all cursor-pointer ${
+              className={`whitespace-nowrap px-3 py-[7px] rounded-full text-[11.5px] font-semibold transition-all cursor-pointer ${
                 chartTab === 'monthly'
                   ? 'bg-white text-[#1a73e8] shadow-2xs font-bold'
                   : 'text-[#5f6368] hover:text-[#1f1f1f]'
