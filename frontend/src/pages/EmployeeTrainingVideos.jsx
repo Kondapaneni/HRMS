@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { motion } from 'framer-motion';
 import { 
   Play, 
   CheckCircle2, 
@@ -12,7 +14,8 @@ import {
   LayoutGrid,
   Tv,
   Film,
-  BookOpen
+  BookOpen,
+  RotateCcw
 } from 'lucide-react';
 import api from '../api/axios';
 import EmployeeMobileTrainingVideos from './EmployeeMobileTrainingVideos';
@@ -25,6 +28,7 @@ const EmployeeTrainingVideos = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('all'); // 'all' | 'completed' | 'pending'
   const [viewMode, setViewMode] = useState('theater'); // 'theater' | 'grid'
+  const [confirmingVideo, setConfirmingVideo] = useState(null);
   const videoPlayerRef = useRef(null);
 
   const { data: videos = [], isLoading } = useQuery({
@@ -67,10 +71,16 @@ const EmployeeTrainingVideos = () => {
     }
   });
 
-  const toggleComplete = (video, e) => {
+  const triggerToggleComplete = (video, e) => {
     if (e) e.stopPropagation();
-    const newStatus = !video.is_completed;
-    toggleProgressMutation.mutate({ videoId: video.id, completed: newStatus });
+    setConfirmingVideo(video);
+  };
+
+  const handleConfirmToggle = () => {
+    if (!confirmingVideo) return;
+    const newStatus = !confirmingVideo.is_completed;
+    toggleProgressMutation.mutate({ videoId: confirmingVideo.id, completed: newStatus });
+    setConfirmingVideo(null);
   };
 
   // Default to first video if not set
@@ -300,9 +310,9 @@ const EmployeeTrainingVideos = () => {
 
                       {/* Complete Toggle */}
                       <button
-                        onClick={(e) => toggleComplete(activeVideo, e)}
+                        onClick={(e) => triggerToggleComplete(activeVideo, e)}
                         disabled={toggleProgressMutation.isPending}
-                        className={`flex items-center gap-2 py-2 px-5 rounded-2xl text-xs font-semibold transition-all active:scale-95 ${
+                        className={`flex items-center gap-2 py-2 px-5 rounded-2xl text-xs font-semibold transition-all active:scale-95 cursor-pointer ${
                           activeVideo.is_completed
                             ? 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6] hover:bg-[#d5eedc]'
                             : 'bg-[#1a73e8] text-white hover:bg-[#1557b0] shadow-xs'
@@ -472,9 +482,9 @@ const EmployeeTrainingVideos = () => {
                           </div>
 
                           <button
-                            onClick={(e) => toggleComplete(video, e)}
+                            onClick={(e) => triggerToggleComplete(video, e)}
                             disabled={toggleProgressMutation.isPending}
-                            className={`p-1.5 rounded-lg shrink-0 transition-all ${
+                            className={`p-1.5 rounded-lg shrink-0 transition-all cursor-pointer ${
                               video.is_completed
                                 ? 'text-[#137333] hover:bg-[#e6f4ea]'
                                 : 'text-[#80868b] hover:text-[#1a73e8] hover:bg-[#f1f3f4]'
@@ -594,9 +604,9 @@ const EmployeeTrainingVideos = () => {
                           <span>Open in Player</span>
                         </button>
                         <button
-                          onClick={(e) => toggleComplete(video, e)}
+                          onClick={(e) => triggerToggleComplete(video, e)}
                           disabled={toggleProgressMutation.isPending}
-                          className={`p-2 rounded-2xl border transition-all ${
+                          className={`p-2 rounded-2xl border transition-all cursor-pointer ${
                             video.is_completed
                               ? 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]'
                               : 'bg-[#f1f3f4] text-[#5f6368] border-[#dadce0] hover:bg-[#e3e3e3]'
@@ -618,6 +628,74 @@ const EmployeeTrainingVideos = () => {
           </div>
         )}
       </div>
+
+      {/* Confirmation Modal */}
+      {confirmingVideo && createPortal(
+        <div 
+          onClick={() => setConfirmingVideo(null)}
+          className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200"
+        >
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.95, opacity: 0 }}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-sm overflow-hidden p-6 space-y-4 text-center"
+          >
+            {/* Top Icon Badge */}
+            <div className={`w-14 h-14 rounded-full flex items-center justify-center mx-auto ${
+              confirmingVideo.is_completed
+                ? 'bg-[#fef7e0] text-[#b06000] border border-[#feefc3]'
+                : 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6]'
+            }`}>
+              {confirmingVideo.is_completed ? (
+                <RotateCcw className="w-7 h-7" />
+              ) : (
+                <CheckCircle2 className="w-7 h-7" />
+              )}
+            </div>
+
+            {/* Content */}
+            <div className="space-y-1.5">
+              <h3 className="text-base font-bold text-slate-900">
+                {confirmingVideo.is_completed ? 'Mark as Incomplete?' : 'Mark Module as Completed?'}
+              </h3>
+              <p className="text-xs text-slate-500 line-clamp-2 px-2 font-medium">
+                "{confirmingVideo.title}"
+              </p>
+              <p className="text-[11px] text-slate-400">
+                {confirmingVideo.is_completed
+                  ? 'This will reset your completion status for this training module.'
+                  : 'Are you sure you want to mark this training module as completed?'}
+              </p>
+            </div>
+
+            {/* Actions */}
+            <div className="grid grid-cols-2 gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setConfirmingVideo(null)}
+                className="w-full py-2.5 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmToggle}
+                disabled={toggleProgressMutation.isPending}
+                className={`w-full py-2.5 rounded-full text-white text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95 ${
+                  confirmingVideo.is_completed
+                    ? 'bg-[#d93025] hover:bg-[#b31412]'
+                    : 'bg-[#1a73e8] hover:bg-[#1557b0]'
+                }`}
+              >
+                {confirmingVideo.is_completed ? 'Mark Incomplete' : 'Yes, Complete'}
+              </button>
+            </div>
+          </motion.div>
+        </div>,
+        document.body
+      )}
     </>
   );
 };
