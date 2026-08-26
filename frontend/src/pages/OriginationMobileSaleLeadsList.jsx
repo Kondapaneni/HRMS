@@ -151,22 +151,22 @@ const OriginationMobileSaleLeadsList = () => {
       </div>
 
       {/* 2. Search Box */}
-      <div className="bg-white rounded-2xl border border-[#e0e3e7] p-2.5 shadow-xs flex items-center gap-2">
-        <Search className="w-4 h-4 text-[#5f6368] ml-1.5 shrink-0" />
+      <div className="bg-white rounded-full border border-[#e0e3e7] px-4 py-2.5 shadow-xs flex items-center gap-2.5">
+        <Search className="w-4.5 h-4.5 text-[#5f6368] shrink-0" />
         <input
-          type="search"
+          type="text"
           placeholder="Search by name, phone, product..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full text-xs bg-transparent border-none outline-none text-[#1f1f1f] placeholder:text-[#80868b] pr-2"
+          className="w-full text-[13.5px] font-medium bg-transparent border-none outline-none text-[#1f1f1f] placeholder:text-[#80868b] placeholder:text-[13px] pr-1"
         />
         {searchTerm && (
           <button
             type="button"
             onClick={() => setSearchTerm('')}
-            className="p-1 text-[#80868b] hover:text-[#1f1f1f] rounded-full mr-1"
+            className="p-1 rounded-full text-[#5f6368] hover:bg-[#f1f3f4] hover:text-[#1f1f1f] shrink-0 cursor-pointer transition-colors"
           >
-            <X size={13} />
+            <X size={14} />
           </button>
         )}
       </div>
@@ -177,14 +177,14 @@ const OriginationMobileSaleLeadsList = () => {
           <button
             key={tab.key}
             onClick={() => setSelectedStatusFilter(tab.key)}
-            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
+            className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
               selectedStatusFilter === tab.key
                 ? 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc] shadow-2xs font-bold'
                 : 'bg-white text-[#5f6368] border-[#e0e3e7] hover:bg-[#f8fafd]'
             }`}
           >
             <span>{tab.label}</span>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold leading-none ${
+            <span className={`inline-flex items-center justify-center h-[18px] min-w-[18px] px-1.5 rounded-full text-[11px] font-bold leading-none tabular-nums ${
               selectedStatusFilter === tab.key
                 ? 'bg-[#1a73e8] text-white'
                 : 'bg-[#f1f3f4] text-[#5f6368]'

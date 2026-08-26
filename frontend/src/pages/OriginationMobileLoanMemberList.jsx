@@ -112,21 +112,22 @@ const OriginationMobileLoanMemberList = () => {
       </div>
 
       {/* 2. Search Box */}
-      <div className="bg-white rounded-full border border-[#e0e3e7] px-3.5 py-2.5 shadow-xs flex items-center gap-2.5">
-        <Search className="w-4 h-4 text-[#5f6368] shrink-0" />
+      <div className="bg-white rounded-full border border-[#e0e3e7] px-4 py-2.5 shadow-xs flex items-center gap-2.5">
+        <Search className="w-4.5 h-4.5 text-[#5f6368] shrink-0" />
         <input
-          type="search"
+          type="text"
           placeholder="Search members by name, phone, address..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full text-xs bg-transparent border-none outline-none text-[#1f1f1f] placeholder:text-[#80868b] pr-2"
+          className="w-full text-[13.5px] font-medium bg-transparent border-none outline-none text-[#1f1f1f] placeholder:text-[#80868b] placeholder:text-[13px] pr-1"
         />
         {searchTerm && (
           <button
+            type="button"
             onClick={() => setSearchTerm('')}
-            className="p-1 rounded-full text-[#5f6368] hover:bg-[#f1f3f4] shrink-0 cursor-pointer"
+            className="p-1 rounded-full text-[#5f6368] hover:bg-[#f1f3f4] hover:text-[#1f1f1f] shrink-0 cursor-pointer transition-colors"
           >
-            <X size={13} />
+            <X size={14} />
           </button>
         )}
       </div>

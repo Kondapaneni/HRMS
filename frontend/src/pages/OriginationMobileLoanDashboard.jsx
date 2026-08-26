@@ -367,10 +367,10 @@ const OriginationMobileLoanDashboard = () => {
 
           <Link
             to="/employee/loans/origination/leads"
-            className="inline-flex items-center gap-1 text-xs font-semibold text-[#1a73e8] hover:text-[#1557b0]"
+            className="inline-flex items-center gap-1.5 text-[13.5px] font-bold text-[#1a73e8] hover:text-[#1557b0] transition-colors"
           >
             <span>View All</span>
-            <ChevronRight size={14} />
+            <ChevronRight size={16} />
           </Link>
         </div>
 

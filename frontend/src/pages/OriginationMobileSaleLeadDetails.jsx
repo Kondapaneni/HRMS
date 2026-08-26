@@ -102,15 +102,15 @@ const OriginationMobileSaleLeadDetails = () => {
     switch (status) {
       case 'New':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] shrink-0">
-            <Clock size={10} /> New
+          <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-bold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] shrink-0 shadow-2xs">
+            <Clock size={15} /> New
           </span>
         );
       case 'Follow Up':
       case 'Contacted':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#f3e8fd] text-[#8430ce] border border-[#e9d5ff] shrink-0">
-            <RefreshCw size={10} /> Follow Up
+          <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-bold bg-[#f3e8fd] text-[#8430ce] border border-[#e9d5ff] shrink-0 shadow-2xs">
+            <RefreshCw size={15} /> Follow Up
           </span>
         );
       case 'Active':
@@ -118,27 +118,27 @@ const OriginationMobileSaleLeadDetails = () => {
       case 'Proposal Sent':
       case 'Negotiation':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#fef7e0] text-[#b06000] border border-[#feefc3] shrink-0">
-            <Clock size={10} /> {status}
+          <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-bold bg-[#fef7e0] text-[#b06000] border border-[#feefc3] shrink-0 shadow-2xs">
+            <Clock size={15} /> {status}
           </span>
         );
       case 'Converted':
       case 'Won':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#e6f4ea] text-[#137333] border border-[#ceead6] shrink-0">
-            <CheckCircle2 size={10} /> Converted
+          <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-bold bg-[#e6f4ea] text-[#137333] border border-[#ceead6] shrink-0 shadow-2xs">
+            <CheckCircle2 size={15} /> Converted
           </span>
         );
       case 'Not Interested':
       case 'Lost':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf] shrink-0">
-            <XCircle size={10} /> Closed
+          <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-bold bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf] shrink-0 shadow-2xs">
+            <XCircle size={15} /> Closed
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0] shrink-0">
+          <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-bold bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0] shrink-0 shadow-2xs">
             {status}
           </span>
         );
@@ -219,7 +219,7 @@ const OriginationMobileSaleLeadDetails = () => {
             {lead.phone ? (
               <a
                 href={`tel:${lead.phone}`}
-                className="flex items-center justify-between px-4 py-2.5 rounded-full bg-[#f8fafd] hover:bg-[#f1f3f4] border border-[#e0e3e7] transition-all cursor-pointer group active:scale-98"
+                className="flex items-center justify-between pl-3.5 pr-1.5 py-1.5 rounded-full bg-[#f8fafd] hover:bg-[#f1f3f4] border border-[#e0e3e7] transition-all cursor-pointer group active:scale-98"
               >
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className="w-8 h-8 rounded-full bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center shrink-0">
