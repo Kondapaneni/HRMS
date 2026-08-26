@@ -56,7 +56,7 @@ export const SelectField = React.memo(({
           onBlur={onBlur}
           disabled={disabled || loading}
           aria-readonly={readOnly}
-          className={`w-full pl-3 pr-9 py-2 border rounded-md text-sm outline-none focus:outline-none transition-all appearance-none cursor-pointer ${
+          className={`w-full pl-4 pr-10 py-2.5 md:pl-3 md:pr-9 md:py-2 border rounded-full md:rounded-md text-sm outline-none focus:outline-none transition-all appearance-none cursor-pointer ${
             error 
               ? 'border-red-400 focus:ring-2 focus:ring-red-100 focus:border-red-400' 
               : 'border-slate-200 focus:ring-2 focus:ring-blue-100 focus:border-blue-400'
@@ -78,7 +78,7 @@ export const SelectField = React.memo(({
           ))}
         </select>
 
-        <div className="absolute right-3 pointer-events-none text-slate-400 flex items-center">
+        <div className="absolute right-3.5 md:right-3 pointer-events-none text-slate-400 flex items-center">
           {loading ? <Loader2 size={16} className="animate-spin text-blue-500" /> : <ChevronDown size={16} />}
         </div>
       </div>

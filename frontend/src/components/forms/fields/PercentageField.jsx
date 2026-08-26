@@ -60,7 +60,7 @@ export const PercentageField = React.memo(({
           disabled={disabled}
           readOnly={readOnly}
           placeholder={placeholder}
-          className={`w-full pl-3 pr-8 py-2 border rounded-md text-sm outline-none focus:outline-none transition-all ${
+          className={`w-full pl-4 pr-10 py-2.5 md:pl-3 md:pr-8 md:py-2 border rounded-full md:rounded-md text-sm outline-none focus:outline-none transition-all ${
             error 
               ? 'border-red-400 focus:ring-2 focus:ring-red-100 focus:border-red-400' 
               : 'border-slate-200 focus:ring-2 focus:ring-blue-100 focus:border-blue-400'
@@ -71,7 +71,7 @@ export const PercentageField = React.memo(({
           }`}
         />
 
-        <div className="absolute right-3 text-slate-500 font-semibold text-sm pointer-events-none select-none">
+        <div className="absolute right-3.5 md:right-3 text-slate-500 font-semibold text-sm pointer-events-none select-none">
           %
         </div>
       </div>

@@ -1740,7 +1740,10 @@ export function BusinessLoanForm({ isEditMode: propEditMode, application: propAp
             </h3>
             <p className="text-xs text-slate-500 mt-1">Business loan requires details for exactly 3 guarantors.</p>
           </div>
-          <div className="flex items-center gap-1.5 bg-[#f8fafd] border border-[#dadce0] p-1.5 rounded-full w-full sm:w-auto shadow-2xs overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <div 
+            className="flex items-center gap-1.5 bg-[#f8fafd] border border-[#dadce0] p-1.5 rounded-full w-full sm:w-auto shadow-2xs overflow-x-auto no-scrollbar hide-scrollbar scrollbar-none"
+            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
             {[1, 2, 3].map((gIdx) => {
               const isActive = activeGuarantorTab === gIdx;
               return (

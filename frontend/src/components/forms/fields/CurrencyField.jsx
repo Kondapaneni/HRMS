@@ -101,7 +101,7 @@ export const CurrencyField = React.memo(({
           disabled={disabled}
           readOnly={readOnly}
           placeholder={placeholder}
-          className={`w-full pl-8 pr-3 py-2 border rounded-md text-sm outline-none focus:outline-none transition-all ${
+          className={`w-full pl-9 pr-4 py-2.5 md:pl-8 md:pr-3 md:py-2 border rounded-full md:rounded-md text-sm outline-none focus:outline-none transition-all ${
             error 
               ? 'border-red-400 focus:ring-2 focus:ring-red-100 focus:border-red-400' 
               : 'border-slate-200 focus:ring-2 focus:ring-blue-100 focus:border-blue-400'

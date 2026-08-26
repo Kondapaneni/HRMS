@@ -51,7 +51,7 @@ export const MonthField = React.memo(({
           readOnly={readOnly}
           min={min}
           max={max}
-          className={`w-full pl-3 pr-9 py-2 border rounded-md text-sm outline-none focus:outline-none transition-all cursor-pointer ${
+          className={`w-full pl-4 pr-10 py-2.5 md:pl-3 md:pr-9 md:py-2 border rounded-full md:rounded-md text-sm outline-none focus:outline-none transition-all cursor-pointer ${
             error 
               ? 'border-red-400 focus:ring-2 focus:ring-red-100 focus:border-red-400' 
               : 'border-slate-200 focus:ring-2 focus:ring-blue-100 focus:border-blue-400'
@@ -61,7 +61,7 @@ export const MonthField = React.memo(({
             readOnly ? 'bg-slate-100 text-slate-500 cursor-not-allowed border-slate-200' : 'bg-white text-slate-800'
           }`}
         />
-        <Calendar size={16} className="absolute right-3 text-slate-400 pointer-events-none" />
+        <Calendar size={16} className="absolute right-3.5 md:right-3 text-slate-400 pointer-events-none" />
       </div>
     </FieldContainer>
   );

@@ -573,7 +573,10 @@ function MobileDetailView({
       {/* ── 5. Guarantors Verification (3 Required) ── */}
       <SectionCard number="5" title="Guarantors Verification (3 Required)" icon={ShieldCheck}>
         {/* Guarantor Tab Buttons */}
-        <div className="flex items-center gap-1.5 p-1.5 bg-[#f8fafd] rounded-full border border-[#dadce0] mb-4 shadow-2xs overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div 
+          className="flex items-center gap-1.5 p-1.5 bg-[#f8fafd] rounded-full border border-[#dadce0] mb-4 shadow-2xs overflow-x-auto no-scrollbar hide-scrollbar scrollbar-none"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
           {[1, 2, 3].map((idx) => {
             const isActive = activeGuarantorTab === idx;
             const gName = formData[`guarantor_${idx}_name`];
@@ -1329,7 +1332,10 @@ function DesktopPaperView({
             </div>
 
             {/* Guarantor Tabs Styled Like Google Pill Buttons */}
-            <div className="flex items-center gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] print:hidden">
+            <div 
+              className="flex items-center gap-2 overflow-x-auto no-scrollbar hide-scrollbar scrollbar-none print:hidden"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
               {[1, 2, 3].map((gIdx) => {
                 const isActive = activeGuarantorTab === gIdx;
                 const gName = formData[`guarantor_${gIdx}_name`];

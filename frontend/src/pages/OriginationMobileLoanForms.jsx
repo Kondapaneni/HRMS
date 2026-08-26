@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { BusinessLoanForm, PersonalLoanForm } from '../components/forms';
 
 const OriginationMobileLoanForms = () => {
@@ -60,51 +61,58 @@ const OriginationMobileLoanForms = () => {
 
   return (
     <div className="space-y-4 pb-14 w-full">
+      {/* 1. Hero Section with Animated Motion Graphics */}
+      <section className="-mx-4 -mt-4 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900">
+        {/* Animated Liquid Orbs with Loans Origination Blue & Indigo Theme */}
+        <motion.div
+          animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
+          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+          className="absolute -top-20 -left-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+        />
+        <motion.div
+          animate={{ scale: [1, 1.4, 1], x: [0, -40, 0], y: [0, 50, 0] }}
+          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+          className="absolute -top-10 -right-10 w-64 h-64 bg-indigo-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+        />
+        <motion.div
+          animate={{ scale: [1, 1.3, 1], x: [0, 30, 0], y: [0, -40, 0] }}
+          transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+          className="absolute bottom-0 left-20 w-80 h-80 bg-sky-400 rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
+        />
 
-      {/* 1. Header Card (Google Material 3 Workspace) */}
-      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-4 sm:p-5 shadow-xs relative overflow-hidden bg-gradient-to-br from-white via-[#f8fafd] to-[#e8f0fe]/30 space-y-2.5">
-        {/* Workspace Tag */}
-        <div className="flex items-center gap-1.5 whitespace-nowrap shrink-0">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4] shrink-0" />
-          <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335] shrink-0" />
-          <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05] shrink-0" />
-          <span className="w-1.5 h-1.5 rounded-full bg-[#34A853] shrink-0" />
-          <span className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368] ml-0.5 whitespace-nowrap">
-            Origination Workspace
-          </span>
-        </div>
+        {/* Subtle Glass Overlay */}
+        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none" />
 
-        {/* Heading + Back Button Row (Same Line) */}
-        <div className="flex items-center justify-between gap-3">
-          <h1 className="text-xl font-bold text-[#1f1f1f] tracking-tight whitespace-nowrap truncate">
-            {loanType} Form
-          </h1>
+        <div className="relative z-10 px-2 flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">
+              Origination &bull; Loan Pipeline
+            </p>
+            <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">
+              {loanType}
+            </h2>
+            <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">
+              {isDraft ? 'Draft Application Form' : isEditMode ? 'Edit Application Form' : 'New Loan Application'}
+            </p>
+          </div>
 
           <button
             type="button"
             onClick={handleBack}
-            className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] px-3.5 py-1.5 transition-all gap-1.5 shadow-2xs cursor-pointer shrink-0 whitespace-nowrap"
+            className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center backdrop-blur-md border border-white/30 shadow-xs transition-all active:scale-95 cursor-pointer shrink-0"
+            title="Back"
           >
-            <ArrowLeft className="w-3.5 h-3.5 text-[#5f6368]" />
-            <span>Back</span>
+            <ArrowLeft size={18} />
           </button>
         </div>
+      </section>
 
-        {/* Subtitle Row */}
-        <div className="flex items-center gap-2 text-xs text-[#5f6368] whitespace-nowrap pt-0.5">
-          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full shrink-0">
-            {isDraft ? 'Draft Application' : isEditMode ? 'Edit Mode' : 'New Application'}
-          </span>
-          <span>&bull;</span>
-          <span className="truncate">Fill all verified details</span>
+      {/* 2. Elevated Form Container Layer */}
+      <div className="relative z-20 -mt-8 mx-0.5 space-y-4">
+        <div className="bg-white p-4 sm:p-5 rounded-3xl shadow-xs border border-[#e0e3e7]">
+          {renderForm()}
         </div>
       </div>
-
-      {/* 2. Direct Loan Form Container */}
-      <div className="bg-white p-4 sm:p-5 rounded-3xl shadow-xs border border-[#e0e3e7]">
-        {renderForm()}
-      </div>
-
     </div>
   );
 };

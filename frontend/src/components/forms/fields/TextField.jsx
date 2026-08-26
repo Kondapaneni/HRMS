@@ -63,10 +63,10 @@ export const TextField = React.memo(({
           maxLength={maxLength}
           minLength={minLength}
           autoComplete={autoComplete}
-          className={`w-full px-3 py-2 border rounded-md text-sm outline-none focus:outline-none transition-all ${
-            prefix ? 'pl-9' : ''
+          className={`w-full px-4 py-2.5 md:px-3 md:py-2 border rounded-full md:rounded-md text-sm outline-none focus:outline-none transition-all ${
+            prefix ? 'pl-10 md:pl-9' : ''
           } ${
-            suffix ? 'pr-9' : ''
+            suffix ? 'pr-10 md:pr-9' : ''
           } ${
             error 
               ? 'border-red-400 focus:ring-2 focus:ring-red-100 focus:border-red-400' 
