@@ -112,8 +112,8 @@ const OriginationMobileLoanMemberList = () => {
       </div>
 
       {/* 2. Search Box */}
-      <div className="bg-white rounded-2xl border border-[#e0e3e7] p-2.5 shadow-xs flex items-center gap-2">
-        <Search className="w-4 h-4 text-[#5f6368] ml-1.5 shrink-0" />
+      <div className="bg-white rounded-full border border-[#e0e3e7] px-3.5 py-2.5 shadow-xs flex items-center gap-2.5">
+        <Search className="w-4 h-4 text-[#5f6368] shrink-0" />
         <input
           type="search"
           placeholder="Search members by name, phone, address..."
@@ -124,7 +124,7 @@ const OriginationMobileLoanMemberList = () => {
         {searchTerm && (
           <button
             onClick={() => setSearchTerm('')}
-            className="p-1 rounded-full text-[#5f6368] hover:bg-[#f1f3f4] shrink-0"
+            className="p-1 rounded-full text-[#5f6368] hover:bg-[#f1f3f4] shrink-0 cursor-pointer"
           >
             <X size={13} />
           </button>

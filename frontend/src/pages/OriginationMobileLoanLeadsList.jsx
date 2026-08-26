@@ -67,38 +67,38 @@ const OriginationMobileLoanLeadsList = () => {
     switch (status) {
       case 'New':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
-            <Clock size={10} /> New
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] shrink-0 shadow-2xs">
+            <Clock size={14} /> New
           </span>
         );
       case 'Follow Up':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#f3e8fd] text-[#8430ce] border border-[#e9d5ff]">
-            <RefreshCw size={10} /> Follow Up
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold bg-[#f3e8fd] text-[#8430ce] border border-[#e9d5ff] shrink-0 shadow-2xs">
+            <RefreshCw size={14} /> Follow Up
           </span>
         );
       case 'Active':
       case 'In Progress':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#fef7e0] text-[#b06000] border border-[#feefc3]">
-            <Clock size={10} /> {status}
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold bg-[#fef7e0] text-[#b06000] border border-[#feefc3] shrink-0 shadow-2xs">
+            <Clock size={14} /> {status}
           </span>
         );
       case 'Converted':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">
-            <CheckCircle2 size={10} /> Converted
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold bg-[#e6f4ea] text-[#137333] border border-[#ceead6] shrink-0 shadow-2xs">
+            <CheckCircle2 size={14} /> Converted
           </span>
         );
       case 'Not Interested':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf]">
-            <XCircle size={10} /> Not Interested
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf] shrink-0 shadow-2xs">
+            <XCircle size={14} /> Not Interested
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]">
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0] shrink-0 shadow-2xs">
             {status || '—'}
           </span>
         );
@@ -153,7 +153,7 @@ const OriginationMobileLoanLeadsList = () => {
 
           <button
             onClick={() => navigate('/employee/loans/origination/leads/add')}
-            className="inline-flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white px-4 py-2.5 rounded-full text-xs font-bold backdrop-blur-md border border-white/30 shadow-xs transition-all active:scale-95 cursor-pointer shrink-0"
+            className="inline-flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white px-4 py-3.5 rounded-full text-xs font-bold backdrop-blur-md border border-white/30 shadow-xs transition-all active:scale-95 cursor-pointer shrink-0"
           >
             <Plus size={14} />
             <span>Add Lead</span>
@@ -165,8 +165,8 @@ const OriginationMobileLoanLeadsList = () => {
       <div className="relative z-20 -mt-8 mx-0.5 space-y-3.5">
 
         {/* Search Box */}
-        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-2.5 shadow-xs flex items-center gap-2">
-          <Search className="w-4 h-4 text-[#5f6368] ml-1.5 shrink-0" />
+        <div className="bg-white rounded-full border border-[#e0e3e7] px-3.5 py-2.5 shadow-xs flex items-center gap-2.5">
+          <Search className="w-4 h-4 text-[#5f6368] shrink-0" />
           <input
             type="search"
             placeholder="Search by name, phone, address..."

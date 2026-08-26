@@ -93,31 +93,38 @@ const OriginationMobileLoanLeadDetails = () => {
     switch (status) {
       case 'New':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] shrink-0">
-            <Clock size={10} /> New
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] shrink-0 shadow-2xs">
+            <Clock size={14} /> New
           </span>
         );
       case 'Follow Up':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#f3e8fd] text-[#8430ce] border border-[#e9d5ff] shrink-0">
-            <RefreshCw size={10} /> Follow Up
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold bg-[#f3e8fd] text-[#8430ce] border border-[#e9d5ff] shrink-0 shadow-2xs">
+            <RefreshCw size={14} /> Follow Up
+          </span>
+        );
+      case 'Active':
+      case 'In Progress':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold bg-[#fef7e0] text-[#b06000] border border-[#feefc3] shrink-0 shadow-2xs">
+            <Clock size={14} /> {status}
           </span>
         );
       case 'Converted':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#e6f4ea] text-[#137333] border border-[#ceead6] shrink-0">
-            <CheckCircle2 size={10} /> Converted
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold bg-[#e6f4ea] text-[#137333] border border-[#ceead6] shrink-0 shadow-2xs">
+            <CheckCircle2 size={14} /> Converted
           </span>
         );
       case 'Not Interested':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf] shrink-0">
-            <XCircle size={10} /> Not Interested
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf] shrink-0 shadow-2xs">
+            <XCircle size={14} /> Not Interested
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0] shrink-0">
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0] shrink-0 shadow-2xs">
             {status}
           </span>
         );
@@ -166,8 +173,8 @@ const OriginationMobileLoanLeadDetails = () => {
             <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">
               Lead Details
             </h2>
-            <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90 truncate max-w-[220px]">
-              {lead.name || 'Prospect Profile'}
+            <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">
+              Prospect Verification Profile
             </p>
           </div>
 
@@ -215,13 +222,13 @@ const OriginationMobileLoanLeadDetails = () => {
         <div className="space-y-3 pt-1">
           {/* Phone with Call Action */}
           <div>
-            <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider block mb-1">
+            <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider block mb-1 pl-1">
               Contact Number
             </span>
             {lead.phone ? (
               <a
                 href={`tel:${lead.phone}`}
-                className="flex items-center justify-between p-3 rounded-2xl bg-[#f8fafd] hover:bg-[#f1f3f4] border border-[#e0e3e7] transition-all cursor-pointer group active:scale-98"
+                className="flex items-center justify-between px-4 py-2.5 rounded-full bg-[#f8fafd] hover:bg-[#f1f3f4] border border-[#e0e3e7] transition-all cursor-pointer group active:scale-98"
               >
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className="w-8 h-8 rounded-full bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center shrink-0">
@@ -231,21 +238,22 @@ const OriginationMobileLoanLeadDetails = () => {
                     {maskPhoneNumber(lead.phone)}
                   </span>
                 </div>
-                <span className="text-xs font-semibold text-[#1a73e8] bg-white px-3 py-1 rounded-full border border-[#d2e3fc] shadow-2xs flex items-center gap-1">
-                  <Phone size={11} className="fill-[#1a73e8]" /> Call
+                <span className="text-[13px] font-bold text-[#1a73e8] bg-white px-4 py-2 rounded-full border border-[#d2e3fc] shadow-xs flex items-center gap-1.5">
+                  <Phone className="w-3.5 h-3.5 fill-[#1a73e8]" />
+                  <span>Call</span>
                 </span>
               </a>
             ) : (
-              <p className="text-xs text-[#80868b]">—</p>
+              <p className="text-xs text-[#80868b] pl-1">—</p>
             )}
           </div>
 
           {/* Product Requested */}
           <div className="pt-2 border-t border-[#f1f3f4]">
-            <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider block mb-1">
+            <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider block mb-1 pl-1">
               Target Loan Product
             </span>
-            <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7] text-xs text-[#1f1f1f]">
+            <div className="flex items-center gap-2.5 px-4 py-3 rounded-full bg-[#f8fafd] border border-[#e0e3e7] text-xs text-[#1f1f1f]">
               <Briefcase size={15} className="text-[#1a73e8] shrink-0" />
               <span className="font-medium">{currentLoanType || lead.loan_type || '—'}</span>
             </div>
@@ -254,12 +262,12 @@ const OriginationMobileLoanLeadDetails = () => {
           {/* Address */}
           {lead.address && (
             <div className="pt-2 border-t border-[#f1f3f4]">
-              <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider block mb-1">
+              <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider block mb-1 pl-1">
                 Residential / Business Address
               </span>
-              <div className="flex items-start gap-2.5 p-3 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7] text-xs text-[#1f1f1f]">
+              <div className="flex items-start gap-2.5 px-4 py-3 rounded-full bg-[#f8fafd] border border-[#e0e3e7] text-xs text-[#1f1f1f]">
                 <MapPin size={15} className="text-[#1a73e8] shrink-0 mt-0.5" />
-                <span className="leading-relaxed">{lead.address}</span>
+                <span className="leading-relaxed truncate">{lead.address}</span>
               </div>
             </div>
           )}
@@ -267,10 +275,10 @@ const OriginationMobileLoanLeadDetails = () => {
           {/* Created Date */}
           {lead.created_at && (
             <div className="pt-2 border-t border-[#f1f3f4]">
-              <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider block mb-1">
+              <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider block mb-1 pl-1">
                 Lead Registered On
               </span>
-              <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7] text-xs text-[#1f1f1f]">
+              <div className="flex items-center gap-2.5 px-4 py-3 rounded-full bg-[#f8fafd] border border-[#e0e3e7] text-xs text-[#1f1f1f]">
                 <Calendar size={15} className="text-[#1a73e8] shrink-0" />
                 <span>{format(new Date(lead.created_at), 'MMMM d, yyyy - h:mm a')}</span>
               </div>

@@ -213,37 +213,38 @@ const OriginationMobileSaleLeadDetails = () => {
         <div className="space-y-3 pt-1">
           {/* Phone with Call Action */}
           <div>
-            <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider block mb-1">
+            <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider block mb-1 pl-1">
               Contact Number
             </span>
             {lead.phone ? (
               <a
                 href={`tel:${lead.phone}`}
-                className="flex items-center justify-between p-3 rounded-2xl bg-[#f8fafd] hover:bg-[#f1f3f4] border border-[#e0e3e7] transition-all cursor-pointer group active:scale-98"
+                className="flex items-center justify-between px-4 py-2.5 rounded-full bg-[#f8fafd] hover:bg-[#f1f3f4] border border-[#e0e3e7] transition-all cursor-pointer group active:scale-98"
               >
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className="w-8 h-8 rounded-full bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center shrink-0">
                     <Phone size={14} />
                   </div>
-                  <span className="font-bold font-mono text-sm text-[#1f1f1f]">
+                  <span className="font-bold text-sm text-[#1f1f1f]">
                     {maskPhoneNumber(lead.phone)}
                   </span>
                 </div>
-                <span className="text-xs font-semibold text-[#1a73e8] bg-white px-3 py-1 rounded-full border border-[#d2e3fc] shadow-2xs flex items-center gap-1">
-                  <Phone size={11} className="fill-[#1a73e8]" /> Call
+                <span className="text-[13px] font-bold text-[#1a73e8] bg-white px-4 py-2 rounded-full border border-[#d2e3fc] shadow-xs flex items-center gap-1.5">
+                  <Phone className="w-3.5 h-3.5 fill-[#1a73e8]" />
+                  <span>Call</span>
                 </span>
               </a>
             ) : (
-              <p className="text-xs text-[#80868b]">—</p>
+              <p className="text-xs text-[#80868b] pl-1">—</p>
             )}
           </div>
 
           {/* Product Requested */}
           <div className="pt-2 border-t border-[#f1f3f4]">
-            <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider block mb-1">
+            <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider block mb-1 pl-1">
               Target Sales Product
             </span>
-            <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7] text-xs text-[#1f1f1f]">
+            <div className="flex items-center gap-2.5 px-4 py-3 rounded-full bg-[#f8fafd] border border-[#e0e3e7] text-xs text-[#1f1f1f]">
               <Briefcase size={15} className="text-[#1a73e8] shrink-0" />
               <span className="font-medium">{currentProductType || lead.product_type || '—'}</span>
             </div>
@@ -252,12 +253,12 @@ const OriginationMobileSaleLeadDetails = () => {
           {/* Address */}
           {lead.address && (
             <div className="pt-2 border-t border-[#f1f3f4]">
-              <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider block mb-1">
+              <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider block mb-1 pl-1">
                 Residential / Business Address
               </span>
-              <div className="flex items-start gap-2.5 p-3 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7] text-xs text-[#1f1f1f]">
+              <div className="flex items-start gap-2.5 px-4 py-3 rounded-full bg-[#f8fafd] border border-[#e0e3e7] text-xs text-[#1f1f1f]">
                 <MapPin size={15} className="text-[#1a73e8] shrink-0 mt-0.5" />
-                <span className="leading-relaxed">{lead.address}</span>
+                <span className="leading-relaxed truncate">{lead.address}</span>
               </div>
             </div>
           )}
@@ -265,10 +266,10 @@ const OriginationMobileSaleLeadDetails = () => {
           {/* Created Date */}
           {lead.created_at && (
             <div className="pt-2 border-t border-[#f1f3f4]">
-              <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider block mb-1">
+              <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider block mb-1 pl-1">
                 Lead Registered On
               </span>
-              <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7] text-xs text-[#1f1f1f]">
+              <div className="flex items-center gap-2.5 px-4 py-3 rounded-full bg-[#f8fafd] border border-[#e0e3e7] text-xs text-[#1f1f1f]">
                 <Calendar size={15} className="text-[#1a73e8] shrink-0" />
                 <span>{format(new Date(lead.created_at), 'MMMM d, yyyy - h:mm a')}</span>
               </div>
