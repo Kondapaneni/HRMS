@@ -46,12 +46,13 @@ $app->post('/api/employee/attendance/punch', function (Request $request, Respons
     $address = $data['address'] ?? null;
     $photoUrl = $data['photo'] ?? null;
     
-    // Override address with Google Geocoding API if key is present
-    if ($lat && $lng) {
+    // Only fetch Google Geocoding API if address is empty and API key is present
+    if ($lat && $lng && empty($address)) {
         $apiKey = $_ENV['GOOGLE_GEOCODING_API_KEY'] ?? '';
         if ($apiKey) {
+            $ctx = stream_context_create(['http' => ['timeout' => 1.5]]);
             $url = "https://maps.googleapis.com/maps/api/geocode/json?latlng={$lat},{$lng}&key={$apiKey}";
-            $geocodeResponse = @file_get_contents($url);
+            $geocodeResponse = @file_get_contents($url, false, $ctx);
             if ($geocodeResponse) {
                 $geocodeData = json_decode($geocodeResponse, true);
                 if (!empty($geocodeData['results'][0]['formatted_address'])) {
@@ -169,8 +170,17 @@ $app->post('/api/employee/attendance/punch', function (Request $request, Respons
             throw new Exception('Invalid action.');
         }
 
+        // Fetch the fresh updated record for immediate UI sync
+        $stmtUpdated = $conn->prepare('SELECT id, "employeeId", date, status, "checkIn", "checkOut", hours, "isRegularized", "checkInPhoto", "checkOutPhoto", "checkInLat", "checkInLng", "checkInAddress", "checkOutLat", "checkOutLng", "checkOutAddress" FROM attendance WHERE "employeeId" = ? AND date = ? LIMIT 1');
+        $stmtUpdated->execute([$decodedToken->id, $today]);
+        $updatedRecord = $stmtUpdated->fetch(PDO::FETCH_ASSOC);
+
         $conn->commit();
-        $response->getBody()->write(json_encode(['message' => 'Punch successful', 'time' => $now]));
+        $response->getBody()->write(json_encode([
+            'message' => 'Punch successful',
+            'time' => $now,
+            'attendance' => $updatedRecord
+        ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
 
     } catch (Exception $e) {

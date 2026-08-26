@@ -11,9 +11,7 @@ import {
   Navigation, 
   AlertCircle, 
   CheckCircle2,
-  Sparkles,
   Camera,
-  Compass,
   Clock
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -98,55 +96,81 @@ const EmployeeMobileMap = () => {
         try {
           const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
           const geoData = await res.json();
-          if (geoData && geoData.display_name) {
+          if (geoData?.display_name) {
             setAddress(geoData.display_name);
           } else {
-            setAddress(`${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+            setAddress(`${lat.toFixed(6)}, ${lng.toFixed(6)}`);
           }
-        } catch (err) {
-          setAddress(`${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+        } catch (e) {
+          setAddress(`${lat.toFixed(6)}, ${lng.toFixed(6)}`);
         }
       },
       (error) => {
-        let errorMsg = 'Unable to determine your GPS location.';
-        if (error.code === 1) errorMsg = 'Location access permission was denied. Please allow location access in your browser settings.';
-        else if (error.code === 2) errorMsg = 'GPS location is currently unavailable.';
-        else if (error.code === 3) errorMsg = 'Location request timed out. Please check signal strength.';
-        setLocationError(errorMsg);
+        let msg = 'Unable to retrieve location.';
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            msg = 'Location permission denied. Please enable location services in your device settings.';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            msg = 'Location information is unavailable.';
+            break;
+          case error.TIMEOUT:
+            msg = 'Location request timed out.';
+            break;
+          default:
+            msg = 'An unknown error occurred while requesting location.';
+        }
+        setLocationError(msg);
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
     );
   }, []);
 
-  // Initialize Map and check geofence distance
+  // Initialize Google Maps
   useEffect(() => {
-    if (!currentLocation || !data || !data.googleMapsApiKey || !mapRef.current) return;
+    if (!currentLocation || !data) return;
+
+    const apiKey = data.googleMapsApiKey;
+    if (!apiKey) return;
 
     const loadGoogleMapsScript = () => {
       if (window.google && window.google.maps) {
         initMap();
         return;
       }
-      const existingScript = document.getElementById('google-maps-script');
-      if (existingScript) {
-        existingScript.addEventListener('load', initMap);
-        return;
+
+      const scriptId = 'google-maps-script';
+      let script = document.getElementById(scriptId);
+
+      if (!script) {
+        script = document.createElement('script');
+        script.id = scriptId;
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=geometry`;
+        script.async = true;
+        script.defer = true;
+        script.onload = () => initMap();
+        script.onerror = () => {
+          console.error('Failed to load Google Maps SDK.');
+        };
+        document.head.appendChild(script);
+      } else {
+        script.addEventListener('load', () => initMap());
       }
-      
-      const script = document.createElement('script');
-      script.id = 'google-maps-script';
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${data.googleMapsApiKey}&libraries=geometry&callback=initGoogleMap`;
-      script.async = true;
-      script.defer = true;
-      window.initGoogleMap = initMap;
-      document.head.appendChild(script);
     };
 
     const initMap = () => {
+      if (!mapRef.current || !window.google?.maps) return;
+
       const map = new window.google.maps.Map(mapRef.current, {
         center: currentLocation,
         zoom: 16,
+        minZoom: 16,
+        maxZoom: 16,
         disableDefaultUI: true,
+        zoomControl: false,
+        scrollwheel: false,
+        disableDoubleClickZoom: true,
+        keyboardShortcuts: false,
         gestureHandling: 'greedy',
       });
       mapInstanceRef.current = map;
@@ -264,59 +288,38 @@ const EmployeeMobileMap = () => {
   };
 
   return (
-    <div className="flex h-[100dvh] flex-col bg-[#f8fafd] overflow-hidden relative">
+    <div className="flex h-[100dvh] flex-col bg-slate-50 overflow-hidden relative">
       
-      {/* Header Card */}
-      <div className="bg-white border-b border-[#e0e3e7] p-4 z-10 shadow-xs">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => navigate('/employee', { replace: true })}
-              className="p-2 rounded-full border border-[#dadce0] bg-[#f8fafd] hover:bg-[#e8f0fe] text-[#1f1f1f] transition-all cursor-pointer shadow-2xs active:scale-95 shrink-0"
-              title="Back to Home"
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </button>
-            <div>
-              <div className="flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-                <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-                <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-                <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368] ml-1">
-                  GPS Verification
-                </span>
-              </div>
-              <h1 className="text-base font-bold text-[#1f1f1f] tracking-tight mt-0.5">
-                Verify Location &amp; Geofence
-              </h1>
-            </div>
-          </div>
-
-          <div className="p-2.5 rounded-2xl bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
-            <Compass className="w-4 h-4" />
-          </div>
-        </div>
+      {/* Header */}
+      <div className="flex items-center px-4 py-4 bg-white border-b border-slate-200 z-10 shadow-sm relative">
+        <button
+          onClick={() => navigate('/employee', { replace: true })}
+          className="p-2 -ml-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
+          title="Back to Dashboard"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </button>
+        <h1 className="ml-2 text-lg font-bold text-slate-900">Verify Location</h1>
       </div>
 
-      {/* Main Map Viewport */}
+      {/* Main Content Area */}
       <div className="flex-1 relative flex flex-col min-h-0">
         
-        <div className="flex-1 relative bg-[#f1f3f4]">
+        {/* Map Container */}
+        <div className="flex-1 relative bg-slate-100">
           {mapLockoutSeconds !== null && mapLockoutSeconds > 0 ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-white space-y-4 z-20">
               <div className="w-16 h-16 rounded-3xl bg-[#fef7e0] text-[#b06000] flex items-center justify-center border border-[#feefc3] shadow-xs">
                 <Clock className="w-8 h-8 animate-pulse" />
               </div>
               <div className="space-y-1 max-w-xs">
-                <h3 className="text-base font-bold text-[#1f1f1f]">Punch Rate Limit Active</h3>
-                <p className="text-xs text-[#5f6368]">
+                <h3 className="text-base font-bold text-slate-900">Punch Rate Limit Active</h3>
+                <p className="text-xs text-slate-500">
                   Too many punch requests were received in a short time. Location verification is temporarily locked.
                 </p>
               </div>
-              <div className="bg-[#f8fafd] border border-[#dadce0] rounded-2xl px-6 py-3 text-center space-y-0.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368]">Unlocks Automatically In</span>
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl px-6 py-3 text-center space-y-0.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Unlocks Automatically In</span>
                 <p className="text-2xl font-black font-mono text-[#b06000]">
                   {Math.floor(mapLockoutSeconds / 60)}m {String(mapLockoutSeconds % 60).padStart(2, '0')}s
                 </p>
@@ -330,107 +333,102 @@ const EmployeeMobileMap = () => {
               </button>
             </div>
           ) : locationError ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-white space-y-3">
-              <div className="w-12 h-12 rounded-2xl bg-[#fce8e6] text-[#c5221f] flex items-center justify-center border border-[#fad2cf]">
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-white space-y-3 z-10">
+              <div className="w-12 h-12 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center border border-red-100">
                 <MapPinOff className="w-6 h-6" />
               </div>
-              <h3 className="text-sm font-bold text-[#1f1f1f]">Location Permission Denied</h3>
-              <p className="text-xs text-[#5f6368] max-w-xs">{locationError}</p>
+              <h3 className="text-base font-bold text-slate-900">Location Access Denied</h3>
+              <p className="text-xs text-slate-500 max-w-xs">{locationError}</p>
               <button 
                 type="button"
                 onClick={() => window.location.reload()}
                 className="px-5 py-2 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-full text-xs font-semibold shadow-xs active:scale-95 transition-all cursor-pointer"
               >
-                Retry Location Request
+                Try Again
               </button>
             </div>
           ) : !currentLocation || loadingGeofences ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-white/70 backdrop-blur-xs z-10 space-y-3">
-              <Loader2 className="w-8 h-8 text-[#1a73e8] animate-spin" />
-              <p className="text-xs font-semibold text-[#1f1f1f] animate-pulse">Acquiring High-Accuracy GPS Coordinates...</p>
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-white/50 backdrop-blur-sm z-10">
+              <Loader2 className="w-10 h-10 text-[#1a73e8] animate-spin mb-4" />
+              <p className="text-slate-600 font-medium animate-pulse text-xs">Acquiring GPS Signal...</p>
             </div>
           ) : !data?.googleMapsApiKey ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-[#f8fafd] z-10 space-y-2">
-              <MapPin className="w-8 h-8 text-[#5f6368] opacity-40" />
-              <p className="text-xs font-semibold text-[#1f1f1f]">Map Visual Unavailable</p>
-              <p className="text-[11px] text-[#5f6368] max-w-xs">GPS coordinates are active and will be recorded with your attendance log.</p>
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-slate-100 z-10">
+              <MapPin className="w-12 h-12 text-slate-300 mb-4" />
+              <p className="text-slate-500 font-medium">Map unavailable</p>
+              <p className="text-xs text-slate-400 mt-1 max-w-xs">Waiting for admin to configure Google Maps API key.</p>
             </div>
           ) : (
             <div ref={mapRef} className="w-full h-full" />
           )}
         </div>
 
-        {/* Bottom Drawer Card */}
-        <div className="bg-white rounded-t-3xl shadow-2xl border-t border-[#e0e3e7] z-20 relative p-5 space-y-4">
-          
-          {/* Top 4-Color Gradient Line */}
-          <div className="h-1 -mt-5 -mx-5 mb-3 bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853]" />
+        {/* Bottom Drawer */}
+        <div className="bg-white rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.08)] z-20 relative pt-2 px-6 pb-8 border-t border-slate-100">
+          {/* Handle */}
+          <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-5" />
 
-          {/* Current Address Pill */}
-          <div className="flex items-center gap-3 p-3 bg-[#f8fafd] rounded-2xl border border-[#e0e3e7]">
-            <div className="w-8 h-8 rounded-xl bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center shrink-0 border border-[#d2e3fc]">
-              <Navigation className="w-4 h-4" />
+          {/* Location Info */}
+          <div className="flex items-start gap-4 mb-5">
+            <div className="w-10 h-10 rounded-full bg-[#e8f0fe] flex items-center justify-center shrink-0 border border-[#d2e3fc]">
+              <Navigation className="w-5 h-5 text-[#1a73e8]" />
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[9px] font-bold text-[#5f6368] uppercase tracking-wider">Current GPS Address</p>
-              <p className="text-xs font-semibold text-[#1f1f1f] leading-snug line-clamp-1 mt-0.5">{address}</p>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-sm font-bold tracking-tight text-slate-900 mb-0.5">Current Location</h3>
+              <p className="text-xs text-slate-500 leading-snug line-clamp-2">{address}</p>
             </div>
           </div>
 
-          {/* Geofence Status Alerts */}
+          {/* Geofence Status */}
           {currentLocation && isGeoFenceEnabled && action !== 'punch' && isInsideGeofence !== null && (
-            <div className={`p-3.5 rounded-2xl border ${
-              isInsideGeofence ? 'bg-[#e6f4ea] border-[#ceead6]' : 'bg-[#fce8e6] border-[#fad2cf]'
-            }`}>
-              <div className="flex items-start gap-2.5">
+            <div className={`p-4 rounded-2xl mb-5 border ${isInsideGeofence ? 'bg-emerald-50 border-emerald-100' : 'bg-red-50 border-red-100'}`}>
+              <div className="flex items-start gap-3">
                 {isInsideGeofence ? (
-                  <CheckCircle2 className="w-4 h-4 text-[#137333] shrink-0 mt-0.5" />
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
                 ) : (
-                  <AlertCircle className="w-4 h-4 text-[#c5221f] shrink-0 mt-0.5" />
+                  <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
                 )}
                 <div>
-                  <h4 className={`text-xs font-bold ${isInsideGeofence ? 'text-[#137333]' : 'text-[#c5221f]'}`}>
-                    {isInsideGeofence ? 'Inside Approved Workplace Geofence' : 'Outside Workplace Geofence'}
+                  <h4 className={`text-sm font-bold ${isInsideGeofence ? 'text-emerald-900' : 'text-red-900'}`}>
+                    {isInsideGeofence ? 'Inside Geofence' : 'Outside Geofence'}
                   </h4>
-                  <p className={`text-[11px] mt-0.5 ${isInsideGeofence ? 'text-[#137333]' : 'text-[#c5221f]'}`}>
+                  <p className={`text-xs mt-1 ${isInsideGeofence ? 'text-emerald-700' : 'text-red-700'}`}>
                     {isInsideGeofence 
-                      ? 'You are within the authorized workplace boundary. You may proceed to photo punch.' 
+                      ? "You are within the approved area to punch." 
                       : distanceToNearest 
-                        ? `You are currently ~${Math.round(distanceToNearest)} meters away from the nearest designated office location.`
-                        : 'Attendance must be marked within an authorized company geofence boundary.'}
+                        ? `You are ${Math.round(distanceToNearest)} meters away from the nearest boundary.`
+                        : "You must be within a company location to proceed."}
                   </p>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Warning for Remote / Flexible Punch Mode */}
+          {/* Warning for disabled geofence or punch action */}
           {currentLocation && (!isGeoFenceEnabled || action === 'punch') && (
-            <div className="p-3.5 rounded-2xl bg-[#e8f0fe] border border-[#d2e3fc]">
-              <div className="flex items-start gap-2.5">
-                <MapPin className="w-4 h-4 text-[#1a73e8] shrink-0 mt-0.5" />
+            <div className="p-4 rounded-2xl mb-5 bg-slate-50 border border-slate-100">
+              <div className="flex items-start gap-3">
+                <MapPin className="w-5 h-5 text-slate-500 shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="text-xs font-bold text-[#1a73e8]">Remote {getActionLabel()} Enabled</h4>
-                  <p className="text-[11px] text-[#5f6368] mt-0.5">Your verified GPS location coordinates will be submitted alongside your attendance record.</p>
+                  <h4 className="text-sm font-bold text-slate-700">Remote {getActionLabel()} Allowed</h4>
+                  <p className="text-xs mt-1 text-slate-500">Your location will be recorded with this {getActionLabel().toLowerCase()}.</p>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Action Button */}
+          {/* Google Button */}
           <button
             type="button"
             onClick={handleProceed}
             disabled={!canProceed || !currentLocation}
-            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold shadow-xs transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed active:scale-98"
+            className="w-full flex items-center justify-center gap-2.5 py-4 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] text-white text-sm font-bold shadow-sm transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98]"
           >
-            <Camera className="w-4 h-4" />
-            <span>Proceed to Face Capture</span>
+            <Camera className="w-5 h-5" />
+            <span>Proceed to Camera</span>
           </button>
-
         </div>
       </div>
-
     </div>
   );
 };

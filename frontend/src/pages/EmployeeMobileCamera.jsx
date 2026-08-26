@@ -132,7 +132,7 @@ const EmployeeMobileCamera = () => {
       const publicUrl = window.location.origin + "/Attendance/" + fileName;
 
       // 2. Submit Punch to backend
-      await api.post('/employee/attendance/punch', {
+      const punchRes = await api.post('/employee/attendance/punch', {
         action,
         latitude,
         longitude,
@@ -140,7 +140,40 @@ const EmployeeMobileCamera = () => {
         photo: publicUrl
       });
 
+      const updatedAtt = punchRes.data?.attendance;
+
+      if (updatedAtt) {
+        // Optimistically update standalone attendance cache
+        queryClient.setQueryData(['employee', 'attendance'], (old = []) => {
+          const list = Array.isArray(old) ? [...old] : [];
+          const idx = list.findIndex(r => r.id === updatedAtt.id || r.date === updatedAtt.date);
+          if (idx >= 0) {
+            list[idx] = updatedAtt;
+          } else {
+            list.unshift(updatedAtt);
+          }
+          return list;
+        });
+
+        // Optimistically update composite dashboard cache
+        queryClient.setQueryData(['employee', 'dashboard'], (old) => {
+          if (!old) return old;
+          const oldAttendance = Array.isArray(old.attendance) ? [...old.attendance] : [];
+          const idx = oldAttendance.findIndex(r => r.id === updatedAtt.id || r.date === updatedAtt.date);
+          if (idx >= 0) {
+            oldAttendance[idx] = updatedAtt;
+          } else {
+            oldAttendance.unshift(updatedAtt);
+          }
+          return {
+            ...old,
+            attendance: oldAttendance
+          };
+        });
+      }
+
       toast.success(`Successfully ${action.replace('-', ' ')}ed!`);
+      queryClient.invalidateQueries({ queryKey: ['employee', 'attendance'] });
       queryClient.invalidateQueries({ queryKey: ['employee', 'dashboard'] });
       navigate('/employee', { replace: true });
 

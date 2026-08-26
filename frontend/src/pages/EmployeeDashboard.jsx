@@ -202,12 +202,31 @@ const EmployeeDashboard = () => {
         }
 
         try {
-          await api.post('/employee/attendance/punch', {
+          const punchRes = await api.post('/employee/attendance/punch', {
             action,
             latitude: lat,
             longitude: lng,
             address: addr
           });
+
+          const updatedAtt = punchRes.data?.attendance;
+          if (updatedAtt) {
+            queryClient.setQueryData(['employee', 'dashboard'], (old) => {
+              if (!old) return old;
+              const oldAttendance = Array.isArray(old.attendance) ? [...old.attendance] : [];
+              const idx = oldAttendance.findIndex(r => r.id === updatedAtt.id || r.date === updatedAtt.date);
+              if (idx >= 0) {
+                oldAttendance[idx] = updatedAtt;
+              } else {
+                oldAttendance.unshift(updatedAtt);
+              }
+              return {
+                ...old,
+                attendance: oldAttendance
+              };
+            });
+          }
+
           toast.success(`Successfully ${action.replace('-', ' ')}ed!`);
           queryClient.invalidateQueries({ queryKey: ['employee', 'dashboard'] });
         } catch (error) {
