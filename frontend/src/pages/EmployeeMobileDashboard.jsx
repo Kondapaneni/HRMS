@@ -245,7 +245,7 @@ const EmployeeMobileDashboard = () => {
   if (loading) return <PageLoader message="Loading Dashboard..." />;
 
   return (
-    <div className="space-y-6 pb-2">
+    <div className="space-y-6 pb-4">
 
       {/* Hero Section with Animated Motion Graphics */}
       <section className="-mx-4 -mt-4 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900">
