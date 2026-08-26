@@ -106,7 +106,7 @@ const OriginationMobileLoanAddLead = () => {
               Add New Lead
             </h2>
             <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">
-              Register prospective applicant
+              Register Prospective Applicant
             </p>
           </div>
 
@@ -131,7 +131,7 @@ const OriginationMobileLoanAddLead = () => {
           </div>
           <div>
             <h2 className="text-xs font-bold text-[#1f1f1f] uppercase tracking-wider">Prospect Profile</h2>
-            <p className="text-[10px] text-[#5f6368]">Enter contact details for field verification</p>
+            <p className="text-[10px] text-[#5f6368]">Enter Contact Details For Field Verification</p>
           </div>
         </div>
 

@@ -104,7 +104,7 @@ const OriginationMobileSaleAddLead = () => {
               Add New Lead
             </h2>
             <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">
-              Register prospective client
+              Register Prospective Applicant
             </p>
           </div>
 
@@ -128,7 +128,7 @@ const OriginationMobileSaleAddLead = () => {
             </div>
             <div>
               <h2 className="text-xs font-bold text-[#1f1f1f] uppercase tracking-wider">Prospect Profile</h2>
-              <p className="text-[10px] text-[#5f6368]">Enter contact details for sales pipeline registration</p>
+              <p className="text-[10px] text-[#5f6368]">Enter Contact Details For Field Verification</p>
             </div>
           </div>
 

@@ -44,14 +44,32 @@ const OriginationMobileLoanLeadsList = () => {
   const rawLeads = response?.leads || [];
 
   const filteredLeads = useMemo(() => {
-    if (selectedStatusFilter === 'All') return rawLeads;
-    return rawLeads.filter(lead => {
-      if (selectedStatusFilter === 'Active/In Progress') {
-        return lead.status === 'Active' || lead.status === 'In Progress';
-      }
-      return lead.status === selectedStatusFilter;
-    });
-  }, [rawLeads, selectedStatusFilter]);
+    let result = rawLeads;
+
+    if (selectedStatusFilter !== 'All') {
+      result = result.filter(lead => {
+        if (selectedStatusFilter === 'Active/In Progress') {
+          return lead.status === 'Active' || lead.status === 'In Progress';
+        }
+        return lead.status === selectedStatusFilter;
+      });
+    }
+
+    if (debouncedSearch && debouncedSearch.trim()) {
+      const term = debouncedSearch.trim().toLowerCase();
+      result = result.filter(lead => {
+        return (
+          lead.name?.toLowerCase().includes(term) ||
+          lead.phone?.toLowerCase().includes(term) ||
+          lead.address?.toLowerCase().includes(term) ||
+          lead.loan_type?.toLowerCase().includes(term) ||
+          lead.product_type?.toLowerCase().includes(term)
+        );
+      });
+    }
+
+    return result;
+  }, [rawLeads, selectedStatusFilter, debouncedSearch]);
 
   const statusCounts = useMemo(() => {
     const counts = { All: rawLeads.length, New: 0, 'Follow Up': 0, Converted: 0, 'Not Interested': 0 };
@@ -169,7 +187,7 @@ const OriginationMobileLoanLeadsList = () => {
           <Search className="w-4.5 h-4.5 text-[#5f6368] shrink-0" />
           <input
             type="text"
-            placeholder="Search by name, phone, address..."
+            placeholder="Search by name, phone, address, loan type..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full text-[13.5px] font-medium bg-transparent border-none outline-none text-[#1f1f1f] placeholder:text-[#80868b] placeholder:text-[13px] pr-1"

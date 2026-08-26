@@ -42,6 +42,7 @@ import OriginationMobileLoanMemberDetails from './pages/OriginationMobileLoanMem
 import OriginationLoanMembersList from './pages/OriginationLoanMembersList'
 import OriginationSaleMembersList from './pages/OriginationSaleMembersList'
 import OriginationMobileSaleMemberDetails from './pages/OriginationMobileSaleMemberDetails'
+import OriginationSaleForms from './pages/OriginationSaleForms'
 import OriginationLoanApplicationsList from './pages/OriginationLoanApplicationsList'
 import OriginationLoanForms from './pages/OriginationLoanForms'
 import OriginationLoanViewApplication from './pages/OriginationLoanViewApplication'
@@ -279,6 +280,7 @@ function App() {
                 <Route path="origination/leads/details" element={<OriginationMobileSaleLeadDetails />} />
                 <Route path="origination/members" element={<OriginationSaleMembersList />} />
                 <Route path="origination/members/details" element={<OriginationMobileSaleMemberDetails />} />
+                <Route path="form" element={<OriginationSaleForms />} />
               </Route>
 
               {/* Branch Operations Workspace (Employee Only) */}

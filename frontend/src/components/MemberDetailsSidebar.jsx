@@ -137,15 +137,18 @@ const MemberDetailsSidebar = ({ isOpen, onClose, member, type = 'loan' }) => {
                       </div>
                     ) : (
                       <Link 
-                        to="/employee/loans/form"
+                        to={isSale ? "/employee/sales/form" : "/employee/loans/form"}
                         state={{ 
                           name: member.name, 
                           phone: member.phone, 
                           lead_id: currentLeadId, 
+                          product_type: title,
                           loan_type: title,
                           from: isSale ? '/employee/sales/origination/members' : '/employee/loans/origination/members'
                         }}
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-[#1a73e8] hover:underline"
+                        className={`inline-flex items-center gap-1 text-xs font-semibold hover:underline ${
+                          isSale ? 'text-[#137333]' : 'text-[#1a73e8]'
+                        }`}
                       >
                         Fill Application <ArrowRight size={13} />
                       </Link>

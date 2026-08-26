@@ -80,7 +80,7 @@ $app->get('/api/leads/list', function (Request $request, Response $response, $ar
         $params = [':uid' => $user->id];
 
         if (!empty($search)) {
-            $sql .= " AND (name ILIKE :search OR phone ILIKE :search OR address ILIKE :search)";
+            $sql .= " AND (name ILIKE :search OR phone ILIKE :search OR address ILIKE :search OR loan_type ILIKE :search)";
             $params[':search'] = '%' . $search . '%';
         }
 

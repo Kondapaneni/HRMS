@@ -30,6 +30,7 @@ const OriginationSalesLayout = () => {
     '/employee/sales/origination/leads/add',
     '/employee/sales/origination/leads/details',
     '/employee/sales/origination/members/details',
+    '/employee/sales/form',
   ];
   const shouldHideBottomNav = hideBottomNavPatterns.some((pattern) =>
     typeof pattern === 'string'
@@ -129,7 +130,8 @@ const OriginationSalesLayout = () => {
       label: 'Members', 
       path: '/employee/sales/origination/members',
       activePaths: [
-        '/employee/sales/origination/members/details'
+        '/employee/sales/origination/members/details',
+        '/employee/sales/form'
       ] 
     },
   ];

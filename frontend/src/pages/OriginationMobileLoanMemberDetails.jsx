@@ -248,7 +248,7 @@ const OriginationMobileLoanMemberDetails = ({ member: propMember }) => {
               </div>
               <div>
                 <h3 className="text-sm font-bold text-[#1f1f1f]">Loan Applications</h3>
-                <p className="text-[11px] text-[#5f6368]">Pipeline requests on record</p>
+                <p className="text-[11px] text-[#5f6368]">Pipeline Requests on Record</p>
               </div>
             </div>
 

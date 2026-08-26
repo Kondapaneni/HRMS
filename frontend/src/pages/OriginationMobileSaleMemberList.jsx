@@ -115,7 +115,7 @@ const OriginationMobileSaleMemberList = () => {
             Converted Members
           </h2>
           <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">
-            {members.length} active customer member accounts
+            {members.length} Active Member Profiles
           </p>
         </div>
       </section>
@@ -128,7 +128,7 @@ const OriginationMobileSaleMemberList = () => {
           <Search className="w-4.5 h-4.5 text-[#5f6368] shrink-0" />
           <input
             type="text"
-            placeholder="Search converted members..."
+            placeholder="Search members by name, phone, address..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full text-[13.5px] font-medium bg-transparent border-none outline-none text-[#1f1f1f] placeholder:text-[#80868b] placeholder:text-[13px] pr-1"

@@ -44,14 +44,32 @@ const OriginationMobileSaleLeadsList = () => {
   const rawLeads = response?.leads || response?.data || [];
 
   const filteredLeads = useMemo(() => {
-    if (selectedStatusFilter === 'All') return rawLeads;
-    return rawLeads.filter(lead => {
-      if (selectedStatusFilter === 'Active/In Progress') {
-        return lead.status === 'Active' || lead.status === 'In Progress';
-      }
-      return lead.status === selectedStatusFilter;
-    });
-  }, [rawLeads, selectedStatusFilter]);
+    let result = rawLeads;
+
+    if (selectedStatusFilter !== 'All') {
+      result = result.filter(lead => {
+        if (selectedStatusFilter === 'Active/In Progress') {
+          return lead.status === 'Active' || lead.status === 'In Progress';
+        }
+        return lead.status === selectedStatusFilter;
+      });
+    }
+
+    if (debouncedSearch && debouncedSearch.trim()) {
+      const term = debouncedSearch.trim().toLowerCase();
+      result = result.filter(lead => {
+        return (
+          lead.name?.toLowerCase().includes(term) ||
+          lead.phone?.toLowerCase().includes(term) ||
+          lead.address?.toLowerCase().includes(term) ||
+          lead.product_type?.toLowerCase().includes(term) ||
+          lead.loan_type?.toLowerCase().includes(term)
+        );
+      });
+    }
+
+    return result;
+  }, [rawLeads, selectedStatusFilter, debouncedSearch]);
 
   const statusCounts = useMemo(() => {
     const counts = { All: rawLeads.length, New: 0, 'Follow Up': 0, Converted: 0, 'Not Interested': 0 };

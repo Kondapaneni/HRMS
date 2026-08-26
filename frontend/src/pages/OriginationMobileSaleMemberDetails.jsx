@@ -135,7 +135,7 @@ const OriginationMobileSaleMemberDetails = ({ member: propMember }) => {
               Member Details
             </h2>
             <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">
-              Verified Client Profile
+              Verified Members Profile
             </p>
           </div>
 
@@ -167,7 +167,7 @@ const OriginationMobileSaleMemberDetails = ({ member: propMember }) => {
                   {member.name}
                 </h2>
                 <p className="text-xs text-[#137333] font-semibold truncate mt-0.5">
-                  Verified Client
+                  Verified Member
                 </p>
               </div>
             </div>
@@ -246,8 +246,8 @@ const OriginationMobileSaleMemberDetails = ({ member: propMember }) => {
                 <ShoppingBag className="w-4.5 h-4.5" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-[#1f1f1f]">Sale Products</h3>
-                <p className="text-[11px] text-[#5f6368]">Products assigned to this client</p>
+                <h3 className="text-sm font-bold text-[#1f1f1f]">Sale Applications</h3>
+                <p className="text-[11px] text-[#5f6368]">Pipeline Requests on Record</p>
               </div>
             </div>
 
@@ -296,15 +296,15 @@ const OriginationMobileSaleMemberDetails = ({ member: propMember }) => {
                         </span>
                       ) : (
                         <Link
-                          to="/employee/loans/form"
+                          to="/employee/sales/form"
                           state={{ 
                             name: member.name, 
                             phone: member.phone, 
                             lead_id: currentLeadId, 
-                            loan_type: prod.product_type || member.product_type || 'Personal Loan',
-                            from: '/employee/sales/origination/members'
+                            product_type: prod.product_type || member.product_type || 'Sales Product',
+                            from: '/employee/sales/origination/members/details'
                           }}
-                          className="inline-flex items-center justify-center gap-1.5 rounded-full text-xs font-bold bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white px-5 py-2.5 shadow-xs transition-all active:scale-95 cursor-pointer"
+                          className="inline-flex items-center justify-center gap-1.5 rounded-full text-xs font-bold bg-[#137333] hover:bg-[#0d5926] active:bg-[#0b5324] text-white px-5 py-2.5 shadow-xs transition-all active:scale-95 cursor-pointer"
                         >
                           <FileEdit size={13} />
                           <span>Fill Application</span>
@@ -331,15 +331,15 @@ const OriginationMobileSaleMemberDetails = ({ member: propMember }) => {
 
                 <div className="pt-2.5 border-t border-[#e0e3e7] flex items-center justify-end">
                   <Link
-                    to="/employee/loans/form"
+                    to="/employee/sales/form"
                     state={{ 
                       name: member.name, 
                       phone: member.phone, 
                       lead_id: member.lead_id, 
-                      loan_type: member.product_type || 'Personal Loan',
-                      from: '/employee/sales/origination/members'
+                      product_type: member.product_type || 'Sales Product',
+                      from: '/employee/sales/origination/members/details'
                     }}
-                    className="inline-flex items-center justify-center gap-1.5 rounded-full text-xs font-bold bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white px-5 py-2.5 shadow-xs transition-all active:scale-95 cursor-pointer"
+                    className="inline-flex items-center justify-center gap-1.5 rounded-full text-xs font-bold bg-[#137333] hover:bg-[#0d5926] active:bg-[#0b5324] text-white px-5 py-2.5 shadow-xs transition-all active:scale-95 cursor-pointer"
                   >
                     <FileEdit size={13} />
                     <span>Fill Application</span>

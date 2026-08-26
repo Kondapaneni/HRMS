@@ -46,14 +46,32 @@ const OriginationLoanLeadsList = () => {
   const rawLeads = response?.leads || [];
 
   const filteredLeads = useMemo(() => {
-    if (selectedStatusFilter === 'All') return rawLeads;
-    return rawLeads.filter(lead => {
-      if (selectedStatusFilter === 'Active/In Progress') {
-        return lead.status === 'Active' || lead.status === 'In Progress';
-      }
-      return lead.status === selectedStatusFilter;
-    });
-  }, [rawLeads, selectedStatusFilter]);
+    let result = rawLeads;
+
+    if (selectedStatusFilter !== 'All') {
+      result = result.filter(lead => {
+        if (selectedStatusFilter === 'Active/In Progress') {
+          return lead.status === 'Active' || lead.status === 'In Progress';
+        }
+        return lead.status === selectedStatusFilter;
+      });
+    }
+
+    if (debouncedSearch && debouncedSearch.trim()) {
+      const term = debouncedSearch.trim().toLowerCase();
+      result = result.filter(lead => {
+        return (
+          lead.name?.toLowerCase().includes(term) ||
+          lead.phone?.toLowerCase().includes(term) ||
+          lead.address?.toLowerCase().includes(term) ||
+          lead.loan_type?.toLowerCase().includes(term) ||
+          lead.product_type?.toLowerCase().includes(term)
+        );
+      });
+    }
+
+    return result;
+  }, [rawLeads, selectedStatusFilter, debouncedSearch]);
 
   const statusCounts = useMemo(() => {
     const counts = { All: rawLeads.length, New: 0, 'Follow Up': 0, Converted: 0, 'Not Interested': 0 };
@@ -162,7 +180,7 @@ const OriginationLoanLeadsList = () => {
             <input
               type="search"
               className="w-full pl-9.5 pr-8 py-2 text-xs bg-[#f8fafd] border border-[#dadce0] rounded-full focus:outline-none focus:ring-2 focus:ring-[#1a73e8]/30 focus:border-[#1a73e8] transition-all text-[#1f1f1f] placeholder:text-[#80868b]"
-              placeholder="Search by name, phone, loan..."
+              placeholder="Search by name, phone, loan type..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
