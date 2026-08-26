@@ -68,17 +68,27 @@ $app->get('/api/branch-operations/dashboard', function (Request $request, Respon
             return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
         }
 
-        // Fetch distinct creators in this branch for the employee filter dropdown
+        // Fetch strictly the distinct creators who created leads and applications belonging to this branch
         $creatorsStmt = $conn->prepare("
             SELECT DISTINCT
                 e.\"userId\" as user_id,
                 e.\"firstName\",
                 e.\"lastName\",
-                e.email
+                e.email,
+                active_creators.has_loans,
+                active_creators.has_sales
             FROM (
-                SELECT created_by::uuid as uid FROM public.loan_leads WHERE branch = :branch AND created_by IS NOT NULL
-                UNION
-                SELECT created_by::uuid as uid FROM public.loan_applications WHERE branch = :branch AND created_by IS NOT NULL
+                SELECT uid,
+                       bool_or(is_loan) as has_loans,
+                       bool_or(is_sale) as has_sales
+                FROM (
+                    SELECT created_by::uuid as uid, true as is_loan, false as is_sale FROM public.loan_leads WHERE branch = :branch AND created_by IS NOT NULL
+                    UNION ALL
+                    SELECT created_by::uuid as uid, true as is_loan, false as is_sale FROM public.loan_applications WHERE branch = :branch AND created_by IS NOT NULL
+                    UNION ALL
+                    SELECT created_by::uuid as uid, false as is_loan, true as is_sale FROM public.sale_leads WHERE branch = :branch AND created_by IS NOT NULL
+                ) combined
+                GROUP BY uid
             ) active_creators
             JOIN public.employee e ON active_creators.uid = e.\"userId\"
             ORDER BY e.\"firstName\" ASC, e.\"lastName\" ASC
@@ -91,13 +101,16 @@ $app->get('/api/branch-operations/dashboard', function (Request $request, Respon
             return [
                 'userId' => (string)$c['user_id'],
                 'name' => $fullName ?: ($c['email'] ?? 'Employee'),
-                'email' => $c['email'] ?? ''
+                'email' => $c['email'] ?? '',
+                'has_loans' => (bool)($c['has_loans'] ?? true),
+                'has_sales' => (bool)($c['has_sales'] ?? false),
             ];
         }, $creatorsRows);
 
-        // Optional filter by employee creator
+        // Optional filter by employee creator and pipeline
         $queryParams = $request->getQueryParams();
         $selectedEmployee = trim($queryParams['employee_id'] ?? $queryParams['created_by'] ?? '');
+        $selectedPipeline = strtolower(trim($queryParams['pipeline'] ?? 'all'));
 
         $empFilter = "";
         $params = [':branch' => $userBranch];
@@ -107,13 +120,24 @@ $app->get('/api/branch-operations/dashboard', function (Request $request, Respon
             $params[':emp_id'] = $selectedEmployee;
         }
 
+        // Define the target leads table expression based on pipeline
+        if ($selectedPipeline === 'sales') {
+            $leadsTable = "(SELECT id, name, phone, address, status, product_type as loan_type, branch, created_at, created_by FROM public.sale_leads WHERE branch = :branch $empFilter)";
+        } elseif ($selectedPipeline === 'loans') {
+            $leadsTable = "(SELECT id, name, phone, address, status, loan_type, branch, created_at, created_by FROM public.loan_leads WHERE branch = :branch $empFilter)";
+        } else {
+            $leadsTable = "(
+                SELECT id, name, phone, address, status, loan_type, branch, created_at, created_by FROM public.loan_leads WHERE branch = :branch $empFilter
+                UNION ALL
+                SELECT id, name, phone, address, status, product_type as loan_type, branch, created_at, created_by FROM public.sale_leads WHERE branch = :branch $empFilter
+            )";
+        }
+
         // 1. Total Leads This Month
         $stmt = $conn->prepare("
             SELECT COUNT(*) as total
-            FROM public.loan_leads
-            WHERE branch = :branch
-            AND date_trunc('month', created_at) = date_trunc('month', CURRENT_DATE)
-            $empFilter
+            FROM $leadsTable l
+            WHERE date_trunc('month', created_at) = date_trunc('month', CURRENT_DATE)
         ");
         $stmt->execute($params);
         $totalLeadsMonth = $stmt->fetchColumn() ?: 0;
@@ -121,10 +145,8 @@ $app->get('/api/branch-operations/dashboard', function (Request $request, Respon
         // 2. Active Opportunities
         $stmt = $conn->prepare("
             SELECT COUNT(*) as active
-            FROM public.loan_leads
-            WHERE branch = :branch
-            AND status IN ('New', 'Active', 'In Progress')
-            $empFilter
+            FROM $leadsTable l
+            WHERE status IN ('New', 'Active', 'In Progress', 'Follow Up', 'Contacted')
         ");
         $stmt->execute($params);
         $activeOpportunities = $stmt->fetchColumn() ?: 0;
@@ -132,10 +154,8 @@ $app->get('/api/branch-operations/dashboard', function (Request $request, Respon
         // 3. Converted Leads (Members)
         $stmt = $conn->prepare("
             SELECT COUNT(*) as converted
-            FROM public.loan_leads
-            WHERE branch = :branch
-            AND status = 'Converted'
-            $empFilter
+            FROM $leadsTable l
+            WHERE status = 'Converted'
         ");
         $stmt->execute($params);
         $convertedLeads = $stmt->fetchColumn() ?: 0;
@@ -150,8 +170,7 @@ $app->get('/api/branch-operations/dashboard', function (Request $request, Respon
                 COALESCE(SUM(CASE WHEN l.status != 'Converted' THEN 1 ELSE 0 END), 0) as leads,
                 COALESCE(SUM(CASE WHEN l.status = 'Converted' THEN 1 ELSE 0 END), 0) as converted
             FROM last_7_days
-            LEFT JOIN public.loan_leads l ON date(l.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata') = d
-                AND l.branch = :branch $empFilter
+            LEFT JOIN $leadsTable l ON date(l.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata') = d
             GROUP BY d
             ORDER BY d ASC;
         ");
@@ -168,8 +187,7 @@ $app->get('/api/branch-operations/dashboard', function (Request $request, Respon
                 COALESCE(SUM(CASE WHEN l.status != 'Converted' THEN 1 ELSE 0 END), 0) as leads,
                 COALESCE(SUM(CASE WHEN l.status = 'Converted' THEN 1 ELSE 0 END), 0) as converted
             FROM last_6_months
-            LEFT JOIN public.loan_leads l ON date_trunc('month', l.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata') = m
-                AND l.branch = :branch $empFilter
+            LEFT JOIN $leadsTable l ON date_trunc('month', l.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Kolkata') = m
             GROUP BY m
             ORDER BY m ASC;
         ");
@@ -179,10 +197,8 @@ $app->get('/api/branch-operations/dashboard', function (Request $request, Respon
         // 6. Last Month comparison for Percent Change
         $stmtLastMonth = $conn->prepare("
             SELECT COUNT(*) as total
-            FROM public.loan_leads
-            WHERE branch = :branch
-            AND date_trunc('month', created_at) = date_trunc('month', CURRENT_DATE - INTERVAL '1 month')
-            $empFilter
+            FROM $leadsTable l
+            WHERE date_trunc('month', created_at) = date_trunc('month', CURRENT_DATE - INTERVAL '1 month')
         ");
         $stmtLastMonth->execute($params);
         $lastMonthTotal = $stmtLastMonth->fetchColumn() ?: 0;
@@ -205,35 +221,38 @@ $app->get('/api/branch-operations/dashboard', function (Request $request, Respon
                 l.branch,
                 l.created_at,
                 TRIM(CONCAT(e.\"firstName\", ' ', e.\"lastName\")) as creator_name
-            FROM public.loan_leads l
+            FROM $leadsTable l
             LEFT JOIN public.employee e ON l.created_by::uuid = e.\"userId\"
-            WHERE l.branch = :branch $empFilter
             ORDER BY l.created_at DESC
             LIMIT 10
         ");
         $recentLeadsStmt->execute($params);
         $recentLeads = $recentLeadsStmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // 8. Recent 10 Loan Applications
-        $recentAppsStmt = $conn->prepare("
-            SELECT
-                a.id,
-                a.application_id,
-                a.lead_id,
-                a.loan_type,
-                a.status,
-                a.form_data,
-                a.branch,
-                a.created_at,
-                TRIM(CONCAT(e.\"firstName\", ' ', e.\"lastName\")) as creator_name
-            FROM public.loan_applications a
-            LEFT JOIN public.employee e ON a.created_by::uuid = e.\"userId\"
-            WHERE a.branch = :branch $empFilter
-            ORDER BY a.created_at DESC
-            LIMIT 10
-        ");
-        $recentAppsStmt->execute($params);
-        $recentApps = $recentAppsStmt->fetchAll(PDO::FETCH_ASSOC);
+        // 8. Recent 10 Loan Applications (or empty if sales-only)
+        if ($selectedPipeline === 'sales') {
+            $recentApps = [];
+        } else {
+            $recentAppsStmt = $conn->prepare("
+                SELECT
+                    a.id,
+                    a.application_id,
+                    a.lead_id,
+                    a.loan_type,
+                    a.status,
+                    a.form_data,
+                    a.branch,
+                    a.created_at,
+                    TRIM(CONCAT(e.\"firstName\", ' ', e.\"lastName\")) as creator_name
+                FROM public.loan_applications a
+                LEFT JOIN public.employee e ON a.created_by::uuid = e.\"userId\"
+                WHERE a.branch = :branch $empFilter
+                ORDER BY a.created_at DESC
+                LIMIT 10
+            ");
+            $recentAppsStmt->execute($params);
+            $recentApps = $recentAppsStmt->fetchAll(PDO::FETCH_ASSOC);
+        }
 
         // OPTIMIZATION: the original code called getBranchLoanDocumentsFromTable()
         // once per application inside this loop (10 extra queries for 10 recent

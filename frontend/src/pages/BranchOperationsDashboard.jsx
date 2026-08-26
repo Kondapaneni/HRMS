@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getBranchDashboardData } from '../services/loanServices';
 import PageLoader from '../components/PageLoader';
@@ -14,7 +14,8 @@ import {
   Briefcase,
   ChevronDown,
   Layers,
-  Award
+  Award,
+  UserCheck
 } from 'lucide-react';
 import {
   LineChart,
@@ -35,18 +36,38 @@ import { maskPhoneNumber } from '../utils/phoneUtils';
 
 const BranchOperationsDashboard = () => {
   const navigate = useNavigate();
+  const [selectedPipeline, setSelectedPipeline] = useState('all'); // 'all' | 'loans' | 'sales'
   const [selectedEmployee, setSelectedEmployee] = useState('all');
   const [activeTableTab, setActiveTableTab] = useState('leads'); // 'leads' | 'applications'
 
   const { data, isLoading } = useQuery({
-    queryKey: ['branchOperationsDashboard', selectedEmployee],
+    queryKey: ['branchOperationsDashboard', selectedEmployee, selectedPipeline],
     queryFn: getBranchDashboardData
   });
 
   const branch = data?.branch || { name: 'Assigned Branch' };
-  const creators = data?.creators || [];
+  const allCreators = data?.creators || [];
   const recentLeads = data?.recentLeads || [];
   const recentApplications = data?.recentApplications || [];
+
+  const filteredCreators = useMemo(() => {
+    if (selectedPipeline === 'loans') {
+      return allCreators.filter(c => c.has_loans !== false);
+    }
+    if (selectedPipeline === 'sales') {
+      return allCreators.filter(c => c.has_sales !== false);
+    }
+    return allCreators;
+  }, [allCreators, selectedPipeline]);
+
+  useEffect(() => {
+    if (selectedEmployee !== 'all' && filteredCreators.length > 0) {
+      const exists = filteredCreators.some(c => c.userId === selectedEmployee);
+      if (!exists) {
+        setSelectedEmployee('all');
+      }
+    }
+  }, [selectedPipeline, filteredCreators, selectedEmployee]);
 
   const stats = data?.stats || {
     total_leads_month: 0,
@@ -116,6 +137,7 @@ const BranchOperationsDashboard = () => {
           <div>
             <div className="flex items-center gap-1.5 mb-1">
               <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#7C4DFF]" />
               <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
               <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
               <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
@@ -125,7 +147,7 @@ const BranchOperationsDashboard = () => {
             </div>
             <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight flex items-center gap-2">
               Branch Operations Dashboard
-              <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">
+              <span className="text-xs font-semibold text-[#7C4DFF] bg-[#7C4DFF]/10 border border-[#7C4DFF]/25 px-2.5 py-0.5 rounded-full">
                 {branch.name}
               </span>
             </h1>
@@ -134,21 +156,44 @@ const BranchOperationsDashboard = () => {
             </p>
           </div>
 
-          {/* Dynamic Employee Filter Dropdown */}
-          <div className="relative shrink-0">
-            <select
-              value={selectedEmployee}
-              onChange={(e) => setSelectedEmployee(e.target.value)}
-              className="h-9.5 px-4 pr-9 rounded-full border border-[#dadce0] bg-white text-xs font-semibold text-[#1f1f1f] shadow-2xs hover:border-[#1a73e8] focus:outline-none focus:ring-2 focus:ring-[#1a73e8]/20 appearance-none cursor-pointer transition-colors"
-            >
-              <option value="all">All Branch Employees ({creators.length})</option>
-              {creators.map((c) => (
-                <option key={c.userId} value={c.userId}>
-                  {c.name}
+          {/* Dual Dynamic Filter Dropdowns (Pipeline & Employee) */}
+          <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+            {/* 1. Pipeline Selector */}
+            <div className="relative">
+              <select
+                value={selectedPipeline}
+                onChange={(e) => setSelectedPipeline(e.target.value)}
+                className="h-9.5 px-4 pr-9 rounded-full border border-[#dadce0] bg-white text-xs font-semibold text-[#1f1f1f] shadow-2xs hover:border-[#7C4DFF] focus:outline-none focus:ring-2 focus:ring-[#7C4DFF]/20 appearance-none cursor-pointer transition-colors"
+              >
+                <option value="all">All Pipelines (Loans &amp; Sales)</option>
+                <option value="loans">Loans Origination</option>
+                <option value="sales">Sales Origination</option>
+              </select>
+              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5f6368] pointer-events-none" />
+            </div>
+
+            {/* 2. Employee Selector */}
+            <div className="relative">
+              <select
+                value={selectedEmployee}
+                onChange={(e) => setSelectedEmployee(e.target.value)}
+                className="h-9.5 px-4 pr-9 rounded-full border border-[#dadce0] bg-white text-xs font-semibold text-[#1f1f1f] shadow-2xs hover:border-[#7C4DFF] focus:outline-none focus:ring-2 focus:ring-[#7C4DFF]/20 appearance-none cursor-pointer transition-colors"
+              >
+                <option value="all">
+                  {selectedPipeline === 'loans'
+                    ? `All Loan Officers (${filteredCreators.length})`
+                    : selectedPipeline === 'sales'
+                    ? `All Sales Officers (${filteredCreators.length})`
+                    : `All Branch Officers (${filteredCreators.length})`}
                 </option>
-              ))}
-            </select>
-            <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5f6368] pointer-events-none" />
+                {filteredCreators.map((c) => (
+                  <option key={c.userId} value={c.userId}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5f6368] pointer-events-none" />
+            </div>
           </div>
         </div>
 
@@ -173,7 +218,7 @@ const BranchOperationsDashboard = () => {
               </div>
               <p className="text-xs text-[#5f6368] font-normal pt-0.5">Vs previous month</p>
             </div>
-            <div className="p-3 rounded-2xl bg-[#e8f0fe] text-[#1a73e8] shrink-0">
+            <div className="p-3 rounded-2xl bg-[#7C4DFF]/10 text-[#7C4DFF] shrink-0">
               <Users className="w-5 h-5" />
             </div>
           </div>
@@ -234,13 +279,13 @@ const BranchOperationsDashboard = () => {
                 <p className="text-2xl font-bold text-[#1f1f1f] tracking-tight">
                   {recentApplications.length}
                 </p>
-                <span className="text-xs font-bold text-[#1a73e8] bg-[#e8f0fe] px-2 py-0.5 rounded-full">
+                <span className="text-xs font-bold text-[#7C4DFF] bg-[#7C4DFF]/10 px-2 py-0.5 rounded-full">
                   {conversionRate}% Conv.
                 </span>
               </div>
               <p className="text-xs text-[#5f6368] font-normal pt-0.5">Recorded this cycle</p>
             </div>
-            <div className="p-3 rounded-2xl bg-[#f3e8fd] text-[#8430ce] shrink-0">
+            <div className="p-3 rounded-2xl bg-[#7C4DFF]/10 text-[#7C4DFF] shrink-0">
               <Briefcase className="w-5 h-5" />
             </div>
           </div>
@@ -272,7 +317,7 @@ const BranchOperationsDashboard = () => {
                     }}
                   />
                   <Legend wrapperStyle={{ paddingTop: '16px', fontSize: '12px' }} />
-                  <Line type="monotone" dataKey="leads" name="Total Leads" stroke="#1a73e8" strokeWidth={2.5} dot={{ r: 3, fill: '#1a73e8' }} activeDot={{ r: 5 }} />
+                  <Line type="monotone" dataKey="leads" name="Total Leads" stroke="#7C4DFF" strokeWidth={2.5} dot={{ r: 3, fill: '#7C4DFF' }} activeDot={{ r: 5 }} />
                   <Line type="monotone" dataKey="converted" name="Converted" stroke="#137333" strokeWidth={2.5} dot={{ r: 3, fill: '#137333' }} activeDot={{ r: 5 }} />
                 </LineChart>
               </ResponsiveContainer>
@@ -304,8 +349,8 @@ const BranchOperationsDashboard = () => {
                     cursor={{ fill: '#f8fafd' }}
                   />
                   <Legend wrapperStyle={{ paddingTop: '16px', fontSize: '12px' }} />
-                  <Bar dataKey="leads" name="Total Leads" fill="#1a73e8" radius={[6, 6, 0, 0]} barSize={28} />
-                  <Bar dataKey="converted" name="Converted" fill="#137333" radius={[6, 6, 0, 0]} barSize={28} />
+                  <Bar dataKey="leads" name="Total Leads" fill="#7C4DFF" radius={[4, 4, 0, 0]} barSize={16} />
+                  <Bar dataKey="converted" name="Converted" fill="#137333" radius={[4, 4, 0, 0]} barSize={16} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

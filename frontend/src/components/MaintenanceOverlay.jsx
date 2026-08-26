@@ -80,14 +80,14 @@ const MaintenanceOverlay = ({ message, onBypassSuccess }) => {
           {message || "The Acme HRMS platform is currently undergoing scheduled maintenance. Please check back shortly."}
         </p>
 
-        <div className="flex flex-col items-center gap-2.5">
+        <div className="flex flex-col items-center gap-3 w-full">
           <button 
             type="button"
             onClick={handleRefresh}
             disabled={isRefreshing}
-            className="inline-flex items-center justify-center gap-2 w-full py-3 px-6 bg-white border border-[#dadce0] hover:bg-[#f8fafd] text-[#1f1f1f] text-xs font-semibold rounded-full transition-all cursor-pointer disabled:opacity-70 shadow-2xs active:scale-98"
+            className="inline-flex items-center justify-center gap-2 w-full py-3.5 px-4 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-bold transition-all cursor-pointer shadow-2xs disabled:opacity-70 active:scale-95"
           >
-            <RefreshCw size={15} className={isRefreshing ? 'animate-spin text-[#1a73e8]' : 'text-[#5f6368]'} />
+            <RefreshCw size={16} className={isRefreshing ? 'animate-spin text-[#1a73e8]' : 'text-[#5f6368]'} />
             <span>{isRefreshing ? 'Checking Status...' : 'Check Again / Refresh'}</span>
           </button>
 
@@ -97,9 +97,9 @@ const MaintenanceOverlay = ({ message, onBypassSuccess }) => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               onClick={() => setShowModal(true)}
-              className="inline-flex items-center justify-center gap-2 w-full py-3 px-6 bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold rounded-full transition-all shadow-xs cursor-pointer active:scale-98"
+              className="inline-flex items-center justify-center gap-2 w-full py-3.5 px-4 rounded-full text-white text-sm font-bold transition-all cursor-pointer shadow-xs active:scale-95 bg-[#1a73e8] hover:bg-[#1557b0]"
             >
-              <Terminal size={15} />
+              <Terminal size={16} />
               <span>Developer Bypass</span>
             </motion.button>
           )}
@@ -148,7 +148,7 @@ const MaintenanceOverlay = ({ message, onBypassSuccess }) => {
                       placeholder="Developer Password..."
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 bg-[#f8fafd] border border-[#dadce0] rounded-full text-xs font-medium outline-none focus:border-[#1a73e8] focus:bg-white transition-all text-[#1f1f1f]"
+                      className="w-full pl-10 pr-4 py-3 bg-[#f8fafd] border border-[#dadce0] rounded-full text-xs font-medium outline-none focus:border-[#1a73e8] focus:bg-white transition-all text-[#1f1f1f]"
                     />
                   </div>
                   {error && (
@@ -158,17 +158,17 @@ const MaintenanceOverlay = ({ message, onBypassSuccess }) => {
                   )}
                 </div>
 
-                <div className="flex gap-2 pt-1">
+                <div className="grid grid-cols-2 gap-3 pt-1">
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="flex-1 py-2.5 bg-white border border-[#dadce0] hover:bg-[#f1f3f4] text-[#1f1f1f] font-semibold text-xs rounded-full transition-colors cursor-pointer"
+                    className="w-full py-3.5 px-4 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-bold transition-all cursor-pointer shadow-2xs active:scale-95"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 py-2.5 bg-[#1a73e8] hover:bg-[#1557b0] text-white font-semibold text-xs rounded-full transition-colors shadow-xs cursor-pointer"
+                    className="w-full py-3.5 px-4 rounded-full text-white text-sm font-bold transition-all cursor-pointer shadow-xs active:scale-95 bg-[#1a73e8] hover:bg-[#1557b0]"
                   >
                     Authenticate
                   </button>

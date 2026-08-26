@@ -147,8 +147,8 @@ const BranchOperationsLayout = () => {
           <div className="h-14 flex items-center justify-between px-4 border-b border-[#f1f3f4] shrink-0 mt-0.5">
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="text-lg font-bold tracking-tight text-[#1f1f1f]">Acme</span>
-                <span className="text-lg font-semibold tracking-tight text-[#4285F4]">Operations</span>
+                <span className="text-base font-bold tracking-tight text-[#1f1f1f]">Acme</span>
+                <span className="text-base font-semibold tracking-tight text-[#4285F4]">Branch Operations</span>
               </div>
               <div className="flex items-center gap-1 mt-0.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
@@ -243,11 +243,11 @@ const BranchOperationsLayout = () => {
               </div>
             </div>
 
-            {/* Mobile Center: Acme Operations with 4 Google dots */}
+            {/* Mobile Center: Acme Branch Operations with 4 Google dots */}
             <div className="md:hidden absolute left-1/2 -translate-x-1/2 flex items-center pointer-events-auto">
               <Link to="/employee/branch-operations" className="flex items-center gap-1.5 shrink-0">
-                <span className="text-base font-bold tracking-tight text-[#1f1f1f]">Acme</span>
-                <span className="text-base font-semibold tracking-tight text-[#4285F4]">Operations</span>
+                <span className="text-sm font-bold tracking-tight text-[#1f1f1f]">Acme</span>
+                <span className="text-sm font-semibold tracking-tight text-[#4285F4]">Branch Operations</span>
                 <div className="flex items-center gap-0.5 ml-0.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
                   <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />

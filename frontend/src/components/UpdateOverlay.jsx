@@ -139,7 +139,7 @@ export default function UpdateOverlay() {
               type="button"
               onClick={handleUpdate}
               disabled={isUpdating}
-              className="w-full py-3.5 px-6 bg-[#1a73e8] hover:bg-[#1557b0] disabled:opacity-70 text-white text-xs font-semibold rounded-full transition-all shadow-xs active:scale-98 cursor-pointer flex items-center justify-center gap-2"
+              className="w-full py-3.5 px-6 rounded-full text-white text-sm font-bold transition-all cursor-pointer shadow-xs active:scale-95 bg-[#1a73e8] hover:bg-[#1557b0] disabled:opacity-70 flex items-center justify-center gap-2"
             >
               {isUpdating ? (
                 <>
@@ -148,7 +148,7 @@ export default function UpdateOverlay() {
                 </>
               ) : (
                 <>
-                  <Download size={15} />
+                  <Download size={16} />
                   <span>Update &amp; Reload</span>
                 </>
               )}

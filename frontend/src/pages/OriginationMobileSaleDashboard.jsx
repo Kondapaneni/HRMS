@@ -84,33 +84,33 @@ const OriginationMobileSaleDashboard = () => {
     switch (status) {
       case 'New':
         return (
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] shrink-0 shadow-2xs">
-            <Clock size={14} /> New
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] shrink-0 shadow-2xs">
+            <Clock size={12} /> New
           </span>
         );
       case 'Follow Up':
       case 'Contacted':
         return (
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold bg-[#f3e8fd] text-[#8430ce] border border-[#e9d5ff] shrink-0 shadow-2xs">
-            <TrendingUp size={14} /> Follow Up
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#f3e8fd] text-[#8430ce] border border-[#e9d5ff] shrink-0 shadow-2xs">
+            <TrendingUp size={12} /> Follow Up
           </span>
         );
       case 'Active':
       case 'In Progress':
         return (
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold bg-[#fef7e0] text-[#b06000] border border-[#feefc3] shrink-0 shadow-2xs">
-            <Clock size={14} /> {status}
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#fef7e0] text-[#b06000] border border-[#feefc3] shrink-0 shadow-2xs">
+            <Clock size={12} /> {status}
           </span>
         );
       case 'Converted':
         return (
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold bg-[#e6f4ea] text-[#137333] border border-[#ceead6] shrink-0 shadow-2xs">
-            <CheckCircle2 size={14} /> Converted
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#e6f4ea] text-[#137333] border border-[#ceead6] shrink-0 shadow-2xs">
+            <CheckCircle2 size={12} /> Converted
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0] shrink-0 shadow-2xs">
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0] shrink-0 shadow-2xs">
             {status || 'Pending'}
           </span>
         );
@@ -263,10 +263,10 @@ const OriginationMobileSaleDashboard = () => {
         <div className="flex items-center justify-between gap-2 mb-4">
           <div className="min-w-0 pr-1">
             <h3 className="text-sm font-bold text-[#1f1f1f] truncate">
-              {chartTab === 'daily' ? 'Daily Leads (Last 7 Days)' : 'Monthly Performance'}
+              {chartTab === 'daily' ? 'Daily Leads (7 Days)' : 'Monthly Performance'}
             </h3>
             <p className="text-[11px] text-[#5f6368] truncate">
-              {chartTab === 'daily' ? 'Daily acquisition & conversion' : '6-month performance trend'}
+              {chartTab === 'daily' ? 'Acquisition & Conversion' : '6-Month Performance Trend'}
             </p>
           </div>
 
@@ -274,9 +274,9 @@ const OriginationMobileSaleDashboard = () => {
             <button
               type="button"
               onClick={() => setChartTab('daily')}
-              className={`whitespace-nowrap px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+              className={`whitespace-nowrap px-3 py-1 rounded-full text-[11.5px] font-semibold transition-all cursor-pointer ${
                 chartTab === 'daily'
-                  ? 'bg-white text-[#137333] shadow-2xs'
+                  ? 'bg-white text-[#137333] shadow-2xs font-bold'
                   : 'text-[#5f6368] hover:text-[#1f1f1f]'
               }`}
             >
@@ -285,9 +285,9 @@ const OriginationMobileSaleDashboard = () => {
             <button
               type="button"
               onClick={() => setChartTab('monthly')}
-              className={`whitespace-nowrap px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+              className={`whitespace-nowrap px-3 py-1 rounded-full text-[11.5px] font-semibold transition-all cursor-pointer ${
                 chartTab === 'monthly'
-                  ? 'bg-white text-[#137333] shadow-2xs'
+                  ? 'bg-white text-[#137333] shadow-2xs font-bold'
                   : 'text-[#5f6368] hover:text-[#1f1f1f]'
               }`}
             >

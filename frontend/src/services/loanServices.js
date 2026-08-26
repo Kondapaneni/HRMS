@@ -143,9 +143,13 @@ export const updateLoanApplicationDetails = async (appId, formData, loanType) =>
  */
 export const getBranchDashboardData = async ({ queryKey } = {}) => {
   const employeeId = queryKey?.[1] || '';
-  const url = employeeId && employeeId !== 'all'
-    ? `/branch-operations/dashboard?employee_id=${encodeURIComponent(employeeId)}`
-    : '/branch-operations/dashboard';
+  const pipeline = queryKey?.[2] || 'all';
+  const params = new URLSearchParams();
+  if (employeeId && employeeId !== 'all') params.append('employee_id', employeeId);
+  if (pipeline && pipeline !== 'all') params.append('pipeline', pipeline);
+
+  const qs = params.toString();
+  const url = qs ? `/branch-operations/dashboard?${qs}` : '/branch-operations/dashboard';
   const response = await api.get(url);
   return response.data;
 };
