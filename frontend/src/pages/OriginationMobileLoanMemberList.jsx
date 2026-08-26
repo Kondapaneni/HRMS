@@ -173,7 +173,7 @@ const OriginationMobileLoanMemberList = () => {
                     {member.name || 'Unnamed Member'}
                   </h3>
                   <div className="flex items-center gap-2 text-[10.5px] text-[#5f6368]">
-                    <span className="inline-flex items-center gap-1 font-mono font-medium text-[#1f1f1f]">
+                    <span className="inline-flex items-center gap-1 font-medium text-[#5f6368]">
                       <Phone size={10} className="text-[#80868b]" />
                       {member.phone ? maskPhoneNumber(member.phone) : '—'}
                     </span>

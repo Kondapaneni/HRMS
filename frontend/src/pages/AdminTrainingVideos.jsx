@@ -426,13 +426,13 @@ const AdminTrainingVideos = () => {
                 </div>
 
                 {/* Card Footer / Assignment Action */}
-                <div className="p-4 pt-0 border-t border-[#f1f3f4] mt-2 flex items-center justify-between">
-                  <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${
+                <div className="px-4 py-3.5 border-t border-[#e0e3e7] bg-[#f8fafd]/40 flex items-center justify-between">
+                  <span className={`inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full ${
                     hasAssigned 
                       ? 'bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]' 
                       : 'bg-[#fef7e0] text-[#b06000] border border-[#feefc3]'
                   }`}>
-                    <Users className="w-3 h-3" />
+                    <Users className="w-3.5 h-3.5" />
                     {hasAssigned ? `${assignedCount} Assigned` : 'All Staff (Open)'}
                   </span>
 
@@ -444,7 +444,7 @@ const AdminTrainingVideos = () => {
                       setAssignSearchQuery('');
                       setIsAssignModalOpen(true);
                     }}
-                    className="inline-flex items-center gap-1 text-xs font-semibold text-[#1a73e8] hover:text-[#1557b0] hover:underline cursor-pointer"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1a73e8] hover:text-[#1557b0] hover:underline cursor-pointer"
                   >
                     <UserCheck className="w-3.5 h-3.5" />
                     <span>Manage Staff</span>

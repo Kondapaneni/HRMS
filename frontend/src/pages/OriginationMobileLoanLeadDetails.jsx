@@ -136,43 +136,57 @@ const OriginationMobileLoanLeadDetails = () => {
   return (
     <div className="space-y-4 pb-14">
 
-      {/* 1. Header Card (Google Material 3 Workspace) */}
-      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs relative overflow-hidden bg-gradient-to-br from-white via-[#f8fafd] to-[#e8f0fe]/30 space-y-2">
-        {/* Workspace Tag */}
-        <div className="flex items-center gap-1.5 whitespace-nowrap shrink-0">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4] shrink-0" />
-          <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335] shrink-0" />
-          <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05] shrink-0" />
-          <span className="w-1.5 h-1.5 rounded-full bg-[#34A853] shrink-0" />
-          <span className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368] ml-0.5 whitespace-nowrap">
-            Origination Workspace
-          </span>
-        </div>
+      {/* 1. Hero Section with Animated Motion Graphics */}
+      <section className="-mx-4 -mt-4 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900">
+        {/* Animated Liquid Orbs with Loans Origination Blue & Indigo Theme */}
+        <motion.div
+          animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -top-20 -left-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+        />
+        <motion.div
+          animate={{ scale: [1, 1.4, 1], x: [0, -40, 0], y: [0, 50, 0] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute -top-10 -right-10 w-64 h-64 bg-indigo-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+        />
+        <motion.div
+          animate={{ scale: [1, 1.3, 1], x: [0, 30, 0], y: [0, -40, 0] }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          className="absolute bottom-0 left-20 w-80 h-80 bg-sky-400 rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
+        />
+        
+        {/* Subtle Glass Overlay */}
+        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
 
-        {/* Heading + Back Button Row (Same Line) */}
-        <div className="flex items-center justify-between gap-3">
-          <h1 className="text-xl font-bold text-[#1f1f1f] tracking-tight">
-            Lead Details
-          </h1>
+        <div className="relative z-10 px-2 flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">
+              Origination &bull; Loan Pipeline
+            </p>
+            <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">
+              Lead Details
+            </h2>
+            <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90 truncate max-w-[220px]">
+              {lead.name || 'Prospect Profile'}
+            </p>
+          </div>
 
           <button
             type="button"
             onClick={() => navigate('/employee/loans/origination/leads')}
-            className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] px-3.5 py-1.5 transition-all gap-1.5 shadow-2xs cursor-pointer shrink-0 whitespace-nowrap"
+            className="inline-flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white px-4 py-3 rounded-full text-xs font-bold backdrop-blur-md border border-white/30 shadow-xs transition-all active:scale-95 cursor-pointer shrink-0"
           >
-            <ArrowLeft className="w-3.5 h-3.5 text-[#5f6368]" />
+            <ArrowLeft size={14} />
             <span>Back</span>
           </button>
         </div>
+      </section>
 
-        {/* Subtitle Row (Full Width - Always Single Line) */}
-        <p className="text-xs text-[#5f6368] truncate">
-          Prospect ID &bull; Pipeline Verification Profile
-        </p>
-      </div>
+      {/* 2. Elevated Content Layer */}
+      <div className="relative z-20 -mt-8 mx-0.5 space-y-4">
 
-      {/* 2. Lead Profile Card */}
-      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs space-y-4">
+        {/* Lead Profile Card */}
+        <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs space-y-4">
         
         {/* Avatar, Name & Status Pill */}
         <div className="flex items-center justify-between gap-3 pb-4 border-b border-[#f1f3f4]">
@@ -185,7 +199,7 @@ const OriginationMobileLoanLeadDetails = () => {
                 {lead.name}
               </h2>
               {(currentLoanType || lead.loan_type) && (
-                <p className="text-xs text-[#1a73e8] font-medium truncate mt-0.5">
+                <p className="text-xs text-[#1a73e8] font-semibold truncate mt-0.5">
                   {currentLoanType || lead.loan_type}
                 </p>
               )}
@@ -213,7 +227,7 @@ const OriginationMobileLoanLeadDetails = () => {
                   <div className="w-8 h-8 rounded-full bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center shrink-0">
                     <Phone size={14} />
                   </div>
-                  <span className="font-bold font-mono text-sm text-[#1f1f1f]">
+                  <span className="font-bold text-sm text-[#1f1f1f]">
                     {maskPhoneNumber(lead.phone)}
                   </span>
                 </div>
@@ -283,7 +297,7 @@ const OriginationMobileLoanLeadDetails = () => {
             type="button"
             onClick={() => handleUpdateStatus('Follow Up')}
             disabled={statusMutation.isPending || isConverted}
-            className="w-full flex items-center justify-center gap-2 bg-[#f3e8fd] hover:bg-[#ede9fe] text-[#8430ce] border border-[#e9d5ff] px-4 py-2.5 rounded-full text-xs font-semibold transition-all shadow-2xs disabled:opacity-50 cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 bg-[#f3e8fd] hover:bg-[#ede9fe] text-[#8430ce] border border-[#e9d5ff] px-4 py-3 rounded-full text-xs font-semibold transition-all shadow-2xs disabled:opacity-50 cursor-pointer"
           >
             {statusMutation.isPending && statusMutation.variables?.status === 'Follow Up' ? (
               <Loader2 size={14} className="animate-spin" />
@@ -297,7 +311,7 @@ const OriginationMobileLoanLeadDetails = () => {
             type="button"
             onClick={() => handleUpdateStatus('Converted')}
             disabled={statusMutation.isPending || isConverted}
-            className="w-full flex items-center justify-center gap-2 bg-[#137333] hover:bg-[#0d5926] text-white px-4 py-2.5 rounded-full text-xs font-semibold transition-all shadow-xs disabled:opacity-50 cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 bg-[#137333] hover:bg-[#0d5926] text-white px-4 py-3 rounded-full text-xs font-semibold transition-all shadow-xs disabled:opacity-50 cursor-pointer"
           >
             {statusMutation.isPending && statusMutation.variables?.status === 'Converted' ? (
               <Loader2 size={14} className="animate-spin" />
@@ -311,7 +325,7 @@ const OriginationMobileLoanLeadDetails = () => {
             type="button"
             onClick={() => handleUpdateStatus('Not Interested')}
             disabled={statusMutation.isPending || isConverted}
-            className="w-full flex items-center justify-center gap-2 bg-white hover:bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf] px-4 py-2.5 rounded-full text-xs font-semibold transition-all shadow-2xs disabled:opacity-50 cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 bg-white hover:bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf] px-4 py-3 rounded-full text-xs font-semibold transition-all shadow-2xs disabled:opacity-50 cursor-pointer"
           >
             {statusMutation.isPending && statusMutation.variables?.status === 'Not Interested' ? (
               <Loader2 size={14} className="animate-spin" />
@@ -321,6 +335,7 @@ const OriginationMobileLoanLeadDetails = () => {
             <span>Mark as Not Interested</span>
           </button>
         </div>
+      </div>
       </div>
 
       {/* 4. Convert to Member Bottom Sheet Modal */}
@@ -391,7 +406,7 @@ const OriginationMobileLoanLeadDetails = () => {
                 <button
                   type="button"
                   onClick={() => setShowConvertModal(false)}
-                  className="px-4 py-2 rounded-full text-xs font-semibold text-[#5f6368] hover:bg-[#f1f3f4] transition-colors cursor-pointer"
+                  className="px-4 py-3 rounded-full text-xs font-semibold text-[#5f6368] hover:bg-[#f1f3f4] transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -399,7 +414,7 @@ const OriginationMobileLoanLeadDetails = () => {
                   type="button"
                   onClick={handleConfirmConvert}
                   disabled={statusMutation.isPending}
-                  className="px-5 py-2 rounded-full text-xs font-semibold bg-[#137333] text-white hover:bg-[#0d5926] transition-colors flex items-center gap-1.5 disabled:opacity-50 shadow-xs cursor-pointer"
+                  className="px-5 py-3 rounded-full text-xs font-semibold bg-[#137333] text-white hover:bg-[#0d5926] transition-colors flex items-center gap-1.5 disabled:opacity-50 shadow-xs cursor-pointer"
                 >
                   {statusMutation.isPending ? <Loader2 size={13} className="animate-spin" /> : <UserPlus size={13} />}
                   <span>Confirm &amp; Convert</span>

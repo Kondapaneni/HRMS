@@ -14,11 +14,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { capitalizeWords, validateAddLeadForm } from '../utils/loanValidations';
 import { createSalesLead } from '../services/salesServices';
-import {
-  TextField,
-  PhoneField,
-  TextareaField
-} from '../components/forms';
 
 const OriginationMobileSaleAddLead = () => {
   const navigate = useNavigate();
@@ -122,38 +117,69 @@ const OriginationMobileSaleAddLead = () => {
         </div>
 
         <div className="space-y-4">
-          <TextField
-            name="name"
-            label="Prospect Full Name"
-            value={formData.name}
-            onChange={handleNameChange}
-            required
-            placeholder="e.g. Rahul Sharma"
-            error={errors.name}
-            prefix={<User size={15} className="text-[#5f6368]" />}
-          />
+          {/* Full Name */}
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-bold text-[#5f6368] uppercase tracking-wider block">
+              Prospect Full Name <span className="text-[#d93025]">*</span>
+            </label>
+            <div className="relative">
+              <User size={15} className="text-[#80868b] absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) => handleNameChange(e.target.value)}
+                placeholder="e.g. Rahul Sharma"
+                required
+                className={`w-full bg-[#f8fafd] border ${
+                  errors.name ? 'border-[#d93025] focus:border-[#d93025] focus:ring-[#d93025]/20' : 'border-[#dadce0] focus:border-[#1a73e8] focus:ring-[#1a73e8]/20'
+                } rounded-full pl-10 pr-4 py-3 text-xs font-semibold text-[#1f1f1f] placeholder:text-[#80868b] focus:bg-white focus:ring-2 outline-none transition-all`}
+              />
+            </div>
+            {errors.name && <p className="text-[10px] text-[#d93025] font-medium pl-3">{errors.name}</p>}
+          </div>
 
-          <PhoneField
-            name="phone"
-            label="Mobile Number"
-            value={formData.phone}
-            onChange={handlePhoneChange}
-            required
-            placeholder="10-digit primary contact number"
-            error={errors.phone}
-            prefix={<Phone size={15} className="text-[#5f6368]" />}
-          />
+          {/* Mobile Number */}
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-bold text-[#5f6368] uppercase tracking-wider block">
+              Mobile Number <span className="text-[#d93025]">*</span>
+            </label>
+            <div className="relative">
+              <Phone size={15} className="text-[#80868b] absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="tel"
+                maxLength={10}
+                value={formData.phone}
+                onChange={(e) => handlePhoneChange(e.target.value)}
+                placeholder="10-digit primary contact number"
+                required
+                className={`w-full bg-[#f8fafd] border ${
+                  errors.phone ? 'border-[#d93025] focus:border-[#d93025] focus:ring-[#d93025]/20' : 'border-[#dadce0] focus:border-[#1a73e8] focus:ring-[#1a73e8]/20'
+                } rounded-full pl-10 pr-4 py-3 text-xs font-semibold text-[#1f1f1f] placeholder:text-[#80868b] focus:bg-white focus:ring-2 outline-none transition-all`}
+              />
+            </div>
+            {errors.phone && <p className="text-[10px] text-[#d93025] font-medium pl-3">{errors.phone}</p>}
+          </div>
 
-          <TextareaField
-            name="address"
-            label="Residential / Business Address"
-            value={formData.address}
-            onChange={handleAddressChange}
-            required
-            placeholder="Complete address including street, area, city, and pincode"
-            rows={3}
-            error={errors.address}
-          />
+          {/* Residential / Business Address */}
+          <div className="space-y-1.5">
+            <label className="text-[11px] font-bold text-[#5f6368] uppercase tracking-wider block">
+              Residential / Business Address <span className="text-[#d93025]">*</span>
+            </label>
+            <div className="relative">
+              <MapPin size={15} className="text-[#80868b] absolute left-4 top-3.5 pointer-events-none" />
+              <textarea
+                rows={3}
+                value={formData.address}
+                onChange={(e) => handleAddressChange(e.target.value)}
+                placeholder="Complete address including street, area, city, and pincode"
+                required
+                className={`w-full bg-[#f8fafd] border ${
+                  errors.address ? 'border-[#d93025] focus:border-[#d93025] focus:ring-[#d93025]/20' : 'border-[#dadce0] focus:border-[#1a73e8] focus:ring-[#1a73e8]/20'
+                } rounded-2xl pl-10 pr-4 py-3 text-xs font-semibold text-[#1f1f1f] placeholder:text-[#80868b] focus:bg-white focus:ring-2 outline-none transition-all resize-none`}
+              />
+            </div>
+            {errors.address && <p className="text-[10px] text-[#d93025] font-medium pl-3">{errors.address}</p>}
+          </div>
         </div>
 
         {/* Action Buttons */}
