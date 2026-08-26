@@ -391,13 +391,13 @@ const EmployeeMobileProfile = () => {
             <p className="text-xs font-semibold text-slate-400 mt-0.5">{position || 'Employee'}</p>
           </div>
 
-          {/* Edit Profile Google Pill Button */}
+          {/* Edit Profile White Pill Button */}
           <button
             type="button"
             onClick={handleEditClick}
-            className="flex items-center gap-1.5 px-5 py-2 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white text-xs font-semibold shadow-xs hover:shadow transition-all cursor-pointer active:scale-95"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border border-slate-200 hover:bg-slate-50 active:scale-95 text-slate-900 text-xs font-bold shadow-xs transition-all cursor-pointer"
           >
-            <Edit2 className="w-3.5 h-3.5" />
+            <Edit2 className="w-3.5 h-3.5 text-slate-900" />
             <span>Edit Profile</span>
           </button>
 
