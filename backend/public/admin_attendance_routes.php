@@ -245,15 +245,38 @@ $app->get('/api/admin/attendance', function (Request $request, Response $respons
     $shiftTimesMap = getShiftTimesMap($conn);
 
     try {
+        $user = $request->getAttribute('user');
+        $scope = \App\Utils\HierarchyHelper::getReportingScope($conn, $user);
+
+        // If restricted and has no direct reports, return empty attendance list immediately
+        if ($scope['isRestricted'] && empty($scope['employeeUserIds']) && empty($scope['employeeIds'])) {
+            $response->getBody()->write(json_encode([
+                'attendance' => [],
+                'pagination' => [
+                    'total' => 0,
+                    'page' => $page,
+                    'limit' => $limit,
+                    'totalPages' => 0
+                ]
+            ]));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+        }
 
         // Build employee query
         $empSql = "SELECT id, \"userId\", \"employeeId\" as \"employeeCode\", \"firstName\", \"lastName\", \"weekOff\", \"shiftTime\", \"joinDate\" FROM employee WHERE status = 'active'";
         $empParams = [];
 
+        if ($scope['isRestricted']) {
+            $allowedIds = array_unique(array_merge($scope['employeeUserIds'], $scope['employeeIds']));
+            $placeholders = implode(',', array_fill(0, count($allowedIds), '?'));
+            $empSql .= " AND (\"userId\" IN ($placeholders) OR id IN ($placeholders))";
+            $empParams = array_merge($empParams, $allowedIds, $allowedIds);
+        }
+
         if (!empty($search)) {
             $empSql .= " AND (\"firstName\" ILIKE ? OR \"lastName\" ILIKE ? OR \"employeeId\" ILIKE ?)";
             $searchTerm = "%{$search}%";
-            $empParams = [$searchTerm, $searchTerm, $searchTerm];
+            $empParams = array_merge($empParams, [$searchTerm, $searchTerm, $searchTerm]);
         }
 
         // Count total for pagination
@@ -264,11 +287,10 @@ $app->get('/api/admin/attendance', function (Request $request, Response $respons
 
         // Fetch paginated employees
         $empSql .= " ORDER BY \"firstName\" ASC, \"lastName\" ASC LIMIT ? OFFSET ?";
-        $empParams[] = $limit;
-        $empParams[] = $offset;
+        $fetchParams = array_merge($empParams, [$limit, $offset]);
 
         $stmtEmp = $conn->prepare($empSql);
-        $stmtEmp->execute($empParams);
+        $stmtEmp->execute($fetchParams);
         $employees = $stmtEmp->fetchAll(PDO::FETCH_ASSOC);
 
         if (empty($employees)) {
@@ -648,6 +670,13 @@ $app->post('/api/admin/attendance/regularize', function (Request $request, Respo
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
 
+    // Check reporting hierarchy access restriction
+    $scope = \App\Utils\HierarchyHelper::getReportingScope($conn, $adminUser);
+    if (!\App\Utils\HierarchyHelper::isEmployeeAllowed($scope, $employeeId)) {
+        $response->getBody()->write(json_encode(['error' => 'Access denied. You can only regularize attendance for your direct reporting employees.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+    }
+
     $checkIn = null;
     $checkOut = null;
     $hours = null;
@@ -841,6 +870,14 @@ $app->get('/api/admin/attendance/employee/{id}', function (Request $request, Res
                 $response->getBody()->write(json_encode(['error' => 'Employee not found']));
                 return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
             }
+        }
+
+        // Check reporting hierarchy access restriction
+        $user = $request->getAttribute('user');
+        $scope = \App\Utils\HierarchyHelper::getReportingScope($conn, $user);
+        if (!\App\Utils\HierarchyHelper::isEmployeeAllowed($scope, $employeeId) && !\App\Utils\HierarchyHelper::isEmployeeAllowed($scope, $employee['id'] ?? null)) {
+            $response->getBody()->write(json_encode(['error' => 'Access denied. You can only view attendance for your direct reporting employees.']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
         }
 
         $startDate = $month . '-01';
@@ -1040,6 +1077,14 @@ $app->get('/api/admin/attendance/location/{id}', function (Request $request, Res
         $stmt = $conn->prepare('SELECT id, "userId", "employeeId" as "employeeCode", "firstName", "lastName" FROM employee WHERE id = ? OR "userId" = ?');
         $stmt->execute([$record['employeeId'], $record['employeeId']]);
         $employee = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // Check reporting hierarchy access restriction
+        $user = $request->getAttribute('user');
+        $scope = \App\Utils\HierarchyHelper::getReportingScope($conn, $user);
+        if (!\App\Utils\HierarchyHelper::isEmployeeAllowed($scope, $record['employeeId']) && !\App\Utils\HierarchyHelper::isEmployeeAllowed($scope, $employee['id'] ?? null)) {
+            $response->getBody()->write(json_encode(['error' => 'Access denied. You can only view location details for your direct reporting employees.']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+        }
         
         $stmt = $conn->prepare('SELECT id, "attendanceId", "employeeId", "punchTime", latitude, longitude, address, photo FROM attendance_punches WHERE "attendanceId" = ? ORDER BY "punchTime" ASC');
         $stmt->execute([$id]);

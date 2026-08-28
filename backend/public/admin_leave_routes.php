@@ -146,14 +146,41 @@ $app->get('/api/admin/leaves', function (Request $request, Response $response, $
     $offset = isset($params['offset']) ? (int)$params['offset'] : 0;
     $search = $params['search'] ?? '';
 
-    $whereClause = "";
+    $user = $request->getAttribute('user');
+    $scope = \App\Utils\HierarchyHelper::getReportingScope($conn, $user);
+
+    // If restricted and has no direct reports, return empty response immediately
+    if ($scope['isRestricted'] && empty($scope['employeeUserIds']) && empty($scope['employeeIds'])) {
+        $response->getBody()->write(json_encode([
+            'leaves' => [],
+            'total' => 0,
+            'stats' => [
+                'approved' => 0,
+                'pending' => 0,
+                'rejected' => 0,
+                'total' => 0
+            ]
+        ]));
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    $whereClauses = [];
     $sqlParams = [];
 
-    if (!empty($search)) {
-        $whereClause = 'WHERE e."firstName" ILIKE ? OR e."lastName" ILIKE ? OR e."employeeId" ILIKE ?';
-        $searchTerm = "%{$search}%";
-        $sqlParams = [$searchTerm, $searchTerm, $searchTerm];
+    if ($scope['isRestricted']) {
+        $allowedIds = array_unique(array_merge($scope['employeeUserIds'], $scope['employeeIds']));
+        $placeholders = implode(',', array_fill(0, count($allowedIds), '?'));
+        $whereClauses[] = "(l.\"employeeId\" IN ($placeholders) OR e.id IN ($placeholders))";
+        $sqlParams = array_merge($sqlParams, $allowedIds, $allowedIds);
     }
+
+    if (!empty($search)) {
+        $whereClauses[] = '(e."firstName" ILIKE ? OR e."lastName" ILIKE ? OR e."employeeId" ILIKE ?)';
+        $searchTerm = "%{$search}%";
+        $sqlParams = array_merge($sqlParams, [$searchTerm, $searchTerm, $searchTerm]);
+    }
+
+    $whereClause = !empty($whereClauses) ? ('WHERE ' . implode(' AND ', $whereClauses)) : '';
 
     // Get leaves with pagination
     $query = '
@@ -191,11 +218,24 @@ $app->get('/api/admin/leaves', function (Request $request, Response $response, $
     $totalCount = $stmtCount->fetchColumn();
 
     // Get stats
-    $stmtStats = $conn->query('
-        SELECT status, COUNT(*) as count 
-        FROM leaves 
-        GROUP BY status
-    ');
+    if ($scope['isRestricted']) {
+        $allowedIds = array_unique(array_merge($scope['employeeUserIds'], $scope['employeeIds']));
+        $placeholders = implode(',', array_fill(0, count($allowedIds), '?'));
+        $stmtStats = $conn->prepare("
+            SELECT l.status, COUNT(*) as count 
+            FROM leaves l 
+            LEFT JOIN employee e ON l.\"employeeId\" = e.\"userId\" 
+            WHERE (l.\"employeeId\" IN ($placeholders) OR e.id IN ($placeholders))
+            GROUP BY l.status
+        ");
+        $stmtStats->execute(array_merge($allowedIds, $allowedIds));
+    } else {
+        $stmtStats = $conn->query('
+            SELECT status, COUNT(*) as count 
+            FROM leaves 
+            GROUP BY status
+        ');
+    }
     $statsData = $stmtStats->fetchAll(PDO::FETCH_ASSOC);
     $stats = [
         'approved' => 0,
@@ -256,6 +296,12 @@ $app->post('/api/admin/leaves/{id}/approve', function (Request $request, Respons
         }
 
         $empId = $leaveToApprove['employeeId'];
+        
+        // Check reporting hierarchy access restriction
+        $scope = \App\Utils\HierarchyHelper::getReportingScope($conn, $decodedToken);
+        if (!\App\Utils\HierarchyHelper::isEmployeeAllowed($scope, $empId)) {
+            throw new Exception("Access denied. You can only approve leaves for your direct reporting employees.");
+        }
         
         // Check for conflicting attendance records
         $stmtCheckAtt = $conn->prepare('SELECT id FROM attendance WHERE "employeeId" = ? AND date >= ? AND date <= ? AND "checkIn" IS NOT NULL LIMIT 1');
@@ -453,6 +499,18 @@ $app->post('/api/admin/leaves/{id}/reject', function (Request $request, Response
     $stmtLeave = $conn->prepare('SELECT "employeeId", "leaveType", "startDate", "endDate" FROM leaves WHERE id = ?');
     $stmtLeave->execute([$id]);
     $leaveToReject = $stmtLeave->fetch(PDO::FETCH_ASSOC);
+
+    if (!$leaveToReject) {
+        $response->getBody()->write(json_encode(['error' => 'Leave request not found']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+    }
+
+    // Check reporting hierarchy access restriction
+    $scope = \App\Utils\HierarchyHelper::getReportingScope($conn, $decodedToken);
+    if (!\App\Utils\HierarchyHelper::isEmployeeAllowed($scope, $leaveToReject['employeeId'])) {
+        $response->getBody()->write(json_encode(['error' => 'Access denied. You can only reject leaves for your direct reporting employees.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+    }
 
     $stmt = $conn->prepare('UPDATE leaves SET status = \'rejected\', "approvedBy" = ? WHERE id = ?');
     $stmt->execute([$decodedToken->id, $id]);
