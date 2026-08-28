@@ -32,12 +32,13 @@ const AdminAttendance = () => {
   }, [search]);
 
   // Attendance data query — 30s staleTime since attendance changes frequently
-  const { data: attendanceResponse, isLoading: loading } = useQuery({
+  const { data: attendanceResponse, isLoading: initialLoading, isFetching } = useQuery({
     queryKey: ['admin', 'attendance', date, debouncedSearch, page],
     queryFn: async () => {
       const res = await api.get(`/admin/attendance?date=${date}&search=${encodeURIComponent(debouncedSearch)}&page=${page}&limit=10`);
       return res.data;
     },
+    placeholderData: (previousData) => previousData,
     staleTime: 30 * 1000,
     onError: () => toast.error('Failed to load attendance'),
   });
@@ -136,7 +137,9 @@ const AdminAttendance = () => {
     if (container) container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
   };
 
-  if (loading) return <PageLoader message="Loading Attendance Records..." />;
+  if (initialLoading && !attendanceRows.length && !debouncedSearch) {
+    return <PageLoader message="Loading Attendance Records..." />;
+  }
 
   const formattedDate = new Date(date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
@@ -204,7 +207,11 @@ const AdminAttendance = () => {
           <div className="flex flex-col sm:flex-row gap-2.5">
             {/* Google Pill Search */}
             <div className="relative w-full sm:w-64">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368] pointer-events-none" />
+              {isFetching ? (
+                <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#1a73e8] animate-spin pointer-events-none" />
+              ) : (
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368] pointer-events-none" />
+              )}
               <input
                 type="search"
                 placeholder="Search employees..."
@@ -236,8 +243,8 @@ const AdminAttendance = () => {
         </div>
 
         {/* Table */}
-        <div className="flex-1 overflow-x-auto min-h-[300px] custom-scrollbar">
-          {loading ? (
+        <div className="flex-1 overflow-x-auto min-h-[300px] custom-scrollbar relative">
+          {initialLoading && attendanceRows.length === 0 ? (
             <div className="flex items-center justify-center h-64">
               <Loader2 className="h-7 w-7 animate-spin text-[#4285F4]" />
             </div>
