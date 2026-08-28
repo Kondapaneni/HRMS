@@ -72,9 +72,14 @@ export const ProtectedRoute = ({ children, allowedRoles }) => {
       if (profile.role === 'employee' && profile.featureAccess) {
         const path = location.pathname;
         const fa = profile.featureAccess;
+        const isHR = 
+          profile.department?.trim().toLowerCase() === 'human resources' ||
+          profile.department?.trim().toLowerCase() === 'hr';
         let hasAccess = false;
 
-        if ((path.startsWith('/admin/attendance') || path.startsWith('/admin/holidays')) && fa.canAttendance) hasAccess = true;
+        if (path === '/admin/attendance' && fa.canAttendance) hasAccess = true;
+        else if (path.startsWith('/admin/attendance/location') && fa.canAttendance) hasAccess = true;
+        else if ((path.startsWith('/admin/attendance') || path.startsWith('/admin/holidays')) && fa.canAttendance && isHR) hasAccess = true;
         else if (path.startsWith('/admin/leaves') && fa.canLeave) hasAccess = true;
         else if (path.startsWith('/admin/payroll') && fa.canPayroll) hasAccess = true;
         else if ((path === '/admin/employees' || path.startsWith('/admin/employees/') || path.startsWith('/admin/directory')) && fa.canEmployees) hasAccess = true;

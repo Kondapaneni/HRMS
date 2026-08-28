@@ -3,12 +3,19 @@ import PageLoader from '../components/PageLoader';
 import { Search, ChevronLeft, ChevronRight, Calendar, MapPin, Loader2, Clock, Globe, CalendarCheck, CalendarDays } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '../contexts/AuthContext';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 
 const AdminAttendance = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { profile } = useAuth();
+
+  const isHumanResourcesOrAdmin = 
+    profile?.role === 'admin' ||
+    profile?.department?.trim().toLowerCase() === 'human resources' ||
+    profile?.department?.trim().toLowerCase() === 'hr';
 
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -153,29 +160,31 @@ const AdminAttendance = () => {
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => navigate('/admin/attendance/regularize')}
-            className="inline-flex items-center justify-center rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#444746] px-4 py-2 transition-colors cursor-pointer gap-1.5 shadow-xs"
-          >
-            <CalendarCheck size={14} className="text-[#5f6368]" />
-            <span>Regularize</span>
-          </button>
-          <button
-            onClick={() => navigate('/admin/attendance/config')}
-            className="inline-flex items-center justify-center rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#444746] px-4 py-2 transition-colors cursor-pointer gap-1.5 shadow-xs"
-          >
-            <Globe size={14} className="text-[#5f6368]" />
-            <span>Locations & Shifts</span>
-          </button>
-          <button
-            onClick={() => navigate('/admin/holidays')}
-            className="inline-flex items-center justify-center rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#444746] px-4 py-2 transition-colors cursor-pointer gap-1.5 shadow-xs"
-          >
-            <CalendarDays size={14} className="text-[#5f6368]" />
-            <span>Company Holidays</span>
-          </button>
-        </div>
+        {isHumanResourcesOrAdmin && (
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => navigate('/admin/attendance/regularize')}
+              className="inline-flex items-center justify-center rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#444746] px-4 py-2 transition-colors cursor-pointer gap-1.5 shadow-xs"
+            >
+              <CalendarCheck size={14} className="text-[#5f6368]" />
+              <span>Regularize</span>
+            </button>
+            <button
+              onClick={() => navigate('/admin/attendance/config')}
+              className="inline-flex items-center justify-center rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#444746] px-4 py-2 transition-colors cursor-pointer gap-1.5 shadow-xs"
+            >
+              <Globe size={14} className="text-[#5f6368]" />
+              <span>Locations & Shifts</span>
+            </button>
+            <button
+              onClick={() => navigate('/admin/holidays')}
+              className="inline-flex items-center justify-center rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#444746] px-4 py-2 transition-colors cursor-pointer gap-1.5 shadow-xs"
+            >
+              <CalendarDays size={14} className="text-[#5f6368]" />
+              <span>Company Holidays</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Attendance Records Table Card */}
