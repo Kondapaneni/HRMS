@@ -91,13 +91,32 @@ class HierarchyHelper
             ];
         }
 
-        // Find direct reporting employees where managerId = currentEmp.id OR currentEmp.userId
-        $stmtReports = $conn->prepare('
-            SELECT id, "userId", "employeeId" 
-            FROM employee 
-            WHERE "managerId" = ? OR "managerId" = ?
-        ');
-        $stmtReports->execute([$currentEmp['id'], $currentEmp['userId']]);
+        // Recursively find all downstream reporting employees (direct and indirect)
+        $sqlHierarchy = '
+            WITH RECURSIVE downstream_hierarchy AS (
+                -- Anchor member: Direct reports of current manager
+                SELECT id, "userId", "employeeId", 1 AS depth
+                FROM employee
+                WHERE "managerId"::text = :mgrId1 OR "managerId"::text = :mgrId2
+
+                UNION ALL
+
+                -- Recursive member: Subordinates of any employee in downstream_hierarchy
+                SELECT e.id, e."userId", e."employeeId", dh.depth + 1
+                FROM employee e
+                INNER JOIN downstream_hierarchy dh 
+                    ON (e."managerId"::text = dh.id::text OR e."managerId"::text = dh."userId"::text)
+                WHERE dh.depth < 50
+            )
+            SELECT DISTINCT id, "userId", "employeeId"
+            FROM downstream_hierarchy
+        ';
+
+        $stmtReports = $conn->prepare($sqlHierarchy);
+        $stmtReports->execute([
+            ':mgrId1' => (string)$currentEmp['id'],
+            ':mgrId2' => (string)$currentEmp['userId']
+        ]);
         $reports = $stmtReports->fetchAll(PDO::FETCH_ASSOC) ?: [];
 
         $employeeUserIds = [];
