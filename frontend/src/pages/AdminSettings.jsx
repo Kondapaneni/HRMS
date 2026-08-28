@@ -175,8 +175,13 @@ const AdminSettings = () => {
             <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
             <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Workspace Configuration</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight flex items-center gap-2">
-            Global System Settings <span className="text-xs font-semibold text-[#137333] bg-[#e6f4ea] border border-[#ceead6] px-2.5 py-0.5 rounded-full">Active Security Guard</span>
+          <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight flex flex-wrap items-center gap-2">
+            Global System Settings 
+            <span className="text-xs font-semibold text-[#137333] bg-[#e6f4ea] border border-[#ceead6] px-2.5 py-0.5 rounded-full">Active Security Guard</span>
+            <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full flex items-center gap-1">
+              <Sparkles className="w-3 h-3 text-[#1a73e8]" />
+              v2.4.0
+            </span>
           </h1>
           <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
             Configure authentication rules, rate limiting thresholds, app maintenance mode, and company broadcast tickers.
@@ -550,6 +555,41 @@ const AdminSettings = () => {
             <p className="text-xs text-[#5f6368] leading-relaxed">
               ISO/IEC 27001 and SOC 2 guidelines mandate session timeouts not exceed <strong>30 minutes</strong> for administrative portals. Selecting "Never" disables inactivity protection.
             </p>
+          </div>
+
+          {/* Application & System Version Card */}
+          <div className="bg-white rounded-2xl border border-[#e0e3e7] p-5 shadow-xs space-y-3">
+            <div className="flex items-center justify-between pb-3 border-b border-[#e0e3e7]">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-[#e8f0fe] text-[#1a73e8]">
+                  <Radio className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-[#1f1f1f] uppercase tracking-wider">System Version</h4>
+                  <p className="text-[11px] text-[#5f6368]">Acme HRMS Core Workspace</p>
+                </div>
+              </div>
+              <span className="text-[11px] font-bold text-[#137333] bg-[#e6f4ea] border border-[#ceead6] px-2.5 py-1 rounded-full flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#34A853] animate-pulse" />
+                v2.4.0
+              </span>
+            </div>
+            <div className="space-y-2 pt-1 text-xs text-[#5f6368]">
+              <div className="flex items-center justify-between">
+                <span>Release Version:</span>
+                <span className="font-semibold text-[#1f1f1f]">v2.4.0</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Build Identifier:</span>
+                <span className="font-mono text-[11px] font-medium text-[#1f1f1f] bg-[#f1f3f4] px-2 py-0.5 rounded-md">
+                  {import.meta.env.VITE_APP_VERSION || '2026.08.28'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Environment:</span>
+                <span className="font-medium text-[#137333]">Production Stable</span>
+              </div>
+            </div>
           </div>
 
         </div>

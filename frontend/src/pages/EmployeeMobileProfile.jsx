@@ -446,6 +446,22 @@ const EmployeeMobileProfile = () => {
         </div>
       </section>
 
+      {/* Mobile Profile Version Footer */}
+      <div className="pt-3 pb-6 text-center select-none space-y-1">
+        <div className="flex items-center justify-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+          <span className="text-[11px] font-bold text-slate-500 tracking-wide">
+            Acme HRMS v2.4.0
+          </span>
+        </div>
+        <p className="text-[10px] text-slate-400 font-medium">
+          Build {import.meta.env.VITE_APP_VERSION || '2026.08.28'}
+        </p>
+      </div>
+
       {/* Slide-Up Bottom Sheet Drawer (Mounted via createPortal with Framer Motion) */}
       {createPortal(
         <AnimatePresence>
