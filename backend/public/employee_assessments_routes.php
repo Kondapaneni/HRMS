@@ -8,6 +8,54 @@ use App\Utils\AssessmentConstants;
 
 /** @var \Slim\App $app */
 
+function queueAssessmentResultEmail($conn, $attemptId, $userId, $assessmentId, $totalScore, $maxScore, $percentage, $passed) {
+    try {
+        $stmtUser = $conn->prepare('SELECT "firstName", "lastName", email FROM users WHERE id = ?');
+        $stmtUser->execute([$userId]);
+        $user = $stmtUser->fetch(PDO::FETCH_ASSOC);
+
+        if (!$user || empty($user['email'])) {
+            return;
+        }
+
+        $stmtA = $conn->prepare('SELECT title, result_visibility FROM assessments WHERE id = ?');
+        $stmtA->execute([$assessmentId]);
+        $assessment = $stmtA->fetch(PDO::FETCH_ASSOC);
+        $assessmentTitle = $assessment['title'] ?? 'Assessment';
+
+        $templatePath = __DIR__ . '/../src/Templates/assessment_result_email.html';
+        if (!file_exists($templatePath)) {
+            return;
+        }
+        $rawTemplate = file_get_contents($templatePath);
+
+        $frontendUrl = rtrim($_ENV['FRONTEND_URL'] ?? 'http://localhost:5173', '/');
+        $resultLink = $frontendUrl . '/employee/assessments/result?attemptId=' . $attemptId;
+
+        $employeeName = trim(($user['firstName'] ?? '') . ' ' . ($user['lastName'] ?? ''));
+        if (empty($employeeName)) $employeeName = 'Employee';
+
+        $resultOutcome = $passed ? 'Passed' : 'Needs Retake';
+
+        $body = $rawTemplate;
+        $body = str_replace('{{employeeName}}', htmlspecialchars($employeeName), $body);
+        $body = str_replace('{{assessmentTitle}}', htmlspecialchars($assessmentTitle), $body);
+        $body = str_replace('{{finalPercentage}}', htmlspecialchars((string)round($percentage, 1)), $body);
+        $body = str_replace('{{resultOutcome}}', htmlspecialchars($resultOutcome), $body);
+        $body = str_replace('{{obtainedMarks}}', htmlspecialchars((string)$totalScore), $body);
+        $body = str_replace('{{totalMarks}}', htmlspecialchars((string)$maxScore), $body);
+        $body = str_replace('{{resultLink}}', htmlspecialchars($resultLink), $body);
+        $body = str_replace('{{currentYear}}', date('Y'), $body);
+
+        $subject = "Your Assessment Results: " . $assessmentTitle;
+
+        $stmtQueue = $conn->prepare('INSERT INTO email_queue (to_email, subject, body) VALUES (?, ?, ?)');
+        $stmtQueue->execute([$user['email'], $subject, $body]);
+    } catch (\Exception $e) {
+        error_log('Failed to queue assessment result email: ' . $e->getMessage());
+    }
+}
+
 // GET /api/employee/assessments - List assigned assessments for current employee
 $app->get('/api/employee/assessments', function (Request $request, Response $response, $args) {
     if (!ob_get_level() && extension_loaded('zlib') && strpos($request->getHeaderLine('Accept-Encoding'), 'gzip') !== false) {
@@ -447,6 +495,9 @@ $app->post('/api/employee/assessments/attempts/{attemptId}/submit', function (Re
         $upStmt->execute([(int)$totalScore, (int)$maxScore, $percentage, $passed ? 'true' : 'false', json_encode($evaluatedBreakdown), $submitReason, $attemptId]);
 
         $conn->commit();
+
+        // Dispatch Assessment Results & Scorecard email
+        queueAssessmentResultEmail($conn, $attemptId, $user->id, $attempt['assessment_id'], (int)$totalScore, (int)$maxScore, $percentage, $passed);
 
         // Build flat breakdown for frontend
         $breakdownArr = [];

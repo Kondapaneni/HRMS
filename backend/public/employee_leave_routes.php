@@ -130,7 +130,7 @@ $app->post('/api/employee/leaves/apply', function (Request $request, Response $r
                 SELECT COUNT(*) FROM leaves 
                 WHERE "employeeId" = ? AND "leaveType" = \'paid\' 
                 AND "startDate" >= ? AND "startDate" <= ?
-                AND status != \'rejected\'
+                AND LOWER(status) NOT IN (\'rejected\', \'cancelled\', \'canceled\')
             ');
             $stmtCheck->execute([$decodedToken->id, $monthStart, $monthEnd]);
             if ($stmtCheck->fetchColumn() > 0) {
@@ -141,7 +141,7 @@ $app->post('/api/employee/leaves/apply', function (Request $request, Response $r
         // Check overlaps
         $stmtOverlap = $conn->prepare('
             SELECT COUNT(*) FROM leaves
-            WHERE "employeeId" = ? AND status != \'rejected\'
+            WHERE "employeeId" = ? AND LOWER(status) NOT IN (\'rejected\', \'cancelled\', \'canceled\')
             AND ("startDate" <= ? AND "endDate" >= ?)
         ');
         $stmtOverlap->execute([$decodedToken->id, $endDate, $startDate]);

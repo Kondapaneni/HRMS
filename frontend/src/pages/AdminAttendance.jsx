@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PageLoader from '../components/PageLoader';
-import { Search, ChevronLeft, ChevronRight, Calendar, MapPin, Loader2, Clock, Globe, ChevronUp, ChevronDown, CalendarCheck, CalendarDays } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Calendar, MapPin, Loader2, Clock, Globe, CalendarCheck, CalendarDays } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
@@ -9,8 +9,6 @@ import toast from 'react-hot-toast';
 const AdminAttendance = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [showScrollTop, setShowScrollTop] = useState(false);
-  const [isScrollable, setIsScrollable] = useState(false);
 
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -39,28 +37,6 @@ const AdminAttendance = () => {
 
   const attendanceRows = attendanceResponse?.attendance || [];
   const totalPages = attendanceResponse?.pagination?.totalPages || 1;
-
-  // Scroll listener
-  useEffect(() => {
-    const handleScroll = () => {
-      const container = document.getElementById('main-scroll-container');
-      if (container) {
-        setShowScrollTop(container.scrollTop > 300);
-        setIsScrollable(container.scrollHeight > container.clientHeight);
-      }
-    };
-
-    const container = document.getElementById('main-scroll-container');
-    if (container) {
-      setIsScrollable(container.scrollHeight > container.clientHeight);
-      container.addEventListener('scroll', handleScroll);
-      window.addEventListener('resize', handleScroll);
-      return () => {
-        container.removeEventListener('scroll', handleScroll);
-        window.removeEventListener('resize', handleScroll);
-      };
-    }
-  }, [attendanceRows]);
 
   const handlePrevDay = () => {
     const d = new Date(date);
@@ -345,17 +321,6 @@ const AdminAttendance = () => {
           </div>
         )}
       </div>
-
-      {/* Floating Scroll Button */}
-      {isScrollable && (
-        <button
-          onClick={showScrollTop ? scrollToTop : scrollToBottom}
-          className="fixed bottom-8 right-8 z-40 p-2.5 bg-[#1a73e8] text-white rounded-full shadow-lg shadow-[#4285F4]/30 hover:bg-[#1557b0] transition-all cursor-pointer"
-          aria-label={showScrollTop ? 'Scroll to top' : 'Scroll to bottom'}
-        >
-          {showScrollTop ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-        </button>
-      )}
     </div>
   );
 };

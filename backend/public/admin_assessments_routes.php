@@ -183,6 +183,57 @@ $app->get('/api/admin/assessments/{id}', function (Request $request, Response $r
     }
 })->add(new AuthMiddleware(['admin'], 'adminAssessments'));
 
+function queueAssessmentAssignedEmail($conn, $assessmentId, $employeeIds) {
+    if (empty($employeeIds) || !is_array($employeeIds)) {
+        return;
+    }
+
+    try {
+        $stmtA = $conn->prepare('SELECT title, duration_minutes, passing_percentage, questions_count, max_attempts FROM assessments WHERE id = ?');
+        $stmtA->execute([$assessmentId]);
+        $assessment = $stmtA->fetch(PDO::FETCH_ASSOC);
+        if (!$assessment) {
+            return;
+        }
+
+        $templatePath = __DIR__ . '/../src/Templates/assessment_assigned_email.html';
+        if (!file_exists($templatePath)) {
+            return;
+        }
+        $rawTemplate = file_get_contents($templatePath);
+
+        $frontendUrl = rtrim($_ENV['FRONTEND_URL'] ?? 'http://localhost:5173', '/');
+        $assessmentLink = $frontendUrl . '/employee/assessments';
+
+        $placeholders = implode(',', array_fill(0, count($employeeIds), '?'));
+        $stmtUsers = $conn->prepare("SELECT id, \"firstName\", \"lastName\", email FROM users WHERE id IN ($placeholders) AND email IS NOT NULL AND email != ''");
+        $stmtUsers->execute(array_values($employeeIds));
+        $users = $stmtUsers->fetchAll(PDO::FETCH_ASSOC);
+
+        $stmtQueue = $conn->prepare('INSERT INTO email_queue (to_email, subject, body) VALUES (?, ?, ?)');
+
+        foreach ($users as $u) {
+            $employeeName = trim(($u['firstName'] ?? '') . ' ' . ($u['lastName'] ?? ''));
+            if (empty($employeeName)) $employeeName = 'Employee';
+
+            $body = $rawTemplate;
+            $body = str_replace('{{employeeName}}', htmlspecialchars($employeeName), $body);
+            $body = str_replace('{{assessmentTitle}}', htmlspecialchars($assessment['title'] ?? 'Assessment'), $body);
+            $body = str_replace('{{durationMinutes}}', htmlspecialchars((string)($assessment['duration_minutes'] ?? 30)), $body);
+            $body = str_replace('{{passingScore}}', htmlspecialchars((string)($assessment['passing_percentage'] ?? 70)), $body);
+            $body = str_replace('{{totalQuestions}}', htmlspecialchars((string)($assessment['questions_count'] ?? 0)), $body);
+            $body = str_replace('{{maxAttempts}}', htmlspecialchars((string)($assessment['max_attempts'] ?? 1)), $body);
+            $body = str_replace('{{assessmentLink}}', htmlspecialchars($assessmentLink), $body);
+            $body = str_replace('{{currentYear}}', date('Y'), $body);
+
+            $subject = "New Assessment Assigned: " . ($assessment['title'] ?? 'Assessment');
+            $stmtQueue->execute([$u['email'], $subject, $body]);
+        }
+    } catch (\Exception $e) {
+        error_log('Failed to queue assessment assigned email: ' . $e->getMessage());
+    }
+}
+
 // POST /api/admin/assessments - Create new assessment
 $app->post('/api/admin/assessments', function (Request $request, Response $response, $args) {
     $user = $request->getAttribute('user');
@@ -212,12 +263,16 @@ $app->post('/api/admin/assessments', function (Request $request, Response $respo
     $conn = $db->getConnection();
 
     try {
-        $sql = 'INSERT INTO assessments (title, department, duration_minutes, passing_percentage, max_attempts, marks_per_question, randomize_questions, randomize_options, result_visibility, assessment_date, selected_questions, assigned_employee_ids, status, questions_count, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+        $sql = 'INSERT INTO assessments (title, department, duration_minutes, passing_percentage, max_attempts, marks_per_question, randomize_questions, randomize_options, result_visibility, assessment_date, selected_questions, assigned_employee_ids, status, questions_count, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id';
         $stmt = $conn->prepare($sql);
         $stmt->execute([$title, $department, $duration, $passing, $maxAttempts, $marksPerQ, $randomizeQ, $randomizeO, $visibility, $assessmentDate, $selectedQs, $assignedEmployeeIds, $status, $questionsCount, $user->id]);
         $assessmentId = $stmt->fetchColumn();
 
         @unlink(sys_get_temp_dir() . '/assessments_meta_cache.json');
+
+        if ($assessmentId && !empty($data['assigned_employee_ids']) && $status === 'Active') {
+            queueAssessmentAssignedEmail($conn, $assessmentId, $data['assigned_employee_ids']);
+        }
 
         $response->getBody()->write(json_encode(['message' => 'Assessment created successfully', 'id' => $assessmentId]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(201);
@@ -251,11 +306,27 @@ $app->put('/api/admin/assessments/{id}', function (Request $request, Response $r
     $conn = $db->getConnection();
 
     try {
+        $prevAssignedStmt = $conn->prepare('SELECT assigned_employee_ids, status FROM assessments WHERE id = ?');
+        $prevAssignedStmt->execute([$id]);
+        $prevData = $prevAssignedStmt->fetch(PDO::FETCH_ASSOC);
+        $prevAssigned = [];
+        if ($prevData && !empty($prevData['assigned_employee_ids'])) {
+            $dec = json_decode($prevData['assigned_employee_ids'], true);
+            if (is_array($dec)) $prevAssigned = $dec;
+        }
+
         $sql = 'UPDATE assessments SET title = ?, department = ?, duration_minutes = ?, passing_percentage = ?, max_attempts = ?, marks_per_question = ?, randomize_questions = ?, randomize_options = ?, result_visibility = ?, assessment_date = ?, selected_questions = ?, assigned_employee_ids = ?, status = ?, questions_count = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?';
         $stmt = $conn->prepare($sql);
         $stmt->execute([$title, $department, $duration, $passing, $maxAttempts, $marksPerQ, $randomizeQ, $randomizeO, $visibility, $assessmentDate, $selectedQs, $assignedEmployeeIds, $status, $questionsCount, $id]);
 
         @unlink(sys_get_temp_dir() . '/assessments_meta_cache.json');
+
+        $newAssigned = is_array($data['assigned_employee_ids'] ?? null) ? $data['assigned_employee_ids'] : [];
+        $newlyAdded = array_diff($newAssigned, $prevAssigned);
+
+        if (!empty($newlyAdded) && $status === 'Active') {
+            queueAssessmentAssignedEmail($conn, $id, array_values($newlyAdded));
+        }
 
         $response->getBody()->write(json_encode(['message' => 'Assessment updated successfully']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);

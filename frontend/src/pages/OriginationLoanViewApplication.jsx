@@ -260,6 +260,25 @@ export default function OriginationLoanViewApplication() {
     }
   };
 
+  // Fetch all company branches to map branch IDs to human-readable names
+  const { data: branches = [] } = useQuery({
+    queryKey: ['branches', 'list'],
+    queryFn: getBranches,
+    staleTime: 1000 * 60 * 30,
+  });
+
+  const branchMap = useMemo(() => {
+    const map = {};
+    if (Array.isArray(branches)) {
+      branches.forEach((b) => {
+        if (b && b.id && b.name) {
+          map[String(b.id).toLowerCase()] = b.name;
+        }
+      });
+    }
+    return map;
+  }, [branches]);
+
   if (!application && isLoading) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-[#5f6368]">
@@ -282,23 +301,6 @@ export default function OriginationLoanViewApplication() {
       </div>
     );
   }
-
-  // Fetch all company branches to map branch IDs to human-readable names
-  const { data: branches = [] } = useQuery({
-    queryKey: ['branches', 'list'],
-    queryFn: getBranches,
-    staleTime: 1000 * 60 * 30,
-  });
-
-  const branchMap = useMemo(() => {
-    const map = {};
-    branches.forEach((b) => {
-      if (b && b.id && b.name) {
-        map[String(b.id).toLowerCase()] = b.name;
-      }
-    });
-    return map;
-  }, [branches]);
 
   const applicantName = formData?.applicant_name || application?.applicant_name || 'Unnamed Applicant';
   const applicantPhone = formData?.phone_number || application?.phone_number || '';

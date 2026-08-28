@@ -205,6 +205,11 @@ const EmployeeAssessments = () => {
     navigate('/employee/assessments/instructions', { state: { assessmentId } });
   }, [navigate]);
 
+  // Filter assessments that are scheduled for TODAY
+  const todayAssessments = useMemo(() => {
+    return Array.isArray(assessments) ? assessments.filter(a => a.assessment_date && a.assessment_date === todayStr) : [];
+  }, [assessments, todayStr]);
+
   // Skeleton loader instead of blank screen (Requirement 9)
   if (isLoading) {
     return (
@@ -244,11 +249,6 @@ const EmployeeAssessments = () => {
       </div>
     );
   }
-
-  // Filter assessments that are scheduled for TODAY
-  const todayAssessments = useMemo(() => {
-    return assessments.filter(a => a.assessment_date && a.assessment_date === todayStr);
-  }, [assessments, todayStr]);
 
   return (
     <div className="w-full space-y-6">

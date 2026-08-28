@@ -385,7 +385,7 @@ const EmployeeMobileExpenses = () => {
         {/* Subtle Glass Overlay */}
         <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none" />
 
-        <div className="relative z-10 px-2 mb-2">
+        <div className="relative z-10 px-2">
           <div className="flex justify-between items-start mb-5">
             <div>
               <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">My Expenses</p>
@@ -407,7 +407,7 @@ const EmployeeMobileExpenses = () => {
       </section>
 
       {/* KPI Stats Grid (2x2 Grid) */}
-      <section className="grid grid-cols-2 gap-3 relative z-20 -mt-10 mx-0.5">
+      <section className="grid grid-cols-2 gap-3 relative z-20 -mt-12 mx-0.5">
         {/* Approved */}
         <div 
           onClick={() => setFilterStatus(filterStatus === 'approved' ? 'all' : 'approved')}

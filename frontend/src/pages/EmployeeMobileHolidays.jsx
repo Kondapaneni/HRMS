@@ -102,7 +102,7 @@ const EmployeeMobileHolidays = () => {
       </section>
 
       {/* KPI Stats Grid (2x2 Grid overlapping the hero) */}
-      <section className="grid grid-cols-2 gap-3 relative z-20 -mt-10 mx-0.5">
+      <section className="grid grid-cols-2 gap-3 relative z-20 -mt-12 mx-0.5">
         {/* Upcoming */}
         <div 
           onClick={() => setFilterMode(filterMode === 'upcoming' ? 'all' : 'upcoming')}

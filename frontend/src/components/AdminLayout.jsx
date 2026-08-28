@@ -15,12 +15,18 @@ import api from '../api/axios';
 import { supabase } from '../lib/supabase';
 
 const AdminLayout = () => {
-  const { profile, signOut } = useAuth();
+  const { profile } = useAuth();
   
   // If the user is an employee (with feature access), swap to the Employee layout entirely
   if (profile?.role === 'employee') {
     return <EmployeeLayout />;
   }
+
+  return <AdminLayoutContent />;
+};
+
+const AdminLayoutContent = () => {
+  const { profile, signOut } = useAuth();
 
   const navigate = useNavigate();
   const location = useLocation();

@@ -1,21 +1,21 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import PageLoader from '../components/PageLoader';
-import { 
-  Shield, 
-  Edit2, 
-  Search, 
-  X, 
-  Users, 
-  Check, 
-  Building2, 
-  Briefcase, 
-  Calendar, 
-  CreditCard, 
-  DollarSign, 
-  GraduationCap, 
-  Layers, 
-  UserCheck, 
+import {
+  Shield,
+  Edit2,
+  Search,
+  X,
+  Users,
+  Check,
+  Building2,
+  Briefcase,
+  Calendar,
+  CreditCard,
+  DollarSign,
+  GraduationCap,
+  Layers,
+  UserCheck,
   Sparkles,
   RefreshCw,
   Award,
@@ -118,22 +118,22 @@ const featuresList = [
   },
   {
     key: 'canLoanOrigination',
-    title: 'Loan Origination Manager',
-    category: 'Origination & Branch Ops',
+    title: 'Loan Origination',
+    category: 'Business Apps',
     icon: CreditCard,
     description: 'Grants access to underwriting, credit appraisal, and applicant lead management in the Acme Loans Origination portal.'
   },
   {
     key: 'canSalesOrigination',
-    title: 'Sales Origination Manager',
-    category: 'Origination & Branch Ops',
+    title: 'Sales Origination',
+    category: 'Business Apps',
     icon: Building2,
     description: 'Grants access to merchant pipelines, field distribution metrics, and lead onboarding in the Acme Sales module.'
   },
   {
     key: 'canBranchOperations',
     title: 'Branch Operations Manager',
-    category: 'Origination & Branch Ops',
+    category: 'Business Apps',
     icon: Layers,
     description: 'Grants access to regional branch management, cashier counters, and localized transaction approvals.'
   }
@@ -270,9 +270,9 @@ const AdminFeatureAccess = () => {
     });
     const delegatedManagers = managersSet.size;
     const coreCount = featuresList.filter(f => f.category === 'Core HRMS').length;
-    const branchCount = featuresList.filter(f => f.category === 'Origination & Branch Ops').length;
+    const businessAppsCount = featuresList.filter(f => f.category === 'Business Apps').length;
 
-    return { totalRoles, delegatedManagers, coreCount, branchCount };
+    return { totalRoles, delegatedManagers, coreCount, businessAppsCount };
   }, [users]);
 
   // Filtered features list
@@ -280,8 +280,8 @@ const AdminFeatureAccess = () => {
     return featuresList.filter(f => {
       const matchCategory = categoryFilter === 'All' || f.category === categoryFilter;
       const q = searchFilter.toLowerCase();
-      const matchSearch = q === '' || 
-        f.title.toLowerCase().includes(q) || 
+      const matchSearch = q === '' ||
+        f.title.toLowerCase().includes(q) ||
         f.description.toLowerCase().includes(q);
       return matchCategory && matchSearch;
     });
@@ -329,51 +329,50 @@ const AdminFeatureAccess = () => {
 
       {/* KPI Stats Cards */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard 
-          title="Feature Roles" 
-          value={stats.totalRoles} 
-          subtitle="Configured permission modules" 
-          icon={Shield} 
-          colorTheme="blue" 
+        <StatCard
+          title="Feature Roles"
+          value={stats.totalRoles}
+          subtitle="Configured Permission Modules"
+          icon={Shield}
+          colorTheme="blue"
         />
-        <StatCard 
-          title="Delegated Staff" 
-          value={stats.delegatedManagers} 
-          subtitle="Distinct managers assigned" 
-          icon={UserCheck} 
-          colorTheme="green" 
+        <StatCard
+          title="Delegated Staff"
+          value={stats.delegatedManagers}
+          subtitle="Distinct Managers Assigned"
+          icon={UserCheck}
+          colorTheme="green"
         />
-        <StatCard 
-          title="Core HRMS Roles" 
-          value={stats.coreCount} 
-          subtitle="Payroll, leaves, attendance" 
-          icon={Layers} 
-          colorTheme="purple" 
+        <StatCard
+          title="Core HRMS Roles"
+          value={stats.coreCount}
+          subtitle="Payroll, Leaves, Attendance"
+          icon={Layers}
+          colorTheme="purple"
         />
-        <StatCard 
-          title="Branch & Origination" 
-          value={stats.branchCount} 
-          subtitle="Lending & field operations" 
-          icon={Building2} 
-          colorTheme="amber" 
+        <StatCard
+          title="Business Apps"
+          value={stats.businessAppsCount}
+          subtitle="Loans, Sales, & Branch Ops"
+          icon={Building2}
+          colorTheme="amber"
         />
       </div>
 
       {/* Main Filter & Search Toolbar */}
       <div className="rounded-2xl border border-[#e0e3e7] bg-white shadow-xs overflow-hidden flex flex-col">
         <div className="p-4 sm:p-5 border-b border-[#e0e3e7] bg-[#f8fafd] flex flex-col lg:flex-row gap-3 items-center justify-between">
-          
+
           {/* Category Filter Pills */}
           <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1 max-w-full">
-            {['All', 'Core HRMS', 'Assessments & LMS', 'Origination & Branch Ops'].map(cat => (
+            {['All', 'Core HRMS', 'Assessments & LMS', 'Business Apps'].map(cat => (
               <button
                 key={cat}
                 onClick={() => setCategoryFilter(cat)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all shrink-0 cursor-pointer ${
-                  categoryFilter === cat
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all shrink-0 cursor-pointer ${categoryFilter === cat
                     ? 'bg-[#1a73e8] text-white shadow-xs'
                     : 'bg-white border border-[#dadce0] text-[#5f6368] hover:bg-[#f1f3f4] hover:text-[#1f1f1f]'
-                }`}
+                  }`}
               >
                 {cat}
               </button>
@@ -398,9 +397,9 @@ const AdminFeatureAccess = () => {
           <table className="w-full text-xs text-left">
             <thead className="bg-[#f8fafd] border-b border-[#e0e3e7] text-[#5f6368] uppercase font-semibold tracking-wider text-[11px]">
               <tr>
-                <th className="px-5 py-3.5 w-1/3">Feature Role &amp; Scope</th>
-                <th className="px-5 py-3.5">Assigned Managers</th>
-                <th className="px-5 py-3.5 text-center w-36">Action</th>
+                <th className="px-5 py-3.5 w-1/3 min-w-[260px] whitespace-nowrap">Feature Role &amp; Scope</th>
+                <th className="px-5 py-3.5 min-w-[200px] whitespace-nowrap">Assigned Managers</th>
+                <th className="px-5 py-3.5 text-center w-36 whitespace-nowrap">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#e0e3e7]">
@@ -425,9 +424,9 @@ const AdminFeatureAccess = () => {
                             <Icon className="w-4 h-4" />
                           </div>
                           <div>
-                            <div className="flex items-center gap-2 mb-1">
-                              <h3 className="font-semibold text-xs text-[#1f1f1f]">{feature.title}</h3>
-                              <span className="text-[10px] font-semibold text-[#5f6368] bg-[#f1f3f4] border border-[#dadce0] px-2 py-0.2 rounded-full">
+                            <div className="flex items-center flex-wrap gap-2 mb-1">
+                              <h3 className="font-semibold text-xs text-[#1f1f1f] whitespace-nowrap">{feature.title}</h3>
+                              <span className="text-[10px] font-semibold text-[#5f6368] bg-[#f1f3f4] border border-[#dadce0] px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 inline-block">
                                 {feature.category}
                               </span>
                             </div>
@@ -441,19 +440,19 @@ const AdminFeatureAccess = () => {
                       <td className="px-5 py-4 align-middle">
                         <div className="flex flex-wrap gap-2 items-center">
                           {assignedUsers.length === 0 ? (
-                            <span className="text-xs text-[#5f6368] italic bg-[#f8fafd] border border-dashed border-[#dadce0] px-3 py-1 rounded-full">
+                            <span className="text-xs text-[#5f6368] italic bg-[#f8fafd] border border-dashed border-[#dadce0] px-3 py-1 rounded-full whitespace-nowrap">
                               No managers assigned
                             </span>
                           ) : (
                             assignedUsers.map(u => (
-                              <div 
-                                key={u.id} 
-                                className="inline-flex items-center gap-1.5 bg-white border border-[#dadce0] rounded-full pl-1 pr-2.5 py-0.5 shadow-2xs text-xs"
+                              <div
+                                key={u.id}
+                                className="inline-flex items-center gap-1.5 bg-white border border-[#dadce0] rounded-full pl-1 pr-2.5 py-0.5 shadow-2xs text-xs whitespace-nowrap shrink-0"
                               >
                                 <div className="w-5 h-5 rounded-full bg-[#e8f0fe] text-[#1a73e8] font-bold text-[10px] flex items-center justify-center shrink-0">
                                   {getInitials(u.firstName, u.lastName)}
                                 </div>
-                                <span className="font-semibold text-[#1f1f1f] text-[11px]">
+                                <span className="font-semibold text-[#1f1f1f] text-[11px] whitespace-nowrap">
                                   {u.firstName} {u.lastName}
                                 </span>
                               </div>
@@ -462,13 +461,13 @@ const AdminFeatureAccess = () => {
                         </div>
                       </td>
 
-                      <td className="px-5 py-4 text-center align-middle">
+                      <td className="px-5 py-4 text-center align-middle whitespace-nowrap">
                         <button
                           onClick={() => openManageModal(feature)}
-                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] hover:bg-[#d2e3fc] transition-all cursor-pointer"
+                          className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] hover:bg-[#d2e3fc] transition-all cursor-pointer whitespace-nowrap shrink-0"
                         >
-                          <UserPlus className="w-3.5 h-3.5" />
-                          <span>Manage ({assignedUsers.length})</span>
+                          <UserPlus className="w-3.5 h-3.5 shrink-0" />
+                          <span className="whitespace-nowrap">Manage ({assignedUsers.length})</span>
                         </button>
                       </td>
                     </tr>
@@ -483,13 +482,13 @@ const AdminFeatureAccess = () => {
       {/* Slideover Right Drawer: Manage Users (createPortal) */}
       {selectedFeature && createPortal(
         <div className="fixed inset-0 z-50 overflow-hidden">
-          <div 
-            className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity" 
-            onClick={() => !saving && setSelectedFeature(null)} 
+          <div
+            className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity"
+            onClick={() => !saving && setSelectedFeature(null)}
           />
           <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
             <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
-              
+
               {/* Header */}
               <div className="p-5 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd]">
                 <div className="flex items-center gap-2.5">
@@ -497,7 +496,9 @@ const AdminFeatureAccess = () => {
                     <Shield className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-base font-semibold text-[#1f1f1f]">Manage {selectedFeature.title}s</h3>
+                    <h3 className="text-base font-semibold text-[#1f1f1f]">
+                      Manage {selectedFeature.title.endsWith('Manager') ? `${selectedFeature.title}s` : selectedFeature.title}
+                    </h3>
                     <p className="text-xs text-[#5f6368] line-clamp-1">Select staff who should have this permission</p>
                   </div>
                 </div>
@@ -556,15 +557,14 @@ const AdminFeatureAccess = () => {
                     const isSelected = tempSelection.has(u.id);
 
                     return (
-                      <label 
+                      <label
                         key={u.id}
-                        className={`flex items-center gap-3 p-2.5 rounded-2xl border transition-all cursor-pointer ${
-                          isSelected 
-                            ? 'bg-[#e8f0fe] border-[#4285F4] shadow-2xs' 
+                        className={`flex items-center gap-3 p-2.5 rounded-2xl border transition-all cursor-pointer ${isSelected
+                            ? 'bg-[#e8f0fe] border-[#4285F4] shadow-2xs'
                             : 'bg-white border-[#e0e3e7] hover:border-[#dadce0]'
-                        }`}
+                          }`}
                       >
-                        <input 
+                        <input
                           type="checkbox"
                           className="w-4 h-4 rounded text-[#1a73e8] focus:ring-[#1a73e8] cursor-pointer"
                           checked={isSelected}
