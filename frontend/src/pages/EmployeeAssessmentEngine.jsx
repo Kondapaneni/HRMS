@@ -50,6 +50,16 @@ const EmployeeAssessmentEngine = () => {
   useEffect(() => { answersRef.current = answers; }, [answers]);
   useEffect(() => { autoSavingRef.current = autoSaving; }, [autoSaving]);
 
+  // Mark assessment as in progress to suppress global overlays (like UpdateOverlay)
+  useEffect(() => {
+    sessionStorage.setItem('active_assessment_in_progress', 'true');
+    window.__ACTIVE_ASSESSMENT_SESSION__ = true;
+    return () => {
+      sessionStorage.removeItem('active_assessment_in_progress');
+      window.__ACTIVE_ASSESSMENT_SESSION__ = false;
+    };
+  }, []);
+
 
 
   // ===================== SUBMIT FUNCTION =====================

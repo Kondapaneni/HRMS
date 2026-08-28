@@ -2,11 +2,22 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RefreshCw, Download, Sparkles, ArrowUpCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { useLocation } from 'react-router-dom';
 import api from '../api/axios';
 
 export default function UpdateOverlay() {
+  const location = useLocation();
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+
+  // Suppress update overlay if employee is writing an assessment or in exam instructions/session
+  const isAssessmentActive = 
+    location.pathname.includes('/assessments/session') ||
+    location.pathname.includes('/assessments/instructions') ||
+    (typeof window !== 'undefined' && (
+      sessionStorage.getItem('active_assessment_in_progress') === 'true' ||
+      window.__ACTIVE_ASSESSMENT_SESSION__ === true
+    ));
 
   const { data: newsData } = useQuery({
     queryKey: ['newsHeadlines'],
@@ -29,6 +40,12 @@ export default function UpdateOverlay() {
 
   useEffect(() => {
     const checkVersion = async () => {
+      // If assessment is active, suppress version update notifications completely
+      if (isAssessmentActive) {
+        setUpdateAvailable(false);
+        return;
+      }
+
       const isDevBypassed = typeof window !== 'undefined' && localStorage.getItem('dev_bypass_maintenance_session') === 'true';
       const rawMode = newsData?.maintenance_mode;
       const isMaint = rawMode === true || rawMode === 'true' || rawMode === 1 || rawMode === '1';
@@ -75,7 +92,7 @@ export default function UpdateOverlay() {
       window.removeEventListener('storage', handleCheck);
       clearInterval(interval);
     };
-  }, [newsData]);
+  }, [newsData, isAssessmentActive]);
 
   const handleUpdate = () => {
     setIsUpdating(true);
@@ -92,7 +109,7 @@ export default function UpdateOverlay() {
   };
 
   const isDevBypassedNow = typeof window !== 'undefined' && localStorage.getItem('dev_bypass_maintenance_session') === 'true';
-  const shouldShowUpdate = updateAvailable && (!isMaintenanceMode || isDevBypassedNow);
+  const shouldShowUpdate = updateAvailable && (!isMaintenanceMode || isDevBypassedNow) && !isAssessmentActive;
 
   return (
     <AnimatePresence>
