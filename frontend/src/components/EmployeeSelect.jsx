@@ -58,7 +58,7 @@ const EmployeeSelect = ({ employees: initialEmployees, selectedId, onChange, pla
         
         <ComboboxOptions 
             transition
-            className="absolute mt-1.5 max-h-52 w-full overflow-auto rounded-xl bg-white py-1 text-xs shadow-lg shadow-black/8 ring-1 ring-[#e0e3e7] focus:outline-none transition duration-100 ease-in data-[leave]:data-[closed]:opacity-0 custom-scrollbar"
+            className="absolute left-0 right-0 z-50 mt-1.5 max-h-52 w-full overflow-auto rounded-xl bg-white py-1 text-xs shadow-lg shadow-black/8 ring-1 ring-[#e0e3e7] focus:outline-none transition duration-100 ease-in data-[leave]:data-[closed]:opacity-0 custom-scrollbar"
         >
           {employeeList.length === 0 && !isFetching ? (
             <div className="relative cursor-default select-none px-4 py-2.5 text-[#5f6368] text-xs">

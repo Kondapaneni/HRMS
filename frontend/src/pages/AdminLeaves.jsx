@@ -3,7 +3,7 @@ import PageLoader from '../components/PageLoader';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
-import { Calendar, CheckCircle2, XCircle, Clock, Search, ChevronLeft, ChevronRight, User, Check, X, ArrowUpRight } from 'lucide-react';
+import { Calendar, CheckCircle2, XCircle, Clock, Search, ChevronLeft, ChevronRight, User, Check, X, ArrowUpRight, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const AdminLeaves = () => {
@@ -25,13 +25,14 @@ const AdminLeaves = () => {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const { data: leavesResponse, isLoading: loading } = useQuery({
+  const { data: leavesResponse, isLoading: initialLoading, isFetching } = useQuery({
     queryKey: ['admin', 'leaves', page, debouncedSearch],
     queryFn: async () => {
       const offset = (page - 1) * limit;
       const response = await api.get(`/admin/leaves?limit=${limit}&offset=${offset}&search=${encodeURIComponent(debouncedSearch)}`);
       return response.data;
     },
+    placeholderData: (previousData) => previousData,
     staleTime: 30 * 1000,
   });
 
@@ -98,7 +99,7 @@ const AdminLeaves = () => {
 
   const totalPages = Math.ceil(totalCount / limit) || 1;
 
-  if (loading) return <PageLoader message="Loading Leave Requests..." />;
+  if (initialLoading && !leaves.length && !debouncedSearch) return <PageLoader message="Loading Leave Requests..." />;
 
   return (
     <div className="space-y-5">
@@ -176,7 +177,11 @@ const AdminLeaves = () => {
           
           {/* Google Pill Search */}
           <div className="relative w-full sm:w-72">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368] pointer-events-none" />
+            {isFetching ? (
+              <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#1a73e8] animate-spin pointer-events-none" />
+            ) : (
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368] pointer-events-none" />
+            )}
             <input 
               type="search" 
               placeholder="Search by employee name or code..." 
@@ -187,8 +192,13 @@ const AdminLeaves = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto custom-scrollbar min-h-[300px]">
-          <table className="w-full text-xs text-left">
+        <div className="overflow-x-auto custom-scrollbar min-h-[300px] relative">
+          {initialLoading && leaves.length === 0 ? (
+            <div className="flex items-center justify-center h-64">
+              <Loader2 className="h-7 w-7 animate-spin text-[#4285F4]" />
+            </div>
+          ) : (
+            <table className="w-full text-xs text-left">
             <thead className="bg-[#f8fafd] border-b border-[#e0e3e7]">
               <tr>
                 <th className="h-10 px-4 font-semibold text-[#5f6368] text-[11px] uppercase tracking-wider whitespace-nowrap">Employee</th>
@@ -279,6 +289,7 @@ const AdminLeaves = () => {
               )}
             </tbody>
           </table>
+          )}
         </div>
 
         {/* Pagination */}

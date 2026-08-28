@@ -28,7 +28,8 @@ import {
   FileCheck2,
   Lock,
   Layers,
-  ArrowRight
+  ArrowRight,
+  Loader2
 } from 'lucide-react';
 import PageLoader from '../components/PageLoader';
 
@@ -99,7 +100,7 @@ const AssessmentManagement = () => {
   }, [searchQuery]);
 
   // Fetch all assessments
-  const { data: assessments = [], isLoading } = useQuery({
+  const { data: assessments = [], isLoading, isFetching } = useQuery({
     queryKey: ['adminAssessments', selectedDeptFilter, debouncedSearchQuery],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -109,7 +110,8 @@ const AssessmentManagement = () => {
       const url = `/admin/assessments?${params.toString()}`;
       const res = await api.get(url);
       return res.data?.data || res.data || [];
-    }
+    },
+    placeholderData: (previousData) => previousData,
   });
 
   // Calculate statistics
@@ -150,7 +152,7 @@ const AssessmentManagement = () => {
     }
   };
 
-  if (isLoading && !assessments.length) return <PageLoader message="Loading Assessment Hub..." />;
+  if (isLoading && !assessments.length && !debouncedSearchQuery) return <PageLoader message="Loading Assessment Hub..." />;
 
   return (
     <div className="space-y-6 pb-12">
@@ -256,7 +258,11 @@ const AssessmentManagement = () => {
 
           {/* Google Pill Search */}
           <div className="relative w-full lg:w-72 shrink-0">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368] pointer-events-none" />
+            {isFetching ? (
+              <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#1a73e8] animate-spin pointer-events-none" />
+            ) : (
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368] pointer-events-none" />
+            )}
             <input
               type="search"
               placeholder="Search assessment title or dept..."
@@ -267,8 +273,13 @@ const AssessmentManagement = () => {
           </div>
         </div>
 
-        {/* Empty State */}
-        {assessments.length === 0 ? (
+        {/* Loading / Empty / Content State */}
+        {isLoading && assessments.length === 0 ? (
+          <div className="p-12 text-center text-[#5f6368] flex flex-col items-center justify-center space-y-2">
+            <Loader2 className="w-8 h-8 text-[#1a73e8] animate-spin mb-1" />
+            <p className="text-xs">Loading assessments...</p>
+          </div>
+        ) : assessments.length === 0 ? (
           <div className="p-12 text-center text-[#5f6368] flex flex-col items-center justify-center space-y-3">
             <FileCheck2 className="w-12 h-12 text-[#dadce0]" />
             <p className="text-sm font-semibold text-[#1f1f1f]">No assessments found</p>

@@ -277,22 +277,44 @@ const AdminFeatureAccess = () => {
 
   // Filtered features list
   const filteredFeatures = useMemo(() => {
+    const q = searchFilter.toLowerCase().trim();
     return featuresList.filter(f => {
       const matchCategory = categoryFilter === 'All' || f.category === categoryFilter;
-      const q = searchFilter.toLowerCase();
-      const matchSearch = q === '' ||
+      if (!matchCategory) return false;
+
+      if (!q) return true;
+
+      // Check role title, description, or category
+      const matchRole =
         f.title.toLowerCase().includes(q) ||
-        f.description.toLowerCase().includes(q);
-      return matchCategory && matchSearch;
+        f.description.toLowerCase().includes(q) ||
+        f.category.toLowerCase().includes(q);
+
+      if (matchRole) return true;
+
+      // Check if any manager assigned to this feature matches the search (name, email, code, department)
+      const matchEmployee = users.some(u => {
+        if (!u[f.key]) return false;
+        const fullName = `${u.firstName || ''} ${u.lastName || ''}`.toLowerCase();
+        const email = (u.email || '').toLowerCase();
+        const code = (u.employeeCode || u.employeeId || '').toString().toLowerCase();
+        const dept = (u.department || '').toLowerCase();
+        return fullName.includes(q) || email.includes(q) || code.includes(q) || dept.includes(q);
+      });
+
+      return matchEmployee;
     });
-  }, [searchFilter, categoryFilter]);
+  }, [searchFilter, categoryFilter, users]);
 
   const filteredUsersForModal = useMemo(() => {
+    const q = modalSearch.toLowerCase().trim();
     return users.filter(u => {
+      if (!q) return true;
       const fullName = `${u.firstName || ''} ${u.lastName || ''}`.toLowerCase();
       const email = (u.email || '').toLowerCase();
-      const q = modalSearch.toLowerCase();
-      return fullName.includes(q) || email.includes(q);
+      const code = (u.employeeCode || u.employeeId || '').toString().toLowerCase();
+      const dept = (u.department || '').toLowerCase();
+      return fullName.includes(q) || email.includes(q) || code.includes(q) || dept.includes(q);
     });
   }, [users, modalSearch]);
 
@@ -384,7 +406,7 @@ const AdminFeatureAccess = () => {
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368] pointer-events-none" />
             <input
               type="search"
-              placeholder="Search feature roles or scopes..."
+              placeholder="Search roles, scopes, or employee name..."
               value={searchFilter}
               onChange={(e) => setSearchFilter(e.target.value)}
               className="w-full pl-10 pr-4 py-2 text-xs bg-[#f1f3f4] hover:bg-[#e8eaed] focus:bg-white border border-transparent focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-full text-[#1f1f1f] placeholder:text-[#5f6368] outline-none transition-all shadow-none focus:shadow-sm"
@@ -408,7 +430,7 @@ const AdminFeatureAccess = () => {
                   <td colSpan="3" className="p-12 text-center text-[#5f6368]">
                     <Shield className="w-12 h-12 text-[#dadce0] mx-auto mb-2" />
                     <p className="text-sm font-semibold text-[#1f1f1f]">No feature roles found</p>
-                    <p className="text-xs text-[#5f6368] mt-0.5">Try adjusting your search or category filter.</p>
+                    <p className="text-xs text-[#5f6368] mt-0.5">Try adjusting your search query or category filter.</p>
                   </td>
                 </tr>
               ) : (

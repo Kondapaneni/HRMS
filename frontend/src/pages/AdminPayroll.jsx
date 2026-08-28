@@ -261,8 +261,8 @@ const AdminPayroll = () => {
       </div>
 
       {/* Generate Payslip Card */}
-      <div className="rounded-2xl border border-[#e0e3e7] bg-white shadow-xs overflow-hidden">
-        <div className="p-4 sm:p-5 border-b border-[#e0e3e7] bg-[#f8fafd] flex items-center justify-between">
+      <div className="rounded-2xl border border-[#e0e3e7] bg-white shadow-xs">
+        <div className="p-4 sm:p-5 border-b border-[#e0e3e7] bg-[#f8fafd] rounded-t-2xl flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="p-2 rounded-xl bg-[#e8f0fe] text-[#1a73e8]">
               <Calculator className="w-4 h-4" />
@@ -276,7 +276,7 @@ const AdminPayroll = () => {
 
         <form onSubmit={handleGeneratePayslip} className="p-5">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 items-end">
-            <div>
+            <div className="relative z-30">
               <label className="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5">
                 Employee
               </label>

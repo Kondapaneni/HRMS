@@ -118,13 +118,14 @@ const AdminExpenses = () => {
   }, [search]);
 
   // Query Server for expenses
-  const { data: responseData, isLoading } = useQuery({
+  const { data: responseData, isLoading, isFetching } = useQuery({
     queryKey: ['admin', 'expenses', page, debouncedSearch, filter, categoryFilter],
     queryFn: async () => {
       const offset = (page - 1) * limit;
       const res = await api.get(`/admin/expenses?page=${page}&limit=${limit}&search=${encodeURIComponent(debouncedSearch)}&status=${filter}&category=${categoryFilter}`);
       return res.data;
     },
+    placeholderData: (previousData) => previousData,
     staleTime: 5 * 60 * 1000,
   });
 
@@ -220,7 +221,7 @@ const AdminExpenses = () => {
     );
   };
 
-  if (isLoading && !responseData) return <PageLoader message="Loading Expenses..." />;
+  if (isLoading && !responseData && !debouncedSearch) return <PageLoader message="Loading Expenses..." />;
 
   return (
     <div className="space-y-6 pb-12">
@@ -312,7 +313,11 @@ const AdminExpenses = () => {
 
             {/* Google Pill Search */}
             <div className="relative w-full sm:w-72">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368] pointer-events-none" />
+              {isFetching ? (
+                <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#1a73e8] animate-spin pointer-events-none" />
+              ) : (
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368] pointer-events-none" />
+              )}
               <input
                 type="search"
                 placeholder="Search employee, title, category..."
@@ -325,7 +330,7 @@ const AdminExpenses = () => {
         </div>
 
         {/* Table Content */}
-        <div className="overflow-x-auto custom-scrollbar">
+        <div className="overflow-x-auto custom-scrollbar relative">
           <table className="w-full text-xs text-left">
             <thead className="bg-[#f8fafd] border-b border-[#e0e3e7] text-[#5f6368] uppercase font-semibold tracking-wider text-[11px]">
               <tr>
@@ -338,7 +343,7 @@ const AdminExpenses = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#e0e3e7]">
-              {isLoading ? (
+              {isLoading && expenses.length === 0 ? (
                 <tr>
                   <td colSpan="6" className="px-6 py-12 text-center text-[#5f6368]">
                     <div className="flex flex-col items-center justify-center space-y-2">

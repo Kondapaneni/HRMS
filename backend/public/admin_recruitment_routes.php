@@ -241,6 +241,62 @@ $app->put('/api/admin/applications/{id}/status', function (Request $request, Res
     }
 })->add(new AuthMiddleware(['admin'], 'recruitment'));
 
+// Get single application by ID
+$app->get('/api/admin/applications/{id}', function (Request $request, Response $response, $args) {
+    $appId = $args['id'];
+    $db = new Database();
+    $conn = $db->getConnection();
+
+    try {
+        $sql = "
+            SELECT a.*, 
+                   j.title as job_title, 
+                   j.department as job_department,
+                   j.location as job_location,
+                   j.type as job_type,
+                   u.\"firstName\", 
+                   u.\"lastName\", 
+                   u.email
+            FROM applications a 
+            LEFT JOIN jobs j ON a.job_id = j.id
+            LEFT JOIN users u ON a.candidate_id = u.id
+            WHERE a.id = ?
+        ";
+        
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([$appId]);
+        $app = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$app) {
+            $response->getBody()->write(json_encode(['error' => 'Application not found']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+        }
+
+        $stmtTimeline = $conn->prepare('SELECT id, application_id, status_change, notes, created_at FROM application_timeline WHERE application_id = ? ORDER BY created_at DESC');
+        $stmtTimeline->execute([$app['id']]);
+        $app['application_timeline'] = $stmtTimeline->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Format nested objects to match expected shape
+        $app['jobs'] = [
+            'title' => $app['job_title'] ?? '',
+            'department' => $app['job_department'] ?? '',
+            'location' => $app['job_location'] ?? '',
+            'type' => $app['job_type'] ?? ''
+        ];
+        $app['users'] = [
+            'firstName' => $app['firstName'] ?? '',
+            'lastName' => $app['lastName'] ?? '',
+            'email' => $app['email'] ?? ''
+        ];
+
+        $response->getBody()->write(json_encode(['application' => $app]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+    } catch (Exception $e) {
+        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    }
+})->add(new AuthMiddleware(['admin'], 'recruitment'));
+
 // Fetch candidate profile for Admin
 $app->get('/api/admin/candidate-profiles', function (Request $request, Response $response, $args) {
     $db = new Database();
@@ -262,9 +318,16 @@ $app->get('/api/admin/candidate-profiles', function (Request $request, Response 
 $app->get('/api/admin/candidate-documents', function (Request $request, Response $response, $args) {
     $db = new Database();
     $conn = $db->getConnection();
+    $params = $request->getQueryParams();
+    $candidateId = $params['candidate_id'] ?? '';
     
     try {
-        $stmt = $conn->query('SELECT id, candidate_id, document_type, file_name, file_path, status, uploaded_at FROM candidate_documents');
+        if (!empty($candidateId)) {
+            $stmt = $conn->prepare('SELECT id, candidate_id, document_type, file_name, file_path, status, uploaded_at FROM candidate_documents WHERE candidate_id = ? ORDER BY uploaded_at DESC');
+            $stmt->execute([$candidateId]);
+        } else {
+            $stmt = $conn->query('SELECT id, candidate_id, document_type, file_name, file_path, status, uploaded_at FROM candidate_documents ORDER BY uploaded_at DESC');
+        }
         $documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $response->getBody()->write(json_encode(['documents' => $documents]));
@@ -274,3 +337,52 @@ $app->get('/api/admin/candidate-documents', function (Request $request, Response
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['admin'], 'recruitment'));
+
+// Update candidate document status
+$app->put('/api/admin/candidate-documents/{id}/status', function (Request $request, Response $response, $args) {
+    $docId = $args['id'];
+    $data = $request->getParsedBody();
+    $status = $data['status'] ?? '';
+    
+    if (!$status) {
+        $response->getBody()->write(json_encode(['error' => 'Status is required']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+
+    $db = new Database();
+    $conn = $db->getConnection();
+    
+    try {
+        $stmt = $conn->prepare('UPDATE candidate_documents SET status = ? WHERE id = ?');
+        $stmt->execute([$status, $docId]);
+
+        $response->getBody()->write(json_encode(['message' => 'Document status updated']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+    } catch (Exception $e) {
+        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    }
+})->add(new AuthMiddleware(['admin'], 'recruitment'));
+
+// Add application timeline event
+$app->post('/api/admin/applications/{id}/timeline', function (Request $request, Response $response, $args) {
+    $appId = $args['id'];
+    $data = $request->getParsedBody();
+    $statusChange = $data['status_change'] ?? '';
+    $notes = $data['notes'] ?? '';
+    
+    $db = new Database();
+    $conn = $db->getConnection();
+    
+    try {
+        $stmt = $conn->prepare('INSERT INTO application_timeline (application_id, status_change, notes) VALUES (?, ?, ?)');
+        $stmt->execute([$appId, $statusChange, $notes]);
+
+        $response->getBody()->write(json_encode(['message' => 'Timeline event added']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+    } catch (Exception $e) {
+        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    }
+})->add(new AuthMiddleware(['admin'], 'recruitment'));
+

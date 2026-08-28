@@ -169,12 +169,13 @@ const AdminPerformance = () => {
   }, [search]);
 
   // Server-side employee search
-  const { data: employees = [], isLoading: isLoadingEmployees } = useQuery({
+  const { data: employees = [], isLoading: isLoadingEmployees, isFetching: isFetchingEmployees } = useQuery({
     queryKey: ['admin', 'employees', debouncedSearch],
     queryFn: async () => {
       const res = await api.get(`/admin/employees?search=${encodeURIComponent(debouncedSearch)}&limit=100`);
       return res.data.employees || [];
     },
+    placeholderData: (previousData) => previousData,
     staleTime: 30 * 1000,
   });
 
@@ -203,7 +204,7 @@ const AdminPerformance = () => {
     return perfData.currentMetrics.weekly.find(w => w.isCurrentWeek) || perfData.currentMetrics.weekly[perfData.currentMetrics.weekly.length - 1];
   }, [perfData]);
 
-  if (isLoadingEmployees && !employees.length) return <PageLoader message="Loading Performance Analytics..." />;
+  if (isLoadingEmployees && !employees.length && !debouncedSearch) return <PageLoader message="Loading Performance Analytics..." />;
 
   return (
     <div className="space-y-6 pb-12">
@@ -227,7 +228,11 @@ const AdminPerformance = () => {
 
         {/* Search Input */}
         <div className="relative w-full sm:w-80">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368] pointer-events-none" />
+          {isFetchingEmployees ? (
+            <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#1a73e8] animate-spin pointer-events-none" />
+          ) : (
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368] pointer-events-none" />
+          )}
           <input 
             type="search" 
             placeholder="Search employee by name or ID..."

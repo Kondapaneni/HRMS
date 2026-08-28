@@ -30,7 +30,8 @@ import {
   UserCheck,
   Package,
   Layers,
-  Sparkles
+  Sparkles,
+  Loader2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
@@ -130,12 +131,13 @@ const AdminAssets = () => {
   const categories = ['Laptop', 'Monitor', 'Keyboard', 'Mouse', 'Phone', 'Tablet', 'Audio', 'Other'];
 
   // Fetch Assets from API
-  const { data: assetsResponse, isLoading: assetsLoading } = useQuery({
+  const { data: assetsResponse, isLoading: assetsLoading, isFetching: assetsFetching } = useQuery({
     queryKey: ['admin', 'assets', page, debouncedSearchQuery, filter, categoryFilter],
     queryFn: async () => {
       const res = await api.get(`/admin/assets?page=${page}&limit=${limit}&search=${encodeURIComponent(debouncedSearchQuery)}&status=${filter}&category=${categoryFilter}`);
       return res.data;
     },
+    placeholderData: (previousData) => previousData,
     staleTime: 30 * 1000,
   });
 
@@ -159,7 +161,7 @@ const AdminAssets = () => {
     },
   });
 
-  const loading = assetsLoading && !assetsResponse;
+  const loading = assetsLoading && !assetsResponse && !debouncedSearchQuery;
 
   const getInitials = (firstName, lastName) => {
     return `${(firstName || '').charAt(0)}${(lastName || '').charAt(0)}`.toUpperCase() || 'EM';
@@ -390,10 +392,13 @@ const AdminAssets = () => {
               <option value="All">All Categories</option>
               {categories.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
-
             {/* Google Pill Search */}
             <div className="relative w-full sm:w-72">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368] pointer-events-none" />
+              {assetsFetching ? (
+                <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#1a73e8] animate-spin pointer-events-none" />
+              ) : (
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368] pointer-events-none" />
+              )}
               <input
                 type="search"
                 placeholder="Search asset, S/N, employee..."
@@ -406,8 +411,13 @@ const AdminAssets = () => {
         </div>
 
         {/* Table List */}
-        <div className="overflow-x-auto custom-scrollbar">
-          {assets.length === 0 ? (
+        <div className="overflow-x-auto custom-scrollbar relative">
+          {assetsLoading && assets.length === 0 ? (
+            <div className="p-12 text-center text-[#5f6368] flex flex-col items-center justify-center space-y-2">
+              <Loader2 className="w-8 h-8 text-[#1a73e8] animate-spin mb-1" />
+              <p className="text-xs">Loading hardware assets...</p>
+            </div>
+          ) : assets.length === 0 ? (
             <div className="p-12 text-center text-[#5f6368] flex flex-col items-center justify-center space-y-2">
               <Monitor className="w-12 h-12 text-[#dadce0] mb-1" />
               <p className="text-sm font-semibold text-[#1f1f1f]">No assets found</p>

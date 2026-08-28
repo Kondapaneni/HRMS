@@ -29,7 +29,8 @@ import {
   Shield,
   Layers,
   Sparkles,
-  Settings
+  Settings,
+  Loader2
 } from 'lucide-react';
 import PageLoader from '../components/PageLoader';
 
@@ -89,12 +90,13 @@ const AssessmentResults = () => {
   }, [searchTerm]);
 
   // Fetch attempts
-  const { data: attempts = [], isLoading } = useQuery({
+  const { data: attempts = [], isLoading, isFetching } = useQuery({
     queryKey: ['adminAssessmentAttempts'],
     queryFn: async () => {
       const res = await api.get('/admin/assessments/attempts');
       return res.data?.data || res.data || [];
     },
+    placeholderData: (previousData) => previousData,
     refetchInterval: 30000
   });
 
@@ -200,7 +202,7 @@ const AssessmentResults = () => {
     return { total, passedCount, passRate, avgScore, violationsCount };
   }, [attempts]);
 
-  if (isLoading && !attempts.length) return <PageLoader message="Loading Assessment Results..." />;
+  if (isLoading && !attempts.length && !debouncedSearchTerm) return <PageLoader message="Loading Assessment Results..." />;
 
   return (
     <div className="space-y-6 pb-12">
@@ -274,7 +276,11 @@ const AssessmentResults = () => {
           
           {/* Google Search Bar */}
           <div className="relative w-full md:w-80 shrink-0">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368] pointer-events-none" />
+            {isFetching ? (
+              <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#1a73e8] animate-spin pointer-events-none" />
+            ) : (
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368] pointer-events-none" />
+            )}
             <input
               type="search"
               placeholder="Search employee, email, code or test..."
@@ -311,8 +317,13 @@ const AssessmentResults = () => {
         </div>
 
         {/* Results Table */}
-        <div className="overflow-x-auto custom-scrollbar">
-          {filteredAttempts.length === 0 ? (
+        <div className="overflow-x-auto custom-scrollbar relative">
+          {isLoading && attempts.length === 0 ? (
+            <div className="p-12 text-center text-[#5f6368] flex flex-col items-center justify-center space-y-2">
+              <Loader2 className="w-8 h-8 text-[#1a73e8] animate-spin mb-1" />
+              <p className="text-xs">Loading assessment results...</p>
+            </div>
+          ) : filteredAttempts.length === 0 ? (
             <div className="p-12 text-center text-[#5f6368] flex flex-col items-center justify-center space-y-2">
               <Award className="w-12 h-12 text-[#dadce0] mb-1" />
               <p className="text-sm font-semibold text-[#1f1f1f]">No assessment attempts found</p>

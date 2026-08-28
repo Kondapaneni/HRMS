@@ -18,6 +18,8 @@ $app->get('/api/admin/feature-access', function (Request $request, Response $res
             u."lastName", 
             u.email, 
             u.role,
+            e."employeeCode",
+            e.department,
             fa."canAttendance", 
             fa."canLeave", 
             fa."canPayroll", 
@@ -29,6 +31,7 @@ $app->get('/api/admin/feature-access', function (Request $request, Response $res
             fa."canBranchOperations",
             fa."canAdminAssessments"
         FROM users u
+        LEFT JOIN employee e ON e."userId" = u.id
         LEFT JOIN user_feature_access fa ON fa."userId" = u.id
         WHERE u.role != \'admin\'
         ORDER BY u."firstName" ASC, u."lastName" ASC

@@ -223,13 +223,8 @@ const AdminVerifyDocuments = () => {
   const { data: application, isLoading: isAppLoading } = useQuery({
     queryKey: ['application', id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('applications')
-        .select('*, jobs(*), users(*), application_timeline(*)')
-        .eq('id', id)
-        .single();
-      if (error) throw error;
-      return data;
+      const res = await api.get(`/admin/applications/${id}`);
+      return res.data?.application || null;
     }
   });
 
@@ -247,12 +242,8 @@ const AdminVerifyDocuments = () => {
     queryKey: ['admin_documents', application?.candidate_id],
     queryFn: async () => {
       if (!application?.candidate_id) return [];
-      const { data, error } = await supabase
-        .from('candidate_documents')
-        .select('*')
-        .eq('candidate_id', application.candidate_id);
-      if (error) throw error;
-      return data || [];
+      const res = await api.get(`/admin/candidate-documents?candidate_id=${application.candidate_id}`);
+      return res.data?.documents || [];
     },
     enabled: !!application?.candidate_id
   });
@@ -262,11 +253,8 @@ const AdminVerifyDocuments = () => {
       if (isConverted) {
         throw new Error('Candidate has already been converted to an employee. Document statuses are locked.');
       }
-      const { error } = await supabase
-        .from('candidate_documents')
-        .update({ status })
-        .eq('id', docId);
-      if (error) throw error;
+      const res = await api.put(`/admin/candidate-documents/${docId}/status`, { status });
+      return res.data;
     },
     onMutate: ({ docId }) => {
       setUpdatingDocId(docId);
@@ -275,10 +263,11 @@ const AdminVerifyDocuments = () => {
       setUpdatingDocId(null);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['admin_documents', application?.candidate_id]);
+      queryClient.invalidateQueries({ queryKey: ['admin_documents', application?.candidate_id] });
+      queryClient.invalidateQueries({ queryKey: ['application', id] });
       toast.success('Document status updated');
     },
-    onError: (err) => toast.error(err.message || 'Failed to update status')
+    onError: (err) => toast.error(err.response?.data?.error || err.message || 'Failed to update status')
   });
 
   const sendEmailMutation = useMutation({
@@ -288,7 +277,7 @@ const AdminVerifyDocuments = () => {
       const dashboardLink = frontendUrl + "/candidate/applications";
       
       const emailBody = documentVerifiedEmailTemplateHtml
-        .replace(/{{firstName}}/g, userInfo?.firstName || 'Candidate')
+        .replace(/{{firstName}}/g, userInfo?.firstName || application?.users?.firstName || 'Candidate')
         .replace(/{{jobTitle}}/g, application?.jobs?.title || 'the')
         .replace(/{{dashboardLink}}/g, dashboardLink)
         .replace(/{{currentYear}}/g, new Date().getFullYear().toString());
@@ -300,18 +289,16 @@ const AdminVerifyDocuments = () => {
       });
 
       // Add to timeline
-      await supabase.from('application_timeline').insert({
-        application_id: id,
+      await api.post(`/admin/applications/${id}/timeline`, {
         status_change: 'Documents Verified',
-        notes: 'Sent document verification confirmation email to candidate',
-        updated_by: profile?.id
+        notes: 'Sent document verification confirmation email to candidate'
       });
 
       return res.data;
     },
     onSuccess: () => {
       toast.success('Confirmation email sent to candidate');
-      queryClient.invalidateQueries(['application', id]);
+      queryClient.invalidateQueries({ queryKey: ['application', id] });
     },
     onError: () => toast.error('Failed to send email')
   });

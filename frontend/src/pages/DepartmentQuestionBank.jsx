@@ -20,7 +20,8 @@ import {
   Sparkles,
   Layers,
   Check,
-  AlertCircle
+  AlertCircle,
+  Loader2
 } from 'lucide-react';
 import PageLoader from '../components/PageLoader';
 
@@ -98,7 +99,7 @@ const DepartmentQuestionBank = () => {
     correct_options: [0] // array of integer indices
   });
 
-  const { data: questions = [], isLoading } = useQuery({
+  const { data: questions = [], isLoading, isFetching } = useQuery({
     queryKey: ['adminQuestions', selectedDeptFilter, debouncedSearchQuery],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -108,7 +109,8 @@ const DepartmentQuestionBank = () => {
       const url = `/admin/questions?${params.toString()}`;
       const res = await api.get(url);
       return res.data?.data || res.data || [];
-    }
+    },
+    placeholderData: (previousData) => previousData,
   });
 
   const stats = useMemo(() => {
@@ -233,7 +235,7 @@ const DepartmentQuestionBank = () => {
     setForm({ ...form, question_type: newType, correct_options: nextCorrect });
   };
 
-  if (isLoading && !questions.length) return <PageLoader message="Loading Question Bank..." />;
+  if (isLoading && !questions.length && !debouncedSearchQuery) return <PageLoader message="Loading Question Bank..." />;
 
   return (
     <div className="space-y-6 pb-12">
@@ -328,7 +330,11 @@ const DepartmentQuestionBank = () => {
 
           {/* Google Pill Search */}
           <div className="relative w-full lg:w-72 shrink-0">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368] pointer-events-none" />
+            {isFetching ? (
+              <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#1a73e8] animate-spin pointer-events-none" />
+            ) : (
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368] pointer-events-none" />
+            )}
             <input
               type="search"
               placeholder="Search question text or options..."
@@ -340,8 +346,13 @@ const DepartmentQuestionBank = () => {
         </div>
 
         {/* Questions Table */}
-        <div className="overflow-x-auto custom-scrollbar">
-          {questions.length === 0 ? (
+        <div className="overflow-x-auto custom-scrollbar relative">
+          {isLoading && questions.length === 0 ? (
+            <div className="p-12 text-center text-[#5f6368] flex flex-col items-center justify-center space-y-2">
+              <Loader2 className="w-8 h-8 text-[#1a73e8] animate-spin mb-1" />
+              <p className="text-xs">Loading question bank...</p>
+            </div>
+          ) : questions.length === 0 ? (
             <div className="p-12 text-center text-[#5f6368] flex flex-col items-center justify-center space-y-2">
               <HelpCircle className="w-12 h-12 text-[#dadce0] mb-1" />
               <p className="text-sm font-semibold text-[#1f1f1f]">No questions found</p>

@@ -24,7 +24,8 @@ import {
   Globe,
   Database,
   ArrowUpRight,
-  RefreshCw
+  RefreshCw,
+  Loader2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
@@ -103,7 +104,7 @@ const AdminAuditLogs = () => {
 
   const actions = ['INSERT', 'UPDATE', 'DELETE'];
 
-  const { data: logsResponse, isLoading: loading, refetch } = useQuery({
+  const { data: logsResponse, isLoading: loading, isFetching, refetch } = useQuery({
     queryKey: ['admin', 'audit-logs', page, debouncedSearch, moduleFilter, actionFilter, dateFilter],
     queryFn: async () => {
       const params = new URLSearchParams({ page, limit });
@@ -117,6 +118,7 @@ const AdminAuditLogs = () => {
       const response = await api.get(`/admin/audit-logs?${params.toString()}`);
       return response.data;
     },
+    placeholderData: (previousData) => previousData,
     onError: (error) => toast.error(error.response?.data?.error || 'Failed to fetch audit logs'),
   });
 
@@ -252,7 +254,7 @@ const AdminAuditLogs = () => {
     };
   }, [pagination, logs]);
 
-  if (loading && logs.length === 0) return <PageLoader message="Loading Security Audit Trail..." />;
+  if (loading && logs.length === 0 && !debouncedSearch) return <PageLoader message="Loading Security Audit Trail..." />;
 
   return (
     <div className="space-y-6 pb-12">
@@ -321,7 +323,11 @@ const AdminAuditLogs = () => {
           
           {/* Search Box */}
           <div className="relative w-full lg:w-80 shrink-0">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368] pointer-events-none" />
+            {isFetching ? (
+              <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#1a73e8] animate-spin pointer-events-none" />
+            ) : (
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368] pointer-events-none" />
+            )}
             <input
               type="search"
               placeholder="Search actor or target name..."
@@ -370,7 +376,7 @@ const AdminAuditLogs = () => {
         </div>
 
         {/* Audit Logs Table */}
-        <div className="overflow-x-auto custom-scrollbar">
+        <div className="overflow-x-auto custom-scrollbar relative">
           <table className="w-full text-xs text-left">
             <thead className="bg-[#f8fafd] border-b border-[#e0e3e7] text-[#5f6368] uppercase font-semibold tracking-wider text-[11px]">
               <tr>
@@ -382,7 +388,14 @@ const AdminAuditLogs = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#e0e3e7]">
-              {logs.length === 0 ? (
+              {loading && logs.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="p-12 text-center text-[#5f6368]">
+                    <Loader2 className="w-8 h-8 text-[#1a73e8] animate-spin mx-auto mb-2" />
+                    <p className="text-xs">Loading audit logs...</p>
+                  </td>
+                </tr>
+              ) : logs.length === 0 ? (
                 <tr>
                   <td colSpan="5" className="p-12 text-center text-[#5f6368]">
                     <ShieldAlert className="w-12 h-12 text-[#dadce0] mx-auto mb-2" />
