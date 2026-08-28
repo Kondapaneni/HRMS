@@ -20,12 +20,14 @@ const AdminEmployees = () => {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const { data: employees = [], isLoading: loading } = useQuery({
+  const { data: employees = [], isLoading: initialLoading, isFetching } = useQuery({
     queryKey: ['admin', 'employees', debouncedSearch],
     queryFn: async () => {
       const res = await api.get(`/admin/employees?search=${encodeURIComponent(debouncedSearch)}`);
       return res.data.employees || [];
     },
+    placeholderData: (previousData) => previousData,
+    staleTime: 30 * 1000,
     onError: () => toast.error('Failed to load employees'),
   });
 
@@ -56,7 +58,9 @@ const AdminEmployees = () => {
     return 'bg-[#f1f3f4] text-[#444746] border-[#dadce0]';
   };
 
-  if (loading) return <PageLoader message="Loading Employees..." />;
+  if (initialLoading && !employees.length && !debouncedSearch) {
+    return <PageLoader message="Loading Employees..." />;
+  }
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-8">
@@ -103,7 +107,11 @@ const AdminEmployees = () => {
 
           {/* Search Bar */}
           <form onSubmit={handleSearchSubmit} className="relative w-full sm:w-72">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368] pointer-events-none" />
+            {isFetching ? (
+              <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#1a73e8] animate-spin pointer-events-none" />
+            ) : (
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368] pointer-events-none" />
+            )}
             <input
               type="search"
               placeholder="Search by name, role, email..."
@@ -115,8 +123,8 @@ const AdminEmployees = () => {
         </div>
 
         {/* Table Body */}
-        <div className="flex-1 overflow-x-auto pb-32 min-h-[300px]">
-          {loading ? (
+        <div className="flex-1 overflow-x-auto pb-32 min-h-[300px] relative">
+          {initialLoading && employees.length === 0 ? (
             <div className="flex items-center justify-center h-64">
               <Loader2 className="h-7 w-7 animate-spin text-[#4285F4]" />
             </div>
