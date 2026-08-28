@@ -3,18 +3,25 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { execSync } from 'child_process'
 
-// Automatically compute dynamic version based on Git commits
-let gitCommitCount = 0;
+// Automatically compute dynamic version in format: v[YY].[M].[D].[today_commits]
+// Example: v26.8.28.1 (Year 26, Month 8, Day 28, 1st commit today)
+const now = new Date();
+const yy = now.getFullYear() % 100;
+const m = now.getMonth() + 1;
+const d = now.getDate();
+
+let todayCommits = 1;
 let gitCommitShort = '';
 try {
-  gitCommitCount = parseInt(execSync('git rev-list --count HEAD').toString().trim(), 10) || 0;
+  const countOutput = execSync('git rev-list --count --since="midnight" HEAD').toString().trim();
+  todayCommits = Math.max(1, parseInt(countOutput, 10) || 1);
   gitCommitShort = execSync('git rev-parse --short HEAD').toString().trim();
 } catch (e) {
-  gitCommitCount = 1;
+  todayCommits = 1;
   gitCommitShort = 'dev';
 }
 
-const appSemVer = `v2.4.${gitCommitCount}`;
+const appSemVer = `v${yy}.${m}.${d}.${todayCommits}`;
 const appVersion = new Date().getTime();
 
 const versionPlugin = () => {
