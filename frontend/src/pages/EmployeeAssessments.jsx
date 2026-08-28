@@ -81,24 +81,24 @@ const EmployeeAssessmentCard = React.memo(({ assessment, onStart, todayStr }) =>
       </div>
 
       <div className="p-4 bg-slate-50 border-t border-slate-100">
-        {isCompleted ? (
-          <button disabled className="w-full py-2.5 rounded-lg bg-slate-200 text-slate-500 font-bold text-sm cursor-not-allowed">
+        {assessment.attempts_used >= assessment.max_attempts && !inProgressId ? (
+          <button disabled className="w-full py-2.5 rounded-full bg-slate-200 text-slate-500 font-bold text-xs cursor-not-allowed">
             Max Attempts Reached
           </button>
         ) : isBlockedByDate ? (
-          <button disabled className="w-full py-2.5 rounded-lg bg-amber-100 text-amber-700 font-bold text-sm cursor-not-allowed flex items-center justify-center gap-2">
-            <Calendar size={16} /> Scheduled for {assessment.assessment_date}
+          <button disabled className="w-full py-2.5 rounded-full bg-amber-100 text-amber-700 font-bold text-xs cursor-not-allowed flex items-center justify-center gap-2">
+            <Calendar size={15} /> Scheduled for {assessment.assessment_date}
           </button>
         ) : (
           <button
             onClick={() => onStart(assessment.id, inProgressId)}
-            className={`w-full py-2.5 rounded-lg font-bold text-sm transition flex items-center justify-center gap-2 ${
+            className={`w-full py-2.5 rounded-full font-bold text-xs transition flex items-center justify-center gap-2 cursor-pointer shadow-xs active:scale-[0.98] ${
               inProgressId 
-                ? 'bg-amber-500 hover:bg-amber-600 text-white shadow-sm'
-                : 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm'
+                ? 'bg-amber-500 hover:bg-amber-600 text-white'
+                : 'bg-[#1a73e8] hover:bg-[#1557b0] text-white'
             }`}
           >
-            <PlayCircle size={16} />
+            <PlayCircle size={15} />
             {inProgressId ? 'Resume Assessment' : 'Start Assessment'}
           </button>
         )}
