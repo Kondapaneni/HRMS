@@ -454,7 +454,7 @@ const EmployeeMobileProfile = () => {
           <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
           <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
           <span className="text-[11px] font-bold text-slate-500 tracking-wide">
-            Acme HRMS v2.4.0
+            Acme HRMS {import.meta.env.VITE_APP_SEMVER || 'v2.4.0'}
           </span>
         </div>
         <p className="text-[10px] text-slate-400 font-medium">
