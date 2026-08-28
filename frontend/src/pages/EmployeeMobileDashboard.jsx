@@ -354,7 +354,7 @@ const EmployeeMobileDashboard = () => {
             {isOnLeaveToday ? (
               <div className="w-full rounded-xl bg-blue-50 text-blue-800 font-semibold py-3 text-center text-sm border border-blue-100 flex flex-col items-center gap-1.5 shadow-sm">
                 <Calendar className="w-5 h-5" />
-                <span>You are on an approved leave today.</span>
+                <span>You Are On An Approved Leave Today.</span>
               </div>
             ) : todayRecord?.status === 'Leave' ? (
               <div className="w-full rounded-xl bg-slate-100 text-slate-500 font-semibold py-2.5 text-center text-sm">

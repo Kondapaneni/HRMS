@@ -90,7 +90,7 @@ $app->post('/api/employee/attendance/punch', function (Request $request, Respons
             $stmtLeave = $conn->prepare('SELECT id FROM leaves WHERE "employeeId" = ? AND status = \'approved\' AND "startDate" <= ? AND "endDate" >= ? LIMIT 1');
             $stmtLeave->execute([$decodedToken->id, $today, $today]);
             if ($stmtLeave->fetch()) {
-                throw new Exception('You are on an approved leave today. Cannot check in.');
+                throw new Exception('You Are On An Approved Leave Today. Cannot Check In.');
             }
 
             $status = 'present';
