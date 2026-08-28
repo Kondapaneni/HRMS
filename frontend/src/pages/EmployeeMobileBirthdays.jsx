@@ -62,7 +62,7 @@ const EmployeeMobileBirthdays = () => {
     <div className="space-y-6 pb-4">
 
       {/* Hero Section with Animated Motion Graphics */}
-      <section className="-mx-4 -mt-4 px-4 pt-8 pb-10 relative overflow-hidden bg-slate-900">
+      <section className="-mx-4 -mt-4 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900">
         {/* Animated Liquid Orbs */}
         <motion.div
           animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
@@ -86,7 +86,7 @@ const EmployeeMobileBirthdays = () => {
         <div className="relative z-10 px-2">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">Team Celebrations</p>
+              <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">Team Celebrations</p>
               <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">Upcoming Birthdays</h2>
               <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">Celebrate your colleagues and share joy on their special days</p>
             </div>
