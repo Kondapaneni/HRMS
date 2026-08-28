@@ -7,6 +7,7 @@ import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
+import LogoutModal from './LogoutModal';
 import api from '../api/axios';
 
 const CandidateLayout = () => {
@@ -281,52 +282,14 @@ const CandidateLayout = () => {
         </div>
       </div>
 
-      {/* Logout Confirmation Modal */}
-      <AnimatePresence>
-        {showLogoutModal && (
-          <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 sm:p-0">
-            <motion.div 
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setShowLogoutModal(false)}
-              className="absolute inset-0 bg-slate-900/30 backdrop-blur-sm cursor-pointer"
-            />
-            <motion.div
-              initial={{ opacity: 0, y: '100%', scale: 1 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: '100%', scale: 0.95 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="bg-white/90 backdrop-blur-xl w-full max-w-sm rounded-[24px] sm:rounded-3xl p-6 shadow-2xl border border-white/50 relative z-10 mb-4 sm:mb-0"
-            >
-              <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-6 sm:hidden"></div>
-              <div className="flex flex-col items-center text-center">
-                <div className="w-16 h-16 bg-rose-100/80 text-rose-500 rounded-full flex items-center justify-center mb-4 ring-4 ring-rose-50">
-                  <LogOut size={28} className="ml-1" />
-                </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-2">Log Out</h3>
-                <p className="text-slate-500 text-sm mb-6 px-2">
-                  Are you sure you want to log out of your candidate account?
-                </p>
-                
-                <div className="flex w-full gap-3">
-                  <button
-                    onClick={() => setShowLogoutModal(false)}
-                    className="flex-1 py-3.5 px-4 rounded-xl font-semibold text-slate-700 bg-slate-100/80 hover:bg-slate-200 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowLogoutModal(false);
-                      handleLogout();
-                    }}
-                    className="flex-1 py-3.5 px-4 rounded-xl font-semibold text-white bg-rose-500 hover:bg-rose-600 transition-colors shadow-lg shadow-rose-500/30"
-                  >
-                    Log Out
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      {/* Global Logout Modal */}
+      <LogoutModal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={handleLogout}
+        title="Sign out of Candidate Account?"
+        description="Are you sure you want to log out of your candidate account? You will need to sign in again to check application updates."
+      />
 
     </div>
   );

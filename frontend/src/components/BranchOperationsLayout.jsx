@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import LogoutModal from './LogoutModal';
 
 const BranchOperationsLayout = () => {
   const { profile, signOut } = useAuth();
@@ -452,70 +453,13 @@ const BranchOperationsLayout = () => {
           document.body
         )}
 
-      {/* Google Material 3 Logout Confirmation Modal (createPortal) */}
-      {showLogoutModal && createPortal(
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => !loggingOut && setShowLogoutModal(false)}
-            className="fixed inset-0 bg-black/40 backdrop-blur-xs cursor-pointer"
-          />
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 8 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 8 }}
-            transition={{ duration: 0.2 }}
-            className="w-full max-w-sm bg-white rounded-3xl border border-[#e0e3e7] shadow-2xl overflow-hidden relative z-10 flex flex-col"
-          >
-            {/* Top 4-Color Gradient Accent Line */}
-            <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853]" />
-
-            <div className="p-6 text-center space-y-4">
-              <div className="w-12 h-12 rounded-2xl bg-[#fce8e6] border border-[#fad2cf] text-[#d93025] flex items-center justify-center mx-auto shadow-2xs">
-                <LogOut className="w-6 h-6" />
-              </div>
-
-              <div className="space-y-1">
-                <h3 className="text-lg font-semibold text-[#1f1f1f] tracking-tight">
-                  Sign out of your account?
-                </h3>
-                <p className="text-xs text-[#5f6368] leading-relaxed">
-                  Are you sure you want to end your session? You will need to sign in again to access the portal.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2.5 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowLogoutModal(false)}
-                  disabled={loggingOut}
-                  className="flex-1 py-3.5 px-4 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-sm font-semibold text-[#1f1f1f] transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center active:scale-[0.98]"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleConfirmLogout}
-                  disabled={loggingOut}
-                  className="flex-1 py-3.5 px-4 rounded-full bg-[#d93025] hover:bg-[#b3261e] text-white text-sm font-semibold shadow-xs transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5 active:scale-[0.98]"
-                >
-                  {loggingOut ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
-                      <span>Signing Out...</span>
-                    </>
-                  ) : (
-                    <span>Sign Out</span>
-                  )}
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        </div>,
-        document.body
-      )}
+      {/* Global Logout Modal */}
+      <LogoutModal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={handleConfirmLogout}
+        isLoading={loggingOut}
+      />
 
       <style>{`
         .orientation-warning {
