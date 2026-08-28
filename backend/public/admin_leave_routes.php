@@ -14,12 +14,16 @@ function queueLeaveEmail($conn, $empId, $leaveType, $startDate, $endDate, $statu
         $templatePath = __DIR__ . '/../src/Templates/leave_email.html';
         if (file_exists($templatePath)) {
             $emailContent = file_get_contents($templatePath);
+            $frontendUrl = rtrim($_ENV['FRONTEND_URL'] ?? 'https://hrms-qwv3.onrender.com', '/');
+            $dashboardLink = $frontendUrl . '/employee/leaves';
+
             $employeeName = trim(($employee['firstName'] ?? '') . ' ' . ($employee['lastName'] ?? ''));
             $emailContent = str_replace('{{employeeName}}', htmlspecialchars($employeeName), $emailContent);
             $emailContent = str_replace('{{status}}', htmlspecialchars(ucfirst($status)), $emailContent);
             $emailContent = str_replace('{{leaveType}}', htmlspecialchars(ucfirst($leaveType)), $emailContent);
             $emailContent = str_replace('{{startDate}}', date('F j, Y', strtotime($startDate)), $emailContent);
             $emailContent = str_replace('{{endDate}}', date('F j, Y', strtotime($endDate)), $emailContent);
+            $emailContent = str_replace('{{dashboardLink}}', htmlspecialchars($dashboardLink), $emailContent);
             $emailContent = str_replace('{{currentYear}}', date('Y'), $emailContent);
             
             $subject = "Leave Request " . ucfirst($status);
