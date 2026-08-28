@@ -345,7 +345,7 @@ const EmployeeMobileProfile = () => {
         {/* Subtle Glass Overlay */}
         <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
 
-        <div className="relative z-10 px-2 mb-2">
+        <div className="relative z-10 px-2">
           <div className="flex justify-between items-start">
             <div>
               <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">My Profile</p>
@@ -357,7 +357,7 @@ const EmployeeMobileProfile = () => {
       </section>
 
       {/* Profile Identity Card (Elevated Floating Card) */}
-      <section className="bg-white rounded-[1.5rem] border border-slate-100 shadow-md p-5 relative z-20 -mt-10 mx-0.5 space-y-4">
+      <section className="bg-white rounded-[1.5rem] border border-slate-100 shadow-md p-5 relative z-20 -mt-12 mx-0.5 space-y-4">
         <div className="flex flex-col items-center text-center space-y-3">
           
           {/* Avatar Container with Upload Badge */}

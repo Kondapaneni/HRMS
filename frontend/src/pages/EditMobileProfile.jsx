@@ -163,7 +163,7 @@ const EditMobileProfile = () => {
       </section>
 
       {/* Edit Form */}
-      <form onSubmit={handleSaveProfile} className="space-y-4 relative z-20 -mt-10 mx-0.5">
+      <form onSubmit={handleSaveProfile} className="space-y-4 relative z-20 -mt-12 mx-0.5">
         
         {/* Personal Details Card */}
         <div className="bg-white p-5 rounded-[1.5rem] border border-slate-100 shadow-md space-y-4">
