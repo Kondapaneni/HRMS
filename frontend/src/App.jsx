@@ -101,6 +101,7 @@ import { Toaster } from 'react-hot-toast'
 import SnowflakeCursor from './components/CustomCursor'
 import Offline from './pages/Offline'
 import UpdateOverlay from './components/UpdateOverlay'
+import LandscapeOverlay from './components/LandscapeOverlay'
 
 
 const queryClient = new QueryClient({
@@ -135,6 +136,7 @@ function App() {
       <Router>
         <AuthProvider>
             <UpdateOverlay />
+            <LandscapeOverlay />
             <Offline />
             <SnowflakeCursor />
             <Toaster position="top-right" />

@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { 
   LogOut, Users, Settings, Activity, Briefcase, 
   Search, Bell, Menu, Home, Calendar, Clock, 
-  BarChart2, ChevronDown, IndianRupee, Monitor, FileText, Shield, Network, Mail, Award, Smartphone, X, AlertCircle
+  BarChart2, ChevronDown, IndianRupee, Monitor, FileText, Shield, Network, Mail, Award, X, AlertCircle
 } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -270,60 +270,6 @@ const AdminLayoutContent = () => {
           className="flex items-center justify-center gap-2 px-6 py-2.5 bg-white border border-[#dadce0] hover:bg-[#f8fafd] text-[#1f1f1f] text-xs font-semibold rounded-full shadow-2xs transition-all cursor-pointer"
         >
           <LogOut size={16} className="text-[#5f6368]" />
-          <span>Sign Out</span>
-        </button>
-      </div>
-
-      <style>{`
-        .orientation-warning {
-          display: none;
-        }
-        @media (orientation: landscape) and (max-width: 1024px) {
-          .orientation-warning {
-            display: flex;
-          }
-        }
-      `}</style>
-
-      {/* Landscape Orientation Warning Overlay for Mobile/Tablet */}
-      <div className="orientation-warning fixed inset-0 z-[9999] flex-col items-center justify-center bg-white/95 backdrop-blur-3xl p-6 text-center select-none border border-white/80 shadow-[inset_0_1px_3px_rgba(255,255,255,0.8),0_12px_40px_rgba(0,0,0,0.08)]">
-        <div className="relative mb-5">
-          {/* Animated phone rotation container */}
-          <div className="w-20 h-20 border border-dashed border-[#4285F4]/40 bg-[#e8f0fe]/60 rounded-full flex items-center justify-center animate-[spin_8s_linear_infinite]">
-            <Smartphone className="w-8 h-8 text-[#4285F4] opacity-30" />
-          </div>
-          {/* Main phone rotation icon */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <motion.div
-              animate={{ rotate: [0, -90, 0] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            >
-              <Smartphone className="w-10 h-10 text-[#1a73e8]" />
-            </motion.div>
-          </div>
-        </div>
-
-        {/* 4 Google Colors Accent */}
-        <div className="flex items-center justify-center gap-1 mb-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-          <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-          <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-          <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-          <span className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368] ml-1">
-            Display Orientation
-          </span>
-        </div>
-
-        <h3 className="text-xl font-black text-[#1f1f1f] mb-2 uppercase tracking-wide">Rotate your device</h3>
-        <p className="text-[#5f6368] text-xs max-w-xs font-medium leading-relaxed mb-6">
-          Please rotate your screen back to portrait orientation for the best Acme HRMS experience.
-        </p>
-        <button
-          type="button"
-          onClick={handleLogoutClick}
-          className="flex items-center justify-center gap-2 px-6 py-2.5 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-full font-semibold shadow-xs transition-all cursor-pointer"
-        >
-          <LogOut size={16} />
           <span>Sign Out</span>
         </button>
       </div>
