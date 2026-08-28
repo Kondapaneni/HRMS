@@ -463,10 +463,10 @@ const EmployeeLayout = () => {
                 <button
                   type="button"
                   onClick={() => setShowLogoutModal(true)}
-                  className="p-1.5 rounded-full text-[#5f6368] hover:text-[#d93025] hover:bg-[#fce8e6] transition-colors cursor-pointer"
+                  className="p-2.5 rounded-full text-[#5f6368] hover:text-[#d93025] hover:bg-[#fce8e6] transition-colors cursor-pointer active:scale-95"
                   title="Sign Out"
                 >
-                  <LogOut className="w-4 h-4" />
+                  <LogOut className="w-5 h-5" />
                 </button>
               </div>
             </div>
@@ -592,7 +592,7 @@ const EmployeeLayout = () => {
                     type="button"
                     onClick={() => setShowLogoutModal(false)}
                     disabled={loggingOut}
-                    className="flex-1 py-3 px-4 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-xs font-semibold text-[#1f1f1f] transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center"
+                    className="flex-1 py-3.5 px-4 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-sm font-semibold text-[#1f1f1f] transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center active:scale-[0.98]"
                   >
                     Cancel
                   </button>
@@ -600,11 +600,11 @@ const EmployeeLayout = () => {
                     type="button"
                     onClick={handleConfirmLogout}
                     disabled={loggingOut}
-                    className="flex-1 py-3 px-4 rounded-full bg-[#d93025] hover:bg-[#b3261e] text-white text-xs font-semibold shadow-xs transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5"
+                    className="flex-1 py-3.5 px-4 rounded-full bg-[#d93025] hover:bg-[#b3261e] text-white text-sm font-semibold shadow-xs transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5 active:scale-[0.98]"
                   >
                     {loggingOut ? (
                       <>
-                        <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent" />
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
                         <span>Signing Out...</span>
                       </>
                     ) : (

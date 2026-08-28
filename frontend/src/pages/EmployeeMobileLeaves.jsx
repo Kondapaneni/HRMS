@@ -247,7 +247,7 @@ const EmployeeMobileLeaves = () => {
                   </div>
 
                   {record.reason && (
-                    <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                    <div className="bg-slate-50 rounded-2xl px-4 py-2.5 border border-slate-100">
                       <p className="text-xs text-slate-600 italic line-clamp-2">
                         &ldquo;{record.reason}&rdquo;
                       </p>
@@ -259,7 +259,7 @@ const EmployeeMobileLeaves = () => {
                       type="button"
                       onClick={() => cancelLeaveMutation.mutate(record.id)}
                       disabled={cancelLeaveMutation.isPending}
-                      className="w-full flex items-center justify-center gap-2 bg-[#d93025] hover:bg-[#b3261e] active:bg-[#a51d14] text-white rounded-full py-3.5 text-sm font-semibold shadow-xs transition-all cursor-pointer disabled:opacity-50 active:scale-[0.98]"
+                      className="w-full flex items-center justify-center gap-2 bg-[#d93025] hover:bg-[#b3261e] active:bg-[#a51d14] text-white rounded-full py-3 text-sm font-semibold shadow-xs transition-all cursor-pointer disabled:opacity-50 active:scale-[0.98]"
                     >
                       <span>{cancelLeaveMutation.isPending ? 'Cancelling...' : 'Cancel Leave'}</span>
                     </button>
