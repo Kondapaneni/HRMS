@@ -303,7 +303,7 @@ $app->get('/api/admin/candidate-profiles', function (Request $request, Response 
     $conn = $db->getConnection();
     
     try {
-        $stmt = $conn->query('SELECT id, user_id, phone, address, current_title, experience, bio, resume_url, avatar_url, created_at, updated_at FROM candidate_profiles');
+        $stmt = $conn->query('SELECT id, user_id, phone, address, current_title, experience, resume_url, avatar_url, created_at, updated_at FROM candidate_profiles');
         $profiles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         $response->getBody()->write(json_encode(['profiles' => $profiles]));

@@ -909,12 +909,18 @@ const AdminRecruitment = () => {
                       </div>
                       <div>
                         <span className="font-semibold text-[#1f1f1f] block mb-0.5">Experience</span>
-                        <span>{appProfile?.experience ? `${appProfile.experience} years` : 'Not specified'}</span>
+                        <span>{appProfile?.experience ? `${appProfile.experience} years` : (app.experience ? `${app.experience} years` : 'Not specified')}</span>
                       </div>
                       <div>
-                        <span className="font-semibold text-[#1f1f1f] block mb-0.5">Application Date</span>
-                        <span>{new Date(app.applied_date).toLocaleDateString()}</span>
+                        <span className="font-semibold text-[#1f1f1f] block mb-0.5">Availability / Notice</span>
+                        <span className="font-semibold text-[#1a73e8]">{app.notice_period || 'Immediate'}</span>
                       </div>
+                      {app.cover_note && (
+                        <div className="col-span-1 sm:col-span-2 md:col-span-4 bg-white p-2.5 rounded-lg border border-[#dadce0]">
+                          <span className="font-semibold text-[#1f1f1f] block mb-0.5 text-[11px]">Cover Note / Message</span>
+                          <p className="text-xs text-[#444746] italic leading-relaxed">"{app.cover_note}"</p>
+                        </div>
+                      )}
                     </div>
 
                     <div className="flex justify-end pt-1">
