@@ -407,46 +407,50 @@ const CandidateJobs = () => {
         </div>
       </div>
 
-      {/* Google Workspace Slide-Over Application Drawer */}
+      {/* Google Workspace Slide-Over Application Drawer matching Employee Modals */}
       {selectedJob && typeof document !== 'undefined' && createPortal(
-        <div className="fixed inset-0 z-[100] flex justify-end">
-          {/* Full-screen Backdrop covering entire page and main sidebar with blur */}
-          <div 
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in"
-            onClick={() => setSelectedJob(null)}
-          />
+        <div 
+          onClick={(e) => { if (e.target === e.currentTarget) setSelectedJob(null); }}
+          className="fixed inset-0 z-[10000] flex justify-end bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200"
+        >
+          <div className="bg-white shadow-2xl w-full max-w-lg h-full flex flex-col overflow-hidden animate-in slide-in-from-right duration-300">
+            {/* Top 4-Color Gradient Accent Line */}
+            <div className="h-1 bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853]" />
 
-          {/* Slide-over Right Sidebar Drawer */}
-          <div className="relative w-full max-w-md bg-white h-full shadow-2xl border-l border-[#e0e3e7] flex flex-col z-10 animate-in slide-in-from-right duration-300 ease-out">
             {/* Drawer Header */}
-            <div className="px-6 py-5 border-b border-[#f1f3f4] flex justify-between items-center bg-[#f8fafd] shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center shrink-0 border border-[#d2e3fc]">
-                  <Briefcase size={18} />
+            <div className="px-6 py-4 border-b border-[#e0e3e7] flex items-center justify-between bg-[#f8fafd] shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-[#e8f0fe] text-[#1a73e8]">
+                  <Briefcase className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-[#1f1f1f]">Apply for Position</h2>
-                  <p className="text-xs text-[#5f6368] truncate max-w-[240px]">{selectedJob.title}</p>
+                  <h2 className="text-base font-semibold text-[#1f1f1f]">Apply for Position</h2>
+                  <p className="text-xs text-[#5f6368]">{selectedJob.title} &bull; {selectedJob.department}</p>
                 </div>
               </div>
               <button 
                 onClick={() => setSelectedJob(null)} 
-                className="w-8 h-8 rounded-full text-[#5f6368] hover:bg-[#e8eaed] flex items-center justify-center transition-colors cursor-pointer"
+                className="p-1.5 rounded-full hover:bg-[#e0e3e7]/60 text-[#5f6368] transition-colors cursor-pointer"
                 title="Close"
               >
-                <X size={18} />
+                <X className="w-5 h-5" />
               </button>
             </div>
             
             {/* Drawer Body */}
             <div className="p-6 overflow-y-auto flex-1 space-y-5">
-              <div className="bg-[#f8fafd] rounded-2xl p-4 border border-[#e0e3e7] space-y-1">
-                <h3 className="text-sm font-bold text-[#1f1f1f]">{selectedJob.title}</h3>
+              <div className="bg-[#f8fafd] rounded-2xl p-4 border border-[#e0e3e7] space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-[#1f1f1f]">{selectedJob.title}</h3>
+                  <span className="text-[11px] font-semibold text-[#1a73e8] bg-[#e8f0fe] px-2.5 py-0.5 rounded-full border border-[#d2e3fc]">
+                    {selectedJob.type}
+                  </span>
+                </div>
                 <p className="text-xs text-[#5f6368]">
-                  {selectedJob.department} &bull; {selectedJob.location} &bull; {selectedJob.type}
+                  {selectedJob.department} &bull; {selectedJob.location}
                 </p>
                 {selectedJob.experience && (
-                  <p className="text-[11px] text-[#5f6368] pt-1">
+                  <p className="text-[11px] text-[#5f6368] pt-1 border-t border-[#f1f3f4] mt-1.5">
                     Required Experience: <span className="font-semibold text-[#1f1f1f]">{selectedJob.experience}</span>
                   </p>
                 )}
@@ -510,7 +514,7 @@ const CandidateJobs = () => {
             </div>
 
             {/* Drawer Footer */}
-            <div className="px-6 py-4 border-t border-[#f1f3f4] bg-[#f8fafd] flex justify-end gap-2.5 shrink-0">
+            <div className="px-6 py-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex items-center justify-end gap-3 shrink-0">
               <button 
                 type="button" 
                 onClick={() => setSelectedJob(null)} 

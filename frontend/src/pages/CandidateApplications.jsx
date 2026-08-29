@@ -243,30 +243,31 @@ const CandidateApplications = () => {
 
       {/* Google Material 3 Timeline Modal */}
       {isTimelineModalOpen && timelineApp && typeof document !== 'undefined' && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto">
-          {/* Full-screen Backdrop with Blur covering main sidebar */}
-          <div 
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in"
-            onClick={() => setIsTimelineModalOpen(false)}
-          />
+        <div 
+          onClick={(e) => { if (e.target === e.currentTarget) setIsTimelineModalOpen(false); }}
+          className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto"
+        >
+          <div className="bg-white rounded-3xl shadow-2xl border border-[#e0e3e7] w-full max-w-2xl my-auto overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            {/* Top 4-Color Gradient Accent Line */}
+            <div className="h-1 bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853]" />
 
-          <div className="relative z-10 bg-white rounded-3xl shadow-2xl border border-[#e0e3e7] w-full max-w-2xl my-auto overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             {/* Header */}
-            <div className="px-6 py-5 border-b border-[#f1f3f4] flex justify-between items-center bg-[#f8fafd]">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-[#e6f4ea] text-[#137333] flex items-center justify-center shrink-0 border border-[#ceead6]">
-                  <TrendingUp size={18} />
+            <div className="px-6 py-4 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd] shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-[#e6f4ea] text-[#137333]">
+                  <TrendingUp className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-[#1f1f1f]">Application Progress Timeline</h2>
+                  <h2 className="text-base font-semibold text-[#1f1f1f]">Application Progress Timeline</h2>
                   <p className="text-xs text-[#5f6368]">{timelineApp.jobTitle} &bull; {timelineApp.department}</p>
                 </div>
               </div>
               <button 
                 onClick={() => setIsTimelineModalOpen(false)} 
-                className="w-8 h-8 rounded-full text-[#5f6368] hover:bg-[#e8eaed] flex items-center justify-center transition-colors cursor-pointer"
+                className="p-1.5 rounded-full hover:bg-[#e0e3e7]/60 text-[#5f6368] transition-colors cursor-pointer"
+                title="Close"
               >
-                <X size={18} />
+                <X className="w-5 h-5" />
               </button>
             </div>
             
@@ -315,7 +316,7 @@ const CandidateApplications = () => {
             </div>
             
             {/* Modal Footer */}
-            <div className="px-6 py-4 border-t border-[#f1f3f4] bg-[#f8fafd] flex justify-end">
+            <div className="px-6 py-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex justify-end shrink-0">
               <button 
                 onClick={() => setIsTimelineModalOpen(false)} 
                 className="px-6 py-2.5 text-xs font-semibold text-[#5f6368] hover:text-[#1f1f1f] bg-white border border-[#dadce0] rounded-full hover:bg-[#f1f3f4] transition-all cursor-pointer shadow-2xs"
