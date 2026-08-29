@@ -182,7 +182,6 @@ const CandidateLayout = () => {
     { label: 'Dashboard', icon: <Home size={15} />, path: '/candidate/dashboard' },
     { label: 'Explore Jobs', icon: <Briefcase size={15} />, path: '/candidate/jobs' },
     { label: 'My Applications', icon: <FileText size={15} />, path: '/candidate/applications' },
-    { label: 'Documents', icon: <Folder size={15} />, path: '/candidate/documents', isNew: showDocumentsNewBadge },
     { label: 'My Profile', icon: <User size={15} />, path: '/candidate/profile' }
   ];
 
@@ -190,7 +189,6 @@ const CandidateLayout = () => {
     { label: 'Home', icon: Home, path: '/candidate/dashboard' },
     { label: 'Jobs', icon: Briefcase, path: '/candidate/jobs' },
     { label: 'Applications', icon: FileText, path: '/candidate/applications' },
-    { label: 'Documents', icon: Folder, path: '/candidate/documents', isNew: showDocumentsNewBadge },
     { label: 'Profile', icon: User, path: '/candidate/profile' }
   ];
 
