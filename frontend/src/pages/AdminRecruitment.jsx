@@ -940,17 +940,29 @@ const AdminRecruitment = () => {
         </div>
       )}
 
-      {/* Offer Letter Drawer / Modal */}
-      {isOfferModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl my-auto flex flex-col md:flex-row h-[90vh] overflow-hidden border border-[#e0e3e7]">
-            <div className="flex-1 flex flex-col border-r border-[#e0e3e7]">
-              <div className="p-5 border-b border-[#e0e3e7] flex justify-between items-start bg-[#f8fafd]">
-                <div>
-                  <h3 className="text-base font-semibold text-[#1f1f1f]">Configure Job Offer Letter</h3>
-                  <p className="text-xs text-[#5f6368]">Fill in compensation and joining details for {offerData.firstName} {offerData.lastName}</p>
+      {/* Offer Letter Drawer / Full Modal via createPortal covering left sidebar */}
+      {isOfferModalOpen && createPortal(
+        <div 
+          onClick={(e) => { if (e.target === e.currentTarget) setIsOfferModalOpen(false); }}
+          className="fixed inset-0 z-[10000] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-3 md:p-6 overflow-y-auto animate-in fade-in duration-200"
+        >
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-6xl my-auto flex flex-col md:flex-row h-[92vh] max-h-[850px] overflow-hidden border border-[#e0e3e7] relative z-10 animate-in zoom-in-95 duration-200">
+            {/* Top 4-Color Gradient Accent Line */}
+            <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0 z-20" />
+
+            {/* Left Column: Form Settings */}
+            <div className="flex-1 flex flex-col border-r border-[#e0e3e7] min-w-0 bg-white">
+              <div className="p-5 border-b border-[#e0e3e7] flex justify-between items-start bg-[#f8fafd] mt-1 shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-2xl bg-[#e6f4ea] text-[#137333]">
+                    <Award className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-[#1f1f1f]">Configure Job Offer Letter</h3>
+                    <p className="text-xs text-[#5f6368]">Fill in compensation and joining details for {offerData.firstName} {offerData.lastName}</p>
+                  </div>
                 </div>
-                <button onClick={() => setIsOfferModalOpen(false)} className="p-1.5 rounded-full text-[#5f6368] hover:bg-[#e8eaed] transition-colors cursor-pointer">
+                <button onClick={() => setIsOfferModalOpen(false)} className="p-1.5 rounded-full text-[#5f6368] hover:bg-[#e8eaed] transition-colors cursor-pointer" title="Close">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -1016,18 +1028,18 @@ const AdminRecruitment = () => {
                 </form>
               </div>
 
-              <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex justify-end gap-2.5">
-                <button type="button" onClick={() => setIsOfferModalOpen(false)} className="px-4 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer">
+              <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex justify-end gap-2.5 shrink-0">
+                <button type="button" onClick={() => setIsOfferModalOpen(false)} className="px-5 py-2.5 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#5f6368] transition-all cursor-pointer shadow-2xs">
                   Cancel
                 </button>
-                <button form="offerForm" type="submit" disabled={isGeneratingPdf || updateStatusMutation.isPending} className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-xs font-semibold bg-[#137333] hover:bg-[#0d5926] text-white shadow-xs transition-all cursor-pointer disabled:opacity-50">
+                <button form="offerForm" type="submit" disabled={isGeneratingPdf || updateStatusMutation.isPending} className="inline-flex items-center gap-1.5 px-6 py-2.5 rounded-full text-xs font-semibold bg-[#137333] hover:bg-[#0d5926] text-white shadow-xs transition-all cursor-pointer disabled:opacity-50">
                   <Award className="w-3.5 h-3.5" />
                   {isGeneratingPdf ? 'Generating PDF...' : updateStatusMutation.isPending ? 'Sending...' : 'Confirm & Dispatch Offer'}
                 </button>
               </div>
             </div>
             
-            {/* PDF Preview Sidebar */}
+            {/* Right Column: Live PDF Document Preview */}
             <div className="hidden md:block w-1/2 bg-[#f8fafd] border-l border-[#e0e3e7] overflow-hidden relative">
               <PDFViewer width="100%" height="100%" className="border-none">
                 <OfferLetterPDF data={{
@@ -1043,87 +1055,97 @@ const AdminRecruitment = () => {
               </PDFViewer>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Convert to Employee Sidebar Drawer */}
       {isConvertModalOpen && createPortal(
-        <div className="fixed inset-0 z-50 overflow-hidden">
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity" onClick={() => setIsConvertModalOpen(false)} />
-          <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-            <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col">
-              <div className="p-5 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd]">
-                <div>
-                  <h3 className="text-base font-semibold text-[#1f1f1f]">Convert to Employee</h3>
-                  <p className="text-xs text-[#5f6368]">Create staff account and official employee profile</p>
-                </div>
-                <button onClick={() => setIsConvertModalOpen(false)} className="p-1.5 rounded-full text-[#5f6368] hover:bg-[#e8eaed] transition-colors cursor-pointer">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-              
-              <div className="p-6 overflow-y-auto flex-1 custom-scrollbar text-xs">
-                <form id="convert-candidate-form" onSubmit={handleConvertToEmployee} className="space-y-4">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">First Name *</label>
-                      <input type="text" required value={convertData.firstName} onChange={e => setConvertData({...convertData, firstName: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
-                    </div>
-                    <div>
-                      <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Last Name *</label>
-                      <input type="text" required value={convertData.lastName} onChange={e => setConvertData({...convertData, lastName: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Email *</label>
-                    <input type="email" required value={convertData.email} onChange={e => setConvertData({...convertData, email: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
-                  </div>
-                  <div>
-                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Phone Number *</label>
-                    <input type="text" value={convertData.phone} onChange={e => setConvertData({...convertData, phone: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Department *</label>
-                      <input type="text" required value={convertData.department} onChange={e => setConvertData({...convertData, department: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
-                    </div>
-                    <div>
-                      <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Designation *</label>
-                      <input type="text" required value={convertData.position} onChange={e => setConvertData({...convertData, position: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Branch *</label>
-                      <select required value={convertData.branch} onChange={e => setConvertData({...convertData, branch: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all cursor-pointer">
-                        {branches.map(b => (
-                          <option key={b.id} value={b.id}>{b.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Join Date *</label>
-                      <input type="date" required value={convertData.joinDate} onChange={e => setConvertData({...convertData, joinDate: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Monthly Salary (₹) *</label>
-                    <input type="number" required value={convertData.salary} onChange={e => setConvertData({...convertData, salary: e.target.value})} placeholder="e.g. 50000" className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none font-mono transition-all" />
-                  </div>
-                </form>
-              </div>
+        <div 
+          onClick={(e) => { if (e.target === e.currentTarget) setIsConvertModalOpen(false); }}
+          className="fixed inset-0 z-[10000] flex justify-end bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200"
+        >
+          <motion.div 
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
+            className="bg-white shadow-2xl w-full max-w-md h-[100dvh] flex flex-col overflow-hidden relative z-10 border-l border-[#e0e3e7]"
+          >
+            {/* Top 4-Color Google Accent Line */}
+            <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
 
-              <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex justify-end gap-2.5">
-                <button type="button" onClick={() => setIsConvertModalOpen(false)} className="px-4 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer" disabled={convertEmployeeMutation.isPending}>
-                  Cancel
-                </button>
-                <button type="submit" form="convert-candidate-form" disabled={convertEmployeeMutation.isPending} className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs transition-all cursor-pointer disabled:opacity-50">
-                  <UserCheck className="w-3.5 h-3.5" />
-                  {convertEmployeeMutation.isPending ? 'Converting...' : 'Convert Candidate'}
-                </button>
+            <div className="p-5 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd] mt-1 shrink-0">
+              <div>
+                <h3 className="text-base font-semibold text-[#1f1f1f]">Convert to Employee</h3>
+                <p className="text-xs text-[#5f6368]">Create staff account and official employee profile</p>
               </div>
+              <button onClick={() => setIsConvertModalOpen(false)} className="p-1.5 rounded-full text-[#5f6368] hover:bg-[#e8eaed] transition-colors cursor-pointer">
+                <X className="w-5 h-5" />
+              </button>
             </div>
-          </div>
+            
+            <div className="p-6 overflow-y-auto flex-1 custom-scrollbar text-xs">
+              <form id="convert-candidate-form" onSubmit={handleConvertToEmployee} className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">First Name *</label>
+                    <input type="text" required value={convertData.firstName} onChange={e => setConvertData({...convertData, firstName: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
+                  </div>
+                  <div>
+                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Last Name *</label>
+                    <input type="text" required value={convertData.lastName} onChange={e => setConvertData({...convertData, lastName: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Email *</label>
+                  <input type="email" required value={convertData.email} onChange={e => setConvertData({...convertData, email: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
+                </div>
+                <div>
+                  <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Phone Number *</label>
+                  <input type="text" value={convertData.phone} onChange={e => setConvertData({...convertData, phone: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Department *</label>
+                    <input type="text" required value={convertData.department} onChange={e => setConvertData({...convertData, department: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
+                  </div>
+                  <div>
+                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Designation *</label>
+                    <input type="text" required value={convertData.position} onChange={e => setConvertData({...convertData, position: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Branch *</label>
+                    <select required value={convertData.branch} onChange={e => setConvertData({...convertData, branch: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all cursor-pointer">
+                      {branches.map(b => (
+                        <option key={b.id} value={b.id}>{b.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Join Date *</label>
+                    <input type="date" required value={convertData.joinDate} onChange={e => setConvertData({...convertData, joinDate: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Monthly Salary (₹) *</label>
+                  <input type="number" required value={convertData.salary} onChange={e => setConvertData({...convertData, salary: e.target.value})} placeholder="e.g. 50000" className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none font-mono transition-all" />
+                </div>
+              </form>
+            </div>
+
+            <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex justify-end gap-2.5">
+              <button type="button" onClick={() => setIsConvertModalOpen(false)} className="px-4 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer" disabled={convertEmployeeMutation.isPending}>
+                Cancel
+              </button>
+              <button type="submit" form="convert-candidate-form" disabled={convertEmployeeMutation.isPending} className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs transition-all cursor-pointer disabled:opacity-50">
+                <UserCheck className="w-3.5 h-3.5" />
+                {convertEmployeeMutation.isPending ? 'Converting...' : 'Convert Candidate'}
+              </button>
+            </div>
+          </motion.div>
         </div>,
         document.body
       )}
