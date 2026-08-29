@@ -199,28 +199,30 @@ const CandidateMobileDocuments = ({
         {/* Subtle Glass Overlay */}
         <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none" />
 
-        <div className="relative z-10 space-y-3">
-          {/* Back button */}
-          <Link
-            to="/candidate/applications"
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/15 hover:bg-white/25 active:bg-white/30 backdrop-blur-md text-white text-xs font-semibold border border-white/20 transition-all shadow-xs"
-          >
-            <ArrowLeft size={13} />
-            <span>Back to Applications</span>
-          </Link>
+        <div className="relative z-10 space-y-1">
+          <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md flex items-center gap-1.5">
+            <Sparkles size={12} className="text-emerald-300" />
+            Onboarding KYC &bull; Candidate Portal
+          </p>
 
-          <div>
-            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md flex items-center gap-1.5">
-              <Sparkles size={12} className="text-emerald-300" />
-              Onboarding KYC &bull; Candidate Portal
-            </p>
-            <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-3xl font-black text-white tracking-tight drop-shadow-sm">
               Documents
             </h2>
-            <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">
-              {documents.length} of {documentTypes.length} uploaded &bull; {verifiedCount} Verified by HR
-            </p>
+
+            {/* Back button aligned to the right on the same line */}
+            <Link
+              to="/candidate/applications"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 active:bg-white/30 backdrop-blur-md text-white text-xs font-semibold border border-white/20 transition-all shadow-xs shrink-0"
+            >
+              <ArrowLeft size={13} />
+              <span>Back to Applications</span>
+            </Link>
           </div>
+
+          <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90 pt-0.5">
+            {documents.length} of {documentTypes.length} uploaded &bull; {verifiedCount} Verified by HR
+          </p>
         </div>
       </section>
 
