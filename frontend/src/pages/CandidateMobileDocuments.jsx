@@ -6,17 +6,17 @@ const MobileDocumentUploadCard = ({ docType, currentDoc, onUpload, isUploading }
   const getStatusBadge = () => {
     if (!currentDoc) {
       return docType.isRequired ? 
-        <span className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider bg-rose-100 text-rose-600 rounded-lg">Required</span> :
-        <span className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-500 rounded-lg">Optional</span>;
+        <span className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-rose-100 text-rose-600 rounded-lg whitespace-nowrap shrink-0">Required</span> :
+        <span className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-500 rounded-lg whitespace-nowrap shrink-0">Optional</span>;
     }
     
     switch (currentDoc.status) {
       case 'verified':
-        return <span className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-600 rounded-lg flex items-center gap-1"><CheckCircle2 size={12} /> Verified</span>;
+        return <span className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-600 rounded-lg flex items-center gap-1 whitespace-nowrap shrink-0"><CheckCircle2 size={12} className="shrink-0" /> Verified</span>;
       case 'rejected':
-        return <span className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider bg-red-100 text-red-600 rounded-lg flex items-center gap-1"><AlertCircle size={12} /> Rejected</span>;
+        return <span className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-red-100 text-red-600 rounded-lg flex items-center gap-1 whitespace-nowrap shrink-0"><AlertCircle size={12} className="shrink-0" /> Rejected</span>;
       default:
-        return <span className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-600 rounded-lg flex items-center gap-1"><Loader2 size={12} className="animate-spin" /> Pending</span>;
+        return <span className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-600 rounded-lg flex items-center gap-1 whitespace-nowrap shrink-0"><Loader2 size={12} className="animate-spin shrink-0" /> Pending Review</span>;
     }
   };
 

@@ -93,13 +93,13 @@ const AdminDocumentCard = ({ docType, currentDoc, onUpdateStatus, isUpdating, is
     if (!currentDoc) {
       if (docType.isRequired) {
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#fef7e0] text-[#b06000] border border-[#feefc3]">
-            <AlertCircle className="w-3 h-3" /> Mandatory
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#fef7e0] text-[#b06000] border border-[#feefc3] whitespace-nowrap shrink-0">
+            <AlertCircle className="w-3 h-3 shrink-0" /> Mandatory
           </span>
         );
       }
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0] whitespace-nowrap shrink-0">
           Optional
         </span>
       );
@@ -108,20 +108,20 @@ const AdminDocumentCard = ({ docType, currentDoc, onUpdateStatus, isUpdating, is
     switch (currentDoc.status) {
       case 'verified':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">
-            <CheckCircle2 className="w-3.5 h-3.5" /> Verified
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#e6f4ea] text-[#137333] border border-[#ceead6] whitespace-nowrap shrink-0">
+            <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> Verified
           </span>
         );
       case 'rejected':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf]">
-            <XCircle className="w-3.5 h-3.5" /> Rejected
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf] whitespace-nowrap shrink-0">
+            <XCircle className="w-3.5 h-3.5 shrink-0" /> Rejected
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
-            <Clock className="w-3.5 h-3.5" /> Pending Review
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] whitespace-nowrap shrink-0">
+            <Clock className="w-3.5 h-3.5 shrink-0" /> Pending Review
           </span>
         );
     }
@@ -173,34 +173,38 @@ const AdminDocumentCard = ({ docType, currentDoc, onUpdateStatus, isUpdating, is
             href={currentDoc.file_path} 
             target="_blank" 
             rel="noopener noreferrer"
-            className="flex-1 inline-flex justify-center items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#1f1f1f] hover:bg-[#f1f3f4] bg-white border border-[#dadce0] rounded-full transition-all"
+            className="flex-1 inline-flex justify-center items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#1f1f1f] hover:bg-[#f1f3f4] bg-white border border-[#dadce0] rounded-full transition-all whitespace-nowrap shrink-0"
           >
-            <Eye className="w-3.5 h-3.5 text-[#5f6368]" /> View Document
+            <Eye className="w-3.5 h-3.5 text-[#5f6368] shrink-0" />
+            <span>View Document</span>
           </a>
           
           {isConverted ? (
-            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#5f6368] bg-[#f1f3f4] border border-[#dadce0] px-3 py-1 rounded-full shrink-0" title="Candidate is converted to an employee. Document status is locked.">
-              <Lock className="w-3 h-3 text-[#5f6368]" /> Locked
+            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#5f6368] bg-[#f1f3f4] border border-[#dadce0] px-3 py-1.5 rounded-full whitespace-nowrap shrink-0" title="Candidate is converted to an employee. Document status is locked.">
+              <Lock className="w-3 h-3 text-[#5f6368] shrink-0" />
+              <span>Locked</span>
             </span>
           ) : (
             <>
               {currentDoc.status !== 'verified' && (
                 <button 
                   onClick={() => onUpdateStatus(currentDoc.id, 'verified')}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-[#137333] hover:bg-[#0d5926] rounded-full transition-all cursor-pointer shadow-xs"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-[#137333] hover:bg-[#0d5926] rounded-full transition-all cursor-pointer shadow-xs whitespace-nowrap shrink-0"
                   title="Verify Document"
                 >
-                  <Check className="w-3.5 h-3.5" /> Approve
+                  <Check className="w-3.5 h-3.5 shrink-0" />
+                  <span>Approve</span>
                 </button>
               )}
               
               {currentDoc.status !== 'rejected' && (
                 <button 
                   onClick={() => onUpdateStatus(currentDoc.id, 'rejected')}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-[#c5221f] bg-[#fce8e6] hover:bg-[#fad2cf] border border-[#fad2cf] rounded-full transition-all cursor-pointer"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-[#c5221f] bg-[#fce8e6] hover:bg-[#fad2cf] border border-[#fad2cf] rounded-full transition-all cursor-pointer whitespace-nowrap shrink-0"
                   title="Reject Document"
                 >
-                  <X className="w-3.5 h-3.5" /> Reject
+                  <X className="w-3.5 h-3.5 shrink-0" />
+                  <span>Reject</span>
                 </button>
               )}
             </>
