@@ -368,11 +368,18 @@ const CandidateApplications = () => {
                     const isLatest = idx === 0;
                     return (
                       <div key={idx} className="relative group">
-                        {/* Status Milestone Dot */}
+                        {/* Status Milestone Dot with Wave Ripple Animation */}
                         <div className="absolute -left-8 top-1 w-8 flex items-center justify-center z-10">
                           {isLatest ? (
-                            <div className="w-5 h-5 rounded-full bg-[#e8f0fe] border-2 border-white ring-2 ring-[#1a73e8]/30 flex items-center justify-center shadow-xs">
-                              <div className="w-2.5 h-2.5 rounded-full bg-[#1a73e8]" />
+                            <div className="relative flex items-center justify-center">
+                              {/* Pulsing Wave Ripple Animations */}
+                              <span className="absolute w-7 h-7 rounded-full bg-[#1a73e8]/25 animate-ping pointer-events-none" />
+                              <span className="absolute w-5 h-5 rounded-full bg-[#1a73e8]/20 animate-pulse pointer-events-none" />
+                              
+                              {/* Core Milestone Pin */}
+                              <div className="relative z-10 w-5 h-5 rounded-full bg-[#e8f0fe] border-2 border-white ring-2 ring-[#1a73e8]/40 flex items-center justify-center shadow-xs">
+                                <div className="w-2.5 h-2.5 rounded-full bg-[#1a73e8]" />
+                              </div>
                             </div>
                           ) : (
                             <div className="w-3.5 h-3.5 rounded-full bg-[#dadce0] border-2 border-white shadow-2xs" />
