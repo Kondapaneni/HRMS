@@ -14,7 +14,8 @@ import {
   TrendingUp,
   AlertCircle,
   Award,
-  Sparkles
+  Sparkles,
+  Folder
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
@@ -136,7 +137,14 @@ const CandidateApplications = () => {
             </p>
           </div>
           
-          <div>
+          <div className="flex items-center gap-3">
+            <Link 
+              to="/candidate/documents" 
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-[#dadce0] bg-white hover:bg-[#f8fafd] text-[#1f1f1f] text-xs font-semibold tracking-wide transition-all shadow-2xs"
+            >
+              <Folder size={14} className="text-[#8430ce]" />
+              <span>Upload Documents</span>
+            </Link>
             <Link 
               to="/candidate/jobs" 
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white text-xs font-semibold tracking-wide transition-all shadow-xs"
@@ -158,12 +166,21 @@ const CandidateApplications = () => {
               <p className="text-xs text-[#5f6368] mt-1 max-w-sm mx-auto">
                 You haven't applied to any job openings. Browse our active listings and submit your profile today.
               </p>
-              <Link 
-                to="/candidate/jobs" 
-                className="mt-4 inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs font-semibold text-white bg-[#1a73e8] hover:bg-[#1557b0] shadow-xs transition-colors"
-              >
-                Browse Open Roles
-              </Link>
+              <div className="mt-4 flex items-center justify-center gap-3">
+                <Link 
+                  to="/candidate/documents" 
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs font-semibold text-[#1f1f1f] bg-white border border-[#dadce0] hover:bg-[#f8fafd] shadow-2xs transition-colors"
+                >
+                  <Folder size={13} className="text-[#8430ce]" />
+                  Upload Documents
+                </Link>
+                <Link 
+                  to="/candidate/jobs" 
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs font-semibold text-white bg-[#1a73e8] hover:bg-[#1557b0] shadow-xs transition-colors"
+                >
+                  Browse Open Roles
+                </Link>
+              </div>
             </div>
           ) : (
             applications.map(app => {
@@ -242,18 +259,27 @@ const CandidateApplications = () => {
                   </div>
 
                   {/* Actions & Timeline Trigger */}
-                  <div className="pt-4 mt-4 border-t border-[#f1f3f4] flex items-center justify-between">
+                  <div className="pt-4 mt-4 border-t border-[#f1f3f4] flex items-center justify-between gap-2 flex-wrap">
                     <span className="text-[11px] text-[#5f6368]">
                       {app.timeline.length} stage {app.timeline.length === 1 ? 'event' : 'events'} recorded
                     </span>
-                    <button 
-                      type="button"
-                      onClick={() => { setTimelineApp(app); setIsTimelineModalOpen(true); }}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-[#dadce0] bg-white hover:bg-[#f8fafd] text-xs font-semibold text-[#1a73e8] hover:border-[#1a73e8] transition-all cursor-pointer shadow-2xs"
-                    >
-                      <span>View Progress Timeline</span>
-                      <ChevronRight size={13} />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <Link 
+                        to="/candidate/documents"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-[#ceead6] bg-[#e6f4ea] hover:bg-[#ceead6] text-xs font-semibold text-[#137333] transition-all cursor-pointer shadow-2xs"
+                      >
+                        <Folder size={13} />
+                        <span>Upload Docs</span>
+                      </Link>
+                      <button 
+                        type="button"
+                        onClick={() => { setTimelineApp(app); setIsTimelineModalOpen(true); }}
+                        className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-[#dadce0] bg-white hover:bg-[#f8fafd] text-xs font-semibold text-[#1a73e8] hover:border-[#1a73e8] transition-all cursor-pointer shadow-2xs"
+                      >
+                        <span>View Progress</span>
+                        <ChevronRight size={13} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
