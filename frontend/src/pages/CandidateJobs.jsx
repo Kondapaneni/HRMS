@@ -1,13 +1,27 @@
 import React, { useState } from 'react';
 import PageLoader from '../components/PageLoader';
-import { Search, Filter, ChevronRight, FileText, X } from 'lucide-react';
+import { 
+  Search, 
+  Filter, 
+  ChevronRight, 
+  FileText, 
+  X, 
+  Briefcase, 
+  MapPin, 
+  Calendar, 
+  Users, 
+  Award, 
+  CheckCircle2, 
+  ExternalLink,
+  Sparkles,
+  ArrowRight
+} from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import emailTemplateHtml from '../../../backend/src/Templates/candidate_application_success_email.html?raw';
 import CandidateMobileJobs from './CandidateMobileJobs';
 
 const CandidateJobs = () => {
@@ -66,11 +80,11 @@ const CandidateJobs = () => {
   // Calculate completion percentage
   let isProfileComplete = false;
   if (profileData) {
-    const fields = ['phone', 'address', 'current_title', 'experience', 'bio'];
+    const fields = ['phone', 'address', 'current_title', 'experience'];
     let filledCount = fields.filter(f => profileData[f] && profileData[f].trim() !== '').length;
     if (profileData.avatar_url) filledCount++;
     if (resumes.length > 0) filledCount++;
-    const percentage = Math.round((filledCount / 7) * 100);
+    const percentage = Math.round((filledCount / 6) * 100);
     isProfileComplete = percentage === 100;
   }
 
@@ -86,7 +100,6 @@ const CandidateJobs = () => {
   const filteredJobs = jobs.filter(job => {
     const matchesSearch = job.title.toLowerCase().includes(searchTerm.toLowerCase()) || (job.description && job.description.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesDept = filterDept === '' || job.department === filterDept;
-    // Basic type matching, standardizing case
     const matchesType = filterType === '' || (job.type && job.type.toLowerCase().replace(' ', '-') === filterType);
     return matchesSearch && matchesDept && matchesType;
   });
@@ -99,7 +112,7 @@ const CandidateJobs = () => {
       });
     },
     onSuccess: (_, variables) => {
-      toast.success(`Successfully applied for the ${variables.job.title} position!`);
+      toast.success(`Successfully applied for ${variables.job.title}!`);
       setSelectedJob(null);
       queryClient.invalidateQueries(['candidate', 'jobs_page']);
       queryClient.invalidateQueries(['candidate', 'dashboard']);
@@ -122,11 +135,14 @@ const CandidateJobs = () => {
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case 'Published': return 'bg-blue-100 text-blue-700';
-      case 'Applied': return 'bg-emerald-100 text-emerald-700';
-      case 'Shortlisted': return 'bg-emerald-100 text-emerald-700';
-      case 'Rejected': return 'bg-rose-100 text-rose-700';
-      default: return 'bg-slate-100 text-slate-700';
+      case 'Published': return 'bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]';
+      case 'Applied': return 'bg-[#e8f0fe] text-[#1967d2] border border-[#d2e3fc]';
+      case 'Shortlisted': 
+      case 'Interviewing': return 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6]';
+      case 'Rejected': return 'bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf]';
+      case 'Hired': 
+      case 'Selected': return 'bg-[#f3e8fd] text-[#8430ce] border border-[#e9d5ff]';
+      default: return 'bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]';
     }
   };
 
@@ -142,7 +158,7 @@ const CandidateJobs = () => {
 
   return (
     <>
-      {/* Mobile View */}
+      {/* Mobile View - Preserved untouched */}
       <CandidateMobileJobs 
         jobs={jobs}
         appliedJobs={appliedJobs}
@@ -159,126 +175,208 @@ const CandidateJobs = () => {
         getStatusBadge={getStatusBadge}
       />
 
-      {/* Desktop View */}
-      <div className="space-y-6 hidden md:block">
-        {/* Header */}
-      <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Available Jobs</h1>
-          <p className="text-sm text-slate-500 mt-1">Search published openings and apply through your candidate account.</p>
-        </div>
-        <span className="text-sm text-slate-500">{filteredJobs.length} published roles found</span>
-      </div>
-
-      {/* Filter Form */}
-      <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
-        <div className="p-6">
-          <form className="grid gap-4 md:grid-cols-4" onSubmit={(e) => e.preventDefault()}>
-            <div className="space-y-2 md:col-span-2">
-              <label htmlFor="search" className="text-sm font-medium text-slate-700">Search</label>
-              <input
-                id="search"
-                type="search"
-                placeholder="Job title, department, location, skill"
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
+      {/* Web Desktop Experience (Google Material 3 Workspace UI) */}
+      <div className="space-y-6 hidden md:block pb-12">
+        {/* Header Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+              <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">
+                Career Opportunities
+              </span>
             </div>
-            <div className="space-y-2">
-              <label htmlFor="department" className="text-sm font-medium text-slate-700">Department</label>
+            <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight flex items-center gap-2">
+              Available Positions
+              <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">
+                {filteredJobs.length} Open Roles
+              </span>
+            </h1>
+            <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
+              Explore published openings, review specifications, and apply directly through your portal.
+            </p>
+          </div>
+        </div>
+
+        {/* Google Workspace Search & Filter Card */}
+        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-5 shadow-xs">
+          <form className="grid gap-4 md:grid-cols-12 items-end" onSubmit={(e) => e.preventDefault()}>
+            <div className="space-y-1.5 md:col-span-5">
+              <label htmlFor="search" className="text-xs font-semibold text-[#5f6368] uppercase tracking-wider">
+                Search Roles
+              </label>
+              <div className="relative">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368]" />
+                <input
+                  id="search"
+                  type="search"
+                  placeholder="Job title, department, skill..."
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  className="w-full h-11 pl-10 pr-4 rounded-xl border border-[#dadce0] bg-[#f8fafd] text-sm text-[#1f1f1f] placeholder:text-[#5f6368] focus:bg-white focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 transition-all outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5 md:col-span-3">
+              <label htmlFor="department" className="text-xs font-semibold text-[#5f6368] uppercase tracking-wider">
+                Department
+              </label>
               <select
                 id="department"
                 value={filterDept}
                 onChange={e => setFilterDept(e.target.value)}
-                className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                className="w-full h-11 px-3.5 rounded-xl border border-[#dadce0] bg-[#f8fafd] text-sm text-[#1f1f1f] focus:bg-white focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 transition-all outline-none cursor-pointer"
               >
-                <option value="">All departments</option>
+                <option value="">All Departments</option>
                 {departments.map(dept => (
                   <option key={dept} value={dept}>{dept}</option>
                 ))}
               </select>
             </div>
-            <div className="space-y-2">
-              <label htmlFor="type" className="text-sm font-medium text-slate-700">Job Type</label>
+
+            <div className="space-y-1.5 md:col-span-2">
+              <label htmlFor="type" className="text-xs font-semibold text-[#5f6368] uppercase tracking-wider">
+                Job Type
+              </label>
               <select
                 id="type"
                 value={filterType}
                 onChange={e => setFilterType(e.target.value)}
-                className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                className="w-full h-11 px-3.5 rounded-xl border border-[#dadce0] bg-[#f8fafd] text-sm text-[#1f1f1f] focus:bg-white focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 transition-all outline-none cursor-pointer"
               >
-                <option value="">All types</option>
+                <option value="">All Types</option>
                 {jobTypes.map(type => (
                   <option key={type} value={type}>{type.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>
                 ))}
               </select>
             </div>
-            <div className="md:col-span-4 flex flex-wrap gap-3 mt-2">
-              <button type="button" className="inline-flex items-center justify-center rounded-md bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 text-sm font-medium transition-colors">
-                <Search className="mr-2 h-4 w-4" /> Filter jobs
-              </button>
-              <button type="button" onClick={handleReset} className="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-10 px-4 py-2 text-sm font-medium transition-colors">
-                Reset
+
+            <div className="md:col-span-2 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleReset}
+                className="w-full h-11 rounded-xl border border-[#dadce0] bg-white hover:bg-[#f8fafd] text-sm font-semibold text-[#5f6368] hover:text-[#1f1f1f] transition-all cursor-pointer shadow-2xs"
+              >
+                Reset Filters
               </button>
             </div>
           </form>
         </div>
-      </div>
 
-      {/* Jobs List */}
-      <div className="grid gap-4">
-        {filteredJobs.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-slate-300 p-10 text-center text-slate-500 bg-slate-50">
-            No published jobs match your search.
-          </div>
-        ) : (
-          filteredJobs.map(job => {
-            const application = appliedJobs[job.id];
-            
-            return (
-              <div key={job.id} className="rounded-lg border border-slate-200 bg-white shadow-sm hover:border-blue-200 transition-colors">
-                <div className="p-6">
-                  <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                    <div className="space-y-3">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h2 className="text-xl font-semibold text-slate-900">{job.title}</h2>
-                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${getStatusBadge(job.status)}`}>
-                          {job.status}
-                        </span>
-                        {application && (
-                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${getStatusBadge(application.status)}`}>
-                            {application.status === 'Applied' ? 'Applied' : `Status: ${application.status}`}
-                          </span>
-                        )}
+        {/* Jobs List Grid */}
+        <div className="space-y-4">
+          {filteredJobs.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-dashed border-[#dadce0] p-12 text-center shadow-xs">
+              <div className="w-14 h-14 rounded-full bg-[#f8fafd] border border-[#e0e3e7] flex items-center justify-center mx-auto mb-3 text-[#5f6368]">
+                <Search size={24} />
+              </div>
+              <h3 className="text-base font-bold text-[#1f1f1f]">No published jobs found</h3>
+              <p className="text-xs text-[#5f6368] mt-1 max-w-sm mx-auto">
+                No openings match your search criteria. Try modifying your search keywords or resetting filters.
+              </p>
+              <button
+                type="button"
+                onClick={handleReset}
+                className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] hover:bg-[#d2e3fc] transition-colors"
+              >
+                Clear all filters
+              </button>
+            </div>
+          ) : (
+            filteredJobs.map(job => {
+              const application = appliedJobs[job.id];
+              const initials = job.title.split(' ').map(n => n[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || 'JB';
+              
+              return (
+                <div 
+                  key={job.id} 
+                  className="bg-white rounded-2xl border border-[#e0e3e7] p-6 shadow-xs hover:border-[#dadce0] hover:shadow-md transition-all duration-200"
+                >
+                  <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+                    <div className="space-y-4 flex-1">
+                      {/* Title & Status Header */}
+                      <div className="flex items-start gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center shrink-0 font-bold text-base border border-[#d2e3fc] shadow-2xs">
+                          {initials}
+                        </div>
+                        <div className="space-y-1">
+                          <div className="flex flex-wrap items-center gap-2.5">
+                            <h2 className="text-xl font-bold text-[#1f1f1f] tracking-tight">{job.title}</h2>
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${getStatusBadge(job.status)}`}>
+                              {job.status}
+                            </span>
+                            {application && (
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold ${getStatusBadge(application.status)}`}>
+                                {application.status === 'Applied' ? '✓ Applied' : `Status: ${application.status}`}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs font-medium text-[#5f6368] flex items-center gap-2">
+                            <span>{job.department}</span>
+                            <span>&bull;</span>
+                            <span>{job.location}</span>
+                            <span>&bull;</span>
+                            <span className="capitalize">{job.type}</span>
+                          </p>
+                        </div>
                       </div>
-                      <p className="text-sm text-slate-500">{job.department} • {job.location} • {job.type}</p>
-                      <div className="grid gap-2 text-sm text-slate-500 md:grid-cols-2 mt-4">
-                        <p><strong className="text-slate-700">Experience:</strong> {job.experience || 'Not specified'}</p>
-                        <p><strong className="text-slate-700">Vacancy:</strong> {job.vacancy || 1}</p>
-                        <p><strong className="text-slate-700">Last date:</strong> {job.deadline ? new Date(job.deadline).toLocaleDateString() : 'Open until filled'}</p>
+
+                      {/* Job Metadata Chips */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                        <div className="bg-[#f8fafd] rounded-xl p-3 border border-[#e0e3e7]">
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368]">Required Experience</p>
+                          <p className="text-xs font-bold text-[#1f1f1f] mt-0.5">{job.experience || 'Not specified'}</p>
+                        </div>
+                        <div className="bg-[#f8fafd] rounded-xl p-3 border border-[#e0e3e7]">
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368]">Open Vacancies</p>
+                          <p className="text-xs font-bold text-[#1f1f1f] mt-0.5">{job.vacancy || 1} Positions</p>
+                        </div>
+                        <div className="bg-[#f8fafd] rounded-xl p-3 border border-[#e0e3e7]">
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368]">Application Deadline</p>
+                          <p className="text-xs font-bold text-[#1f1f1f] mt-0.5">
+                            {job.deadline ? new Date(job.deadline).toLocaleDateString() : 'Open until filled'}
+                          </p>
+                        </div>
                       </div>
-                      <div className="mt-4 space-y-1">
-                        <p className="text-sm font-semibold text-slate-700">Detailed Job Description:</p>
-                        <p className="text-sm text-slate-600 whitespace-pre-line">{job.description}</p>
-                      </div>
+
+                      {/* Job Description Excerpt */}
+                      {job.description && (
+                        <div className="pt-1">
+                          <p className="text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1">
+                            Role Description
+                          </p>
+                          <p className="text-sm text-[#444746] whitespace-pre-line line-clamp-3 leading-relaxed">
+                            {job.description}
+                          </p>
+                        </div>
+                      )}
                     </div>
-                    <div className="flex flex-wrap gap-3 shrink-0">
+
+                    {/* Actions Column */}
+                    <div className="flex flex-col sm:flex-row lg:flex-col gap-2.5 shrink-0 lg:w-48 justify-center">
                       {job.description_pdf_url && (
                         <a 
                           href={job.description_pdf_url} 
                           target="_blank" 
                           rel="noreferrer"
-                          className="inline-flex items-center justify-center whitespace-nowrap rounded-md border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-10 px-4 py-2 text-sm font-medium transition-colors"
+                          className="w-full flex items-center justify-center gap-1.5 h-11 px-4 rounded-full border border-[#dadce0] bg-white hover:bg-[#f8fafd] text-xs font-semibold text-[#5f6368] hover:text-[#1f1f1f] transition-all shadow-2xs"
                         >
-                          View job
+                          <ExternalLink size={14} />
+                          <span>View PDF Spec</span>
                         </a>
                       )}
+
                       {application ? (
                         <Link 
                           to="/candidate/applications"
-                          className="inline-flex items-center justify-center whitespace-nowrap rounded-md bg-slate-100 text-slate-700 hover:bg-slate-200 h-10 px-4 py-2 text-sm font-medium transition-colors"
+                          className="w-full flex items-center justify-center gap-1.5 h-11 px-4 rounded-full bg-[#e6f4ea] text-[#137333] hover:bg-[#ceead6] text-xs font-bold transition-all border border-[#ceead6] shadow-2xs"
                         >
-                          Already applied
+                          <CheckCircle2 size={14} />
+                          <span>View Application</span>
                         </Link>
                       ) : (
                         <button 
@@ -289,65 +387,106 @@ const CandidateJobs = () => {
                             }
                             setSelectedJob(job);
                           }}
-                          className={`inline-flex items-center justify-center whitespace-nowrap rounded-md h-10 px-4 py-2 text-sm font-medium transition-colors ${
+                          className={`w-full flex items-center justify-center gap-1.5 h-11 px-4 rounded-full text-xs font-semibold tracking-wide transition-all shadow-xs cursor-pointer ${
                             isProfileComplete
-                              ? 'bg-blue-600 text-white hover:bg-blue-700'
-                              : 'bg-slate-200 text-slate-500 cursor-not-allowed'
+                              ? 'bg-[#1a73e8] text-white hover:bg-[#1557b0] active:bg-[#174ea6]'
+                              : 'bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0] hover:bg-[#e8eaed]'
                           }`}
                         >
-                          {isProfileComplete ? 'Apply now' : 'Complete Profile First'}
+                          <Briefcase size={14} />
+                          <span>{isProfileComplete ? 'Apply for Role' : 'Complete Profile First'}</span>
                         </button>
                       )}
                     </div>
                   </div>
                 </div>
-              </div>
-            );
-          })
-        )}
-      </div>
+              );
+            })
+          )}
+        </div>
       </div>
 
-      {/* Application Modal */}
+      {/* Google Workspace Application Modal */}
       {selectedJob && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-              <h2 className="text-lg font-semibold text-slate-800">Apply for {selectedJob.title}</h2>
-              <button onClick={() => setSelectedJob(null)} className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer">
-                <X size={20} />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-3xl shadow-2xl border border-[#e0e3e7] w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="px-6 py-5 border-b border-[#f1f3f4] flex justify-between items-center bg-[#f8fafd]">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center shrink-0 border border-[#d2e3fc]">
+                  <Briefcase size={18} />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-[#1f1f1f]">Apply for Position</h2>
+                  <p className="text-xs text-[#5f6368] truncate max-w-xs">{selectedJob.title}</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setSelectedJob(null)} 
+                className="w-8 h-8 rounded-full text-[#5f6368] hover:bg-[#e8eaed] flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <X size={18} />
               </button>
             </div>
             
-            <div className="p-6 overflow-y-auto flex-1">
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto flex-1 space-y-5">
+              <div className="bg-[#f8fafd] rounded-2xl p-4 border border-[#e0e3e7]">
+                <h3 className="text-sm font-bold text-[#1f1f1f]">{selectedJob.title}</h3>
+                <p className="text-xs text-[#5f6368] mt-0.5">
+                  {selectedJob.department} &bull; {selectedJob.location} &bull; {selectedJob.type}
+                </p>
+              </div>
+
               <form id="apply-job-form" onSubmit={handleApplySubmit} className="space-y-4">
-                <p className="text-sm text-slate-500 mb-6">{selectedJob.department} &bull; {selectedJob.location}</p>
-                
-                <div className="space-y-4">
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Select Resume</label>
+                <div>
+                  <label className="block text-xs font-bold text-[#5f6368] uppercase tracking-wider mb-2.5">
+                    Select Resume for Application
+                  </label>
+                  
                   {resumes.length === 0 ? (
-                    <div className="bg-amber-50 text-amber-700 p-4 rounded-xl border border-amber-200 text-sm">
-                      You don't have any resumes uploaded. Please go to your <Link to="/candidate/profile" className="font-bold underline">Profile</Link> to upload a resume first.
+                    <div className="bg-[#fef7e0] text-[#b06000] p-4 rounded-2xl border border-[#feefc3] text-xs leading-relaxed space-y-2">
+                      <p className="font-semibold">No resumes uploaded yet.</p>
+                      <p>Please visit your Candidate Profile to upload your resume before submitting.</p>
+                      <Link 
+                        to="/candidate/profile" 
+                        className="inline-flex items-center gap-1 font-bold underline hover:text-[#8c4d00]"
+                      >
+                        Go to Profile <ArrowRight size={12} />
+                      </Link>
                     </div>
                   ) : (
-                    <div className="space-y-3">
+                    <div className="space-y-2.5">
                       {resumes.map((resume, index) => (
-                        <label key={index} className={`flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-colors ${selectedResumeUrl === resume.url ? 'border-blue-500 bg-blue-50' : 'border-slate-200 bg-white hover:bg-slate-50'}`}>
-                          <div className="flex items-center gap-3">
+                        <label 
+                          key={index} 
+                          className={`flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition-all ${
+                            selectedResumeUrl === resume.url 
+                              ? 'border-[#1a73e8] bg-[#e8f0fe]/60 shadow-2xs' 
+                              : 'border-[#e0e3e7] bg-white hover:bg-[#f8fafd]'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
                             <input 
                               type="radio" 
                               name="resumeSelection" 
                               value={resume.url}
                               checked={selectedResumeUrl === resume.url}
                               onChange={(e) => setSelectedResumeUrl(e.target.value)}
-                              className="w-4 h-4 text-blue-600 focus:ring-blue-500 border-slate-300"
+                              className="w-4 h-4 text-[#1a73e8] focus:ring-[#1a73e8] border-[#dadce0]"
                             />
-                            <div className="flex flex-col">
-                              <span className={`font-medium ${selectedResumeUrl === resume.url ? 'text-blue-900' : 'text-slate-800'}`}>{resume.name}</span>
-                              {resume.isPrimary && <span className="text-xs font-semibold text-blue-600 uppercase tracking-wider mt-0.5">Primary</span>}
+                            <div className="min-w-0">
+                              <p className={`text-xs font-bold truncate ${selectedResumeUrl === resume.url ? 'text-[#1a73e8]' : 'text-[#1f1f1f]'}`}>
+                                {resume.name}
+                              </p>
+                              {resume.isPrimary && (
+                                <span className="inline-flex text-[10px] font-bold text-[#1a73e8] bg-white border border-[#d2e3fc] px-1.5 py-0.2 rounded-md uppercase tracking-wider mt-0.5">
+                                  Primary Resume
+                                </span>
+                              )}
                             </div>
                           </div>
-                          <FileText className={`w-5 h-5 ${selectedResumeUrl === resume.url ? 'text-blue-500' : 'text-slate-400'}`} />
+                          <FileText className={`w-5 h-5 shrink-0 ${selectedResumeUrl === resume.url ? 'text-[#1a73e8]' : 'text-[#5f6368]'}`} />
                         </label>
                       ))}
                     </div>
@@ -356,17 +495,22 @@ const CandidateJobs = () => {
               </form>
             </div>
 
-            <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3">
-              <button type="button" onClick={() => setSelectedJob(null)} className="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 transition-colors cursor-pointer">
+            {/* Modal Footer */}
+            <div className="px-6 py-4 border-t border-[#f1f3f4] bg-[#f8fafd] flex justify-end gap-2.5">
+              <button 
+                type="button" 
+                onClick={() => setSelectedJob(null)} 
+                className="px-5 py-2.5 text-xs font-semibold text-[#5f6368] hover:text-[#1f1f1f] bg-white border border-[#dadce0] rounded-full hover:bg-[#f1f3f4] transition-all cursor-pointer shadow-2xs"
+              >
                 Cancel
               </button>
               <button
                 type="submit"
                 form="apply-job-form"
                 disabled={applyMutation.isPending || resumes.length === 0}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+                className="px-6 py-2.5 text-xs font-semibold text-white bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] rounded-full transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed shadow-xs"
               >
-                {applyMutation.isPending ? 'Submitting...' : 'Submit Application'}
+                {applyMutation.isPending ? 'Submitting Application...' : 'Confirm & Submit'}
               </button>
             </div>
           </div>

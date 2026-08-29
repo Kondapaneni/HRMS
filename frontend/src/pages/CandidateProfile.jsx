@@ -2,7 +2,21 @@ import React, { useState, useEffect } from 'react';
 import PageLoader from '../components/PageLoader';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Camera, Save, FileText, UploadCloud } from 'lucide-react';
+import { 
+  Camera, 
+  Save, 
+  FileText, 
+  UploadCloud, 
+  User, 
+  Briefcase, 
+  Phone, 
+  MapPin, 
+  Mail, 
+  CheckCircle2, 
+  Trash2, 
+  Sparkles,
+  ExternalLink
+} from 'lucide-react';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
 import api from '../api/axios';
@@ -21,7 +35,6 @@ const CandidateProfile = () => {
     address: '',
     currentTitle: '',
     experience: '',
-    bio: '',
     resumes: [],
     avatarUrl: profile?.avatar || ''
   });
@@ -50,7 +63,6 @@ const CandidateProfile = () => {
         address: profileData.address || '',
         currentTitle: profileData.current_title || '',
         experience: profileData.experience || '',
-        bio: profileData.bio || '',
         resumes: Array.isArray(profileData.resume_url) ? profileData.resume_url : [],
         avatarUrl: profileData.avatar_url || prev.avatarUrl
       }));
@@ -64,13 +76,12 @@ const CandidateProfile = () => {
         address: updatedData.address,
         currentTitle: updatedData.currentTitle,
         experience: updatedData.experience,
-        bio: updatedData.bio,
         resumes: updatedData.resumes,
         avatar: updatedData.avatarUrl
       });
     },
     onSuccess: () => {
-      toast.success('Profile saved successfully!');
+      toast.success('Candidate profile updated successfully!');
       queryClient.invalidateQueries(['candidate', 'profile']);
       queryClient.invalidateQueries(['candidate', 'dashboard']);
     },
@@ -126,7 +137,7 @@ const CandidateProfile = () => {
         });
       } catch (error) {
         console.error('Upload error:', error);
-        toast.error('Failed to Upload Resume!');
+        toast.error('Failed to upload resume file.');
       } finally {
         setIsUploadingResume(false);
       }
@@ -134,10 +145,9 @@ const CandidateProfile = () => {
   };
 
   const handleSetPrimaryResume = (index) => {
-    setFormData(prev => ({
-      ...prev,
-      resumes: prev.resumes.map((r, i) => ({ ...r, isPrimary: i === index }))
-    }));
+    const updated = formData.resumes.map((r, i) => ({ ...r, isPrimary: i === index }));
+    setFormData(prev => ({ ...prev, resumes: updated }));
+    saveMutation.mutate({ ...formData, resumes: updated });
   };
 
   const handleDeleteResume = (index) => {
@@ -146,6 +156,7 @@ const CandidateProfile = () => {
       updatedResumes[0].isPrimary = true;
     }
     setFormData(prev => ({ ...prev, resumes: updatedResumes }));
+    saveMutation.mutate({ ...formData, resumes: updatedResumes });
   };
 
   const handleAvatarUpload = async (e) => {
@@ -153,7 +164,7 @@ const CandidateProfile = () => {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      toast.error('Please upload an image file');
+      toast.error('Please upload a valid image file');
       return;
     }
 
@@ -184,7 +195,7 @@ const CandidateProfile = () => {
         saveMutation.mutate(newData);
         return newData;
       });
-      toast.success('Profile picture uploaded successfully!');
+      toast.success('Profile picture updated successfully!');
     } catch (error) {
       toast.error('Failed to upload profile picture');
       console.error(error);
@@ -199,6 +210,7 @@ const CandidateProfile = () => {
 
   return (
     <>
+      {/* Mobile View - Untouched */}
       <CandidateMobileProfile 
         formData={formData}
         handleInputChange={handleInputChange}
@@ -210,36 +222,63 @@ const CandidateProfile = () => {
         handleSetPrimaryResume={handleSetPrimaryResume}
         handleDeleteResume={handleDeleteResume}
       />
-      <div className="space-y-6 hidden md:block">
-        {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900">My Profile</h1>
-        <p className="text-sm text-slate-500 mt-1">Manage your personal information and resume to speed up applications.</p>
-      </div>
 
-      <form onSubmit={handleSave} className="grid gap-6 lg:grid-cols-[1fr_1.5fr]">
-        {/* Left Column: Personal Information */}
-        <div className="rounded-lg border border-slate-200 bg-white shadow-sm self-start">
-          <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-slate-900">Personal Information</h2>
+      {/* Web Desktop Experience (Google Material 3 Workspace UI) */}
+      <div className="space-y-6 hidden md:block pb-12">
+        {/* Header Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+              <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">
+                Candidate Account
+              </span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight flex items-center gap-2">
+              My Profile &amp; Resumes
+              <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">
+                Workspace Profile
+              </span>
+            </h1>
+            <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
+              Keep your contact information, experience, and resumes updated for recruitment applications.
+            </p>
           </div>
-          <div className="p-6 space-y-5">
-            {/* Avatar section */}
-            <div className="flex flex-col items-center gap-4 pb-4">
+        </div>
+
+        {/* Profile Edit Form */}
+        <form onSubmit={handleSave} className="grid gap-6 lg:grid-cols-[1fr_1.5fr]">
+          {/* Left Column: Personal Details & Avatar */}
+          <div className="bg-white rounded-2xl border border-[#e0e3e7] p-6 shadow-xs space-y-6 self-start">
+            <div className="flex items-center justify-between border-b border-[#f1f3f4] pb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center shrink-0">
+                  <User size={16} />
+                </div>
+                <h2 className="text-base font-bold text-[#1f1f1f]">Personal Information</h2>
+              </div>
+            </div>
+
+            {/* Avatar Uploader */}
+            <div className="flex flex-col items-center gap-3 py-2">
               <div className="relative group cursor-pointer shrink-0">
-                <div className="flex h-24 w-24 items-center justify-center rounded-full bg-slate-100 border-4 border-white shadow-md overflow-hidden text-2xl font-medium text-slate-600 relative">
+                <div className="w-24 h-24 rounded-full bg-[#e8f0fe] border-4 border-white shadow-md overflow-hidden text-2xl font-bold text-[#1a73e8] flex items-center justify-center relative">
                   {formData.avatarUrl ? (
-                    <img src={formData.avatarUrl} alt="Profile" className="h-full w-full object-cover" />
+                    <img src={formData.avatarUrl} alt="Candidate Profile" className="h-full w-full object-cover" />
                   ) : (
                     <span>{formData.firstName?.charAt(0) || 'C'}</span>
                   )}
-                  <label className="absolute inset-0 bg-black/50 hidden group-hover:flex flex-col items-center justify-center text-white cursor-pointer transition-all">
+                  
+                  <label className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center text-white cursor-pointer transition-all">
                     {isUploadingAvatar ? (
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
                     ) : (
                       <>
-                        <Camera className="h-6 w-6 mb-1" />
-                        <span className="text-[10px] font-medium uppercase tracking-wider">Upload</span>
+                        <Camera className="h-5 w-5 mb-0.5" />
+                        <span className="text-[10px] font-bold uppercase tracking-wider">Change</span>
                         <input
                           type="file"
                           accept="image/*"
@@ -252,140 +291,189 @@ const CandidateProfile = () => {
                   </label>
                 </div>
               </div>
-              <p className="text-sm text-slate-500 text-center">Click the avatar to upload a professional photo.</p>
+              <p className="text-[11px] text-[#5f6368] text-center max-w-xs">
+                Click on the avatar to upload a professional profile image.
+              </p>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">First Name</label>
-              <input
-                type="text"
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleInputChange}
-                className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Last Name</label>
-              <input
-                type="text"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleInputChange}
-                className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Email Address</label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                disabled
-                className="flex h-10 w-full rounded-md border border-slate-300 bg-slate-100 px-3 py-2 text-sm text-slate-500 cursor-not-allowed"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Phone Number</label>
-              <input
-                type="tel"
-                name="phone"
-                value={formData.phone}
-                onChange={handleInputChange}
-                className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Address / Location</label>
-              <input
-                type="text"
-                name="address"
-                value={formData.address}
-                onChange={handleInputChange}
-                className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
+            {/* Form Fields */}
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-[#5f6368] uppercase tracking-wider">First Name</label>
+                  <input
+                    type="text"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleInputChange}
+                    className="w-full h-11 px-4 rounded-full border border-[#dadce0] bg-[#f8fafd] text-sm text-[#1f1f1f] focus:bg-white focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 transition-all outline-none"
+                    required
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-[#5f6368] uppercase tracking-wider">Last Name</label>
+                  <input
+                    type="text"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleInputChange}
+                    className="w-full h-11 px-4 rounded-full border border-[#dadce0] bg-[#f8fafd] text-sm text-[#1f1f1f] focus:bg-white focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 transition-all outline-none"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-[#5f6368] uppercase tracking-wider">Email Address</label>
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368]" />
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    disabled
+                    className="w-full h-11 pl-11 pr-4 rounded-full border border-[#dadce0] bg-[#f1f3f4] text-sm text-[#5f6368] cursor-not-allowed outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-[#5f6368] uppercase tracking-wider">Phone Number</label>
+                <div className="relative">
+                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368]" />
+                  <input
+                    type="tel"
+                    name="phone"
+                    placeholder="9876543210"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    className="w-full h-11 pl-11 pr-4 rounded-full border border-[#dadce0] bg-[#f8fafd] text-sm text-[#1f1f1f] focus:bg-white focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 transition-all outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-[#5f6368] uppercase tracking-wider">Address / Location</label>
+                <div className="relative">
+                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368]" />
+                  <input
+                    type="text"
+                    name="address"
+                    placeholder="City, State, Country"
+                    value={formData.address}
+                    onChange={handleInputChange}
+                    className="w-full h-11 pl-11 pr-4 rounded-full border border-[#dadce0] bg-[#f8fafd] text-sm text-[#1f1f1f] focus:bg-white focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 transition-all outline-none"
+                  />
+                </div>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Right Column: Professional Details & Resumes */}
-        <div className="space-y-6">
-          <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
-            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-slate-900">Professional Details</h2>
-            </div>
-            <div className="p-6 space-y-5">
-              <div className="grid gap-5 md:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Current Job Title</label>
+          {/* Right Column: Professional Details & Resume Locker */}
+          <div className="space-y-6">
+            {/* Professional Details Card */}
+            <div className="bg-white rounded-2xl border border-[#e0e3e7] p-6 shadow-xs space-y-5">
+              <div className="flex items-center justify-between border-b border-[#f1f3f4] pb-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-[#e6f4ea] text-[#137333] flex items-center justify-center shrink-0">
+                    <Briefcase size={16} />
+                  </div>
+                  <h2 className="text-base font-bold text-[#1f1f1f]">Professional Background</h2>
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-[#5f6368] uppercase tracking-wider">Current Job Title</label>
                   <input
                     type="text"
                     name="currentTitle"
+                    placeholder="e.g. Senior Frontend Engineer"
                     value={formData.currentTitle}
                     onChange={handleInputChange}
-                    className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full h-11 px-4 rounded-full border border-[#dadce0] bg-[#f8fafd] text-sm text-[#1f1f1f] focus:bg-white focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 transition-all outline-none"
                   />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Years of Experience</label>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-[#5f6368] uppercase tracking-wider">Years of Experience</label>
                   <select
                     name="experience"
                     value={formData.experience}
                     onChange={handleInputChange}
-                    className="flex h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                    className="w-full h-11 px-4 rounded-full border border-[#dadce0] bg-[#f8fafd] text-sm text-[#1f1f1f] focus:bg-white focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 transition-all outline-none cursor-pointer"
                   >
-                    <option value="" disabled>Select experience level</option>
+                    <option value="" disabled>Select experience range</option>
                     <option value="0-1">0-1 years (Entry Level)</option>
                     <option value="1-3">1-3 years (Junior)</option>
                     <option value="3-5">3-5 years (Mid-Level)</option>
                     <option value="5-10">5-10 years (Senior)</option>
-                    <option value="10+">10+ years (Lead/Principal)</option>
+                    <option value="10+">10+ years (Lead / Principal)</option>
                   </select>
                 </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700">Professional Summary</label>
-                <textarea
-                  name="bio"
-                  value={formData.bio}
-                  onChange={handleInputChange}
-                  rows={5}
-                  className="flex w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                />
-              </div>
             </div>
-          </div>
 
-          <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
-            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-slate-900">Resumes ({formData.resumes.length}/3)</h2>
-            </div>
-            <div className="p-6 space-y-5">
+            {/* Resumes Locker Card */}
+            <div className="bg-white rounded-2xl border border-[#e0e3e7] p-6 shadow-xs space-y-5">
+              <div className="flex items-center justify-between border-b border-[#f1f3f4] pb-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-[#f3e8fd] text-[#8430ce] flex items-center justify-center shrink-0">
+                    <FileText size={16} />
+                  </div>
+                  <h2 className="text-base font-bold text-[#1f1f1f]">Attached Resumes</h2>
+                </div>
+                <span className="text-xs font-semibold text-[#5f6368] bg-[#f1f3f4] border border-[#dadce0] px-2.5 py-0.5 rounded-full">
+                  {formData.resumes.length} / 3 Uploaded
+                </span>
+              </div>
+
               {formData.resumes.length > 0 && (
                 <div className="space-y-3">
                   {formData.resumes.map((resume, index) => (
-                    <div key={index} className="flex flex-wrap items-center justify-between gap-3 p-4 rounded-lg border border-slate-200 bg-slate-50">
-                      <div className="flex items-center gap-3">
-                        <FileText className="text-slate-400 h-5 w-5 shrink-0" />
-                        <div className="overflow-hidden">
-                          <p className="text-sm font-medium text-slate-900 truncate">{resume.name}</p>
-                          <a href={resume.url} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:text-blue-700">View file</a>
+                    <div 
+                      key={index} 
+                      className={`flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl border transition-all ${
+                        resume.isPrimary ? 'bg-[#e8f0fe]/50 border-[#d2e3fc]' : 'bg-[#f8fafd] border-[#e0e3e7]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-10 h-10 rounded-xl bg-white text-[#1a73e8] flex items-center justify-center shrink-0 border border-[#dadce0] shadow-2xs">
+                          <FileText size={18} />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-[#1f1f1f] truncate">{resume.name}</p>
+                          <a 
+                            href={resume.url} 
+                            target="_blank" 
+                            rel="noreferrer" 
+                            className="text-[11px] font-semibold text-[#1a73e8] hover:underline inline-flex items-center gap-1 mt-0.5"
+                          >
+                            <span>Preview document</span>
+                            <ExternalLink size={11} />
+                          </a>
                         </div>
                       </div>
+
                       <div className="flex items-center gap-4 shrink-0">
-                        <label className="flex items-center gap-2 cursor-pointer">
+                        <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-[#5f6368] hover:text-[#1f1f1f]">
                           <input 
                             type="radio" 
                             name="primaryResume" 
                             checked={resume.isPrimary} 
                             onChange={() => handleSetPrimaryResume(index)} 
-                            className="w-4 h-4 text-blue-600 focus:ring-blue-500 border-slate-300"
+                            className="w-4 h-4 text-[#1a73e8] focus:ring-[#1a73e8] border-[#dadce0]"
                           />
-                          <span className="text-xs font-medium text-slate-600">Primary</span>
+                          <span>Primary</span>
                         </label>
-                        <button type="button" onClick={() => handleDeleteResume(index)} className="text-xs font-medium text-rose-600 hover:text-rose-700">Remove</button>
+                        <button 
+                          type="button" 
+                          onClick={() => handleDeleteResume(index)} 
+                          className="w-8 h-8 rounded-full text-[#c5221f] hover:bg-[#fce8e6] flex items-center justify-center transition-colors cursor-pointer"
+                          title="Delete resume"
+                        >
+                          <Trash2 size={16} />
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -393,11 +481,11 @@ const CandidateProfile = () => {
               )}
 
               {formData.resumes.length < 3 && (
-                <div className="rounded-lg border border-dashed border-slate-300 p-8 text-center bg-slate-50 hover:bg-slate-100/50 transition-colors relative">
+                <div className="rounded-2xl border-2 border-dashed border-[#dadce0] p-8 text-center bg-[#f8fafd] hover:bg-[#f1f3f4] transition-colors relative">
                   {isUploadingResume && (
-                    <div className="absolute inset-0 bg-white/80 flex flex-col items-center justify-center rounded-lg z-10">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mb-2"></div>
-                      <span className="text-sm font-medium text-slate-700">Uploading...</span>
+                    <div className="absolute inset-0 bg-white/80 backdrop-blur-2xs flex flex-col items-center justify-center rounded-2xl z-10">
+                      <div className="animate-spin rounded-full h-7 w-7 border-b-2 border-[#1a73e8] mb-2" />
+                      <span className="text-xs font-bold text-[#1a73e8]">Uploading Resume...</span>
                     </div>
                   )}
                   <input
@@ -407,25 +495,26 @@ const CandidateProfile = () => {
                     onChange={handleFileUpload}
                     disabled={isUploadingResume}
                   />
-                  <UploadCloud className="mx-auto h-8 w-8 text-slate-400 mb-3" />
-                  <p className="text-sm font-medium text-slate-900">Click to upload a new resume</p>
-                  <p className="text-xs text-slate-500 mt-1">PDF, DOC, DOCX (Max 5MB)</p>
+                  <UploadCloud className="mx-auto h-8 w-8 text-[#1a73e8] mb-2" />
+                  <p className="text-xs font-bold text-[#1f1f1f]">Click to upload a new resume</p>
+                  <p className="text-[11px] text-[#5f6368] mt-0.5">Supports PDF, DOC, DOCX (Max 5MB)</p>
                 </div>
               )}
             </div>
+
+            {/* Save Action Bar */}
+            <div className="flex justify-end pt-2">
+              <button
+                type="submit"
+                disabled={saveMutation.isPending}
+                className="inline-flex items-center gap-2 px-8 py-3 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white text-xs font-bold tracking-wide transition-all shadow-xs disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+              >
+                <Save size={16} />
+                <span>{saveMutation.isPending ? 'Saving Changes...' : 'Save Profile Changes'}</span>
+              </button>
+            </div>
           </div>
-          
-          <div className="flex justify-end pt-2 pb-6">
-            <button
-              type="submit"
-              disabled={saveMutation.isPending}
-              className="inline-flex items-center justify-center rounded-md bg-blue-600 text-white hover:bg-blue-700 h-11 px-8 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
-            >
-              {saveMutation.isPending ? 'Saving...' : 'Save Profile'}
-            </button>
-          </div>
-        </div>
-      </form>
+        </form>
       </div>
     </>
   );

@@ -142,6 +142,7 @@ function App() {
             <Toaster position="top-right" />
             <Routes>
               <Route path="/" element={<Login />} />
+              <Route path="/login" element={<Login />} />
               <Route path="/candidate/login" element={<CandidateLogin />} />
               <Route path="/candidate/activate" element={<CandidateActivate />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -349,7 +350,7 @@ function App() {
               >
                 <Route path="dashboard" element={<CandidateDashboard />} />
                 <Route path="jobs" element={<CandidateJobs />} />
-                <Route path="loans-applications" element={<CandidateApplications />} />
+                <Route path="applications" element={<CandidateApplications />} />
                 <Route path="documents" element={<CandidateDocuments />} />
                 <Route path="profile" element={<CandidateProfile />} />
               </Route>

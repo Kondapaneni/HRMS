@@ -1,13 +1,24 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import {
-  LogOut, Home, Briefcase, FileText, User, Bell, Folder
+  LogOut,
+  Home,
+  Briefcase,
+  FileText,
+  User,
+  Folder,
+  Compass,
+  FileCheck,
+  Megaphone,
+  Sparkles,
+  Terminal
 } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import LogoutModal from './LogoutModal';
+import MaintenanceOverlay from './MaintenanceOverlay';
 import api from '../api/axios';
 
 const CandidateLayout = () => {
@@ -15,7 +26,25 @@ const CandidateLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const [swipePath, setSwipePath] = useState(null);
+  const [isDevBypassed, setIsDevBypassed] = useState(() => localStorage.getItem('dev_bypass_maintenance_session') === 'true');
+  const [forceHideBottomNav, setForceHideBottomNav] = useState(false);
+
   const scrollContainerRef = useRef(null);
+  const swipeRafRef = useRef(null);
+  const lastSwipePathRef = useRef(null);
+
+  useEffect(() => {
+    const handleToggle = (e) => {
+      setForceHideBottomNav(!!e.detail);
+    };
+    window.addEventListener('toggle-mobile-bottom-nav', handleToggle);
+    return () => window.removeEventListener('toggle-mobile-bottom-nav', handleToggle);
+  }, []);
+
+  const hideBottomNavRoutes = ['/candidate/profile/edit'];
+  const shouldHideBottomNav = forceHideBottomNav || hideBottomNavRoutes.some(p => location.pathname === p || location.pathname.startsWith(`${p}/`));
 
   useEffect(() => {
     if (scrollContainerRef.current) {
@@ -26,6 +55,54 @@ const CandidateLayout = () => {
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
   }, [location.pathname, location.search]);
+
+  const handleExitBypass = () => {
+    localStorage.removeItem('dev_bypass_maintenance_session');
+    setIsDevBypassed(false);
+  };
+
+  const handleTouchMove = (e) => {
+    if (swipeRafRef.current) return;
+    swipeRafRef.current = requestAnimationFrame(() => {
+      swipeRafRef.current = null;
+      const touch = e.touches?.[0];
+      if (!touch) return;
+      const element = document.elementFromPoint(touch.clientX, touch.clientY);
+      if (!element) return;
+      const navItem = element.closest('[data-nav-path]');
+      if (navItem) {
+        const path = navItem.getAttribute('data-nav-path');
+        if (path && path !== lastSwipePathRef.current) {
+          lastSwipePathRef.current = path;
+          setSwipePath(path);
+        }
+      }
+    });
+  };
+
+  const handleTouchEnd = () => {
+    if (swipeRafRef.current) {
+      cancelAnimationFrame(swipeRafRef.current);
+      swipeRafRef.current = null;
+    }
+    const target = lastSwipePathRef.current;
+    if (target && target !== location.pathname) {
+      navigate(target);
+    }
+    lastSwipePathRef.current = null;
+    setSwipePath(null);
+  };
+
+  useEffect(() => {
+    if (showLogoutModal) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [showLogoutModal]);
 
   const { data: profileData } = useQuery({
     queryKey: ['candidate', 'profile', profile?.id],
@@ -40,12 +117,16 @@ const CandidateLayout = () => {
     enabled: !!profile?.id
   });
 
-  const handleLogout = async () => {
+  const handleConfirmLogout = async () => {
     try {
+      setLoggingOut(true);
       await signOut();
       navigate('/candidate/login');
     } catch (e) {
       console.error("Logout failed", e);
+    } finally {
+      setLoggingOut(false);
+      setShowLogoutModal(false);
     }
   };
 
@@ -68,7 +149,6 @@ const CandidateLayout = () => {
   useEffect(() => {
     if (isHired && profile?.id && profileData !== undefined) {
       if (!profileData?.documents_tab_seen_at) {
-        // First time seeing it, trigger backend endpoint to save timestamp
         api.put('/candidate/profile/documents-seen').catch(console.error);
         setShowDocumentsNewBadge(true);
       } else {
@@ -82,216 +162,345 @@ const CandidateLayout = () => {
     }
   }, [isHired, profile?.id, profileData]);
 
+  // Fetch news & maintenance status
+  const { data: newsData } = useQuery({
+    queryKey: ['newsHeadlines'],
+    queryFn: async () => {
+      const res = await api.get('/news');
+      return res.data;
+    },
+    refetchInterval: 15000,
+    staleTime: 10000,
+    refetchOnWindowFocus: true,
+  });
+  const newsHeadlines = newsData?.news_headlines || profile?.news_headlines || [];
+  const isMaintenanceMode = newsData?.maintenance_mode === true;
+  const maintenanceMessage = newsData?.maintenance_message;
+  const showMaintenanceOverlay = isMaintenanceMode && !isDevBypassed;
+
   const navItems = [
-    { label: 'Dashboard', icon: Home, path: '/candidate/dashboard' },
+    { label: 'Dashboard', icon: <Home size={15} />, path: '/candidate/dashboard' },
+    { label: 'Explore Jobs', icon: <Briefcase size={15} />, path: '/candidate/jobs' },
+    { label: 'My Applications', icon: <FileText size={15} />, path: '/candidate/applications' },
+    ...(isHired ? [{ label: 'Documents', icon: <Folder size={15} />, path: '/candidate/documents', isNew: showDocumentsNewBadge }] : []),
+    { label: 'My Profile', icon: <User size={15} />, path: '/candidate/profile' }
+  ];
+
+  const mobileNavItems = [
+    { label: 'Home', icon: Home, path: '/candidate/dashboard' },
     { label: 'Jobs', icon: Briefcase, path: '/candidate/jobs' },
     { label: 'Applications', icon: FileText, path: '/candidate/applications' },
     ...(isHired ? [{ label: 'Documents', icon: Folder, path: '/candidate/documents', isNew: showDocumentsNewBadge }] : []),
     { label: 'Profile', icon: User, path: '/candidate/profile' }
   ];
 
-  const shapeVariants = {
-    animate: (i) => ({
-      y: [0, -20, 0],
-      x: [0, 15, 0],
-      rotate: [0, 10, -10, 0],
-      transition: {
-        duration: 5 + i * 2,
-        repeat: Infinity,
-        ease: "easeInOut"
-      }
-    })
-  };
+  const candidateDisplayName = profile?.firstName
+    ? `${profile.firstName} ${profile.lastName || ''}`.trim()
+    : profile?.email?.split('@')[0] || 'Candidate';
+
+  const avatarDisplay = profileData?.avatar_url || profile?.avatar;
 
   return (
-    <div className="h-[100dvh] w-full overflow-hidden bg-slate-50 flex font-sans text-slate-800 relative z-0">
-      
-      {/* Global Animated Background Graphics */}
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden fixed md:absolute print:hidden">
-        <motion.div custom={1} variants={shapeVariants} animate="animate" className="absolute w-64 h-64 bg-[#F59E0B] rounded-full opacity-10 -top-20 -right-20" />
-        <motion.div custom={2} variants={shapeVariants} animate="animate" className="absolute w-48 h-48 bg-[#10B981] rounded-3xl opacity-10 bottom-[-40px] left-1/4 rotate-12" />
-        <motion.div custom={3} variants={shapeVariants} animate="animate" className="absolute w-96 h-96 bg-[#3B82F6] rounded-full opacity-5 top-1/2 left-1/3" />
-        <motion.div custom={4} variants={shapeVariants} animate="animate" className="absolute w-32 h-32 bg-[#EC4899] rounded-xl opacity-10 top-20 left-10 -rotate-12" />
-        <motion.div custom={5} variants={shapeVariants} animate="animate" className="absolute w-72 h-72 bg-[#8B5CF6] rounded-full opacity-10 bottom-20 right-1/4" />
+    <>
+      {showMaintenanceOverlay && (
+        <MaintenanceOverlay
+          message={maintenanceMessage}
+          onBypassSuccess={() => setIsDevBypassed(true)}
+        />
+      )}
 
-        {/* Additional geometric shapes */}
-        <motion.div custom={6} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-40 h-40 bg-[#14B8A6] rounded-2xl opacity-10 top-[-20px] left-[18rem] rotate-45" />
-        <motion.div custom={7} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-28 h-28 bg-[#F43F5E] rounded-3xl opacity-10 top-32 left-[24rem] -rotate-12" />
-        <motion.div custom={8} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-56 h-56 bg-[#6366F1] rounded-full opacity-[0.06] top-10 left-[35%]" />
-        <motion.div custom={9} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-36 h-36 bg-[#EAB308] rounded-2xl opacity-10 bottom-10 right-10 -rotate-12" />
-        <motion.div custom={10} variants={shapeVariants} animate="animate" className="hidden md:block absolute w-24 h-24 bg-[#06B6D4] rounded-full opacity-10 bottom-40 right-28 rotate-45" />
-      </div>
+      {/* Floating Developer Bypass Badge */}
+      {isMaintenanceMode && isDevBypassed && (
+        <motion.div
+          initial={{ opacity: 0, y: -10, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          className="fixed top-3 right-3 sm:right-6 z-[95] bg-[#1f1f1f]/95 backdrop-blur-md text-white px-3 sm:px-4 py-1.5 rounded-full border border-white/10 shadow-xl flex items-center gap-2 sm:gap-3 text-xs font-semibold max-w-[calc(100vw-1.5rem)]"
+        >
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#34A853] opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#34A853]"></span>
+            </span>
+            <Terminal size={14} className="text-[#34A853] shrink-0" />
+            <span className="hidden sm:inline text-white">Dev Bypass Active</span>
+            <span className="sm:hidden text-white text-[11px]">Dev Bypass</span>
+            <span className="hidden md:inline text-[10px] px-2 py-0.5 bg-[#FBBC05]/20 text-[#FBBC05] rounded-full font-medium border border-[#FBBC05]/30">
+              Maintenance ON
+            </span>
+          </div>
 
-      {/* Sidebar (Desktop) - Clean & Professional matching Employee Layout */}
-      <aside className="w-[260px] h-screen sticky top-0 bg-white/80 backdrop-blur-md border-r border-slate-200 hidden md:flex flex-col z-20 shadow-sm shrink-0">
-        <div className="h-14 flex items-center px-4 border-b border-slate-200 shrink-0">
-          <div className="w-8 h-8 rounded-full flex items-center justify-center shadow-xs bg-white overflow-hidden p-0.5 border border-slate-200 mr-3 shrink-0">
-            <img src="/pwa-192x192.png" alt="Acme Logo" className="w-full h-full object-contain rounded-full" />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-base font-bold tracking-tight text-slate-800 leading-tight">Acme</span>
-            <span className="text-[10px] font-semibold tracking-wider text-blue-600 uppercase leading-none">Careers</span>
-          </div>
+          <button
+            onClick={handleExitBypass}
+            className="bg-[#EA4335]/20 hover:bg-[#EA4335]/30 text-[#EA4335] border border-[#EA4335]/30 px-2.5 py-0.5 rounded-full font-bold transition-all cursor-pointer text-[11px] shrink-0 active:scale-95"
+          >
+            Exit
+          </button>
+        </motion.div>
+      )}
+
+      <div className="h-[100dvh] w-full overflow-hidden bg-[#f8fafd] flex font-sans text-[#1f1f1f] selection:bg-[#c2e7ff] selection:text-[#001d35] antialiased relative z-0">
+        {/* Google Ambient Multi-color Background Glows */}
+        <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+          <div className="absolute -top-32 -left-32 w-96 h-96 bg-[#4285F4]/10 rounded-full blur-3xl" />
+          <div className="absolute -top-24 -right-24 w-96 h-96 bg-[#EA4335]/8 rounded-full blur-3xl" />
+          <div className="absolute -bottom-32 -left-20 w-96 h-96 bg-[#FBBC05]/10 rounded-full blur-3xl" />
+          <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-[#34A853]/8 rounded-full blur-3xl" />
         </div>
 
-        <div className="p-4 overflow-y-auto flex-1">
-          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 px-2 whitespace-nowrap">Candidate Portal</p>
-          <nav className="space-y-1">
-            {navItems.map((item, idx) => {
-              const isActive = location.pathname.startsWith(item.path);
-              const Icon = item.icon;
-              return (
+        {/* Top Full-Width 4-Color Google Accent Line */}
+        <div className="h-1 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0 right-0 z-50 pointer-events-none" />
+
+        {/* Google Material 3 Left Sidebar (w-[215px]) */}
+        <aside className="w-[215px] h-full bg-white border-r border-[#e0e3e7] hidden md:flex flex-col z-20 relative shrink-0 shadow-none">
+          {/* Brand Header */}
+          <div className="h-14 flex items-center justify-between px-4 border-b border-[#f1f3f4] shrink-0 mt-0.5">
+            <div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-lg font-bold tracking-tight text-[#1f1f1f]">Acme</span>
+                <span className="text-lg font-semibold tracking-tight text-[#4285F4]">HRMS</span>
+              </div>
+              <div className="flex items-center gap-1 mt-0.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+                <span className="text-[10px] font-medium text-[#5f6368] ml-1">Candidate Portal</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Navigation Items */}
+          <div className="p-2 overflow-y-auto flex-1 space-y-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5 px-2.5 whitespace-nowrap">
+              Candidate Space
+            </p>
+            <nav className="space-y-0.5">
+              {navItems.map((item, idx) => {
+                const isActive = location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
+                return (
+                  <Link
+                    key={idx}
+                    to={item.path}
+                    className={`w-full flex items-center gap-2.5 px-3 py-1.5 rounded-full text-xs transition-all ${
+                      isActive
+                        ? 'bg-[#c2e7ff]/70 text-[#001d35] font-semibold shadow-xs'
+                        : 'text-[#444746] hover:bg-[#f1f3f4] hover:text-[#1f1f1f] font-medium'
+                    }`}
+                  >
+                    <span className={`shrink-0 ${isActive ? 'text-[#1a73e8]' : 'text-[#5f6368]'}`}>
+                      {item.icon}
+                    </span>
+                    <span className="flex-1 whitespace-nowrap truncate text-[11.5px]">{item.label}</span>
+                    {item.isNew && (
+                      <span className="bg-[#EA4335] text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full shadow-2xs animate-pulse">
+                        NEW
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
+
+          {/* Bottom Actions */}
+          <div className="p-2.5 border-t border-[#f1f3f4] bg-white">
+            <button
+              type="button"
+              onClick={() => setShowLogoutModal(true)}
+              className="w-full flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-[#5f6368] rounded-full hover:bg-[#fce8e6] hover:text-[#d93025] transition-colors cursor-pointer"
+            >
+              <LogOut size={15} className="text-[#5f6368]" />
+              <span className="text-[11.5px]">Sign Out</span>
+            </button>
+          </div>
+        </aside>
+
+        {/* Main Content Area */}
+        <main className="flex-1 flex flex-col h-[100dvh] overflow-hidden relative z-10 bg-transparent">
+          {/* Top Header */}
+          <header className="h-14 bg-white border-b border-[#e0e3e7] px-4 sm:px-5 flex items-center justify-between z-10 shrink-0 relative">
+            <div className="flex items-center gap-3 shrink-0">
+              {/* Desktop Portal Badge */}
+              <div className="hidden md:flex items-center gap-2 px-2.5 py-1 bg-[#e8f0fe] text-[#1967d2] rounded-full text-xs font-semibold border border-[#d2e3fc]">
+                <Compass size={13} className="text-[#4285F4]" />
+                <span>Candidate Portal</span>
+              </div>
+
+              {/* Mobile Left Edge: Profile Avatar */}
+              <div className="md:hidden flex items-center">
                 <Link
-                  key={idx}
-                  to={item.path}
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors relative ${
-                    isActive
-                      ? 'bg-blue-50 text-blue-700'
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                  }`}
+                  to="/candidate/profile"
+                  className="w-8 h-8 rounded-full bg-[#e8f0fe] border border-[#d2e3fc] flex items-center justify-center overflow-hidden shrink-0 shadow-2xs cursor-pointer active:scale-95 transition-transform"
                 >
-                  <span className={`shrink-0 ${isActive ? 'text-blue-600' : 'text-slate-400'}`}>
-                    <Icon size={18} strokeWidth={isActive ? 2.5 : 2} />
-                  </span>
-                  <span className="flex-1 whitespace-nowrap truncate">{item.label}</span>
-                  {item.isNew && (
-                    <span className="bg-rose-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-xs animate-pulse">
-                      NEW
+                  {avatarDisplay ? (
+                    <img src={avatarDisplay} alt="Profile" className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="text-xs font-bold text-[#1a73e8]">
+                      {(profile?.firstName || profile?.email || 'C').charAt(0).toUpperCase()}
                     </span>
                   )}
                 </Link>
-              );
-            })}
-          </nav>
-        </div>
-
-        <div className="p-4 border-t border-slate-200">
-          <button
-            onClick={() => setShowLogoutModal(true)}
-            className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-600 rounded-md hover:bg-slate-50 hover:text-red-600 transition-colors cursor-pointer"
-          >
-            <LogOut size={18} className="text-slate-400" />
-            Sign Out
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col h-[100dvh] overflow-hidden relative z-30 bg-transparent">
-        
-        {/* Top Header - Matching Employee Layout */}
-        <header className="h-14 shrink-0 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 flex items-center justify-between sticky top-0 z-40 md:relative md:z-10 overflow-hidden">
-          <div className="flex items-center gap-3">
-            {/* Mobile Logo/Title */}
-            <div className="md:hidden flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center shadow-xs bg-white overflow-hidden p-0.5 border border-slate-200">
-                <img src="/pwa-192x192.png" alt="Acme Logo" className="w-full h-full object-contain rounded-full" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-bold tracking-tight text-slate-800 leading-tight">Acme</span>
-                <span className="text-[9px] font-semibold tracking-wider text-blue-600 uppercase leading-none">Careers</span>
-              </div>
-            </div>
-            <div className="hidden md:block">
-              <span className="text-sm font-semibold text-slate-600">Candidate Portal</span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-700 font-bold text-sm overflow-hidden border border-slate-200">
-                {profileData?.avatar_url ? (
-                  <img src={profileData.avatar_url} alt="Profile" className="w-full h-full object-cover" />
-                ) : (
-                  profile?.firstName?.charAt(0) || profile?.email?.charAt(0).toUpperCase() || 'C'
-                )}
-              </div>
-              <div className="hidden sm:block text-left">
-                <p className="text-sm font-medium text-slate-700 leading-none">
-                  {profile?.firstName ? `${profile.firstName} ${profile.lastName || ''}`.trim() : profile?.email?.split('@')[0] || 'Candidate'}
-                </p>
-                <p className="text-xs text-slate-500 mt-1 capitalize">Candidate</p>
               </div>
             </div>
 
-            {/* Mobile Sign Out Button */}
-            <div className="flex md:hidden items-center">
-              <button
-                onClick={() => setShowLogoutModal(true)}
-                className="flex items-center justify-center text-rose-500 hover:text-rose-600 transition-colors bg-rose-50/50 hover:bg-rose-50 p-2 rounded-full cursor-pointer"
-                title="Sign Out"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        </header>
-
-        {/* Page Content Body */}
-        <div
-          ref={scrollContainerRef}
-          className="flex-1 w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 md:pb-8 overflow-y-auto overscroll-y-contain"
-          style={{ WebkitOverflowScrolling: 'touch' }}
-        >
-          <Outlet />
-        </div>
-      </main>
-
-      {/* Mobile Bottom Navigation (iOS Liquid Glass) */}
-      <div className="md:hidden fixed bottom-6 left-4 right-4 z-50 pointer-events-none touch-none select-none">
-        <div className="bg-white/50 backdrop-blur-2xl border border-white/60 shadow-[0_8px_32px_rgba(0,0,0,0.12)] rounded-full p-1.5 flex justify-around items-center pointer-events-auto">
-          {navItems.map((item) => {
-            const isActive = location.pathname.startsWith(item.path);
-            const Icon = item.icon;
-            
-            return (
-              <Link 
-                key={item.path} 
-                to={item.path} 
-                className="relative flex flex-col items-center justify-center w-[72px] h-[58px] z-10 group"
-              >
-                {isActive && (
-                  <motion.div
-                    layoutId="mobileNavBubble"
-                    className="absolute inset-0 z-[-1] rounded-full shadow-[inset_0_1px_3px_rgba(255,255,255,0.8),0_4px_16px_rgba(0,0,0,0.06)] bg-white/40 backdrop-blur-xl border border-white/80 overflow-hidden"
-                    transition={{ type: 'spring', bounce: 0.25, duration: 0.5 }}
-                  />
-                )}
-                {item.isNew && (
-                  <span className="absolute top-0.5 right-1.5 bg-rose-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full z-20 shadow-sm animate-pulse">
-                    NEW
-                  </span>
-                )}
-                <Icon className={`relative z-10 w-6 h-6 mb-0.5 transition-all duration-300 ${isActive ? 'text-blue-600 scale-105' : 'text-slate-500 group-hover:text-slate-600 group-active:scale-95'}`} strokeWidth={isActive ? 2.5 : 2} />
-                <span className={`relative z-10 text-[10px] font-medium tracking-wide transition-all duration-300 ${isActive ? 'text-blue-600' : 'text-slate-500'}`}>
-                  {item.label}
-                </span>
+            {/* Mobile Center: Acme HRMS with 4 Google dots */}
+            <div className="md:hidden absolute left-1/2 -translate-x-1/2 flex items-center pointer-events-auto">
+              <Link to="/candidate/dashboard" className="flex items-center gap-1.5 shrink-0">
+                <span className="text-base font-bold tracking-tight text-[#1f1f1f]">Acme</span>
+                <span className="text-base font-semibold tracking-tight text-[#4285F4]">HRMS</span>
+                <div className="flex items-center gap-0.5 ml-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+                </div>
               </Link>
-            );
-          })}
-          
-          <button 
-            onClick={() => setShowLogoutModal(true)}
-            className="relative flex flex-col items-center justify-center w-[72px] h-[58px] z-10 group"
+            </div>
+
+            {/* Scrolling News / Announcement Ticker (Desktop Google Pill) */}
+            {newsHeadlines.length > 0 && (
+              <div className="hidden md:flex flex-1 mx-6 overflow-hidden items-center text-xs font-medium text-[#1f1f1f] bg-[#f8fafd] rounded-full h-8 px-4 border border-[#e0e3e7] shadow-2xs relative group">
+                <Megaphone size={14} className="text-[#1a73e8] mr-2.5 shrink-0" />
+                <div className="flex-1 overflow-hidden relative h-full flex items-center">
+                  <motion.div
+                    key={newsHeadlines.join(" • ")}
+                    className="flex whitespace-nowrap"
+                    animate={{ x: ["0%", "-50%"] }}
+                    transition={{ repeat: Infinity, duration: Math.max(30, newsHeadlines.join("   •   ").length * 0.5), ease: "linear" }}
+                  >
+                    <span className="text-[#1f1f1f] tracking-wide pr-10">
+                      {Array(4).fill(newsHeadlines.join("   •   ")).join("   •   ")}
+                    </span>
+                    <span className="text-[#1f1f1f] tracking-wide pr-10">
+                      {Array(4).fill(newsHeadlines.join("   •   ")).join("   •   ")}
+                    </span>
+                  </motion.div>
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center gap-3 shrink-0">
+              {/* Desktop Profile Pill */}
+              <div className="hidden md:flex items-center gap-2.5 select-none bg-[#f8fafd] border border-[#e0e3e7] pl-1.5 pr-3 py-1 rounded-full">
+                <div className="w-7 h-7 bg-[#e8f0fe] text-[#1a73e8] rounded-full flex items-center justify-center font-bold text-xs overflow-hidden border border-[#d2e3fc]">
+                  {avatarDisplay ? (
+                    <img src={avatarDisplay} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    (profile?.firstName || profile?.email || 'C').charAt(0).toUpperCase()
+                  )}
+                </div>
+                <div className="text-left">
+                  <p className="text-xs font-semibold text-[#1f1f1f] leading-none">
+                    {candidateDisplayName}
+                  </p>
+                  <p className="text-[10px] text-[#5f6368] mt-0.5 capitalize">Candidate</p>
+                </div>
+              </div>
+
+              {/* Mobile Right Side Actions: Logout Button */}
+              <div className="flex md:hidden items-center">
+                <button
+                  type="button"
+                  onClick={() => setShowLogoutModal(true)}
+                  className="p-2.5 rounded-full text-[#5f6368] hover:text-[#d93025] hover:bg-[#fce8e6] transition-colors cursor-pointer active:scale-95"
+                  title="Sign Out"
+                >
+                  <LogOut className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          </header>
+
+          {/* Mobile Scrolling News Ticker */}
+          {newsHeadlines.length > 0 && (
+            <div className="md:hidden shrink-0 bg-[#f8fafd] border-b border-[#e0e3e7] px-4 py-2 flex items-center overflow-hidden">
+              <Megaphone size={13} className="text-[#1a73e8] mr-2 shrink-0" />
+              <div className="flex-1 overflow-hidden relative h-5 flex items-center text-xs font-medium text-[#1f1f1f]">
+                <motion.div
+                  key={newsHeadlines.join(" • ")}
+                  className="flex whitespace-nowrap"
+                  animate={{ x: ["0%", "-50%"] }}
+                  transition={{ repeat: Infinity, duration: Math.max(30, newsHeadlines.join("   •   ").length * 0.5), ease: "linear" }}
+                >
+                  <span className="tracking-wide pr-10">
+                    {Array(4).fill(newsHeadlines.join("   •   ")).join("   •   ")}
+                  </span>
+                  <span className="tracking-wide pr-10">
+                    {Array(4).fill(newsHeadlines.join("   •   ")).join("   •   ")}
+                  </span>
+                </motion.div>
+              </div>
+            </div>
+          )}
+
+          {/* Dynamic Page Content */}
+          <div
+            ref={scrollContainerRef}
+            className={`flex-1 overflow-y-auto overscroll-y-contain p-4 sm:p-6 ${shouldHideBottomNav ? 'pb-6' : 'pb-[96px]'} md:pb-6`}
+            style={{ WebkitOverflowScrolling: 'touch' }}
           >
-            <LogOut className="relative z-10 w-6 h-6 mb-0.5 text-slate-500 transition-all duration-300 group-hover:text-rose-500 group-active:scale-95" strokeWidth={2} />
-            <span className="relative z-10 text-[10px] font-medium tracking-wide text-slate-500 transition-all duration-300 group-hover:text-rose-500">
-              Logout
-            </span>
-          </button>
-        </div>
+            <Outlet />
+          </div>
+
+          {/* Mobile Bottom Navigation (Google Material 3 Floating Pill Dock) */}
+          {!shouldHideBottomNav && (
+            <div
+              className="mobile-bottom-nav md:hidden fixed bottom-4 left-4 right-4 z-50 select-none"
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              onTouchCancel={handleTouchEnd}
+            >
+              <div className="bg-white/90 backdrop-blur-2xl border border-[#e0e3e7] shadow-lg rounded-full p-1.5 flex justify-around items-center" style={{ willChange: 'transform' }}>
+                {mobileNavItems.map((item) => {
+                  const currentPath = swipePath || location.pathname;
+                  const isHome = item.path === '/candidate/dashboard';
+                  const isOtherTab = mobileNavItems.filter(n => n.path !== '/candidate/dashboard').some(p => currentPath.startsWith(p.path));
+                  const isActive = isHome
+                    ? (currentPath === '/candidate/dashboard' || !isOtherTab)
+                    : (currentPath === item.path || (!swipePath && currentPath.startsWith(item.path)));
+                  const Icon = item.icon;
+
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      data-nav-path={item.path}
+                      onClick={(e) => { if (swipePath) e.preventDefault(); }}
+                      className="relative flex flex-col items-center justify-center flex-1 h-[52px] z-10 group cursor-pointer active:scale-95 transition-transform duration-100"
+                    >
+                      {isActive && (
+                        <motion.div
+                          layoutId="candidateMobileNavBubble"
+                          className="absolute inset-0 z-[-1] rounded-full bg-[#c2e7ff]/70 border border-[#b2d7ff]/80 shadow-2xs"
+                          transition={{ type: 'spring', bounce: 0.15, duration: 0.35 }}
+                        />
+                      )}
+                      {item.isNew && (
+                        <span className="absolute top-1 right-2 w-2 h-2 rounded-full bg-[#EA4335] animate-pulse" />
+                      )}
+                      <Icon className={`relative z-10 w-5 h-5 mb-0.5 transition-colors duration-150 ${isActive ? 'text-[#001d35] scale-105' : 'text-[#5f6368]'}`} />
+                      <span className={`relative z-10 text-[10px] font-semibold tracking-wide transition-colors duration-150 ${isActive ? 'text-[#001d35]' : 'text-[#5f6368]'}`}>
+                        {item.label}
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </main>
+
+        {/* Global Logout Modal */}
+        <LogoutModal
+          isOpen={showLogoutModal}
+          onClose={() => setShowLogoutModal(false)}
+          onConfirm={handleConfirmLogout}
+          isLoading={loggingOut}
+          title="Sign out of Candidate Account?"
+          description="Are you sure you want to log out of your candidate account? You will need to sign in again to check application updates."
+        />
       </div>
-
-      {/* Global Logout Modal */}
-      <LogoutModal
-        isOpen={showLogoutModal}
-        onClose={() => setShowLogoutModal(false)}
-        onConfirm={handleLogout}
-        title="Sign out of Candidate Account?"
-        description="Are you sure you want to log out of your candidate account? You will need to sign in again to check application updates."
-      />
-
-    </div>
+    </>
   );
 };
 

@@ -14,7 +14,7 @@ $app->get('/api/candidate/profile', function (Request $request, Response $respon
     $conn = $db->getConnection();
     
     try {
-        $stmt = $conn->prepare('SELECT id, user_id, phone, address, current_title, experience, bio, resume_url, avatar_url, created_at, updated_at FROM candidate_profiles WHERE user_id = ?');
+        $stmt = $conn->prepare('SELECT id, user_id, phone, address, current_title, experience, resume_url, avatar_url, created_at, updated_at FROM candidate_profiles WHERE user_id = ?');
         $stmt->execute([$decodedToken->id]);
         $profile = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -47,7 +47,7 @@ $app->put('/api/candidate/profile', function (Request $request, Response $respon
         if ($exists) {
             $stmtUpdate = $conn->prepare('
                 UPDATE candidate_profiles 
-                SET phone = ?, address = ?, current_title = ?, experience = ?, bio = ?, resume_url = ?, avatar_url = ?, updated_at = CURRENT_TIMESTAMP
+                SET phone = ?, address = ?, current_title = ?, experience = ?, resume_url = ?, avatar_url = ?, updated_at = CURRENT_TIMESTAMP
                 WHERE user_id = ?
             ');
             $stmtUpdate->execute([
@@ -55,15 +55,14 @@ $app->put('/api/candidate/profile', function (Request $request, Response $respon
                 $data['address'] ?? null,
                 $data['currentTitle'] ?? null,
                 $data['experience'] ?? null,
-                $data['bio'] ?? null,
                 isset($data['resumes']) ? json_encode($data['resumes']) : null,
                 $data['avatar'] ?? null,
                 $decodedToken->id
             ]);
         } else {
             $stmtInsert = $conn->prepare('
-                INSERT INTO candidate_profiles (user_id, phone, address, current_title, experience, bio, resume_url, avatar_url) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO candidate_profiles (user_id, phone, address, current_title, experience, resume_url, avatar_url) 
+                VALUES (?, ?, ?, ?, ?, ?, ?)
             ');
             $stmtInsert->execute([
                 $decodedToken->id,
@@ -71,7 +70,6 @@ $app->put('/api/candidate/profile', function (Request $request, Response $respon
                 $data['address'] ?? null,
                 $data['currentTitle'] ?? null,
                 $data['experience'] ?? null,
-                $data['bio'] ?? null,
                 isset($data['resumes']) ? json_encode($data['resumes']) : null,
                 $data['avatar'] ?? null
             ]);
