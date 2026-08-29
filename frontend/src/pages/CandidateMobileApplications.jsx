@@ -157,14 +157,16 @@ const CandidateMobileApplications = ({
                 </div>
 
                 {/* Actions Footer */}
-                <div className="pt-2 border-t border-[#f1f3f4] grid grid-cols-2 gap-2">
-                  <Link 
-                    to="/candidate/documents"
-                    className="h-11 rounded-full border border-[#ceead6] bg-[#e6f4ea] hover:bg-[#ceead6] active:bg-[#ceead6] text-[#137333] font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs"
-                  >
-                    <Folder className="w-4 h-4" />
-                    <span>Upload Docs</span>
-                  </Link>
+                <div className={`pt-2 border-t border-[#f1f3f4] ${['Hired', 'Selected', 'Converted to Employee'].includes(app.status) ? 'grid grid-cols-2 gap-2' : 'flex'}`}>
+                  {['Hired', 'Selected', 'Converted to Employee'].includes(app.status) && (
+                    <Link 
+                      to="/candidate/documents"
+                      className="h-11 rounded-full border border-[#ceead6] bg-[#e6f4ea] hover:bg-[#ceead6] active:bg-[#ceead6] text-[#137333] font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-2xs"
+                    >
+                      <Folder className="w-4 h-4" />
+                      <span>Upload Docs</span>
+                    </Link>
+                  )}
 
                   <button 
                     type="button"
@@ -172,10 +174,10 @@ const CandidateMobileApplications = ({
                       setTimelineApp(app);
                       setIsTimelineModalOpen(true);
                     }}
-                    className="h-11 rounded-full border border-[#dadce0] bg-[#f8fafd] hover:bg-[#e8f0fe] active:bg-[#d2e3fc] text-[#1a73e8] font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+                    className="w-full h-11 rounded-full border border-[#dadce0] bg-[#f8fafd] hover:bg-[#e8f0fe] active:bg-[#d2e3fc] text-[#1a73e8] font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs"
                   >
                     <Clock className="w-4 h-4" />
-                    <span>Timeline</span>
+                    <span>{['Hired', 'Selected', 'Converted to Employee'].includes(app.status) ? 'Timeline' : 'View Progress Timeline'}</span>
                     <ChevronRight className="w-3.5 h-3.5 text-[#1a73e8]" />
                   </button>
                 </div>
