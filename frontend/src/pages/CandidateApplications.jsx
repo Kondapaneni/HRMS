@@ -262,17 +262,17 @@ const CandidateApplications = () => {
         </div>
       </div>
 
-      {/* Google Material 3 Timeline Modal */}
+      {/* Google Workspace Slide-Over Application Progress Timeline Drawer */}
       {isTimelineModalOpen && timelineApp && typeof document !== 'undefined' && createPortal(
         <div 
           onClick={(e) => { if (e.target === e.currentTarget) setIsTimelineModalOpen(false); }}
-          className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto"
+          className="fixed inset-0 z-[10000] flex justify-end bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200"
         >
-          <div className="bg-white rounded-3xl shadow-2xl border border-[#e0e3e7] w-full max-w-2xl my-auto overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-white shadow-2xl w-full max-w-lg h-full flex flex-col overflow-hidden animate-in slide-in-from-right duration-300">
             {/* Top 4-Color Gradient Accent Line */}
             <div className="h-1 bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853]" />
 
-            {/* Header */}
+            {/* Drawer Header */}
             <div className="px-6 py-4 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd] shrink-0">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 rounded-xl bg-[#e6f4ea] text-[#137333]">
@@ -292,14 +292,75 @@ const CandidateApplications = () => {
               </button>
             </div>
             
-            {/* Timeline Events Body */}
-            <div className="p-6 max-h-[60vh] overflow-y-auto custom-scrollbar space-y-4">
+            {/* Drawer Body */}
+            <div className="p-6 overflow-y-auto flex-1 space-y-5">
+              
+              {/* Application Summary Card */}
+              <div className="bg-[#f8fafd] rounded-2xl p-4 border border-[#e0e3e7] space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-[#1f1f1f]">{timelineApp.jobTitle}</h3>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold ${getStatusBadge(timelineApp.status).className}`}>
+                    {getStatusBadge(timelineApp.status).label}
+                  </span>
+                </div>
+                <p className="text-xs text-[#5f6368]">
+                  {timelineApp.department} &bull; {timelineApp.location}
+                </p>
+                
+                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#e0e3e7]/80 text-[11px]">
+                  <div>
+                    <span className="text-[#5f6368]">Applied On: </span>
+                    <span className="font-semibold text-[#1f1f1f]">{new Date(timelineApp.appliedDate).toLocaleDateString()}</span>
+                  </div>
+                  {timelineApp.noticePeriod && (
+                    <div>
+                      <span className="text-[#5f6368]">Availability: </span>
+                      <span className="font-semibold text-[#1a73e8]">{timelineApp.noticePeriod}</span>
+                    </div>
+                  )}
+                </div>
+
+                {timelineApp.resumeUrl && (
+                  <div className="pt-2 border-t border-[#e0e3e7]/80 flex items-center justify-between text-xs">
+                    <span className="text-[#5f6368] truncate max-w-[200px] flex items-center gap-1">
+                      <FileText size={12} className="text-[#8430ce]" />
+                      {timelineApp.resumeName}
+                    </span>
+                    <a
+                      href={timelineApp.resumeUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[11px] font-semibold text-[#1a73e8] hover:underline"
+                    >
+                      View Resume
+                    </a>
+                  </div>
+                )}
+
+                {timelineApp.coverNote && (
+                  <div className="pt-2 border-t border-[#e0e3e7]/80 text-xs">
+                    <span className="text-[10px] uppercase font-bold text-[#5f6368] block mb-1">Cover Note</span>
+                    <p className="text-xs text-[#444746] bg-white p-2.5 rounded-xl border border-[#dadce0] italic leading-relaxed">
+                      "{timelineApp.coverNote}"
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Timeline Section Title */}
+              <div className="flex items-center justify-between pt-1">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#5f6368]">
+                  Stage Milestones ({timelineApp.timeline.length})
+                </h4>
+              </div>
+
+              {/* Timeline Events Body */}
               {(!timelineApp.timeline || timelineApp.timeline.length === 0) ? (
                 <div className="rounded-2xl border border-dashed border-[#dadce0] bg-[#f8fafd] p-8 text-center text-xs text-[#5f6368]">
                   No detailed stage updates have been logged yet. Check back soon!
                 </div>
               ) : (
-                <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-[#dadce0]">
+                <div className="relative pl-6 space-y-5 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-[#dadce0]">
                   {timelineApp.timeline.map((event, idx) => {
                     const isLatest = idx === 0;
                     return (
@@ -336,7 +397,7 @@ const CandidateApplications = () => {
               )}
             </div>
             
-            {/* Modal Footer */}
+            {/* Drawer Footer */}
             <div className="px-6 py-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex justify-end shrink-0">
               <button 
                 onClick={() => setIsTimelineModalOpen(false)} 
