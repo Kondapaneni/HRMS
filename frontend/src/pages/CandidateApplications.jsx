@@ -137,14 +137,7 @@ const CandidateApplications = () => {
             </p>
           </div>
           
-          <div className="flex items-center gap-3">
-            <Link 
-              to="/candidate/documents" 
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-[#dadce0] bg-white hover:bg-[#f8fafd] text-[#1f1f1f] text-xs font-semibold tracking-wide transition-all shadow-2xs"
-            >
-              <Folder size={14} className="text-[#8430ce]" />
-              <span>Upload Documents</span>
-            </Link>
+          <div>
             <Link 
               to="/candidate/jobs" 
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white text-xs font-semibold tracking-wide transition-all shadow-xs"
@@ -166,21 +159,12 @@ const CandidateApplications = () => {
               <p className="text-xs text-[#5f6368] mt-1 max-w-sm mx-auto">
                 You haven't applied to any job openings. Browse our active listings and submit your profile today.
               </p>
-              <div className="mt-4 flex items-center justify-center gap-3">
-                <Link 
-                  to="/candidate/documents" 
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs font-semibold text-[#1f1f1f] bg-white border border-[#dadce0] hover:bg-[#f8fafd] shadow-2xs transition-colors"
-                >
-                  <Folder size={13} className="text-[#8430ce]" />
-                  Upload Documents
-                </Link>
-                <Link 
-                  to="/candidate/jobs" 
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs font-semibold text-white bg-[#1a73e8] hover:bg-[#1557b0] shadow-xs transition-colors"
-                >
-                  Browse Open Roles
-                </Link>
-              </div>
+              <Link 
+                to="/candidate/jobs" 
+                className="mt-4 inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs font-semibold text-white bg-[#1a73e8] hover:bg-[#1557b0] shadow-xs transition-colors"
+              >
+                Browse Open Roles
+              </Link>
             </div>
           ) : (
             applications.map(app => {
