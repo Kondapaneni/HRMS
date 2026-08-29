@@ -108,15 +108,19 @@ const CandidateJobs = () => {
   });
 
   const applyMutation = useMutation({
-    mutationFn: async ({ job, resumeUrl }) => {
+    mutationFn: async ({ job, resumeUrl, noticePeriod, coverNote }) => {
       await api.post('/candidate/applications', {
         job_id: job.id,
-        resume_url: resumeUrl
+        resume_url: resumeUrl,
+        notice_period: noticePeriod,
+        cover_note: coverNote
       });
     },
     onSuccess: (_, variables) => {
       toast.success(`Successfully applied for ${variables.job.title}!`);
       setSelectedJob(null);
+      setCoverNote('');
+      setNoticePeriod('Immediate');
       queryClient.invalidateQueries(['candidate', 'jobs_page']);
       queryClient.invalidateQueries(['candidate', 'dashboard']);
       queryClient.invalidateQueries(['candidate', 'applications']);
@@ -133,7 +137,12 @@ const CandidateJobs = () => {
       toast.error('Please select a resume to apply.');
       return;
     }
-    applyMutation.mutate({ job: selectedJob, resumeUrl: selectedResumeUrl });
+    applyMutation.mutate({ 
+      job: selectedJob, 
+      resumeUrl: selectedResumeUrl,
+      noticePeriod,
+      coverNote
+    });
   };
 
   const getStatusBadge = (status) => {

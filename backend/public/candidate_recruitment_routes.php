@@ -249,6 +249,8 @@ $app->post('/api/candidate/applications', function (Request $request, Response $
     
     $jobId = $data['job_id'] ?? null;
     $resumeUrl = $data['resume_url'] ?? null;
+    $noticePeriod = $data['notice_period'] ?? null;
+    $coverNote = $data['cover_note'] ?? null;
     
     if (!$jobId) {
         $response->getBody()->write(json_encode(['error' => 'Job ID is required']));
@@ -262,10 +264,10 @@ $app->post('/api/candidate/applications', function (Request $request, Response $
         $conn->beginTransaction();
 
         $stmtInsertApp = $conn->prepare('
-            INSERT INTO applications (job_id, candidate_id, resume_url, status) 
-            VALUES (?, ?, ?, \'Applied\') RETURNING id
+            INSERT INTO applications (job_id, candidate_id, resume_url, status, notice_period, cover_note) 
+            VALUES (?, ?, ?, \'Applied\', ?, ?) RETURNING id
         ');
-        $stmtInsertApp->execute([$jobId, $decodedToken->id, $resumeUrl]);
+        $stmtInsertApp->execute([$jobId, $decodedToken->id, $resumeUrl, $noticePeriod, $coverNote]);
         $newAppId = $stmtInsertApp->fetchColumn();
 
         $stmtTimeline = $conn->prepare('INSERT INTO application_timeline (application_id, status_change, notes) VALUES (?, \'Applied\', \'Application submitted successfully.\')');
@@ -304,7 +306,7 @@ $app->post('/api/candidate/applications', function (Request $request, Response $
         $conn->commit();
 
         // Get the inserted app
-        $stmtGet = $conn->prepare('SELECT id, job_id, candidate_id, resume_url, status, applied_date, updated_at FROM applications WHERE id = ?');
+        $stmtGet = $conn->prepare('SELECT id, job_id, candidate_id, resume_url, status, notice_period, cover_note, applied_date, updated_at FROM applications WHERE id = ?');
         $stmtGet->execute([$newAppId]);
         $newApp = $stmtGet->fetch(PDO::FETCH_ASSOC);
 

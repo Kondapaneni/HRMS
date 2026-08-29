@@ -54,6 +54,9 @@ const CandidateApplications = () => {
           appliedDate: app.applied_date,
           status: app.status,
           resumeName: resumeName,
+          resumeUrl: app.resume_url,
+          noticePeriod: app.notice_period,
+          coverNote: app.cover_note,
           timeline: timeline
         };
       });
@@ -217,6 +220,24 @@ const CandidateApplications = () => {
                           <span className="truncate">{app.resumeName}</span>
                         </p>
                       </div>
+
+                      {app.noticePeriod && (
+                        <div className="bg-[#f8fafd] rounded-xl p-3 border border-[#e0e3e7] col-span-2">
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368]">Notice Period / Availability</p>
+                          <p className="text-xs font-semibold text-[#1a73e8] mt-0.5">
+                            {app.noticePeriod}
+                          </p>
+                        </div>
+                      )}
+
+                      {app.coverNote && (
+                        <div className="bg-[#f8fafd] rounded-xl p-3 border border-[#e0e3e7] col-span-2">
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368]">Submitted Cover Note</p>
+                          <p className="text-xs text-[#444746] mt-1 whitespace-pre-line leading-relaxed italic bg-white p-2.5 rounded-lg border border-[#e0e3e7]">
+                            "{app.coverNote}"
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
 
