@@ -360,33 +360,27 @@ const CandidateApplications = () => {
                   No detailed stage updates have been logged yet. Check back soon!
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="relative pl-8 space-y-4">
+                  {/* Continuous Vertical Connector Line */}
+                  <div className="absolute left-[15px] top-3 bottom-3 w-0.5 bg-[#dadce0]" />
+
                   {timelineApp.timeline.map((event, idx) => {
                     const isLatest = idx === 0;
-                    const isLast = idx === timelineApp.timeline.length - 1;
                     return (
-                      <div key={idx} className="flex items-start gap-3.5 relative">
-                        {/* Timeline Node Column (Dot & Vertical Line) */}
-                        <div className="flex flex-col items-center self-stretch shrink-0 w-6 pt-1">
-                          {/* Status Dot */}
-                          <div className="relative z-10 flex items-center justify-center">
-                            {isLatest ? (
-                              <div className="w-5 h-5 rounded-full bg-[#e8f0fe] border border-[#d2e3fc] flex items-center justify-center shadow-xs">
-                                <div className="w-2.5 h-2.5 rounded-full bg-[#1a73e8]" />
-                              </div>
-                            ) : (
-                              <div className="w-3.5 h-3.5 rounded-full bg-[#dadce0] border-2 border-white shadow-2xs" />
-                            )}
-                          </div>
-
-                          {/* Connecting Line to next stage */}
-                          {!isLast && (
-                            <div className="w-0.5 flex-1 bg-[#dadce0] my-1 rounded-full" />
+                      <div key={idx} className="relative group">
+                        {/* Status Milestone Dot */}
+                        <div className="absolute -left-8 top-1 w-8 flex items-center justify-center z-10">
+                          {isLatest ? (
+                            <div className="w-5 h-5 rounded-full bg-[#e8f0fe] border-2 border-white ring-2 ring-[#1a73e8]/30 flex items-center justify-center shadow-xs">
+                              <div className="w-2.5 h-2.5 rounded-full bg-[#1a73e8]" />
+                            </div>
+                          ) : (
+                            <div className="w-3.5 h-3.5 rounded-full bg-[#dadce0] border-2 border-white shadow-2xs" />
                           )}
                         </div>
 
                         {/* Event Content Box */}
-                        <div className={`flex-1 p-4 rounded-2xl border transition-all ${
+                        <div className={`p-4 rounded-2xl border transition-all ${
                           isLatest ? 'bg-[#e8f0fe]/40 border-[#d2e3fc] shadow-2xs' : 'bg-[#f8fafd] border-[#e0e3e7]'
                         }`}>
                           <div className="flex items-center justify-between gap-2">
