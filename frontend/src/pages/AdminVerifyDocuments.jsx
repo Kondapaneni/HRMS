@@ -436,11 +436,7 @@ const AdminVerifyDocuments = () => {
               <h2 className="text-base font-semibold text-[#1f1f1f]">
                 {userInfo?.firstName || 'Candidate'} {userInfo?.lastName || ''}
               </h2>
-              {isConverted ? (
-                <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#137333] bg-[#e6f4ea] border border-[#ceead6] px-2.5 py-0.5 rounded-full">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> Converted to Employee
-                </span>
-              ) : (
+              {application.jobs?.title && (
                 <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">
                   {application.jobs?.title}
                 </span>
