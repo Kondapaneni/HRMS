@@ -184,8 +184,8 @@ const CandidateDocuments = () => {
       {/* Top 4-Color Gradient Accent Line */}
       <div className="h-1 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] shrink-0" />
 
-      {/* Top Header App Bar */}
-      <header className="h-16 px-6 sm:px-8 bg-white border-b border-[#e0e3e7] flex items-center justify-between shrink-0 sticky top-0 z-40 shadow-2xs">
+      {/* Top Header App Bar (Desktop Only) */}
+      <header className="h-16 px-6 sm:px-8 bg-white border-b border-[#e0e3e7] items-center justify-between shrink-0 sticky top-0 z-40 shadow-2xs hidden md:flex">
         <div className="flex items-center gap-4">
           <button 
             type="button" 
