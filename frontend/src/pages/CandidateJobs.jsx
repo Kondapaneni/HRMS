@@ -109,23 +109,84 @@ const CandidateJobs = () => {
 
   const applyMutation = useMutation({
     mutationFn: async ({ job, resumeUrl, noticePeriod, coverNote }) => {
-      await api.post('/candidate/applications', {
+      const res = await api.post('/candidate/applications', {
         job_id: job.id,
         resume_url: resumeUrl,
         notice_period: noticePeriod,
         cover_note: coverNote
       });
+      return res.data;
     },
-    onSuccess: (_, variables) => {
-      toast.success(`Successfully applied for ${variables.job.title}!`);
+    onMutate: async ({ job, resumeUrl, noticePeriod, coverNote }) => {
+      // Cancel any outgoing refetches so they don't overwrite our optimistic update
+      await queryClient.cancelQueries({ queryKey: ['candidate', 'jobs_page', profile?.id] });
+
+      // Snapshot the previous query data
+      const previousPageData = queryClient.getQueryData(['candidate', 'jobs_page', profile?.id]);
+
+      // Optimistically update the UI cache immediately (0ms delay)
+      if (previousPageData) {
+        const optimisticApp = {
+          id: 'temp-' + Date.now(),
+          job_id: job.id,
+          candidate_id: profile?.id,
+          resume_url: resumeUrl,
+          notice_period: noticePeriod,
+          cover_note: coverNote,
+          status: 'Applied',
+          applied_date: new Date().toISOString(),
+          application_timeline: [
+            { id: 'temp-t-1', status_change: 'Applied', notes: 'Application submitted successfully.', created_at: new Date().toISOString() }
+          ],
+          jobs: {
+            title: job.title,
+            department: job.department
+          }
+        };
+
+        queryClient.setQueryData(['candidate', 'jobs_page', profile?.id], {
+          ...previousPageData,
+          applications: [optimisticApp, ...(previousPageData.applications || [])]
+        });
+      }
+
+      // Close drawer immediately for blazing-fast UX
       setSelectedJob(null);
       setCoverNote('');
       setNoticePeriod('Immediate');
-      queryClient.invalidateQueries(['candidate', 'jobs_page']);
-      queryClient.invalidateQueries(['candidate', 'dashboard']);
-      queryClient.invalidateQueries(['candidate', 'applications']);
+
+      return { previousPageData };
     },
-    onError: (error) => {
+    onSuccess: (data, variables) => {
+      toast.success(`Successfully applied for ${variables.job.title}!`);
+      
+      // Merge official application response into cache
+      if (data?.application) {
+        queryClient.setQueryData(['candidate', 'jobs_page', profile?.id], (old) => {
+          if (!old) return old;
+          const filtered = (old.applications || []).filter(a => a.job_id !== variables.job.id);
+          const realApp = {
+            ...data.application,
+            jobs: {
+              title: variables.job.title,
+              department: variables.job.department
+            }
+          };
+          return {
+            ...old,
+            applications: [realApp, ...filtered]
+          };
+        });
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['candidate', 'jobs_page'] });
+      queryClient.invalidateQueries({ queryKey: ['candidate', 'dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['candidate', 'applications'] });
+    },
+    onError: (error, variables, context) => {
+      if (context?.previousPageData) {
+        queryClient.setQueryData(['candidate', 'jobs_page', profile?.id], context.previousPageData);
+      }
       console.error(error);
       toast.error('Failed to submit application.');
     }
