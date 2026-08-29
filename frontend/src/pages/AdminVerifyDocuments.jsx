@@ -228,7 +228,7 @@ const AdminVerifyDocuments = () => {
     }
   });
 
-  const isConverted = application?.status === 'Converted to Employee' || application?.status === 'Hired';
+  const isConverted = application?.status === 'Converted to Employee';
 
   const { data: candidatesInfo = [] } = useQuery({
     queryKey: ['admin', 'candidates_info'],
