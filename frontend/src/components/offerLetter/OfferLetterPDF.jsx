@@ -111,8 +111,7 @@ const styles = StyleSheet.create({
     lineHeight: 1.6,
     color: '#334155',
     marginBottom: 15,
-    textAlign: 'justify',
-    textTransform: 'capitalize'
+    textAlign: 'justify'
   },
   signatureSection: {
     marginTop: 20
@@ -213,7 +212,7 @@ const OfferLetterPDF = ({ data }) => {
     const monthlyWords = numberToWords(monthly);
     salaryText = (
       <Text>
-        <Text style={styles.boldText}>Rs. {monthly.toLocaleString('en-IN')}/- (Rupees {monthlyWords} Only)</Text> per month and <Text style={styles.boldText}>Rs. {numericSalary.toLocaleString('en-IN')}/- (Rupees {annualWords} Only)</Text> per annum
+        <Text style={styles.boldText}>Rs. {monthly.toLocaleString('en-IN')}/- (Rupees {monthlyWords} only)</Text> per month and <Text style={styles.boldText}>Rs. {numericSalary.toLocaleString('en-IN')}/- (Rupees {annualWords} only)</Text> per annum
       </Text>
     );
   }
@@ -268,35 +267,35 @@ const OfferLetterPDF = ({ data }) => {
         </Text>
 
         <Text style={styles.bodyText}>
-          We are pleased to offer you the Position of <Text style={styles.boldText}>{jobTitle}</Text> with our Organization. Based on our discussions and evaluation process, we are confident that your Skills, Experience, and Dedication will contribute significantly to the growth and success of the Company.
+          We are pleased to offer you the position of <Text style={styles.boldText}>{jobTitle}</Text> with our organization. Based on our discussions and evaluation process, we are confident that your skills, experience, and dedication will contribute significantly to the growth and success of the company.
         </Text>
 
         <Text style={styles.bodyText}>
-          Your Employment will commence on <Text style={styles.boldText}>{joiningDate}</Text> and you will be assigned to the <Text style={styles.boldText}>{department}</Text> Department. Your appointment will initially be governed by the Company's Policies, Appointment Terms, and assigned Responsibilities. Detailed Employment Terms and Responsibilities will be shared during your Onboarding Process.
+          Your employment will commence on <Text style={styles.boldText}>{joiningDate}</Text> and you will be assigned to the <Text style={styles.boldText}>{department}</Text> department. Your appointment will initially be governed by the company's policies, appointment terms, and assigned responsibilities. Detailed employment terms and responsibilities will be shared during your onboarding process.
         </Text>
 
         <Text style={styles.bodyText}>
-          Your Compensation Package shall be {salaryText}. In addition to your fixed Remuneration, you will be eligible for Benefits, Incentives, and other Facilities as per Company Policies and Applicable Regulations.
+          Your compensation package shall be {salaryText}. In addition to your fixed remuneration, you will be eligible for benefits, incentives, and other facilities as per company policies and applicable regulations.
         </Text>
 
         <Text style={styles.bodyText}>
-          Your Performance will be evaluated periodically based on your assigned Responsibilities, Business Objectives, and overall contribution to the Organization. Future Salary Revisions, Promotions, and Career Growth Opportunities will be based on your Performance and Organizational Requirements.
+          Your performance will be evaluated periodically based on your assigned responsibilities, business objectives, and overall contribution to the organization. Future salary revisions, promotions, and career growth opportunities will be based on your performance and organizational requirements.
         </Text>
 
         <Text style={styles.bodyText}>
-          If you wish to Resign from your Position, the applicable Notice Period and Separation Policies of the Organization shall apply. You will also be expected to comply with all Company Rules, Confidentiality Requirements, and Professional Standards throughout your Employment.
+          If you wish to resign from your position, the applicable notice period and separation policies of the organization shall apply. You will also be expected to comply with all company rules, confidentiality requirements, and professional standards throughout your employment.
         </Text>
 
         <Text style={styles.bodyText}>
-          To complete your Employment Formalities, you may be required to submit supporting Documents including Identity Proof, Address Proof, Educational Certificates, Photographs, Bank Account Details, and any other Documents requested by the Human Resources Department.
+          To complete your employment formalities, you may be required to submit supporting documents including identity proof, address proof, educational certificates, photographs, bank account details, and any other documents requested by the Human Resources department.
         </Text>
 
         <Text style={styles.bodyText}>
-          Please confirm your Acceptance of this Offer on or before <Text style={styles.boldText}>{deadlineDate}</Text>. Upon Acceptance, further details regarding Joining Formalities, Orientation, and Onboarding Procedures will be communicated to you.
+          Please confirm your acceptance of this offer on or before <Text style={styles.boldText}>{deadlineDate}</Text>. Upon acceptance, further details regarding joining formalities, orientation, and onboarding procedures will be communicated to you.
         </Text>
 
         <Text style={styles.bodyText}>
-          We are excited about the opportunity to have you join our Team and look forward to your valuable Contribution. We wish you a successful and rewarding Career with our Organization.
+          We are excited about the opportunity to have you join our team and look forward to your valuable contribution. We wish you a successful and rewarding career with our organization.
         </Text>
 
         {/* HR Signature */}
@@ -324,7 +323,7 @@ const OfferLetterPDF = ({ data }) => {
         <View style={styles.employeeAcceptanceSection}>
           <Text style={styles.employeeAcceptanceTitle}>Employee Acceptance</Text>
           <Text style={styles.bodyText}>
-            I, <Text style={styles.boldText}>{firstName} {lastName}</Text>, hereby accept the offer of employment and agree to abide by the terms and conditions mentioned in this Offer Letter.
+            I, <Text style={styles.boldText}>{firstName} {lastName}</Text>, hereby accept the offer of employment and agree to abide by the terms and conditions mentioned in this offer letter.
           </Text>
           <Text style={styles.employeeSignatureRow}>
             Employee Signature: _________________________
