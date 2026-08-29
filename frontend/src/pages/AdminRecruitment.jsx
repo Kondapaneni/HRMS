@@ -32,7 +32,8 @@ import {
   ChevronRight,
   UserCheck,
   Award,
-  AlertCircle
+  AlertCircle,
+  ArrowLeft
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import shortlistedEmailTemplateHtml from "../../../backend/src/Templates/candidate_shortlisted_email.html?raw";
@@ -940,108 +941,172 @@ const AdminRecruitment = () => {
         </div>
       )}
 
-      {/* Offer Letter Drawer / Full Modal via createPortal covering left sidebar */}
+      {/* Configure Job Offer Letter Full Screen Studio (Takes over entire page, hiding sidebar) */}
       {isOfferModalOpen && createPortal(
-        <div 
-          onClick={(e) => { if (e.target === e.currentTarget) setIsOfferModalOpen(false); }}
-          className="fixed inset-0 z-[10000] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-3 md:p-6 overflow-y-auto animate-in fade-in duration-200"
-        >
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-6xl my-auto flex flex-col md:flex-row h-[92vh] max-h-[850px] overflow-hidden border border-[#e0e3e7] relative z-10 animate-in zoom-in-95 duration-200">
-            {/* Top 4-Color Gradient Accent Line */}
-            <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0 z-20" />
+        <div className="fixed inset-0 z-[10000] w-screen h-screen bg-white flex flex-col overflow-hidden animate-in fade-in duration-200">
+          {/* Top 4-Color Gradient Accent Line */}
+          <div className="h-1 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] shrink-0" />
 
-            {/* Left Column: Form Settings */}
-            <div className="flex-1 flex flex-col border-r border-[#e0e3e7] min-w-0 bg-white">
-              <div className="p-5 border-b border-[#e0e3e7] flex justify-between items-start bg-[#f8fafd] mt-1 shrink-0">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-2xl bg-[#e6f4ea] text-[#137333]">
-                    <Award className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-bold text-[#1f1f1f]">Configure Job Offer Letter</h3>
-                    <p className="text-xs text-[#5f6368]">Fill in compensation and joining details for {offerData.firstName} {offerData.lastName}</p>
-                  </div>
+          {/* Studio Top Header Bar */}
+          <header className="h-16 px-6 bg-[#f8fafd] border-b border-[#e0e3e7] flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-4">
+              <button 
+                type="button" 
+                onClick={() => setIsOfferModalOpen(false)}
+                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-xs font-semibold text-[#5f6368] hover:text-[#1f1f1f] transition-all cursor-pointer shadow-2xs"
+              >
+                <ArrowLeft size={14} />
+                <span>Back to Pipeline</span>
+              </button>
+
+              <div className="h-6 w-px bg-[#dadce0]" />
+
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-[#e6f4ea] text-[#137333] flex items-center justify-center font-bold">
+                  <Award size={18} />
                 </div>
-                <button onClick={() => setIsOfferModalOpen(false)} className="p-1.5 rounded-full text-[#5f6368] hover:bg-[#e8eaed] transition-colors cursor-pointer" title="Close">
-                  <X className="w-5 h-5" />
-                </button>
+                <div>
+                  <h1 className="text-sm font-bold text-[#1f1f1f]">Configure Job Offer Letter</h1>
+                  <p className="text-[11px] text-[#5f6368]">
+                    Candidate: <strong className="text-[#1f1f1f]">{offerData.firstName} {offerData.lastName}</strong> &bull; {offerData.position || 'Software Engineer'}
+                  </p>
+                </div>
               </div>
+            </div>
 
-              <div className="p-6 overflow-y-auto flex-1 custom-scrollbar text-xs">
-                <form id="offerForm" onSubmit={handleSendOffer} className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">First Name</label>
-                      <input type="text" required value={offerData.firstName} onChange={(e) => setOfferData({...offerData, firstName: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
-                    </div>
-                    <div>
-                      <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Last Name</label>
-                      <input type="text" required value={offerData.lastName} onChange={(e) => setOfferData({...offerData, lastName: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
-                    </div>
+            {/* Top Action Buttons */}
+            <div className="flex items-center gap-3">
+              <button 
+                type="button" 
+                onClick={() => setIsOfferModalOpen(false)} 
+                className="px-4 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#5f6368] transition-all cursor-pointer shadow-2xs"
+              >
+                Cancel
+              </button>
+              <button 
+                form="offerForm" 
+                type="submit" 
+                disabled={isGeneratingPdf || updateStatusMutation.isPending} 
+                className="inline-flex items-center gap-1.5 px-6 py-2 rounded-full text-xs font-semibold bg-[#137333] hover:bg-[#0d5926] text-white shadow-xs transition-all cursor-pointer disabled:opacity-50"
+              >
+                <Award className="w-3.5 h-3.5" />
+                {isGeneratingPdf ? 'Generating PDF...' : updateStatusMutation.isPending ? 'Sending...' : 'Confirm & Dispatch Offer Letter'}
+              </button>
+            </div>
+          </header>
 
-                    <div>
-                      <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Department</label>
-                      <input type="text" required value={offerData.department} onChange={(e) => setOfferData({...offerData, department: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
-                    </div>
-                    <div>
-                      <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Designation / Job Title</label>
-                      <input type="text" required value={offerData.position} onChange={(e) => setOfferData({...offerData, position: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
-                    </div>
-
-                    <div>
-                      <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Joining Date</label>
-                      <input type="date" required value={offerData.joiningDate} onChange={(e) => setOfferData({...offerData, joiningDate: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
-                    </div>
-                    <div>
-                      <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Offer Acceptance Deadline</label>
-                      <input type="date" required value={offerData.offerDeadline} onChange={(e) => setOfferData({...offerData, offerDeadline: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
+          {/* Full Screen Split Workspace: Form on Left, PDF on Right */}
+          <div className="flex-1 flex flex-col md:flex-row overflow-hidden w-full h-full">
+            {/* Left Panel: Configuration Form */}
+            <div className="w-full md:w-[480px] lg:w-[540px] xl:w-[580px] border-r border-[#e0e3e7] bg-white flex flex-col h-full overflow-hidden shrink-0">
+              <div className="p-6 overflow-y-auto flex-1 custom-scrollbar space-y-6">
+                <form id="offerForm" onSubmit={handleSendOffer} className="space-y-5">
+                  {/* Candidate Details Section */}
+                  <div className="space-y-3">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-[#5f6368] flex items-center gap-2">
+                      <UserCheck size={14} className="text-[#1a73e8]" />
+                      Candidate Information
+                    </h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-semibold text-[#1f1f1f] mb-1">First Name *</label>
+                        <input type="text" required value={offerData.firstName} onChange={(e) => setOfferData({...offerData, firstName: e.target.value})} className="w-full px-3.5 py-2.5 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 rounded-full text-xs text-[#1f1f1f] outline-none transition-all" />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-semibold text-[#1f1f1f] mb-1">Last Name *</label>
+                        <input type="text" required value={offerData.lastName} onChange={(e) => setOfferData({...offerData, lastName: e.target.value})} className="w-full px-3.5 py-2.5 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 rounded-full text-xs text-[#1f1f1f] outline-none transition-all" />
+                      </div>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 pt-2">
-                    <div>
-                      <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Monthly Compensation (₹)</label>
-                      <input 
-                        type="number" 
-                        required 
-                        placeholder="e.g., 100000" 
-                        value={offerData.monthlySalary} 
-                        onChange={(e) => {
-                          const monthly = e.target.value;
-                          const annual = monthly ? String(Number(monthly) * 12) : '';
-                          setOfferData({...offerData, monthlySalary: monthly, annualSalary: annual});
-                        }} 
-                        className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all font-mono" 
-                      />
+                  {/* Position & Department */}
+                  <div className="space-y-3 pt-2 border-t border-[#f1f3f4]">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-[#5f6368] flex items-center gap-2">
+                      <Briefcase size={14} className="text-[#1a73e8]" />
+                      Position & Department
+                    </h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-semibold text-[#1f1f1f] mb-1">Department *</label>
+                        <input type="text" required value={offerData.department} onChange={(e) => setOfferData({...offerData, department: e.target.value})} className="w-full px-3.5 py-2.5 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 rounded-full text-xs text-[#1f1f1f] outline-none transition-all" />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-semibold text-[#1f1f1f] mb-1">Designation / Job Title *</label>
+                        <input type="text" required value={offerData.position} onChange={(e) => setOfferData({...offerData, position: e.target.value})} className="w-full px-3.5 py-2.5 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 rounded-full text-xs text-[#1f1f1f] outline-none transition-all" />
+                      </div>
                     </div>
-                    <div>
-                      <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Annual CTC (₹)</label>
-                      <input 
-                        type="text" 
-                        readOnly
-                        placeholder="Auto-calculated"
-                        value={offerData.annualSalary ? `₹${Number(offerData.annualSalary).toLocaleString('en-IN')}` : ''} 
-                        className="w-full px-3.5 py-2 bg-[#f1f3f4] border border-[#dadce0] text-[#5f6368] rounded-xl text-xs outline-none cursor-not-allowed font-mono" 
-                      />
+                  </div>
+
+                  {/* Dates */}
+                  <div className="space-y-3 pt-2 border-t border-[#f1f3f4]">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-[#5f6368] flex items-center gap-2">
+                      <Calendar size={14} className="text-[#1a73e8]" />
+                      Joining & Acceptance Schedule
+                    </h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-semibold text-[#1f1f1f] mb-1">Expected Joining Date *</label>
+                        <input type="date" required value={offerData.joiningDate} onChange={(e) => setOfferData({...offerData, joiningDate: e.target.value})} className="w-full px-3.5 py-2.5 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 rounded-full text-xs text-[#1f1f1f] outline-none transition-all" />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-semibold text-[#1f1f1f] mb-1">Offer Acceptance Deadline *</label>
+                        <input type="date" required value={offerData.offerDeadline} onChange={(e) => setOfferData({...offerData, offerDeadline: e.target.value})} className="w-full px-3.5 py-2.5 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 rounded-full text-xs text-[#1f1f1f] outline-none transition-all" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Compensation */}
+                  <div className="space-y-3 pt-2 border-t border-[#f1f3f4]">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-[#5f6368] flex items-center gap-2">
+                      <IndianRupee size={14} className="text-[#137333]" />
+                      Compensation Package (INR)
+                    </h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-semibold text-[#1f1f1f] mb-1">Monthly Compensation (₹) *</label>
+                        <input 
+                          type="number" 
+                          required 
+                          placeholder="e.g., 100000" 
+                          value={offerData.monthlySalary} 
+                          onChange={(e) => {
+                            const monthly = e.target.value;
+                            const annual = monthly ? String(Number(monthly) * 12) : '';
+                            setOfferData({...offerData, monthlySalary: monthly, annualSalary: annual});
+                          }} 
+                          className="w-full px-3.5 py-2.5 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 rounded-full text-xs text-[#1f1f1f] outline-none transition-all font-mono" 
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-semibold text-[#1f1f1f] mb-1">Annual CTC (₹)</label>
+                        <input 
+                          type="text" 
+                          readOnly
+                          placeholder="Auto-calculated"
+                          value={offerData.annualSalary ? `₹${Number(offerData.annualSalary).toLocaleString('en-IN')}` : ''} 
+                          className="w-full px-3.5 py-2.5 bg-[#f1f3f4] border border-[#dadce0] text-[#5f6368] rounded-full text-xs outline-none cursor-not-allowed font-mono" 
+                        />
+                      </div>
                     </div>
                   </div>
                 </form>
               </div>
 
-              <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex justify-end gap-2.5 shrink-0">
+              {/* Bottom Pinned Footer */}
+              <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex justify-end gap-3 shrink-0">
                 <button type="button" onClick={() => setIsOfferModalOpen(false)} className="px-5 py-2.5 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#5f6368] transition-all cursor-pointer shadow-2xs">
                   Cancel
                 </button>
                 <button form="offerForm" type="submit" disabled={isGeneratingPdf || updateStatusMutation.isPending} className="inline-flex items-center gap-1.5 px-6 py-2.5 rounded-full text-xs font-semibold bg-[#137333] hover:bg-[#0d5926] text-white shadow-xs transition-all cursor-pointer disabled:opacity-50">
                   <Award className="w-3.5 h-3.5" />
-                  {isGeneratingPdf ? 'Generating PDF...' : updateStatusMutation.isPending ? 'Sending...' : 'Confirm & Dispatch Offer'}
+                  {isGeneratingPdf ? 'Generating PDF...' : updateStatusMutation.isPending ? 'Sending...' : 'Confirm & Dispatch Offer Letter'}
                 </button>
               </div>
             </div>
             
-            {/* Right Column: Live PDF Document Preview */}
-            <div className="hidden md:block w-1/2 bg-[#f8fafd] border-l border-[#e0e3e7] overflow-hidden relative">
-              <PDFViewer width="100%" height="100%" className="border-none">
+            {/* Right Panel: Live PDF Studio Viewer */}
+            <div className="hidden md:flex flex-1 h-full bg-[#525659] flex-col overflow-hidden relative">
+              <PDFViewer width="100%" height="100%" className="border-none flex-1 w-full h-full">
                 <OfferLetterPDF data={{
                   firstName: offerData.firstName || '[Candidate',
                   lastName: offerData.lastName || 'Name]',
