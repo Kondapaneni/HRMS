@@ -268,58 +268,35 @@ const OfferLetterPDF = ({ data }) => {
         </Text>
 
         <Text style={styles.bodyText}>
-          We are Pleased to Offer you the Position of <Text style={styles.boldText}>{jobTitle}</Text> with Our
-          Organization. Based on our Discussions and Evaluation Process, We are
-          Confident that your Skills, Experience, and Dedication will Contribute
-          Significantly to the Growth and Success of the Company.
+          We are pleased to offer you the Position of <Text style={styles.boldText}>{jobTitle}</Text> with our Organization. Based on our discussions and evaluation process, we are confident that your Skills, Experience, and Dedication will contribute significantly to the growth and success of the Company.
         </Text>
 
         <Text style={styles.bodyText}>
-          Your Employment will Commence on <Text style={styles.boldText}>{joiningDate}</Text> and you will be Assigned
-          to the <Text style={styles.boldText}>{department}</Text> Department. Your appointment will initially be
-          governed by the Company's Policies, Appointment Terms, and Assigned
-          Responsibilities. Detailed Employment Terms and Responsibilities will be
-          Shared during your Onboarding Process.
+          Your Employment will commence on <Text style={styles.boldText}>{joiningDate}</Text> and you will be assigned to the <Text style={styles.boldText}>{department}</Text> Department. Your appointment will initially be governed by the Company's Policies, Appointment Terms, and assigned Responsibilities. Detailed Employment Terms and Responsibilities will be shared during your Onboarding Process.
         </Text>
 
         <Text style={styles.bodyText}>
-          Your Compensation Package shall be {salaryText}. In addition to your fixed
-          Remuneration, you will be eligible for benefits, incentives, and other
-          Facilities as per Company Policies and Applicable Regulations.
+          Your Compensation Package shall be {salaryText}. In addition to your fixed Remuneration, you will be eligible for Benefits, Incentives, and other Facilities as per Company Policies and Applicable Regulations.
         </Text>
 
         <Text style={styles.bodyText}>
-          Your Performance will be Evaluated Periodically based on your Assigned
-          Responsibilities, Business Objectives, and overall contribution to the
-          Organization. Future Salary Revisions, Promotions, and Career Growth
-          Opportunities will be based on your Performance and Organizational
-          Requirements.
+          Your Performance will be evaluated periodically based on your assigned Responsibilities, Business Objectives, and overall contribution to the Organization. Future Salary Revisions, Promotions, and Career Growth Opportunities will be based on your Performance and Organizational Requirements.
         </Text>
 
         <Text style={styles.bodyText}>
-          If you wish to Resign from your Position, The Applicable Notice period
-          and separation policies of the organization shall apply. You will also
-          be expected to comply with all company rules, confidentiality
-          requirements, and professional standards throughout your employment.
+          If you wish to Resign from your Position, the applicable Notice Period and Separation Policies of the Organization shall apply. You will also be expected to comply with all Company Rules, Confidentiality Requirements, and Professional Standards throughout your Employment.
         </Text>
 
         <Text style={styles.bodyText}>
-          To complete your employment formalities, you may be required to submit
-          supporting documents including identity proof, address proof,
-          educational certificates, photographs, bank account details, and any
-          other documents requested by the Human Resources department.
+          To complete your Employment Formalities, you may be required to submit supporting Documents including Identity Proof, Address Proof, Educational Certificates, Photographs, Bank Account Details, and any other Documents requested by the Human Resources Department.
         </Text>
 
         <Text style={styles.bodyText}>
-          Please confirm your acceptance of this offer on or before <Text style={styles.boldText}>{deadlineDate}</Text>.
-          Upon acceptance, further details regarding joining formalities,
-          orientation, and onboarding procedures will be communicated to you.
+          Please confirm your Acceptance of this Offer on or before <Text style={styles.boldText}>{deadlineDate}</Text>. Upon Acceptance, further details regarding Joining Formalities, Orientation, and Onboarding Procedures will be communicated to you.
         </Text>
 
         <Text style={styles.bodyText}>
-          We are excited about the opportunity to have you join our team and look
-          forward to your valuable contribution. We wish you a successful and
-          rewarding career with our organization.
+          We are excited about the opportunity to have you join our Team and look forward to your valuable Contribution. We wish you a successful and rewarding Career with our Organization.
         </Text>
 
         {/* HR Signature */}
