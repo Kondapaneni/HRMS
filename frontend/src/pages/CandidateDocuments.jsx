@@ -235,11 +235,11 @@ const CandidateDocuments = () => {
           uploadingType={uploadingType}
           handleUpload={handleUpload}
           documentTypes={documentTypes}
-          DocumentUploadCard={() => null}
           specialDoc={specialDoc}
           requiredDocs={requiredDocs}
           optionalDocs={optionalDocs}
           getDoc={getDoc}
+          onPreview={setPreviewDoc}
         />
 
         {/* Desktop Web View: Checklist Table View */}
