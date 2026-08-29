@@ -351,9 +351,18 @@ function App() {
                 <Route path="dashboard" element={<CandidateDashboard />} />
                 <Route path="jobs" element={<CandidateJobs />} />
                 <Route path="applications" element={<CandidateApplications />} />
-                <Route path="documents" element={<CandidateDocuments />} />
                 <Route path="profile" element={<CandidateProfile />} />
               </Route>
+
+              {/* Dedicated Full Page Candidate Documents Route */}
+              <Route
+                path="/candidate/documents"
+                element={
+                  <ProtectedRoute allowedRoles={CANDIDATE_DASHBOARD_ROLES}>
+                    <CandidateDocuments />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* Catch-all 404 Route */}
               <Route path="*" element={<NotFound />} />
