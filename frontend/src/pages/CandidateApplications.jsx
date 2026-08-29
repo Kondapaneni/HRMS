@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import PageLoader from '../components/PageLoader';
 import { 
   FileText, 
@@ -241,9 +242,15 @@ const CandidateApplications = () => {
       </div>
 
       {/* Google Material 3 Timeline Modal */}
-      {isTimelineModalOpen && timelineApp && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl shadow-2xl border border-[#e0e3e7] w-full max-w-2xl my-auto overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      {isTimelineModalOpen && timelineApp && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto">
+          {/* Full-screen Backdrop with Blur covering main sidebar */}
+          <div 
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in"
+            onClick={() => setIsTimelineModalOpen(false)}
+          />
+
+          <div className="relative z-10 bg-white rounded-3xl shadow-2xl border border-[#e0e3e7] w-full max-w-2xl my-auto overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             {/* Header */}
             <div className="px-6 py-5 border-b border-[#f1f3f4] flex justify-between items-center bg-[#f8fafd]">
               <div className="flex items-center gap-3">
@@ -317,7 +324,8 @@ const CandidateApplications = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

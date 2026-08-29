@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import PageLoader from '../components/PageLoader';
 import { 
   Search, 
@@ -406,36 +407,49 @@ const CandidateJobs = () => {
         </div>
       </div>
 
-      {/* Google Workspace Application Modal */}
-      {selectedJob && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-3xl shadow-2xl border border-[#e0e3e7] w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            {/* Modal Header */}
-            <div className="px-6 py-5 border-b border-[#f1f3f4] flex justify-between items-center bg-[#f8fafd]">
+      {/* Google Workspace Slide-Over Application Drawer */}
+      {selectedJob && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[100] flex justify-end">
+          {/* Full-screen Backdrop covering entire page and main sidebar with blur */}
+          <div 
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity duration-300 animate-in fade-in"
+            onClick={() => setSelectedJob(null)}
+          />
+
+          {/* Slide-over Right Sidebar Drawer */}
+          <div className="relative w-full max-w-md bg-white h-full shadow-2xl border-l border-[#e0e3e7] flex flex-col z-10 animate-in slide-in-from-right duration-300 ease-out">
+            {/* Drawer Header */}
+            <div className="px-6 py-5 border-b border-[#f1f3f4] flex justify-between items-center bg-[#f8fafd] shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center shrink-0 border border-[#d2e3fc]">
                   <Briefcase size={18} />
                 </div>
                 <div>
                   <h2 className="text-base font-bold text-[#1f1f1f]">Apply for Position</h2>
-                  <p className="text-xs text-[#5f6368] truncate max-w-xs">{selectedJob.title}</p>
+                  <p className="text-xs text-[#5f6368] truncate max-w-[240px]">{selectedJob.title}</p>
                 </div>
               </div>
               <button 
                 onClick={() => setSelectedJob(null)} 
                 className="w-8 h-8 rounded-full text-[#5f6368] hover:bg-[#e8eaed] flex items-center justify-center transition-colors cursor-pointer"
+                title="Close"
               >
                 <X size={18} />
               </button>
             </div>
             
-            {/* Modal Body */}
+            {/* Drawer Body */}
             <div className="p-6 overflow-y-auto flex-1 space-y-5">
-              <div className="bg-[#f8fafd] rounded-2xl p-4 border border-[#e0e3e7]">
+              <div className="bg-[#f8fafd] rounded-2xl p-4 border border-[#e0e3e7] space-y-1">
                 <h3 className="text-sm font-bold text-[#1f1f1f]">{selectedJob.title}</h3>
-                <p className="text-xs text-[#5f6368] mt-0.5">
+                <p className="text-xs text-[#5f6368]">
                   {selectedJob.department} &bull; {selectedJob.location} &bull; {selectedJob.type}
                 </p>
+                {selectedJob.experience && (
+                  <p className="text-[11px] text-[#5f6368] pt-1">
+                    Required Experience: <span className="font-semibold text-[#1f1f1f]">{selectedJob.experience}</span>
+                  </p>
+                )}
               </div>
 
               <form id="apply-job-form" onSubmit={handleApplySubmit} className="space-y-4">
@@ -495,8 +509,8 @@ const CandidateJobs = () => {
               </form>
             </div>
 
-            {/* Modal Footer */}
-            <div className="px-6 py-4 border-t border-[#f1f3f4] bg-[#f8fafd] flex justify-end gap-2.5">
+            {/* Drawer Footer */}
+            <div className="px-6 py-4 border-t border-[#f1f3f4] bg-[#f8fafd] flex justify-end gap-2.5 shrink-0">
               <button 
                 type="button" 
                 onClick={() => setSelectedJob(null)} 
@@ -514,7 +528,8 @@ const CandidateJobs = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
