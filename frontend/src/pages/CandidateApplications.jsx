@@ -248,7 +248,7 @@ const CandidateApplications = () => {
                       {app.timeline.length} stage {app.timeline.length === 1 ? 'event' : 'events'} recorded
                     </span>
                     <div className="flex items-center gap-2">
-                      {['Hired', 'Selected', 'Converted to Employee'].includes(app.status) && (
+                      {['Hired'].includes(app.status) && (
                         <Link 
                           to="/candidate/documents"
                           className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-[#ceead6] bg-[#e6f4ea] hover:bg-[#ceead6] text-xs font-semibold text-[#137333] transition-all cursor-pointer shadow-2xs"
