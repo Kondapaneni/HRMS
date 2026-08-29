@@ -234,7 +234,7 @@ const CandidateDocuments = () => {
     : profile?.email || 'Candidate';
 
   return (
-    <div className="min-h-screen bg-[#f8fafd] flex flex-col">
+    <div className="h-screen w-full bg-[#f8fafd] flex flex-col overflow-hidden">
       {/* Top 4-Color Gradient Accent Line */}
       <div className="h-1 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] shrink-0" />
 
@@ -281,142 +281,145 @@ const CandidateDocuments = () => {
         </div>
       </header>
 
-      {/* Mobile Render Layout */}
-      <CandidateMobileDocuments 
-        documents={documents}
-        uploadingType={uploadingType}
-        handleUpload={handleUpload}
-        documentTypes={documentTypes}
-        DocumentUploadCard={DocumentUploadCard}
-        specialDoc={specialDoc}
-        requiredDocs={requiredDocs}
-        optionalDocs={optionalDocs}
-        getDoc={getDoc}
-      />
+      {/* Scrollable Main Viewport */}
+      <div className="flex-1 overflow-y-auto overscroll-y-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
+        {/* Mobile Render Layout */}
+        <CandidateMobileDocuments 
+          documents={documents}
+          uploadingType={uploadingType}
+          handleUpload={handleUpload}
+          documentTypes={documentTypes}
+          DocumentUploadCard={DocumentUploadCard}
+          specialDoc={specialDoc}
+          requiredDocs={requiredDocs}
+          optionalDocs={optionalDocs}
+          getDoc={getDoc}
+        />
 
-      {/* Desktop Full Page Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-6 sm:p-8 space-y-8 hidden md:block">
-        {/* Hero Overview Card */}
-        <div className="rounded-3xl border border-[#e0e3e7] bg-white p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-1">
-            <div className="flex items-center gap-1.5 mb-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-              <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">
-                Candidate Compliance & KYC
-              </span>
+        {/* Desktop Full Page Container */}
+        <main className="max-w-7xl w-full mx-auto p-6 sm:p-8 space-y-8 pb-24 hidden md:block">
+          {/* Hero Overview Card */}
+          <div className="rounded-3xl border border-[#e0e3e7] bg-white p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="space-y-1">
+              <div className="flex items-center gap-1.5 mb-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+                <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">
+                  Candidate Compliance & KYC
+                </span>
+              </div>
+              <h2 className="text-xl font-bold text-[#1f1f1f] tracking-tight">
+                Pre-Employment Document Verification
+              </h2>
+              <p className="text-xs text-[#5f6368] max-w-2xl leading-relaxed">
+                Upload your required identity proofs, academic credentials, and onboarding documents. Only PDF format (up to 5MB) is accepted. Once verified by HR, your documents will be locked for regulatory audit.
+              </p>
             </div>
-            <h2 className="text-xl font-bold text-[#1f1f1f] tracking-tight">
-              Pre-Employment Document Verification
-            </h2>
-            <p className="text-xs text-[#5f6368] max-w-2xl leading-relaxed">
-              Upload your required identity proofs, academic credentials, and onboarding documents. Only PDF format (up to 5MB) is accepted. Once verified by HR, your documents will be locked for regulatory audit.
-            </p>
+
+            <div className="flex flex-col items-end gap-2 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="text-right">
+                  <p className="text-xs font-bold text-[#1f1f1f]">{progressPercent}% Ready</p>
+                  <p className="text-[10px] text-[#5f6368]">{uploadedMandatory} / {totalMandatory} Mandatory uploaded</p>
+                </div>
+                <div className="w-12 h-12 rounded-full bg-[#e8f0fe] border border-[#d2e3fc] flex items-center justify-center font-bold text-xs text-[#1a73e8]">
+                  {progressPercent}%
+                </div>
+              </div>
+              {/* Progress Bar */}
+              <div className="w-48 h-2 bg-[#f1f3f4] rounded-full overflow-hidden border border-[#e0e3e7]">
+                <div 
+                  className="h-full bg-gradient-to-r from-[#4285F4] to-[#34A853] transition-all duration-500 rounded-full" 
+                  style={{ width: `${progressPercent}%` }} 
+                />
+              </div>
+            </div>
           </div>
 
-          <div className="flex flex-col items-end gap-2 shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="text-right">
-                <p className="text-xs font-bold text-[#1f1f1f]">{progressPercent}% Ready</p>
-                <p className="text-[10px] text-[#5f6368]">{uploadedMandatory} / {totalMandatory} Mandatory uploaded</p>
+          {/* Special Offer Letter Acceptance Section */}
+          {specialDoc && (
+            <section className="space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-xl bg-[#e8f0fe] text-[#1a73e8]">
+                  <FileText size={16} />
+                </div>
+                <h2 className="text-base font-bold text-[#1f1f1f]">Offer Letter Acceptance</h2>
               </div>
-              <div className="w-12 h-12 rounded-full bg-[#e8f0fe] border border-[#d2e3fc] flex items-center justify-center font-bold text-xs text-[#1a73e8]">
-                {progressPercent}%
-              </div>
-            </div>
-            {/* Progress Bar */}
-            <div className="w-48 h-2 bg-[#f1f3f4] rounded-full overflow-hidden border border-[#e0e3e7]">
-              <div 
-                className="h-full bg-gradient-to-r from-[#4285F4] to-[#34A853] transition-all duration-500 rounded-full" 
-                style={{ width: `${progressPercent}%` }} 
+              <DocumentUploadCard 
+                docType={specialDoc} 
+                currentDoc={getDoc(specialDoc.id)} 
+                onUpload={handleUpload}
+                isUploading={uploadingType === specialDoc.id}
               />
-            </div>
+            </section>
+          )}
+
+          {/* 2-Column Grid: Mandatory & Optional Documents */}
+          <div className="grid md:grid-cols-2 gap-8 items-start">
+            {/* Column 1: Mandatory Documents */}
+            <section className="space-y-4">
+              <div className="flex items-center justify-between border-b border-[#e0e3e7] pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-xl bg-[#fce8e6] text-[#c5221f]">
+                    <AlertCircle size={16} />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-bold text-[#1f1f1f]">Mandatory KYC & Verification</h2>
+                    <p className="text-[11px] text-[#5f6368]">Required for compliance, PF, and statutory payroll</p>
+                  </div>
+                </div>
+                <span className="text-xs font-semibold text-[#5f6368]">
+                  {requiredDocs.filter(d => getDoc(d.id)).length} / {requiredDocs.length}
+                </span>
+              </div>
+
+              <div className="space-y-4">
+                {requiredDocs.map(doc => (
+                  <DocumentUploadCard 
+                    key={doc.id}
+                    docType={doc} 
+                    currentDoc={getDoc(doc.id)} 
+                    onUpload={handleUpload}
+                    isUploading={uploadingType === doc.id}
+                  />
+                ))}
+              </div>
+            </section>
+
+            {/* Column 2: Additional & Prior Employment Documents */}
+            <section className="space-y-4">
+              <div className="flex items-center justify-between border-b border-[#e0e3e7] pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-xl bg-[#f1f3f4] text-[#5f6368]">
+                    <Info size={16} />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-bold text-[#1f1f1f]">Employment History & Optional</h2>
+                    <p className="text-[11px] text-[#5f6368]">Supporting prior service, pay slips, and letters</p>
+                  </div>
+                </div>
+                <span className="text-xs font-semibold text-[#5f6368]">
+                  {optionalDocs.filter(d => getDoc(d.id)).length} / {optionalDocs.length}
+                </span>
+              </div>
+
+              <div className="space-y-4">
+                {optionalDocs.map(doc => (
+                  <DocumentUploadCard 
+                    key={doc.id}
+                    docType={doc} 
+                    currentDoc={getDoc(doc.id)} 
+                    onUpload={handleUpload}
+                    isUploading={uploadingType === doc.id}
+                  />
+                ))}
+              </div>
+            </section>
           </div>
-        </div>
-
-        {/* Special Offer Letter Acceptance Section */}
-        {specialDoc && (
-          <section className="space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-xl bg-[#e8f0fe] text-[#1a73e8]">
-                <FileText size={16} />
-              </div>
-              <h2 className="text-base font-bold text-[#1f1f1f]">Offer Letter Acceptance</h2>
-            </div>
-            <DocumentUploadCard 
-              docType={specialDoc} 
-              currentDoc={getDoc(specialDoc.id)} 
-              onUpload={handleUpload}
-              isUploading={uploadingType === specialDoc.id}
-            />
-          </section>
-        )}
-
-        {/* 2-Column Grid: Mandatory & Optional Documents */}
-        <div className="grid md:grid-cols-2 gap-8 items-start">
-          {/* Column 1: Mandatory Documents */}
-          <section className="space-y-4">
-            <div className="flex items-center justify-between border-b border-[#e0e3e7] pb-3">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-xl bg-[#fce8e6] text-[#c5221f]">
-                  <AlertCircle size={16} />
-                </div>
-                <div>
-                  <h2 className="text-base font-bold text-[#1f1f1f]">Mandatory KYC & Verification</h2>
-                  <p className="text-[11px] text-[#5f6368]">Required for compliance, PF, and statutory payroll</p>
-                </div>
-              </div>
-              <span className="text-xs font-semibold text-[#5f6368]">
-                {requiredDocs.filter(d => getDoc(d.id)).length} / {requiredDocs.length}
-              </span>
-            </div>
-
-            <div className="space-y-4">
-              {requiredDocs.map(doc => (
-                <DocumentUploadCard 
-                  key={doc.id}
-                  docType={doc} 
-                  currentDoc={getDoc(doc.id)} 
-                  onUpload={handleUpload}
-                  isUploading={uploadingType === doc.id}
-                />
-              ))}
-            </div>
-          </section>
-
-          {/* Column 2: Additional & Prior Employment Documents */}
-          <section className="space-y-4">
-            <div className="flex items-center justify-between border-b border-[#e0e3e7] pb-3">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-xl bg-[#f1f3f4] text-[#5f6368]">
-                  <Info size={16} />
-                </div>
-                <div>
-                  <h2 className="text-base font-bold text-[#1f1f1f]">Employment History & Optional</h2>
-                  <p className="text-[11px] text-[#5f6368]">Supporting prior service, pay slips, and letters</p>
-                </div>
-              </div>
-              <span className="text-xs font-semibold text-[#5f6368]">
-                {optionalDocs.filter(d => getDoc(d.id)).length} / {optionalDocs.length}
-              </span>
-            </div>
-
-            <div className="space-y-4">
-              {optionalDocs.map(doc => (
-                <DocumentUploadCard 
-                  key={doc.id}
-                  docType={doc} 
-                  currentDoc={getDoc(doc.id)} 
-                  onUpload={handleUpload}
-                  isUploading={uploadingType === doc.id}
-                />
-              ))}
-            </div>
-          </section>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 };
