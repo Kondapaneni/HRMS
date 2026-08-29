@@ -34,6 +34,8 @@ const CandidateJobs = () => {
   // Application Modal State
   const [selectedJob, setSelectedJob] = useState(null);
   const [selectedResumeUrl, setSelectedResumeUrl] = useState('');
+  const [noticePeriod, setNoticePeriod] = useState('Immediate');
+  const [coverNote, setCoverNote] = useState('');
   
   const queryClient = useQueryClient();
 
@@ -439,28 +441,107 @@ const CandidateJobs = () => {
             
             {/* Drawer Body */}
             <div className="p-6 overflow-y-auto flex-1 space-y-5">
-              <div className="bg-[#f8fafd] rounded-2xl p-4 border border-[#e0e3e7] space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold text-[#1f1f1f]">{selectedJob.title}</h3>
-                  <span className="text-[11px] font-semibold text-[#1a73e8] bg-[#e8f0fe] px-2.5 py-0.5 rounded-full border border-[#d2e3fc]">
+              
+              {/* 1. Job Highlights Card */}
+              <div className="bg-[#f8fafd] rounded-2xl p-4 border border-[#e0e3e7] space-y-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h3 className="text-sm font-bold text-[#1f1f1f]">{selectedJob.title}</h3>
+                    <p className="text-xs text-[#5f6368] mt-0.5">
+                      {selectedJob.department} &bull; {selectedJob.location}
+                    </p>
+                  </div>
+                  <span className="text-[11px] font-semibold text-[#1a73e8] bg-[#e8f0fe] px-2.5 py-0.5 rounded-full border border-[#d2e3fc] shrink-0">
                     {selectedJob.type}
                   </span>
                 </div>
-                <p className="text-xs text-[#5f6368]">
-                  {selectedJob.department} &bull; {selectedJob.location}
-                </p>
-                {selectedJob.experience && (
-                  <p className="text-[11px] text-[#5f6368] pt-1 border-t border-[#f1f3f4] mt-1.5">
-                    Required Experience: <span className="font-semibold text-[#1f1f1f]">{selectedJob.experience}</span>
-                  </p>
+
+                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#e0e3e7]/80 text-[11px]">
+                  <div>
+                    <span className="text-[#5f6368]">Experience: </span>
+                    <span className="font-semibold text-[#1f1f1f]">{selectedJob.experience || 'Any experience'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[#5f6368]">Openings: </span>
+                    <span className="font-semibold text-[#137333]">{selectedJob.vacancy || 1} position(s)</span>
+                  </div>
+                </div>
+
+                {selectedJob.description_pdf_url && (
+                  <a
+                    href={selectedJob.description_pdf_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1a73e8] hover:underline pt-1"
+                  >
+                    <FileText size={13} />
+                    <span>View Full Role Specification (PDF)</span>
+                    <ExternalLink size={11} />
+                  </a>
                 )}
               </div>
 
+              {/* 2. Applicant Profile Verification Card */}
+              <div className="bg-white rounded-2xl p-4 border border-[#e0e3e7] shadow-2xs space-y-2.5">
+                <div className="flex items-center justify-between pb-2 border-b border-[#f1f3f4]">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full bg-[#e6f4ea] text-[#137333] flex items-center justify-center">
+                      <CheckCircle2 size={13} />
+                    </div>
+                    <h4 className="text-xs font-bold text-[#1f1f1f]">Verified Applicant Profile</h4>
+                  </div>
+                  <Link 
+                    to="/candidate/profile" 
+                    className="text-[11px] font-semibold text-[#1a73e8] hover:underline inline-flex items-center gap-0.5"
+                  >
+                    <span>Edit Profile</span>
+                    <ArrowRight size={10} />
+                  </Link>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <p className="text-[10px] uppercase font-bold text-[#5f6368]">Candidate</p>
+                    <p className="font-semibold text-[#1f1f1f] truncate mt-0.5">
+                      {profile?.firstName} {profile?.lastName}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase font-bold text-[#5f6368]">Email Address</p>
+                    <p className="font-semibold text-[#1f1f1f] truncate mt-0.5">
+                      {profile?.email}
+                    </p>
+                  </div>
+                  {profileData?.phone && (
+                    <div>
+                      <p className="text-[10px] uppercase font-bold text-[#5f6368]">Phone</p>
+                      <p className="font-semibold text-[#1f1f1f] truncate mt-0.5">
+                        {profileData.phone}
+                      </p>
+                    </div>
+                  )}
+                  {profileData?.address && (
+                    <div>
+                      <p className="text-[10px] uppercase font-bold text-[#5f6368]">Location</p>
+                      <p className="font-semibold text-[#1f1f1f] truncate mt-0.5">
+                        {profileData.address}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* 3. Resume Selection Form */}
               <form id="apply-job-form" onSubmit={handleApplySubmit} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-[#5f6368] uppercase tracking-wider mb-2.5">
-                    Select Resume for Application
-                  </label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-bold text-[#1f1f1f] uppercase tracking-wider">
+                      Attach Resume for Application <span className="text-[#c5221f]">*</span>
+                    </label>
+                    <span className="text-[10px] font-semibold text-[#5f6368]">
+                      {resumes.length} {resumes.length === 1 ? 'file available' : 'files available'}
+                    </span>
+                  </div>
                   
                   {resumes.length === 0 ? (
                     <div className="bg-[#fef7e0] text-[#b06000] p-4 rounded-2xl border border-[#feefc3] text-xs leading-relaxed space-y-2">
@@ -478,7 +559,7 @@ const CandidateJobs = () => {
                       {resumes.map((resume, index) => (
                         <label 
                           key={index} 
-                          className={`flex items-center justify-between p-4 rounded-2xl border cursor-pointer transition-all ${
+                          className={`flex items-center justify-between p-3.5 rounded-2xl border cursor-pointer transition-all ${
                             selectedResumeUrl === resume.url 
                               ? 'border-[#1a73e8] bg-[#e8f0fe]/60 shadow-2xs' 
                               : 'border-[#e0e3e7] bg-white hover:bg-[#f8fafd]'
@@ -498,19 +579,79 @@ const CandidateJobs = () => {
                                 {resume.name}
                               </p>
                               {resume.isPrimary && (
-                                <span className="inline-flex text-[10px] font-bold text-[#1a73e8] bg-white border border-[#d2e3fc] px-1.5 py-0.2 rounded-md uppercase tracking-wider mt-0.5">
+                                <span className="inline-flex text-[9px] font-bold text-[#1a73e8] bg-white border border-[#d2e3fc] px-1.5 py-0.2 rounded-md uppercase tracking-wider mt-0.5">
                                   Primary Resume
                                 </span>
                               )}
                             </div>
                           </div>
-                          <FileText className={`w-5 h-5 shrink-0 ${selectedResumeUrl === resume.url ? 'text-[#1a73e8]' : 'text-[#5f6368]'}`} />
+                          
+                          <div className="flex items-center gap-2 shrink-0">
+                            <a
+                              href={resume.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="text-[10px] font-semibold text-[#1a73e8] hover:underline"
+                            >
+                              Preview
+                            </a>
+                            <FileText className={`w-4 h-4 ${selectedResumeUrl === resume.url ? 'text-[#1a73e8]' : 'text-[#5f6368]'}`} />
+                          </div>
                         </label>
                       ))}
                     </div>
                   )}
                 </div>
+
+                {/* 4. Notice Period Selection */}
+                <div className="space-y-2 pt-1">
+                  <label className="text-xs font-bold text-[#1f1f1f]">
+                    Earliest Start Availability / Notice Period
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {['Immediate', '15 Days', '30 Days', '45+ Days'].map((period) => (
+                      <button
+                        key={period}
+                        type="button"
+                        onClick={() => setNoticePeriod(period)}
+                        className={`h-9 px-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+                          noticePeriod === period
+                            ? 'border-[#1a73e8] bg-[#e8f0fe] text-[#1a73e8] shadow-2xs font-bold'
+                            : 'border-[#dadce0] bg-white text-[#5f6368] hover:bg-[#f8fafd]'
+                        }`}
+                      >
+                        {period}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* 5. Cover Note (Optional) */}
+                <div className="space-y-1.5 pt-1">
+                  <label className="text-xs font-bold text-[#1f1f1f]">
+                    Cover Note to Hiring Manager <span className="text-[10px] font-normal text-[#5f6368]">(Optional)</span>
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={coverNote}
+                    onChange={(e) => setCoverNote(e.target.value)}
+                    placeholder="Highlight your key achievements or why you are a great match for this role..."
+                    className="w-full p-3 rounded-2xl border border-[#dadce0] bg-[#f8fafd] text-xs text-[#1f1f1f] focus:bg-white focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 transition-all outline-none resize-none leading-relaxed"
+                  />
+                </div>
               </form>
+
+              {/* 6. Submission Assurance Guarantee */}
+              <div className="rounded-2xl border border-[#ceead6] bg-[#e6f4ea]/40 p-3.5 flex items-start gap-2.5 text-xs text-[#137333]">
+                <Sparkles size={16} className="shrink-0 mt-0.5 text-[#137333]" />
+                <div className="space-y-0.5">
+                  <p className="font-bold text-[#137333]">Direct Recruiter Delivery</p>
+                  <p className="text-[11px] text-[#202124] leading-relaxed">
+                    Your profile and selected resume will be forwarded directly to the hiring manager. You will receive live status updates in the <strong>Applications</strong> tab.
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* Drawer Footer */}
