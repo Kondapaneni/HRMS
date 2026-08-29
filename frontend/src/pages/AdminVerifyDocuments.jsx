@@ -168,47 +168,49 @@ const AdminDocumentCard = ({ docType, currentDoc, onUpdateStatus, isUpdating, is
       </div>
 
       {currentDoc && (
-        <div className="flex items-center gap-2 pt-2 border-t border-[#e0e3e7]">
+        <div className="flex items-center justify-between gap-2 pt-3 border-t border-[#e0e3e7]">
           <a 
             href={currentDoc.file_path} 
             target="_blank" 
             rel="noopener noreferrer"
-            className="flex-1 inline-flex justify-center items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#1f1f1f] hover:bg-[#f1f3f4] bg-white border border-[#dadce0] rounded-full transition-all whitespace-nowrap shrink-0"
+            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-[#1f1f1f] hover:bg-[#f1f3f4] bg-white border border-[#dadce0] rounded-full transition-all whitespace-nowrap shrink-0 shadow-2xs"
           >
-            <Eye className="w-3.5 h-3.5 text-[#5f6368] shrink-0" />
-            <span>View Document</span>
+            <Eye className="w-3.5 h-3.5 text-[#5f6368]" />
+            <span>View</span>
           </a>
           
-          {isConverted ? (
-            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#5f6368] bg-[#f1f3f4] border border-[#dadce0] px-3 py-1.5 rounded-full whitespace-nowrap shrink-0" title="Candidate is converted to an employee. Document status is locked.">
-              <Lock className="w-3 h-3 text-[#5f6368] shrink-0" />
-              <span>Locked</span>
-            </span>
-          ) : (
-            <>
-              {currentDoc.status !== 'verified' && (
-                <button 
-                  onClick={() => onUpdateStatus(currentDoc.id, 'verified')}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-[#137333] hover:bg-[#0d5926] rounded-full transition-all cursor-pointer shadow-xs whitespace-nowrap shrink-0"
-                  title="Verify Document"
-                >
-                  <Check className="w-3.5 h-3.5 shrink-0" />
-                  <span>Approve</span>
-                </button>
-              )}
-              
-              {currentDoc.status !== 'rejected' && (
-                <button 
-                  onClick={() => onUpdateStatus(currentDoc.id, 'rejected')}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-[#c5221f] bg-[#fce8e6] hover:bg-[#fad2cf] border border-[#fad2cf] rounded-full transition-all cursor-pointer whitespace-nowrap shrink-0"
-                  title="Reject Document"
-                >
-                  <X className="w-3.5 h-3.5 shrink-0" />
-                  <span>Reject</span>
-                </button>
-              )}
-            </>
-          )}
+          <div className="flex items-center gap-1.5 shrink-0">
+            {isConverted ? (
+              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#5f6368] bg-[#f1f3f4] border border-[#dadce0] px-2.5 py-1 rounded-full whitespace-nowrap" title="Candidate is converted to an employee. Document status is locked.">
+                <Lock className="w-3 h-3 text-[#5f6368]" />
+                <span>Locked</span>
+              </span>
+            ) : (
+              <>
+                {currentDoc.status !== 'verified' && (
+                  <button 
+                    onClick={() => onUpdateStatus(currentDoc.id, 'verified')}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-[#137333] hover:bg-[#0d5926] rounded-full transition-all cursor-pointer shadow-xs whitespace-nowrap"
+                    title="Approve Document"
+                  >
+                    <Check className="w-3.5 h-3.5" />
+                    <span>Approve</span>
+                  </button>
+                )}
+                
+                {currentDoc.status !== 'rejected' && (
+                  <button 
+                    onClick={() => onUpdateStatus(currentDoc.id, 'rejected')}
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-[#c5221f] bg-[#fce8e6] hover:bg-[#fad2cf] border border-[#fad2cf] rounded-full transition-all cursor-pointer whitespace-nowrap"
+                    title="Reject Document"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                    <span>Reject</span>
+                  </button>
+                )}
+              </>
+            )}
+          </div>
         </div>
       )}
     </div>
