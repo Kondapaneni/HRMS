@@ -135,12 +135,12 @@ const EventDetailsSidebar = ({
             </div>
           </div>
 
-          {/* Assigned Team Member & Reassignment */}
+          {/* Assigned By & Reassignment */}
           {(event.assigneeName || event.creatorName) && (
             <div className="bg-white rounded-2xl border border-[#e0e3e7] p-4 space-y-2.5 shadow-2xs">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-bold text-[#80868b] uppercase tracking-wider">
-                  Assigned Team Member
+                  Assigned By
                 </span>
                 {assignableEmployees.length > 0 && onReassign && (
                   <button
@@ -169,7 +169,7 @@ const EventDetailsSidebar = ({
                   <p className="text-[11px] text-[#5f6368] truncate">
                     {[event.assigneeEmployeeId || event.creatorEmployeeId, event.assigneeBranchName || event.creatorBranchName].filter(Boolean).join(' • ')}
                     {event.creatorName && event.creatorName !== (event.assigneeName || event.creatorName) && (
-                      <span className="text-[#80868b]"> (Created by {event.creatorName})</span>
+                      <span className="text-[#80868b]"> (Assigned by {event.creatorName})</span>
                     )}
                   </p>
                 </div>
