@@ -211,7 +211,7 @@ const OriginationActivities = () => {
     setIsActivitySidebarOpen(true);
   };
 
-  // KPI Calculations
+  // KPI Calculations (scoped to selected assignee filter)
   const stats = useMemo(() => {
     const todayStart = startOfDay(new Date());
     let todayCount = 0;
@@ -219,7 +219,19 @@ const OriginationActivities = () => {
     let urgentCount = 0;
     let completedCount = 0;
 
-    events.forEach((evt) => {
+    const targetEvents = events.filter((evt) => {
+      if (isBranchOperations && employeeFilter !== 'ALL') {
+        const effectiveAssigneeId = evt.assignedTo || evt.createdBy;
+        if (employeeFilter === 'MINE') {
+          if (!evt.isAssignedToMe) return false;
+        } else {
+          if (effectiveAssigneeId !== employeeFilter) return false;
+        }
+      }
+      return true;
+    });
+
+    targetEvents.forEach((evt) => {
       if (evt.status === 'Completed') {
         completedCount++;
         return;
@@ -241,7 +253,7 @@ const OriginationActivities = () => {
       }
     });
 
-    const total = events.length;
+    const total = targetEvents.length;
     const completionRate = total > 0 ? Math.round((completedCount / total) * 100) : 0;
 
     return {
@@ -252,7 +264,7 @@ const OriginationActivities = () => {
       completedCount,
       completionRate
     };
-  }, [events]);
+  }, [events, employeeFilter, isBranchOperations]);
 
   // Filtered Events
   const filteredEvents = useMemo(() => {
@@ -276,10 +288,14 @@ const OriginationActivities = () => {
         return false;
       }
 
-      // Employee Filter (Branch Operations)
+      // Employee Filter (Branch Operations) - strictly based on assignedTo
       if (isBranchOperations && employeeFilter !== 'ALL') {
-        if (employeeFilter === 'MINE' && !evt.isAssignedToMe && !evt.isOwnActivity) return false;
-        if (employeeFilter !== 'MINE' && evt.assignedTo !== employeeFilter && evt.createdBy !== employeeFilter) return false;
+        const effectiveAssigneeId = evt.assignedTo || evt.createdBy;
+        if (employeeFilter === 'MINE') {
+          if (!evt.isAssignedToMe) return false;
+        } else {
+          if (effectiveAssigneeId !== employeeFilter) return false;
+        }
       }
 
       return true;
