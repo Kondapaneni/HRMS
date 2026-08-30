@@ -10,7 +10,8 @@ import {
   Briefcase, 
   LogOut, 
   Megaphone,
-  ChevronLeft
+  ChevronLeft,
+  Calendar as CalendarIcon
 } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -26,6 +27,7 @@ const BranchOperationsLayout = () => {
   const [loggingOut, setLoggingOut] = useState(false);
 
   const hideBottomNavPatterns = [
+    '/employee/branch-operations/activities',
     '/employee/branch-operations/loans-view-applications',
     '/employee/branch-operations/loans-edit-application',
     '/employee/branch-operations/view-application',
@@ -114,6 +116,11 @@ const BranchOperationsLayout = () => {
       icon: <Activity size={15} />, 
       label: 'Dashboard', 
       path: '/employee/branch-operations' 
+    },
+    { 
+      icon: <CalendarIcon size={15} />, 
+      label: 'Activities', 
+      path: '/employee/branch-operations/activities' 
     },
     { 
       icon: <Briefcase size={15} />, 

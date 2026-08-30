@@ -46,6 +46,7 @@ import OriginationSaleForms from './pages/OriginationSaleForms'
 import OriginationLoanApplicationsList from './pages/OriginationLoanApplicationsList'
 import OriginationLoanForms from './pages/OriginationLoanForms'
 import OriginationLoanViewApplication from './pages/OriginationLoanViewApplication'
+import OriginationActivities from './pages/OriginationActivities'
 import BranchOperationsLayout from './components/BranchOperationsLayout'
 import BranchOperationsDashboard from './pages/BranchOperationsDashboard'
 import BranchOperationsLoansApplicationsList from './pages/BranchOperationsLoansApplicationsList'
@@ -135,238 +136,241 @@ function App() {
     <PersistQueryClientProvider client={queryClient} persistOptions={{ persister }}>
       <Router>
         <AuthProvider>
-            <UpdateOverlay />
-            <LandscapeOverlay />
-            <Offline />
-            <SnowflakeCursor />
-            <Toaster position="top-right" />
-            <Routes>
-              <Route path="/" element={<Login />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/candidate/login" element={<CandidateLogin />} />
-              <Route path="/candidate/activate" element={<CandidateActivate />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route 
-                path="/change-password" 
-                element={
-                  <ProtectedRoute allowedRoles={['admin', 'employee', 'hr', 'manager']}>
-                    <ChangePassword />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route
-                path="/admin"
-                element={
-                  <ProtectedRoute allowedRoles={ADMIN_DASHBOARD_ROLES}>
-                    <AdminLayout />
-                  </ProtectedRoute>
-                }
-              >
-                <Route index element={<AdminDashboard />} />
-                <Route path="employees" element={<AdminEmployees />} />
-                <Route path="directory" element={<AdminDirectory />} />
-                <Route path="employees/:id" element={<AdminEmployeeView />} />
-                <Route path="employees/:id/edit" element={<AdminEmployeeEdit />} />
-                <Route path="employees/:id/settings" element={<AdminEmployeeSettings />} />
-                <Route path="attendance" element={<AdminAttendance />} />
-                <Route path="attendance/config" element={<AdminAttendanceConfig />} />
-                <Route path="attendance/regularize" element={<AdminAttendanceRegularize />} />
-                <Route path="attendance/location" element={<AdminAttendanceLocation />} />
-                <Route path="leaves" element={<AdminLeaves />} />
-                <Route path="payroll" element={<AdminPayroll />} />
-                <Route path="payroll/bulk" element={<AdminBulkPayroll />} />
-                <Route path="feature-access" element={<AdminFeatureAccess />} />
-                <Route path="audit-logs" element={<AdminAuditLogs />} />
-                <Route path="assets" element={<AdminAssets />} />
-                <Route path="expenses" element={<AdminExpenses />} />
-                <Route path="holidays" element={<AdminHolidays />} />
-                <Route path="holidays/archive" element={<AdminHolidaysArchive />} />
-                <Route path="email-templates" element={<AdminEmailTemplates />} />
-                <Route path="settings" element={<AdminSettings />} />
-                <Route path="performance" element={<AdminPerformance />} />
-                <Route path="recruitment" element={<AdminRecruitment />} />
-                <Route path="recruitment/verify-documents/:id" element={<AdminVerifyDocuments />} />
-              </Route>
+          <UpdateOverlay />
+          <LandscapeOverlay />
+          <Offline />
+          <SnowflakeCursor />
+          <Toaster position="top-right" containerStyle={{ zIndex: 9999999 }} />
+          <Routes>
+            <Route path="/" element={<Login />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/candidate/login" element={<CandidateLogin />} />
+            <Route path="/candidate/activate" element={<CandidateActivate />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route
+              path="/change-password"
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'employee', 'hr', 'manager']}>
+                  <ChangePassword />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute allowedRoles={ADMIN_DASHBOARD_ROLES}>
+                  <AdminLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<AdminDashboard />} />
+              <Route path="employees" element={<AdminEmployees />} />
+              <Route path="directory" element={<AdminDirectory />} />
+              <Route path="employees/:id" element={<AdminEmployeeView />} />
+              <Route path="employees/:id/edit" element={<AdminEmployeeEdit />} />
+              <Route path="employees/:id/settings" element={<AdminEmployeeSettings />} />
+              <Route path="attendance" element={<AdminAttendance />} />
+              <Route path="attendance/config" element={<AdminAttendanceConfig />} />
+              <Route path="attendance/regularize" element={<AdminAttendanceRegularize />} />
+              <Route path="attendance/location" element={<AdminAttendanceLocation />} />
+              <Route path="leaves" element={<AdminLeaves />} />
+              <Route path="payroll" element={<AdminPayroll />} />
+              <Route path="payroll/bulk" element={<AdminBulkPayroll />} />
+              <Route path="feature-access" element={<AdminFeatureAccess />} />
+              <Route path="audit-logs" element={<AdminAuditLogs />} />
+              <Route path="assets" element={<AdminAssets />} />
+              <Route path="expenses" element={<AdminExpenses />} />
+              <Route path="holidays" element={<AdminHolidays />} />
+              <Route path="holidays/archive" element={<AdminHolidaysArchive />} />
+              <Route path="email-templates" element={<AdminEmailTemplates />} />
+              <Route path="settings" element={<AdminSettings />} />
+              <Route path="performance" element={<AdminPerformance />} />
+              <Route path="recruitment" element={<AdminRecruitment />} />
+              <Route path="recruitment/verify-documents/:id" element={<AdminVerifyDocuments />} />
+            </Route>
 
-              {/* Acme Assessment Hub Workspace (Admin Only) */}
-              <Route
-                path="/admin/assessments"
-                element={
-                  <ProtectedRoute allowedRoles={ADMIN_DASHBOARD_ROLES}>
-                    <AssessmentWorkspaceLayout />
-                  </ProtectedRoute>
-                }
-              >
-                <Route index element={<Navigate to="questions" replace />} />
-                <Route path="questions" element={<DepartmentQuestionBank />} />
-                <Route path="management" element={<AssessmentManagement />} />
-                <Route path="rules" element={<Navigate to="management" replace />} />
-                <Route path="create" element={<AssessmentCreate />} />
-                <Route path="edit/:id" element={<AssessmentCreate />} />
-                <Route path="results" element={<AssessmentResults />} />
-                <Route path="training" element={<AdminTrainingVideos />} />
-              </Route>
-              <Route
-                path="/employee"
-                element={
-                  <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
-                    <EmployeeLayout />
-                  </ProtectedRoute>
-                }
-              >
-                <Route index element={<EmployeeDashboard />} />
-                <Route path="attendance" element={<EmployeeAttendance />} />
-                <Route path="holidays" element={<EmployeeHolidays />} />
-                <Route path="leaves" element={<EmployeeLeaves />} />
-                <Route path="leaves/apply" element={<ApplyMobileLeave />} />
-                <Route path="expenses" element={<EmployeeExpenses />} />
-                <Route path="payroll" element={<EmployeePayroll />} />
-                <Route path="performance" element={<EmployeePerformance />} />
-                <Route path="assessments" element={<EmployeeAssessments />} />
-                <Route path="assessments/instructions" element={<EmployeeAssessmentInstructions />} />
-                <Route path="training" element={<EmployeeTrainingVideos />} />
-                <Route path="birthdays" element={<EmployeeMobileBirthdays />} />
-                <Route path="profile" element={<EmployeeProfile />} />
-                <Route path="profile/edit" element={<EditProfile />} />
-              </Route>
+            {/* Acme Assessment Hub Workspace (Admin Only) */}
+            <Route
+              path="/admin/assessments"
+              element={
+                <ProtectedRoute allowedRoles={ADMIN_DASHBOARD_ROLES}>
+                  <AssessmentWorkspaceLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<Navigate to="questions" replace />} />
+              <Route path="questions" element={<DepartmentQuestionBank />} />
+              <Route path="management" element={<AssessmentManagement />} />
+              <Route path="rules" element={<Navigate to="management" replace />} />
+              <Route path="create" element={<AssessmentCreate />} />
+              <Route path="edit/:id" element={<AssessmentCreate />} />
+              <Route path="results" element={<AssessmentResults />} />
+              <Route path="training" element={<AdminTrainingVideos />} />
+            </Route>
+            <Route
+              path="/employee"
+              element={
+                <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
+                  <EmployeeLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<EmployeeDashboard />} />
+              <Route path="attendance" element={<EmployeeAttendance />} />
+              <Route path="holidays" element={<EmployeeHolidays />} />
+              <Route path="leaves" element={<EmployeeLeaves />} />
+              <Route path="leaves/apply" element={<ApplyMobileLeave />} />
+              <Route path="expenses" element={<EmployeeExpenses />} />
+              <Route path="payroll" element={<EmployeePayroll />} />
+              <Route path="performance" element={<EmployeePerformance />} />
+              <Route path="assessments" element={<EmployeeAssessments />} />
+              <Route path="assessments/instructions" element={<EmployeeAssessmentInstructions />} />
+              <Route path="training" element={<EmployeeTrainingVideos />} />
+              <Route path="birthdays" element={<EmployeeMobileBirthdays />} />
+              <Route path="profile" element={<EmployeeProfile />} />
+              <Route path="profile/edit" element={<EditProfile />} />
+            </Route>
 
-              {/* Fullscreen Exam Routes (no sidebar/header) */}
-              <Route
-                path="/employee/assessments/session"
-                element={
-                  <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
-                    <EmployeeAssessmentEngine />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/employee/assessments/result"
-                element={
-                  <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
-                    <EmployeeAssessmentResult />
-                  </ProtectedRoute>
-                }
-              />
+            {/* Fullscreen Exam Routes (no sidebar/header) */}
+            <Route
+              path="/employee/assessments/session"
+              element={
+                <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
+                  <EmployeeAssessmentEngine />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/employee/assessments/result"
+              element={
+                <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
+                  <EmployeeAssessmentResult />
+                </ProtectedRoute>
+              }
+            />
 
-              {/* Origination Loans Workspace (Employee Only) */}
-              <Route
-                path="/employee/loans"
-                element={
-                  <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
-                    <OriginationLoansLayout />
-                  </ProtectedRoute>
-                }
-              >
-                <Route path="origination" element={<OriginationLoanDashboard />} />
-                <Route path="origination/leads" element={<OriginationLoanLeadsList />} />
-                <Route path="origination/leads/add" element={<OriginationMobileLoanAddLead />} />
-                <Route path="origination/leads/details" element={<OriginationMobileLoanLeadDetails />} />
-                <Route path="origination/members" element={<OriginationLoanMembersList />} />
-                <Route path="origination/members/details" element={<OriginationMobileLoanMemberDetails />} />
-                <Route path="origination/applications" element={<OriginationLoanApplicationsList />} />
-                <Route path="form" element={<OriginationLoanForms />} />
-                <Route path="view-application" element={<OriginationLoanViewApplication />} />
-              </Route>
+            {/* Origination Loans Workspace (Employee Only) */}
+            <Route
+              path="/employee/loans"
+              element={
+                <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
+                  <OriginationLoansLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route path="origination" element={<OriginationLoanDashboard />} />
+              <Route path="origination/leads" element={<OriginationLoanLeadsList />} />
+              <Route path="origination/leads/add" element={<OriginationMobileLoanAddLead />} />
+              <Route path="origination/leads/details" element={<OriginationMobileLoanLeadDetails />} />
+              <Route path="origination/members" element={<OriginationLoanMembersList />} />
+              <Route path="origination/members/details" element={<OriginationMobileLoanMemberDetails />} />
+              <Route path="origination/applications" element={<OriginationLoanApplicationsList />} />
+              <Route path="origination/activities" element={<OriginationActivities />} />
+              <Route path="form" element={<OriginationLoanForms />} />
+              <Route path="view-application" element={<OriginationLoanViewApplication />} />
+            </Route>
 
-              {/* Origination Sales Workspace (Employee Only) */}
-              <Route
-                path="/employee/sales"
-                element={
-                  <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
-                    <OriginationSalesLayout />
-                  </ProtectedRoute>
-                }
-              >
-                <Route path="origination" element={<OriginationSaleDashboard />} />
-                <Route path="origination/leads" element={<OriginationSaleLeadsList />} />
-                <Route path="origination/leads/add" element={<OriginationMobileSaleAddLead />} />
-                <Route path="origination/leads/details" element={<OriginationMobileSaleLeadDetails />} />
-                <Route path="origination/members" element={<OriginationSaleMembersList />} />
-                <Route path="origination/members/details" element={<OriginationMobileSaleMemberDetails />} />
-                <Route path="form" element={<OriginationSaleForms />} />
-              </Route>
+            {/* Origination Sales Workspace (Employee Only) */}
+            <Route
+              path="/employee/sales"
+              element={
+                <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
+                  <OriginationSalesLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route path="origination" element={<OriginationSaleDashboard />} />
+              <Route path="origination/leads" element={<OriginationSaleLeadsList />} />
+              <Route path="origination/leads/add" element={<OriginationMobileSaleAddLead />} />
+              <Route path="origination/leads/details" element={<OriginationMobileSaleLeadDetails />} />
+              <Route path="origination/members" element={<OriginationSaleMembersList />} />
+              <Route path="origination/members/details" element={<OriginationMobileSaleMemberDetails />} />
+              <Route path="origination/activities" element={<OriginationActivities />} />
+              <Route path="form" element={<OriginationSaleForms />} />
+            </Route>
 
-              {/* Branch Operations Workspace (Employee Only) */}
-              <Route
-                path="/employee/branch-operations"
-                element={
-                  <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
-                    <BranchOperationsLayout />
-                  </ProtectedRoute>
-                }
-              >
-                <Route index element={<BranchOperationsDashboard />} />
-                <Route path="dashboard" element={<BranchOperationsDashboard />} />
-                <Route path="loans-applications" element={<BranchOperationsLoansApplicationsList />} />
-                <Route path="loans-view-applications" element={<BranchOperationsLoansViewApplication />} />
-                <Route path="loans-edit-application" element={<BranchOperationsLoansEditApplication />} />
-              </Route>
+            {/* Branch Operations Workspace (Employee Only) */}
+            <Route
+              path="/employee/branch-operations"
+              element={
+                <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
+                  <BranchOperationsLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<BranchOperationsDashboard />} />
+              <Route path="dashboard" element={<BranchOperationsDashboard />} />
+              <Route path="activities" element={<OriginationActivities />} />
+              <Route path="loans-applications" element={<BranchOperationsLoansApplicationsList />} />
+              <Route path="loans-view-applications" element={<BranchOperationsLoansViewApplication />} />
+              <Route path="loans-edit-application" element={<BranchOperationsLoansEditApplication />} />
+            </Route>
 
-              <Route
-                path="/employee/attendance/map"
-                element={
-                  <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
-                    <EmployeeMobileMap />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/employee/face-registration"
-                element={
-                  <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
-                    <EmployeeFaceRegistration />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/employee/attendance/camera"
-                element={
-                  <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
-                    <EmployeeMobileCamera />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/employee/mobile/holidays"
-                element={<Navigate to="/employee/holidays" replace />}
-              />
-              <Route
-                path="/employee/mobile/birthdays"
-                element={<Navigate to="/employee/birthdays" replace />}
-              />
-              <Route
-                path="/employee/mobile/applyleave"
-                element={<Navigate to="/employee/leaves/apply" replace />}
-              />
-              {/* Candidate Portal Routes */}
-              <Route
-                path="/candidate"
-                element={
-                  <ProtectedRoute allowedRoles={CANDIDATE_DASHBOARD_ROLES}>
-                    <CandidateLayout />
-                  </ProtectedRoute>
-                }
-              >
-                <Route path="dashboard" element={<CandidateDashboard />} />
-                <Route path="jobs" element={<CandidateJobs />} />
-                <Route path="applications" element={<CandidateApplications />} />
-                <Route path="profile" element={<CandidateProfile />} />
-              </Route>
+            <Route
+              path="/employee/attendance/map"
+              element={
+                <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
+                  <EmployeeMobileMap />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/employee/face-registration"
+              element={
+                <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
+                  <EmployeeFaceRegistration />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/employee/attendance/camera"
+              element={
+                <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
+                  <EmployeeMobileCamera />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/employee/mobile/holidays"
+              element={<Navigate to="/employee/holidays" replace />}
+            />
+            <Route
+              path="/employee/mobile/birthdays"
+              element={<Navigate to="/employee/birthdays" replace />}
+            />
+            <Route
+              path="/employee/mobile/applyleave"
+              element={<Navigate to="/employee/leaves/apply" replace />}
+            />
+            {/* Candidate Portal Routes */}
+            <Route
+              path="/candidate"
+              element={
+                <ProtectedRoute allowedRoles={CANDIDATE_DASHBOARD_ROLES}>
+                  <CandidateLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route path="dashboard" element={<CandidateDashboard />} />
+              <Route path="jobs" element={<CandidateJobs />} />
+              <Route path="applications" element={<CandidateApplications />} />
+              <Route path="profile" element={<CandidateProfile />} />
+            </Route>
 
-              {/* Dedicated Full Page Candidate Documents Route */}
-              <Route
-                path="/candidate/documents"
-                element={
-                  <ProtectedRoute allowedRoles={CANDIDATE_DASHBOARD_ROLES}>
-                    <CandidateDocuments />
-                  </ProtectedRoute>
-                }
-              />
+            {/* Dedicated Full Page Candidate Documents Route */}
+            <Route
+              path="/candidate/documents"
+              element={
+                <ProtectedRoute allowedRoles={CANDIDATE_DASHBOARD_ROLES}>
+                  <CandidateDocuments />
+                </ProtectedRoute>
+              }
+            />
 
-              {/* Catch-all 404 Route */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            {/* Catch-all 404 Route */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
         </AuthProvider>
       </Router>
     </PersistQueryClientProvider>

@@ -11,7 +11,8 @@ import {
   LogOut, 
   Megaphone,
   ChevronLeft,
-  ShoppingBag
+  ShoppingBag,
+  Calendar as CalendarIcon
 } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -30,6 +31,7 @@ const OriginationSalesLayout = () => {
     '/employee/sales/origination/leads/add',
     '/employee/sales/origination/leads/details',
     '/employee/sales/origination/members/details',
+    '/employee/sales/origination/activities',
     '/employee/sales/form',
   ];
   const shouldHideBottomNav = hideBottomNavPatterns.some((pattern) =>
@@ -115,6 +117,11 @@ const OriginationSalesLayout = () => {
       icon: <Activity size={15} />, 
       label: 'Dashboard', 
       path: '/employee/sales/origination' 
+    },
+    { 
+      icon: <CalendarIcon size={15} />, 
+      label: 'Activities', 
+      path: '/employee/sales/origination/activities' 
     },
     { 
       icon: <TrendingUp size={15} />, 

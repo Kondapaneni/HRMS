@@ -13,7 +13,8 @@ import {
   Activity, 
   FileText,
   UserCheck,
-  ChevronLeft
+  ChevronLeft,
+  Calendar as CalendarIcon
 } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -36,6 +37,7 @@ const OriginationLoansLayout = () => {
     '/employee/loans/origination/leads/add',
     '/employee/loans/origination/leads/details',
     '/employee/loans/origination/members/details',
+    '/employee/loans/origination/activities'
   ];
   const shouldHideBottomNav = hideBottomNavPatterns.some((pattern) =>
     typeof pattern === 'string'
@@ -117,6 +119,7 @@ const OriginationLoansLayout = () => {
 
   const navItems = [
     { icon: <Activity size={15} />, label: 'Dashboard', path: '/employee/loans/origination' },
+    { icon: <CalendarIcon size={15} />, label: 'Activities', path: '/employee/loans/origination/activities' },
     { icon: <TrendingUp size={15} />, label: 'Leads', path: '/employee/loans/origination/leads' },
     { icon: <Users size={15} />, label: 'Members', path: '/employee/loans/origination/members', activePaths: ['/employee/loans/form'] },
     { icon: <Briefcase size={15} />, label: 'Applications', path: '/employee/loans/origination/applications', activePaths: ['/employee/loans/view-application'] },

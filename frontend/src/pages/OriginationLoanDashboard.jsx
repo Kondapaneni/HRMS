@@ -12,7 +12,8 @@ import {
   Phone, 
   MapPin, 
   Award,
-  Layers
+  Layers,
+  Calendar
 } from 'lucide-react';
 import {
   LineChart,
@@ -100,6 +101,16 @@ const OriginationLoanDashboard = () => {
             <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
               Overview of lead generation, pipeline conversion, and monthly origination trends.
             </p>
+          </div>
+
+          <div className="flex items-center gap-2.5">
+            <Link
+              to="/employee/loans/origination/activities"
+              className="px-4 py-2 rounded-full bg-white border border-[#dadce0] hover:bg-[#f8fafd] hover:border-[#1a73e8]/40 text-xs font-semibold text-[#1f1f1f] shadow-xs flex items-center gap-2 transition-all cursor-pointer hover:shadow-sm"
+            >
+              <Calendar className="w-4 h-4 text-[#1a73e8]" />
+              <span>Activities & Tasks</span>
+            </Link>
           </div>
         </div>
 
