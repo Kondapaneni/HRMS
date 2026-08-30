@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { 
@@ -10,7 +11,9 @@ import {
   CheckCircle2, 
   Circle, 
   AlertCircle, 
-  MapPin
+  MapPin,
+  User,
+  Building2
 } from 'lucide-react';
 import { format, parseISO, isToday, isTomorrow, startOfDay } from 'date-fns';
 import api from '../api/axios';
@@ -75,16 +78,26 @@ const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme = 'blue' }) =
 };
 
 const OriginationActivities = () => {
+  const location = useLocation();
   const queryClient = useQueryClient();
 
-  // Fetch activities directly from backend route
-  const { data: events = [], isLoading } = useQuery({
-    queryKey: ['origination', 'activities'],
+  // Detect workspace context
+  const isBranchOperations = location.pathname.startsWith('/employee/branch-operations');
+  const workspaceScope = isBranchOperations ? 'branch' : 'personal';
+
+  // Fetch activities (personal or branch-wide depending on route)
+  const { data = {}, isLoading } = useQuery({
+    queryKey: ['origination', 'activities', workspaceScope],
     queryFn: async () => {
-      const response = await api.get('/origination/activities');
-      return response.data?.activities || [];
+      const response = await api.get('/origination/activities', {
+        params: { scope: workspaceScope }
+      });
+      return response.data || {};
     }
   });
+
+  const events = data.activities || [];
+  const branchInfo = data.branch || null;
 
   // Mutations
   const createMutation = useMutation({
@@ -122,6 +135,24 @@ const OriginationActivities = () => {
   // Filter & Search States
   const [searchQuery, setSearchQuery] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('ALL'); // 'ALL' | 'Urgent' | 'High' | 'Medium' | 'Low'
+  const [employeeFilter, setEmployeeFilter] = useState('ALL'); // 'ALL' | 'MINE' | specific userId
+
+  // Extract unique branch employees present in the activities list
+  const branchEmployees = useMemo(() => {
+    if (!isBranchOperations) return [];
+    const map = new Map();
+    events.forEach((evt) => {
+      if (evt.createdBy && evt.creatorName && !map.has(evt.createdBy)) {
+        map.set(evt.createdBy, {
+          id: evt.createdBy,
+          name: evt.creatorName,
+          empId: evt.creatorEmployeeId,
+          isOwn: evt.isOwnActivity
+        });
+      }
+    });
+    return Array.from(map.values());
+  }, [events, isBranchOperations]);
 
   // Modals / Drawer State
   const [isActivitySidebarOpen, setIsActivitySidebarOpen] = useState(false);
@@ -196,7 +227,9 @@ const OriginationActivities = () => {
         const titleMatch = evt.title?.toLowerCase().includes(q);
         const addressMatch = evt.address?.toLowerCase().includes(q);
         const notesMatch = evt.notes?.toLowerCase().includes(q);
-        if (!titleMatch && !addressMatch && !notesMatch) {
+        const creatorMatch = evt.creatorName?.toLowerCase().includes(q);
+        const empIdMatch = evt.creatorEmployeeId?.toLowerCase().includes(q);
+        if (!titleMatch && !addressMatch && !notesMatch && !creatorMatch && !empIdMatch) {
           return false;
         }
       }
@@ -206,9 +239,15 @@ const OriginationActivities = () => {
         return false;
       }
 
+      // Employee Filter (Branch Operations)
+      if (isBranchOperations && employeeFilter !== 'ALL') {
+        if (employeeFilter === 'MINE' && !evt.isOwnActivity) return false;
+        if (employeeFilter !== 'MINE' && evt.createdBy !== employeeFilter) return false;
+      }
+
       return true;
     });
-  }, [events, searchQuery, priorityFilter]);
+  }, [events, searchQuery, priorityFilter, employeeFilter, isBranchOperations]);
 
   // Group filtered events into sections
   const sections = useMemo(() => {
@@ -348,7 +387,7 @@ const OriginationActivities = () => {
             <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
             <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
             <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">
-              Origination Pipeline
+              {isBranchOperations ? (branchInfo?.name ? `${branchInfo.name} Branch` : 'Branch Operations') : 'Origination Pipeline'}
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight flex items-center gap-2.5">
@@ -358,7 +397,9 @@ const OriginationActivities = () => {
             </span>
           </h1>
           <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
-            Manage scheduled customer calls, KYC verification visits, document collections, and follow-ups.
+            {isBranchOperations
+              ? 'View and coordinate scheduled activities, visits, and follow-ups across your branch team.'
+              : 'Manage scheduled customer calls, KYC verification visits, document collections, and follow-ups.'}
           </p>
         </div>
 
@@ -411,33 +452,56 @@ const OriginationActivities = () => {
       <div className="bg-white rounded-2xl border border-[#e0e3e7] shadow-xs overflow-hidden">
         
         {/* Search & Priority Filter Toolbar as Header of Card */}
-        <div className="p-4 border-b border-[#e0e3e7] flex flex-col sm:flex-row items-center justify-between gap-3 bg-white">
+        <div className="p-4 border-b border-[#e0e3e7] flex flex-col md:flex-row items-center justify-between gap-3 bg-white">
           {/* Search Box */}
-          <div className="relative w-full sm:w-80">
+          <div className="relative w-full md:w-80">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#80868b] pointer-events-none" />
             <input
               type="search"
-              placeholder="Search tasks, address, remarks..."
+              placeholder={isBranchOperations ? "Search task, employee, remarks..." : "Search tasks, address, remarks..."}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-9.5 pr-4 py-2 text-xs bg-[#f8fafd] border border-[#dadce0] rounded-full focus:outline-none focus:ring-2 focus:ring-[#1a73e8]/30 focus:border-[#1a73e8] transition-all text-[#1f1f1f] placeholder:text-[#80868b]"
             />
           </div>
 
-          {/* Priority Filter */}
-          <div className="flex items-center gap-1.5 w-full sm:w-auto justify-end">
-            <span className="text-xs font-semibold text-[#5f6368]">Priority:</span>
-            <select
-              value={priorityFilter}
-              onChange={(e) => setPriorityFilter(e.target.value)}
-              className="h-8 px-3 rounded-full border border-[#dadce0] bg-[#f8fafd] text-xs font-semibold text-[#1f1f1f] focus:outline-none focus:ring-2 focus:ring-[#1a73e8]/30 cursor-pointer"
-            >
-              <option value="ALL">All Priorities ({events.length})</option>
-              <option value="Urgent">Urgent Priority</option>
-              <option value="High">High Priority</option>
-              <option value="Medium">Medium Priority</option>
-              <option value="Low">Low Priority</option>
-            </select>
+          {/* Filters Area */}
+          <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto justify-end">
+            {/* Branch Staff Filter (Only shown in Branch Operations if multiple colleagues exist) */}
+            {isBranchOperations && branchEmployees.length > 0 && (
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs font-semibold text-[#5f6368]">Staff:</span>
+                <select
+                  value={employeeFilter}
+                  onChange={(e) => setEmployeeFilter(e.target.value)}
+                  className="h-8 px-3 rounded-full border border-[#dadce0] bg-[#f8fafd] text-xs font-semibold text-[#1f1f1f] focus:outline-none focus:ring-2 focus:ring-[#1a73e8]/30 cursor-pointer"
+                >
+                  <option value="ALL">All Branch Staff ({events.length})</option>
+                  <option value="MINE">My Activities Only</option>
+                  {branchEmployees.filter((emp) => !emp.isOwn).map((emp) => (
+                    <option key={emp.id} value={emp.id}>
+                      {emp.name} {emp.empId ? `(${emp.empId})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Priority Filter */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs font-semibold text-[#5f6368]">Priority:</span>
+              <select
+                value={priorityFilter}
+                onChange={(e) => setPriorityFilter(e.target.value)}
+                className="h-8 px-3 rounded-full border border-[#dadce0] bg-[#f8fafd] text-xs font-semibold text-[#1f1f1f] focus:outline-none focus:ring-2 focus:ring-[#1a73e8]/30 cursor-pointer"
+              >
+                <option value="ALL">All Priorities ({events.length})</option>
+                <option value="Urgent">Urgent Priority</option>
+                <option value="High">High Priority</option>
+                <option value="Medium">Medium Priority</option>
+                <option value="Low">Low Priority</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -449,7 +513,9 @@ const OriginationActivities = () => {
             </div>
             <h3 className="text-lg font-bold text-[#1f1f1f]">No Activities Scheduled</h3>
             <p className="text-xs text-[#5f6368] max-w-sm mt-1 mb-6">
-              Schedule follow-up calls, client visits, or document collections for your leads.
+              {isBranchOperations
+                ? 'No activities scheduled for this branch. Create tasks to coordinate with your team.'
+                : 'Schedule follow-up calls, client visits, or document collections for your leads.'}
             </p>
             <button
               type="button"
@@ -524,6 +590,18 @@ const OriginationActivities = () => {
                                 {evt.title}
                               </h3>
                               {evt.priority && getPriorityBadge(evt.priority)}
+
+                              {/* Branch Colleague Badge */}
+                              {isBranchOperations && evt.creatorName && (
+                                <span className={`inline-flex items-center gap-1 text-[10.5px] font-medium px-2 py-0.5 rounded-full border ${
+                                  evt.isOwnActivity 
+                                    ? 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc]' 
+                                    : 'bg-[#f1f3f4] text-[#3c4043] border-[#dadce0]'
+                                }`}>
+                                  <User size={11} className={evt.isOwnActivity ? 'text-[#1a73e8]' : 'text-[#5f6368]'} />
+                                  <span>{evt.creatorName} {evt.isOwnActivity ? '(You)' : (evt.creatorEmployeeId ? `• ${evt.creatorEmployeeId}` : '')}</span>
+                                </span>
+                              )}
                             </div>
 
                             {/* Meta: Time, Date, Location */}

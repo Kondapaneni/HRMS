@@ -9,9 +9,12 @@ use App\Config\Database;
  */
 $app->group('/api/origination/activities', function (\Slim\Routing\RouteCollectorProxy $group) {
 
-    // GET /api/origination/activities - Fetch all activities for the logged-in user
+    // GET /api/origination/activities - Fetch activities (personal or branch-wide)
     $group->get('', function (Request $request, Response $response, $args) {
         $user = $request->getAttribute('user');
+        $params = $request->getQueryParams();
+        $scope = $params['scope'] ?? 'personal';
+
         try {
             $db = new Database();
             $conn = $db->getConnection();
@@ -20,30 +23,91 @@ $app->group('/api/origination/activities', function (\Slim\Routing\RouteCollecto
                 throw new Exception("Database connection failed");
             }
 
-            $stmt = $conn->prepare("
-                SELECT 
-                    id, 
-                    title, 
-                    priority, 
-                    start_date, 
-                    start_time, 
-                    end_date, 
-                    end_time, 
-                    all_day, 
-                    address, 
-                    notes, 
-                    status, 
-                    created_by,
-                    created_at, 
-                    updated_at
-                FROM public.loan_activities
-                WHERE created_by = :uid
-                ORDER BY start_date ASC, start_time ASC
-            ");
-            $stmt->execute([':uid' => $user->id]);
+            // Fetch user's assigned branch
+            $empStmt = $conn->prepare('
+                SELECT e.id, e."employeeId", e.branch, b.name as branch_name
+                FROM employee e
+                LEFT JOIN branches b ON e.branch::uuid = b.id
+                WHERE e."userId" = ? LIMIT 1
+            ');
+            $empStmt->execute([$user->id]);
+            $currentEmp = $empStmt->fetch(PDO::FETCH_ASSOC);
+            $userBranch = $currentEmp['branch'] ?? null;
+            $userBranchName = $currentEmp['branch_name'] ?? null;
+
+            if ($scope === 'branch' && !empty($userBranch)) {
+                // Fetch activities for all employees within the same branch + own activities
+                $stmt = $conn->prepare("
+                    SELECT 
+                        la.id, 
+                        la.title, 
+                        la.priority, 
+                        la.start_date, 
+                        la.start_time, 
+                        la.end_date, 
+                        la.end_time, 
+                        la.all_day, 
+                        la.address, 
+                        la.notes, 
+                        la.status, 
+                        la.created_by,
+                        la.created_at, 
+                        la.updated_at,
+                        u.\"firstName\" as creator_first_name,
+                        u.\"lastName\" as creator_last_name,
+                        u.email as creator_email,
+                        emp.\"employeeId\" as creator_employee_id,
+                        emp.branch as creator_branch,
+                        b.name as creator_branch_name
+                    FROM public.loan_activities la
+                    LEFT JOIN public.users u ON la.created_by = u.id
+                    LEFT JOIN public.employee emp ON emp.\"userId\" = la.created_by
+                    LEFT JOIN public.branches b ON emp.branch::uuid = b.id
+                    WHERE (emp.branch = :branch_id OR la.created_by = :uid)
+                    ORDER BY la.start_date ASC, la.start_time ASC
+                ");
+                $stmt->execute([
+                    ':branch_id' => $userBranch,
+                    ':uid' => $user->id
+                ]);
+            } else {
+                // Personal activities (strict individual user isolation)
+                $stmt = $conn->prepare("
+                    SELECT 
+                        la.id, 
+                        la.title, 
+                        la.priority, 
+                        la.start_date, 
+                        la.start_time, 
+                        la.end_date, 
+                        la.end_time, 
+                        la.all_day, 
+                        la.address, 
+                        la.notes, 
+                        la.status, 
+                        la.created_by,
+                        la.created_at, 
+                        la.updated_at,
+                        u.\"firstName\" as creator_first_name,
+                        u.\"lastName\" as creator_last_name,
+                        u.email as creator_email,
+                        emp.\"employeeId\" as creator_employee_id,
+                        emp.branch as creator_branch,
+                        b.name as creator_branch_name
+                    FROM public.loan_activities la
+                    LEFT JOIN public.users u ON la.created_by = u.id
+                    LEFT JOIN public.employee emp ON emp.\"userId\" = la.created_by
+                    LEFT JOIN public.branches b ON emp.branch::uuid = b.id
+                    WHERE la.created_by = :uid
+                    ORDER BY la.start_date ASC, la.start_time ASC
+                ");
+                $stmt->execute([':uid' => $user->id]);
+            }
+
             $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            $activities = array_map(function ($row) {
+            $activities = array_map(function ($row) use ($user) {
+                $creatorFullName = trim(($row['creator_first_name'] ?? '') . ' ' . ($row['creator_last_name'] ?? ''));
                 return [
                     'id' => $row['id'],
                     'title' => $row['title'],
@@ -57,6 +121,10 @@ $app->group('/api/origination/activities', function (\Slim\Routing\RouteCollecto
                     'notes' => $row['notes'] ?? '',
                     'status' => $row['status'] ?? 'Scheduled',
                     'createdBy' => $row['created_by'],
+                    'creatorName' => !empty($creatorFullName) ? $creatorFullName : 'Colleague',
+                    'creatorEmployeeId' => $row['creator_employee_id'] ?? '',
+                    'creatorBranchName' => $row['creator_branch_name'] ?? '',
+                    'isOwnActivity' => ($row['created_by'] === $user->id),
                     'createdAt' => $row['created_at'],
                     'updatedAt' => $row['updated_at']
                 ];
@@ -64,6 +132,11 @@ $app->group('/api/origination/activities', function (\Slim\Routing\RouteCollecto
 
             $response->getBody()->write(json_encode([
                 'success' => true,
+                'scope' => $scope,
+                'branch' => [
+                    'id' => $userBranch,
+                    'name' => $userBranchName ?: 'Assigned Branch'
+                ],
                 'activities' => $activities
             ]));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
@@ -226,18 +299,37 @@ $app->group('/api/origination/activities', function (\Slim\Routing\RouteCollecto
                 throw new Exception("Database connection failed");
             }
 
-            $stmt = $conn->prepare('
-                UPDATE public.loan_activities
-                SET status = ?, updated_at = NOW()
-                WHERE id = ? AND created_by = ?
-                RETURNING id, title, priority, start_date, start_time, end_date, end_time, all_day, address, notes, status, created_by, created_at, updated_at
-            ');
+            // Check if user has an assigned branch
+            $empStmt = $conn->prepare('SELECT branch FROM employee WHERE "userId" = ? LIMIT 1');
+            $empStmt->execute([$user->id]);
+            $currentEmp = $empStmt->fetch(PDO::FETCH_ASSOC);
+            $userBranch = $currentEmp['branch'] ?? null;
 
-            $stmt->execute([$nextStatus, $id, $user->id]);
+            if (!empty($userBranch)) {
+                $stmt = $conn->prepare('
+                    UPDATE public.loan_activities
+                    SET status = ?, updated_at = NOW()
+                    WHERE id = ? AND (
+                        created_by = ? 
+                        OR created_by IN (SELECT "userId" FROM employee WHERE branch = ? AND "userId" IS NOT NULL)
+                    )
+                    RETURNING id, title, priority, start_date, start_time, end_date, end_time, all_day, address, notes, status, created_by, created_at, updated_at
+                ');
+                $stmt->execute([$nextStatus, $id, $user->id, $userBranch]);
+            } else {
+                $stmt = $conn->prepare('
+                    UPDATE public.loan_activities
+                    SET status = ?, updated_at = NOW()
+                    WHERE id = ? AND created_by = ?
+                    RETURNING id, title, priority, start_date, start_time, end_date, end_time, all_day, address, notes, status, created_by, created_at, updated_at
+                ');
+                $stmt->execute([$nextStatus, $id, $user->id]);
+            }
+
             $updated = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if (!$updated) {
-                $response->getBody()->write(json_encode(['error' => 'Activity not found']));
+                $response->getBody()->write(json_encode(['error' => 'Activity not found or unauthorized']));
                 return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
             }
 

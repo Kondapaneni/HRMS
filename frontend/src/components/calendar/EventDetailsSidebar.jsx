@@ -11,7 +11,8 @@ import {
   Edit3, 
   CheckCircle2, 
   RotateCcw, 
-  AlertCircle
+  AlertCircle,
+  User
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import toast from 'react-hot-toast';
@@ -124,6 +125,30 @@ const EventDetailsSidebar = ({
               </div>
             </div>
           </div>
+
+          {/* Assigned Team Member / Colleague */}
+          {event.creatorName && (
+            <div className="bg-white rounded-2xl border border-[#e0e3e7] p-4 space-y-1 shadow-2xs">
+              <span className="text-[11px] font-bold text-[#80868b] uppercase tracking-wider">
+                Assigned Team Member
+              </span>
+              <div className="flex items-center gap-2.5 pt-1">
+                <div className="w-8 h-8 rounded-full bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] flex items-center justify-center font-bold text-xs shrink-0">
+                  <User size={15} />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-[#1f1f1f]">
+                    {event.creatorName} {event.isOwnActivity ? '(You)' : ''}
+                  </p>
+                  {(event.creatorEmployeeId || event.creatorBranchName) && (
+                    <p className="text-[11px] text-[#5f6368]">
+                      {[event.creatorEmployeeId, event.creatorBranchName].filter(Boolean).join(' • ')}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Location / Meeting Link */}
           {event.address && (
