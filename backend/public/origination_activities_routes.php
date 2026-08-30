@@ -51,45 +51,26 @@ $app->group('/api/origination/activities', function (\Slim\Routing\RouteCollecto
                         b.name as branch_name
                     FROM employee e
                     LEFT JOIN branches b ON e.branch::uuid = b.id
-                    WHERE e."userId" IS NOT NULL AND e.branch = ?
+                    WHERE e.branch = ? AND e."userId" IS NOT NULL
                     ORDER BY e."firstName" ASC, e."lastName" ASC
                 ');
                 $assignableStmt->execute([$userBranch]);
-            } else {
-                $assignableStmt = $conn->prepare('
-                    SELECT 
-                        e.id as employee_id,
-                        e."userId" as user_id,
-                        e."employeeId" as employee_code,
-                        e."firstName" as first_name,
-                        e."lastName" as last_name,
-                        e.email,
-                        e.department,
-                        e.position,
-                        e.branch,
-                        b.name as branch_name
-                    FROM employee e
-                    LEFT JOIN branches b ON e.branch::uuid = b.id
-                    WHERE e."userId" IS NOT NULL
-                    ORDER BY e."firstName" ASC, e."lastName" ASC
-                ');
-                $assignableStmt->execute();
-            }
 
-            $assignableEmployees = array_map(function ($emp) use ($user) {
-                $fullName = trim(($emp['first_name'] ?? '') . ' ' . ($emp['last_name'] ?? ''));
-                return [
-                    'id' => $emp['user_id'],
-                    'employeeId' => $emp['employee_id'],
-                    'employeeCode' => $emp['employee_code'] ?? '',
-                    'name' => !empty($fullName) ? $fullName : ($emp['email'] ?? 'Employee'),
-                    'email' => $emp['email'] ?? '',
-                    'department' => $emp['department'] ?? '',
-                    'position' => $emp['position'] ?? '',
-                    'branchName' => $emp['branch_name'] ?? '',
-                    'isCurrentUser' => ($emp['user_id'] === $user->id)
-                ];
-            }, $assignableStmt->fetchAll(PDO::FETCH_ASSOC) ?: []);
+                $assignableEmployees = array_map(function ($emp) use ($user) {
+                    $fullName = trim(($emp['first_name'] ?? '') . ' ' . ($emp['last_name'] ?? ''));
+                    return [
+                        'id' => $emp['user_id'],
+                        'employeeId' => $emp['employee_id'],
+                        'employeeCode' => $emp['employee_code'] ?? '',
+                        'name' => !empty($fullName) ? $fullName : ($emp['email'] ?? 'Employee'),
+                        'email' => $emp['email'] ?? '',
+                        'department' => $emp['department'] ?? '',
+                        'position' => $emp['position'] ?? '',
+                        'branchName' => $emp['branch_name'] ?? '',
+                        'isCurrentUser' => ($emp['user_id'] === $user->id)
+                    ];
+                }, $assignableStmt->fetchAll(PDO::FETCH_ASSOC) ?: []);
+            }
 
             if ($scope === 'branch' && !empty($userBranch)) {
                 // Fetch activities for all employees within the same branch + own activities

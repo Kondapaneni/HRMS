@@ -696,7 +696,8 @@ const OriginationActivities = () => {
         isOpen={isActivitySidebarOpen}
         onClose={() => setIsActivitySidebarOpen(false)}
         onSave={handleCreateActivity}
-        assignableEmployees={assignableEmployees}
+        assignableEmployees={isBranchOperations ? assignableEmployees : []}
+        showAssigneeSelector={isBranchOperations}
       />
 
       {/* Slide-over Details Drawer */}
@@ -705,8 +706,8 @@ const OriginationActivities = () => {
         onClose={() => setIsDetailsSidebarOpen(false)}
         event={selectedEvent}
         onToggleComplete={handleToggleComplete}
-        onReassign={handleReassignActivity}
-        assignableEmployees={assignableEmployees}
+        onReassign={isBranchOperations ? handleReassignActivity : null}
+        assignableEmployees={isBranchOperations ? assignableEmployees : []}
       />
 
     </div>

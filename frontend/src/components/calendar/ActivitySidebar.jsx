@@ -23,7 +23,8 @@ const ActivitySidebar = ({
   onClose,
   onSave,
   selectedDate = null,
-  assignableEmployees = []
+  assignableEmployees = [],
+  showAssigneeSelector = false
 }) => {
   const [formData, setFormData] = useState({
     title: '',
@@ -254,8 +255,8 @@ const ActivitySidebar = ({
               </div>
             </div>
 
-            {/* Assign To Employees (Multi-Assign) */}
-            {assignableEmployees.length > 0 && (
+            {/* Assign To Employees (Multi-Assign) - Only shown in Branch Operations */}
+            {showAssigneeSelector && assignableEmployees.length > 0 && (
               <div className="bg-[#f8fafd] p-4 rounded-2xl border border-[#e0e3e7] space-y-2.5">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold text-[#1f1f1f] flex items-center gap-1.5">
