@@ -122,7 +122,7 @@ $app->group('/api/origination/activities', function (\Slim\Routing\RouteCollecto
                         emp_assignee.\"employeeId\" as assignee_employee_id,
                         emp_assignee.branch as assignee_branch,
                         b_assignee.name as assignee_branch_name
-                    FROM public.loan_activities la
+                    FROM public.origination_activities la
                     LEFT JOIN public.users u_creator ON la.created_by = u_creator.id
                     LEFT JOIN public.employee emp_creator ON emp_creator.\"userId\" = la.created_by
                     LEFT JOIN public.branches b_creator ON emp_creator.branch::uuid = b_creator.id
@@ -167,7 +167,7 @@ $app->group('/api/origination/activities', function (\Slim\Routing\RouteCollecto
                         emp_assignee.\"employeeId\" as assignee_employee_id,
                         emp_assignee.branch as assignee_branch,
                         b_assignee.name as assignee_branch_name
-                    FROM public.loan_activities la
+                    FROM public.origination_activities la
                     LEFT JOIN public.users u_creator ON la.created_by = u_creator.id
                     LEFT JOIN public.employee emp_creator ON emp_creator.\"userId\" = la.created_by
                     LEFT JOIN public.branches b_creator ON emp_creator.branch::uuid = b_creator.id
@@ -287,7 +287,7 @@ $app->group('/api/origination/activities', function (\Slim\Routing\RouteCollecto
             $conflictStmt = $conn->prepare("
                 SELECT la.id, la.title, la.start_date, la.start_time, la.end_date, la.end_time, la.all_day,
                        COALESCE(u.\"firstName\" || ' ' || u.\"lastName\", 'Employee') as assignee_name
-                FROM public.loan_activities la
+                FROM public.origination_activities la
                 LEFT JOIN public.users u ON u.id = :uid
                 WHERE (COALESCE(la.assigned_to, la.created_by) = :uid OR la.created_by = :uid)
                   AND :new_start < (la.end_date || ' ' || COALESCE(la.end_time, '23:59:59'))::timestamp
@@ -319,7 +319,7 @@ $app->group('/api/origination/activities', function (\Slim\Routing\RouteCollecto
 
             // Insert an activity record for each assignee
             $insertStmt = $conn->prepare('
-                INSERT INTO public.loan_activities (
+                INSERT INTO public.origination_activities (
                     title, 
                     priority, 
                     start_date, 
@@ -419,7 +419,7 @@ $app->group('/api/origination/activities', function (\Slim\Routing\RouteCollecto
             // Fetch existing activity details
             $actStmt = $conn->prepare('
                 SELECT id, title, start_date, start_time, end_date, end_time, all_day, created_by, assigned_to
-                FROM public.loan_activities
+                FROM public.origination_activities
                 WHERE id = ?
                 LIMIT 1
             ');
@@ -455,7 +455,7 @@ $app->group('/api/origination/activities', function (\Slim\Routing\RouteCollecto
 
             $conflictStmt = $conn->prepare("
                 SELECT id, title, start_date, start_time, end_date, end_time, all_day
-                FROM public.loan_activities
+                FROM public.origination_activities
                 WHERE id != :act_id
                   AND (COALESCE(assigned_to, created_by) = :new_uid OR created_by = :new_uid)
                   AND :new_start < (end_date || ' ' || COALESCE(end_time, '23:59:59'))::timestamp
@@ -485,7 +485,7 @@ $app->group('/api/origination/activities', function (\Slim\Routing\RouteCollecto
 
             // Update assigned_to
             $updateStmt = $conn->prepare('
-                UPDATE public.loan_activities
+                UPDATE public.origination_activities
                 SET assigned_to = ?, updated_at = NOW()
                 WHERE id = ?
                 RETURNING id, title, priority, start_date, start_time, end_date, end_time, all_day, address, notes, status, created_by, assigned_to, created_at, updated_at
@@ -535,7 +535,7 @@ $app->group('/api/origination/activities', function (\Slim\Routing\RouteCollecto
 
             if (!empty($userBranch)) {
                 $stmt = $conn->prepare('
-                    UPDATE public.loan_activities
+                    UPDATE public.origination_activities
                     SET status = ?, updated_at = NOW()
                     WHERE id = ? AND (
                         created_by = ? 
@@ -548,7 +548,7 @@ $app->group('/api/origination/activities', function (\Slim\Routing\RouteCollecto
                 $stmt->execute([$nextStatus, $id, $user->id, $user->id, $userBranch, $userBranch]);
             } else {
                 $stmt = $conn->prepare('
-                    UPDATE public.loan_activities
+                    UPDATE public.origination_activities
                     SET status = ?, updated_at = NOW()
                     WHERE id = ? AND (created_by = ? OR assigned_to = ?)
                     RETURNING id, title, priority, start_date, start_time, end_date, end_time, all_day, address, notes, status, created_by, assigned_to, created_at, updated_at
