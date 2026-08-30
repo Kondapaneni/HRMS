@@ -16,17 +16,17 @@ import {
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import toast from 'react-hot-toast';
+import { Check, Users } from 'lucide-react';
 
 const ActivitySidebar = ({
   isOpen,
   onClose,
   onSave,
-  selectedDate = null
+  selectedDate = null,
+  assignableEmployees = []
 }) => {
   const [formData, setFormData] = useState({
     title: '',
-    leadName: '',
-    phone: '',
     priority: 'Medium',
     startDate: format(new Date(), 'yyyy-MM-dd'),
     startTime: '10:00',
@@ -38,6 +38,7 @@ const ActivitySidebar = ({
     status: 'Scheduled'
   });
 
+  const [selectedAssignees, setSelectedAssignees] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -60,8 +61,43 @@ const ActivitySidebar = ({
         notes: '',
         status: 'Scheduled'
       });
+
+      // Default to current user if available in assignable list
+      const currentUser = assignableEmployees.find(e => e.isCurrentUser);
+      if (currentUser) {
+        setSelectedAssignees([currentUser.id]);
+      } else if (assignableEmployees.length > 0) {
+        setSelectedAssignees([assignableEmployees[0].id]);
+      } else {
+        setSelectedAssignees([]);
+      }
     }
-  }, [isOpen, selectedDate]);
+  }, [isOpen, selectedDate, assignableEmployees]);
+
+  const handleToggleAssignee = (userId) => {
+    setSelectedAssignees(prev => {
+      if (prev.includes(userId)) {
+        // Prevent deselecting if it's the only selected one
+        if (prev.length === 1) {
+          toast('At least one employee must be assigned', { icon: 'ℹ️' });
+          return prev;
+        }
+        return prev.filter(id => id !== userId);
+      } else {
+        return [...prev, userId];
+      }
+    });
+  };
+
+  const handleSelectAllAssignees = () => {
+    if (selectedAssignees.length === assignableEmployees.length) {
+      // Revert to current user only
+      const currentUser = assignableEmployees.find(e => e.isCurrentUser);
+      setSelectedAssignees(currentUser ? [currentUser.id] : [assignableEmployees[0].id]);
+    } else {
+      setSelectedAssignees(assignableEmployees.map(e => e.id));
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -114,11 +150,11 @@ const ActivitySidebar = ({
         allDay: Boolean(formData.allDay),
         address: formData.address.trim(),
         notes: formData.notes.trim(),
-        status: formData.status || 'Scheduled'
+        status: formData.status || 'Scheduled',
+        assignedTo: selectedAssignees.length > 0 ? selectedAssignees : null
       };
 
       await onSave?.(payload);
-      onClose();
     } catch (err) {
       console.error(err);
     } finally {
@@ -217,6 +253,67 @@ const ActivitySidebar = ({
                 })}
               </div>
             </div>
+
+            {/* Assign To Employees (Multi-Assign) */}
+            {assignableEmployees.length > 0 && (
+              <div className="bg-[#f8fafd] p-4 rounded-2xl border border-[#e0e3e7] space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-[#1f1f1f] flex items-center gap-1.5">
+                    <Users size={14} className="text-[#1a73e8]" />
+                    Assign To Team Members
+                  </label>
+                  {assignableEmployees.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={handleSelectAllAssignees}
+                      className="text-[11px] font-semibold text-[#1a73e8] hover:underline cursor-pointer"
+                    >
+                      {selectedAssignees.length === assignableEmployees.length ? 'Reset to Mine' : 'Select All Branch Staff'}
+                    </button>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {assignableEmployees.map((emp) => {
+                    const isChecked = selectedAssignees.includes(emp.id);
+                    return (
+                      <div
+                        key={emp.id}
+                        onClick={() => handleToggleAssignee(emp.id)}
+                        className={`p-2.5 rounded-xl border flex items-center gap-2.5 cursor-pointer transition-all ${
+                          isChecked
+                            ? 'bg-white border-[#1a73e8] shadow-xs ring-1 ring-[#1a73e8]'
+                            : 'bg-white/70 border-[#dadce0] hover:bg-white hover:border-[#bdc1c6]'
+                        }`}
+                      >
+                        <div
+                          className={`w-4 h-4 rounded-md flex items-center justify-center border transition-all ${
+                            isChecked
+                              ? 'bg-[#1a73e8] border-[#1a73e8] text-white'
+                              : 'border-[#dadce0] bg-white'
+                          }`}
+                        >
+                          {isChecked && <Check size={12} strokeWidth={3} />}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-bold text-[#1f1f1f] truncate">
+                            {emp.name} {emp.isCurrentUser ? '(You)' : ''}
+                          </p>
+                          <p className="text-[10.5px] text-[#5f6368] truncate">
+                            {emp.employeeCode || emp.department || 'Staff'}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                {selectedAssignees.length > 1 && (
+                  <p className="text-[11px] font-semibold text-[#137333] bg-[#e6f4ea] px-2.5 py-1 rounded-lg border border-[#ceead6]">
+                    ✓ Will schedule this activity for {selectedAssignees.length} team members at the same time.
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Date Pickers */}
             <div className="grid grid-cols-2 gap-3">

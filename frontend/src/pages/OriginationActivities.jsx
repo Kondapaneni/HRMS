@@ -98,6 +98,7 @@ const OriginationActivities = () => {
 
   const events = data.activities || [];
   const branchInfo = data.branch || null;
+  const assignableEmployees = data.assignableEmployees || [];
 
   // Mutations
   const createMutation = useMutation({
@@ -105,9 +106,13 @@ const OriginationActivities = () => {
       const response = await api.post('/origination/activities', payload);
       return response.data?.activity;
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['origination', 'activities'] });
-      toast.success('Activity scheduled successfully');
+      const assignedCount = Array.isArray(variables?.assignedTo) ? variables.assignedTo.length : 1;
+      toast.success(assignedCount > 1 
+        ? `Activities scheduled for ${assignedCount} team members successfully`
+        : 'Activity scheduled successfully'
+      );
       setIsActivitySidebarOpen(false);
     },
     onError: (err) => {
@@ -132,27 +137,54 @@ const OriginationActivities = () => {
     }
   });
 
+  const reassignMutation = useMutation({
+    mutationFn: async ({ id, assignedTo }) => {
+      const response = await api.patch(`/origination/activities/${id}/reassign`, { assignedTo });
+      return response.data?.activity;
+    },
+    onSuccess: (resp) => {
+      queryClient.invalidateQueries({ queryKey: ['origination', 'activities'] });
+      toast.success('Activity reassigned successfully');
+      setIsDetailsSidebarOpen(false);
+    },
+    onError: (err) => {
+      console.error(err);
+      const errMsg = err.response?.data?.error || 'Failed to reassign activity';
+      toast.error(errMsg, { duration: 5000 });
+    }
+  });
+
   // Filter & Search States
   const [searchQuery, setSearchQuery] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('ALL'); // 'ALL' | 'Urgent' | 'High' | 'Medium' | 'Low'
   const [employeeFilter, setEmployeeFilter] = useState('ALL'); // 'ALL' | 'MINE' | specific userId
 
-  // Extract unique branch employees present in the activities list
+  // Extract unique branch employees present in the activities list or assignable list
   const branchEmployees = useMemo(() => {
     if (!isBranchOperations) return [];
+    if (assignableEmployees.length > 0) {
+      return assignableEmployees.map(emp => ({
+        id: emp.id,
+        name: emp.name,
+        empId: emp.employeeCode,
+        isOwn: emp.isCurrentUser
+      }));
+    }
     const map = new Map();
     events.forEach((evt) => {
-      if (evt.createdBy && evt.creatorName && !map.has(evt.createdBy)) {
-        map.set(evt.createdBy, {
-          id: evt.createdBy,
-          name: evt.creatorName,
-          empId: evt.creatorEmployeeId,
-          isOwn: evt.isOwnActivity
+      const uid = evt.assignedTo || evt.createdBy;
+      const name = evt.assigneeName || evt.creatorName;
+      if (uid && name && !map.has(uid)) {
+        map.set(uid, {
+          id: uid,
+          name: name,
+          empId: evt.assigneeEmployeeId || evt.creatorEmployeeId,
+          isOwn: evt.isAssignedToMe || evt.isOwnActivity
         });
       }
     });
     return Array.from(map.values());
-  }, [events, isBranchOperations]);
+  }, [events, assignableEmployees, isBranchOperations]);
 
   // Modals / Drawer State
   const [isActivitySidebarOpen, setIsActivitySidebarOpen] = useState(false);
@@ -162,6 +194,10 @@ const OriginationActivities = () => {
   // Action Handlers
   const handleCreateActivity = (payload) => {
     return createMutation.mutateAsync(payload);
+  };
+
+  const handleReassignActivity = (id, targetUserId) => {
+    return reassignMutation.mutateAsync({ id, assignedTo: targetUserId });
   };
 
   const handleToggleComplete = (eventId) => {
@@ -228,8 +264,9 @@ const OriginationActivities = () => {
         const addressMatch = evt.address?.toLowerCase().includes(q);
         const notesMatch = evt.notes?.toLowerCase().includes(q);
         const creatorMatch = evt.creatorName?.toLowerCase().includes(q);
-        const empIdMatch = evt.creatorEmployeeId?.toLowerCase().includes(q);
-        if (!titleMatch && !addressMatch && !notesMatch && !creatorMatch && !empIdMatch) {
+        const assigneeMatch = evt.assigneeName?.toLowerCase().includes(q);
+        const empIdMatch = (evt.assigneeEmployeeId || evt.creatorEmployeeId)?.toLowerCase().includes(q);
+        if (!titleMatch && !addressMatch && !notesMatch && !creatorMatch && !assigneeMatch && !empIdMatch) {
           return false;
         }
       }
@@ -241,8 +278,8 @@ const OriginationActivities = () => {
 
       // Employee Filter (Branch Operations)
       if (isBranchOperations && employeeFilter !== 'ALL') {
-        if (employeeFilter === 'MINE' && !evt.isOwnActivity) return false;
-        if (employeeFilter !== 'MINE' && evt.createdBy !== employeeFilter) return false;
+        if (employeeFilter === 'MINE' && !evt.isAssignedToMe && !evt.isOwnActivity) return false;
+        if (employeeFilter !== 'MINE' && evt.assignedTo !== employeeFilter && evt.createdBy !== employeeFilter) return false;
       }
 
       return true;
@@ -398,7 +435,7 @@ const OriginationActivities = () => {
           </h1>
           <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
             {isBranchOperations
-              ? 'View and coordinate scheduled activities, visits, and follow-ups across your branch team.'
+              ? 'View, assign and coordinate scheduled activities, visits, and follow-ups across your branch team.'
               : 'Manage scheduled customer calls, KYC verification visits, document collections, and follow-ups.'}
           </p>
         </div>
@@ -458,7 +495,7 @@ const OriginationActivities = () => {
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#80868b] pointer-events-none" />
             <input
               type="search"
-              placeholder={isBranchOperations ? "Search task, employee, remarks..." : "Search tasks, address, remarks..."}
+              placeholder={isBranchOperations ? "Search task, assignee, remarks..." : "Search tasks, address, remarks..."}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-9.5 pr-4 py-2 text-xs bg-[#f8fafd] border border-[#dadce0] rounded-full focus:outline-none focus:ring-2 focus:ring-[#1a73e8]/30 focus:border-[#1a73e8] transition-all text-[#1f1f1f] placeholder:text-[#80868b]"
@@ -467,17 +504,17 @@ const OriginationActivities = () => {
 
           {/* Filters Area */}
           <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto justify-end">
-            {/* Branch Staff Filter (Only shown in Branch Operations if multiple colleagues exist) */}
+            {/* Branch Staff Filter (Only shown in Branch Operations if colleagues exist) */}
             {isBranchOperations && branchEmployees.length > 0 && (
               <div className="flex items-center gap-1.5">
-                <span className="text-xs font-semibold text-[#5f6368]">Staff:</span>
+                <span className="text-xs font-semibold text-[#5f6368]">Assigned:</span>
                 <select
                   value={employeeFilter}
                   onChange={(e) => setEmployeeFilter(e.target.value)}
                   className="h-8 px-3 rounded-full border border-[#dadce0] bg-[#f8fafd] text-xs font-semibold text-[#1f1f1f] focus:outline-none focus:ring-2 focus:ring-[#1a73e8]/30 cursor-pointer"
                 >
                   <option value="ALL">All Branch Staff ({events.length})</option>
-                  <option value="MINE">My Activities Only</option>
+                  <option value="MINE">Assigned to Me</option>
                   {branchEmployees.filter((emp) => !emp.isOwn).map((emp) => (
                     <option key={emp.id} value={emp.id}>
                       {emp.name} {emp.empId ? `(${emp.empId})` : ''}
@@ -514,7 +551,7 @@ const OriginationActivities = () => {
             <h3 className="text-lg font-bold text-[#1f1f1f]">No Activities Scheduled</h3>
             <p className="text-xs text-[#5f6368] max-w-sm mt-1 mb-6">
               {isBranchOperations
-                ? 'No activities scheduled for this branch. Create tasks to coordinate with your team.'
+                ? 'No activities found for the selected filter. Create or assign tasks to your team.'
                 : 'Schedule follow-up calls, client visits, or document collections for your leads.'}
             </p>
             <button
@@ -523,7 +560,7 @@ const OriginationActivities = () => {
               className="px-5 py-2.5 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold shadow-xs flex items-center gap-2 cursor-pointer active:scale-95 transition-all"
             >
               <Plus size={16} />
-              <span>Schedule First Activity</span>
+              <span>Schedule Activity</span>
             </button>
           </div>
         ) : (
@@ -548,6 +585,7 @@ const OriginationActivities = () => {
                 <div className="grid grid-cols-1 gap-3">
                   {section.items.map((evt) => {
                     const isCompleted = evt.status === 'Completed';
+                    const displayName = evt.assigneeName || evt.creatorName;
 
                     return (
                       <div
@@ -591,15 +629,15 @@ const OriginationActivities = () => {
                               </h3>
                               {evt.priority && getPriorityBadge(evt.priority)}
 
-                              {/* Branch Colleague Badge */}
-                              {isBranchOperations && evt.creatorName && (
+                              {/* Assignee Badge */}
+                              {isBranchOperations && displayName && (
                                 <span className={`inline-flex items-center gap-1 text-[10.5px] font-medium px-2 py-0.5 rounded-full border ${
-                                  evt.isOwnActivity 
+                                  evt.isAssignedToMe 
                                     ? 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc]' 
                                     : 'bg-[#f1f3f4] text-[#3c4043] border-[#dadce0]'
                                 }`}>
-                                  <User size={11} className={evt.isOwnActivity ? 'text-[#1a73e8]' : 'text-[#5f6368]'} />
-                                  <span>{evt.creatorName} {evt.isOwnActivity ? '(You)' : (evt.creatorEmployeeId ? `• ${evt.creatorEmployeeId}` : '')}</span>
+                                  <User size={11} className={evt.isAssignedToMe ? 'text-[#1a73e8]' : 'text-[#5f6368]'} />
+                                  <span>{displayName} {evt.isAssignedToMe ? '(You)' : (evt.assigneeEmployeeId ? `• ${evt.assigneeEmployeeId}` : '')}</span>
                                 </span>
                               )}
                             </div>
@@ -642,6 +680,7 @@ const OriginationActivities = () => {
         isOpen={isActivitySidebarOpen}
         onClose={() => setIsActivitySidebarOpen(false)}
         onSave={handleCreateActivity}
+        assignableEmployees={assignableEmployees}
       />
 
       {/* Slide-over Details Drawer */}
@@ -650,6 +689,8 @@ const OriginationActivities = () => {
         onClose={() => setIsDetailsSidebarOpen(false)}
         event={selectedEvent}
         onToggleComplete={handleToggleComplete}
+        onReassign={handleReassignActivity}
+        assignableEmployees={assignableEmployees}
       />
 
     </div>
@@ -657,3 +698,4 @@ const OriginationActivities = () => {
 };
 
 export default OriginationActivities;
+

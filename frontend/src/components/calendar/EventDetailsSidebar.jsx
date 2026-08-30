@@ -12,7 +12,10 @@ import {
   CheckCircle2, 
   RotateCcw, 
   AlertCircle,
-  User
+  User,
+  UserCheck, 
+  ArrowRightLeft, 
+  Loader2 
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import toast from 'react-hot-toast';
@@ -21,8 +24,14 @@ const EventDetailsSidebar = ({
   isOpen, 
   onClose, 
   event, 
-  onToggleComplete 
+  onToggleComplete,
+  onReassign,
+  assignableEmployees = []
 }) => {
+  const [isReassignOpen, setIsReassignOpen] = useState(false);
+  const [selectedTargetUser, setSelectedTargetUser] = useState('');
+  const [isReassigning, setIsReassigning] = useState(false);
+
   if (!isOpen || !event) return null;
 
   const isCompleted = event.status === 'Completed';
@@ -126,27 +135,88 @@ const EventDetailsSidebar = ({
             </div>
           </div>
 
-          {/* Assigned Team Member / Colleague */}
-          {event.creatorName && (
-            <div className="bg-white rounded-2xl border border-[#e0e3e7] p-4 space-y-1 shadow-2xs">
-              <span className="text-[11px] font-bold text-[#80868b] uppercase tracking-wider">
-                Assigned Team Member
-              </span>
-              <div className="flex items-center gap-2.5 pt-1">
+          {/* Assigned Team Member & Reassignment */}
+          {(event.assigneeName || event.creatorName) && (
+            <div className="bg-white rounded-2xl border border-[#e0e3e7] p-4 space-y-2.5 shadow-2xs">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold text-[#80868b] uppercase tracking-wider">
+                  Assigned Team Member
+                </span>
+                {assignableEmployees.length > 0 && onReassign && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsReassignOpen(!isReassignOpen);
+                      setSelectedTargetUser(event.assignedTo || event.createdBy || '');
+                    }}
+                    className="text-xs font-bold text-[#1a73e8] hover:text-[#1557b0] flex items-center gap-1 cursor-pointer bg-[#e8f0fe] hover:bg-[#d2e3fc] px-2.5 py-1 rounded-full transition-colors"
+                  >
+                    <ArrowRightLeft size={12} />
+                    <span>{isReassignOpen ? 'Cancel' : 'Reassign'}</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Current Assignee Info */}
+              <div className="flex items-center gap-2.5 pt-0.5">
                 <div className="w-8 h-8 rounded-full bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] flex items-center justify-center font-bold text-xs shrink-0">
-                  <User size={15} />
+                  <UserCheck size={15} />
                 </div>
-                <div>
-                  <p className="text-xs font-bold text-[#1f1f1f]">
-                    {event.creatorName} {event.isOwnActivity ? '(You)' : ''}
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-bold text-[#1f1f1f] truncate">
+                    {event.assigneeName || event.creatorName} {event.isAssignedToMe ? '(You)' : ''}
                   </p>
-                  {(event.creatorEmployeeId || event.creatorBranchName) && (
-                    <p className="text-[11px] text-[#5f6368]">
-                      {[event.creatorEmployeeId, event.creatorBranchName].filter(Boolean).join(' • ')}
-                    </p>
-                  )}
+                  <p className="text-[11px] text-[#5f6368] truncate">
+                    {[event.assigneeEmployeeId || event.creatorEmployeeId, event.assigneeBranchName || event.creatorBranchName].filter(Boolean).join(' • ')}
+                    {event.creatorName && event.creatorName !== (event.assigneeName || event.creatorName) && (
+                      <span className="text-[#80868b]"> (Created by {event.creatorName})</span>
+                    )}
+                  </p>
                 </div>
               </div>
+
+              {/* Inline Reassign Box */}
+              {isReassignOpen && (
+                <div className="pt-2 border-t border-[#f1f3f4] space-y-2">
+                  <label className="block text-[11px] font-semibold text-[#3c4043]">
+                    Select New Assignee:
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={selectedTargetUser}
+                      onChange={(e) => setSelectedTargetUser(e.target.value)}
+                      className="flex-1 h-8.5 px-3 rounded-xl border border-[#dadce0] bg-[#f8fafd] text-xs font-semibold text-[#1f1f1f] focus:outline-none focus:ring-2 focus:ring-[#1a73e8]/30 cursor-pointer"
+                    >
+                      <option value="">Select Employee...</option>
+                      {assignableEmployees.map((emp) => (
+                        <option key={emp.id} value={emp.id}>
+                          {emp.name} {emp.employeeCode ? `(${emp.employeeCode})` : ''} {emp.isCurrentUser ? '- You' : ''}
+                        </option>
+                      ))}
+                    </select>
+
+                    <button
+                      type="button"
+                      disabled={!selectedTargetUser || selectedTargetUser === (event.assignedTo || event.createdBy) || isReassigning}
+                      onClick={async () => {
+                        try {
+                          setIsReassigning(true);
+                          await onReassign?.(event.id, selectedTargetUser);
+                          setIsReassignOpen(false);
+                        } catch (err) {
+                          console.error(err);
+                        } finally {
+                          setIsReassigning(false);
+                        }
+                      }}
+                      className="px-3 py-1.5 rounded-xl bg-[#1a73e8] hover:bg-[#1557b0] disabled:bg-[#dadce0] disabled:text-[#80868b] text-white text-xs font-bold cursor-pointer transition-all flex items-center gap-1 shrink-0"
+                    >
+                      {isReassigning ? <Loader2 size={13} className="animate-spin" /> : <UserCheck size={13} />}
+                      <span>Confirm</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
