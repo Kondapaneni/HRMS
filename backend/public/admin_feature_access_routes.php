@@ -18,7 +18,7 @@ $app->get('/api/admin/feature-access', function (Request $request, Response $res
             u."lastName", 
             u.email, 
             u.role,
-            e."employeeCode",
+            e."employeeId" AS "employeeCode",
             e.department,
             fa."canAttendance", 
             fa."canLeave", 
