@@ -382,49 +382,62 @@ const OriginationLoansLayout = () => {
                   <span className="relative z-10 text-[10px] font-semibold tracking-wide text-[#5f6368]">HRMS</span>
                 </button>
 
-                {[
-                  { label: 'Dashboard', icon: Activity, path: '/employee/loans/origination' },
-                  { label: 'Activities', icon: CalendarIcon, path: '/employee/loans/origination/activities' },
-                  { label: 'Leads', icon: TrendingUp, path: '/employee/loans/origination/leads' },
-                ].map((item) => {
+                {(() => {
                   const currentPath = swipePath || location.pathname;
-                  const isDashboard = item.path === '/employee/loans/origination';
-                  const isOtherTab = ['/employee/loans/origination/activities', '/employee/loans/origination/leads', '/employee/loans/origination/members', '/employee/loans/origination/applications'].some(p => currentPath.startsWith(p));
-                  const isActive = isDashboard 
-                    ? (currentPath === '/employee/loans/origination' || !isOtherTab) 
-                    : (currentPath === item.path || (!swipePath && currentPath.startsWith(item.path)));
-                  const Icon = item.icon;
+                  const isDashboard = currentPath === '/employee/loans/origination';
+                  const isActivities = currentPath.startsWith('/employee/loans/origination/activities');
+                  const isLeads = currentPath.startsWith('/employee/loans/origination/leads');
+                  const isMoreActive = !isDashboard && !isActivities && !isLeads;
 
                   return (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      data-nav-path={item.path}
-                      onClick={(e) => { if (swipePath) e.preventDefault(); }}
-                      className="relative flex flex-col items-center justify-center flex-1 h-[52px] z-10 group cursor-pointer active:scale-95 transition-transform duration-100"
-                    >
-                      {isActive && (
-                        <motion.div
-                          layoutId="loansMobileNavBubble"
-                          className="absolute inset-0 z-[-1] rounded-full bg-[#c2e7ff]/70 border border-[#b2d7ff]/80 shadow-2xs"
-                          transition={{ type: 'spring', bounce: 0.15, duration: 0.35 }}
-                        />
-                      )}
-                      <Icon className={`relative z-10 w-5 h-5 mb-0.5 transition-colors duration-150 ${isActive ? 'text-[#001d35] scale-105' : 'text-[#5f6368]'}`} />
-                      <span className={`relative z-10 text-[10px] font-semibold tracking-wide transition-colors duration-150 ${isActive ? 'text-[#001d35]' : 'text-[#5f6368]'}`}>{item.label}</span>
-                    </Link>
-                  );
-                })}
+                    <>
+                      {[
+                        { label: 'Dashboard', icon: Activity, path: '/employee/loans/origination', isActive: isDashboard },
+                        { label: 'Activities', icon: CalendarIcon, path: '/employee/loans/origination/activities', isActive: isActivities },
+                        { label: 'Leads', icon: TrendingUp, path: '/employee/loans/origination/leads', isActive: isLeads },
+                      ].map((item) => {
+                        const Icon = item.icon;
 
-                {/* More Button (Opens Mobile Left Sidebar Drawer) */}
-                <button
-                  type="button"
-                  onClick={() => setIsMobileSidebarOpen(true)}
-                  className="relative flex flex-col items-center justify-center flex-1 h-[52px] z-10 group cursor-pointer active:scale-95 transition-transform duration-100"
-                >
-                  <Menu className="relative z-10 w-5 h-5 mb-0.5 text-[#5f6368]" />
-                  <span className="relative z-10 text-[10px] font-semibold tracking-wide text-[#5f6368]">More</span>
-                </button>
+                        return (
+                          <Link
+                            key={item.path}
+                            to={item.path}
+                            data-nav-path={item.path}
+                            onClick={(e) => { if (swipePath) e.preventDefault(); }}
+                            className="relative flex flex-col items-center justify-center flex-1 h-[52px] z-10 group cursor-pointer active:scale-95 transition-transform duration-100"
+                          >
+                            {item.isActive && (
+                              <motion.div
+                                layoutId="loansMobileNavBubble"
+                                className="absolute inset-0 z-[-1] rounded-full bg-[#c2e7ff]/70 border border-[#b2d7ff]/80 shadow-2xs"
+                                transition={{ type: 'spring', bounce: 0.15, duration: 0.35 }}
+                              />
+                            )}
+                            <Icon className={`relative z-10 w-5 h-5 mb-0.5 transition-colors duration-150 ${item.isActive ? 'text-[#001d35] scale-105' : 'text-[#5f6368]'}`} />
+                            <span className={`relative z-10 text-[10px] font-semibold tracking-wide transition-colors duration-150 ${item.isActive ? 'text-[#001d35]' : 'text-[#5f6368]'}`}>{item.label}</span>
+                          </Link>
+                        );
+                      })}
+
+                      {/* More Button (Opens Mobile Left Sidebar Drawer) */}
+                      <button
+                        type="button"
+                        onClick={() => setIsMobileSidebarOpen(true)}
+                        className="relative flex flex-col items-center justify-center flex-1 h-[52px] z-10 group cursor-pointer active:scale-95 transition-transform duration-100"
+                      >
+                        {isMoreActive && (
+                          <motion.div
+                            layoutId="loansMobileNavBubble"
+                            className="absolute inset-0 z-[-1] rounded-full bg-[#c2e7ff]/70 border border-[#b2d7ff]/80 shadow-2xs"
+                            transition={{ type: 'spring', bounce: 0.15, duration: 0.35 }}
+                          />
+                        )}
+                        <Menu className={`relative z-10 w-5 h-5 mb-0.5 transition-colors duration-150 ${isMoreActive ? 'text-[#001d35] scale-105' : 'text-[#5f6368]'}`} />
+                        <span className={`relative z-10 text-[10px] font-semibold tracking-wide transition-colors duration-150 ${isMoreActive ? 'text-[#001d35]' : 'text-[#5f6368]'}`}>More</span>
+                      </button>
+                    </>
+                  );
+                })()}
               </div>
             </div>
           )}
