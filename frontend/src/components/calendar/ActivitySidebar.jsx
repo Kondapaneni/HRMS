@@ -138,6 +138,22 @@ const ActivitySidebar = ({
       return;
     }
 
+    if (formData.endDate && formData.endDate < formData.startDate) {
+      toast.error('End date cannot be before start date');
+      return;
+    }
+
+    if (
+      !formData.allDay && 
+      formData.startDate === formData.endDate && 
+      formData.startTime && 
+      formData.endTime && 
+      formData.endTime < formData.startTime
+    ) {
+      toast.error('End time cannot be before start time on the same date');
+      return;
+    }
+
     try {
       setIsSubmitting(true);
 

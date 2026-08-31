@@ -97,6 +97,18 @@ export const MobileActivityCreatePage = ({
     if (!formData.startDate) {
       errors.startDate = 'Start date is required';
     }
+    if (formData.endDate && formData.endDate < formData.startDate) {
+      errors.endDate = 'End date cannot be before start date';
+    }
+    if (
+      !formData.allDay && 
+      formData.startDate === formData.endDate && 
+      formData.startTime && 
+      formData.endTime && 
+      formData.endTime < formData.startTime
+    ) {
+      errors.endTime = 'End time cannot be before start time on the same date';
+    }
 
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
@@ -267,7 +279,16 @@ export const MobileActivityCreatePage = ({
                   <input
                     type="date"
                     value={formData.startDate}
-                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                    onChange={(e) => {
+                      const newStart = e.target.value;
+                      setFormData((prev) => ({
+                        ...prev,
+                        startDate: newStart,
+                        endDate: prev.endDate && prev.endDate < newStart ? newStart : (prev.endDate || newStart)
+                      }));
+                      if (formErrors.startDate) setFormErrors({ ...formErrors, startDate: null });
+                      if (formErrors.endDate) setFormErrors({ ...formErrors, endDate: null });
+                    }}
                     className="w-full bg-[#f8fafd] border border-[#dadce0] rounded-full px-4 py-2.5 text-xs font-semibold text-[#1f1f1f] outline-none min-h-[42px] focus:bg-white focus:ring-2 focus:ring-[#1a73e8]/20 transition-all"
                   />
                 </div>
@@ -281,7 +302,17 @@ export const MobileActivityCreatePage = ({
                     <input
                       type="time"
                       value={formData.startTime}
-                      onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+                      onChange={(e) => {
+                        const newStartTime = e.target.value;
+                        setFormData((prev) => ({
+                          ...prev,
+                          startTime: newStartTime,
+                          endTime: (prev.startDate === prev.endDate && prev.endTime && prev.endTime < newStartTime)
+                            ? newStartTime
+                            : prev.endTime
+                        }));
+                        if (formErrors.endTime) setFormErrors({ ...formErrors, endTime: null });
+                      }}
                       className="w-full bg-[#f8fafd] border border-[#dadce0] rounded-full px-4 py-2.5 text-xs font-semibold text-[#1f1f1f] outline-none min-h-[42px] focus:bg-white focus:ring-2 focus:ring-[#1a73e8]/20 transition-all"
                     />
                   </div>
@@ -298,8 +329,18 @@ export const MobileActivityCreatePage = ({
                     </label>
                     <input
                       type="date"
+                      min={formData.startDate}
                       value={formData.endDate}
-                      onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                      onChange={(e) => {
+                        const newEnd = e.target.value;
+                        if (newEnd && newEnd < formData.startDate) {
+                          toast.error('End date cannot be before start date');
+                          setFormData((prev) => ({ ...prev, endDate: prev.startDate }));
+                          return;
+                        }
+                        setFormData((prev) => ({ ...prev, endDate: newEnd }));
+                        if (formErrors.endDate) setFormErrors({ ...formErrors, endDate: null });
+                      }}
                       className="w-full bg-[#f8fafd] border border-[#dadce0] rounded-full px-4 py-2.5 text-xs font-semibold text-[#1f1f1f] outline-none min-h-[42px] focus:bg-white focus:ring-2 focus:ring-[#1a73e8]/20 transition-all"
                     />
                   </div>
@@ -312,7 +353,16 @@ export const MobileActivityCreatePage = ({
                     <input
                       type="time"
                       value={formData.endTime}
-                      onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+                      onChange={(e) => {
+                        const newEndTime = e.target.value;
+                        if (formData.startDate === formData.endDate && newEndTime && newEndTime < formData.startTime) {
+                          toast.error('End time cannot be before start time');
+                          setFormData((prev) => ({ ...prev, endTime: prev.startTime }));
+                          return;
+                        }
+                        setFormData((prev) => ({ ...prev, endTime: newEndTime }));
+                        if (formErrors.endTime) setFormErrors({ ...formErrors, endTime: null });
+                      }}
                       className="w-full bg-[#f8fafd] border border-[#dadce0] rounded-full px-4 py-2.5 text-xs font-semibold text-[#1f1f1f] outline-none min-h-[42px] focus:bg-white focus:ring-2 focus:ring-[#1a73e8]/20 transition-all"
                     />
                   </div>
