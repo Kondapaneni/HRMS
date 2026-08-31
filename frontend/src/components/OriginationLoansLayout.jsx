@@ -14,7 +14,9 @@ import {
   FileText,
   UserCheck,
   ChevronLeft,
-  Calendar as CalendarIcon
+  Calendar as CalendarIcon,
+  Menu,
+  X
 } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -28,6 +30,22 @@ const OriginationLoansLayout = () => {
   const [showBackModal, setShowBackModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    setIsMobileSidebarOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (isMobileSidebarOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobileSidebarOpen]);
 
   const isFormPage = location.pathname === '/employee/loans/form' || location.pathname.startsWith('/employee/loans/form/');
 
@@ -36,8 +54,7 @@ const OriginationLoansLayout = () => {
     '/employee/loans/view-application',
     '/employee/loans/origination/leads/add',
     '/employee/loans/origination/leads/details',
-    '/employee/loans/origination/members/details',
-    '/employee/loans/origination/activities'
+    '/employee/loans/origination/members/details'
   ];
   const shouldHideBottomNav = hideBottomNavPatterns.some((pattern) =>
     typeof pattern === 'string'
@@ -347,7 +364,7 @@ const OriginationLoansLayout = () => {
           </div>
 
           {/* Mobile Bottom Navigation (Google Material 3 Floating Pill Dock) */}
-          {!shouldHideBottomNav && (
+          {!shouldHideBottomNav && !isMobileSidebarOpen && (
             <div
               className="mobile-bottom-nav md:hidden fixed bottom-4 left-4 right-4 z-50 select-none"
               onTouchMove={handleTouchMove}
@@ -369,11 +386,10 @@ const OriginationLoansLayout = () => {
                   { label: 'Dashboard', icon: Activity, path: '/employee/loans/origination' },
                   { label: 'Leads', icon: TrendingUp, path: '/employee/loans/origination/leads' },
                   { label: 'Members', icon: Users, path: '/employee/loans/origination/members' },
-                  { label: 'Applications', icon: Briefcase, path: '/employee/loans/origination/applications' }
                 ].map((item) => {
                   const currentPath = swipePath || location.pathname;
                   const isDashboard = item.path === '/employee/loans/origination';
-                  const isOtherTab = ['/employee/loans/origination/leads', '/employee/loans/origination/members', '/employee/loans/origination/applications'].some(p => currentPath.startsWith(p));
+                  const isOtherTab = ['/employee/loans/origination/leads', '/employee/loans/origination/members', '/employee/loans/origination/applications', '/employee/loans/origination/activities'].some(p => currentPath.startsWith(p));
                   const isActive = isDashboard 
                     ? (currentPath === '/employee/loans/origination' || !isOtherTab) 
                     : (currentPath === item.path || (!swipePath && currentPath.startsWith(item.path)));
@@ -399,11 +415,162 @@ const OriginationLoansLayout = () => {
                     </Link>
                   );
                 })}
+
+                {/* More Button (Opens Mobile Left Sidebar Drawer) */}
+                <button
+                  type="button"
+                  onClick={() => setIsMobileSidebarOpen(true)}
+                  className="relative flex flex-col items-center justify-center flex-1 h-[52px] z-10 group cursor-pointer active:scale-95 transition-transform duration-100"
+                >
+                  <Menu className="relative z-10 w-5 h-5 mb-0.5 text-[#5f6368]" />
+                  <span className="relative z-10 text-[10px] font-semibold tracking-wide text-[#5f6368]">More</span>
+                </button>
               </div>
             </div>
           )}
 
         </main>
+
+        {/* Mobile Left Slide-Over Sidebar Drawer (createPortal) */}
+        {isMobileSidebarOpen && typeof document !== 'undefined' && createPortal(
+          <div className="fixed inset-0 z-[99999] md:hidden">
+            {/* Dark Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobileSidebarOpen(false)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-xs"
+            />
+
+            {/* Left Slide-Over Drawer Panel */}
+            <motion.div
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 240 }}
+              className="fixed inset-y-0 left-0 w-[290px] sm:w-[320px] bg-white z-10 shadow-2xl flex flex-col justify-between border-r border-[#e0e3e7] overflow-hidden"
+            >
+              {/* Top Accent Line */}
+              <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
+
+              {/* Drawer Top Header & Navigation */}
+              <div className="flex-1 overflow-y-auto pt-4 px-4 space-y-4">
+                {/* Brand & Close Button */}
+                <div className="flex items-center justify-between pb-3 border-b border-[#f1f3f4]">
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-lg font-bold tracking-tight text-[#1f1f1f]">Acme</span>
+                      <span className="text-lg font-semibold tracking-tight text-[#4285F4]">Loans</span>
+                    </div>
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+                      <span className="text-[10px] font-medium text-[#5f6368] ml-1">Loan Origination Hub</span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsMobileSidebarOpen(false)}
+                    className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {/* Profile Pill */}
+                <div className="flex items-center gap-3 p-2.5 bg-[#f8fafd] rounded-2xl border border-[#e0e3e7]">
+                  <div className="w-9 h-9 rounded-full bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] flex items-center justify-center font-bold text-xs overflow-hidden shrink-0">
+                    {profile?.avatar ? (
+                      <img src={profile.avatar} alt="Profile" className="h-full w-full object-cover" />
+                    ) : (
+                      (profile?.firstName || profile?.email || 'E').charAt(0).toUpperCase()
+                    )}
+                  </div>
+                  <div className="overflow-hidden">
+                    <p className="text-xs font-bold text-[#1f1f1f] truncate">
+                      {profile?.firstName ? `${profile.firstName} ${profile?.lastName || ''}` : (profile?.email?.split('@')[0] || 'Employee')}
+                    </p>
+                    <p className="text-[10px] text-[#5f6368] truncate capitalize">{profile?.role || 'Loan Officer'}</p>
+                  </div>
+                </div>
+
+                {/* Module Links */}
+                <div>
+                  <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider mb-2 px-2">
+                    Loan Modules &amp; Activities
+                  </p>
+                  <nav className="space-y-1">
+                    {[
+                      { icon: <Activity size={17} />, label: 'Dashboard', path: '/employee/loans/origination' },
+                      { icon: <CalendarIcon size={17} />, label: 'Activities', path: '/employee/loans/origination/activities' },
+                      { icon: <TrendingUp size={17} />, label: 'Leads', path: '/employee/loans/origination/leads' },
+                      { icon: <Users size={17} />, label: 'Members', path: '/employee/loans/origination/members', activePaths: ['/employee/loans/form'] },
+                      { icon: <Briefcase size={17} />, label: 'Applications', path: '/employee/loans/origination/applications', activePaths: ['/employee/loans/view-application'] },
+                    ].map((item, idx) => {
+                      const isViewApplicationPage = location.pathname === '/employee/loans/view-application' || location.pathname.startsWith('/employee/loans/view-application/');
+                      let isActive = false;
+                      if (isViewApplicationPage && item.label === 'Applications') {
+                        isActive = true;
+                      } else if (item.path === '/employee/loans/origination') {
+                        isActive = location.pathname === item.path;
+                      } else {
+                        isActive = location.pathname === item.path || location.pathname.startsWith(`${item.path}/`) || (item.activePaths && item.activePaths.some(p => location.pathname.startsWith(p)));
+                      }
+
+                      return (
+                        <Link
+                          key={idx}
+                          to={item.path}
+                          onClick={() => setIsMobileSidebarOpen(false)}
+                          className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs transition-all ${
+                            isActive
+                              ? 'bg-[#c2e7ff]/70 text-[#001d35] font-bold shadow-xs'
+                              : 'text-[#444746] hover:bg-[#f1f3f4] hover:text-[#1f1f1f] font-medium'
+                          }`}
+                        >
+                          <span className={`shrink-0 ${isActive ? 'text-[#1a73e8]' : 'text-[#5f6368]'}`}>{item.icon}</span>
+                          <span className="flex-1 truncate text-xs">{item.label}</span>
+                        </Link>
+                      );
+                    })}
+                  </nav>
+                </div>
+              </div>
+
+              {/* Drawer Bottom Actions */}
+              <div className="p-4 border-t border-[#f1f3f4] space-y-2 bg-white">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMobileSidebarOpen(false);
+                    setShowBackModal(true);
+                  }}
+                  className="w-full flex items-center gap-2.5 px-4 py-2.5 rounded-full text-xs font-semibold text-[#1f1f1f] bg-[#f8fafd] border border-[#e0e3e7] hover:bg-[#f1f3f4] transition-all cursor-pointer shadow-2xs"
+                >
+                  <ArrowLeft size={16} className="text-[#5f6368]" />
+                  <span>Back to HRMS Dashboard</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMobileSidebarOpen(false);
+                    setShowLogoutModal(true);
+                  }}
+                  className="w-full flex items-center gap-2.5 px-4 py-2.5 rounded-full text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition-all cursor-pointer shadow-2xs"
+                >
+                  <LogOut size={16} className="text-rose-600" />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            </motion.div>
+          </div>,
+          document.body
+        )}
 
         {/* Back to HRMS Confirmation Modal */}
         {showBackModal && createPortal(

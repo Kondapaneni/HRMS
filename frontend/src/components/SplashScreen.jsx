@@ -210,33 +210,11 @@ const SplashScreen = () => {
           
           <div className="flex flex-col items-center w-full space-y-4">
             
-            {/* Status with animated 4-Color Jumping Dots */}
-            <div className="flex items-center space-x-2">
-              <p className="text-xs sm:text-sm font-semibold text-[#5f6368] tracking-wide">
-                Loading Workspace
+            {/* Status Loading Text */}
+            <div className="flex items-center space-x-1.5">
+              <p className="text-xs sm:text-sm font-semibold text-[#5f6368] tracking-wide animate-pulse">
+                Loading Workspace...
               </p>
-              <div className="flex space-x-1 mt-0.5">
-                <motion.div 
-                  className="w-1.5 h-1.5 bg-[#4285F4] rounded-full"
-                  animate={{ y: [0, -4, 0], opacity: [0.4, 1, 0.4] }}
-                  transition={{ duration: 0.8, repeat: Infinity, delay: 0 }}
-                />
-                <motion.div 
-                  className="w-1.5 h-1.5 bg-[#EA4335] rounded-full"
-                  animate={{ y: [0, -4, 0], opacity: [0.4, 1, 0.4] }}
-                  transition={{ duration: 0.8, repeat: Infinity, delay: 0.15 }}
-                />
-                <motion.div 
-                  className="w-1.5 h-1.5 bg-[#FBBC05] rounded-full"
-                  animate={{ y: [0, -4, 0], opacity: [0.4, 1, 0.4] }}
-                  transition={{ duration: 0.8, repeat: Infinity, delay: 0.3 }}
-                />
-                <motion.div 
-                  className="w-1.5 h-1.5 bg-[#34A853] rounded-full"
-                  animate={{ y: [0, -4, 0], opacity: [0.4, 1, 0.4] }}
-                  transition={{ duration: 0.8, repeat: Infinity, delay: 0.45 }}
-                />
-              </div>
             </div>
             
             {/* Google 4-Color Gradient Progress Bar */}
