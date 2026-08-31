@@ -369,7 +369,7 @@ const OriginationMobileActivities = () => {
     <div className="space-y-4 pb-14">
 
       {/* 1. Hero Section with Animated Motion Graphics (Themed for Loans vs Sales) */}
-      <section className="mx-0 mt-0 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900 rounded-b-3xl">
+      <section className="-mx-4 -mt-4 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900">
         {/* Animated Liquid Orbs with Dynamic Module Colors */}
         <motion.div
           animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
