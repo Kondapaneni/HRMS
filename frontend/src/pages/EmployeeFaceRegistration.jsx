@@ -183,12 +183,12 @@ const EmployeeFaceRegistration = () => {
       </div>
 
       {/* Main Material 3 Card Container */}
-      <div className="flex-1 flex items-center justify-center p-2.5 sm:p-4 md:p-6 md:pb-12 relative z-10">
+      <div className="flex-1 flex items-center justify-center p-2.5 sm:p-4 md:p-6 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 10, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.35, ease: [0.2, 0, 0, 1] }}
-          className="w-full max-w-[960px] bg-white rounded-[24px] p-4 sm:p-7 md:p-8 border border-[#e0e3e7] shadow-[0_4px_24px_rgba(66,133,244,0.08),0_1px_3px_rgba(0,0,0,0.05)] md:grid md:grid-cols-2 md:gap-8 items-center relative overflow-hidden my-auto md:-translate-y-6 lg:-translate-y-8"
+          className="w-full max-w-[980px] bg-white rounded-[24px] p-4 sm:p-8 md:p-9 border border-[#e0e3e7] shadow-[0_4px_24px_rgba(66,133,244,0.08),0_1px_3px_rgba(0,0,0,0.05)] md:grid md:grid-cols-2 md:gap-10 items-center relative overflow-hidden my-auto"
         >
           {/* Top 4-Color Google Accent Line */}
           <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
