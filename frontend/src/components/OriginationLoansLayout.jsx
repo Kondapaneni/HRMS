@@ -384,12 +384,12 @@ const OriginationLoansLayout = () => {
 
                 {[
                   { label: 'Dashboard', icon: Activity, path: '/employee/loans/origination' },
+                  { label: 'Activities', icon: CalendarIcon, path: '/employee/loans/origination/activities' },
                   { label: 'Leads', icon: TrendingUp, path: '/employee/loans/origination/leads' },
-                  { label: 'Members', icon: Users, path: '/employee/loans/origination/members' },
                 ].map((item) => {
                   const currentPath = swipePath || location.pathname;
                   const isDashboard = item.path === '/employee/loans/origination';
-                  const isOtherTab = ['/employee/loans/origination/leads', '/employee/loans/origination/members', '/employee/loans/origination/applications', '/employee/loans/origination/activities'].some(p => currentPath.startsWith(p));
+                  const isOtherTab = ['/employee/loans/origination/activities', '/employee/loans/origination/leads', '/employee/loans/origination/members', '/employee/loans/origination/applications'].some(p => currentPath.startsWith(p));
                   const isActive = isDashboard 
                     ? (currentPath === '/employee/loans/origination' || !isOtherTab) 
                     : (currentPath === item.path || (!swipePath && currentPath.startsWith(item.path)));
