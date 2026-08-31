@@ -22,8 +22,7 @@ import {
   SlidersHorizontal,
   RefreshCw,
   Loader2,
-  Calendar,
-  ListTodo
+  Calendar
 } from 'lucide-react';
 import { format, parseISO, isToday, isTomorrow, isPast, isFuture, startOfDay } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -37,19 +36,6 @@ const OriginationMobileActivities = () => {
   const { profile } = useAuth();
   const location = useLocation();
   const queryClient = useQueryClient();
-  const [currentTime, setCurrentTime] = useState(new Date());
-
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const getGreeting = () => {
-    const hour = currentTime.getHours();
-    if (hour < 12) return 'Good Morning';
-    if (hour < 18) return 'Good Afternoon';
-    return 'Good Evening';
-  };
 
   // Detect workspace context
   const isBranchOperations = location.pathname.startsWith('/employee/branch-operations');
@@ -194,56 +180,121 @@ const OriginationMobileActivities = () => {
       );
     }
 
-    // Sort by start date & time
-    return [...result].sort((a, b) => {
-      const dateA = `${a.startDate}T${a.startTime || '00:00'}`;
-      const dateB = `${b.startDate}T${b.startTime || '00:00'}`;
-      return dateB.localeCompare(dateA);
-    });
+    return result;
   }, [rawEvents, selectedStatusFilter, searchTerm]);
+
+  // Format Helpers
+  const formatEventTime = (evt) => {
+    if (evt.startTime && evt.endTime) {
+      return `${evt.startTime} – ${evt.endTime}`;
+    }
+    return evt.startTime || 'All Day';
+  };
+
+  const formatEventDate = (evt) => {
+    try {
+      const parsed = parseISO(evt.startDate);
+      if (isToday(parsed)) return 'Today';
+      if (isTomorrow(parsed)) return 'Tomorrow';
+      return format(parsed, 'MMM d, yyyy');
+    } catch {
+      return evt.startDate;
+    }
+  };
+
+  // Section Grouping with Line Separators
+  const sections = useMemo(() => {
+    const todayStart = startOfDay(new Date());
+
+    const todayItems = [];
+    const upcomingItems = [];
+    const completedItems = [];
+
+    filteredEvents.forEach((evt) => {
+      if (evt.status === 'Completed') {
+        completedItems.push(evt);
+        return;
+      }
+
+      try {
+        const itemDate = parseISO(evt.startDate);
+        if (isToday(itemDate)) {
+          todayItems.push(evt);
+        } else if (itemDate > todayStart) {
+          upcomingItems.push(evt);
+        } else {
+          todayItems.push(evt);
+        }
+      } catch {
+        todayItems.push(evt);
+      }
+    });
+
+    const result = [];
+
+    if (todayItems.length > 0) {
+      result.push({
+        id: 'today',
+        title: "Today's Schedule",
+        dotColor: '#1a73e8',
+        badge: `${todayItems.length} Today`,
+        badgeStyle: 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc]',
+        items: todayItems,
+      });
+    }
+
+    if (upcomingItems.length > 0) {
+      result.push({
+        id: 'upcoming',
+        title: 'Upcoming Activities',
+        dotColor: '#f29900',
+        badge: `${upcomingItems.length} Upcoming`,
+        badgeStyle: 'bg-[#fef7e0] text-[#b06000] border-[#feefc3]',
+        items: upcomingItems,
+      });
+    }
+
+    if (completedItems.length > 0) {
+      result.push({
+        id: 'completed',
+        title: 'Completed Activities',
+        dotColor: '#1e8e3e',
+        badge: `${completedItems.length} Done`,
+        badgeStyle: 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]',
+        items: completedItems,
+      });
+    }
+
+    return result;
+  }, [filteredEvents]);
 
   const getPriorityBadge = (priority) => {
     switch (priority) {
       case 'Urgent':
         return (
-          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11.5px] font-bold bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf] shrink-0 shadow-2xs">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf] shrink-0">
             Urgent
           </span>
         );
       case 'High':
         return (
-          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11.5px] font-bold bg-[#fef7e0] text-[#b06000] border border-[#feefc3] shrink-0 shadow-2xs">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#fef7e0] text-[#b06000] border border-[#feefc3] shrink-0">
             High
           </span>
         );
       case 'Low':
         return (
-          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11.5px] font-semibold bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0] shrink-0 shadow-2xs">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0] shrink-0">
             Low
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11.5px] font-semibold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] shrink-0 shadow-2xs">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] shrink-0">
             Medium
           </span>
         );
     }
-  };
-
-  const getStatusBadge = (status) => {
-    if (status === 'Completed') {
-      return (
-        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11.5px] font-bold bg-[#e6f4ea] text-[#137333] border border-[#ceead6] shrink-0 shadow-2xs">
-          <CheckCircle2 size={13} /> Completed
-        </span>
-      );
-    }
-    return (
-      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11.5px] font-bold bg-[#fef7e0] text-[#b06000] border border-[#feefc3] shrink-0 shadow-2xs">
-        <Clock size={13} /> Scheduled
-      </span>
-    );
   };
 
   const handleCardClick = (event) => {
@@ -259,7 +310,7 @@ const OriginationMobileActivities = () => {
   return (
     <div className="space-y-4 pb-14">
 
-      {/* 1. Hero Section with Animated Motion Graphics (Exact Match to Dashboard & Leads) */}
+      {/* 1. Hero Section with Animated Motion Graphics */}
       <section className="-mx-4 -mt-4 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900">
         {/* Animated Liquid Orbs */}
         <motion.div
@@ -350,8 +401,8 @@ const OriginationMobileActivities = () => {
           ))}
         </div>
 
-        {/* Activity Card List */}
-        <div className="space-y-3">
+        {/* Sectional Groups with Line Separators & Cards */}
+        <div className="space-y-6 pt-1">
           {error ? (
             <div className="bg-[#fce8e6] text-[#c5221f] p-4 rounded-2xl text-center border border-[#fad2cf] text-xs">
               Failed to load activities. Please refresh or try again.
@@ -360,7 +411,7 @@ const OriginationMobileActivities = () => {
             <div className="flex justify-center items-center py-16">
               <Loader2 className="animate-spin h-7 w-7 text-[#1a73e8]" />
             </div>
-          ) : filteredEvents.length === 0 ? (
+          ) : sections.length === 0 ? (
             <div className="bg-white rounded-3xl border border-[#e0e3e7] p-8 text-center space-y-2 shadow-xs">
               <div className="w-12 h-12 rounded-full bg-[#f8fafd] border border-[#e0e3e7] flex items-center justify-center mx-auto text-[#80868b]">
                 <CalendarDays size={20} />
@@ -387,85 +438,100 @@ const OriginationMobileActivities = () => {
               )}
             </div>
           ) : (
-            filteredEvents.map((act) => {
-              const isCompleted = act.status === 'Completed';
-              let formattedDate = act.startDate;
-              try {
-                const parsed = parseISO(act.startDate);
-                if (isToday(parsed)) formattedDate = 'Today';
-                else if (isTomorrow(parsed)) formattedDate = 'Tomorrow';
-                else formattedDate = format(parsed, 'dd MMM yyyy');
-              } catch {
-                formattedDate = act.startDate;
-              }
-
-              return (
-                <div 
-                  key={act.id} 
-                  onClick={() => handleCardClick(act)}
-                  className="bg-white rounded-2xl border border-[#e0e3e7] hover:border-[#dadce0] p-4 shadow-xs transition-all active:scale-[0.99] active:bg-[#f8fafd] cursor-pointer space-y-2.5 group"
-                >
-                  {/* Top Row: Checkbox/Icon, Title & Priority/Status */}
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-3 min-w-0">
-                      {/* Checkbox Status Action */}
-                      <button
-                        type="button"
-                        onClick={(e) => handleToggleStatus(e, act)}
-                        className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs shrink-0 border transition-all cursor-pointer ${
-                          isCompleted
-                            ? 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]'
-                            : 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc] hover:bg-[#d2e3fc]'
-                        }`}
-                        title={isCompleted ? 'Mark as Scheduled' : 'Mark as Completed'}
-                      >
-                        {isCompleted ? <Check size={18} strokeWidth={2.5} /> : <CalendarIcon size={18} />}
-                      </button>
-
-                      <div className="min-w-0 space-y-0.5">
-                        <h3 className={`font-bold text-sm truncate group-hover:text-[#1a73e8] transition-colors ${
-                          isCompleted ? 'line-through text-[#5f6368]' : 'text-[#1f1f1f]'
-                        }`}>
-                          {act.title}
-                        </h3>
-                        {act.notes && (
-                          <p className="text-[11px] text-[#5f6368] line-clamp-1">
-                            {act.notes}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="shrink-0 flex items-center gap-1.5">
-                      {getPriorityBadge(act.priority)}
-                    </div>
+            sections.map((section) => (
+              <div key={section.id} className="space-y-3">
+                
+                {/* Line Separator Header */}
+                <div className="flex items-center justify-between pb-2 border-b border-[#dadce0]/80">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: section.dotColor }} />
+                    <h3 className="text-sm font-bold text-[#1f1f1f]">
+                      {section.title}
+                    </h3>
                   </div>
-
-                  {/* Middle/Bottom Row: Address & Date Details */}
-                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#f1f3f4] text-[11px] text-[#5f6368]">
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      {act.address ? (
-                        <>
-                          <MapPin size={11} className="text-rose-500 shrink-0" />
-                          <span className="truncate">{act.address}</span>
-                        </>
-                      ) : (
-                        <>
-                          <Clock size={11} className="text-[#1a73e8] shrink-0" />
-                          <span>{act.startTime || 'Time Not Set'}</span>
-                        </>
-                      )}
-                    </div>
-
-                    <div className="flex items-center justify-end gap-1.5 text-right min-w-0">
-                      <Calendar size={11} className="text-[#80868b] shrink-0" />
-                      <span className="font-semibold text-[#1f1f1f]">{formattedDate}</span>
-                      {act.startTime && <span className="text-[#5f6368]">&bull; {act.startTime}</span>}
-                    </div>
-                  </div>
+                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${section.badgeStyle}`}>
+                    {section.badge}
+                  </span>
                 </div>
-              );
-            })
+
+                {/* Cards List in this Section */}
+                <div className="space-y-3">
+                  {section.items.map((act) => {
+                    const isCompleted = act.status === 'Completed';
+
+                    return (
+                      <div 
+                        key={act.id} 
+                        onClick={() => handleCardClick(act)}
+                        className={`bg-white rounded-2xl border transition-all p-3.5 sm:p-4 cursor-pointer shadow-xs active:bg-[#f8fafd] space-y-2.5 group ${
+                          isCompleted
+                            ? 'border-[#e0e3e7] opacity-80'
+                            : 'border-[#d2e3fc]/80 hover:border-[#1a73e8]'
+                        }`}
+                      >
+                        {/* Top Row: Checkbox + Title & Priority */}
+                        <div className="flex items-start gap-3">
+                          {/* 1-Click Complete Button */}
+                          <button
+                            type="button"
+                            onClick={(e) => handleToggleStatus(e, act)}
+                            className="mt-0.5 text-[#5f6368] hover:text-[#1a73e8] transition-colors shrink-0 cursor-pointer"
+                            title={isCompleted ? 'Mark Pending' : 'Mark Completed'}
+                          >
+                            {isCompleted ? (
+                              <CheckCircle2 size={20} className="text-[#137333] fill-[#e6f4ea]" />
+                            ) : (
+                              <Circle size={20} className="text-[#5f6368] hover:text-[#1a73e8] hover:scale-110 transition-transform" />
+                            )}
+                          </button>
+
+                          {/* Content Details */}
+                          <div className="space-y-1.5 flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h4 className={`text-sm font-bold text-[#1a73e8] truncate group-hover:text-[#1557b0] transition-colors ${
+                                isCompleted ? 'line-through text-[#80868b]' : ''
+                              }`}>
+                                {act.title}
+                              </h4>
+                              {act.priority && getPriorityBadge(act.priority)}
+
+                              {isBranchOperations && act.assignedToName && (
+                                <span className="inline-flex items-center gap-1 text-[10.5px] font-medium px-2 py-0.5 rounded-full border bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc]">
+                                  <User size={11} className="text-[#1a73e8]" />
+                                  <span>{act.assignedToName}</span>
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Meta: Time, Date, Location */}
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#5f6368]">
+                              <span className="flex items-center gap-1 font-medium text-[#1f1f1f]">
+                                <Clock size={13} className="text-[#1a73e8]" />
+                                {formatEventTime(act)} &bull; {formatEventDate(act)}
+                              </span>
+
+                              {act.address && (
+                                <span className="flex items-center gap-1 truncate max-w-xs">
+                                  <MapPin size={13} className="text-[#ea4335] shrink-0" />
+                                  <span className="truncate">{act.address}</span>
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Optional Notes snippet inside light bubble */}
+                            {act.notes && (
+                              <p className="text-xs text-[#5f6368] line-clamp-2 italic bg-[#f8fafd] px-3 py-1.5 rounded-xl border border-[#e0e3e7]/60">
+                                "{act.notes}"
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))
           )}
         </div>
 
