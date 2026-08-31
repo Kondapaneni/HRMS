@@ -6,18 +6,17 @@ import { Camera, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useQueryClient } from '@tanstack/react-query';
 
 const EmployeeFaceRegistration = () => {
-  const { user, signOut } = useAuth();
+  const { user, profile, fetchProfile } = useAuth();
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [isScanning, setIsScanning] = useState(false);
-  const [status, setStatus] = useState('idle'); // idle, scanning, success, error
+  const [status, setStatus] = useState('idle'); // idle, processing, success, error
 
-  const handleBackToLogin = async () => {
-    if (signOut) {
-      await signOut();
-    }
-    navigate('/');
+  const handleBack = () => {
+    navigate('/employee/profile');
   };
 
   const handleFaceDetected = async (descriptor) => {
@@ -32,15 +31,20 @@ const EmployeeFaceRegistration = () => {
         faceDescriptor: vectorString
       });
 
+      if (fetchProfile) {
+        await fetchProfile();
+      }
+      queryClient.invalidateQueries({ queryKey: ['employee', 'profile'] });
+
       setStatus('success');
       toast.success('Face registered successfully!');
       
-      setTimeout(() => navigate('/employee'), 2000);
+      setTimeout(() => navigate('/employee/profile'), 1500);
       
     } catch (err) {
       console.error(err);
       setStatus('error');
-      toast.error('Failed to save face data.');
+      toast.error(err.response?.data?.error || 'Failed to save face data.');
     }
   };
 
@@ -82,16 +86,16 @@ const EmployeeFaceRegistration = () => {
 
           <button
             type="button"
-            onClick={handleBackToLogin}
+            onClick={handleBack}
             className="inline-flex items-center gap-2 text-slate-500 hover:text-[#1E1B4B] font-bold mb-4 transition-colors cursor-pointer"
           >
             <ArrowLeft size={18} strokeWidth={3} />
-            Back to Login
+            Back to Profile
           </button>
 
           <div className="mb-8 text-center mt-2">
             <h2 className="text-3xl font-black text-[#1E1B4B] mb-2 tracking-tight leading-tight">Biometric<br/>Registration</h2>
-            <p className="text-[#4F46E5] font-black text-sm">Register your face for lightning-fast logins.</p>
+            <p className="text-[#4F46E5] font-black text-sm">Register your face for fast login &amp; attendance.</p>
           </div>
 
           <div className="bg-blue-50 border-[2px] border-blue-200 rounded-xl p-4 mb-8 flex gap-3 text-blue-800 shadow-[4px_4px_0px_#BFDBFE]">
@@ -105,14 +109,14 @@ const EmployeeFaceRegistration = () => {
             <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }} className="flex flex-col items-center justify-center py-8 text-[#10B981]">
               <CheckCircle size={80} className="mb-4 drop-shadow-md" strokeWidth={2.5} />
               <h3 className="text-xl font-black text-[#1E1B4B]">Registration Complete</h3>
-              <p className="text-slate-500 mt-2 font-bold text-sm">Redirecting to dashboard...</p>
+              <p className="text-slate-500 mt-2 font-bold text-sm">Redirecting to profile...</p>
             </motion.div>
           ) : (
             <div className="flex flex-col items-center">
               {!isScanning ? (
                 <button
                   onClick={() => setIsScanning(true)}
-                  className="w-full bg-[#10B981] text-white py-4 rounded-xl font-black text-xl flex items-center justify-center gap-2 border-[3px] border-[#1E1B4B] shadow-[8px_8px_0px_#1E1B4B] active:shadow-[0px_0px_0px_#1E1B4B] active:translate-x-[8px] active:translate-y-[8px] transition-all"
+                  className="w-full bg-[#10B981] text-white py-4 rounded-xl font-black text-xl flex items-center justify-center gap-2 border-[3px] border-[#1E1B4B] shadow-[8px_8px_0px_#1E1B4B] active:shadow-[0px_0px_0px_#1E1B4B] active:translate-x-[8px] active:translate-y-[8px] transition-all cursor-pointer"
                 >
                   Start Scanning
                   <Camera size={24} strokeWidth={3} className="ml-1" />

@@ -49,9 +49,6 @@ const Login = () => {
     if (profile.role === 'candidate') {
       return <Navigate to="/candidate/dashboard" replace />;
     }
-    if (profile.role === 'employee' && !profile.isFaceRegistered) {
-      return <Navigate to="/employee/face-registration" replace />;
-    }
     return <Navigate to={ADMIN_ROLES.includes(profile.role) ? '/admin' : '/employee'} replace />;
   }
 
@@ -76,11 +73,7 @@ const Login = () => {
       } else if (ADMIN_ROLES.includes(userData.role)) {
         navigate('/admin');
       } else if (userData.role === 'employee') {
-        if (!userData.isFaceRegistered) {
-          navigate('/employee/face-registration');
-        } else {
-          navigate('/employee');
-        }
+        navigate('/employee');
       } else if (userData.role === 'candidate') {
         if (signOut) await signOut();
         throw new Error('Please use the Candidate Portal to sign in.');

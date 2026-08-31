@@ -4,7 +4,7 @@ import {
   User, Mail, Phone, MapPin, Briefcase, CalendarDays, Building2,
   Shield, CreditCard, Heart, HeartHandshake, Globe, Clock3, Laptop,
   Calendar, Clock, UserCheck, Users, Search, Edit3, ChevronDown, ChevronUp, Camera,
-  Sparkles, CheckCircle2, History, Award, AlertCircle
+  Sparkles, CheckCircle2, History, Award, AlertCircle, ScanFace, Trash2, Fingerprint, RefreshCw
 } from 'lucide-react';
 import { Tree, TreeNode } from 'react-organizational-chart';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
@@ -22,6 +22,8 @@ const EmployeeProfile = () => {
   const { fetchProfile } = useAuth();
   const [activeTab, setActiveTab] = useState('personal');
   const [isUploading, setIsUploading] = useState(false);
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
 
   const { data: profileResponse, isLoading: loading } = useQuery({
     queryKey: ['employee', 'profile'],
@@ -40,8 +42,26 @@ const EmployeeProfile = () => {
     firstName = '', lastName = '', email = '', phone = '', address = '', position = '', department = '', branch = '', branch_name = '',
     employeeId = '', dateOfBirth = '', bloodGroup = '', gender = '', maritalStatus = '', nationality = '',
     joinDate = '', workEmail = '', panNumber = '', employmentType = '', noticePeriod = '', shiftTime = '',
-    workMode = '', weekOff = '', emergencyContact = '', emergencyPhone = '', avatar = '', timeline = ''
+    workMode = '', weekOff = '', emergencyContact = '', emergencyPhone = '', avatar = '', timeline = '',
+    isFaceRegistered = false, biometricsUpdatedAt = null
   } = profileData || {};
+
+  const handleRemoveBiometrics = async () => {
+    try {
+      setIsResetting(true);
+      await api.delete('/employee/biometrics/face');
+      toast.success('Biometric data removed successfully');
+      setIsResetModalOpen(false);
+      queryClient.invalidateQueries({ queryKey: ['employee', 'profile'] });
+      if (fetchProfile) {
+        await fetchProfile();
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to remove biometric data');
+    } finally {
+      setIsResetting(false);
+    }
+  };
 
   const fullName = `${firstName || ''} ${lastName || ''}`.trim() || 'Employee Profile';
   const initials = `${firstName?.charAt(0) || ''}${lastName?.charAt(0) || ''}`.toUpperCase() || 'U';
@@ -373,7 +393,30 @@ const EmployeeProfile = () => {
           </div>
 
           <div className="flex items-center gap-3">
+            {isFaceRegistered ? (
+              <button 
+                type="button"
+                onClick={() => setIsResetModalOpen(true)}
+                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-xs font-semibold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition-all shadow-xs cursor-pointer"
+                title="Remove registered biometric face data"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Remove Biometrics</span>
+              </button>
+            ) : (
+              <button 
+                type="button"
+                onClick={() => navigate('/employee/face-registration')}
+                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-xs font-semibold bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition-all shadow-xs cursor-pointer"
+                title="Set up face recognition for quick login and attendance"
+              >
+                <ScanFace className="w-3.5 h-3.5" />
+                <span>Register Face</span>
+              </button>
+            )}
+
             <button 
+              type="button"
               onClick={() => navigate('/employee/profile/edit')}
               className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white transition-all shadow-xs cursor-pointer"
             >
@@ -434,6 +477,15 @@ const EmployeeProfile = () => {
                 <span className="inline-flex items-center rounded-full bg-[#fef7e0] text-[#b06000] border border-[#feefc3] px-3 py-0.5 text-xs font-semibold capitalize">
                   {formatEnum(employmentType) || 'Full Time'}
                 </span>
+                {isFaceRegistered ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[#e6f4ea] text-[#137333] border border-[#ceead6] px-3 py-0.5 text-xs font-semibold">
+                    <CheckCircle2 className="w-3 h-3" /> Face Biometrics Active
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0] px-3 py-0.5 text-xs font-semibold">
+                    <AlertCircle className="w-3 h-3" /> Biometrics Not Configured
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -547,6 +599,63 @@ const EmployeeProfile = () => {
                   <div>
                     <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Permanent Address</p>
                     <p className="text-xs font-semibold text-[#1f1f1f] mt-0.5">{address || 'Not set'}</p>
+                  </div>
+                </div>
+
+                {/* Facial Biometrics & Security Section */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7] sm:col-span-2 lg:col-span-3">
+                  <div className="flex items-start gap-3">
+                    <div className={`p-2.5 rounded-xl ${isFaceRegistered ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
+                      <ScanFace className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-xs font-bold text-[#1f1f1f] uppercase tracking-wider">Facial Biometrics &amp; Security</h4>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                          isFaceRegistered ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-700'
+                        }`}>
+                          {isFaceRegistered ? 'Registered & Active' : 'Not Configured'}
+                        </span>
+                      </div>
+                      <p className="text-xs text-[#5f6368] mt-1">
+                        {isFaceRegistered 
+                          ? `Your facial biometric descriptor is registered for quick face login and terminal attendance verification.${biometricsUpdatedAt ? ` (Updated: ${formatDate(biometricsUpdatedAt)})` : ''}`
+                          : 'Register your face to enable instant 1-click camera login and biometric attendance verification.'
+                        }
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    {isFaceRegistered ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => navigate('/employee/face-registration')}
+                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white border border-[#dadce0] text-[#1f1f1f] hover:bg-[#f1f3f4] transition-all cursor-pointer shadow-2xs"
+                        >
+                          <Camera className="w-3.5 h-3.5 text-[#1a73e8]" />
+                          <span>Re-scan Face</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setIsResetModalOpen(true)}
+                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 transition-all cursor-pointer shadow-2xs"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                          <span>Remove</span>
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => navigate('/employee/face-registration')}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white transition-all cursor-pointer shadow-xs"
+                      >
+                        <ScanFace className="w-3.5 h-3.5" />
+                        <span>Register Face Biometrics</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -847,6 +956,54 @@ const EmployeeProfile = () => {
         </div>
 
       </div>
+
+      {/* Remove / Reset Biometrics Confirmation Modal */}
+      {isResetModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl border border-[#dadce0] shadow-xl max-w-md w-full p-6 space-y-5 animate-in zoom-in-95 duration-200">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                <AlertCircle className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-[#1f1f1f]">Remove Biometric Data?</h3>
+                <p className="text-xs text-[#5f6368] mt-1 leading-relaxed">
+                  This will permanently delete your registered facial biometric descriptor. You will not be able to use Face Login or Camera Attendance until you register again.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsResetModalOpen(false)}
+                disabled={isResetting}
+                className="px-4 py-2 text-xs font-semibold text-[#5f6368] hover:bg-[#f1f3f4] rounded-full transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleRemoveBiometrics}
+                disabled={isResetting}
+                className="inline-flex items-center gap-2 px-5 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-full transition-all shadow-xs cursor-pointer disabled:opacity-50"
+              >
+                {isResetting ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Removing...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Yes, Remove Biometrics</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
