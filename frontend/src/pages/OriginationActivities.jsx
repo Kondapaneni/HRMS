@@ -19,6 +19,7 @@ import { format, parseISO, isToday, isTomorrow, startOfDay } from 'date-fns';
 import api from '../api/axios';
 import ActivitySidebar from '../components/calendar/ActivitySidebar';
 import EventDetailsSidebar from '../components/calendar/EventDetailsSidebar';
+import OriginationMobileActivities from './OriginationMobileActivities';
 
 const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme = 'blue' }) => {
   const themeClasses = {
@@ -429,9 +430,16 @@ const OriginationActivities = () => {
   };
 
   return (
-    <div className="space-y-6 pb-12 select-none">
-      
-      {/* Header Bar */}
+    <>
+      {/* Mobile Activities Render */}
+      <div className="md:hidden">
+        <OriginationMobileActivities />
+      </div>
+
+      {/* Web Desktop View */}
+      <div className="hidden md:block space-y-6 pb-12 select-none">
+        
+        {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-1.5 mb-1">
@@ -710,7 +718,8 @@ const OriginationActivities = () => {
         assignableEmployees={isBranchOperations ? assignableEmployees : []}
       />
 
-    </div>
+      </div>
+    </>
   );
 };
 
