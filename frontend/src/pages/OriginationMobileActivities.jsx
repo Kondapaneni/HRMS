@@ -331,6 +331,28 @@ const OriginationMobileActivities = () => {
     return result;
   }, [filteredEvents, theme]);
 
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'Completed':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold bg-[#e6f4ea] text-[#137333] border border-[#ceead6] shrink-0 shadow-2xs">
+            <CheckCircle2 size={14} /> Completed
+          </span>
+        );
+      case 'Scheduled':
+      default:
+        return (
+          <span className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold shrink-0 shadow-2xs ${
+            isSales 
+              ? 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6]' 
+              : 'bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]'
+          }`}>
+            <Clock size={14} /> Scheduled
+          </span>
+        );
+    }
+  };
+
   const getPriorityBadge = (priority) => {
     switch (priority) {
       case 'Urgent':
@@ -543,88 +565,82 @@ const OriginationMobileActivities = () => {
                       <div 
                         key={act.id} 
                         onClick={() => setSelectedEvent(act)}
-                        className={`bg-white rounded-2xl border transition-all p-4 cursor-pointer shadow-xs active:bg-[#f8fafd] space-y-2.5 group ${
-                          isCompleted
-                            ? 'border-[#e0e3e7] bg-slate-50/50 opacity-80'
-                            : isSales
-                              ? 'border-emerald-100 hover:border-emerald-400'
-                              : 'border-[#d2e3fc]/80 hover:border-[#1a73e8]'
-                        }`}
+                        className="bg-white rounded-2xl border border-[#e0e3e7] hover:border-[#dadce0] p-4 shadow-xs transition-all active:scale-[0.99] active:bg-[#f8fafd] cursor-pointer space-y-2.5 group"
                       >
-                        {/* Top Header: Checkbox + Title + Priority */}
-                        <div className="flex items-start justify-between gap-2.5">
-                          <div className="flex items-start gap-3 min-w-0 flex-1">
-                            {/* 1-Click Status Toggle Button */}
+                        {/* Top Row: Left Round Tickmark Box + Title & Subtitle, Right: Status Badge */}
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            {/* Round Action / Tickmark Box */}
                             <button
                               type="button"
                               disabled={isCompleted}
                               onClick={(e) => handleToggleStatus(e, act)}
-                              className={`mt-0.5 shrink-0 ${
-                                isCompleted ? 'cursor-default' : 'transition-transform active:scale-90 cursor-pointer'
+                              className={`w-10 h-10 rounded-full font-bold text-xs flex items-center justify-center shrink-0 border transition-all ${
+                                isCompleted
+                                  ? 'bg-[#e6f4ea] text-[#137333] border-[#ceead6] cursor-default'
+                                  : isSales
+                                    ? 'bg-[#e6f4ea] text-[#137333] border-[#ceead6] hover:bg-emerald-100 cursor-pointer active:scale-95'
+                                    : 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc] hover:bg-blue-100 cursor-pointer active:scale-95'
                               }`}
-                              title={isCompleted ? 'Activity Completed' : 'Mark Completed'}
+                              title={isCompleted ? 'Completed' : 'Click to complete'}
                             >
                               {isCompleted ? (
-                                <div className="w-5 h-5 rounded-md bg-[#137333] text-white flex items-center justify-center shadow-xs">
-                                  <Check size={12} strokeWidth={3} />
-                                </div>
+                                <Check size={18} strokeWidth={2.5} />
                               ) : (
-                                <div className={`w-5 h-5 rounded-md border-2 ${
-                                  isSales 
-                                    ? 'border-emerald-400 hover:border-emerald-600' 
-                                    : 'border-slate-300 hover:border-[#1a73e8]'
-                                } bg-white flex items-center justify-center transition-colors`} />
+                                <Clock size={17} />
                               )}
                             </button>
 
-                            {/* Title */}
-                            <h4 className={`text-[13.5px] font-bold leading-snug truncate transition-colors ${
-                              isCompleted 
-                                ? 'line-through text-[#80868b]' 
-                                : 'text-[#1f1f1f] group-hover:text-[#1a73e8]'
-                            }`}>
-                              {act.title}
-                            </h4>
+                            {/* Title & Time Subtitle */}
+                            <div className="min-w-0 space-y-0.5 flex-1">
+                              <h3 className={`font-bold text-[#1f1f1f] text-sm truncate transition-colors ${
+                                isCompleted 
+                                  ? 'line-through text-[#80868b]' 
+                                  : isSales
+                                    ? 'group-hover:text-emerald-700'
+                                    : 'group-hover:text-[#1a73e8]'
+                              }`}>
+                                {act.title}
+                              </h3>
+                              <div className="flex items-center gap-2 text-[10.5px] text-[#5f6368]">
+                                <span className="inline-flex items-center gap-1 font-medium text-[#5f6368]">
+                                  <Clock size={10} className="text-[#80868b]" />
+                                  {formatEventTime(act)}
+                                </span>
+                                {isBranchOperations && act.assignedToName && (
+                                  <>
+                                    <span>&bull;</span>
+                                    <span className="truncate text-[#1a73e8] font-semibold">{act.assignedToName}</span>
+                                  </>
+                                )}
+                              </div>
+
+                              {/* Notes directly below the time without card format */}
+                              {act.notes && (
+                                <p className="text-[11px] text-[#5f6368] line-clamp-1 italic pt-0.5">
+                                  "{act.notes}"
+                                </p>
+                              )}
+                            </div>
                           </div>
 
-                          {/* Priority Badge */}
-                          <div className="shrink-0">
-                            {act.priority && getPriorityBadge(act.priority)}
+                          {/* Top Right Status Badge (Matching Leads page badges) */}
+                          <div className="shrink-0 flex items-center gap-1.5 pt-0.5">
+                            {getStatusBadge(act.status)}
                           </div>
                         </div>
 
-                        {/* Timing & Location Info Row */}
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-[#5f6368] pl-8">
-                          <span className="inline-flex items-center gap-1 font-medium text-[#1f1f1f]">
-                            <Clock size={12} className={isCompleted ? 'text-[#80868b]' : theme.clockColor} />
-                            <span>{formatEventTime(act)}</span>
-                            <span className="text-[#80868b]">&bull;</span>
-                            <span className="text-[#5f6368]">{formatEventDate(act)}</span>
-                          </span>
-
-                          {act.address && (
-                            <span className="inline-flex items-center gap-1 truncate max-w-[180px] sm:max-w-xs">
-                              <MapPin size={12} className="text-[#ea4335] shrink-0" />
-                              <span className="truncate">{act.address}</span>
-                            </span>
-                          )}
-
-                          {isBranchOperations && act.assignedToName && (
-                            <span className="inline-flex items-center gap-1 text-[10.5px] font-medium px-2 py-0.5 rounded-full border bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc] ml-auto">
-                              <User size={10} className="text-[#1a73e8]" />
-                              <span>{act.assignedToName}</span>
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Notes Preview */}
-                        {act.notes && (
-                          <div className="pl-8 pt-0.5">
-                            <p className="text-[11.5px] text-[#5f6368] line-clamp-1 italic bg-[#f8fafd] px-2.5 py-1 rounded-lg border border-[#e0e3e7]/60">
-                              {act.notes}
-                            </p>
+                        {/* Bottom Row: Location & Date Details (Matching Leads page layout) */}
+                        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#f1f3f4] text-[11px] text-[#5f6368]">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <MapPin size={11} className="text-[#80868b] shrink-0" />
+                            <span className="truncate">{act.address || 'Location Not Specified'}</span>
                           </div>
-                        )}
+                          <div className="flex items-center justify-end gap-1.5 text-right min-w-0">
+                            <Calendar size={11} className="text-[#80868b] shrink-0" />
+                            <span>{formatEventDate(act)}</span>
+                          </div>
+                        </div>
                       </div>
                     );
                   })}

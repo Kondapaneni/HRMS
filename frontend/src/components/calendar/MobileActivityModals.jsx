@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  ChevronLeft, 
+  ArrowLeft, 
   Save, 
   Loader2, 
   FileText, 
@@ -12,16 +12,16 @@ import {
   Check, 
   X, 
   CheckCircle2, 
-  RotateCcw, 
   User, 
   Calendar,
+  CalendarDays,
   Tag
 } from 'lucide-react';
 import { format, parseISO, isToday, isTomorrow } from 'date-fns';
 import toast from 'react-hot-toast';
 
 // =========================================================================
-// 1. FULL-PAGE MOBILE ACTIVITY CREATION COMPONENT (Like EditMobileProfile.jsx)
+// 1. FULL-PAGE MOBILE ACTIVITY CREATION COMPONENT (Matching AddLead layout)
 // =========================================================================
 export const MobileActivityCreatePage = ({
   isOpen,
@@ -48,7 +48,7 @@ export const MobileActivityCreatePage = ({
   const [selectedAssignees, setSelectedAssignees] = useState([]);
   const [formErrors, setFormErrors] = useState({});
 
-  // Hide bottom navigation dock and lock body scroll while create page is active
+  // Hide bottom navigation dock while create page is active
   useEffect(() => {
     if (isOpen) {
       document.body.classList.add('hide-mobile-nav');
@@ -144,285 +144,303 @@ export const MobileActivityCreatePage = ({
 
         <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none" />
 
-        {/* Top Header Bar */}
+        {/* Hero Content matching Add New Lead header */}
         <div className="relative z-10 px-2 flex items-center justify-between">
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center backdrop-blur-md transition-all active:scale-95 cursor-pointer"
-            title="Back to Activities"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-
-          <div className="text-center">
-            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest drop-shadow-md">
-              {theme?.tagText || 'ORIGINATION • ACTIVITIES'}
+          <div>
+            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">
+              {theme?.tagText || 'Origination • Loan Activities'}
             </p>
-            <h2 className="text-xl font-black text-white tracking-tight drop-shadow-sm">
+            <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">
               Schedule Activity
             </h2>
+            <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">
+              Register New Activity / Task
+            </p>
           </div>
 
           <button
             type="button"
-            onClick={handleSubmit}
-            disabled={isSubmitting}
-            className={`px-4 py-2.5 rounded-full ${theme?.primaryBtn || 'bg-[#1a73e8] text-white'} text-xs font-semibold flex items-center gap-1.5 shadow-md disabled:opacity-50 transition-all active:scale-95 cursor-pointer shrink-0`}
+            onClick={onClose}
+            className="inline-flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white px-4 py-3 rounded-full text-xs font-bold backdrop-blur-md border border-white/30 shadow-xs transition-all active:scale-95 cursor-pointer shrink-0"
           >
-            {isSubmitting ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            ) : (
-              <Save className="w-3.5 h-3.5" />
-            )}
-            <span>Save</span>
+            <ArrowLeft size={14} />
+            <span>Back</span>
           </button>
         </div>
       </section>
 
-      {/* 2. Elevated Form Cards Container */}
-      <form onSubmit={handleSubmit} className="relative z-20 -mt-8 mx-0.5 space-y-3.5">
-        
-        {/* Card 1: Basic Information */}
-        <div className="bg-white p-5 rounded-2xl border border-[#e0e3e7] shadow-xs space-y-4">
-          <div className="flex items-center gap-2 pb-2 border-b border-[#f1f3f4]">
-            <FileText className={`w-4 h-4 ${isSales ? 'text-emerald-600' : 'text-[#1a73e8]'}`} />
-            <h3 className="text-xs font-bold text-[#1f1f1f] uppercase tracking-wider">
-              Activity Details
-            </h3>
-          </div>
-
-          {/* Title */}
-          <div className="space-y-1.5">
-            <label className="text-[11px] font-bold text-[#5f6368] uppercase">
-              Activity Title <span className="text-rose-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={formData.title}
-              onChange={(e) => {
-                setFormData({ ...formData, title: e.target.value });
-                if (formErrors.title) setFormErrors({ ...formErrors, title: null });
-              }}
-              placeholder="e.g., Client KYC Verification, Follow-up Call..."
-              className={`w-full bg-[#f8fafd] border ${
-                formErrors.title ? 'border-rose-400' : 'border-[#dadce0]'
-              } rounded-full px-4 py-2.5 text-xs font-semibold text-[#1f1f1f] placeholder:text-[#80868b] outline-none transition-all ${theme?.ringHighlight || 'focus:ring-[#1a73e8]'}`}
-            />
-            {formErrors.title && (
-              <p className="text-[10px] text-rose-500 font-semibold px-2">{formErrors.title}</p>
-            )}
-          </div>
-
-          {/* Priority Selector Pills */}
-          <div className="space-y-1.5">
-            <label className="text-[11px] font-bold text-[#5f6368] uppercase">
-              Priority Level
-            </label>
-            <div className="grid grid-cols-4 gap-2">
-              {[
-                { id: 'Urgent', label: 'Urgent', color: 'bg-rose-50 border-rose-200 text-rose-700 font-bold' },
-                { id: 'High', label: 'High', color: 'bg-amber-50 border-amber-200 text-amber-800 font-bold' },
-                { id: 'Medium', label: 'Medium', color: 'bg-blue-50 border-blue-200 text-blue-700 font-bold' },
-                { id: 'Low', label: 'Low', color: 'bg-slate-100 border-slate-200 text-slate-700 font-medium' }
-              ].map((p) => {
-                const isSelected = formData.priority === p.id;
-                return (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => setFormData({ ...formData, priority: p.id })}
-                    className={`py-2 px-1 rounded-full text-xs font-semibold text-center border transition-all cursor-pointer ${
-                      isSelected
-                        ? `${p.color} ring-2 ring-offset-1 ring-slate-400 shadow-2xs`
-                        : 'bg-white border-[#e0e3e7] text-[#5f6368] hover:bg-[#f8fafd]'
-                    }`}
-                  >
-                    {p.label}
-                  </button>
-                );
-              })}
+      {/* 2. Elevated Form Container Card matching AddLead */}
+      <div className="relative z-20 -mt-8 mx-0.5 space-y-4">
+        <form onSubmit={handleSubmit} className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs space-y-4.5">
+          
+          {/* Card Header */}
+          <div className="flex items-center gap-2 pb-3 border-b border-[#e0e3e7]">
+            <div className={`p-1.5 rounded-xl ${isSales ? 'bg-[#e6f4ea] text-[#137333]' : 'bg-[#e8f0fe] text-[#1a73e8]'}`}>
+              <CalendarDays className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-xs font-bold text-[#1f1f1f] uppercase tracking-wider">Activity Profile</h2>
+              <p className="text-[10px] text-[#5f6368]">Enter Activity Details For Schedule</p>
             </div>
           </div>
-        </div>
 
-        {/* Card 2: Date & Time Schedule (Mobile & iPhone Optimized) */}
-        <div className="bg-white p-5 rounded-2xl border border-[#e0e3e7] shadow-xs space-y-4">
-          <div className="flex items-center justify-between pb-2 border-b border-[#f1f3f4]">
-            <div className="flex items-center gap-2">
-              <Clock className={`w-4 h-4 ${isSales ? 'text-emerald-600' : 'text-[#1a73e8]'}`} />
-              <h3 className="text-xs font-bold text-[#1f1f1f] uppercase tracking-wider">
-                Schedule &amp; Timing
-              </h3>
-            </div>
-
-            {/* All-Day Toggle */}
-            <label className="flex items-center gap-2 cursor-pointer">
-              <span className="text-xs font-semibold text-[#5f6368]">All Day</span>
-              <input
-                type="checkbox"
-                checked={formData.allDay}
-                onChange={(e) => setFormData({ ...formData, allDay: e.target.checked })}
-                className="w-4 h-4 rounded text-[#1a73e8] focus:ring-[#1a73e8] cursor-pointer"
-              />
-            </label>
-          </div>
-
-          {/* Start Date & Time */}
-          <div className="space-y-3">
+          <div className="space-y-4">
+            {/* Activity Title */}
             <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-[#5f6368] uppercase flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-[#5f6368]" />
-                <span>Start Date</span> <span className="text-rose-500">*</span>
+              <label className="text-[11px] font-bold text-[#5f6368] uppercase tracking-wider block">
+                Activity Title <span className="text-[#d93025]">*</span>
               </label>
-              <input
-                type="date"
-                value={formData.startDate}
-                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                className={`w-full bg-[#f8fafd] border border-[#dadce0] rounded-xl px-3.5 py-2.5 text-xs font-semibold text-[#1f1f1f] outline-none min-h-[42px] transition-all ${theme?.ringHighlight || 'focus:ring-[#1a73e8]'}`}
-              />
+              <div className="relative flex items-center">
+                <FileText size={16} className="text-[#80868b] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none z-10" />
+                <input
+                  type="text"
+                  value={formData.title}
+                  onChange={(e) => {
+                    setFormData({ ...formData, title: e.target.value });
+                    if (formErrors.title) setFormErrors({ ...formErrors, title: null });
+                  }}
+                  placeholder="e.g. Client KYC Verification, Follow-up Call"
+                  required
+                  className={`w-full bg-[#f8fafd] border ${
+                    formErrors.title ? 'border-[#d93025] focus:border-[#d93025] focus:ring-[#d93025]/20' : 'border-[#dadce0] focus:border-[#1a73e8] focus:ring-[#1a73e8]/20'
+                  } rounded-full pl-10 pr-4 py-3 text-xs font-semibold text-[#1f1f1f] placeholder:text-[#80868b] focus:bg-white focus:ring-2 outline-none transition-all`}
+                />
+              </div>
+              {formErrors.title && <p className="text-[10px] text-[#d93025] font-medium pl-3">{formErrors.title}</p>}
             </div>
 
-            {!formData.allDay && (
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-[#5f6368] uppercase flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-[#5f6368]" />
-                  <span>Start Time</span>
+            {/* Priority Selector Pills */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-[#5f6368] uppercase tracking-wider block">
+                Priority Level
+              </label>
+              <div className="grid grid-cols-4 gap-2">
+                {[
+                  { id: 'Urgent', label: 'Urgent', color: 'bg-rose-50 border-rose-200 text-rose-700 font-bold' },
+                  { id: 'High', label: 'High', color: 'bg-amber-50 border-amber-200 text-amber-800 font-bold' },
+                  { id: 'Medium', label: 'Medium', color: 'bg-blue-50 border-blue-200 text-blue-700 font-bold' },
+                  { id: 'Low', label: 'Low', color: 'bg-slate-100 border-slate-200 text-slate-700 font-medium' }
+                ].map((p) => {
+                  const isSelected = formData.priority === p.id;
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, priority: p.id })}
+                      className={`py-2 px-1 rounded-full text-xs font-semibold text-center border transition-all cursor-pointer ${
+                        isSelected
+                          ? `${p.color} ring-2 ring-offset-1 ring-slate-400 shadow-2xs`
+                          : 'bg-white border-[#e0e3e7] text-[#5f6368] hover:bg-[#f8fafd]'
+                      }`}
+                    >
+                      {p.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Date & Time Schedule Section */}
+            <div className="pt-2 border-t border-[#f1f3f4] space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] font-bold text-[#5f6368] uppercase tracking-wider block">
+                  Schedule &amp; Timing
                 </label>
+                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <span className="text-xs font-semibold text-[#5f6368]">All Day</span>
+                  <input
+                    type="checkbox"
+                    checked={formData.allDay}
+                    onChange={(e) => setFormData({ ...formData, allDay: e.target.checked })}
+                    className="w-4 h-4 rounded text-[#1a73e8] focus:ring-[#1a73e8] cursor-pointer"
+                  />
+                </label>
+              </div>
+
+              {/* Start Date & Time */}
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <label className="text-[10.5px] font-bold text-[#5f6368] uppercase flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-[#80868b]" />
+                    <span>Start Date</span> <span className="text-[#d93025]">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.startDate}
+                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                    className="w-full bg-[#f8fafd] border border-[#dadce0] rounded-full px-4 py-2.5 text-xs font-semibold text-[#1f1f1f] outline-none min-h-[42px] focus:bg-white focus:ring-2 focus:ring-[#1a73e8]/20 transition-all"
+                  />
+                </div>
+
+                {!formData.allDay && (
+                  <div className="space-y-1.5">
+                    <label className="text-[10.5px] font-bold text-[#5f6368] uppercase flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-[#80868b]" />
+                      <span>Start Time</span>
+                    </label>
+                    <input
+                      type="time"
+                      value={formData.startTime}
+                      onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+                      className="w-full bg-[#f8fafd] border border-[#dadce0] rounded-full px-4 py-2.5 text-xs font-semibold text-[#1f1f1f] outline-none min-h-[42px] focus:bg-white focus:ring-2 focus:ring-[#1a73e8]/20 transition-all"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* End Date & Time */}
+              {!formData.allDay && (
+                <div className="pt-2 border-t border-[#f1f3f4] space-y-3">
+                  <div className="space-y-1.5">
+                    <label className="text-[10.5px] font-bold text-[#5f6368] uppercase flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-[#80868b]" />
+                      <span>End Date</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={formData.endDate}
+                      onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                      className="w-full bg-[#f8fafd] border border-[#dadce0] rounded-full px-4 py-2.5 text-xs font-semibold text-[#1f1f1f] outline-none min-h-[42px] focus:bg-white focus:ring-2 focus:ring-[#1a73e8]/20 transition-all"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10.5px] font-bold text-[#5f6368] uppercase flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-[#80868b]" />
+                      <span>End Time</span>
+                    </label>
+                    <input
+                      type="time"
+                      value={formData.endTime}
+                      onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+                      className="w-full bg-[#f8fafd] border border-[#dadce0] rounded-full px-4 py-2.5 text-xs font-semibold text-[#1f1f1f] outline-none min-h-[42px] focus:bg-white focus:ring-2 focus:ring-[#1a73e8]/20 transition-all"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Location / Client Address */}
+            <div className="space-y-1.5 pt-2 border-t border-[#f1f3f4]">
+              <label className="text-[11px] font-bold text-[#5f6368] uppercase tracking-wider block">
+                Location / Client Address
+              </label>
+              <div className="relative flex items-center">
+                <MapPin size={16} className="text-[#80868b] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none z-10" />
                 <input
-                  type="time"
-                  value={formData.startTime}
-                  onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                  className={`w-full bg-[#f8fafd] border border-[#dadce0] rounded-xl px-3.5 py-2.5 text-xs font-semibold text-[#1f1f1f] outline-none min-h-[42px] transition-all ${theme?.ringHighlight || 'focus:ring-[#1a73e8]'}`}
+                  type="text"
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  placeholder="e.g. Gurunanak Colony, Vijayawada"
+                  className="w-full bg-[#f8fafd] border border-[#dadce0] rounded-full pl-10 pr-4 py-3 text-xs font-semibold text-[#1f1f1f] placeholder:text-[#80868b] focus:bg-white focus:ring-2 focus:ring-[#1a73e8]/20 outline-none transition-all"
                 />
+              </div>
+            </div>
+
+            {/* Remarks / Notes */}
+            <div className="space-y-1.5 pt-2 border-t border-[#f1f3f4]">
+              <label className="text-[11px] font-bold text-[#5f6368] uppercase tracking-wider block">
+                Remarks / Instructions
+              </label>
+              <div className="relative">
+                <FileText size={16} className="text-[#80868b] absolute left-3.5 top-3.5 pointer-events-none z-10" />
+                <textarea
+                  rows={3}
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  placeholder="Add special instructions, document checklist, or notes..."
+                  className="w-full bg-[#f8fafd] border border-[#dadce0] rounded-2xl pl-10 pr-4 py-3 text-xs font-semibold text-[#1f1f1f] placeholder:text-[#80868b] focus:bg-white focus:ring-2 focus:ring-[#1a73e8]/20 outline-none transition-all resize-none"
+                />
+              </div>
+            </div>
+
+            {/* Branch Staff Assignment (Only in Branch Operations) */}
+            {isBranchOperations && assignableEmployees.length > 0 && (
+              <div className="space-y-2 pt-2 border-t border-[#f1f3f4]">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-bold text-[#5f6368] uppercase tracking-wider block">
+                    Assign Team Member
+                  </label>
+                  <span className="text-[11px] font-semibold text-[#5f6368]">
+                    {selectedAssignees.length} selected
+                  </span>
+                </div>
+
+                <div className="space-y-1.5 max-h-44 overflow-y-auto">
+                  {assignableEmployees.map((emp) => {
+                    const isChecked = selectedAssignees.includes(emp.id);
+                    return (
+                      <div
+                        key={emp.id}
+                        onClick={() => {
+                          setSelectedAssignees(prev => 
+                            prev.includes(emp.id) ? prev.filter(id => id !== emp.id) : [...prev, emp.id]
+                          );
+                        }}
+                        className={`p-2.5 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
+                          isChecked 
+                            ? 'bg-[#e8f0fe] border-[#d2e3fc] text-[#1a73e8]' 
+                            : 'bg-[#f8fafd] border-[#e0e3e7] text-[#1f1f1f] hover:bg-slate-100'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-7 h-7 rounded-full bg-white text-[#1a73e8] border border-[#d2e3fc] flex items-center justify-center font-bold text-xs shrink-0">
+                            {(emp.name || 'E').charAt(0).toUpperCase()}
+                          </div>
+                          <div className="truncate">
+                            <p className="text-xs font-bold truncate">{emp.name} {emp.isCurrentUser ? '(You)' : ''}</p>
+                            <p className="text-[10px] text-[#5f6368] truncate">{emp.role || 'Staff'}</p>
+                          </div>
+                        </div>
+
+                        <div className={`w-5 h-5 rounded-full flex items-center justify-center border shrink-0 ${
+                          isChecked ? 'bg-[#1a73e8] text-white border-[#1a73e8]' : 'border-[#dadce0] bg-white'
+                        }`}>
+                          {isChecked && <Check size={12} strokeWidth={3} />}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             )}
           </div>
 
-          {/* End Date & Time (if not all day) */}
-          {!formData.allDay && (
-            <div className="pt-2 border-t border-[#f1f3f4] space-y-3">
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-[#5f6368] uppercase flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-[#5f6368]" />
-                  <span>End Date</span>
-                </label>
-                <input
-                  type="date"
-                  value={formData.endDate}
-                  onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                  className={`w-full bg-[#f8fafd] border border-[#dadce0] rounded-xl px-3.5 py-2.5 text-xs font-semibold text-[#1f1f1f] outline-none min-h-[42px] transition-all ${theme?.ringHighlight || 'focus:ring-[#1a73e8]'}`}
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-[#5f6368] uppercase flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-[#5f6368]" />
-                  <span>End Time</span>
-                </label>
-                <input
-                  type="time"
-                  value={formData.endTime}
-                  onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                  className={`w-full bg-[#f8fafd] border border-[#dadce0] rounded-xl px-3.5 py-2.5 text-xs font-semibold text-[#1f1f1f] outline-none min-h-[42px] transition-all ${theme?.ringHighlight || 'focus:ring-[#1a73e8]'}`}
-                />
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Card 3: Location & Remarks */}
-        <div className="bg-white p-5 rounded-2xl border border-[#e0e3e7] shadow-xs space-y-4">
-          <div className="flex items-center gap-2 pb-2 border-b border-[#f1f3f4]">
-            <MapPin className="w-4 h-4 text-rose-500" />
-            <h3 className="text-xs font-bold text-[#1f1f1f] uppercase tracking-wider">
-              Location &amp; Notes
-            </h3>
+          {/* Action Buttons matching Add New Lead */}
+          <div className="pt-3 border-t border-[#e0e3e7] flex items-center justify-end gap-2.5">
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] px-5 py-3 transition-all shadow-2xs cursor-pointer"
+            >
+              Cancel
+            </button>
+            
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className={`inline-flex items-center justify-center gap-1.5 rounded-full text-xs font-semibold ${
+                isSales 
+                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
+                  : 'bg-[#1a73e8] hover:bg-[#1557b0] text-white'
+              } px-6 py-3 transition-all shadow-xs cursor-pointer disabled:opacity-50`}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Saving Activity...</span>
+                </>
+              ) : (
+                <>
+                  <Save className="w-3.5 h-3.5" />
+                  <span>Save &amp; Schedule Activity</span>
+                </>
+              )}
+            </button>
           </div>
 
-          {/* Address */}
-          <div className="space-y-1.5">
-            <label className="text-[11px] font-bold text-[#5f6368] uppercase">
-              Location / Client Address
-            </label>
-            <input
-              type="text"
-              value={formData.address}
-              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              placeholder="e.g., Gurunak Colony, Vijayawada..."
-              className={`w-full bg-[#f8fafd] border border-[#dadce0] rounded-full px-4 py-2.5 text-xs font-semibold text-[#1f1f1f] placeholder:text-[#80868b] outline-none ${theme?.ringHighlight || 'focus:ring-[#1a73e8]'}`}
-            />
-          </div>
-
-          {/* Notes */}
-          <div className="space-y-1.5">
-            <label className="text-[11px] font-bold text-[#5f6368] uppercase">
-              Remarks / Instructions
-            </label>
-            <textarea
-              rows={3}
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Add special instructions, document checklist, or notes..."
-              className={`w-full bg-[#f8fafd] border border-[#dadce0] rounded-2xl p-3 text-xs font-medium text-[#1f1f1f] placeholder:text-[#80868b] outline-none ${theme?.ringHighlight || 'focus:ring-[#1a73e8]'}`}
-            />
-          </div>
-        </div>
-
-        {/* Card 4: Branch Staff Assignment (Only in Branch Operations) */}
-        {isBranchOperations && assignableEmployees.length > 0 && (
-          <div className="bg-white p-5 rounded-2xl border border-[#e0e3e7] shadow-xs space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-[#f1f3f4]">
-              <div className="flex items-center gap-2">
-                <Users className="w-4 h-4 text-[#1a73e8]" />
-                <h3 className="text-xs font-bold text-[#1f1f1f] uppercase tracking-wider">
-                  Assign Team Member
-                </h3>
-              </div>
-              <span className="text-[11px] font-semibold text-[#5f6368]">
-                {selectedAssignees.length} selected
-              </span>
-            </div>
-
-            <div className="space-y-1.5 max-h-48 overflow-y-auto">
-              {assignableEmployees.map((emp) => {
-                const isChecked = selectedAssignees.includes(emp.id);
-                return (
-                  <div
-                    key={emp.id}
-                    onClick={() => {
-                      setSelectedAssignees(prev => 
-                        prev.includes(emp.id) ? prev.filter(id => id !== emp.id) : [...prev, emp.id]
-                      );
-                    }}
-                    className={`p-2.5 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
-                      isChecked 
-                        ? 'bg-[#e8f0fe] border-[#d2e3fc] text-[#1a73e8]' 
-                        : 'bg-[#f8fafd] border-[#e0e3e7] text-[#1f1f1f] hover:bg-slate-100'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-7 h-7 rounded-full bg-white text-[#1a73e8] border border-[#d2e3fc] flex items-center justify-center font-bold text-xs shrink-0">
-                        {(emp.name || 'E').charAt(0).toUpperCase()}
-                      </div>
-                      <div className="truncate">
-                        <p className="text-xs font-bold truncate">{emp.name} {emp.isCurrentUser ? '(You)' : ''}</p>
-                        <p className="text-[10px] text-[#5f6368] truncate">{emp.role || 'Staff'}</p>
-                      </div>
-                    </div>
-
-                    <div className={`w-5 h-5 rounded-full flex items-center justify-center border shrink-0 ${
-                      isChecked ? 'bg-[#1a73e8] text-white border-[#1a73e8]' : 'border-[#dadce0] bg-white'
-                    }`}>
-                      {isChecked && <Check size={12} strokeWidth={3} />}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </form>
+        </form>
+      </div>
     </div>
   );
 };
