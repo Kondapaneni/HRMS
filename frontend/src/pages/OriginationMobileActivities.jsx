@@ -49,17 +49,22 @@ const OriginationMobileActivities = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState('All');
 
-  // Lock body scroll when modal is open
+  // Lock body scroll and hide bottom navigation dock when modal or create page is active
   useEffect(() => {
-    if (selectedEvent) {
-      document.body.style.overflow = 'hidden';
+    if (selectedEvent || viewMode === 'create') {
+      document.body.classList.add('hide-mobile-nav');
+      if (selectedEvent) {
+        document.body.style.overflow = 'hidden';
+      }
     } else {
       document.body.style.overflow = '';
+      document.body.classList.remove('hide-mobile-nav');
     }
     return () => {
       document.body.style.overflow = '';
+      document.body.classList.remove('hide-mobile-nav');
     };
-  }, [selectedEvent]);
+  }, [selectedEvent, viewMode]);
 
   // Fetch activities
   const { data = {}, isLoading, error, refetch, isRefetching } = useQuery({

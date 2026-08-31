@@ -14,6 +14,7 @@ import {
   CheckCircle2, 
   RotateCcw, 
   User, 
+  Calendar,
   Tag
 } from 'lucide-react';
 import { format, parseISO, isToday, isTomorrow } from 'date-fns';
@@ -46,6 +47,18 @@ export const MobileActivityCreatePage = ({
   });
   const [selectedAssignees, setSelectedAssignees] = useState([]);
   const [formErrors, setFormErrors] = useState({});
+
+  // Hide bottom navigation dock and lock body scroll while create page is active
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('hide-mobile-nav');
+    } else {
+      document.body.classList.remove('hide-mobile-nav');
+    }
+    return () => {
+      document.body.classList.remove('hide-mobile-nav');
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen) {
@@ -233,13 +246,13 @@ export const MobileActivityCreatePage = ({
           </div>
         </div>
 
-        {/* Card 2: Date & Time Schedule */}
+        {/* Card 2: Date & Time Schedule (Mobile & iPhone Optimized) */}
         <div className="bg-white p-5 rounded-2xl border border-[#e0e3e7] shadow-xs space-y-4">
           <div className="flex items-center justify-between pb-2 border-b border-[#f1f3f4]">
             <div className="flex items-center gap-2">
               <Clock className={`w-4 h-4 ${isSales ? 'text-emerald-600' : 'text-[#1a73e8]'}`} />
               <h3 className="text-xs font-bold text-[#1f1f1f] uppercase tracking-wider">
-                Date &amp; Time
+                Schedule &amp; Timing
               </h3>
             </div>
 
@@ -255,58 +268,63 @@ export const MobileActivityCreatePage = ({
             </label>
           </div>
 
-          {/* Date Pickers */}
-          <div className="grid grid-cols-2 gap-3">
+          {/* Start Date & Time */}
+          <div className="space-y-3">
             <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-[#5f6368] uppercase">
-                Start Date <span className="text-rose-500">*</span>
+              <label className="text-[11px] font-bold text-[#5f6368] uppercase flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-[#5f6368]" />
+                <span>Start Date</span> <span className="text-rose-500">*</span>
               </label>
               <input
                 type="date"
                 value={formData.startDate}
                 onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                className={`w-full bg-[#f8fafd] border border-[#dadce0] rounded-full px-3.5 py-2 text-xs font-semibold text-[#1f1f1f] outline-none ${theme?.ringHighlight || 'focus:ring-[#1a73e8]'}`}
+                className={`w-full bg-[#f8fafd] border border-[#dadce0] rounded-xl px-3.5 py-2.5 text-xs font-semibold text-[#1f1f1f] outline-none min-h-[42px] transition-all ${theme?.ringHighlight || 'focus:ring-[#1a73e8]'}`}
               />
             </div>
 
             {!formData.allDay && (
               <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-[#5f6368] uppercase">
-                  Start Time
+                <label className="text-[11px] font-bold text-[#5f6368] uppercase flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-[#5f6368]" />
+                  <span>Start Time</span>
                 </label>
                 <input
                   type="time"
                   value={formData.startTime}
                   onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                  className={`w-full bg-[#f8fafd] border border-[#dadce0] rounded-full px-3.5 py-2 text-xs font-semibold text-[#1f1f1f] outline-none ${theme?.ringHighlight || 'focus:ring-[#1a73e8]'}`}
+                  className={`w-full bg-[#f8fafd] border border-[#dadce0] rounded-xl px-3.5 py-2.5 text-xs font-semibold text-[#1f1f1f] outline-none min-h-[42px] transition-all ${theme?.ringHighlight || 'focus:ring-[#1a73e8]'}`}
                 />
               </div>
             )}
           </div>
 
+          {/* End Date & Time (if not all day) */}
           {!formData.allDay && (
-            <div className="grid grid-cols-2 gap-3 pt-1">
+            <div className="pt-2 border-t border-[#f1f3f4] space-y-3">
               <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-[#5f6368] uppercase">
-                  End Date
+                <label className="text-[11px] font-bold text-[#5f6368] uppercase flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-[#5f6368]" />
+                  <span>End Date</span>
                 </label>
                 <input
                   type="date"
                   value={formData.endDate}
                   onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                  className={`w-full bg-[#f8fafd] border border-[#dadce0] rounded-full px-3.5 py-2 text-xs font-semibold text-[#1f1f1f] outline-none ${theme?.ringHighlight || 'focus:ring-[#1a73e8]'}`}
+                  className={`w-full bg-[#f8fafd] border border-[#dadce0] rounded-xl px-3.5 py-2.5 text-xs font-semibold text-[#1f1f1f] outline-none min-h-[42px] transition-all ${theme?.ringHighlight || 'focus:ring-[#1a73e8]'}`}
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-[#5f6368] uppercase">
-                  End Time
+                <label className="text-[11px] font-bold text-[#5f6368] uppercase flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-[#5f6368]" />
+                  <span>End Time</span>
                 </label>
                 <input
                   type="time"
                   value={formData.endTime}
                   onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                  className={`w-full bg-[#f8fafd] border border-[#dadce0] rounded-full px-3.5 py-2 text-xs font-semibold text-[#1f1f1f] outline-none ${theme?.ringHighlight || 'focus:ring-[#1a73e8]'}`}
+                  className={`w-full bg-[#f8fafd] border border-[#dadce0] rounded-xl px-3.5 py-2.5 text-xs font-semibold text-[#1f1f1f] outline-none min-h-[42px] transition-all ${theme?.ringHighlight || 'focus:ring-[#1a73e8]'}`}
                 />
               </div>
             </div>
@@ -404,27 +422,6 @@ export const MobileActivityCreatePage = ({
             </div>
           </div>
         )}
-
-        {/* Bottom Action Button */}
-        <div className="pt-2">
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className={`w-full py-3.5 px-4 rounded-full ${theme?.primaryBtn || 'bg-[#1a73e8] text-white'} text-sm font-bold flex items-center justify-center gap-2 shadow-md transition-all active:scale-[0.98] cursor-pointer disabled:opacity-50`}
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Saving Activity...</span>
-              </>
-            ) : (
-              <>
-                <Save className="w-4 h-4" />
-                <span>Save &amp; Schedule Activity</span>
-              </>
-            )}
-          </button>
-        </div>
       </form>
     </div>
   );
@@ -440,6 +437,17 @@ export const MobileActivityDetailsModal = ({
   onToggleStatus,
   getPriorityBadge
 }) => {
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('hide-mobile-nav');
+    } else {
+      document.body.classList.remove('hide-mobile-nav');
+    }
+    return () => {
+      document.body.classList.remove('hide-mobile-nav');
+    };
+  }, [isOpen]);
+
   if (!isOpen || !event) return null;
 
   const formatEventTime = (evt) => {
