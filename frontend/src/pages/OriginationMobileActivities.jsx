@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
@@ -20,32 +20,50 @@ import {
   CalendarDays,
   Sparkles,
   SlidersHorizontal,
-  RefreshCw
+  RefreshCw,
+  Loader2,
+  Calendar,
+  ListTodo
 } from 'lucide-react';
 import { format, parseISO, isToday, isTomorrow, isPast, isFuture, startOfDay } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../api/axios';
+import { useAuth } from '../contexts/AuthContext';
 import ActivitySidebar from '../components/calendar/ActivitySidebar';
 import EventDetailsSidebar from '../components/calendar/EventDetailsSidebar';
 import PageLoader from '../components/PageLoader';
 
 const OriginationMobileActivities = () => {
+  const { profile } = useAuth();
   const location = useLocation();
   const queryClient = useQueryClient();
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const getGreeting = () => {
+    const hour = currentTime.getHours();
+    if (hour < 12) return 'Good Morning';
+    if (hour < 18) return 'Good Afternoon';
+    return 'Good Evening';
+  };
 
   // Detect workspace context
   const isBranchOperations = location.pathname.startsWith('/employee/branch-operations');
   const workspaceScope = isBranchOperations ? 'branch' : 'personal';
 
   // State
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedFilter, setSelectedFilter] = useState('ALL'); // 'ALL', 'TODAY', 'PENDING', 'COMPLETED', 'URGENT'
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState('All');
   const [isActivitySidebarOpen, setIsActivitySidebarOpen] = useState(false);
   const [isDetailsSidebarOpen, setIsDetailsSidebarOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
 
   // Fetch activities
-  const { data = {}, isLoading, refetch, isRefetching } = useQuery({
+  const { data = {}, isLoading, error, refetch, isRefetching } = useQuery({
     queryKey: ['origination', 'activities', workspaceScope],
     queryFn: async () => {
       const response = await api.get('/origination/activities', {
@@ -55,7 +73,7 @@ const OriginationMobileActivities = () => {
     }
   });
 
-  const events = data.activities || [];
+  const rawEvents = data.activities || [];
   const branchInfo = data.branch || null;
   const assignableEmployees = data.assignableEmployees || [];
 
@@ -114,127 +132,118 @@ const OriginationMobileActivities = () => {
     }
   });
 
-  // Calculate Metrics
-  const stats = useMemo(() => {
-    const today = new Date();
-    const todayStr = format(today, 'yyyy-MM-dd');
+  // Calculate Status Counts
+  const statusCounts = useMemo(() => {
+    const todayStr = format(new Date(), 'yyyy-MM-dd');
+    const counts = {
+      All: rawEvents.length,
+      Today: 0,
+      Pending: 0,
+      Completed: 0,
+      Urgent: 0
+    };
 
-    let todayCount = 0;
-    let pendingCount = 0;
-    let completedCount = 0;
-    let urgentCount = 0;
-
-    events.forEach(e => {
-      if (e.startDate === todayStr) todayCount++;
+    rawEvents.forEach(e => {
+      if (e.startDate === todayStr) counts.Today++;
       if (e.status === 'Completed') {
-        completedCount++;
+        counts.Completed++;
       } else {
-        pendingCount++;
+        counts.Pending++;
       }
       if (e.priority === 'Urgent' || e.priority === 'High') {
-        urgentCount++;
+        counts.Urgent++;
       }
     });
 
-    return {
-      total: events.length,
-      today: todayCount,
-      pending: pendingCount,
-      completed: completedCount,
-      urgent: urgentCount
-    };
-  }, [events]);
+    return counts;
+  }, [rawEvents]);
 
-  // Filtered Events
+  // Filter Tabs
+  const filterTabs = [
+    { key: 'All', label: 'All', count: statusCounts.All },
+    { key: 'Today', label: 'Today', count: statusCounts.Today },
+    { key: 'Pending', label: 'Pending', count: statusCounts.Pending },
+    { key: 'Completed', label: 'Done', count: statusCounts.Completed },
+    { key: 'Urgent', label: 'Urgent', count: statusCounts.Urgent },
+  ];
+
+  // Filtered Activities
   const filteredEvents = useMemo(() => {
     const todayStr = format(new Date(), 'yyyy-MM-dd');
-    let list = events;
+    let result = rawEvents;
 
-    // Search filter
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      list = list.filter(e => 
-        e.title?.toLowerCase().includes(q) ||
-        e.notes?.toLowerCase().includes(q) ||
-        e.address?.toLowerCase().includes(q) ||
-        e.assignedToName?.toLowerCase().includes(q)
+    // Status filter
+    if (selectedStatusFilter !== 'All') {
+      result = result.filter(e => {
+        if (selectedStatusFilter === 'Today') return e.startDate === todayStr;
+        if (selectedStatusFilter === 'Pending') return e.status !== 'Completed';
+        if (selectedStatusFilter === 'Completed') return e.status === 'Completed';
+        if (selectedStatusFilter === 'Urgent') return e.priority === 'Urgent' || e.priority === 'High';
+        return true;
+      });
+    }
+
+    // Search query filter
+    if (searchTerm && searchTerm.trim()) {
+      const term = searchTerm.trim().toLowerCase();
+      result = result.filter(e => 
+        e.title?.toLowerCase().includes(term) ||
+        e.notes?.toLowerCase().includes(term) ||
+        e.address?.toLowerCase().includes(term) ||
+        e.assignedToName?.toLowerCase().includes(term)
       );
     }
 
-    // Status / Category filter
-    if (selectedFilter === 'TODAY') {
-      list = list.filter(e => e.startDate === todayStr);
-    } else if (selectedFilter === 'PENDING') {
-      list = list.filter(e => e.status !== 'Completed');
-    } else if (selectedFilter === 'COMPLETED') {
-      list = list.filter(e => e.status === 'Completed');
-    } else if (selectedFilter === 'URGENT') {
-      list = list.filter(e => e.priority === 'Urgent' || e.priority === 'High');
-    }
-
-    // Sort by start date & time (most recent / upcoming first)
-    return [...list].sort((a, b) => {
+    // Sort by start date & time
+    return [...result].sort((a, b) => {
       const dateA = `${a.startDate}T${a.startTime || '00:00'}`;
       const dateB = `${b.startDate}T${b.startTime || '00:00'}`;
       return dateB.localeCompare(dateA);
     });
-  }, [events, searchQuery, selectedFilter]);
-
-  // Grouping by Date bucket for clean list
-  const groupedEvents = useMemo(() => {
-    const groups = {
-      today: [],
-      upcoming: [],
-      pastOrDone: []
-    };
-
-    const todayStart = startOfDay(new Date());
-
-    filteredEvents.forEach(e => {
-      try {
-        const itemDate = parseISO(e.startDate);
-        if (isToday(itemDate)) {
-          groups.today.push(e);
-        } else if (itemDate > todayStart && e.status !== 'Completed') {
-          groups.upcoming.push(e);
-        } else {
-          groups.pastOrDone.push(e);
-        }
-      } catch (err) {
-        groups.pastOrDone.push(e);
-      }
-    });
-
-    return groups;
-  }, [filteredEvents]);
+  }, [rawEvents, selectedStatusFilter, searchTerm]);
 
   const getPriorityBadge = (priority) => {
     switch (priority) {
       case 'Urgent':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf]">
+          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11.5px] font-bold bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf] shrink-0 shadow-2xs">
             Urgent
           </span>
         );
       case 'High':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#fef7e0] text-[#b06000] border border-[#feefc3]">
+          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11.5px] font-bold bg-[#fef7e0] text-[#b06000] border border-[#feefc3] shrink-0 shadow-2xs">
             High
           </span>
         );
       case 'Low':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]">
+          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11.5px] font-semibold bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0] shrink-0 shadow-2xs">
             Low
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
+          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11.5px] font-semibold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] shrink-0 shadow-2xs">
             Medium
           </span>
         );
     }
+  };
+
+  const getStatusBadge = (status) => {
+    if (status === 'Completed') {
+      return (
+        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11.5px] font-bold bg-[#e6f4ea] text-[#137333] border border-[#ceead6] shrink-0 shadow-2xs">
+          <CheckCircle2 size={13} /> Completed
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11.5px] font-bold bg-[#fef7e0] text-[#b06000] border border-[#feefc3] shrink-0 shadow-2xs">
+        <Clock size={13} /> Scheduled
+      </span>
+    );
   };
 
   const handleCardClick = (event) => {
@@ -247,286 +256,219 @@ const OriginationMobileActivities = () => {
     toggleMutation.mutate({ id: act.id, status: act.status });
   };
 
-  if (isLoading) {
-    return <PageLoader message="Loading Activities..." />;
-  }
-
   return (
-    <div className="space-y-4 pb-20">
-      
-      {/* 1. Header Bar (Google Material 3 Workspace UI) */}
-      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-4 shadow-xs">
-        <div className="flex items-center justify-between">
+    <div className="space-y-4 pb-14">
+
+      {/* 1. Hero Section with Animated Motion Graphics (Exact Match to Dashboard & Leads) */}
+      <section className="-mx-4 -mt-4 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900">
+        {/* Animated Liquid Orbs */}
+        <motion.div
+          animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -top-20 -left-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+        />
+        <motion.div
+          animate={{ scale: [1, 1.4, 1], x: [0, -40, 0], y: [0, 50, 0] }}
+          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          className="absolute -top-10 -right-10 w-64 h-64 bg-indigo-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+        />
+        <motion.div
+          animate={{ scale: [1, 1.3, 1], x: [0, 30, 0], y: [0, -40, 0] }}
+          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          className="absolute bottom-0 left-20 w-80 h-80 bg-sky-400 rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
+        />
+        
+        {/* Subtle Glass Overlay */}
+        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
+
+        <div className="relative z-10 px-2 flex items-center justify-between">
           <div>
-            <div className="flex items-center gap-1 mb-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-              <span className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">
-                {isBranchOperations ? 'Branch Activities' : 'Activities & Schedule'}
-              </span>
-            </div>
-            <h1 className="text-xl font-bold text-[#1f1f1f] tracking-tight flex items-center gap-2">
-              <span>{isBranchOperations ? 'Branch Calendar' : 'My Activities'}</span>
-              <span className="text-[11px] font-bold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2 py-0.5 rounded-full">
-                {stats.total}
-              </span>
-            </h1>
+            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">
+              {getGreeting()} &bull; {isBranchOperations ? (branchInfo?.name ? `${branchInfo.name} Branch` : 'Branch Activities') : 'Loan Origination'}
+            </p>
+            <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">
+              {profile?.firstName || 'My'} {profile?.lastName || 'Activities'}
+            </h2>
+            <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">
+              {currentTime.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })} &bull; {rawEvents.length} Scheduled Tasks
+            </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => refetch()}
-              disabled={isRefetching}
-              className="p-2 rounded-full border border-[#dadce0] bg-[#f8fafd] hover:bg-[#f1f3f4] text-[#5f6368] transition-colors cursor-pointer disabled:opacity-50"
-              title="Refresh"
-            >
-              <RefreshCw size={15} className={isRefetching ? 'animate-spin text-[#1a73e8]' : ''} />
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsActivitySidebarOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs transition-all cursor-pointer active:scale-95 shrink-0"
-            >
-              <Plus size={14} />
-              <span>Schedule</span>
-            </button>
-          </div>
+          <button
+            onClick={() => setIsActivitySidebarOpen(true)}
+            className="inline-flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white px-4 py-3 rounded-full text-xs font-bold backdrop-blur-md border border-white/30 shadow-xs transition-all active:scale-95 cursor-pointer shrink-0"
+          >
+            <Plus size={14} />
+            <span>Schedule</span>
+          </button>
         </div>
-      </div>
+      </section>
 
-      {/* 2. KPI Summary Grid (4 Mini Stat Cards matching Leads UI) */}
-      <div className="grid grid-cols-2 gap-2.5">
-        {/* Today */}
-        <div 
-          onClick={() => setSelectedFilter(selectedFilter === 'TODAY' ? 'ALL' : 'TODAY')}
-          className={`p-3 rounded-2xl border transition-all cursor-pointer shadow-2xs ${
-            selectedFilter === 'TODAY'
-              ? 'bg-[#e8f0fe] border-[#1a73e8] ring-1 ring-[#1a73e8]'
-              : 'bg-white border-[#e0e3e7] hover:bg-[#f8fafd]'
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#1a73e8]">Today</span>
-            <div className="w-6 h-6 rounded-lg bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center">
-              <Clock size={13} />
-            </div>
-          </div>
-          <p className="text-xl font-bold text-[#1f1f1f] mt-1.5">{stats.today}</p>
-        </div>
+      {/* 2. Elevated Content Layer */}
+      <div className="relative z-20 -mt-8 mx-0.5 space-y-3.5">
 
-        {/* Pending */}
-        <div 
-          onClick={() => setSelectedFilter(selectedFilter === 'PENDING' ? 'ALL' : 'PENDING')}
-          className={`p-3 rounded-2xl border transition-all cursor-pointer shadow-2xs ${
-            selectedFilter === 'PENDING'
-              ? 'bg-[#fef7e0] border-[#b06000] ring-1 ring-[#b06000]'
-              : 'bg-white border-[#e0e3e7] hover:bg-[#f8fafd]'
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#b06000]">Pending</span>
-            <div className="w-6 h-6 rounded-lg bg-[#fef7e0] text-[#b06000] flex items-center justify-center">
-              <Circle size={13} />
-            </div>
-          </div>
-          <p className="text-xl font-bold text-[#1f1f1f] mt-1.5">{stats.pending}</p>
-        </div>
-
-        {/* Completed */}
-        <div 
-          onClick={() => setSelectedFilter(selectedFilter === 'COMPLETED' ? 'ALL' : 'COMPLETED')}
-          className={`p-3 rounded-2xl border transition-all cursor-pointer shadow-2xs ${
-            selectedFilter === 'COMPLETED'
-              ? 'bg-[#e6f4ea] border-[#137333] ring-1 ring-[#137333]'
-              : 'bg-white border-[#e0e3e7] hover:bg-[#f8fafd]'
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#137333]">Completed</span>
-            <div className="w-6 h-6 rounded-lg bg-[#e6f4ea] text-[#137333] flex items-center justify-center">
-              <CheckCircle2 size={13} />
-            </div>
-          </div>
-          <p className="text-xl font-bold text-[#1f1f1f] mt-1.5">{stats.completed}</p>
-        </div>
-
-        {/* Urgent / High */}
-        <div 
-          onClick={() => setSelectedFilter(selectedFilter === 'URGENT' ? 'ALL' : 'URGENT')}
-          className={`p-3 rounded-2xl border transition-all cursor-pointer shadow-2xs ${
-            selectedFilter === 'URGENT'
-              ? 'bg-[#fce8e6] border-[#c5221f] ring-1 ring-[#c5221f]'
-              : 'bg-white border-[#e0e3e7] hover:bg-[#f8fafd]'
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#c5221f]">Urgent / High</span>
-            <div className="w-6 h-6 rounded-lg bg-[#fce8e6] text-[#c5221f] flex items-center justify-center">
-              <AlertCircle size={13} />
-            </div>
-          </div>
-          <p className="text-xl font-bold text-[#1f1f1f] mt-1.5">{stats.urgent}</p>
-        </div>
-      </div>
-
-      {/* 3. Search & Filter Bar */}
-      <div className="space-y-2.5">
-        {/* Search Input */}
-        <div className="relative">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5f6368] w-4 h-4" />
+        {/* Search Box */}
+        <div className="bg-white rounded-full border border-[#e0e3e7] px-4 py-2.5 shadow-xs flex items-center gap-2.5">
+          <Search className="w-4.5 h-4.5 text-[#5f6368] shrink-0" />
           <input
             type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search activities, locations, notes..."
-            className="w-full pl-9 pr-8 py-2.5 bg-white border border-[#dadce0] rounded-full text-xs text-[#1f1f1f] placeholder:text-[#5f6368] focus:outline-none focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] shadow-2xs transition-all"
+            placeholder="Search activities by title, notes, location..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full text-[13.5px] font-medium bg-transparent border-none outline-none text-[#1f1f1f] placeholder:text-[#80868b] placeholder:text-[13px] pr-1"
           />
-          {searchQuery && (
+          {searchTerm && (
             <button
-              onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5f6368] hover:text-[#1f1f1f]"
+              type="button"
+              onClick={() => setSearchTerm('')}
+              className="p-1 rounded-full text-[#5f6368] hover:bg-[#f1f3f4] hover:text-[#1f1f1f] shrink-0 cursor-pointer transition-colors"
             >
               <X size={14} />
             </button>
           )}
         </div>
 
-        {/* Filter Pills (Scrollable Row) */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {[
-            { id: 'ALL', label: 'All', count: stats.total },
-            { id: 'TODAY', label: 'Today', count: stats.today },
-            { id: 'PENDING', label: 'Pending', count: stats.pending },
-            { id: 'COMPLETED', label: 'Done', count: stats.completed },
-            { id: 'URGENT', label: 'Urgent', count: stats.urgent }
-          ].map((f) => {
-            const isSelected = selectedFilter === f.id;
-            return (
-              <button
-                key={f.id}
-                type="button"
-                onClick={() => setSelectedFilter(f.id)}
-                className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer ${
-                  isSelected
-                    ? 'bg-[#1a73e8] text-white shadow-2xs'
-                    : 'bg-white border border-[#dadce0] text-[#5f6368] hover:bg-[#f1f3f4]'
-                }`}
-              >
-                <span>{f.label}</span>
-                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                  isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'
-                }`}>
-                  {f.count}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* 4. Activities Feed */}
-      <div className="space-y-4">
-        {filteredEvents.length === 0 ? (
-          <div className="bg-white rounded-3xl border border-[#e0e3e7] p-8 text-center space-y-3 shadow-xs">
-            <div className="w-12 h-12 rounded-full bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center mx-auto">
-              <CalendarDays size={24} />
-            </div>
-            <div>
-              <h3 className="text-sm font-bold text-[#1f1f1f]">No Activities Found</h3>
-              <p className="text-xs text-[#5f6368] mt-1 max-w-xs mx-auto">
-                {searchQuery 
-                  ? `No activities match "${searchQuery}". Try a different search term.` 
-                  : 'No scheduled activities found for this filter.'}
-              </p>
-            </div>
+        {/* Horizontal Scrollable Status Filter Chips */}
+        <div className="flex overflow-x-auto gap-2 py-0.5 hide-scrollbar">
+          {filterTabs.map((tab) => (
             <button
-              type="button"
-              onClick={() => setIsActivitySidebarOpen(true)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-[#1a73e8] text-white shadow-xs hover:bg-[#1557b0] transition-all cursor-pointer active:scale-95"
+              key={tab.key}
+              onClick={() => setSelectedStatusFilter(tab.key)}
+              className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
+                selectedStatusFilter === tab.key
+                  ? 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc] shadow-2xs font-bold'
+                  : 'bg-white text-[#5f6368] border-[#e0e3e7] hover:bg-[#f8fafd]'
+              }`}
             >
-              <Plus size={14} />
-              <span>Schedule Activity</span>
+              <span>{tab.label}</span>
+              <span className={`inline-flex items-center justify-center h-[18px] min-w-[18px] px-1.5 rounded-full text-[11px] font-bold leading-none tabular-nums ${
+                selectedStatusFilter === tab.key ? 'bg-[#1a73e8] text-white' : 'bg-slate-100 text-[#5f6368]'
+              }`}>
+                {tab.count}
+              </span>
             </button>
-          </div>
-        ) : (
-          <>
-            {/* Today Group */}
-            {groupedEvents.today.length > 0 && (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between px-1">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#1a73e8] flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-[#1a73e8] animate-pulse" />
-                    Today ({groupedEvents.today.length})
-                  </span>
-                </div>
+          ))}
+        </div>
 
-                <div className="space-y-2">
-                  {groupedEvents.today.map((act) => (
-                    <ActivityCard
-                      key={act.id}
-                      activity={act}
-                      onClick={() => handleCardClick(act)}
-                      onToggle={(e) => handleToggleStatus(e, act)}
-                      getPriorityBadge={getPriorityBadge}
-                      isBranchOperations={isBranchOperations}
-                    />
-                  ))}
-                </div>
+        {/* Activity Card List */}
+        <div className="space-y-3">
+          {error ? (
+            <div className="bg-[#fce8e6] text-[#c5221f] p-4 rounded-2xl text-center border border-[#fad2cf] text-xs">
+              Failed to load activities. Please refresh or try again.
+            </div>
+          ) : isLoading ? (
+            <div className="flex justify-center items-center py-16">
+              <Loader2 className="animate-spin h-7 w-7 text-[#1a73e8]" />
+            </div>
+          ) : filteredEvents.length === 0 ? (
+            <div className="bg-white rounded-3xl border border-[#e0e3e7] p-8 text-center space-y-2 shadow-xs">
+              <div className="w-12 h-12 rounded-full bg-[#f8fafd] border border-[#e0e3e7] flex items-center justify-center mx-auto text-[#80868b]">
+                <CalendarDays size={20} />
               </div>
-            )}
+              <p className="text-sm font-bold text-[#1f1f1f]">No activities found</p>
+              <p className="text-xs text-[#5f6368]">
+                {searchTerm ? 'No results matched your search query.' : 'No scheduled tasks in this category.'}
+              </p>
+              {searchTerm ? (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="mt-2 inline-flex items-center text-xs font-semibold text-[#1a73e8] hover:underline cursor-pointer"
+                >
+                  Clear search query
+                </button>
+              ) : (
+                <button
+                  onClick={() => setIsActivitySidebarOpen(true)}
+                  className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#1a73e8] text-white text-xs font-semibold hover:bg-[#1557b0] transition-colors cursor-pointer"
+                >
+                  <Plus size={14} />
+                  <span>Schedule Activity</span>
+                </button>
+              )}
+            </div>
+          ) : (
+            filteredEvents.map((act) => {
+              const isCompleted = act.status === 'Completed';
+              let formattedDate = act.startDate;
+              try {
+                const parsed = parseISO(act.startDate);
+                if (isToday(parsed)) formattedDate = 'Today';
+                else if (isTomorrow(parsed)) formattedDate = 'Tomorrow';
+                else formattedDate = format(parsed, 'dd MMM yyyy');
+              } catch {
+                formattedDate = act.startDate;
+              }
 
-            {/* Upcoming Group */}
-            {groupedEvents.upcoming.length > 0 && (
-              <div className="space-y-2 pt-1">
-                <div className="flex items-center justify-between px-1">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#5f6368]">
-                    Upcoming ({groupedEvents.upcoming.length})
-                  </span>
-                </div>
+              return (
+                <div 
+                  key={act.id} 
+                  onClick={() => handleCardClick(act)}
+                  className="bg-white rounded-2xl border border-[#e0e3e7] hover:border-[#dadce0] p-4 shadow-xs transition-all active:scale-[0.99] active:bg-[#f8fafd] cursor-pointer space-y-2.5 group"
+                >
+                  {/* Top Row: Checkbox/Icon, Title & Priority/Status */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-3 min-w-0">
+                      {/* Checkbox Status Action */}
+                      <button
+                        type="button"
+                        onClick={(e) => handleToggleStatus(e, act)}
+                        className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs shrink-0 border transition-all cursor-pointer ${
+                          isCompleted
+                            ? 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]'
+                            : 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc] hover:bg-[#d2e3fc]'
+                        }`}
+                        title={isCompleted ? 'Mark as Scheduled' : 'Mark as Completed'}
+                      >
+                        {isCompleted ? <Check size={18} strokeWidth={2.5} /> : <CalendarIcon size={18} />}
+                      </button>
 
-                <div className="space-y-2">
-                  {groupedEvents.upcoming.map((act) => (
-                    <ActivityCard
-                      key={act.id}
-                      activity={act}
-                      onClick={() => handleCardClick(act)}
-                      onToggle={(e) => handleToggleStatus(e, act)}
-                      getPriorityBadge={getPriorityBadge}
-                      isBranchOperations={isBranchOperations}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
+                      <div className="min-w-0 space-y-0.5">
+                        <h3 className={`font-bold text-sm truncate group-hover:text-[#1a73e8] transition-colors ${
+                          isCompleted ? 'line-through text-[#5f6368]' : 'text-[#1f1f1f]'
+                        }`}>
+                          {act.title}
+                        </h3>
+                        {act.notes && (
+                          <p className="text-[11px] text-[#5f6368] line-clamp-1">
+                            {act.notes}
+                          </p>
+                        )}
+                      </div>
+                    </div>
 
-            {/* Past / Completed Group */}
-            {groupedEvents.pastOrDone.length > 0 && (
-              <div className="space-y-2 pt-1">
-                <div className="flex items-center justify-between px-1">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#5f6368]">
-                    Completed &amp; Past ({groupedEvents.pastOrDone.length})
-                  </span>
-                </div>
+                    <div className="shrink-0 flex items-center gap-1.5">
+                      {getPriorityBadge(act.priority)}
+                    </div>
+                  </div>
 
-                <div className="space-y-2">
-                  {groupedEvents.pastOrDone.map((act) => (
-                    <ActivityCard
-                      key={act.id}
-                      activity={act}
-                      onClick={() => handleCardClick(act)}
-                      onToggle={(e) => handleToggleStatus(e, act)}
-                      getPriorityBadge={getPriorityBadge}
-                      isBranchOperations={isBranchOperations}
-                    />
-                  ))}
+                  {/* Middle/Bottom Row: Address & Date Details */}
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#f1f3f4] text-[11px] text-[#5f6368]">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      {act.address ? (
+                        <>
+                          <MapPin size={11} className="text-rose-500 shrink-0" />
+                          <span className="truncate">{act.address}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Clock size={11} className="text-[#1a73e8] shrink-0" />
+                          <span>{act.startTime || 'Time Not Set'}</span>
+                        </>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-end gap-1.5 text-right min-w-0">
+                      <Calendar size={11} className="text-[#80868b] shrink-0" />
+                      <span className="font-semibold text-[#1f1f1f]">{formattedDate}</span>
+                      {act.startTime && <span className="text-[#5f6368]">&bull; {act.startTime}</span>}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            )}
-          </>
-        )}
+              );
+            })
+          )}
+        </div>
+
       </div>
 
       {/* Activity Creation Slideover Drawer */}
@@ -551,102 +493,6 @@ const OriginationMobileActivities = () => {
         assignableEmployees={assignableEmployees}
       />
     </div>
-  );
-};
-
-// Activity Card Component
-const ActivityCard = ({ activity, onClick, onToggle, getPriorityBadge, isBranchOperations }) => {
-  const isCompleted = activity.status === 'Completed';
-
-  const formattedDate = useMemo(() => {
-    try {
-      const parsed = parseISO(activity.startDate);
-      if (isToday(parsed)) return 'Today';
-      if (isTomorrow(parsed)) return 'Tomorrow';
-      return format(parsed, 'MMM d, yyyy');
-    } catch {
-      return activity.startDate;
-    }
-  }, [activity.startDate]);
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 4 }}
-      animate={{ opacity: 1, y: 0 }}
-      onClick={onClick}
-      className={`p-3.5 rounded-2xl border transition-all cursor-pointer relative shadow-2xs ${
-        isCompleted
-          ? 'bg-slate-50 border-[#e0e3e7] opacity-80'
-          : 'bg-white border-[#e0e3e7] hover:border-[#1a73e8] hover:shadow-xs'
-      }`}
-    >
-      <div className="flex items-start gap-3">
-        {/* Checkbox Status Button */}
-        <button
-          type="button"
-          onClick={onToggle}
-          className={`mt-0.5 w-6 h-6 rounded-full flex items-center justify-center transition-all cursor-pointer shrink-0 ${
-            isCompleted
-              ? 'bg-[#137333] text-white'
-              : 'border-2 border-[#dadce0] hover:border-[#1a73e8] text-transparent hover:text-[#1a73e8]'
-          }`}
-          title={isCompleted ? 'Mark as Scheduled' : 'Mark as Completed'}
-        >
-          <Check size={13} strokeWidth={3} />
-        </button>
-
-        {/* Card Body */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between gap-2">
-            <h4 className={`text-xs sm:text-sm font-bold truncate ${
-              isCompleted ? 'line-through text-[#5f6368]' : 'text-[#1f1f1f]'
-            }`}>
-              {activity.title}
-            </h4>
-            <div className="shrink-0">
-              {getPriorityBadge(activity.priority)}
-            </div>
-          </div>
-
-          {/* Notes description */}
-          {activity.notes && (
-            <p className="text-[11px] text-[#5f6368] line-clamp-1 mt-0.5">
-              {activity.notes}
-            </p>
-          )}
-
-          {/* Metadata Badges */}
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-[10.5px] text-[#5f6368]">
-            <span className="inline-flex items-center gap-1 font-medium text-[#1f1f1f]">
-              <Clock size={12} className="text-[#1a73e8]" />
-              <span>{formattedDate}</span>
-              {activity.startTime && (
-                <span>• {activity.startTime}</span>
-              )}
-            </span>
-
-            {activity.address && (
-              <span className="inline-flex items-center gap-1 truncate max-w-[140px]">
-                <MapPin size={12} className="text-rose-500 shrink-0" />
-                <span className="truncate">{activity.address}</span>
-              </span>
-            )}
-
-            {isBranchOperations && activity.assignedToName && (
-              <span className="inline-flex items-center gap-1 text-[#1a73e8] bg-[#e8f0fe] px-1.5 py-0.2 rounded-full font-medium text-[10px]">
-                <User size={10} />
-                <span>{activity.assignedToName}</span>
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Right Arrow */}
-        <div className="self-center text-slate-400 shrink-0">
-          <ChevronRight size={16} />
-        </div>
-      </div>
-    </motion.div>
   );
 };
 
