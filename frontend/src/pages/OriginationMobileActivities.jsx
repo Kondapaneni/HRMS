@@ -37,7 +37,8 @@ const OriginationMobileActivities = () => {
   const location = useLocation();
   const queryClient = useQueryClient();
 
-  // Detect workspace context
+  // Detect module context
+  const isSales = location.pathname.startsWith('/employee/sales');
   const isBranchOperations = location.pathname.startsWith('/employee/branch-operations');
   const workspaceScope = isBranchOperations ? 'branch' : 'personal';
 
@@ -62,6 +63,59 @@ const OriginationMobileActivities = () => {
   const rawEvents = data.activities || [];
   const branchInfo = data.branch || null;
   const assignableEmployees = data.assignableEmployees || [];
+
+  // Theme Configuration based on Loans vs Sales vs Branch
+  const theme = useMemo(() => {
+    if (isSales) {
+      return {
+        moduleName: 'Sales',
+        tagText: 'ORIGINATION • SALES ACTIVITIES',
+        orbs: ['bg-emerald-500', 'bg-teal-500', 'bg-cyan-400'],
+        activeChip: 'bg-[#e6f4ea] text-[#137333] border-[#ceead6] shadow-2xs font-bold',
+        activeBadgeText: 'bg-[#137333] text-white',
+        todayDotColor: '#059669',
+        todayBadgeStyle: 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]',
+        titleHover: 'group-hover:text-emerald-700',
+        clockColor: 'text-[#137333]',
+        scheduleBtnHover: 'hover:bg-emerald-700',
+        scheduleBtnBg: 'bg-emerald-600',
+        borderHighlight: 'hover:border-emerald-500',
+      };
+    }
+
+    if (isBranchOperations) {
+      return {
+        moduleName: 'Branch',
+        tagText: branchInfo?.name ? `${branchInfo.name.toUpperCase()} BRANCH` : 'BRANCH ACTIVITIES',
+        orbs: ['bg-blue-500', 'bg-indigo-500', 'bg-sky-400'],
+        activeChip: 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc] shadow-2xs font-bold',
+        activeBadgeText: 'bg-[#1a73e8] text-white',
+        todayDotColor: '#1a73e8',
+        todayBadgeStyle: 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc]',
+        titleHover: 'group-hover:text-[#1557b0]',
+        clockColor: 'text-[#1a73e8]',
+        scheduleBtnHover: 'hover:bg-[#1557b0]',
+        scheduleBtnBg: 'bg-[#1a73e8]',
+        borderHighlight: 'hover:border-[#1a73e8]',
+      };
+    }
+
+    // Default Loans Theme
+    return {
+      moduleName: 'Loans',
+      tagText: 'ORIGINATION • LOAN ACTIVITIES',
+      orbs: ['bg-blue-500', 'bg-indigo-500', 'bg-sky-400'],
+      activeChip: 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc] shadow-2xs font-bold',
+      activeBadgeText: 'bg-[#1a73e8] text-white',
+      todayDotColor: '#1a73e8',
+      todayBadgeStyle: 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc]',
+      titleHover: 'group-hover:text-[#1557b0]',
+      clockColor: 'text-[#1a73e8]',
+      scheduleBtnHover: 'hover:bg-[#1557b0]',
+      scheduleBtnBg: 'bg-[#1a73e8]',
+      borderHighlight: 'hover:border-[#1a73e8]',
+    };
+  }, [isSales, isBranchOperations, branchInfo]);
 
   // Mutations
   const createMutation = useMutation({
@@ -236,9 +290,9 @@ const OriginationMobileActivities = () => {
       result.push({
         id: 'today',
         title: "Today's Schedule",
-        dotColor: '#1a73e8',
+        dotColor: theme.todayDotColor,
         badge: `${todayItems.length} Today`,
-        badgeStyle: 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc]',
+        badgeStyle: theme.todayBadgeStyle,
         items: todayItems,
       });
     }
@@ -266,7 +320,7 @@ const OriginationMobileActivities = () => {
     }
 
     return result;
-  }, [filteredEvents]);
+  }, [filteredEvents, theme]);
 
   const getPriorityBadge = (priority) => {
     switch (priority) {
@@ -290,7 +344,11 @@ const OriginationMobileActivities = () => {
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] shrink-0">
+          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold shrink-0 ${
+            isSales 
+              ? 'bg-[#e6fffa] text-[#0d9488] border-[#b2f5ea]' 
+              : 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc]'
+          }`}>
             Medium
           </span>
         );
@@ -310,32 +368,32 @@ const OriginationMobileActivities = () => {
   return (
     <div className="space-y-4 pb-14">
 
-      {/* 1. Hero Section with Animated Motion Graphics */}
-      <section className="-mx-4 -mt-4 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900">
-        {/* Animated Liquid Orbs */}
+      {/* 1. Hero Section with Animated Motion Graphics (Themed for Loans vs Sales) */}
+      <section className="mx-0 mt-0 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900 rounded-b-3xl">
+        {/* Animated Liquid Orbs with Dynamic Module Colors */}
         <motion.div
           animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-20 -left-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+          className={`absolute -top-20 -left-10 w-72 h-72 ${theme.orbs[0]} rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none`}
         />
         <motion.div
           animate={{ scale: [1, 1.4, 1], x: [0, -40, 0], y: [0, 50, 0] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute -top-10 -right-10 w-64 h-64 bg-indigo-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+          className={`absolute -top-10 -right-10 w-64 h-64 ${theme.orbs[1]} rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none`}
         />
         <motion.div
           animate={{ scale: [1, 1.3, 1], x: [0, 30, 0], y: [0, -40, 0] }}
-          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-0 left-20 w-80 h-80 bg-sky-400 rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
+          transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+          className={`absolute bottom-0 left-20 w-80 h-80 ${theme.orbs[2]} rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none`}
         />
         
         {/* Subtle Glass Overlay */}
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
+        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none" />
 
         <div className="relative z-10 px-2 flex items-center justify-between">
           <div>
             <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">
-              {isBranchOperations ? (branchInfo?.name ? `${branchInfo.name} Branch` : 'Branch Activities') : 'Origination • Activities & Follow-ups'}
+              {theme.tagText}
             </p>
             <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">
               All Activities
@@ -387,13 +445,13 @@ const OriginationMobileActivities = () => {
               onClick={() => setSelectedStatusFilter(tab.key)}
               className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
                 selectedStatusFilter === tab.key
-                  ? 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc] shadow-2xs font-bold'
+                  ? theme.activeChip
                   : 'bg-white text-[#5f6368] border-[#e0e3e7] hover:bg-[#f8fafd]'
               }`}
             >
               <span>{tab.label}</span>
               <span className={`inline-flex items-center justify-center h-[18px] min-w-[18px] px-1.5 rounded-full text-[11px] font-bold leading-none tabular-nums ${
-                selectedStatusFilter === tab.key ? 'bg-[#1a73e8] text-white' : 'bg-slate-100 text-[#5f6368]'
+                selectedStatusFilter === tab.key ? theme.activeBadgeText : 'bg-slate-100 text-[#5f6368]'
               }`}>
                 {tab.count}
               </span>
@@ -409,7 +467,7 @@ const OriginationMobileActivities = () => {
             </div>
           ) : isLoading ? (
             <div className="flex justify-center items-center py-16">
-              <Loader2 className="animate-spin h-7 w-7 text-[#1a73e8]" />
+              <Loader2 className={`animate-spin h-7 w-7 ${isSales ? 'text-emerald-600' : 'text-[#1a73e8]'}`} />
             </div>
           ) : sections.length === 0 ? (
             <div className="bg-white rounded-3xl border border-[#e0e3e7] p-8 text-center space-y-2 shadow-xs">
@@ -423,14 +481,14 @@ const OriginationMobileActivities = () => {
               {searchTerm ? (
                 <button
                   onClick={() => setSearchTerm('')}
-                  className="mt-2 inline-flex items-center text-xs font-semibold text-[#1a73e8] hover:underline cursor-pointer"
+                  className={`mt-2 inline-flex items-center text-xs font-semibold ${isSales ? 'text-emerald-600' : 'text-[#1a73e8]'} hover:underline cursor-pointer`}
                 >
                   Clear search query
                 </button>
               ) : (
                 <button
                   onClick={() => setIsActivitySidebarOpen(true)}
-                  className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#1a73e8] text-white text-xs font-semibold hover:bg-[#1557b0] transition-colors cursor-pointer"
+                  className={`mt-2 inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-white text-xs font-semibold ${theme.scheduleBtnBg} ${theme.scheduleBtnHover} transition-colors cursor-pointer`}
                 >
                   <Plus size={14} />
                   <span>Schedule Activity</span>
@@ -466,7 +524,9 @@ const OriginationMobileActivities = () => {
                         className={`bg-white rounded-2xl border transition-all p-3.5 sm:p-4 cursor-pointer shadow-xs active:bg-[#f8fafd] space-y-2.5 group ${
                           isCompleted
                             ? 'border-[#e0e3e7] opacity-80'
-                            : 'border-[#d2e3fc]/80 hover:border-[#1a73e8]'
+                            : isSales
+                              ? 'border-emerald-100 hover:border-emerald-400'
+                              : 'border-[#d2e3fc]/80 hover:border-[#1a73e8]'
                         }`}
                       >
                         {/* Top Row: Checkbox + Title & Priority */}
@@ -481,15 +541,19 @@ const OriginationMobileActivities = () => {
                             {isCompleted ? (
                               <CheckCircle2 size={20} className="text-[#137333] fill-[#e6f4ea]" />
                             ) : (
-                              <Circle size={20} className="text-[#5f6368] hover:text-[#1a73e8] hover:scale-110 transition-transform" />
+                              <Circle size={20} className={`text-[#5f6368] ${isSales ? 'hover:text-emerald-600' : 'hover:text-[#1a73e8]'} hover:scale-110 transition-transform`} />
                             )}
                           </button>
 
                           {/* Content Details */}
                           <div className="space-y-1.5 flex-1 min-w-0">
                             <div className="flex flex-wrap items-center gap-2">
-                              <h4 className={`text-sm font-bold text-[#1a73e8] truncate group-hover:text-[#1557b0] transition-colors ${
-                                isCompleted ? 'line-through text-[#80868b]' : ''
+                              <h4 className={`text-sm font-bold truncate ${theme.titleHover} transition-colors ${
+                                isCompleted 
+                                  ? 'line-through text-[#80868b]' 
+                                  : isSales 
+                                    ? 'text-emerald-800' 
+                                    : 'text-[#1a73e8]'
                               }`}>
                                 {act.title}
                               </h4>
@@ -506,7 +570,7 @@ const OriginationMobileActivities = () => {
                             {/* Meta: Time, Date, Location */}
                             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#5f6368]">
                               <span className="flex items-center gap-1 font-medium text-[#1f1f1f]">
-                                <Clock size={13} className="text-[#1a73e8]" />
+                                <Clock size={13} className={theme.clockColor} />
                                 {formatEventTime(act)} &bull; {formatEventDate(act)}
                               </span>
 
