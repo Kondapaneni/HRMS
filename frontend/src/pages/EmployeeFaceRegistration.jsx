@@ -10,7 +10,6 @@ import {
   ShieldCheck, 
   RefreshCw, 
   VideoOff, 
-  Zap, 
   Lock 
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -18,7 +17,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
-import { loadModels, getFaceDescriptor } from '../utils/faceApiHelper';
+import { loadModels, detectAndValidateFace } from '../utils/faceApiHelper';
 
 const EmployeeFaceRegistration = () => {
   const navigate = useNavigate();
@@ -34,10 +33,16 @@ const EmployeeFaceRegistration = () => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [flash, setFlash] = useState(false);
 
+  // Real-time Face Alignment in Circle
+  const [isAligned, setIsAligned] = useState(false);
+  const [alignmentReason, setAlignmentReason] = useState('Position your face in the circle');
+
   // Initialize camera and face-api models
   const initCamera = async () => {
     setCameraStatus('loading');
     setErrorMessage('');
+    setIsAligned(false);
+    setAlignmentReason('Initializing AI camera...');
 
     try {
       await loadModels();
@@ -55,6 +60,7 @@ const EmployeeFaceRegistration = () => {
         videoRef.current.srcObject = mediaStream;
       }
       setCameraStatus('ready');
+      setAlignmentReason('Position your face inside the circle');
     } catch (err) {
       console.error('Camera initialization error:', err);
       setCameraStatus('error');
@@ -78,9 +84,43 @@ const EmployeeFaceRegistration = () => {
     };
   }, []);
 
+  // Real-time alignment checker loop (runs every 200ms when camera is active)
+  useEffect(() => {
+    let intervalId;
+    let isChecking = false;
+
+    if (cameraStatus === 'ready' && !isSuccess && !isCapturing) {
+      intervalId = setInterval(async () => {
+        if (isChecking || !videoRef.current || videoRef.current.readyState !== 4) return;
+        isChecking = true;
+
+        try {
+          const result = await detectAndValidateFace(videoRef.current);
+          setIsAligned(result.isAligned);
+          setAlignmentReason(result.reason);
+        } catch (err) {
+          console.error('Face alignment tracking error:', err);
+        } finally {
+          isChecking = false;
+        }
+      }, 220);
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [cameraStatus, isSuccess, isCapturing]);
+
   // Capture face descriptor when user clicks the Capture Button
   const handleCapture = async () => {
     if (!videoRef.current || videoRef.current.readyState !== 4 || isCapturing) return;
+
+    // Strict validation: Only accept if face is properly aligned inside the circle
+    if (!isAligned) {
+      setErrorMessage('Please align your entire face inside the green circle before capturing.');
+      toast.error('Face is not aligned inside the circle!');
+      return;
+    }
 
     setIsCapturing(true);
     setErrorMessage('');
@@ -90,17 +130,18 @@ const EmployeeFaceRegistration = () => {
     setTimeout(() => setFlash(false), 200);
 
     try {
-      const descriptor = await getFaceDescriptor(videoRef.current);
+      // Final confirmation validation
+      const result = await detectAndValidateFace(videoRef.current);
 
-      if (!descriptor) {
-        setErrorMessage('No face detected in the frame. Please look directly into the camera with good lighting and try again.');
-        toast.error('No face detected. Please try again.');
+      if (!result.isAligned || !result.descriptor) {
+        setErrorMessage(result.reason || 'Face moved outside the circle. Please center your face and try again.');
+        toast.error('Face moved out of frame. Please align inside the green circle.');
         setIsCapturing(false);
         return;
       }
 
       // Convert Float32Array / Array to string format for pgvector '[1, 2, 3...]'
-      const vectorString = `[${descriptor.join(',')}]`;
+      const vectorString = `[${result.descriptor.join(',')}]`;
 
       await api.post('/employee/biometrics/face', {
         faceDescriptor: vectorString
@@ -174,7 +215,7 @@ const EmployeeFaceRegistration = () => {
                 Face Registration
               </h1>
               <p className="text-xs sm:text-sm text-[#5f6368] font-normal">
-                Register your facial biometric descriptor for fast, contactless authentication and terminal attendance.
+                Align your face inside the circle. When the border turns <span className="font-semibold text-emerald-600">Green</span>, click Capture to register.
               </p>
 
               {/* Colorful Google Feature Pills */}
@@ -307,24 +348,48 @@ const EmployeeFaceRegistration = () => {
                     style={{ transform: 'scaleX(-1)' }}
                   />
 
-                  {/* Camera Overlay Framing Guide */}
+                  {/* Camera Overlay Framing Guide with Green / Red Indicator Border */}
                   <div className="absolute inset-0 pointer-events-none z-10 flex flex-col items-center justify-center">
-                    {/* Face Target Oval */}
-                    <div className="relative w-36 sm:w-44 h-44 sm:h-52 border-2 border-dashed border-white/60 rounded-[50%] shadow-[0_0_0_9999px_rgba(0,0,0,0.35)] flex items-center justify-center">
+                    {/* Face Target Circle / Oval */}
+                    <div 
+                      className={`relative w-36 sm:w-44 h-44 sm:h-52 rounded-[50%] transition-all duration-300 flex items-center justify-center shadow-[0_0_0_9999px_rgba(0,0,0,0.38)] ${
+                        isAligned 
+                          ? 'border-[3.5px] border-emerald-500 shadow-[0_0_24px_rgba(16,185,129,0.8),0_0_0_9999px_rgba(0,0,0,0.38)] bg-emerald-500/10' 
+                          : 'border-[3.5px] border-rose-500 shadow-[0_0_20px_rgba(244,63,94,0.7),0_0_0_9999px_rgba(0,0,0,0.38)] bg-rose-500/10'
+                      }`}
+                    >
                       {/* Corner Target Markers */}
-                      <div className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-[#4285F4]" />
-                      <div className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-[#EA4335]" />
-                      <div className="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-[#34A853]" />
-                      <div className="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-[#FBBC05]" />
+                      <div className={`absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 transition-colors duration-300 ${isAligned ? 'border-emerald-400' : 'border-rose-400'}`} />
+                      <div className={`absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 transition-colors duration-300 ${isAligned ? 'border-emerald-400' : 'border-rose-400'}`} />
+                      <div className={`absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 transition-colors duration-300 ${isAligned ? 'border-emerald-400' : 'border-rose-400'}`} />
+                      <div className={`absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 transition-colors duration-300 ${isAligned ? 'border-emerald-400' : 'border-rose-400'}`} />
                     </div>
 
-                    {/* Status Pill on Camera */}
-                    <div className="absolute bottom-3 px-3 py-1 bg-black/60 backdrop-blur-md rounded-full text-[11px] font-medium text-white shadow-xs">
-                      {cameraStatus === 'loading'
-                        ? 'Initializing AI camera...'
-                        : isCapturing
-                        ? 'Analyzing face descriptor...'
-                        : 'Position face in oval & click Capture'}
+                    {/* Status Pill on Camera with Live Feedback */}
+                    <div 
+                      className={`absolute bottom-3 px-3.5 py-1 backdrop-blur-md rounded-full text-[11px] font-semibold text-white shadow-md flex items-center gap-1.5 transition-all duration-200 ${
+                        cameraStatus === 'loading'
+                          ? 'bg-black/70'
+                          : isAligned
+                          ? 'bg-emerald-600/90 shadow-[0_0_12px_rgba(16,185,129,0.5)]'
+                          : 'bg-rose-600/90 shadow-[0_0_12px_rgba(244,63,94,0.4)]'
+                      }`}
+                    >
+                      {cameraStatus === 'loading' ? (
+                        <span>Initializing AI camera...</span>
+                      ) : isCapturing ? (
+                        <span>Analyzing face descriptor...</span>
+                      ) : isAligned ? (
+                        <>
+                          <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                          <span>Face Aligned! Ready to capture</span>
+                        </>
+                      ) : (
+                        <>
+                          <AlertCircle className="w-3.5 h-3.5 text-white" />
+                          <span>{alignmentReason}</span>
+                        </>
+                      )}
                     </div>
                   </div>
                 </>
@@ -337,17 +402,21 @@ const EmployeeFaceRegistration = () => {
                 type="button"
                 onClick={handleCapture}
                 disabled={cameraStatus !== 'ready' || isCapturing || isSuccess}
-                className="w-full py-3 px-6 rounded-full text-sm font-semibold bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white transition-all duration-150 flex items-center justify-center gap-2 shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className={`w-full py-3 px-6 rounded-full text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2 shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                  isAligned
+                    ? 'bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white shadow-[0_2px_10px_rgba(26,115,232,0.3)]'
+                    : 'bg-slate-200 hover:bg-slate-300 text-slate-700'
+                }`}
               >
                 {isCapturing ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Analyzing &amp; Registering Face...</span>
+                    <span>Registering Face Biometrics...</span>
                   </>
                 ) : (
                   <>
                     <Camera size={16} />
-                    <span>Capture &amp; Register Face</span>
+                    <span>{isAligned ? 'Capture & Register Face' : 'Align Face in Green Circle'}</span>
                   </>
                 )}
               </button>
@@ -355,7 +424,11 @@ const EmployeeFaceRegistration = () => {
 
             {/* Bottom Subtext */}
             <p className="text-center text-[11px] text-[#5f6368] mt-2.5">
-              Click the button above when your face is centered and clearly lit.
+              {isAligned ? (
+                <span className="text-emerald-700 font-semibold">✓ Face is aligned. Click button to complete registration.</span>
+              ) : (
+                <span>Position your full face inside the circle until the border turns green.</span>
+              )}
             </p>
           </div>
         </motion.div>
