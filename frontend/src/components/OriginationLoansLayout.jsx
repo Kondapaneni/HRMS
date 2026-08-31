@@ -523,33 +523,6 @@ const OriginationLoansLayout = () => {
                   </nav>
                 </div>
               </div>
-
-              {/* Drawer Bottom Actions */}
-              <div className="p-4 border-t border-[#f1f3f4] space-y-2 bg-white">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsMobileSidebarOpen(false);
-                    setShowBackModal(true);
-                  }}
-                  className="w-full flex items-center gap-2.5 px-4 py-2.5 rounded-full text-xs font-semibold text-[#1f1f1f] bg-[#f8fafd] border border-[#e0e3e7] hover:bg-[#f1f3f4] transition-all cursor-pointer shadow-2xs"
-                >
-                  <ArrowLeft size={16} className="text-[#5f6368]" />
-                  <span>Back to HRMS Dashboard</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsMobileSidebarOpen(false);
-                    setShowLogoutModal(true);
-                  }}
-                  className="w-full flex items-center gap-2.5 px-4 py-2.5 rounded-full text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition-all cursor-pointer shadow-2xs"
-                >
-                  <LogOut size={16} className="text-rose-600" />
-                  <span>Sign Out</span>
-                </button>
-              </div>
             </motion.div>
           </div>,
           document.body
