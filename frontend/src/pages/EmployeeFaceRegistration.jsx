@@ -173,7 +173,7 @@ const EmployeeFaceRegistration = () => {
   };
 
   return (
-    <div className="min-h-screen min-h-[100dvh] md:h-screen md:max-h-screen w-full flex flex-col justify-between bg-[#f8fafd] text-[#1f1f1f] selection:bg-[#c2e7ff] selection:text-[#001d35] font-sans antialiased overflow-y-auto md:overflow-hidden relative">
+    <div className="min-h-screen min-h-[100dvh] md:h-screen md:max-h-screen w-full flex flex-col justify-center bg-[#f8fafd] text-[#1f1f1f] selection:bg-[#c2e7ff] selection:text-[#001d35] font-sans antialiased overflow-y-auto md:overflow-hidden relative">
       {/* Colorful Google Ambient Background Orbs */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute -top-32 -left-32 w-96 h-96 bg-[#4285F4]/12 rounded-full blur-3xl" />
@@ -433,32 +433,6 @@ const EmployeeFaceRegistration = () => {
           </div>
         </motion.div>
       </div>
-
-      {/* Google-style Clean Bottom Footer */}
-      <footer className="hidden sm:flex w-full max-w-[980px] mx-auto px-6 py-3 items-center justify-between text-[11px] text-[#5f6368] shrink-0 relative z-10">
-        <div className="flex items-center gap-1.5 font-medium">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4] shrink-0" />
-          <span>Designed &amp; Developed by Gowtham Chowdary Kondapaneni</span>
-        </div>
-
-        <div className="flex items-center gap-5">
-          <a
-            href="mailto:gowthamkondapaneni2003@gmail.com"
-            className="hover:text-[#4285F4] transition-colors"
-          >
-            Help
-          </a>
-          <span className="hover:text-[#4285F4] cursor-default transition-colors">
-            Privacy
-          </span>
-          <span className="hover:text-[#4285F4] cursor-default transition-colors">
-            Terms
-          </span>
-          <span className="text-[#5f6368]">
-            © Acme HRMS
-          </span>
-        </div>
-      </footer>
     </div>
   );
 };

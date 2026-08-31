@@ -395,28 +395,6 @@ const EmployeeProfile = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            {isFaceRegistered ? (
-              <button 
-                type="button"
-                onClick={() => setIsResetModalOpen(true)}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-xs font-semibold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition-all shadow-xs cursor-pointer"
-                title="Remove registered biometric face data"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                <span>Remove Biometrics</span>
-              </button>
-            ) : (
-              <button 
-                type="button"
-                onClick={() => navigate('/employee/face-registration')}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-xs font-semibold bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition-all shadow-xs cursor-pointer"
-                title="Set up face recognition for quick login and attendance"
-              >
-                <ScanFace className="w-3.5 h-3.5" />
-                <span>Register Face</span>
-              </button>
-            )}
-
             <button 
               type="button"
               onClick={() => navigate('/employee/profile/edit')}
@@ -634,17 +612,17 @@ const EmployeeProfile = () => {
                         <button
                           type="button"
                           onClick={() => navigate('/employee/face-registration')}
-                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white border border-[#dadce0] text-[#1f1f1f] hover:bg-[#f1f3f4] transition-all cursor-pointer shadow-2xs"
+                          className="h-8.5 inline-flex items-center justify-center gap-1.5 px-4 rounded-full text-xs font-semibold bg-white border border-[#dadce0] text-[#1f1f1f] hover:bg-[#f1f3f4] transition-all cursor-pointer shadow-2xs leading-none"
                         >
-                          <Camera className="w-3.5 h-3.5 text-[#1a73e8]" />
+                          <Camera className="w-3.5 h-3.5 text-[#1a73e8] shrink-0" />
                           <span>Re-scan Face</span>
                         </button>
                         <button
                           type="button"
                           onClick={() => setIsResetModalOpen(true)}
-                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 transition-all cursor-pointer shadow-2xs"
+                          className="h-8.5 inline-flex items-center justify-center gap-1.5 px-4 rounded-full text-xs font-semibold bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 transition-all cursor-pointer shadow-2xs leading-none"
                         >
-                          <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                          <Trash2 className="w-3.5 h-3.5 text-rose-600 shrink-0" />
                           <span>Remove</span>
                         </button>
                       </>
@@ -652,9 +630,9 @@ const EmployeeProfile = () => {
                       <button
                         type="button"
                         onClick={() => navigate('/employee/face-registration')}
-                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white transition-all cursor-pointer shadow-xs"
+                        className="h-8.5 inline-flex items-center justify-center gap-1.5 px-4.5 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white transition-all cursor-pointer shadow-xs leading-none"
                       >
-                        <ScanFace className="w-3.5 h-3.5" />
+                        <ScanFace className="w-3.5 h-3.5 shrink-0" />
                         <span>Register Face Biometrics</span>
                       </button>
                     )}

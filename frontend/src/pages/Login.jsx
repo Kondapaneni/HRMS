@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff, ScanFace, AlertCircle, KeyRound, ShieldCheck, Users, CalendarCheck, Sparkles } from 'lucide-react';
 import { useNavigate, Navigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import FastFaceScanner from '../components/FastFaceScanner';
+import FaceLoginModal from '../components/FaceLoginModal';
 
 
 const Login = () => {
@@ -456,15 +456,13 @@ const Login = () => {
         </div>
       </footer>
 
-      {/* Face Scanner Fullscreen Modal */}
-      {isScanning && loginMethod === 'face' && (
-        <FastFaceScanner
-          isScanning={isScanning}
-          onFaceDetected={handleFaceDetected}
-          onCancel={() => setIsScanning(false)}
-          mode="verify"
-        />
-      )}
+      {/* Face Scanner Modal with Dynamic Green/Red Circle and Verify Button */}
+      <FaceLoginModal
+        isOpen={isScanning && loginMethod === 'face'}
+        onClose={() => setIsScanning(false)}
+        onFaceDetected={handleFaceDetected}
+        email={email}
+      />
     </div>
   );
 };
