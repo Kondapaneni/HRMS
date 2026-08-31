@@ -249,21 +249,24 @@ const EventDetailsSidebar = ({
 
         {/* Footer Actions */}
         <div className="p-4 border-t border-[#dadce0] bg-[#f8fafd] flex items-center justify-end gap-2 shrink-0">
-          <button
-            type="button"
-            onClick={() => {
-              onToggleComplete?.(event.id);
-              onClose();
-            }}
-            className={`w-full sm:w-auto px-5 py-2.5 rounded-full text-xs font-semibold border flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
-              isCompleted
-                ? 'bg-white border-[#dadce0] text-[#5f6368] hover:bg-[#f1f3f4]'
-                : 'bg-[#e6f4ea] hover:bg-[#ceead6] text-[#137333] border-[#ceead6]'
-            }`}
-          >
-            {isCompleted ? <RotateCcw size={14} /> : <CheckCircle2 size={14} />}
-            <span>{isCompleted ? 'Mark Pending' : 'Mark Completed'}</span>
-          </button>
+          {!isCompleted ? (
+            <button
+              type="button"
+              onClick={() => {
+                onToggleComplete?.(event.id);
+                onClose();
+              }}
+              className="w-full sm:w-auto px-5 py-2.5 rounded-full text-xs font-semibold border flex items-center justify-center gap-1.5 transition-colors cursor-pointer bg-[#e6f4ea] hover:bg-[#ceead6] text-[#137333] border-[#ceead6]"
+            >
+              <CheckCircle2 size={14} />
+              <span>Mark as Completed</span>
+            </button>
+          ) : (
+            <div className="w-full sm:w-auto px-5 py-2 rounded-full text-xs font-semibold flex items-center justify-center gap-1.5 bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">
+              <CheckCircle2 size={14} />
+              <span>Activity Completed</span>
+            </div>
+          )}
         </div>
       </motion.div>
     </div>,

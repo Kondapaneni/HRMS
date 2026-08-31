@@ -571,27 +571,21 @@ export const MobileActivityDetailsModal = ({
 
           {/* Action Buttons: 1-Click Status Toggle & Close */}
           <div className="space-y-2 pt-1">
-            <button
-              type="button"
-              onClick={() => onToggleStatus && onToggleStatus(event)}
-              className={`w-full py-3 px-4 rounded-full text-xs font-bold flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer active:scale-[0.98] ${
-                event.status === 'Completed'
-                  ? 'bg-amber-50 text-amber-900 border border-amber-300 hover:bg-amber-100'
-                  : 'bg-[#137333] text-white hover:bg-[#0d5926]'
-              }`}
-            >
-              {event.status === 'Completed' ? (
-                <>
-                  <RotateCcw size={14} />
-                  <span>Mark as Pending</span>
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 size={14} />
-                  <span>Mark as Completed</span>
-                </>
-              )}
-            </button>
+            {event.status !== 'Completed' ? (
+              <button
+                type="button"
+                onClick={() => onToggleStatus && onToggleStatus(event)}
+                className="w-full py-3 px-4 rounded-full text-xs font-bold flex items-center justify-center gap-2 bg-[#137333] hover:bg-[#0d5926] text-white shadow-xs transition-all cursor-pointer active:scale-[0.98]"
+              >
+                <CheckCircle2 size={14} />
+                <span>Mark as Completed</span>
+              </button>
+            ) : (
+              <div className="w-full py-2.5 px-4 rounded-full text-xs font-semibold flex items-center justify-center gap-1.5 bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">
+                <CheckCircle2 size={14} />
+                <span>Activity Completed</span>
+              </div>
+            )}
 
             <button
               type="button"

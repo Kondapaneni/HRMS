@@ -366,6 +366,7 @@ const OriginationMobileActivities = () => {
 
   const handleToggleStatus = (e, act) => {
     e.stopPropagation();
+    if (act.status === 'Completed') return;
     toggleMutation.mutate({ id: act.id, status: act.status });
   };
 
@@ -556,9 +557,12 @@ const OriginationMobileActivities = () => {
                             {/* 1-Click Status Toggle Button */}
                             <button
                               type="button"
+                              disabled={isCompleted}
                               onClick={(e) => handleToggleStatus(e, act)}
-                              className="mt-0.5 shrink-0 transition-transform active:scale-90 cursor-pointer"
-                              title={isCompleted ? 'Mark Pending' : 'Mark Completed'}
+                              className={`mt-0.5 shrink-0 ${
+                                isCompleted ? 'cursor-default' : 'transition-transform active:scale-90 cursor-pointer'
+                              }`}
+                              title={isCompleted ? 'Activity Completed' : 'Mark Completed'}
                             >
                               {isCompleted ? (
                                 <div className="w-5 h-5 rounded-md bg-[#137333] text-white flex items-center justify-center shadow-xs">

@@ -498,7 +498,15 @@ $app->group('/api/origination/activities', function (\Slim\Routing\RouteCollecto
         $id = $args['id'];
         $data = $request->getParsedBody();
         $currentStatus = $data['currentStatus'] ?? 'Scheduled';
-        $nextStatus = ($currentStatus === 'Completed') ? 'Scheduled' : 'Completed';
+
+        if ($currentStatus === 'Completed') {
+            $response->getBody()->write(json_encode([
+                'error' => 'Completed activities cannot be updated to pending again.'
+            ]));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+        }
+
+        $nextStatus = 'Completed';
 
         try {
             $db = new Database();
