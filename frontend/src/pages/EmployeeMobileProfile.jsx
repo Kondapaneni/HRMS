@@ -277,7 +277,7 @@ const EmployeeMobileProfile = () => {
               </p>
             </div>
 
-            <div className="space-y-2 pt-1">
+            <div className="space-y-2.5 pt-1">
               {isFaceRegistered ? (
                 <>
                   <button
@@ -286,7 +286,7 @@ const EmployeeMobileProfile = () => {
                       setActiveSection(null);
                       navigate('/employee/face-registration');
                     }}
-                    className="w-full py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 active:scale-98 text-white text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+                    className="w-full py-3.5 px-4 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] active:scale-[0.98] text-white text-sm font-semibold transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer"
                   >
                     <Camera className="w-4 h-4" />
                     <span>Re-scan / Update Face</span>
@@ -295,7 +295,7 @@ const EmployeeMobileProfile = () => {
                   <button
                     type="button"
                     onClick={() => setIsResetModalOpen(true)}
-                    className="w-full py-3 rounded-2xl bg-rose-50 hover:bg-rose-100 active:scale-98 text-rose-700 border border-rose-200 text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    className="w-full py-3.5 px-4 rounded-full bg-[#fce8e6] hover:bg-[#fad2cf] active:scale-[0.98] text-[#d93025] border border-[#fad2cf] text-sm font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <Trash2 className="w-4 h-4" />
                     <span>Remove Face Biometrics</span>
@@ -308,7 +308,7 @@ const EmployeeMobileProfile = () => {
                     setActiveSection(null);
                     navigate('/employee/face-registration');
                   }}
-                  className="w-full py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 active:scale-98 text-white text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+                  className="w-full py-3.5 px-4 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] active:scale-[0.98] text-white text-sm font-semibold transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer"
                 >
                   <ScanFace className="w-4 h-4" />
                   <span>Register Face Biometrics</span>
@@ -659,7 +659,7 @@ const EmployeeMobileProfile = () => {
                   <button
                     type="button"
                     onClick={() => setActiveSection(null)}
-                    className="w-full py-2.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold transition-all cursor-pointer text-center"
+                    className="w-full py-3 px-4 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] text-sm font-semibold transition-all cursor-pointer text-center active:scale-[0.98]"
                   >
                     Close
                   </button>
@@ -681,29 +681,37 @@ const EmployeeMobileProfile = () => {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={() => !isResetting && setIsResetModalOpen(false)}
-                className="fixed inset-0 bg-black/60 backdrop-blur-xs"
+                className="fixed inset-0 bg-black/40 backdrop-blur-xs"
               />
               <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.9, opacity: 0 }}
-                className="bg-white rounded-3xl p-6 shadow-2xl max-w-sm w-full relative z-10 space-y-4 text-center border border-slate-100"
+                initial={{ scale: 0.95, opacity: 0, y: 10 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.95, opacity: 0, y: 10 }}
+                transition={{ duration: 0.15 }}
+                className="relative w-full max-w-sm bg-white rounded-3xl shadow-xl border border-[#e0e3e7] overflow-hidden z-10 p-6 text-center space-y-4"
               >
-                <div className="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto shadow-xs">
-                  <AlertCircle className="w-7 h-7" />
+                {/* Icon */}
+                <div className="w-12 h-12 rounded-2xl bg-[#fce8e6] border border-[#fad2cf] text-[#d93025] flex items-center justify-center mx-auto shadow-2xs">
+                  <Trash2 className="w-6 h-6" />
                 </div>
-                <div>
-                  <h3 className="text-base font-bold text-slate-900">Remove Biometrics?</h3>
-                  <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                    This will delete your registered face descriptor. Face login and camera punch verification will be disabled until you re-register.
+
+                {/* Text */}
+                <div className="space-y-1">
+                  <h3 className="text-lg font-semibold text-[#1f1f1f] tracking-tight">
+                    Remove Biometric Data?
+                  </h3>
+                  <p className="text-xs text-[#5f6368] leading-relaxed">
+                    This will permanently delete your registered facial biometric descriptor. You will need to re-register before using face login or camera attendance.
                   </p>
                 </div>
-                <div className="flex gap-2 pt-2">
+
+                {/* Action Buttons */}
+                <div className="flex items-center gap-2.5 pt-2">
                   <button
                     type="button"
                     onClick={() => setIsResetModalOpen(false)}
                     disabled={isResetting}
-                    className="flex-1 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer"
+                    className="flex-1 py-3 px-4 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-sm font-semibold text-[#1f1f1f] transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center active:scale-[0.98]"
                   >
                     Cancel
                   </button>
@@ -711,17 +719,17 @@ const EmployeeMobileProfile = () => {
                     type="button"
                     onClick={handleRemoveBiometrics}
                     disabled={isResetting}
-                    className="flex-1 py-3 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-xs cursor-pointer disabled:opacity-50"
+                    className="flex-1 py-3 px-4 rounded-full bg-[#d93025] hover:bg-[#b3261e] text-white text-sm font-semibold shadow-xs transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5 active:scale-[0.98]"
                   >
                     {isResetting ? (
                       <>
-                        <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
                         <span>Removing...</span>
                       </>
                     ) : (
                       <>
-                        <Trash2 className="w-3.5 h-3.5" />
-                        <span>Yes, Remove</span>
+                        <Trash2 className="w-4 h-4" />
+                        <span>Remove</span>
                       </>
                     )}
                   </button>
