@@ -1,32 +1,107 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  ArrowLeft, 
+  Camera, 
+  ScanFace, 
+  CheckCircle2, 
+  AlertCircle, 
+  Sparkles, 
+  ShieldCheck, 
+  RefreshCw, 
+  VideoOff, 
+  Zap, 
+  Lock 
+} from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import api from '../api/axios';
-import FastFaceScanner from '../components/FastFaceScanner';
-import { Camera, CheckCircle, AlertCircle, ArrowLeft } from 'lucide-react';
-import toast from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
+import api from '../api/axios';
+import toast from 'react-hot-toast';
+import { loadModels, getFaceDescriptor } from '../utils/faceApiHelper';
 
 const EmployeeFaceRegistration = () => {
-  const { user, profile, fetchProfile } = useAuth();
-  const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const [isScanning, setIsScanning] = useState(false);
-  const [status, setStatus] = useState('idle'); // idle, processing, success, error
+  const queryClient = useQueryClient();
+  const { fetchProfile } = useAuth();
 
-  const handleBack = () => {
-    navigate('/employee/profile');
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+
+  const [cameraStatus, setCameraStatus] = useState('loading'); // 'loading', 'ready', 'error'
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isCapturing, setIsCapturing] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [flash, setFlash] = useState(false);
+
+  // Initialize camera and face-api models
+  const initCamera = async () => {
+    setCameraStatus('loading');
+    setErrorMessage('');
+
+    try {
+      await loadModels();
+
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: 'user',
+          width: { ideal: 640 },
+          height: { ideal: 480 }
+        }
+      });
+
+      streamRef.current = mediaStream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream;
+      }
+      setCameraStatus('ready');
+    } catch (err) {
+      console.error('Camera initialization error:', err);
+      setCameraStatus('error');
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        setErrorMessage('Camera access was denied. Please allow camera permissions in your browser.');
+      } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+        setErrorMessage('No camera device detected on your system.');
+      } else {
+        setErrorMessage(err.message || 'Failed to start camera. Please check camera permissions.');
+      }
+    }
   };
 
-  const handleFaceDetected = async (descriptor) => {
-    setIsScanning(false);
-    setStatus('processing');
-    
+  useEffect(() => {
+    initCamera();
+
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, []);
+
+  // Capture face descriptor when user clicks the Capture Button
+  const handleCapture = async () => {
+    if (!videoRef.current || videoRef.current.readyState !== 4 || isCapturing) return;
+
+    setIsCapturing(true);
+    setErrorMessage('');
+
+    // Trigger visual camera shutter flash
+    setFlash(true);
+    setTimeout(() => setFlash(false), 200);
+
     try {
-      // Format descriptor array as string for pgvector '[1,2,3...]'
+      const descriptor = await getFaceDescriptor(videoRef.current);
+
+      if (!descriptor) {
+        setErrorMessage('No face detected in the frame. Please look directly into the camera with good lighting and try again.');
+        toast.error('No face detected. Please try again.');
+        setIsCapturing(false);
+        return;
+      }
+
+      // Convert Float32Array / Array to string format for pgvector '[1, 2, 3...]'
       const vectorString = `[${descriptor.join(',')}]`;
-      
+
       await api.post('/employee/biometrics/face', {
         faceDescriptor: vectorString
       });
@@ -36,105 +111,281 @@ const EmployeeFaceRegistration = () => {
       }
       queryClient.invalidateQueries({ queryKey: ['employee', 'profile'] });
 
-      setStatus('success');
+      setIsSuccess(true);
       toast.success('Face registered successfully!');
-      
-      setTimeout(() => navigate('/employee/profile'), 1500);
-      
+
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+      }
+
+      setTimeout(() => {
+        navigate('/employee/profile');
+      }, 1800);
+
     } catch (err) {
-      console.error(err);
-      setStatus('error');
-      toast.error(err.response?.data?.error || 'Failed to save face data.');
+      console.error('Face capture error:', err);
+      const msg = err.response?.data?.error || err.message || 'Failed to save face descriptor.';
+      setErrorMessage(msg);
+      toast.error(msg);
+      setIsCapturing(false);
     }
   };
 
-  const shapeVariants = {
-    animate: (i) => ({
-      y: [0, -20, 0],
-      x: [0, 15, 0],
-      rotate: [0, 10, -10, 0],
-      transition: {
-        duration: 5 + i * 2,
-        repeat: Infinity,
-        ease: "easeInOut"
-      }
-    })
-  };
-
   return (
-    <div className="min-h-screen flex items-center justify-center w-full bg-[#f8f9fa] overflow-hidden relative p-4 selection:bg-[#4F46E5] selection:text-white">
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        <motion.div custom={1} variants={shapeVariants} animate="animate" className="absolute w-64 h-64 bg-[#F59E0B] rounded-full opacity-10 -top-20 -right-20" />
-        <motion.div custom={2} variants={shapeVariants} animate="animate" className="absolute w-48 h-48 bg-[#10B981] rounded-3xl opacity-10 bottom-[-40px] left-1/4 rotate-12" />
-        <motion.div custom={3} variants={shapeVariants} animate="animate" className="absolute w-96 h-96 bg-[#3B82F6] rounded-full opacity-5 top-1/2 left-1/3" />
-        <motion.div custom={4} variants={shapeVariants} animate="animate" className="absolute w-32 h-32 bg-[#EC4899] rounded-xl opacity-10 top-20 left-10 -rotate-12" />
-        <motion.div custom={5} variants={shapeVariants} animate="animate" className="absolute w-72 h-72 bg-[#8B5CF6] rounded-full opacity-10 bottom-20 right-1/4" />
+    <div className="min-h-screen min-h-[100dvh] md:h-screen md:max-h-screen w-full flex flex-col justify-between bg-[#f8fafd] text-[#1f1f1f] selection:bg-[#c2e7ff] selection:text-[#001d35] font-sans antialiased overflow-y-auto md:overflow-hidden relative">
+      {/* Colorful Google Ambient Background Orbs */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute -top-32 -left-32 w-96 h-96 bg-[#4285F4]/12 rounded-full blur-3xl" />
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-[#EA4335]/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-32 -left-20 w-96 h-96 bg-[#FBBC05]/12 rounded-full blur-3xl" />
+        <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-[#34A853]/10 rounded-full blur-3xl" />
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.2, type: "spring", bounce: 0.4 }}
-        className="w-full max-w-md relative z-10"
-      >
-        <div className="bg-white border-[3px] border-[#1E1B4B] shadow-[12px_12px_0px_#1E1B4B] rounded-2xl p-8 sm:p-10 relative overflow-visible">
-          
-          <div className="absolute -top-6 -right-6 w-16 h-16 bg-[#F59E0B] rounded-full border-[3px] border-[#1E1B4B] shadow-[4px_4px_0px_#1E1B4B] z-20 flex items-center justify-center text-[#1E1B4B] animate-[bounce_3s_infinite]">
-            <Camera size={28} strokeWidth={2.5} />
-          </div>
+      {/* Main Material 3 Card Container */}
+      <div className="flex-1 flex items-center justify-center p-2.5 sm:p-4 md:p-6 relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 10, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.35, ease: [0.2, 0, 0, 1] }}
+          className="w-full max-w-[980px] bg-white rounded-[24px] p-4 sm:p-8 md:p-9 border border-[#e0e3e7] shadow-[0_4px_24px_rgba(66,133,244,0.08),0_1px_3px_rgba(0,0,0,0.05)] md:grid md:grid-cols-2 md:gap-10 items-center relative overflow-hidden my-auto"
+        >
+          {/* Top 4-Color Google Accent Line */}
+          <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
 
-          <button
-            type="button"
-            onClick={handleBack}
-            className="inline-flex items-center gap-2 text-slate-500 hover:text-[#1E1B4B] font-bold mb-4 transition-colors cursor-pointer"
-          >
-            <ArrowLeft size={18} strokeWidth={3} />
-            Back to Profile
-          </button>
+          {/* Left Column: Branding & Information */}
+          <div className="flex flex-col justify-between h-full pr-0 md:pr-2 mb-6 md:mb-0">
+            <div>
+              {/* Brand Header */}
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-2xl sm:text-3xl font-bold tracking-tight text-[#1f1f1f]">Acme</span>
+                  <span className="text-2xl sm:text-3xl font-semibold tracking-tight text-[#4285F4]">HRMS</span>
+                </div>
+                <div className="flex items-center gap-1 mt-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+                  <span className="text-[11px] font-medium text-[#5f6368] ml-1">Biometric Security</span>
+                </div>
+              </div>
 
-          <div className="mb-8 text-center mt-2">
-            <h2 className="text-3xl font-black text-[#1E1B4B] mb-2 tracking-tight leading-tight">Biometric<br/>Registration</h2>
-            <p className="text-[#4F46E5] font-black text-sm">Register your face for fast login &amp; attendance.</p>
-          </div>
+              <h1 className="text-[24px] sm:text-[30px] font-normal text-[#1f1f1f] mt-3 md:mt-4 mb-1 leading-tight tracking-tight">
+                Face Registration
+              </h1>
+              <p className="text-xs sm:text-sm text-[#5f6368] font-normal">
+                Register your facial biometric descriptor for fast, contactless authentication and terminal attendance.
+              </p>
 
-          <div className="bg-blue-50 border-[2px] border-blue-200 rounded-xl p-4 mb-8 flex gap-3 text-blue-800 shadow-[4px_4px_0px_#BFDBFE]">
-            <AlertCircle className="shrink-0 mt-0.5" size={20} strokeWidth={2.5} />
-            <div className="text-xs leading-relaxed font-semibold">
-              <strong>Privacy Notice:</strong> By scanning, you consent to generating a mathematical representation of your face for identity verification only. We do not store raw photos.
+              {/* Colorful Google Feature Pills */}
+              <div className="mt-4 md:mt-5 grid grid-cols-1 gap-2 md:gap-2.5">
+                <div className="flex items-center gap-2 p-2 md:p-2.5 rounded-xl bg-[#e8f0fe]/70 border border-[#d2e3fc] text-[#1967d2] text-[11px] md:text-xs font-medium transition-all hover:bg-[#e8f0fe]">
+                  <div className="w-6 h-6 rounded-lg bg-[#4285F4] text-white flex items-center justify-center shrink-0 shadow-sm">
+                    <Sparkles size={13} />
+                  </div>
+                  <span>1-Click Camera Login &amp; Punch Verification</span>
+                </div>
+
+                <div className="flex items-center gap-2 p-2 md:p-2.5 rounded-xl bg-[#e6f4ea]/70 border border-[#ceead6] text-[#137333] text-[11px] md:text-xs font-medium transition-all hover:bg-[#e6f4ea]">
+                  <div className="w-6 h-6 rounded-lg bg-[#34A853] text-white flex items-center justify-center shrink-0 shadow-sm">
+                    <ShieldCheck size={13} />
+                  </div>
+                  <span>High-Precision pgvector Face Matching</span>
+                </div>
+
+                <div className="flex items-center gap-2 p-2 md:p-2.5 rounded-xl bg-[#fef7e0]/70 border border-[#feefc3] text-[#b06000] text-[11px] md:text-xs font-medium transition-all hover:bg-[#fef7e0]">
+                  <div className="w-6 h-6 rounded-lg bg-[#FBBC05] text-[#1f1f1f] flex items-center justify-center shrink-0 shadow-sm">
+                    <Lock size={13} />
+                  </div>
+                  <span>Zero Photo Storage (Vector Descriptor Only)</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Privacy note */}
+            <div className="mt-6 pt-4 border-t border-[#e0e3e7] text-[11px] text-[#5f6368] hidden md:block">
+              <p>
+                <strong>Privacy Guaranteed:</strong> We convert your facial features into an encrypted 128-dimensional mathematical vector. Actual photos are never saved to our servers.
+              </p>
             </div>
           </div>
 
-          {status === 'success' ? (
-            <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }} className="flex flex-col items-center justify-center py-8 text-[#10B981]">
-              <CheckCircle size={80} className="mb-4 drop-shadow-md" strokeWidth={2.5} />
-              <h3 className="text-xl font-black text-[#1E1B4B]">Registration Complete</h3>
-              <p className="text-slate-500 mt-2 font-bold text-sm">Redirecting to profile...</p>
-            </motion.div>
-          ) : (
-            <div className="flex flex-col items-center">
-              {!isScanning ? (
-                <button
-                  onClick={() => setIsScanning(true)}
-                  className="w-full bg-[#10B981] text-white py-4 rounded-xl font-black text-xl flex items-center justify-center gap-2 border-[3px] border-[#1E1B4B] shadow-[8px_8px_0px_#1E1B4B] active:shadow-[0px_0px_0px_#1E1B4B] active:translate-x-[8px] active:translate-y-[8px] transition-all cursor-pointer"
+          {/* Right Column: Camera Viewport & Actions */}
+          <div className="flex flex-col justify-between">
+            {/* Top Navigation */}
+            <div className="flex justify-between items-center mb-3">
+              <Link
+                to="/employee/profile"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-[#1a73e8] hover:bg-[#e8f0fe] transition-colors"
+              >
+                <ArrowLeft size={14} />
+                <span>Back to Profile</span>
+              </Link>
+
+              <span className="text-[11px] font-semibold text-[#5f6368] bg-[#f1f3f4] px-2.5 py-0.5 rounded-full">
+                Step 1 of 1
+              </span>
+            </div>
+
+            {/* Error Notification Banner */}
+            <AnimatePresence>
+              {errorMessage && (
+                <motion.div
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  className="mb-3 p-3 bg-[#fce8e6] border border-[#f28b82] rounded-[10px] flex items-start gap-2.5 text-[#d93025] text-xs shadow-sm"
                 >
-                  Start Scanning
-                  <Camera size={24} strokeWidth={3} className="ml-1" />
-                </button>
-              ) : (
-                <>
-                  <FastFaceScanner 
-                    isScanning={isScanning} 
-                    onFaceDetected={handleFaceDetected}
-                    onCancel={() => setIsScanning(false)}
-                    mode="register"
+                  <AlertCircle size={16} className="shrink-0 mt-0.5 text-[#EA4335]" />
+                  <span className="font-medium">{errorMessage}</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Camera Viewport Area */}
+            <div className="relative w-full aspect-4/3 sm:aspect-16/11 bg-[#1f1f1f] rounded-2xl overflow-hidden border border-[#dadce0] shadow-inner flex flex-col items-center justify-center">
+              
+              {/* Shutter flash animation */}
+              <AnimatePresence>
+                {flash && (
+                  <motion.div
+                    initial={{ opacity: 0.9 }}
+                    animate={{ opacity: 0 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute inset-0 bg-white z-40 pointer-events-none"
                   />
+                )}
+              </AnimatePresence>
+
+              {/* Success View */}
+              {isSuccess ? (
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  className="absolute inset-0 z-30 bg-white flex flex-col items-center justify-center p-6 text-center"
+                >
+                  <div className="w-16 h-16 rounded-full bg-[#e6f4ea] text-[#137333] flex items-center justify-center mb-3 shadow-xs">
+                    <CheckCircle2 size={36} />
+                  </div>
+                  <h3 className="text-lg font-bold text-[#1f1f1f]">Face Registered Successfully!</h3>
+                  <p className="text-xs text-[#5f6368] mt-1 max-w-xs">
+                    Your facial biometric descriptor is now active for biometric attendance and login.
+                  </p>
+                  <div className="mt-4 flex items-center gap-2 text-xs font-semibold text-[#1a73e8]">
+                    <div className="w-3.5 h-3.5 border-2 border-[#1a73e8] border-t-transparent rounded-full animate-spin" />
+                    <span>Redirecting to profile...</span>
+                  </div>
+                </motion.div>
+              ) : cameraStatus === 'error' ? (
+                /* Camera Error State */
+                <div className="flex flex-col items-center justify-center p-6 text-center text-white z-20 space-y-3">
+                  <div className="w-12 h-12 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center">
+                    <VideoOff size={24} />
+                  </div>
+                  <p className="text-xs text-slate-300 max-w-xs">
+                    {errorMessage || 'Camera is not accessible.'}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={initCamera}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white text-slate-900 text-xs font-bold hover:bg-slate-100 transition-all cursor-pointer shadow-sm"
+                  >
+                    <RefreshCw size={13} />
+                    <span>Retry Camera</span>
+                  </button>
+                </div>
+              ) : (
+                /* Active Video Stream */
+                <>
+                  <video
+                    ref={videoRef}
+                    autoPlay
+                    muted
+                    playsInline
+                    className="w-full h-full object-cover mirror"
+                    style={{ transform: 'scaleX(-1)' }}
+                  />
+
+                  {/* Camera Overlay Framing Guide */}
+                  <div className="absolute inset-0 pointer-events-none z-10 flex flex-col items-center justify-center">
+                    {/* Face Target Oval */}
+                    <div className="relative w-44 sm:w-52 h-56 sm:h-64 border-2 border-dashed border-white/60 rounded-[50%] shadow-[0_0_0_9999px_rgba(0,0,0,0.35)] flex items-center justify-center">
+                      {/* Corner Target Markers */}
+                      <div className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-[#4285F4]" />
+                      <div className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-[#EA4335]" />
+                      <div className="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-[#34A853]" />
+                      <div className="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-[#FBBC05]" />
+                    </div>
+
+                    {/* Status Pill on Camera */}
+                    <div className="absolute bottom-3 px-3 py-1 bg-black/60 backdrop-blur-md rounded-full text-[11px] font-medium text-white shadow-xs">
+                      {cameraStatus === 'loading'
+                        ? 'Initializing AI camera...'
+                        : isCapturing
+                        ? 'Analyzing face descriptor...'
+                        : 'Position face in oval & click Capture'}
+                    </div>
+                  </div>
                 </>
               )}
             </div>
-          )}
+
+            {/* Action Buttons */}
+            <div className="mt-4 flex items-center gap-3">
+              <button
+                type="button"
+                onClick={handleCapture}
+                disabled={cameraStatus !== 'ready' || isCapturing || isSuccess}
+                className="w-full py-3.5 px-6 rounded-full text-sm font-semibold bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white transition-all duration-150 flex items-center justify-center gap-2 shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isCapturing ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Analyzing &amp; Registering Face...</span>
+                  </>
+                ) : (
+                  <>
+                    <Camera size={16} />
+                    <span>Capture &amp; Register Face</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Bottom Subtext */}
+            <p className="text-center text-[11px] text-[#5f6368] mt-2.5">
+              Click the button above when your face is centered and clearly lit.
+            </p>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Google-style Clean Bottom Footer */}
+      <footer className="hidden sm:flex w-full max-w-[980px] mx-auto px-6 py-3 items-center justify-between text-[11px] text-[#5f6368] shrink-0 relative z-10">
+        <div className="flex items-center gap-1.5 font-medium">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4] shrink-0" />
+          <span>Designed &amp; Developed by Gowtham Chowdary Kondapaneni</span>
         </div>
-      </motion.div>
+
+        <div className="flex items-center gap-5">
+          <a
+            href="mailto:gowthamkondapaneni2003@gmail.com"
+            className="hover:text-[#4285F4] transition-colors"
+          >
+            Help
+          </a>
+          <span className="hover:text-[#4285F4] cursor-default transition-colors">
+            Privacy
+          </span>
+          <span className="hover:text-[#4285F4] cursor-default transition-colors">
+            Terms
+          </span>
+          <span className="text-[#5f6368]">
+            © Acme HRMS
+          </span>
+        </div>
+      </footer>
     </div>
   );
 };
