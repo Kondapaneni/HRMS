@@ -142,12 +142,12 @@ const EmployeeFaceRegistration = () => {
       </div>
 
       {/* Main Material 3 Card Container */}
-      <div className="flex-1 flex items-center justify-center p-2.5 sm:p-4 md:p-6 relative z-10">
+      <div className="flex-1 flex items-center justify-center p-2.5 sm:p-4 md:p-6 md:pb-12 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 10, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.35, ease: [0.2, 0, 0, 1] }}
-          className="w-full max-w-[980px] bg-white rounded-[24px] p-4 sm:p-8 md:p-9 border border-[#e0e3e7] shadow-[0_4px_24px_rgba(66,133,244,0.08),0_1px_3px_rgba(0,0,0,0.05)] md:grid md:grid-cols-2 md:gap-10 items-center relative overflow-hidden my-auto"
+          className="w-full max-w-[960px] bg-white rounded-[24px] p-4 sm:p-7 md:p-8 border border-[#e0e3e7] shadow-[0_4px_24px_rgba(66,133,244,0.08),0_1px_3px_rgba(0,0,0,0.05)] md:grid md:grid-cols-2 md:gap-8 items-center relative overflow-hidden my-auto md:-translate-y-6 lg:-translate-y-8"
         >
           {/* Top 4-Color Google Accent Line */}
           <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
@@ -243,7 +243,7 @@ const EmployeeFaceRegistration = () => {
             </AnimatePresence>
 
             {/* Camera Viewport Area */}
-            <div className="relative w-full aspect-4/3 sm:aspect-16/11 bg-[#1f1f1f] rounded-2xl overflow-hidden border border-[#dadce0] shadow-inner flex flex-col items-center justify-center">
+            <div className="relative w-full h-[230px] sm:h-[260px] bg-[#1f1f1f] rounded-2xl overflow-hidden border border-[#dadce0] shadow-inner flex flex-col items-center justify-center">
               
               {/* Shutter flash animation */}
               <AnimatePresence>
@@ -310,7 +310,7 @@ const EmployeeFaceRegistration = () => {
                   {/* Camera Overlay Framing Guide */}
                   <div className="absolute inset-0 pointer-events-none z-10 flex flex-col items-center justify-center">
                     {/* Face Target Oval */}
-                    <div className="relative w-44 sm:w-52 h-56 sm:h-64 border-2 border-dashed border-white/60 rounded-[50%] shadow-[0_0_0_9999px_rgba(0,0,0,0.35)] flex items-center justify-center">
+                    <div className="relative w-36 sm:w-44 h-44 sm:h-52 border-2 border-dashed border-white/60 rounded-[50%] shadow-[0_0_0_9999px_rgba(0,0,0,0.35)] flex items-center justify-center">
                       {/* Corner Target Markers */}
                       <div className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-[#4285F4]" />
                       <div className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-[#EA4335]" />
@@ -337,7 +337,7 @@ const EmployeeFaceRegistration = () => {
                 type="button"
                 onClick={handleCapture}
                 disabled={cameraStatus !== 'ready' || isCapturing || isSuccess}
-                className="w-full py-3.5 px-6 rounded-full text-sm font-semibold bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white transition-all duration-150 flex items-center justify-center gap-2 shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3 px-6 rounded-full text-sm font-semibold bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white transition-all duration-150 flex items-center justify-center gap-2 shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isCapturing ? (
                   <>
