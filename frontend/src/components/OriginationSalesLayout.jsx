@@ -465,23 +465,6 @@ const OriginationSalesLayout = () => {
                 </button>
               </div>
 
-              {/* Profile Pill */}
-              <div className="flex items-center gap-3 p-2.5 bg-[#f8fafd] rounded-2xl border border-[#e0e3e7]">
-                <div className="w-9 h-9 rounded-full bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] flex items-center justify-center font-bold text-xs overflow-hidden shrink-0">
-                  {profile?.avatar ? (
-                    <img src={profile.avatar} alt="Profile" className="h-full w-full object-cover" />
-                  ) : (
-                    (profile?.firstName || profile?.email || 'E').charAt(0).toUpperCase()
-                  )}
-                </div>
-                <div className="overflow-hidden">
-                  <p className="text-xs font-bold text-[#1f1f1f] truncate">
-                    {profile?.firstName ? `${profile.firstName} ${profile?.lastName || ''}` : (profile?.email?.split('@')[0] || 'Employee')}
-                  </p>
-                  <p className="text-[10px] text-[#5f6368] truncate capitalize">{profile?.role || 'Sales Executive'}</p>
-                </div>
-              </div>
-
               {/* Module Links */}
               <div>
                 <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider mb-2 px-2">
