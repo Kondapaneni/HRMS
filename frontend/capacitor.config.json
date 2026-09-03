@@ -4,6 +4,7 @@
   "webDir": "dist",
   "bundledWebRuntime": false,
   "server": {
+    "url": "https://hrms-qwv3.onrender.com",
     "androidScheme": "https",
     "cleartext": true
   },

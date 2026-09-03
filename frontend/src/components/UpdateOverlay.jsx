@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { RefreshCw, Download, Sparkles, ArrowUpCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'react-router-dom';
-import api from '../api/axios';
+import api, { REMOTE_ORIGIN } from '../api/axios';
 
 export default function UpdateOverlay() {
   const location = useLocation();
@@ -57,8 +57,13 @@ export default function UpdateOverlay() {
       }
 
       try {
+        const isLocalhost = typeof window !== 'undefined' && (window.location.origin.includes('localhost') || window.location.origin.includes('capacitor://'));
+        const versionUrl = (isLocalhost && REMOTE_ORIGIN)
+          ? `${REMOTE_ORIGIN}/version.json?t=${new Date().getTime()}`
+          : `/version.json?t=${new Date().getTime()}`;
+
         // Cache buster parameter to avoid getting a cached version.json
-        const res = await fetch(`/version.json?t=${new Date().getTime()}`, {
+        const res = await fetch(versionUrl, {
           cache: 'no-store',
         });
 
@@ -104,7 +109,12 @@ export default function UpdateOverlay() {
     }
     // Delay reload slightly to let the updating animation play
     setTimeout(() => {
-      window.location.reload(true);
+      const isLocalhost = typeof window !== 'undefined' && (window.location.origin.includes('localhost') || window.location.origin.includes('capacitor://'));
+      if (isLocalhost && REMOTE_ORIGIN) {
+        window.location.href = REMOTE_ORIGIN;
+      } else {
+        window.location.reload(true);
+      }
     }, 800);
   };
 
