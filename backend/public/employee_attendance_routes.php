@@ -19,18 +19,29 @@ $app->get('/api/employee/attendance', function (Request $request, Response $resp
         $startDate = $month . '-01';
         $endDate = date('Y-m-t', strtotime($startDate));
         
-        $stmt = $conn->prepare('SELECT a.*, e."shiftTime" FROM attendance a JOIN employee e ON a."employeeId" = e."userId" WHERE a."employeeId" = ? AND a.date >= ? AND a.date <= ? ORDER BY date DESC');
+        $stmt = $conn->prepare('
+            SELECT a.*, e."shiftTime", s."startTime" as "shiftStartTime", s."endTime" as "shiftEndTime" 
+            FROM attendance a 
+            JOIN employee e ON a."employeeId" = e."userId" 
+            LEFT JOIN shift_times s ON e."shiftTime" = s."shiftLabel"
+            WHERE a."employeeId" = ? AND a.date >= ? AND a.date <= ? 
+            ORDER BY a.date DESC
+        ');
         $stmt->execute([$decodedToken->id, $startDate, $endDate]);
     } else {
-        $stmt = $conn->prepare('SELECT a.*, e."shiftTime" FROM attendance a JOIN employee e ON a."employeeId" = e."userId" WHERE a."employeeId" = ? ORDER BY date DESC LIMIT 30');
+        $stmt = $conn->prepare('
+            SELECT a.*, e."shiftTime", s."startTime" as "shiftStartTime", s."endTime" as "shiftEndTime" 
+            FROM attendance a 
+            JOIN employee e ON a."employeeId" = e."userId" 
+            LEFT JOIN shift_times s ON e."shiftTime" = s."shiftLabel"
+            WHERE a."employeeId" = ? 
+            ORDER BY a.date DESC 
+            LIMIT 30
+        ');
         $stmt->execute([$decodedToken->id]);
     }
     
     $history = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    foreach ($history as &$record) {
-        unset($record['shiftTime']);
-    }
 
     $response->getBody()->write(json_encode($history));
     return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
@@ -171,6 +182,39 @@ $app->post('/api/employee/attendance/punch', function (Request $request, Respons
             }
             if ($record['checkOut']) {
                 throw new Exception('Cannot punch after checking out.');
+            }
+
+            // Automatic Day-End / Shift-End validation for background tracker
+            if ($photoUrl === 'Tracker') {
+                $checkInTimestamp = strtotime($record['checkIn']);
+                $currentTimestamp = strtotime($now);
+
+                // 1. If date changed (past midnight)
+                if ($record['date'] !== $today) {
+                    throw new Exception('Day has ended. Automatic tracking stopped.');
+                }
+
+                // 2. Max 12 hours from check-in threshold (employee forgot to check out)
+                if (($currentTimestamp - $checkInTimestamp) > (12 * 3600)) {
+                    throw new Exception('Maximum working duration (12 hours) exceeded. Automatic tracking stopped.');
+                }
+
+                // 3. Shift end cutoff (+ 2 hours buffer)
+                if ($shiftEndTime) {
+                    $shiftEndToday = strtotime("$today $shiftEndTime");
+                    if ($shiftStartTime && $shiftEndTime < $shiftStartTime) {
+                        $shiftEndToday += 86400;
+                    }
+                    $cutoffTimestamp = $shiftEndToday + (2 * 3600);
+                    if ($currentTimestamp > $cutoffTimestamp) {
+                        throw new Exception('Shift and working day has ended. Automatic tracking stopped.');
+                    }
+                } else {
+                    // Default end of day cutoff at 23:30
+                    if (date('H:i', $currentTimestamp) >= '23:30') {
+                        throw new Exception('End of day reached (23:30). Automatic tracking stopped.');
+                    }
+                }
             }
 
             // Record intermediate punch
