@@ -63,7 +63,8 @@ const AdminAttendanceLocation = () => {
       lat = punch.latitude;
       lng = punch.longitude;
       address = punch.address;
-      title = `Punch In #${index + 1}`;
+      const isTracker = punch.photo === 'Tracker';
+      title = isTracker ? `Tracker Punch #${index + 1}` : `Punch In #${index + 1}`;
     }
 
     let content = `<div style="max-width:320px;font-family:'Google Sans',Arial,sans-serif;color:#1f1f1f;padding:2px;">
@@ -208,10 +209,11 @@ const AdminAttendanceLocation = () => {
       if (punches && punches.length) {
         punches.forEach((punch, idx) => {
           if (punch.latitude && punch.longitude) {
+            const isTracker = punch.photo === 'Tracker';
             const marker = createMarker(
               { lat: parseFloat(punch.latitude), lng: parseFloat(punch.longitude) },
-              `Punch In #${idx + 1}`,
-              '#4285F4',
+              isTracker ? `Tracker #${idx + 1}` : `Punch In #${idx + 1}`,
+              isTracker ? '#00897B' : '#4285F4',
               'punch',
               idx
             );
@@ -390,34 +392,44 @@ const AdminAttendanceLocation = () => {
               <p className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368] mb-2.5">Location Punches</p>
               {punches && punches.length > 0 ? (
                 <div className="space-y-2">
-                  {punches.map((punch, idx) => (
-                    <div key={punch.id} className="rounded-xl border border-[#d2e3fc] bg-[#e8f0fe] p-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2.5">
-                          <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white text-[#1a73e8] text-[10px] font-bold border border-[#d2e3fc] shadow-xs">
-                            {idx + 1}
-                          </span>
-                          <div>
-                            <p className="text-xs font-semibold text-[#1a73e8]">
-                              {new Date(punch.punchTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-                            </p>
-                            <p className="text-[10px] text-[#1a73e8]/70 truncate max-w-[140px]">
-                              {(punch.latitude && punch.longitude) ? `${parseFloat(punch.latitude).toFixed(6)}, ${parseFloat(punch.longitude).toFixed(6)}` : 'No location'}
-                            </p>
+                  {punches.map((punch, idx) => {
+                    const isTracker = punch.photo === 'Tracker';
+                    return (
+                      <div key={punch.id} className={`rounded-xl border p-3 ${isTracker ? 'border-[#b2dfdb] bg-[#e0f2f1]' : 'border-[#d2e3fc] bg-[#e8f0fe]'}`}>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2.5">
+                            <span className={`inline-flex h-7 w-7 items-center justify-center rounded-full bg-white text-[10px] font-bold border shadow-xs ${isTracker ? 'text-[#00897B] border-[#b2dfdb]' : 'text-[#1a73e8] border-[#d2e3fc]'}`}>
+                              {idx + 1}
+                            </span>
+                            <div>
+                              <div className="flex items-center gap-1.5">
+                                <p className={`text-xs font-semibold ${isTracker ? 'text-[#00897B]' : 'text-[#1a73e8]'}`}>
+                                  {new Date(punch.punchTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                                </p>
+                                {isTracker && (
+                                  <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-[#00897B]/15 text-[#00796B] border border-[#00897B]/25">
+                                    Tracker
+                                  </span>
+                                )}
+                              </div>
+                              <p className={`text-[10px] truncate max-w-[140px] ${isTracker ? 'text-[#00897B]/80' : 'text-[#1a73e8]/70'}`}>
+                                {(punch.latitude && punch.longitude) ? `${parseFloat(punch.latitude).toFixed(6)}, ${parseFloat(punch.longitude).toFixed(6)}` : 'No location'}
+                              </p>
+                            </div>
                           </div>
+                          {(punch.latitude && punch.longitude) && (
+                            <button
+                              onClick={() => focusMarker('punch', idx)}
+                              className={`inline-flex h-7 w-7 items-center justify-center rounded-full bg-white border transition-colors cursor-pointer shadow-xs ${isTracker ? 'text-[#00897B] border-[#b2dfdb] hover:bg-[#b2dfdb]' : 'text-[#1a73e8] border-[#d2e3fc] hover:bg-[#d2e3fc]'}`}
+                              title="Focus on map"
+                            >
+                              <MapPin size={13} />
+                            </button>
+                          )}
                         </div>
-                        {(punch.latitude && punch.longitude) && (
-                          <button
-                            onClick={() => focusMarker('punch', idx)}
-                            className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white text-[#1a73e8] border border-[#d2e3fc] hover:bg-[#d2e3fc] transition-colors cursor-pointer shadow-xs"
-                            title="Focus on map"
-                          >
-                            <MapPin size={13} />
-                          </button>
-                        )}
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-6 text-center text-[#5f6368] bg-[#f8fafd] rounded-xl border border-[#e0e3e7] border-dashed">

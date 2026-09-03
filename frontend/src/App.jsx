@@ -104,6 +104,7 @@ import Offline from './pages/Offline'
 import UpdateOverlay from './components/UpdateOverlay'
 import LandscapeOverlay from './components/LandscapeOverlay'
 import CapacitorLifecycle from './components/CapacitorLifecycle'
+import BackgroundLocationTracker from './components/BackgroundLocationTracker'
 
 
 const queryClient = new QueryClient({
@@ -138,6 +139,7 @@ function App() {
       <Router>
         <CapacitorLifecycle />
         <AuthProvider>
+          <BackgroundLocationTracker />
           <UpdateOverlay />
           <LandscapeOverlay />
           <Offline />
