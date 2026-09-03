@@ -103,6 +103,7 @@ import SnowflakeCursor from './components/CustomCursor'
 import Offline from './pages/Offline'
 import UpdateOverlay from './components/UpdateOverlay'
 import LandscapeOverlay from './components/LandscapeOverlay'
+import CapacitorLifecycle from './components/CapacitorLifecycle'
 
 
 const queryClient = new QueryClient({
@@ -135,6 +136,7 @@ function App() {
   return (
     <PersistQueryClientProvider client={queryClient} persistOptions={{ persister }}>
       <Router>
+        <CapacitorLifecycle />
         <AuthProvider>
           <UpdateOverlay />
           <LandscapeOverlay />

@@ -1,8 +1,21 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { Capacitor } from '@capacitor/core';
+
+export const isNativeApp = Capacitor.isNativePlatform();
+export const REMOTE_API_URL = import.meta.env.VITE_API_URL || 'https://hrms-qwv3.onrender.com/api';
+export const REMOTE_ORIGIN = import.meta.env.VITE_BACKEND_URL || 'https://hrms-qwv3.onrender.com';
+
+export const getAssetUrl = (path) => {
+  if (!path) return '';
+  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) return path;
+  const base = isNativeApp ? REMOTE_ORIGIN : window.location.origin;
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  return `${base}${cleanPath}`;
+};
 
 const api = axios.create({
-  baseURL: '/api', // Always use /api relative path since frontend and backend are hosted together
+  baseURL: isNativeApp ? REMOTE_API_URL : '/api',
   headers: {
     'Content-Type': 'application/json',
   },
