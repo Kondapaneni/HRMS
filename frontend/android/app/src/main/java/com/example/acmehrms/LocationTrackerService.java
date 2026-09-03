@@ -1,13 +1,16 @@
 package com.example.acmehrms;
 
 import android.annotation.SuppressLint;
+import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.ServiceInfo;
 import android.location.Location;
@@ -18,6 +21,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.os.PowerManager;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
@@ -39,6 +43,8 @@ public class LocationTrackerService extends Service implements LocationListener 
     private static final String TAG = "LocationTrackerService";
     public static final String CHANNEL_ID = "hrms_location_tracking_channel";
     public static final int NOTIFICATION_ID = 8848;
+    private static final int ALARM_REQUEST_CODE = 8849;
+    private static final String ACTION_ALARM_TICK = "com.example.acmehrms.ALARM_TICK";
 
     public static final String ACTION_START = "ACTION_START_TRACKING";
     public static final String ACTION_STOP = "ACTION_STOP_TRACKING";
@@ -49,7 +55,7 @@ public class LocationTrackerService extends Service implements LocationListener 
 
     private LocationManager locationManager;
     private Handler handler;
-    private Runnable trackingRunnable;
+    private AlarmManager alarmManager;
 
     private String serverUrl = "https://hrms-qwv3.onrender.com/api/employee/attendance/punch";
     private String authToken = "";
@@ -57,13 +63,42 @@ public class LocationTrackerService extends Service implements LocationListener 
 
     private Location lastKnownLocation = null;
     private boolean isTracking = false;
+    private int punchCount = 0;
+    private PowerManager.WakeLock wakeLock;
+
+    // BroadcastReceiver for AlarmManager ticks
+    private final BroadcastReceiver alarmReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (ACTION_ALARM_TICK.equals(intent.getAction())) {
+                Log.d(TAG, "AlarmManager tick received - sending punch");
+                sendPunchRequest();
+                // Schedule next alarm
+                scheduleNextAlarm();
+            }
+        }
+    };
 
     @Override
     public void onCreate() {
         super.onCreate();
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         handler = new Handler(Looper.getMainLooper());
         createNotificationChannel();
+
+        // Acquire partial wake lock to keep CPU running for location updates
+        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "acmehrms:locationtracker");
+        wakeLock.acquire();
+
+        // Register alarm receiver
+        IntentFilter filter = new IntentFilter(ACTION_ALARM_TICK);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(alarmReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            registerReceiver(alarmReceiver, filter);
+        }
     }
 
     @Override
@@ -112,14 +147,15 @@ public class LocationTrackerService extends Service implements LocationListener 
             intervalMs = prefs.getLong("interval_ms", 2 * 60 * 1000);
         }
 
-        startForegroundService();
+        startForegroundServiceNotification();
         startLocationTracking();
 
         return START_STICKY;
     }
 
-    private void startForegroundService() {
-        Notification notification = buildNotification("Duty Active • Tracking location every 2 mins");
+    private void startForegroundServiceNotification() {
+        int mins = (int)(intervalMs / 60000);
+        Notification notification = buildNotification("Duty Active • Tracking location every " + mins + " mins");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION);
         } else {
@@ -172,11 +208,13 @@ public class LocationTrackerService extends Service implements LocationListener 
     @SuppressLint("MissingPermission")
     private void startLocationTracking() {
         try {
+            // Request continuous location updates for keeping GPS warm
+            // Use 30s min interval for GPS updates (independent of punch interval)
             if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, intervalMs, 0, this);
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 30000, 0, this);
             }
             if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, intervalMs, 0, this);
+                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 30000, 0, this);
             }
 
             Location lastGps = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
@@ -190,23 +228,43 @@ public class LocationTrackerService extends Service implements LocationListener 
             Log.e(TAG, "Failed to start location updates", e);
         }
 
-        // Run immediate punch on start
+        // Send immediate first punch
+        Log.d(TAG, "Sending immediate first punch on service start");
         sendPunchRequest();
 
-        // Start periodic runnable to ensure punches occur every interval even if phone is stationary
-        if (trackingRunnable != null) {
-            handler.removeCallbacks(trackingRunnable);
+        // Schedule reliable alarm for next punch
+        scheduleNextAlarm();
+    }
+
+    private void scheduleNextAlarm() {
+        Intent alarmIntent = new Intent(ACTION_ALARM_TICK);
+        alarmIntent.setPackage(getPackageName());
+        PendingIntent pi = PendingIntent.getBroadcast(
+                this, ALARM_REQUEST_CODE, alarmIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0)
+        );
+
+        long triggerAt = System.currentTimeMillis() + intervalMs;
+
+        // Use setExactAndAllowWhileIdle for Doze-resistant alarms
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pi);
+        } else {
+            alarmManager.setExact(AlarmManager.RTC_WAKEUP, triggerAt, pi);
         }
 
-        trackingRunnable = new Runnable() {
-            @Override
-            public void run() {
-                sendPunchRequest();
-                handler.postDelayed(this, intervalMs);
-            }
-        };
+        Log.d(TAG, "Next alarm scheduled in " + (intervalMs / 1000) + "s at " +
+                new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date(triggerAt)));
+    }
 
-        handler.postDelayed(trackingRunnable, intervalMs);
+    private void cancelAlarm() {
+        Intent alarmIntent = new Intent(ACTION_ALARM_TICK);
+        alarmIntent.setPackage(getPackageName());
+        PendingIntent pi = PendingIntent.getBroadcast(
+                this, ALARM_REQUEST_CODE, alarmIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ? PendingIntent.FLAG_IMMUTABLE : 0)
+        );
+        alarmManager.cancel(pi);
     }
 
     @SuppressLint("MissingPermission")
@@ -215,19 +273,20 @@ public class LocationTrackerService extends Service implements LocationListener 
             try {
                 Location bestLocation = lastKnownLocation;
 
-                // Try to get fresh location if possible
+                // Try to get fresh location
                 try {
                     Location gps = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
                     Location net = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
                     if (gps != null && (bestLocation == null || gps.getTime() > bestLocation.getTime())) {
                         bestLocation = gps;
-                    } else if (net != null && (bestLocation == null || net.getTime() > bestLocation.getTime())) {
+                    }
+                    if (net != null && (bestLocation == null || net.getTime() > bestLocation.getTime())) {
                         bestLocation = net;
                     }
                 } catch (Exception ignored) {}
 
                 if (bestLocation == null) {
-                    Log.w(TAG, "No GPS location available yet. Will retry on next heartbeat.");
+                    Log.w(TAG, "No GPS location available yet. Will retry on next alarm tick.");
                     return;
                 }
 
@@ -241,8 +300,8 @@ public class LocationTrackerService extends Service implements LocationListener 
                 conn.setRequestMethod("POST");
                 conn.setRequestProperty("Content-Type", "application/json");
                 conn.setRequestProperty("Authorization", "Bearer " + authToken);
-                conn.setConnectTimeout(15000);
-                conn.setReadTimeout(15000);
+                conn.setConnectTimeout(30000);
+                conn.setReadTimeout(30000);
                 conn.setDoOutput(true);
 
                 JSONObject payload = new JSONObject();
@@ -267,12 +326,14 @@ public class LocationTrackerService extends Service implements LocationListener 
                 }
 
                 String timeStr = new SimpleDateFormat("hh:mm a", Locale.getDefault()).format(new Date());
+                punchCount++;
 
                 if (code == 200) {
-                    Log.d(TAG, "Background tracker punch success at " + timeStr + ": " + response);
-                    updateNotification("Duty Active • Last location sent at " + timeStr);
+                    Log.d(TAG, "Tracker punch #" + punchCount + " SUCCESS at " + timeStr +
+                            " | Lat: " + bestLocation.getLatitude() + " Lng: " + bestLocation.getLongitude());
+                    updateNotification("Duty Active • Punch #" + punchCount + " sent at " + timeStr);
                 } else {
-                    Log.e(TAG, "Tracker punch failed HTTP " + code + ": " + response);
+                    Log.e(TAG, "Tracker punch FAILED HTTP " + code + ": " + response);
                     String respStr = response.toString().toLowerCase();
 
                     // If day/shift ended or checked out, automatically stop background service
@@ -283,8 +344,8 @@ public class LocationTrackerService extends Service implements LocationListener 
                         respStr.contains("maximum working duration") ||
                         respStr.contains("unauthorized") ||
                         code == 401 || code == 403) {
-                        Log.i(TAG, "Stopping native location tracker service due to server response: " + respStr);
-                        stopTracking();
+                        Log.i(TAG, "Stopping native location tracker due to: " + respStr);
+                        handler.post(() -> stopTracking());
                     }
                 }
 
@@ -296,9 +357,9 @@ public class LocationTrackerService extends Service implements LocationListener 
 
     private void stopTracking() {
         isTracking = false;
-        if (handler != null && trackingRunnable != null) {
-            handler.removeCallbacks(trackingRunnable);
-        }
+
+        // Cancel alarm
+        cancelAlarm();
 
         try {
             if (locationManager != null) {
@@ -308,22 +369,35 @@ public class LocationTrackerService extends Service implements LocationListener 
             Log.e(TAG, "Error removing location updates", e);
         }
 
+        // Unregister receiver safely
+        try {
+            unregisterReceiver(alarmReceiver);
+        } catch (Exception ignored) {}
+
+        // Release wake lock
+        if (wakeLock != null && wakeLock.isHeld()) {
+            wakeLock.release();
+        }
+
         SharedPreferences prefs = getSharedPreferences("hrms_tracker_prefs", MODE_PRIVATE);
         prefs.edit().putBoolean("is_active", false).apply();
 
         stopForeground(true);
         stopSelf();
+        Log.i(TAG, "Location tracking service stopped. Total punches sent: " + punchCount);
     }
 
     @Override
     public void onDestroy() {
-        stopTracking();
+        if (isTracking) {
+            stopTracking();
+        }
         super.onDestroy();
     }
 
     @Override
     public void onTaskRemoved(Intent rootIntent) {
-        // When user swipes the app away from recent tasks, DO NOT kill the foreground service
+        // When user swipes the app away from recent tasks, DO NOT kill the foreground service.
         // It keeps running because employee is still checked in!
         Log.i(TAG, "App swiped away from recent tasks. Foreground service continues running.");
         super.onTaskRemoved(rootIntent);

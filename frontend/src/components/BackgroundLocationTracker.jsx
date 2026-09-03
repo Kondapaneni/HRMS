@@ -8,39 +8,36 @@ import api from '../api/axios';
 
 /**
  * Register native Android Foreground Service plugin.
- * Keeps tracking running even when the app is completely closed or swiped away.
+ * On native Android, the Foreground Service handles ALL tracking (even when app is closed).
+ * On web/non-native, the JS heartbeat handles tracking.
  */
 const NativeLocationTracker = registerPlugin('LocationTracker');
 
 /**
  * Continuous Background Location Tracker
- * Interval: Configured to 2 minutes for testing (change to 15 * 60 * 1000 for production).
- * Heartbeat: Checks every 15 seconds to ensure zero timer drift and precise 2-minute punches.
- * Native Foreground Service: Runs continuously on Android even when app is killed/swiped away.
- * Automatically stops tracking if employee forgets to checkout and day or shift ends.
+ * Interval: 2 minutes for testing (change to 15 * 60 * 1000 for production).
+ * 
+ * NATIVE ANDROID: The native LocationTrackerService.java handles all punching via
+ * AlarmManager (Doze-resistant). JS only starts/stops the service and manages check-in status.
+ * 
+ * WEB FALLBACK: Uses JS heartbeat loop for non-native platforms.
  */
-export const TRACKER_INTERVAL_MS = 2 * 60 * 1000; // 2 minutes (change to 15 * 60 * 1000 when ready)
-const HEARTBEAT_INTERVAL_MS = 15 * 1000; // 15-second heartbeat for tight punch intervals
+export const TRACKER_INTERVAL_MS = 2 * 60 * 1000; // 2 minutes
+const HEARTBEAT_INTERVAL_MS = 15 * 1000; // 15-second heartbeat (web fallback only)
 
-/**
- * Helper to determine if the day or shift has ended and tracking should automatically stop
- * when the employee forgets to check out.
- */
 function isDayOrShiftEnded(todayRecord) {
   if (!todayRecord || !todayRecord.checkIn) return true;
-  if (todayRecord.checkOut) return true; // Already checked out
+  if (todayRecord.checkOut) return true;
 
   const now = new Date();
   const todayStr = now.toLocaleDateString('en-CA');
 
-  // 1. If date changed (e.g. past midnight next day)
   const recordDate = todayRecord.date?.split('T')[0];
   if (recordDate && recordDate !== todayStr) {
     console.log('[Tracker] Day has ended (date rolled over). Automatic tracking stopped.');
     return true;
   }
 
-  // 2. Max 12 hours from check-in threshold (employee forgot to check out)
   const checkInTime = new Date(todayRecord.checkIn).getTime();
   const MAX_HOURS_MS = 12 * 60 * 60 * 1000;
   if (now.getTime() - checkInTime > MAX_HOURS_MS) {
@@ -48,14 +45,11 @@ function isDayOrShiftEnded(todayRecord) {
     return true;
   }
 
-  // 3. Shift end time with 2-hour grace/overtime buffer
-  // (Only applies if the employee checked in before or during the shift window)
   if (todayRecord.shiftEndTime) {
     const [h, m] = todayRecord.shiftEndTime.split(':').map(Number);
     const shiftEnd = new Date(now);
     shiftEnd.setHours(h, m, 0, 0);
 
-    // If overnight shift where end is earlier than start
     if (todayRecord.shiftStartTime) {
       const [shH, shM] = todayRecord.shiftStartTime.split(':').map(Number);
       if (h < shH) {
@@ -63,9 +57,9 @@ function isDayOrShiftEnded(todayRecord) {
       }
     }
 
-    const cutoff = shiftEnd.getTime() + (2 * 60 * 60 * 1000); // 2-hour buffer
+    const cutoff = shiftEnd.getTime() + (2 * 60 * 60 * 1000);
     if (checkInTime < cutoff && now.getTime() > cutoff) {
-      console.log(`[Tracker] Shift ended at ${todayRecord.shiftEndTime} (+2h grace). Employee forgot to check out. Automatic tracking stopped.`);
+      console.log(`[Tracker] Shift ended at ${todayRecord.shiftEndTime} (+2h grace). Automatic tracking stopped.`);
       return true;
     }
   }
@@ -80,31 +74,17 @@ export default function BackgroundLocationTracker() {
   const latestCoordsRef = useRef(null);
   const nativeStartedRef = useRef(false);
 
-  // 1. Continuous location watcher to keep GPS warm and eliminate 10-15s cold-start delays
+  // 1. GPS watcher to keep location pre-warmed (for web fallback only)
   useEffect(() => {
     if (!user || profile?.role !== 'employee') return;
+    // On native, the foreground service handles GPS directly — skip JS watcher
+    if (Capacitor.isNativePlatform()) return;
 
     let watchId = null;
 
     const startWatching = async () => {
       try {
-        if (Capacitor.isNativePlatform()) {
-          const perm = await Geolocation.checkPermissions();
-          if (perm.location !== 'granted') {
-            await Geolocation.requestPermissions();
-          }
-          watchId = await Geolocation.watchPosition(
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 15000 },
-            (pos) => {
-              if (pos?.coords) {
-                latestCoordsRef.current = {
-                  coords: pos.coords,
-                  timestamp: Date.now()
-                };
-              }
-            }
-          );
-        } else if (navigator.geolocation) {
+        if (navigator.geolocation) {
           watchId = navigator.geolocation.watchPosition(
             (pos) => {
               if (pos?.coords) {
@@ -126,28 +106,22 @@ export default function BackgroundLocationTracker() {
     startWatching();
 
     return () => {
-      if (watchId !== null) {
-        if (Capacitor.isNativePlatform()) {
-          Geolocation.clearWatch({ id: watchId }).catch(() => {});
-        } else if (navigator.geolocation) {
-          navigator.geolocation.clearWatch(watchId);
-        }
+      if (watchId !== null && navigator.geolocation) {
+        navigator.geolocation.clearWatch(watchId);
       }
     };
   }, [user, profile?.role]);
 
-  // 2. Main tracking loop with fast 15-second heartbeat + Native Foreground Service activation
+  // 2. Main tracking logic: Start/Stop native service OR run JS heartbeat on web
   useEffect(() => {
     if (!user || profile?.role !== 'employee') return;
 
     let heartbeatTimer = null;
+    let checkTimer = null;
 
-    const executeTrackerPunch = async () => {
-      if (isPunchingRef.current) return;
-      isPunchingRef.current = true;
-
+    // Check attendance status and manage native service / web fallback
+    const checkAndManageTracking = async () => {
       try {
-        // A. Fetch today's attendance status
         const todayStr = new Date().toLocaleDateString('en-CA');
         const res = await api.get('/employee/attendance');
         const attendanceList = res.data || [];
@@ -156,78 +130,79 @@ export default function BackgroundLocationTracker() {
           attendanceList.find(r => r.date && new Date(r.date).toDateString() === new Date().toDateString());
 
         const isCheckedIn = todayRecord && todayRecord.checkIn && !todayRecord.checkOut;
+        const shouldStop = !isCheckedIn || isDayOrShiftEnded(todayRecord);
 
-        // If employee is not checked in or already checked out:
-        if (!isCheckedIn || isDayOrShiftEnded(todayRecord)) {
-          // Stop native Android foreground service if it was running
-          if (Capacitor.isNativePlatform() && nativeStartedRef.current) {
-            NativeLocationTracker.stopTracking().catch(() => {});
-            nativeStartedRef.current = false;
+        if (Capacitor.isNativePlatform()) {
+          // === NATIVE ANDROID: Let the foreground service handle everything ===
+          if (shouldStop) {
+            if (nativeStartedRef.current) {
+              console.log('[Tracker] Stopping native foreground service (not checked in or day ended)');
+              NativeLocationTracker.stopTracking().catch(() => {});
+              nativeStartedRef.current = false;
+            }
+          } else if (!nativeStartedRef.current) {
+            // Employee is checked in — start the native foreground service
+            const token = localStorage.getItem('token');
+            if (token) {
+              try {
+                await NativeLocationTracker.startTracking({
+                  serverUrl: 'https://hrms-qwv3.onrender.com/api/employee/attendance/punch',
+                  token: token,
+                  intervalMs: TRACKER_INTERVAL_MS
+                });
+                nativeStartedRef.current = true;
+                console.log('[Tracker] Native Android Foreground Service started. It will track every ' + (TRACKER_INTERVAL_MS / 60000) + ' min(s).');
+              } catch (err) {
+                console.warn('[Tracker] Native Foreground Service start error:', err);
+              }
+            }
           }
+          // On native, do NOT send JS punches — the service handles it
           return;
         }
 
-        // Start native Android Foreground Service (persists even when app is killed/swiped away)
-        if (Capacitor.isNativePlatform() && !nativeStartedRef.current) {
-          const token = localStorage.getItem('token');
-          if (token) {
-            NativeLocationTracker.startTracking({
-              serverUrl: 'https://hrms-qwv3.onrender.com/api/employee/attendance/punch',
-              token: token,
-              intervalMs: TRACKER_INTERVAL_MS
-            }).then(() => {
-              nativeStartedRef.current = true;
-              console.log('[Tracker] Native Android Foreground Service started successfully.');
-            }).catch((err) => {
-              console.warn('[Tracker] Native Foreground Service start error:', err);
-            });
-          }
-        }
+        // === WEB FALLBACK: Use JS heartbeat for punching ===
+        if (shouldStop) return;
 
-        // B. Check elapsed time since last punch (enforce exact TRACKER_INTERVAL_MS with 5s grace)
+        await executeWebPunch();
+
+      } catch (err) {
+        console.error('[Tracker] Status check error:', err.response?.data?.error || err.message);
+      }
+    };
+
+    // Web-only punch logic
+    const executeWebPunch = async () => {
+      if (isPunchingRef.current) return;
+      isPunchingRef.current = true;
+
+      try {
         const lastPunchTime = parseInt(localStorage.getItem('last_tracker_punch_time') || '0', 10);
         const now = Date.now();
         if (lastPunchTime > 0 && (now - lastPunchTime < TRACKER_INTERVAL_MS - 5000)) {
           return;
         }
 
-        // C. Retrieve GPS coordinates (use pre-warmed cached coords if < 30s old, otherwise query fresh)
         let coords = null;
         if (latestCoordsRef.current && (now - latestCoordsRef.current.timestamp < 30000)) {
           coords = latestCoordsRef.current.coords;
         }
 
-        if (!coords) {
-          if (Capacitor.isNativePlatform()) {
-            try {
-              const pos = await Geolocation.getCurrentPosition({
-                enableHighAccuracy: true,
-                timeout: 8000,
-                maximumAge: 15000
-              });
-              coords = pos.coords;
-            } catch (capErr) {
-              console.warn('[Tracker] getCurrentPosition native error:', capErr);
-            }
-          }
-
-          if (!coords && navigator.geolocation) {
-            coords = await new Promise((resolve) => {
-              navigator.geolocation.getCurrentPosition(
-                (p) => resolve(p.coords),
-                () => resolve(null),
-                { enableHighAccuracy: true, timeout: 8000, maximumAge: 15000 }
-              );
-            });
-          }
+        if (!coords && navigator.geolocation) {
+          coords = await new Promise((resolve) => {
+            navigator.geolocation.getCurrentPosition(
+              (p) => resolve(p.coords),
+              () => resolve(null),
+              { enableHighAccuracy: true, timeout: 8000, maximumAge: 15000 }
+            );
+          });
         }
 
         if (!coords || !coords.latitude || !coords.longitude) {
-          console.warn('[Tracker] GPS coordinates unavailable for tracker punch. Retrying next heartbeat.');
+          console.warn('[Tracker] GPS coordinates unavailable. Retrying next heartbeat.');
           return;
         }
 
-        // D. Send tracker punch to attendance_punches table
         await api.post('/employee/attendance/punch', {
           action: 'punch',
           latitude: coords.latitude,
@@ -236,58 +211,49 @@ export default function BackgroundLocationTracker() {
         });
 
         localStorage.setItem('last_tracker_punch_time', Date.now().toString());
-        console.log(`[Tracker] Punch recorded at ${new Date().toLocaleTimeString()} (Lat: ${coords.latitude}, Lng: ${coords.longitude})`);
+        console.log(`[Tracker] Web punch at ${new Date().toLocaleTimeString()} (${coords.latitude}, ${coords.longitude})`);
 
-        // Invalidate queries to refresh UI
         queryClient.invalidateQueries({ queryKey: ['employee', 'attendance'] });
         queryClient.invalidateQueries({ queryKey: ['employee', 'dashboard'] });
 
       } catch (err) {
-        console.error('[Tracker] Tracking error:', err.response?.data?.error || err.message);
+        console.error('[Tracker] Web punch error:', err.response?.data?.error || err.message);
       } finally {
         isPunchingRef.current = false;
       }
     };
 
-    // Fast heartbeat check: runs every 15 seconds to check if TRACKER_INTERVAL_MS has elapsed
-    const checkHeartbeat = () => {
-      const lastPunchTime = parseInt(localStorage.getItem('last_tracker_punch_time') || '0', 10);
-      const now = Date.now();
-      if (lastPunchTime === 0 || (now - lastPunchTime >= TRACKER_INTERVAL_MS - 5000)) {
-        executeTrackerPunch();
-      }
-    };
-
     // Initial check after 3 seconds
-    const initialTimeout = setTimeout(checkHeartbeat, 3000);
+    checkTimer = setTimeout(checkAndManageTracking, 3000);
 
-    // Heartbeat timer every 15s
-    heartbeatTimer = setInterval(checkHeartbeat, HEARTBEAT_INTERVAL_MS);
+    // For native: Re-check status every 60s (just to start/stop the service, NOT to punch)
+    // For web: Heartbeat every 15s to send punches
+    const interval = Capacitor.isNativePlatform() ? 60000 : HEARTBEAT_INTERVAL_MS;
+    heartbeatTimer = setInterval(checkAndManageTracking, interval);
 
-    // App resume listener (Android background to foreground)
+    // App resume listener
     let appStateListener = null;
     if (Capacitor.isNativePlatform()) {
       CapApp.addListener('appStateChange', (state) => {
         if (state.isActive) {
-          checkHeartbeat();
+          checkAndManageTracking();
         }
       }).then(l => { appStateListener = l; });
     }
 
-    // Window focus and visibility change listeners
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
-        checkHeartbeat();
+        checkAndManageTracking();
       }
     };
-    window.addEventListener('focus', checkHeartbeat);
+    window.addEventListener('focus', checkAndManageTracking);
     document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
-      clearTimeout(initialTimeout);
+      clearTimeout(checkTimer);
       if (heartbeatTimer) clearInterval(heartbeatTimer);
       if (appStateListener) appStateListener.remove();
-      window.removeEventListener('focus', checkHeartbeat);
+      window.removeEventListener('focus', checkAndManageTracking);
       document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, [user, profile?.role, queryClient]);
