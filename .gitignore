@@ -9,3 +9,4 @@ build/
 ngrok.log
 *.zip
 hrms-develop/
+.idea/
