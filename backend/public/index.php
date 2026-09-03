@@ -42,12 +42,31 @@ $app->add(new \App\Middleware\GzipMiddleware());
 $app->add(function (Request $request, $handler) {
     $response = $handler->handle($request);
     
-    // Ensure origin matches configured FRONTEND_URL strictly
-    $allowedOrigin = rtrim($_ENV['FRONTEND_URL'] ?? 'http://localhost:5173', '/');
+    // Ensure origin matches configured FRONTEND_URL or native mobile/local environments
+    $configuredFrontend = rtrim($_ENV['FRONTEND_URL'] ?? 'http://localhost:5173', '/');
     $origin = $request->getHeaderLine('Origin');
     
-    if (!empty($origin) && $origin !== $allowedOrigin) {
-        $allowedOrigin = 'null'; // Invalidate mismatching origins
+    $allowedOrigin = $configuredFrontend;
+    if (!empty($origin)) {
+        $allowedOrigins = [
+            $configuredFrontend,
+            'https://localhost',
+            'http://localhost',
+            'capacitor://localhost',
+            'http://localhost:5173',
+            'http://localhost:3000'
+        ];
+        
+        if (
+            in_array($origin, $allowedOrigins) || 
+            str_starts_with($origin, 'capacitor://') || 
+            str_starts_with($origin, 'http://localhost:') || 
+            str_starts_with($origin, 'https://localhost:')
+        ) {
+            $allowedOrigin = $origin;
+        } else {
+            $allowedOrigin = 'null'; // Invalidate unknown origins
+        }
     }
     
     return $response
@@ -59,7 +78,6 @@ $app->add(function (Request $request, $handler) {
         ->withHeader('X-XSS-Protection', '1; mode=block')
         ->withHeader('X-Content-Type-Options', 'nosniff')
         ->withHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
-        ->withHeader('Content-Security-Policy', "default-src 'self';")
         ->withHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
 });
 
