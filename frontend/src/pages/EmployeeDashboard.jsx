@@ -587,13 +587,13 @@ const EmployeeDashboard = () => {
                 <div className="flex justify-between py-1 border-b border-[#f1f3f4]">
                   <span className="text-[#5f6368]">Employee ID</span>
                   <span className="font-semibold text-[#1f1f1f]">
-                    {fullProfile?.employee_code || fullProfile?.id?.slice(0, 8) || 'EMP-001'}
+                    {fullProfile?.employeeId || profile?.employeeId || fullProfile?.employee_code || (fullProfile?.id ? `EMP-${fullProfile.id.replace(/-/g, '').slice(0, 6).toUpperCase()}` : 'EMP-001')}
                   </span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-[#f1f3f4]">
                   <span className="text-[#5f6368]">Joining Date</span>
                   <span className="font-semibold text-[#1f1f1f]">
-                    {fullProfile?.joiningDate ? new Date(fullProfile.joiningDate).toLocaleDateString() : 'Active Staff'}
+                    {(fullProfile?.joinDate || fullProfile?.joiningDate) ? new Date(fullProfile.joinDate || fullProfile.joiningDate).toLocaleDateString() : 'Active Staff'}
                   </span>
                 </div>
                 <div className="flex justify-between py-1">

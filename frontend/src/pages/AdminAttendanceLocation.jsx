@@ -33,6 +33,64 @@ const AdminAttendanceLocation = () => {
     },
   });
 
+  const hidePhotoInfo = () => {
+    if (infoWindowRef.current) infoWindowRef.current.close();
+  };
+
+  const showPhotoInfo = (key, marker, index) => {
+    const infoWindow = infoWindowRef.current;
+    const map = mapInstanceRef.current;
+    if (!infoWindow || !map || !data) return;
+
+    const { record, punches } = data;
+    let photoUrl, lat, lng, address, title;
+
+    if (key === 'checkIn') {
+      photoUrl = record?.checkInPhoto;
+      lat = record?.checkInLat;
+      lng = record?.checkInLng;
+      address = record?.checkInAddress;
+      title = 'Check In';
+    } else if (key === 'checkOut') {
+      photoUrl = record?.checkOutPhoto;
+      lat = record?.checkOutLat;
+      lng = record?.checkOutLng;
+      address = record?.checkOutAddress;
+      title = 'Check Out';
+    } else if (key === 'punch') {
+      const punch = (punches && punches[index]) || {};
+      photoUrl = punch.photo;
+      lat = punch.latitude;
+      lng = punch.longitude;
+      address = punch.address;
+      title = `Punch In #${index + 1}`;
+    }
+
+    let content = `<div style="max-width:320px;font-family:'Google Sans',Arial,sans-serif;color:#1f1f1f;padding:2px;">
+      <div style="font-weight:700;margin-bottom:8px;font-size:13px;color:#1f1f1f;">${title}</div>
+      <div style="display:flex;gap:10px;align-items:flex-start;">`;
+
+    // Helper to detect if photoUrl is a web attendance text label (not a real image URL)
+    const isWebLabel = (url) => url && !url.startsWith('http') && !url.startsWith('data:') && !url.startsWith('/');
+
+    if (photoUrl && !isWebLabel(photoUrl)) {
+      content += `<div style="flex-shrink:0;width:105px;"><img src="${photoUrl}" alt="${title}" style="width:100%;height:auto;max-height:130px;object-fit:cover;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.12);" /></div>`;
+    } else if (photoUrl && isWebLabel(photoUrl)) {
+      content += `<div style="flex-shrink:0;width:95px;padding:12px 6px;background:#e8f0fe;border:1px solid #d2e3fc;border-radius:10px;color:#1a73e8;font-size:11px;text-align:center;box-sizing:border-box;font-weight:600;">${photoUrl}</div>`;
+    } else {
+      content += `<div style="flex-shrink:0;width:95px;padding:12px 6px;background:#f8fafd;border:1px solid #e0e3e7;border-radius:10px;color:#5f6368;font-size:11px;text-align:center;box-sizing:border-box;">No photo</div>`;
+    }
+
+    content += `<div style="font-size:11.5px;line-height:1.5;color:#5f6368;flex-grow:1;min-width:0;">
+      <div style="word-break:break-word;"><strong style="color:#1f1f1f;">Location:</strong><br/>${lat && lng ? `${parseFloat(lat).toFixed(6)}, ${parseFloat(lng).toFixed(6)}` : 'Not available'}</div>
+      <div style="margin-top:6px;word-break:break-word;"><strong style="color:#1f1f1f;">Address:</strong><br/>${address || 'Not available'}</div>
+    </div>
+    </div></div>`;
+
+    infoWindow.setContent(content);
+    infoWindow.open(map, marker);
+  };
+
   useEffect(() => {
     if (!data || !data.googleMapsApiKey || !mapRef.current) return;
 
@@ -193,64 +251,6 @@ const AdminAttendanceLocation = () => {
 
       window.__showAllMarkers = showAllMarkers;
       showAllMarkers();
-    };
-
-    const showPhotoInfo = (key, marker, index) => {
-      const infoWindow = infoWindowRef.current;
-      const map = mapInstanceRef.current;
-      if (!infoWindow || !map) return;
-
-      const { record, punches } = data;
-      let photoUrl, lat, lng, address, title;
-
-      if (key === 'checkIn') {
-        photoUrl = record.checkInPhoto;
-        lat = record.checkInLat;
-        lng = record.checkInLng;
-        address = record.checkInAddress;
-        title = 'Check In';
-      } else if (key === 'checkOut') {
-        photoUrl = record.checkOutPhoto;
-        lat = record.checkOutLat;
-        lng = record.checkOutLng;
-        address = record.checkOutAddress;
-        title = 'Check Out';
-      } else if (key === 'punch') {
-        const punch = punches[index] || {};
-        photoUrl = punch.photo;
-        lat = punch.latitude;
-        lng = punch.longitude;
-        address = punch.address;
-        title = `Punch In #${index + 1}`;
-      }
-
-      let content = `<div style="max-width:320px;font-family:'Google Sans',Arial,sans-serif;color:#1f1f1f;padding:2px;">
-        <div style="font-weight:700;margin-bottom:8px;font-size:13px;color:#1f1f1f;">${title}</div>
-        <div style="display:flex;gap:10px;align-items:flex-start;">`;
-
-      // Helper to detect if photoUrl is a web attendance text label (not a real image URL)
-      const isWebLabel = (url) => url && !url.startsWith('http') && !url.startsWith('data:') && !url.startsWith('/');
-
-      if (photoUrl && !isWebLabel(photoUrl)) {
-        content += `<div style="flex-shrink:0;width:105px;"><img src="${photoUrl}" alt="${title}" style="width:100%;height:auto;max-height:130px;object-fit:cover;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.12);" /></div>`;
-      } else if (photoUrl && isWebLabel(photoUrl)) {
-        content += `<div style="flex-shrink:0;width:95px;padding:12px 6px;background:#e8f0fe;border:1px solid #d2e3fc;border-radius:10px;color:#1a73e8;font-size:11px;text-align:center;box-sizing:border-box;font-weight:600;">${photoUrl}</div>`;
-      } else {
-        content += `<div style="flex-shrink:0;width:95px;padding:12px 6px;background:#f8fafd;border:1px solid #e0e3e7;border-radius:10px;color:#5f6368;font-size:11px;text-align:center;box-sizing:border-box;">No photo</div>`;
-      }
-
-      content += `<div style="font-size:11.5px;line-height:1.5;color:#5f6368;flex-grow:1;min-width:0;">
-        <div style="word-break:break-word;"><strong style="color:#1f1f1f;">Location:</strong><br/>${lat && lng ? `${parseFloat(lat).toFixed(6)}, ${parseFloat(lng).toFixed(6)}` : 'Not available'}</div>
-        <div style="margin-top:6px;word-break:break-word;"><strong style="color:#1f1f1f;">Address:</strong><br/>${address || 'Not available'}</div>
-      </div>
-      </div></div>`;
-
-      infoWindow.setContent(content);
-      infoWindow.open(map, marker);
-    };
-
-    const hidePhotoInfo = () => {
-      if (infoWindowRef.current) infoWindowRef.current.close();
     };
 
     loadGoogleMapsScript();
