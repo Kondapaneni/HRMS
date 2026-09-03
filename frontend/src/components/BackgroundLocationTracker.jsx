@@ -43,6 +43,7 @@ function isDayOrShiftEnded(todayRecord) {
   }
 
   // 3. Shift end time with 2-hour grace/overtime buffer
+  // (Only applies if the employee checked in before or during the shift window)
   if (todayRecord.shiftEndTime) {
     const [h, m] = todayRecord.shiftEndTime.split(':').map(Number);
     const shiftEnd = new Date(now);
@@ -57,14 +58,8 @@ function isDayOrShiftEnded(todayRecord) {
     }
 
     const cutoff = shiftEnd.getTime() + (2 * 60 * 60 * 1000); // 2-hour buffer
-    if (now.getTime() > cutoff) {
+    if (checkInTime < cutoff && now.getTime() > cutoff) {
       console.log(`[Tracker] Shift ended at ${todayRecord.shiftEndTime} (+2h grace). Employee forgot to check out. Automatic tracking stopped.`);
-      return true;
-    }
-  } else {
-    // Default end-of-business-day cutoff at 23:30 (11:30 PM)
-    if (now.getHours() === 23 && now.getMinutes() >= 30) {
-      console.log('[Tracker] End of business day reached (23:30). Automatic tracking stopped.');
       return true;
     }
   }

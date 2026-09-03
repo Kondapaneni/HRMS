@@ -200,19 +200,15 @@ $app->post('/api/employee/attendance/punch', function (Request $request, Respons
                 }
 
                 // 3. Shift end cutoff (+ 2 hours buffer)
+                // Only cuts off if the employee checked in during or before the shift window
                 if ($shiftEndTime) {
                     $shiftEndToday = strtotime("$today $shiftEndTime");
                     if ($shiftStartTime && $shiftEndTime < $shiftStartTime) {
                         $shiftEndToday += 86400;
                     }
                     $cutoffTimestamp = $shiftEndToday + (2 * 3600);
-                    if ($currentTimestamp > $cutoffTimestamp) {
+                    if ($checkInTimestamp < $cutoffTimestamp && $currentTimestamp > $cutoffTimestamp) {
                         throw new Exception('Shift and working day has ended. Automatic tracking stopped.');
-                    }
-                } else {
-                    // Default end of day cutoff at 23:30
-                    if (date('H:i', $currentTimestamp) >= '23:30') {
-                        throw new Exception('End of day reached (23:30). Automatic tracking stopped.');
                     }
                 }
             }
