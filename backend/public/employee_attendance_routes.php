@@ -45,6 +45,17 @@ $app->post('/api/employee/attendance/punch', function (Request $request, Respons
     $lng = $data['longitude'] ?? null;
     $address = $data['address'] ?? null;
     $photoUrl = $data['photo'] ?? null;
+
+    // If no photo provided (web attendance), store descriptive text label
+    if (empty($photoUrl)) {
+        if ($action === 'check-in') {
+            $photoUrl = 'Web Checkin';
+        } else if ($action === 'check-out') {
+            $photoUrl = 'Web Checkout';
+        } else if ($action === 'punch') {
+            $photoUrl = 'Web Punch';
+        }
+    }
     
     // Only fetch Google Geocoding API if address is empty and API key is present
     if ($lat && $lng && empty($address)) {

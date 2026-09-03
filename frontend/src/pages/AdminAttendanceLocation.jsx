@@ -228,8 +228,13 @@ const AdminAttendanceLocation = () => {
         <div style="font-weight:700;margin-bottom:8px;font-size:13px;color:#1f1f1f;">${title}</div>
         <div style="display:flex;gap:10px;align-items:flex-start;">`;
 
-      if (photoUrl) {
+      // Helper to detect if photoUrl is a web attendance text label (not a real image URL)
+      const isWebLabel = (url) => url && !url.startsWith('http') && !url.startsWith('data:') && !url.startsWith('/');
+
+      if (photoUrl && !isWebLabel(photoUrl)) {
         content += `<div style="flex-shrink:0;width:105px;"><img src="${photoUrl}" alt="${title}" style="width:100%;height:auto;max-height:130px;object-fit:cover;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.12);" /></div>`;
+      } else if (photoUrl && isWebLabel(photoUrl)) {
+        content += `<div style="flex-shrink:0;width:95px;padding:12px 6px;background:#e8f0fe;border:1px solid #d2e3fc;border-radius:10px;color:#1a73e8;font-size:11px;text-align:center;box-sizing:border-box;font-weight:600;">${photoUrl}</div>`;
       } else {
         content += `<div style="flex-shrink:0;width:95px;padding:12px 6px;background:#f8fafd;border:1px solid #e0e3e7;border-radius:10px;color:#5f6368;font-size:11px;text-align:center;box-sizing:border-box;">No photo</div>`;
       }
