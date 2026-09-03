@@ -382,95 +382,93 @@ const EmployeeLayout = () => {
         <main className="flex-1 flex flex-col h-[100dvh] overflow-hidden relative z-10 bg-transparent">
 
           {/* Top Header */}
-          <header className="bg-white border-b border-[#e0e3e7] z-10 shrink-0 relative pt-[env(safe-area-inset-top,0px)]">
-            <div className="h-14 px-4 sm:px-5 flex items-center justify-between relative">
-              <div className="flex items-center gap-3 shrink-0">
-                <div className="hidden md:block">
-                  {profile?.featureAccess?.canEmployees && <GlobalSearch />}
-                </div>
-                
-                {/* Mobile Left Edge: Profile Avatar */}
-                <div className="md:hidden flex items-center">
-                  <Link
-                    to="/employee/profile"
-                    className="w-8 h-8 rounded-full bg-[#e8f0fe] border border-[#d2e3fc] flex items-center justify-center overflow-hidden shrink-0 shadow-2xs cursor-pointer active:scale-95 transition-transform"
-                  >
-                    {profile?.avatar ? (
-                      <img src={profile.avatar} alt="Profile" className="h-full w-full object-cover" />
-                    ) : (
-                      <span className="text-xs font-bold text-[#1a73e8]">
-                        {(profile?.firstName || profile?.email || 'E').charAt(0).toUpperCase()}
-                      </span>
-                    )}
-                  </Link>
-                </div>
+          <header className="h-14 bg-white border-b border-[#e0e3e7] px-4 sm:px-5 flex items-center justify-between z-10 shrink-0 relative">
+            <div className="flex items-center gap-3 shrink-0">
+              <div className="hidden md:block">
+                {profile?.featureAccess?.canEmployees && <GlobalSearch />}
               </div>
-
-              {/* Mobile Center: Acme HRMS with 4 Google dots */}
-              <div className="md:hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center pointer-events-auto">
-                <Link to="/employee" className="flex items-center gap-1.5 shrink-0">
-                  <span className="text-base font-bold tracking-tight text-[#1f1f1f]">Acme</span>
-                  <span className="text-base font-semibold tracking-tight text-[#4285F4]">HRMS</span>
-                  <div className="flex items-center gap-0.5 ml-0.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-                  </div>
+              
+              {/* Mobile Left Edge: Profile Avatar */}
+              <div className="md:hidden flex items-center">
+                <Link
+                  to="/employee/profile"
+                  className="w-8 h-8 rounded-full bg-[#e8f0fe] border border-[#d2e3fc] flex items-center justify-center overflow-hidden shrink-0 shadow-2xs cursor-pointer active:scale-95 transition-transform"
+                >
+                  {profile?.avatar ? (
+                    <img src={profile.avatar} alt="Profile" className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="text-xs font-bold text-[#1a73e8]">
+                      {(profile?.firstName || profile?.email || 'E').charAt(0).toUpperCase()}
+                    </span>
+                  )}
                 </Link>
               </div>
+            </div>
 
-              {/* Scrolling News Ticker (Desktop Google Pill) */}
-              {newsHeadlines.length > 0 && (
-                <div className="hidden md:flex flex-1 mx-6 overflow-hidden items-center text-xs font-medium text-[#1f1f1f] bg-[#f8fafd] rounded-full h-8 px-4 border border-[#e0e3e7] shadow-2xs relative group">
-                  <Megaphone size={14} className="text-[#1a73e8] mr-2.5 shrink-0" />
-                  <div className="flex-1 overflow-hidden relative h-full flex items-center">
-                    <motion.div
-                      key={newsHeadlines.join(" • ")}
-                      className="flex whitespace-nowrap"
-                      animate={{ x: ["0%", "-50%"] }}
-                      transition={{ repeat: Infinity, duration: Math.max(30, newsHeadlines.join("   •   ").length * 0.5), ease: "linear" }}
-                    >
-                      <span className="text-[#1f1f1f] tracking-wide pr-10">
-                        {Array(4).fill(newsHeadlines.join("   •   ")).join("   •   ")}
-                      </span>
-                      <span className="text-[#1f1f1f] tracking-wide pr-10">
-                        {Array(4).fill(newsHeadlines.join("   •   ")).join("   •   ")}
-                      </span>
-                    </motion.div>
-                  </div>
+            {/* Mobile Center: Acme HRMS with 4 Google dots */}
+            <div className="md:hidden absolute left-1/2 -translate-x-1/2 flex items-center pointer-events-auto">
+              <Link to="/employee" className="flex items-center gap-1.5 shrink-0">
+                <span className="text-base font-bold tracking-tight text-[#1f1f1f]">Acme</span>
+                <span className="text-base font-semibold tracking-tight text-[#4285F4]">HRMS</span>
+                <div className="flex items-center gap-0.5 ml-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
                 </div>
-              )}
+              </Link>
+            </div>
 
-              <div className="flex items-center gap-3 shrink-0">
-                {/* Desktop Profile Pill */}
-                <div className="hidden md:flex items-center gap-2.5 select-none bg-[#f8fafd] border border-[#e0e3e7] pl-1.5 pr-3 py-1 rounded-full">
-                  <div className="w-7 h-7 bg-[#e8f0fe] text-[#1a73e8] rounded-full flex items-center justify-center font-bold text-xs overflow-hidden border border-[#d2e3fc]">
-                    {profile?.avatar ? (
-                      <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
-                    ) : (
-                      (profile?.email || 'E').charAt(0).toUpperCase()
-                    )}
-                  </div>
-                  <div className="text-left">
-                    <p className="text-xs font-semibold text-[#1f1f1f] leading-none">
-                      {profile?.email?.split('@')[0] || 'Employee'}
-                    </p>
-                    <p className="text-[10px] text-[#5f6368] mt-0.5 capitalize">{profile?.role || 'Employee'}</p>
-                  </div>
-                </div>
-
-                {/* Mobile Right Side Actions */}
-                <div className="flex md:hidden items-center">
-                  <button
-                    type="button"
-                    onClick={() => setShowLogoutModal(true)}
-                    className="p-2.5 rounded-full text-[#5f6368] hover:text-[#d93025] hover:bg-[#fce8e6] transition-colors cursor-pointer active:scale-95"
-                    title="Sign Out"
+            {/* Scrolling News Ticker (Desktop Google Pill) */}
+            {newsHeadlines.length > 0 && (
+              <div className="hidden md:flex flex-1 mx-6 overflow-hidden items-center text-xs font-medium text-[#1f1f1f] bg-[#f8fafd] rounded-full h-8 px-4 border border-[#e0e3e7] shadow-2xs relative group">
+                <Megaphone size={14} className="text-[#1a73e8] mr-2.5 shrink-0" />
+                <div className="flex-1 overflow-hidden relative h-full flex items-center">
+                  <motion.div
+                    key={newsHeadlines.join(" • ")}
+                    className="flex whitespace-nowrap"
+                    animate={{ x: ["0%", "-50%"] }}
+                    transition={{ repeat: Infinity, duration: Math.max(30, newsHeadlines.join("   •   ").length * 0.5), ease: "linear" }}
                   >
-                    <LogOut className="w-5 h-5" />
-                  </button>
+                    <span className="text-[#1f1f1f] tracking-wide pr-10">
+                      {Array(4).fill(newsHeadlines.join("   •   ")).join("   •   ")}
+                    </span>
+                    <span className="text-[#1f1f1f] tracking-wide pr-10">
+                      {Array(4).fill(newsHeadlines.join("   •   ")).join("   •   ")}
+                    </span>
+                  </motion.div>
                 </div>
+              </div>
+            )}
+
+            <div className="flex items-center gap-3 shrink-0">
+              {/* Desktop Profile Pill */}
+              <div className="hidden md:flex items-center gap-2.5 select-none bg-[#f8fafd] border border-[#e0e3e7] pl-1.5 pr-3 py-1 rounded-full">
+                <div className="w-7 h-7 bg-[#e8f0fe] text-[#1a73e8] rounded-full flex items-center justify-center font-bold text-xs overflow-hidden border border-[#d2e3fc]">
+                  {profile?.avatar ? (
+                    <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    (profile?.email || 'E').charAt(0).toUpperCase()
+                  )}
+                </div>
+                <div className="text-left">
+                  <p className="text-xs font-semibold text-[#1f1f1f] leading-none">
+                    {profile?.email?.split('@')[0] || 'Employee'}
+                  </p>
+                  <p className="text-[10px] text-[#5f6368] mt-0.5 capitalize">{profile?.role || 'Employee'}</p>
+                </div>
+              </div>
+
+              {/* Mobile Right Side Actions */}
+              <div className="flex md:hidden items-center">
+                <button
+                  type="button"
+                  onClick={() => setShowLogoutModal(true)}
+                  className="p-2.5 rounded-full text-[#5f6368] hover:text-[#d93025] hover:bg-[#fce8e6] transition-colors cursor-pointer active:scale-95"
+                  title="Sign Out"
+                >
+                  <LogOut className="w-5 h-5" />
+                </button>
               </div>
             </div>
           </header>
@@ -500,7 +498,7 @@ const EmployeeLayout = () => {
           {/* Dynamic Page Content */}
           <div
             ref={scrollContainerRef}
-            className={`flex-1 overflow-y-auto overscroll-y-contain p-4 sm:p-6 ${shouldHideBottomNav ? 'pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))]' : 'pb-[calc(96px+env(safe-area-inset-bottom,0px))]'} md:pb-6`}
+            className={`flex-1 overflow-y-auto overscroll-y-contain p-4 sm:p-6 ${shouldHideBottomNav ? 'pb-6' : 'pb-[96px]'} md:pb-6`}
             style={{ WebkitOverflowScrolling: 'touch' }}
           >
             <Outlet />
@@ -509,7 +507,7 @@ const EmployeeLayout = () => {
           {/* Mobile Bottom Navigation (Google Material 3 Floating Pill Dock) */}
           {!shouldHideBottomNav && (
             <div
-              className="mobile-bottom-nav md:hidden fixed bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] left-4 right-4 z-50 select-none"
+              className="mobile-bottom-nav md:hidden fixed bottom-4 left-4 right-4 z-50 select-none"
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
               onTouchCancel={handleTouchEnd}
