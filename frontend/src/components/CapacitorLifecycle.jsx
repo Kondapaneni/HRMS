@@ -15,6 +15,7 @@ export default function CapacitorLifecycle() {
     // 1. Configure Status Bar
     const setupStatusBar = async () => {
       try {
+        await StatusBar.setOverlaysWebView({ overlay: false });
         await StatusBar.setStyle({ style: Style.Light });
         await StatusBar.setBackgroundColor({ color: '#FFFFFF' });
       } catch (e) {

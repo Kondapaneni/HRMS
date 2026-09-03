@@ -167,51 +167,53 @@ const AdminLayoutContent = () => {
       <main className="flex-1 flex flex-col h-[100dvh] overflow-hidden relative z-10 bg-transparent">
         
         {/* Top Header */}
-        <header className="h-14 bg-white border-b border-[#e0e3e7] px-5 flex items-center justify-between z-10 shrink-0">
-          <div className="flex items-center gap-3">
-            <button className="md:hidden text-[#5f6368] hover:text-[#1f1f1f] p-1.5 rounded-full hover:bg-[#f1f3f4] transition-colors">
-              <Menu size={20} />
-            </button>
-            <GlobalSearch />
-          </div>
-
-          <div className="flex items-center gap-4">
-            <button 
-              className="relative text-[#5f6368] hover:text-[#1f1f1f] p-2 rounded-full hover:bg-[#f1f3f4] transition-colors"
-              title="Notifications"
-            >
-              <Bell size={18} />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#EA4335] rounded-full ring-2 ring-white"></span>
-            </button>
-            
-            <div className="h-5 w-px bg-[#e0e3e7]"></div>
-
-            {/* User Profile Pill */}
-            <div className="flex items-center gap-2.5 select-none bg-[#f8fafd] border border-[#e0e3e7] pl-1.5 pr-3 py-1 rounded-full">
-              <div className="w-7 h-7 bg-[#e8f0fe] text-[#1a73e8] rounded-full flex items-center justify-center font-bold text-xs overflow-hidden border border-[#d2e3fc]">
-                {profile?.avatar ? (
-                  <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
-                ) : (
-                  (profile?.email || 'A').charAt(0).toUpperCase()
-                )}
-              </div>
-              <div className="hidden sm:block text-left">
-                <p className="text-xs font-semibold text-[#1f1f1f] leading-none">
-                  {profile?.email?.split('@')[0] || 'Admin User'}
-                </p>
-                <p className="text-[10px] text-[#5f6368] mt-0.5 capitalize">{profile?.role || 'Administrator'}</p>
-              </div>
+        <header className="bg-white border-b border-[#e0e3e7] z-10 shrink-0 pt-[env(safe-area-inset-top,0px)]">
+          <div className="h-14 px-5 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <button className="md:hidden text-[#5f6368] hover:text-[#1f1f1f] p-1.5 rounded-full hover:bg-[#f1f3f4] transition-colors">
+                <Menu size={20} />
+              </button>
+              <GlobalSearch />
             </div>
 
-            {/* Mobile Logout Button */}
-            <button
-              type="button"
-              onClick={handleLogoutClick}
-              className="md:hidden flex items-center gap-1.5 text-[#d93025] hover:bg-[#fce8e6] transition-colors text-xs font-semibold px-3 py-1.5 rounded-full cursor-pointer"
-            >
-              <LogOut className="w-4 h-4" />
-              <span>Logout</span>
-            </button>
+            <div className="flex items-center gap-4">
+              <button 
+                className="relative text-[#5f6368] hover:text-[#1f1f1f] p-2 rounded-full hover:bg-[#f1f3f4] transition-colors"
+                title="Notifications"
+              >
+                <Bell size={18} />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#EA4335] rounded-full ring-2 ring-white"></span>
+              </button>
+              
+              <div className="h-5 w-px bg-[#e0e3e7]"></div>
+
+              {/* User Profile Pill */}
+              <div className="flex items-center gap-2.5 select-none bg-[#f8fafd] border border-[#e0e3e7] pl-1.5 pr-3 py-1 rounded-full">
+                <div className="w-7 h-7 bg-[#e8f0fe] text-[#1a73e8] rounded-full flex items-center justify-center font-bold text-xs overflow-hidden border border-[#d2e3fc]">
+                  {profile?.avatar ? (
+                    <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    (profile?.email || 'A').charAt(0).toUpperCase()
+                  )}
+                </div>
+                <div className="hidden sm:block text-left">
+                  <p className="text-xs font-semibold text-[#1f1f1f] leading-none">
+                    {profile?.email?.split('@')[0] || 'Admin User'}
+                  </p>
+                  <p className="text-[10px] text-[#5f6368] mt-0.5 capitalize">{profile?.role || 'Administrator'}</p>
+                </div>
+              </div>
+
+              {/* Mobile Logout Button */}
+              <button
+                type="button"
+                onClick={handleLogoutClick}
+                className="md:hidden flex items-center gap-1.5 text-[#d93025] hover:bg-[#fce8e6] transition-colors text-xs font-semibold px-3 py-1.5 rounded-full cursor-pointer"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Logout</span>
+              </button>
+            </div>
           </div>
         </header>
 
