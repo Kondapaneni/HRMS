@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "cap:sync": "npm run build && npx cap sync android",
+    "cap:apk": "npm run cap:sync && cd android && .\\gradlew.bat assembleDebug && cd ..",
     "cap:open": "npx cap open android",
     "cap:run": "npm run build && npx cap run android",
     "lint": "eslint .",
