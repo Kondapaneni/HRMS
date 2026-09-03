@@ -2,15 +2,21 @@ import React, { useEffect, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { Geolocation } from '@capacitor/geolocation';
-import { Capacitor } from '@capacitor/core';
+import { Capacitor, registerPlugin } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import api from '../api/axios';
+
+/**
+ * Register native Android Foreground Service plugin.
+ * Keeps tracking running even when the app is completely closed or swiped away.
+ */
+const NativeLocationTracker = registerPlugin('LocationTracker');
 
 /**
  * Continuous Background Location Tracker
  * Interval: Configured to 2 minutes for testing (change to 15 * 60 * 1000 for production).
  * Heartbeat: Checks every 15 seconds to ensure zero timer drift and precise 2-minute punches.
- * Caches GPS coordinates via watchPosition for instant punch recording.
+ * Native Foreground Service: Runs continuously on Android even when app is killed/swiped away.
  * Automatically stops tracking if employee forgets to checkout and day or shift ends.
  */
 export const TRACKER_INTERVAL_MS = 2 * 60 * 1000; // 2 minutes (change to 15 * 60 * 1000 when ready)
@@ -72,6 +78,7 @@ export default function BackgroundLocationTracker() {
   const queryClient = useQueryClient();
   const isPunchingRef = useRef(false);
   const latestCoordsRef = useRef(null);
+  const nativeStartedRef = useRef(false);
 
   // 1. Continuous location watcher to keep GPS warm and eliminate 10-15s cold-start delays
   useEffect(() => {
@@ -129,7 +136,7 @@ export default function BackgroundLocationTracker() {
     };
   }, [user, profile?.role]);
 
-  // 2. Main tracking loop with fast 15-second heartbeat
+  // 2. Main tracking loop with fast 15-second heartbeat + Native Foreground Service activation
   useEffect(() => {
     if (!user || profile?.role !== 'employee') return;
 
@@ -150,24 +157,41 @@ export default function BackgroundLocationTracker() {
 
         const isCheckedIn = todayRecord && todayRecord.checkIn && !todayRecord.checkOut;
 
-        // If employee is not checked in or already checked out, do not punch
-        if (!isCheckedIn) {
+        // If employee is not checked in or already checked out:
+        if (!isCheckedIn || isDayOrShiftEnded(todayRecord)) {
+          // Stop native Android foreground service if it was running
+          if (Capacitor.isNativePlatform() && nativeStartedRef.current) {
+            NativeLocationTracker.stopTracking().catch(() => {});
+            nativeStartedRef.current = false;
+          }
           return;
         }
 
-        // B. Automatic stop if employee forgot to check out and day/shift has ended
-        if (isDayOrShiftEnded(todayRecord)) {
-          return;
+        // Start native Android Foreground Service (persists even when app is killed/swiped away)
+        if (Capacitor.isNativePlatform() && !nativeStartedRef.current) {
+          const token = localStorage.getItem('token');
+          if (token) {
+            NativeLocationTracker.startTracking({
+              serverUrl: 'https://hrms-qwv3.onrender.com/api/employee/attendance/punch',
+              token: token,
+              intervalMs: TRACKER_INTERVAL_MS
+            }).then(() => {
+              nativeStartedRef.current = true;
+              console.log('[Tracker] Native Android Foreground Service started successfully.');
+            }).catch((err) => {
+              console.warn('[Tracker] Native Foreground Service start error:', err);
+            });
+          }
         }
 
-        // C. Check elapsed time since last punch (enforce exact TRACKER_INTERVAL_MS with 5s grace)
+        // B. Check elapsed time since last punch (enforce exact TRACKER_INTERVAL_MS with 5s grace)
         const lastPunchTime = parseInt(localStorage.getItem('last_tracker_punch_time') || '0', 10);
         const now = Date.now();
         if (lastPunchTime > 0 && (now - lastPunchTime < TRACKER_INTERVAL_MS - 5000)) {
           return;
         }
 
-        // D. Retrieve GPS coordinates (use pre-warmed cached coords if < 30s old, otherwise query fresh)
+        // C. Retrieve GPS coordinates (use pre-warmed cached coords if < 30s old, otherwise query fresh)
         let coords = null;
         if (latestCoordsRef.current && (now - latestCoordsRef.current.timestamp < 30000)) {
           coords = latestCoordsRef.current.coords;
@@ -203,7 +227,7 @@ export default function BackgroundLocationTracker() {
           return;
         }
 
-        // E. Send tracker punch to attendance_punches table
+        // D. Send tracker punch to attendance_punches table
         await api.post('/employee/attendance/punch', {
           action: 'punch',
           latitude: coords.latitude,
