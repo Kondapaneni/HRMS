@@ -19,6 +19,7 @@ const EmployeeMobileCamera = () => {
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
 
+  const [currentFacingMode, setCurrentFacingMode] = useState('user'); // 'user' or 'environment'
   const [stream, setStream] = useState(null);
   const [photoDataUrl, setPhotoDataUrl] = useState(null);
   const [cameraError, setCameraError] = useState('');
@@ -31,18 +32,64 @@ const EmployeeMobileCamera = () => {
     }
   }, [action, latitude, longitude, navigate]);
 
-  const startCamera = useCallback(async () => {
+  const startCamera = useCallback(async (facing = 'user') => {
     try {
       setCameraError('');
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
       }
-      const newStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user' },
-        audio: false
-      });
+
+      let newStream = null;
+
+      // 1. Try exact facingMode first
+      try {
+        newStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { exact: facing } },
+          audio: false
+        });
+      } catch (exactErr) {
+        // 2. If exact fails, search enumerated video devices
+        try {
+          const devices = await navigator.mediaDevices.enumerateDevices();
+          const videoDevices = devices.filter(d => d.kind === 'videoinput');
+          
+          let targetDevice = null;
+          if (facing === 'user') {
+            targetDevice = videoDevices.find(d => {
+              const label = (d.label || '').toLowerCase();
+              return label.includes('front') || label.includes('user') || label.includes('selfie') || label.includes('facing front');
+            });
+          } else {
+            targetDevice = videoDevices.find(d => {
+              const label = (d.label || '').toLowerCase();
+              return label.includes('back') || label.includes('rear') || label.includes('environment') || label.includes('facing back');
+            });
+          }
+
+          if (targetDevice && targetDevice.deviceId) {
+            newStream = await navigator.mediaDevices.getUserMedia({
+              video: { deviceId: { exact: targetDevice.deviceId } },
+              audio: false
+            });
+          }
+        } catch (enumErr) {
+          console.warn("Device enumeration fallback failed:", enumErr);
+        }
+
+        // 3. Fallback to standard facingMode request
+        if (!newStream) {
+          newStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: facing },
+            audio: false
+          });
+        }
+      }
+
       setStream(newStream);
       streamRef.current = newStream;
+      setCurrentFacingMode(facing);
+
       if (videoRef.current) {
         videoRef.current.srcObject = newStream;
       }
@@ -54,13 +101,18 @@ const EmployeeMobileCamera = () => {
 
   // Start camera on mount
   useEffect(() => {
-    startCamera();
+    startCamera('user');
     return () => {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
       }
     };
   }, [startCamera]);
+
+  const toggleCamera = () => {
+    const nextFacing = currentFacingMode === 'user' ? 'environment' : 'user';
+    startCamera(nextFacing);
+  };
 
   const capturePhoto = () => {
     if (!videoRef.current || !canvasRef.current) return;
@@ -74,7 +126,12 @@ const EmployeeMobileCamera = () => {
 
     const ctx = canvas.getContext('2d');
 
-    // If using front camera, we might want to mirror it, but usually standard is fine.
+    // If using front camera, mirror image on canvas so it matches the preview
+    if (currentFacingMode === 'user') {
+      ctx.translate(canvas.width, 0);
+      ctx.scale(-1, 1);
+    }
+
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     // Compress a bit to save bandwidth
@@ -91,7 +148,7 @@ const EmployeeMobileCamera = () => {
 
   const retakePhoto = () => {
     setPhotoDataUrl(null);
-    startCamera();
+    startCamera(currentFacingMode);
   };
 
   const b64toBlob = (b64Data, contentType = '', sliceSize = 512) => {
@@ -226,7 +283,7 @@ const EmployeeMobileCamera = () => {
               <img
                 src={photoDataUrl}
                 alt="Captured"
-                className="w-full h-full object-cover -scale-x-100"
+                className="w-full h-full object-cover"
               />
             ) : (
               <video
@@ -234,7 +291,7 @@ const EmployeeMobileCamera = () => {
                 autoPlay
                 playsInline
                 muted
-                className="w-full h-full object-cover -scale-x-100"
+                className={`w-full h-full object-cover ${currentFacingMode === 'user' ? '-scale-x-100' : ''}`}
               />
             )}
             {/* Hidden canvas for capturing frame */}
@@ -291,16 +348,27 @@ const EmployeeMobileCamera = () => {
             </button>
           </div>
         ) : (
-          <div className="flex justify-center items-center">
+          <div className="flex justify-center items-center relative max-w-md mx-auto w-full">
             {/* Capture Button */}
             <button
               onClick={capturePhoto}
               disabled={!!cameraError}
-              className="w-20 h-20 rounded-full border-4 border-slate-300 flex items-center justify-center active:scale-95 transition-transform disabled:opacity-50"
+              className="w-20 h-20 rounded-full border-4 border-slate-300 flex items-center justify-center active:scale-95 transition-transform disabled:opacity-50 cursor-pointer"
             >
               <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center">
                 <Camera className="w-8 h-8 text-slate-800" />
               </div>
+            </button>
+
+            {/* Switch / Flip Camera Button */}
+            <button
+              type="button"
+              onClick={toggleCamera}
+              disabled={!!cameraError}
+              className="absolute right-4 w-12 h-12 rounded-full bg-white/15 hover:bg-white/25 border border-white/20 backdrop-blur-md flex items-center justify-center text-white active:scale-95 transition-all cursor-pointer shadow-xs"
+              title="Switch Camera"
+            >
+              <RefreshCw className="w-5 h-5" />
             </button>
           </div>
         )}
