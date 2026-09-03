@@ -21,6 +21,7 @@ const EmployeeMobileCamera = () => {
 
   const [currentFacingMode, setCurrentFacingMode] = useState('user'); // 'user' or 'environment'
   const [stream, setStream] = useState(null);
+  const [isReady, setIsReady] = useState(false);
   const [photoDataUrl, setPhotoDataUrl] = useState(null);
   const [cameraError, setCameraError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -32,8 +33,16 @@ const EmployeeMobileCamera = () => {
     }
   }, [action, latitude, longitude, navigate]);
 
+  const handleVideoLoaded = () => {
+    if (videoRef.current) {
+      videoRef.current.play().catch(e => console.warn("Video play error:", e));
+    }
+    setIsReady(true);
+  };
+
   const startCamera = useCallback(async (facing = 'user') => {
     try {
+      setIsReady(false);
       setCameraError('');
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
@@ -290,8 +299,15 @@ const EmployeeMobileCamera = () => {
                 ref={videoRef}
                 autoPlay
                 playsInline
+                webkit-playsinline="true"
+                x5-playsinline="true"
                 muted
-                className={`w-full h-full object-cover ${currentFacingMode === 'user' ? '-scale-x-100' : ''}`}
+                poster="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+                disablePictureInPicture
+                disableRemotePlayback
+                onLoadedMetadata={handleVideoLoaded}
+                onCanPlay={handleVideoLoaded}
+                className={`w-full h-full object-cover transition-opacity duration-300 ${isReady ? 'opacity-100' : 'opacity-0'} ${currentFacingMode === 'user' ? '-scale-x-100' : ''}`}
               />
             )}
             {/* Hidden canvas for capturing frame */}
@@ -299,8 +315,16 @@ const EmployeeMobileCamera = () => {
           </>
         )}
 
-        {/* Overlay Guides */}
-        {!photoDataUrl && !cameraError && (
+        {/* Loading state while camera initializes */}
+        {!isReady && !cameraError && !photoDataUrl && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black z-10 pointer-events-none">
+            <div className="w-10 h-10 rounded-full border-3 border-white/20 border-t-[#4285F4] animate-spin mb-3" />
+            <span className="text-white/80 text-xs font-medium tracking-wide">Starting camera...</span>
+          </div>
+        )}
+
+        {/* Overlay Guides - only show when camera is active */}
+        {!photoDataUrl && !cameraError && isReady && (
           <div className="absolute inset-0 pointer-events-none">
             {/* Face guide oval container */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[60%] w-80 h-96">
@@ -352,7 +376,7 @@ const EmployeeMobileCamera = () => {
             {/* Capture Button */}
             <button
               onClick={capturePhoto}
-              disabled={!!cameraError}
+              disabled={!!cameraError || !isReady}
               className="w-20 h-20 rounded-full border-4 border-slate-300 flex items-center justify-center active:scale-95 transition-transform disabled:opacity-50 cursor-pointer"
             >
               <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center">
@@ -364,8 +388,8 @@ const EmployeeMobileCamera = () => {
             <button
               type="button"
               onClick={toggleCamera}
-              disabled={!!cameraError}
-              className="absolute right-4 w-12 h-12 rounded-full bg-white/15 hover:bg-white/25 border border-white/20 backdrop-blur-md flex items-center justify-center text-white active:scale-95 transition-all cursor-pointer shadow-xs"
+              disabled={!!cameraError || !isReady}
+              className="absolute right-4 w-12 h-12 rounded-full bg-white/15 hover:bg-white/25 border border-white/20 backdrop-blur-md flex items-center justify-center text-white active:scale-95 transition-all cursor-pointer shadow-xs disabled:opacity-50"
               title="Switch Camera"
             >
               <RefreshCw className="w-5 h-5" />
