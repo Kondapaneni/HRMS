@@ -184,32 +184,12 @@ $app->post('/api/employee/attendance/punch', function (Request $request, Respons
                 throw new Exception('Cannot punch after checking out.');
             }
 
-            // Automatic Day-End / Shift-End validation for background tracker
+            // Automatic Day-End validation for background tracker
+            // Tracks from check-in to check-out. If no checkout, stops at midnight IST.
             if ($photoUrl === 'Tracker') {
-                $checkInTimestamp = strtotime($record['checkIn']);
-                $currentTimestamp = strtotime($now);
-
-                // 1. If date changed (past midnight)
+                // Stop if the attendance date is not today (past midnight Kolkata time)
                 if ($record['date'] !== $today) {
                     throw new Exception('Day has ended. Automatic tracking stopped.');
-                }
-
-                // 2. Max 12 hours from check-in threshold (employee forgot to check out)
-                if (($currentTimestamp - $checkInTimestamp) > (12 * 3600)) {
-                    throw new Exception('Maximum working duration (12 hours) exceeded. Automatic tracking stopped.');
-                }
-
-                // 3. Shift end cutoff (+ 2 hours buffer)
-                // Only cuts off if the employee checked in during or before the shift window
-                if ($shiftEndTime) {
-                    $shiftEndToday = strtotime("$today $shiftEndTime");
-                    if ($shiftStartTime && $shiftEndTime < $shiftStartTime) {
-                        $shiftEndToday += 86400;
-                    }
-                    $cutoffTimestamp = $shiftEndToday + (2 * 3600);
-                    if ($checkInTimestamp < $cutoffTimestamp && $currentTimestamp > $cutoffTimestamp) {
-                        throw new Exception('Shift and working day has ended. Automatic tracking stopped.');
-                    }
                 }
             }
 

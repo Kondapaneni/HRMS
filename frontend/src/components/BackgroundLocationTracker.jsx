@@ -25,43 +25,17 @@ const NativeLocationTracker = registerPlugin('LocationTracker');
 export const TRACKER_INTERVAL_MS = 2 * 60 * 1000; // 2 minutes
 const HEARTBEAT_INTERVAL_MS = 15 * 1000; // 15-second heartbeat (web fallback only)
 
-function isDayOrShiftEnded(todayRecord) {
+function isDayEnded(todayRecord) {
   if (!todayRecord || !todayRecord.checkIn) return true;
-  if (todayRecord.checkOut) return true;
+  if (todayRecord.checkOut) return true; // Already checked out
 
+  // Stop at midnight Kolkata time (IST) — if the attendance date is not today
   const now = new Date();
-  const todayStr = now.toLocaleDateString('en-CA');
-
+  const todayStr = now.toLocaleDateString('en-CA'); // yyyy-mm-dd in local timezone (IST)
   const recordDate = todayRecord.date?.split('T')[0];
   if (recordDate && recordDate !== todayStr) {
-    console.log('[Tracker] Day has ended (date rolled over). Automatic tracking stopped.');
+    console.log('[Tracker] Day has ended (past midnight IST). Automatic tracking stopped.');
     return true;
-  }
-
-  const checkInTime = new Date(todayRecord.checkIn).getTime();
-  const MAX_HOURS_MS = 12 * 60 * 60 * 1000;
-  if (now.getTime() - checkInTime > MAX_HOURS_MS) {
-    console.log('[Tracker] Maximum active shift duration (12 hours) exceeded. Automatic tracking stopped.');
-    return true;
-  }
-
-  if (todayRecord.shiftEndTime) {
-    const [h, m] = todayRecord.shiftEndTime.split(':').map(Number);
-    const shiftEnd = new Date(now);
-    shiftEnd.setHours(h, m, 0, 0);
-
-    if (todayRecord.shiftStartTime) {
-      const [shH, shM] = todayRecord.shiftStartTime.split(':').map(Number);
-      if (h < shH) {
-        shiftEnd.setDate(shiftEnd.getDate() + 1);
-      }
-    }
-
-    const cutoff = shiftEnd.getTime() + (2 * 60 * 60 * 1000);
-    if (checkInTime < cutoff && now.getTime() > cutoff) {
-      console.log(`[Tracker] Shift ended at ${todayRecord.shiftEndTime} (+2h grace). Automatic tracking stopped.`);
-      return true;
-    }
   }
 
   return false;
@@ -130,7 +104,7 @@ export default function BackgroundLocationTracker() {
           attendanceList.find(r => r.date && new Date(r.date).toDateString() === new Date().toDateString());
 
         const isCheckedIn = todayRecord && todayRecord.checkIn && !todayRecord.checkOut;
-        const shouldStop = !isCheckedIn || isDayOrShiftEnded(todayRecord);
+        const shouldStop = !isCheckedIn || isDayEnded(todayRecord);
 
         if (Capacitor.isNativePlatform()) {
           // === NATIVE ANDROID: Let the foreground service handle everything ===
