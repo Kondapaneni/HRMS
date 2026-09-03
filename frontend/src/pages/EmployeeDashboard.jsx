@@ -141,9 +141,6 @@ const EmployeeDashboard = () => {
 
   const isWebAttendanceEnabled = fullProfile?.webAttendanceEnabled == 1 || fullProfile?.webAttendanceEnabled === true || fullProfile?.webAttendanceEnabled === '1' || fullProfile?.webAttendanceEnabled === 'true';
 
-  const reverseGeocode = async (lat, lng) => {
-    return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-  };
 
   const getDistanceFromLatLonInMeters = (lat1, lon1, lat2, lon2) => {
     const R = 6371e3;
@@ -168,7 +165,6 @@ const EmployeeDashboard = () => {
       async (position) => {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
-        const addr = await reverseGeocode(lat, lng);
 
         let isAllowed = true;
 
@@ -205,8 +201,7 @@ const EmployeeDashboard = () => {
           const punchRes = await api.post('/employee/attendance/punch', {
             action,
             latitude: lat,
-            longitude: lng,
-            address: addr
+            longitude: lng
           });
 
           const updatedAtt = punchRes.data?.attendance;
