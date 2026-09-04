@@ -65,22 +65,65 @@ public class LocationTrackerService extends Service implements LocationListener 
     private int punchCount = 0;
     private PowerManager.WakeLock wakeLock;
 
+    /**
+     * Primary recurring punch loop that runs on the dedicated background HandlerThread.
+     * Unlike AlarmManager.setExactAndAllowWhileIdle (which Android OS throttles to 9-15 min in Doze),
+     * a HandlerThread inside a ForegroundService with PARTIAL_WAKE_LOCK can execute at exact
+     * sub-9-minute intervals (e.g. 1m, 2m, 5m).
+     */
+    private final Runnable punchTickRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (!isTracking) return;
+            Log.d(TAG, "Executing punchTickRunnable...");
+            try {
+                fetchDynamicIntervalFromServer();
+                sendPunchRequest();
+            } catch (Exception e) {
+                Log.e(TAG, "Error in punchTickRunnable: " + e.getMessage(), e);
+            } finally {
+                if (isTracking && bgHandler != null) {
+                    bgHandler.removeCallbacks(this);
+                    bgHandler.postDelayed(this, intervalMs);
+                    Log.i(TAG, "Scheduled next Handler tick in " + (intervalMs / 1000) + "s (" + (intervalMs / 60000) + " min)");
+                    // Also schedule AlarmManager as watchdog in case CPU sleeps
+                    scheduleNextPunchAlarm();
+                }
+            }
+        }
+    };
+
+    private void restoreFromPreferences() {
+        try {
+            SharedPreferences prefs = getSharedPreferences("hrms_tracker_prefs", MODE_PRIVATE);
+            serverUrl = prefs.getString("server_url", serverUrl);
+            authToken = prefs.getString("auth_token", authToken);
+            intervalMs = prefs.getLong("interval_ms", intervalMs);
+        } catch (Exception e) {
+            Log.w(TAG, "Error restoring prefs: " + e.getMessage());
+        }
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         createNotificationChannel();
 
-        // Create a dedicated background HandlerThread for location callbacks
+        // Create a dedicated background HandlerThread for location callbacks and interval ticks
         handlerThread = new HandlerThread("LocationTrackerThread");
         handlerThread.start();
         bgHandler = new Handler(handlerThread.getLooper());
 
-        // Acquire partial wake lock to prevent CPU from sleeping
+        // Acquire partial wake lock to prevent CPU from sleeping while duty is active
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "acmehrms:locationtracker");
-        wakeLock.acquire();
-        Log.i(TAG, "Service created. WakeLock acquired.");
+        if (pm != null) {
+            wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "acmehrms:locationtracker");
+            wakeLock.acquire();
+        }
+
+        restoreFromPreferences();
+        Log.i(TAG, "Service created. WakeLock acquired. Loaded interval=" + (intervalMs / 60000) + "m");
     }
 
     @Override
@@ -94,14 +137,19 @@ public class LocationTrackerService extends Service implements LocationListener 
             }
 
             if (ACTION_PUNCH_TICK.equals(action)) {
-                Log.d(TAG, "Received ACTION_PUNCH_TICK from AlarmManager (Device sleep wakeup)");
-                if (isTracking && bgHandler != null) {
-                    bgHandler.post(() -> {
-                        // Self-fetch latest dynamic interval from server BEFORE scheduling next alarm
-                        fetchDynamicIntervalFromServer();
-                        sendPunchRequest();
-                        scheduleNextPunchAlarm();
-                    });
+                Log.d(TAG, "Received ACTION_PUNCH_TICK from AlarmManager (Watchdog/Wakeup)");
+                restoreFromPreferences();
+                SharedPreferences prefs = getSharedPreferences("hrms_tracker_prefs", MODE_PRIVATE);
+                boolean isActive = prefs.getBoolean("is_active", false);
+
+                if (isActive) {
+                    if (!isTracking) {
+                        startForegroundServiceNotification();
+                        startLocationTracking();
+                    } else if (bgHandler != null) {
+                        bgHandler.removeCallbacks(punchTickRunnable);
+                        bgHandler.post(punchTickRunnable);
+                    }
                 }
                 return START_STICKY;
             }
@@ -126,39 +174,39 @@ public class LocationTrackerService extends Service implements LocationListener 
                         .putBoolean("is_active", true)
                         .apply();
             } else {
-                serverUrl = prefs.getString("server_url", serverUrl);
-                authToken = prefs.getString("auth_token", "");
-                intervalMs = prefs.getLong("interval_ms", intervalMs);
+                restoreFromPreferences();
             }
         } else {
             // Restarted by OS after being killed
+            restoreFromPreferences();
             SharedPreferences prefs = getSharedPreferences("hrms_tracker_prefs", MODE_PRIVATE);
             boolean isActive = prefs.getBoolean("is_active", false);
             if (!isActive) {
                 stopSelf();
                 return START_NOT_STICKY;
             }
-            serverUrl = prefs.getString("server_url", serverUrl);
-            authToken = prefs.getString("auth_token", "");
-            intervalMs = prefs.getLong("interval_ms", 15 * 60 * 1000);
         }
 
         if (!isTracking) {
             startForegroundServiceNotification();
             startLocationTracking();
         } else {
-            // Service already running: dynamically refresh notification text and reschedule next alarm immediately
+            // Service already running: dynamically refresh notification text and reschedule next tick immediately
             int mins = Math.max(1, (int)(intervalMs / 60000));
             updateNotification("Duty Active • Tracking every " + mins + " min(s)");
+            if (bgHandler != null) {
+                bgHandler.removeCallbacks(punchTickRunnable);
+                bgHandler.postDelayed(punchTickRunnable, intervalMs);
+            }
             scheduleNextPunchAlarm();
-            Log.i(TAG, "Service already running. Interval dynamically updated to " + mins + " min(s) and alarm rescheduled.");
+            Log.i(TAG, "Service already running. Interval dynamically updated to " + mins + " min(s) and tick rescheduled.");
         }
 
         return START_STICKY;
     }
 
     private void startForegroundServiceNotification() {
-        int mins = (int)(intervalMs / 60000);
+        int mins = Math.max(1, (int)(intervalMs / 60000));
         Notification notification = buildNotification("Duty Active • Tracking every " + mins + " min(s)");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION);
@@ -238,15 +286,11 @@ public class LocationTrackerService extends Service implements LocationListener 
             Log.e(TAG, "Failed to start location updates", e);
         }
 
-        // Send immediate first punch in background thread
-        Log.d(TAG, "Triggering immediate first punch on service start");
+        // Trigger immediate first punch and start the recurring loop
+        Log.d(TAG, "Starting recurring punch loop via bgHandler");
         if (bgHandler != null) {
-            bgHandler.post(() -> {
-                // Fetch latest dynamic interval from server on start
-                fetchDynamicIntervalFromServer();
-                sendPunchRequest();
-                scheduleNextPunchAlarm();
-            });
+            bgHandler.removeCallbacks(punchTickRunnable);
+            bgHandler.post(punchTickRunnable);
         }
     }
 
@@ -271,7 +315,7 @@ public class LocationTrackerService extends Service implements LocationListener 
                 } else {
                     alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAtMillis, pi);
                 }
-                Log.i(TAG, "Scheduled next punch alarm via AlarmManager in " + (intervalMs / 1000) + "s (ELAPSED_REALTIME_WAKEUP)");
+                Log.d(TAG, "Watchdog alarm set for " + (intervalMs / 1000) + "s");
             }
         } catch (Exception e) {
             Log.e(TAG, "Failed to schedule punch alarm: " + e.getMessage(), e);
@@ -285,12 +329,13 @@ public class LocationTrackerService extends Service implements LocationListener 
      */
     private void fetchDynamicIntervalFromServer() {
         try {
-            // Use the /api/news endpoint which returns tracking_interval_minutes
             String newsUrl = serverUrl.replace("/employee/attendance/punch", "/news");
             URL url = new URL(newsUrl);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
-            conn.setRequestProperty("Authorization", "Bearer " + authToken);
+            if (authToken != null && !authToken.isEmpty()) {
+                conn.setRequestProperty("Authorization", "Bearer " + authToken);
+            }
             conn.setConnectTimeout(10000);
             conn.setReadTimeout(10000);
 
@@ -323,7 +368,7 @@ public class LocationTrackerService extends Service implements LocationListener 
             }
             conn.disconnect();
         } catch (Exception e) {
-            Log.w(TAG, "Failed to fetch dynamic interval from server (will use current): " + e.getMessage());
+            Log.w(TAG, "Failed to fetch dynamic interval from server (using current): " + e.getMessage());
         }
     }
 
@@ -426,6 +471,11 @@ public class LocationTrackerService extends Service implements LocationListener 
 
     private void stopTracking() {
         isTracking = false;
+
+        // Cancel recurring handler tick
+        if (bgHandler != null) {
+            bgHandler.removeCallbacks(punchTickRunnable);
+        }
 
         // Cancel scheduled alarm
         try {
