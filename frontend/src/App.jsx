@@ -150,7 +150,6 @@ function App() {
           <Routes>
             <Route path="/" element={<Login />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/preview-gate" element={<TrackerPermissionGate forcePreview={true} />} />
             <Route path="/candidate/login" element={<CandidateLogin />} />
             <Route path="/candidate/activate" element={<CandidateActivate />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />

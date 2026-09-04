@@ -12,67 +12,24 @@ import {
   ExternalLink, 
   RefreshCw, 
   ShieldCheck, 
-  LogOut,
-  Eye,
-  X,
-  RotateCcw
+  LogOut 
 } from 'lucide-react';
 
-export default function TrackerPermissionGate({ forcePreview = false }) {
+export default function TrackerPermissionGate() {
   const { user, profile, signOut } = useAuth();
-  
-  // Detect if web preview is requested via URL or prop
-  const [isPreview, setIsPreview] = useState(() => {
-    if (forcePreview) return true;
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      return params.get('previewGate') === 'true' || 
-             params.get('testGate') === 'true' ||
-             window.location.pathname === '/preview-gate';
-    }
-    return false;
-  });
-
-  const [dismissPreview, setDismissPreview] = useState(false);
-  const [checking, setChecking] = useState(false);
-
-  // In preview mode on PC, start with all permissions false so the user can test the interactive UI
-  const [status, setStatus] = useState(() => {
-    const isTest = forcePreview || (typeof window !== 'undefined' && (
-      new URLSearchParams(window.location.search).get('previewGate') === 'true' ||
-      new URLSearchParams(window.location.search).get('testGate') === 'true' ||
-      window.location.pathname === '/preview-gate'
-    ));
-
-    if (isTest) {
-      return {
-        notificationsGranted: false,
-        batteryUnrestricted: false,
-        backgroundLocationGranted: false,
-        locationGranted: false,
-        allGranted: false,
-      };
-    }
-
-    return {
-      notificationsGranted: true,
-      batteryUnrestricted: true,
-      backgroundLocationGranted: true,
-      locationGranted: true,
-      allGranted: true,
-    };
+  const [checking, setChecking] = useState(true);
+  const [status, setStatus] = useState({
+    notificationsGranted: true,
+    batteryUnrestricted: true,
+    backgroundLocationGranted: true,
+    locationGranted: true,
+    allGranted: true,
   });
 
   const isEmployee = user && profile?.role === 'employee';
   const isNative = Capacitor.isNativePlatform();
 
   const checkPermissions = useCallback(async () => {
-    if (isPreview) {
-      setChecking(true);
-      setTimeout(() => setChecking(false), 400);
-      return;
-    }
-
     if (!isNative || !isEmployee) {
       setChecking(false);
       return;
@@ -93,10 +50,9 @@ export default function TrackerPermissionGate({ forcePreview = false }) {
     } finally {
       setChecking(false);
     }
-  }, [isNative, isEmployee, isPreview]);
+  }, [isNative, isEmployee]);
 
   useEffect(() => {
-    if (isPreview) return;
     if (!isNative || !isEmployee) return;
 
     checkPermissions();
@@ -128,28 +84,16 @@ export default function TrackerPermissionGate({ forcePreview = false }) {
       document.removeEventListener('visibilitychange', handleVisibility);
       clearInterval(pollInterval);
     };
-  }, [isNative, isEmployee, isPreview, checkPermissions]);
+  }, [isNative, isEmployee, checkPermissions]);
 
-  // If testing preview on PC and user closed preview
-  if (dismissPreview) return null;
+  // Only show on native Android devices for employees
+  if (!isNative || !isEmployee) return null;
 
-  // On non-preview mode: only show on native for employees
-  if (!isPreview) {
-    if (!isNative || !isEmployee) return null;
-    if (status.allGranted) return null;
-  }
+  // If all permissions are granted, do not block the app
+  if (status.allGranted) return null;
 
-  // Handlers for the 3 actions (with interactive simulation on PC preview)
+  // Native permission request handlers
   const handleRequestNotifications = async () => {
-    if (isPreview) {
-      setStatus(prev => {
-        const next = { ...prev, notificationsGranted: true };
-        next.allGranted = next.notificationsGranted && next.batteryUnrestricted && next.backgroundLocationGranted;
-        return next;
-      });
-      return;
-    }
-
     try {
       await NativeLocationTracker.requestNotificationPermission();
       setTimeout(checkPermissions, 1000);
@@ -159,15 +103,6 @@ export default function TrackerPermissionGate({ forcePreview = false }) {
   };
 
   const handleRequestBattery = async () => {
-    if (isPreview) {
-      setStatus(prev => {
-        const next = { ...prev, batteryUnrestricted: true };
-        next.allGranted = next.notificationsGranted && next.batteryUnrestricted && next.backgroundLocationGranted;
-        return next;
-      });
-      return;
-    }
-
     try {
       await NativeLocationTracker.requestBatteryOptimization();
       setTimeout(checkPermissions, 1000);
@@ -177,15 +112,6 @@ export default function TrackerPermissionGate({ forcePreview = false }) {
   };
 
   const handleRequestLocation = async () => {
-    if (isPreview) {
-      setStatus(prev => {
-        const next = { ...prev, backgroundLocationGranted: true, locationGranted: true };
-        next.allGranted = next.notificationsGranted && next.batteryUnrestricted && next.backgroundLocationGranted;
-        return next;
-      });
-      return;
-    }
-
     try {
       await NativeLocationTracker.requestLocationPermissions();
       setTimeout(async () => {
@@ -194,26 +120,6 @@ export default function TrackerPermissionGate({ forcePreview = false }) {
     } catch (e) {
       await NativeLocationTracker.openAppSettings();
     }
-  };
-
-  const handleResetPreview = () => {
-    setStatus({
-      notificationsGranted: false,
-      batteryUnrestricted: false,
-      backgroundLocationGranted: false,
-      locationGranted: false,
-      allGranted: false,
-    });
-  };
-
-  const handleGrantAllPreview = () => {
-    setStatus({
-      notificationsGranted: true,
-      batteryUnrestricted: true,
-      backgroundLocationGranted: true,
-      locationGranted: true,
-      allGranted: true,
-    });
   };
 
   const pendingCount = [
@@ -229,39 +135,6 @@ export default function TrackerPermissionGate({ forcePreview = false }) {
     >
       {/* Top 4-Color Google Accent Line */}
       <div className="h-1 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] fixed top-0 left-0 right-0 z-50 pointer-events-none" />
-
-      {/* PC Preview Mode Bar (Only visible in Web Test Mode) */}
-      {isPreview && (
-        <div className="relative z-50 bg-slate-900 text-white px-4 py-2 flex items-center justify-between text-xs border-b border-slate-800 shadow-md">
-          <div className="flex items-center gap-2">
-            <Eye className="w-4 h-4 text-blue-400" />
-            <span className="font-semibold text-blue-300">PC Test Mode:</span>
-            <span className="text-slate-300 hidden sm:inline">Click buttons below to simulate employee permission flow.</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleGrantAllPreview}
-              className="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded-md font-semibold text-[11px]"
-            >
-              Simulate All Active
-            </button>
-            <button
-              onClick={handleResetPreview}
-              className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-md font-semibold text-[11px] flex items-center gap-1"
-            >
-              <RotateCcw className="w-3 h-3" />
-              Reset
-            </button>
-            <button
-              onClick={() => setDismissPreview(true)}
-              className="p-1 text-slate-400 hover:text-white rounded-md transition-colors"
-              title="Close Preview"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Ambient Multi-Color Glows (Matches Employee Mobile Dashboard) */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
@@ -322,12 +195,8 @@ export default function TrackerPermissionGate({ forcePreview = false }) {
                 <h1 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">
                   Attendance Tracker
                 </h1>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold shrink-0 ${
-                  pendingCount === 0 
-                    ? 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6]' 
-                    : 'bg-[#fef7e0] text-[#b06000] border border-[#feefc3]'
-                }`}>
-                  {pendingCount === 0 ? 'All Active' : `${pendingCount} Pending`}
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#fef7e0] text-[#b06000] border border-[#feefc3] shrink-0">
+                  {pendingCount} Pending
                 </span>
               </div>
               <p className="text-[11px] font-medium text-slate-500 mt-1 uppercase tracking-wider">
@@ -337,11 +206,9 @@ export default function TrackerPermissionGate({ forcePreview = false }) {
           </div>
 
           <div className="mt-4 pt-3.5 border-t border-slate-100 flex items-start gap-2 text-xs text-slate-600 leading-relaxed">
-            <AlertTriangle className={`w-4 h-4 shrink-0 mt-0.5 ${pendingCount === 0 ? 'text-[#137333]' : 'text-[#b06000]'}`} />
+            <AlertTriangle className="w-4 h-4 text-[#b06000] shrink-0 mt-0.5" />
             <span>
-              {pendingCount === 0 
-                ? 'Great! All 3 required permissions are active. Your attendance punches will now track seamlessly during shifts.' 
-                : 'All 3 permissions below are mandatory to ensure attendance punches work continuously even while your mobile is locked or in sleep mode.'}
+              All 3 permissions below are mandatory to ensure attendance punches work continuously even while your mobile is locked or in sleep mode.
             </span>
           </div>
         </div>
@@ -353,7 +220,7 @@ export default function TrackerPermissionGate({ forcePreview = false }) {
               Required Configurations
             </span>
             <span className="text-[11px] font-semibold text-slate-500">
-              {3 - pendingCount} of 3 Active
+              3 of 3 Required
             </span>
           </div>
 
