@@ -13,7 +13,7 @@ import { NativeLocationTracker } from '../plugins/NativeLocationTracker';
  * On native Android, the Foreground Service (LocationTrackerService.java)
  * handles all background tracking via AlarmManager (Doze-resistant).
  */
-export const TRACKER_INTERVAL_MS = 2 * 60 * 1000; // 2 minutes
+export const TRACKER_INTERVAL_MS = 15 * 60 * 1000; // 15 minutes
 
 function isDayEnded(todayRecord) {
   if (!todayRecord || !todayRecord.checkIn) return true;

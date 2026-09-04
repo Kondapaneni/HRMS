@@ -31,7 +31,7 @@ public class LocationTrackerPlugin extends Plugin {
         Context context = getContext();
         String serverUrl = call.getString("serverUrl", "https://hrms-qwv3.onrender.com/api/employee/attendance/punch");
         String token = call.getString("token", "");
-        Long intervalMs = call.getLong("intervalMs", 2L * 60 * 1000);
+        Long intervalMs = call.getLong("intervalMs", 15L * 60 * 1000);
 
         Intent intent = new Intent(context, LocationTrackerService.class);
         intent.setAction(LocationTrackerService.ACTION_START);

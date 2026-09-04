@@ -58,7 +58,7 @@ public class LocationTrackerService extends Service implements LocationListener 
 
     private String serverUrl = "https://hrms-qwv3.onrender.com/api/employee/attendance/punch";
     private String authToken = "";
-    private long intervalMs = 2 * 60 * 1000; // default 2 minutes
+    private long intervalMs = 15 * 60 * 1000; // default 15 minutes
 
     private Location lastKnownLocation = null;
     private boolean isTracking = false;
@@ -111,7 +111,7 @@ public class LocationTrackerService extends Service implements LocationListener 
                 authToken = intent.getStringExtra(EXTRA_AUTH_TOKEN);
             }
             if (intent.hasExtra(EXTRA_INTERVAL_MS)) {
-                intervalMs = intent.getLongExtra(EXTRA_INTERVAL_MS, 2 * 60 * 1000);
+                intervalMs = intent.getLongExtra(EXTRA_INTERVAL_MS, 15 * 60 * 1000);
             }
 
             // Persist to SharedPreferences so service can resume if restarted by OS
@@ -138,7 +138,7 @@ public class LocationTrackerService extends Service implements LocationListener 
             }
             serverUrl = prefs.getString("server_url", serverUrl);
             authToken = prefs.getString("auth_token", "");
-            intervalMs = prefs.getLong("interval_ms", 2 * 60 * 1000);
+            intervalMs = prefs.getLong("interval_ms", 15 * 60 * 1000);
         }
 
         if (!isTracking) {
