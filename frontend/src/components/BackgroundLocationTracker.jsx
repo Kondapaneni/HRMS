@@ -11,7 +11,7 @@ import api from '../api/axios';
  * On native Android, the Foreground Service handles ALL tracking (even when app is closed).
  * On web/non-native, the JS heartbeat handles tracking.
  */
-const NativeLocationTracker = registerPlugin('LocationTracker');
+import { NativeLocationTracker } from '../plugins/NativeLocationTracker';
 
 /**
  * Continuous Background Location Tracker

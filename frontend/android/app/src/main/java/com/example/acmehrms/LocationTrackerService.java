@@ -20,6 +20,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.os.SystemClock;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
@@ -35,24 +36,23 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class LocationTrackerService extends Service implements LocationListener {
 
     private static final String TAG = "LocationTrackerSvc";
     public static final String CHANNEL_ID = "hrms_location_tracking_channel";
     public static final int NOTIFICATION_ID = 8848;
+    public static final int ALARM_REQUEST_CODE = 8849;
 
     public static final String ACTION_START = "ACTION_START_TRACKING";
     public static final String ACTION_STOP = "ACTION_STOP_TRACKING";
+    public static final String ACTION_PUNCH_TICK = "ACTION_PUNCH_TICK";
 
     public static final String EXTRA_SERVER_URL = "EXTRA_SERVER_URL";
     public static final String EXTRA_AUTH_TOKEN = "EXTRA_AUTH_TOKEN";
     public static final String EXTRA_INTERVAL_MS = "EXTRA_INTERVAL_MS";
 
     private LocationManager locationManager;
-    private Timer punchTimer;
     private HandlerThread handlerThread;
     private Handler bgHandler;
 
@@ -91,6 +91,17 @@ public class LocationTrackerService extends Service implements LocationListener 
                 Log.i(TAG, "Received STOP action");
                 stopTracking();
                 return START_NOT_STICKY;
+            }
+
+            if (ACTION_PUNCH_TICK.equals(action)) {
+                Log.d(TAG, "Received ACTION_PUNCH_TICK from AlarmManager (Device sleep wakeup)");
+                if (isTracking && bgHandler != null) {
+                    bgHandler.post(() -> {
+                        sendPunchRequest();
+                        scheduleNextPunchAlarm();
+                    });
+                }
+                return START_STICKY;
             }
 
             if (intent.hasExtra(EXTRA_SERVER_URL)) {
@@ -219,24 +230,42 @@ public class LocationTrackerService extends Service implements LocationListener 
             Log.e(TAG, "Failed to start location updates", e);
         }
 
-        // Send immediate first punch
-        Log.d(TAG, "Sending immediate first punch on service start");
-        sendPunchRequest();
-
-        // Use java.util.Timer (independent of Android main looper, not affected by Doze for foreground services)
-        if (punchTimer != null) {
-            punchTimer.cancel();
-        }
-        punchTimer = new Timer("PunchTimer", true);
-        punchTimer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                Log.d(TAG, "Timer tick #" + (punchCount + 1) + " - sending punch request");
+        // Send immediate first punch in background thread
+        Log.d(TAG, "Triggering immediate first punch on service start");
+        if (bgHandler != null) {
+            bgHandler.post(() -> {
                 sendPunchRequest();
-            }
-        }, intervalMs, intervalMs);
+                scheduleNextPunchAlarm();
+            });
+        }
+    }
 
-        Log.i(TAG, "Punch timer started: interval = " + (intervalMs / 1000) + "s (" + (intervalMs / 60000) + " min)");
+    private void scheduleNextPunchAlarm() {
+        if (!isTracking) return;
+        try {
+            AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+            if (alarmManager != null) {
+                Intent tickIntent = new Intent(this, LocationTrackerService.class);
+                tickIntent.setAction(ACTION_PUNCH_TICK);
+                int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    flags |= PendingIntent.FLAG_IMMUTABLE;
+                }
+                PendingIntent pi = PendingIntent.getService(this, ALARM_REQUEST_CODE, tickIntent, flags);
+
+                long triggerAtMillis = SystemClock.elapsedRealtime() + intervalMs;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    alarmManager.setExactAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAtMillis, pi);
+                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                    alarmManager.setExact(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAtMillis, pi);
+                } else {
+                    alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAtMillis, pi);
+                }
+                Log.i(TAG, "Scheduled next punch alarm via AlarmManager in " + (intervalMs / 1000) + "s (ELAPSED_REALTIME_WAKEUP)");
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to schedule punch alarm: " + e.getMessage(), e);
+        }
     }
 
     @SuppressLint("MissingPermission")
@@ -339,11 +368,23 @@ public class LocationTrackerService extends Service implements LocationListener 
     private void stopTracking() {
         isTracking = false;
 
-        // Cancel timer
-        if (punchTimer != null) {
-            punchTimer.cancel();
-            punchTimer = null;
-        }
+        // Cancel scheduled alarm
+        try {
+            AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+            if (alarmManager != null) {
+                Intent tickIntent = new Intent(this, LocationTrackerService.class);
+                tickIntent.setAction(ACTION_PUNCH_TICK);
+                int flags = PendingIntent.FLAG_NO_CREATE;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    flags |= PendingIntent.FLAG_IMMUTABLE;
+                }
+                PendingIntent pi = PendingIntent.getService(this, ALARM_REQUEST_CODE, tickIntent, flags);
+                if (pi != null) {
+                    alarmManager.cancel(pi);
+                    pi.cancel();
+                }
+            }
+        } catch (Exception ignored) {}
 
         try {
             if (locationManager != null) {

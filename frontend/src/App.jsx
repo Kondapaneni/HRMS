@@ -105,6 +105,7 @@ import UpdateOverlay from './components/UpdateOverlay'
 import LandscapeOverlay from './components/LandscapeOverlay'
 import CapacitorLifecycle from './components/CapacitorLifecycle'
 import BackgroundLocationTracker from './components/BackgroundLocationTracker'
+import TrackerPermissionGate from './components/TrackerPermissionGate'
 
 
 const queryClient = new QueryClient({
@@ -140,6 +141,7 @@ function App() {
         <CapacitorLifecycle />
         <AuthProvider>
           <BackgroundLocationTracker />
+          <TrackerPermissionGate />
           <UpdateOverlay />
           <LandscapeOverlay />
           <Offline />
