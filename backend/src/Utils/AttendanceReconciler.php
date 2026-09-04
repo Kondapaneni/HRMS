@@ -25,7 +25,7 @@ class AttendanceReconciler
             SELECT a.id, a."employeeId", a.date, a.status, a."checkIn", a."checkOut", a.hours,
                    e."shiftTime", s."startTime" as "shiftStartTime", s."endTime" as "shiftEndTime"
             FROM attendance a
-            LEFT JOIN employee e ON a."employeeId" = e."userId"
+            LEFT JOIN employee e ON (a."employeeId" = e."userId" OR a."employeeId" = e.id)
             LEFT JOIN shift_times s ON e."shiftTime" = s."shiftLabel"
             WHERE a."checkIn" IS NOT NULL 
               AND a."checkOut" IS NULL 
