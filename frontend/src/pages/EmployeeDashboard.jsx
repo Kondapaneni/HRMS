@@ -367,14 +367,14 @@ const EmployeeDashboard = () => {
                     <div className="space-y-1.5 text-xs">
                       <div className="flex items-center gap-2 text-[#1f1f1f] whitespace-nowrap">
                         <span className="text-[#5f6368] whitespace-nowrap">Check-in Time:</span>
-                        <span className="font-semibold text-[#1f1f1f] bg-white px-2.5 py-0.5 rounded-lg border border-[#e0e3e7] whitespace-nowrap shrink-0 shadow-2xs">
+                        <span className="font-semibold text-[#1f1f1f] bg-white px-3 py-0.5 rounded-full border border-[#e0e3e7] whitespace-nowrap shrink-0 shadow-2xs">
                           {new Date(todayRecord.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                         </span>
                       </div>
                       {todayRecord?.checkOut && (
                         <div className="flex items-center gap-2 text-[#1f1f1f] whitespace-nowrap">
                           <span className="text-[#5f6368] whitespace-nowrap">Check-out Time:</span>
-                          <span className="font-semibold text-[#1f1f1f] bg-white px-2.5 py-0.5 rounded-lg border border-[#e0e3e7] whitespace-nowrap shrink-0 shadow-2xs">
+                          <span className="font-semibold text-[#1f1f1f] bg-white px-3 py-0.5 rounded-full border border-[#e0e3e7] whitespace-nowrap shrink-0 shadow-2xs">
                             {new Date(todayRecord.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                           </span>
                         </div>
