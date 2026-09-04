@@ -13,7 +13,7 @@ import { NativeLocationTracker } from '../plugins/NativeLocationTracker';
  * On native Android, the Foreground Service (LocationTrackerService.java)
  * handles all background tracking via AlarmManager (Doze-resistant).
  */
-export const TRACKER_INTERVAL_MS = 15 * 60 * 1000; // 15 minutes
+export const DEFAULT_TRACKER_INTERVAL_MS = 15 * 60 * 1000; // 15 minutes default fallback
 
 function isDayEnded(todayRecord) {
   if (!todayRecord || !todayRecord.checkIn) return true;
@@ -34,6 +34,7 @@ function isDayEnded(todayRecord) {
 export default function BackgroundLocationTracker() {
   const { profile, user } = useAuth();
   const nativeStartedRef = useRef(false);
+  const activeIntervalRef = useRef(DEFAULT_TRACKER_INTERVAL_MS);
 
   const isNative = Capacitor.isNativePlatform();
   const isEmployee = user && profile?.role === 'employee';
@@ -48,8 +49,19 @@ export default function BackgroundLocationTracker() {
     const checkAndManageTracking = async () => {
       try {
         const todayStr = new Date().toLocaleDateString('en-CA');
-        const res = await api.get('/employee/attendance');
-        const attendanceList = res.data || [];
+        
+        // Fetch attendance status and dynamic server config (/news returns tracking_interval_minutes)
+        const [attRes, newsRes] = await Promise.allSettled([
+          api.get('/employee/attendance'),
+          api.get('/news')
+        ]);
+
+        const attendanceList = (attRes.status === 'fulfilled' ? attRes.value.data : []) || [];
+        const dynamicMins = (newsRes.status === 'fulfilled' && newsRes.value.data?.tracking_interval_minutes)
+          ? Number(newsRes.value.data.tracking_interval_minutes)
+          : 15;
+        const targetIntervalMs = Math.max(1, dynamicMins) * 60 * 1000;
+
         const todayRecord = 
           attendanceList.find(r => r.date?.split('T')[0] === todayStr) || 
           attendanceList.find(r => r.date && new Date(r.date).toDateString() === new Date().toDateString());
@@ -63,20 +75,24 @@ export default function BackgroundLocationTracker() {
             NativeLocationTracker.stopTracking().catch(() => {});
             nativeStartedRef.current = false;
           }
-        } else if (!nativeStartedRef.current) {
-          // Employee is checked in — start the native foreground service
-          const token = localStorage.getItem('token');
-          if (token) {
-            try {
-              await NativeLocationTracker.startTracking({
-                serverUrl: 'https://hrms-qwv3.onrender.com/api/employee/attendance/punch',
-                token: token,
-                intervalMs: TRACKER_INTERVAL_MS
-              });
-              nativeStartedRef.current = true;
-              console.log('[Tracker] Native Android Foreground Service started. It will track every ' + (TRACKER_INTERVAL_MS / 60000) + ' min(s).');
-            } catch (err) {
-              console.warn('[Tracker] Native Foreground Service start error:', err);
+        } else {
+          // Employee is checked in — start or reschedule the native foreground service
+          const intervalChanged = activeIntervalRef.current !== targetIntervalMs;
+          if (!nativeStartedRef.current || intervalChanged) {
+            const token = localStorage.getItem('token');
+            if (token) {
+              try {
+                await NativeLocationTracker.startTracking({
+                  serverUrl: 'https://hrms-qwv3.onrender.com/api/employee/attendance/punch',
+                  token: token,
+                  intervalMs: targetIntervalMs
+                });
+                nativeStartedRef.current = true;
+                activeIntervalRef.current = targetIntervalMs;
+                console.log(`[Tracker] Native Android Foreground Service ${intervalChanged ? 'rescheduled' : 'started'}. Dynamic interval: ${dynamicMins} min(s).`);
+              } catch (err) {
+                console.warn('[Tracker] Native Foreground Service start error:', err);
+              }
             }
           }
         }

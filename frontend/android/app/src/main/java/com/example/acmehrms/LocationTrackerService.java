@@ -144,6 +144,12 @@ public class LocationTrackerService extends Service implements LocationListener 
         if (!isTracking) {
             startForegroundServiceNotification();
             startLocationTracking();
+        } else {
+            // Service already running: dynamically refresh notification text and reschedule next alarm immediately
+            int mins = Math.max(1, (int)(intervalMs / 60000));
+            updateNotification("Duty Active • Tracking every " + mins + " min(s)");
+            scheduleNextPunchAlarm();
+            Log.i(TAG, "Service already running. Interval dynamically updated to " + mins + " min(s) and alarm rescheduled.");
         }
 
         return START_STICKY;

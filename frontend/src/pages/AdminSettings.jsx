@@ -71,6 +71,7 @@ const AdminSettings = () => {
 
   const [settings, setSettings] = useState({
     sessionTimeout: '30',
+    trackingIntervalMinutes: 15,
     loginRateLimitAttempts: 5,
     loginRateLimitWindow: 15,
     forgotPasswordRateLimitAttempts: 3,
@@ -94,6 +95,7 @@ const AdminSettings = () => {
     if (fetchedSettings && fetchedSettings.session_timeout) {
       setSettings({
         sessionTimeout: fetchedSettings.session_timeout || '30',
+        trackingIntervalMinutes: fetchedSettings.tracking_interval_minutes ? Number(fetchedSettings.tracking_interval_minutes) : 15,
         loginRateLimitAttempts: fetchedSettings.login_rate_limit_attempts || 5,
         loginRateLimitWindow: fetchedSettings.login_rate_limit_window || 15,
         forgotPasswordRateLimitAttempts: fetchedSettings.forgot_password_rate_limit_attempts || 3,
@@ -138,6 +140,7 @@ const AdminSettings = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminSettings'] });
+      queryClient.invalidateQueries({ queryKey: ['newsHeadlines'] });
       toast.success('System settings saved successfully!');
     },
     onError: () => {
@@ -149,6 +152,7 @@ const AdminSettings = () => {
     e.preventDefault();
     updateSettingsMutation.mutate({
       session_timeout: settings.sessionTimeout,
+      tracking_interval_minutes: Number(settings.trackingIntervalMinutes) || 15,
       login_rate_limit_attempts: settings.loginRateLimitAttempts,
       login_rate_limit_window: settings.loginRateLimitWindow,
       forgot_password_rate_limit_attempts: settings.forgotPasswordRateLimitAttempts,
@@ -213,11 +217,11 @@ const AdminSettings = () => {
           colorTheme="purple" 
         />
         <StatCard 
-          title="Endpoint Protections" 
-          value="3 Rules Active" 
-          subtitle="Brute-force & API limiters" 
-          icon={ShieldCheck} 
-          colorTheme="amber" 
+          title="Tracking Interval" 
+          value={`${settings.trackingIntervalMinutes || 15} Mins`} 
+          subtitle="Dynamic background GPS interval" 
+          icon={MapPin} 
+          colorTheme="green" 
         />
       </div>
 
@@ -259,6 +263,46 @@ const AdminSettings = () => {
                 <p className="text-[11px] text-[#5f6368] mt-1.5">
                   Employees will be automatically logged out after this period of continuous inactivity.
                 </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Card: Mobile Attendance & Background Location Tracking */}
+          <div className="bg-white rounded-2xl border border-[#e0e3e7] p-5 shadow-xs space-y-4">
+            <div className="flex items-center gap-2.5 pb-3 border-b border-[#e0e3e7]">
+              <div className="p-2 rounded-xl bg-[#e6f4ea] text-[#137333]">
+                <MapPin className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-[#1f1f1f]">Mobile Attendance &amp; Location Tracking</h3>
+                <p className="text-xs text-[#5f6368]">Configure dynamic punch interval for the native Android background tracking service</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="max-w-md">
+                <label className="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5">
+                  Background Location Tracking Interval *
+                </label>
+                <select
+                  name="trackingIntervalMinutes"
+                  value={settings.trackingIntervalMinutes}
+                  onChange={handleChange}
+                  className="w-full px-3.5 py-2.5 bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs font-semibold text-[#1f1f1f] outline-none cursor-pointer"
+                >
+                  <option value="2">2 Minutes (Real-Time Testing / High Frequency)</option>
+                  <option value="5">5 Minutes (Frequent Updates)</option>
+                  <option value="10">10 Minutes (Balanced Frequency)</option>
+                  <option value="15">15 Minutes (Recommended - Production Standard &amp; Battery Friendly)</option>
+                  <option value="30">30 Minutes (Extended Battery Saver)</option>
+                  <option value="60">60 Minutes (Hourly Interval)</option>
+                </select>
+                <div className="flex items-start gap-2 mt-2 p-2.5 rounded-xl bg-[#f8fafd] border border-[#dadce0]/60">
+                  <Sparkles className="w-4 h-4 text-[#1a73e8] shrink-0 mt-0.5" />
+                  <p className="text-[11px] text-[#5f6368] leading-relaxed">
+                    <strong>Over-The-Air Sync:</strong> When updated here, employee mobile apps automatically adjust their background tracking schedule without requiring any manual APK downloads or reinstalls.
+                  </p>
+                </div>
               </div>
             </div>
           </div>

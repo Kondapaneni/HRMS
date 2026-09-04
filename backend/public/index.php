@@ -330,16 +330,18 @@ $app->get('/api/news', function (Request $request, Response $response, $args) {
     $db = new Database();
     $conn = $db->getConnection();
     
-    $stmt = $conn->query('SELECT news_headlines, maintenance_mode, maintenance_message FROM global_settings ORDER BY id ASC LIMIT 1');
+    $stmt = $conn->query('SELECT news_headlines, maintenance_mode, maintenance_message, tracking_interval_minutes FROM global_settings ORDER BY id ASC LIMIT 1');
     $settings = $stmt->fetch(PDO::FETCH_ASSOC);
     $headlines = isset($settings['news_headlines']) ? json_decode($settings['news_headlines'], true) : [];
     $maintenanceMode = isset($settings['maintenance_mode']) && $settings['maintenance_mode'] ? true : false;
     $maintenanceMessage = $settings['maintenance_message'] ?? '';
+    $trackingIntervalMinutes = isset($settings['tracking_interval_minutes']) ? (int)$settings['tracking_interval_minutes'] : 15;
     
     $response->getBody()->write(json_encode([
         'news_headlines' => $headlines,
         'maintenance_mode' => $maintenanceMode,
-        'maintenance_message' => $maintenanceMessage
+        'maintenance_message' => $maintenanceMessage,
+        'tracking_interval_minutes' => $trackingIntervalMinutes
     ]));
     return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
 });

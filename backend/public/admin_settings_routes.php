@@ -14,7 +14,7 @@ $app->get('/api/admin/settings', function (Request $request, Response $response,
     $settings = \App\Utils\Cache::get($cacheKey);
     
     if ($settings === false) {
-        $stmt = $conn->query('SELECT id, session_timeout, login_rate_limit_attempts, login_rate_limit_window, forgot_password_rate_limit_attempts, forgot_password_rate_limit_window, maps_rate_limit_attempts, maps_rate_limit_window, news_headlines, maintenance_mode, maintenance_message, updated_at FROM global_settings ORDER BY id ASC LIMIT 1');
+        $stmt = $conn->query('SELECT id, session_timeout, login_rate_limit_attempts, login_rate_limit_window, forgot_password_rate_limit_attempts, forgot_password_rate_limit_window, maps_rate_limit_attempts, maps_rate_limit_window, news_headlines, maintenance_mode, maintenance_message, tracking_interval_minutes, updated_at FROM global_settings ORDER BY id ASC LIMIT 1');
         $settings = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if ($settings) {
@@ -31,11 +31,16 @@ $app->get('/api/admin/settings', function (Request $request, Response $response,
                 forgot_password_rate_limit_attempts, forgot_password_rate_limit_window,
                 maps_rate_limit_attempts, maps_rate_limit_window,
                 news_headlines,
-                maintenance_mode, maintenance_message
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *
+                maintenance_mode, maintenance_message,
+                tracking_interval_minutes
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *
         ');
-        $stmt->execute(['30', 5, 15, 3, 60, 5, 10, json_encode([]), 'false', 'The application is currently undergoing maintenance. Please check back later.']);
+        $stmt->execute(['30', 5, 15, 3, 60, 5, 10, json_encode([]), 'false', 'The application is currently undergoing maintenance. Please check back later.', 15]);
         $settings = $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    if ($settings && !isset($settings['tracking_interval_minutes'])) {
+        $settings['tracking_interval_minutes'] = 15;
     }
 
     $response->getBody()->write(json_encode($settings));
@@ -54,6 +59,8 @@ $app->post('/api/admin/settings', function (Request $request, Response $response
         $stmt = $conn->query('SELECT id FROM global_settings ORDER BY id ASC LIMIT 1');
         $settingId = $stmt->fetchColumn();
 
+        $trackingInterval = max(1, (int)($data['tracking_interval_minutes'] ?? 15));
+
         if ($settingId) {
             $stmtUpdate = $conn->prepare('
                 UPDATE global_settings SET 
@@ -67,6 +74,7 @@ $app->post('/api/admin/settings', function (Request $request, Response $response
                     news_headlines = ?,
                     maintenance_mode = ?,
                     maintenance_message = ?,
+                    tracking_interval_minutes = ?,
                     updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
             ');
@@ -81,6 +89,7 @@ $app->post('/api/admin/settings', function (Request $request, Response $response
                 isset($data['news_headlines']) ? json_encode($data['news_headlines']) : '[]',
                 isset($data['maintenance_mode']) ? ($data['maintenance_mode'] ? 'true' : 'false') : 'false',
                 $data['maintenance_message'] ?? 'The application is currently undergoing maintenance. Please check back later.',
+                $trackingInterval,
                 $settingId
             ]);
         } else {
@@ -91,8 +100,9 @@ $app->post('/api/admin/settings', function (Request $request, Response $response
                     forgot_password_rate_limit_attempts, forgot_password_rate_limit_window,
                     maps_rate_limit_attempts, maps_rate_limit_window,
                     news_headlines,
-                    maintenance_mode, maintenance_message
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    maintenance_mode, maintenance_message,
+                    tracking_interval_minutes
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ');
             $stmtInsert->execute([
                 $data['session_timeout'] ?? '30',
@@ -104,7 +114,8 @@ $app->post('/api/admin/settings', function (Request $request, Response $response
                 $data['maps_rate_limit_window'] ?? 10,
                 isset($data['news_headlines']) ? json_encode($data['news_headlines']) : '[]',
                 isset($data['maintenance_mode']) ? ($data['maintenance_mode'] ? 'true' : 'false') : 'false',
-                $data['maintenance_message'] ?? 'The application is currently undergoing maintenance. Please check back later.'
+                $data['maintenance_message'] ?? 'The application is currently undergoing maintenance. Please check back later.',
+                $trackingInterval
             ]);
         }
 
