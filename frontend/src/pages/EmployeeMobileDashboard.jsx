@@ -191,7 +191,7 @@ const EmployeeMobileDashboard = () => {
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
     const s = seconds % 60;
-    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')} hrs`;
   };
 
   const formatCurrency = (amount) => {
@@ -323,12 +323,12 @@ const EmployeeMobileDashboard = () => {
               </div>
             )}
 
-            <div className="relative z-10 flex flex-col items-center justify-center px-3.5 py-1.5 rounded-2xl bg-white/80 backdrop-blur-md shadow-xs border border-white/90">
-              <span className={`text-xl font-black font-mono tracking-tight whitespace-nowrap ${isActiveSession ? 'text-[#e53935]' : 'text-slate-800'}`}>
+            <div className="relative z-10 flex flex-col items-center justify-center">
+              {isActiveSession && (
+                <div className="absolute inset-[-8px] bg-white/40 backdrop-blur-[2px] rounded-full -z-10 blur-sm"></div>
+              )}
+              <span className={`text-2xl font-black tracking-tighter ${isActiveSession ? 'text-[#ff686b] drop-shadow-md' : 'text-slate-800'}`}>
                 {formatTime(liveSeconds)}
-              </span>
-              <span className="text-[9.5px] font-bold uppercase tracking-wider text-slate-500 -mt-0.5">
-                Working Time
               </span>
             </div>
           </div>
