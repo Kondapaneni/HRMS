@@ -376,7 +376,6 @@ const EmployeeLayout = () => {
               >
                 <Smartphone size={14} className="text-[#1a73e8] shrink-0" />
                 <span className="text-[11px] truncate flex-1">Download App</span>
-                <span className="text-[9px] font-bold bg-[#1a73e8] text-white px-1.5 py-0.2 rounded-full">APK</span>
               </a>
             )}
             <button
@@ -463,7 +462,7 @@ const EmployeeLayout = () => {
                   title="Download Acme HRMS Android App (APK)"
                 >
                   <Download size={13} />
-                  <span>Download App (APK)</span>
+                  <span>Download App</span>
                 </a>
               )}
 
