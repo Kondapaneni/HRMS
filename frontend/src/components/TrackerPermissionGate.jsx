@@ -146,16 +146,10 @@ export default function TrackerPermissionGate() {
 
       {/* Top Header Bar (Identical to Mobile Dashboard Header) */}
       <header className="h-14 bg-white border-b border-[#e0e3e7] px-4 flex items-center justify-between z-10 shrink-0 relative shadow-2xs mt-1">
-        {/* Left: Avatar */}
+        {/* Left: App Logo */}
         <div className="flex items-center">
-          <div className="w-8 h-8 rounded-full bg-[#e8f0fe] border border-[#d2e3fc] flex items-center justify-center overflow-hidden shrink-0 shadow-2xs">
-            {profile?.avatar ? (
-              <img src={profile.avatar} alt="Profile" className="h-full w-full object-cover" />
-            ) : (
-              <span className="text-xs font-bold text-[#1a73e8]">
-                {(profile?.firstName || profile?.email || 'E').charAt(0).toUpperCase()}
-              </span>
-            )}
+          <div className="w-8 h-8 rounded-xl bg-white border border-[#d2e3fc] flex items-center justify-center overflow-hidden shrink-0 shadow-2xs">
+            <img src="/pwa-192x192.png" alt="Acme HRMS" className="h-full w-full object-cover" />
           </div>
         </div>
 
@@ -187,8 +181,12 @@ export default function TrackerPermissionGate() {
         {/* Top Info Banner Card */}
         <div className="bg-white rounded-[24px] shadow-sm border border-slate-100/80 p-5 relative overflow-hidden">
           <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center shrink-0 border border-[#d2e3fc]/60 shadow-2xs">
-              <ShieldCheck className="w-6 h-6" />
+            <div className="w-12 h-12 rounded-2xl overflow-hidden shrink-0 border border-slate-100 shadow-2xs bg-white flex items-center justify-center">
+              <img 
+                src="/pwa-192x192.png" 
+                alt="Acme HRMS" 
+                className="w-full h-full object-cover" 
+              />
             </div>
             <div>
               <div className="flex items-center gap-2">
