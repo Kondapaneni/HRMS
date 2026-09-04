@@ -36,6 +36,7 @@ export default function TrackerPermissionGate() {
     }
 
     try {
+      setChecking(true);
       const res = await NativeLocationTracker.checkPermissionsStatus();
       setStatus({
         notificationsGranted: !!res.notificationsGranted,
@@ -112,208 +113,274 @@ export default function TrackerPermissionGate() {
 
   const handleRequestLocation = async () => {
     try {
-      // First try native permission request
       await NativeLocationTracker.requestLocationPermissions();
-      // Also open settings directly so user can select "Allow all the time"
       setTimeout(async () => {
         await NativeLocationTracker.openAppSettings();
       }, 600);
     } catch (e) {
-      // Fallback: open app settings directly
       await NativeLocationTracker.openAppSettings();
     }
   };
 
+  const pendingCount = [
+    status.notificationsGranted, 
+    status.batteryUnrestricted, 
+    status.backgroundLocationGranted
+  ].filter(v => !v).length;
+
   return (
     <div 
-      className="fixed inset-0 z-[999999] bg-slate-950/95 backdrop-blur-md flex flex-col justify-between p-4 sm:p-6 overflow-y-auto text-white"
+      className="fixed inset-0 z-[999999] bg-[#f8fafd] text-[#1f1f1f] flex flex-col justify-between overflow-y-auto antialiased font-sans select-none"
       style={{ touchAction: 'pan-y' }}
     >
-      {/* Top Header */}
-      <div className="w-full max-w-lg mx-auto pt-6 text-center space-y-3">
-        <div className="inline-flex items-center justify-center p-3.5 bg-blue-600/20 text-blue-400 rounded-2xl ring-1 ring-blue-500/30 shadow-lg shadow-blue-500/10 mb-1">
-          <ShieldCheck className="w-9 h-9 animate-pulse" />
-        </div>
-        <h1 className="text-2xl font-bold tracking-tight text-white">
-          Permission Setup Required
-        </h1>
-        <p className="text-sm text-slate-400 max-w-md mx-auto leading-relaxed">
-          Acme HRMS requires background duty tracking permissions to ensure attendance punches work reliably even when your phone is in sleep mode.
-        </p>
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-medium">
-          <AlertTriangle className="w-3.5 h-3.5" />
-          <span>All 3 permissions must be granted to use the app</span>
-        </div>
+      {/* Top 4-Color Google Accent Line */}
+      <div className="h-1 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] fixed top-0 left-0 right-0 z-50 pointer-events-none" />
+
+      {/* Ambient Multi-Color Glows (Matches Employee Mobile Dashboard) */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute -top-32 -left-32 w-80 h-80 bg-[#4285F4]/10 rounded-full blur-3xl" />
+        <div className="absolute -top-24 -right-24 w-80 h-80 bg-[#EA4335]/8 rounded-full blur-3xl" />
+        <div className="absolute -bottom-32 -left-20 w-80 h-80 bg-[#FBBC05]/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-24 -right-24 w-80 h-80 bg-[#34A853]/8 rounded-full blur-3xl" />
       </div>
 
-      {/* Permission Cards Container */}
-      <div className="w-full max-w-lg mx-auto space-y-3.5 my-6">
-        {/* 1. Notifications */}
-        <div className={`p-4 rounded-2xl border transition-all duration-300 ${
-          status.notificationsGranted 
-            ? 'bg-emerald-950/30 border-emerald-500/30' 
-            : 'bg-slate-900/80 border-slate-800 hover:border-slate-700'
-        }`}>
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className={`p-2.5 rounded-xl ${
-                status.notificationsGranted 
-                  ? 'bg-emerald-500/20 text-emerald-400' 
-                  : 'bg-blue-500/20 text-blue-400'
-              }`}>
-                <Bell className="w-5 h-5" />
-              </div>
-              <div>
-                <h2 className="font-semibold text-sm text-white flex items-center gap-2">
-                  1. App Notifications
-                  {status.notificationsGranted && (
-                    <span className="text-[11px] font-medium text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
-                      Active
-                    </span>
-                  )}
-                </h2>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Allows ongoing duty tracker status bar notifications.
-                </p>
-              </div>
-            </div>
-
-            {status.notificationsGranted ? (
-              <div className="flex items-center text-emerald-400">
-                <CheckCircle2 className="w-6 h-6" />
-              </div>
+      {/* Top Header Bar (Identical to Mobile Dashboard Header) */}
+      <header className="h-14 bg-white border-b border-[#e0e3e7] px-4 flex items-center justify-between z-10 shrink-0 relative shadow-2xs mt-1">
+        {/* Left: Avatar */}
+        <div className="flex items-center">
+          <div className="w-8 h-8 rounded-full bg-[#e8f0fe] border border-[#d2e3fc] flex items-center justify-center overflow-hidden shrink-0 shadow-2xs">
+            {profile?.avatar ? (
+              <img src={profile.avatar} alt="Profile" className="h-full w-full object-cover" />
             ) : (
-              <button
-                onClick={handleRequestNotifications}
-                className="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow-md active:scale-95 transition-transform shrink-0"
-              >
-                Enable
-              </button>
+              <span className="text-xs font-bold text-[#1a73e8]">
+                {(profile?.firstName || profile?.email || 'E').charAt(0).toUpperCase()}
+              </span>
             )}
           </div>
         </div>
 
-        {/* 2. Battery Optimization (Unrestricted) */}
-        <div className={`p-4 rounded-2xl border transition-all duration-300 ${
-          status.batteryUnrestricted 
-            ? 'bg-emerald-950/30 border-emerald-500/30' 
-            : 'bg-slate-900/80 border-slate-800 hover:border-slate-700'
-        }`}>
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className={`p-2.5 rounded-xl ${
-                status.batteryUnrestricted 
-                  ? 'bg-emerald-500/20 text-emerald-400' 
-                  : 'bg-amber-500/20 text-amber-400'
-              }`}>
-                <BatteryCharging className="w-5 h-5" />
-              </div>
-              <div>
-                <h2 className="font-semibold text-sm text-white flex items-center gap-2">
-                  2. Battery: Unrestricted
-                  {status.batteryUnrestricted && (
-                    <span className="text-[11px] font-medium text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
-                      Active
-                    </span>
-                  )}
-                </h2>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Prevents Android from killing tracking when screen is off.
-                </p>
-              </div>
-            </div>
-
-            {status.batteryUnrestricted ? (
-              <div className="flex items-center text-emerald-400">
-                <CheckCircle2 className="w-6 h-6" />
-              </div>
-            ) : (
-              <button
-                onClick={handleRequestBattery}
-                className="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-amber-600 hover:bg-amber-500 text-white shadow-md active:scale-95 transition-transform shrink-0"
-              >
-                Allow
-              </button>
-            )}
+        {/* Center: Acme HRMS •••• */}
+        <div className="flex items-center gap-1.5">
+          <span className="text-base font-bold tracking-tight text-[#1f1f1f]">Acme</span>
+          <span className="text-base font-semibold tracking-tight text-[#4285F4]">HRMS</span>
+          <div className="flex items-center gap-0.5 ml-0.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
           </div>
         </div>
 
-        {/* 3. Location ("Allow all the time") */}
-        <div className={`p-4 rounded-2xl border transition-all duration-300 ${
-          status.backgroundLocationGranted 
-            ? 'bg-emerald-950/30 border-emerald-500/30' 
-            : 'bg-slate-900/80 border-slate-800 hover:border-slate-700'
-        }`}>
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className={`p-2.5 rounded-xl ${
-                status.backgroundLocationGranted 
-                  ? 'bg-emerald-500/20 text-emerald-400' 
-                  : 'bg-indigo-500/20 text-indigo-400'
-              }`}>
-                <MapPin className="w-5 h-5" />
+        {/* Right: Sign Out Icon */}
+        <button
+          onClick={() => signOut()}
+          title="Sign Out"
+          className="p-1.5 text-[#5f6368] hover:text-[#d93025] hover:bg-[#fce8e6] rounded-full transition-colors active:scale-95"
+        >
+          <LogOut className="w-4 h-4" />
+        </button>
+      </header>
+
+      {/* Main Content Area */}
+      <main className="flex-1 px-4 py-5 max-w-lg w-full mx-auto relative z-10 space-y-4">
+        
+        {/* Top Info Banner Card */}
+        <div className="bg-white rounded-[24px] shadow-sm border border-slate-100/80 p-5 relative overflow-hidden">
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center shrink-0 border border-[#d2e3fc]/60 shadow-2xs">
+              <ShieldCheck className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">
+                  Attendance Tracker
+                </h1>
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#fef7e0] text-[#b06000] border border-[#feefc3] shrink-0">
+                  {pendingCount} Pending
+                </span>
               </div>
-              <div>
-                <h2 className="font-semibold text-sm text-white flex items-center gap-2">
-                  3. Location: "Allow all the time"
-                  {status.backgroundLocationGranted && (
-                    <span className="text-[11px] font-medium text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
-                      Active
-                    </span>
-                  )}
-                </h2>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Enables GPS updates while your mobile is locked or in pocket.
-                </p>
+              <p className="text-[11px] font-medium text-slate-500 mt-1 uppercase tracking-wider">
+                Setup Required for Duty
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 pt-3.5 border-t border-slate-100 flex items-start gap-2 text-xs text-slate-600 leading-relaxed">
+            <AlertTriangle className="w-4 h-4 text-[#b06000] shrink-0 mt-0.5" />
+            <span>
+              All 3 permissions below are mandatory to ensure attendance punches work continuously even while your mobile is locked or in sleep mode.
+            </span>
+          </div>
+        </div>
+
+        {/* Permissions List Card (Matches Business Apps & Attendance Section) */}
+        <div className="bg-white rounded-[24px] shadow-sm border border-slate-100/80 p-4 sm:p-5 space-y-3">
+          <div className="flex justify-between items-center px-1 mb-1">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              Required Configurations
+            </span>
+            <span className="text-[11px] font-semibold text-slate-500">
+              3 of 3 Required
+            </span>
+          </div>
+
+          {/* 1. Notifications Card */}
+          <div className={`p-3.5 rounded-2xl border transition-all ${
+            status.notificationsGranted
+              ? 'bg-[#e6f4ea]/40 border-[#ceead6]'
+              : 'bg-[#f8fafd] border-slate-200/70'
+          }`}>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                  status.notificationsGranted
+                    ? 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6]'
+                    : 'bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]'
+                }`}>
+                  <Bell className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <h2 className="text-sm font-bold text-slate-800 tracking-tight">
+                    1. App Notifications
+                  </h2>
+                  <p className="text-[11.5px] text-slate-500 leading-snug mt-0.5 truncate">
+                    Allows duty tracker status bar updates
+                  </p>
+                </div>
               </div>
+
+              {status.notificationsGranted ? (
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-[#e6f4ea] text-[#137333] border border-[#ceead6] shrink-0">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  Active
+                </span>
+              ) : (
+                <button
+                  onClick={handleRequestNotifications}
+                  className="px-4 py-1.5 rounded-full text-xs font-bold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs active:scale-95 transition-all shrink-0 cursor-pointer"
+                >
+                  Enable
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* 2. Battery Optimization (Unrestricted) */}
+          <div className={`p-3.5 rounded-2xl border transition-all ${
+            status.batteryUnrestricted
+              ? 'bg-[#e6f4ea]/40 border-[#ceead6]'
+              : 'bg-[#f8fafd] border-slate-200/70'
+          }`}>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                  status.batteryUnrestricted
+                    ? 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6]'
+                    : 'bg-[#fef7e0] text-[#b06000] border border-[#feefc3]'
+                }`}>
+                  <BatteryCharging className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <h2 className="text-sm font-bold text-slate-800 tracking-tight">
+                    2. Battery: Unrestricted
+                  </h2>
+                  <p className="text-[11.5px] text-slate-500 leading-snug mt-0.5 truncate">
+                    Prevents OS sleep cuts during shift hours
+                  </p>
+                </div>
+              </div>
+
+              {status.batteryUnrestricted ? (
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-[#e6f4ea] text-[#137333] border border-[#ceead6] shrink-0">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  Active
+                </span>
+              ) : (
+                <button
+                  onClick={handleRequestBattery}
+                  className="px-4 py-1.5 rounded-full text-xs font-bold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs active:scale-95 transition-all shrink-0 cursor-pointer"
+                >
+                  Allow
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* 3. Location: "Allow all the time" */}
+          <div className={`p-3.5 rounded-2xl border transition-all ${
+            status.backgroundLocationGranted
+              ? 'bg-[#e6f4ea]/40 border-[#ceead6]'
+              : 'bg-[#f8fafd] border-slate-200/70'
+          }`}>
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                  status.backgroundLocationGranted
+                    ? 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6]'
+                    : 'bg-[#f3e8fd] text-[#8430ce] border border-[#e9d5ff]'
+                }`}>
+                  <MapPin className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <h2 className="text-sm font-bold text-slate-800 tracking-tight">
+                    3. Location: Always Allow
+                  </h2>
+                  <p className="text-[11.5px] text-slate-500 leading-snug mt-0.5 truncate">
+                    GPS punches while screen is locked
+                  </p>
+                </div>
+              </div>
+
+              {status.backgroundLocationGranted ? (
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-[#e6f4ea] text-[#137333] border border-[#ceead6] shrink-0">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  Active
+                </span>
+              ) : (
+                <button
+                  onClick={handleRequestLocation}
+                  className="px-4 py-1.5 rounded-full text-xs font-bold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs active:scale-95 transition-all flex items-center gap-1 shrink-0 cursor-pointer"
+                >
+                  <span>Configure</span>
+                  <ExternalLink className="w-3 h-3" />
+                </button>
+              )}
             </div>
 
-            {status.backgroundLocationGranted ? (
-              <div className="flex items-center text-emerald-400">
-                <CheckCircle2 className="w-6 h-6" />
+            {/* Visual Guide Box for Location */}
+            {!status.backgroundLocationGranted && (
+              <div className="mt-3 pt-2.5 border-t border-slate-200/60 flex items-start gap-1.5 text-[11px] text-slate-600 bg-white/70 p-2.5 rounded-xl">
+                <span className="font-bold text-[#1a73e8] shrink-0">Tip:</span>
+                <span>Tap <b>Configure</b> → tap <b>Permissions</b> → <b>Location</b> → select <b>"Allow all the time"</b>.</span>
               </div>
-            ) : (
-              <button
-                onClick={handleRequestLocation}
-                className="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white shadow-md active:scale-95 transition-transform flex items-center gap-1.5 shrink-0"
-              >
-                <span>Configure</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </button>
             )}
           </div>
 
-          {/* Helper hint for Location permission */}
-          {!status.backgroundLocationGranted && (
-            <div className="mt-3 pt-3 border-t border-slate-800/80 text-[11px] text-slate-400 flex items-start gap-1.5 bg-slate-950/40 p-2.5 rounded-xl">
-              <span className="font-bold text-indigo-400 shrink-0">Tip:</span>
-              <span>Tap <b>Configure</b> → tap <b>Permissions</b> → tap <b>Location</b> → select <b>"Allow all the time"</b>.</span>
-            </div>
-          )}
         </div>
-      </div>
 
-      {/* Bottom Footer Actions */}
-      <div className="w-full max-w-lg mx-auto pb-6 space-y-3">
+      </main>
+
+      {/* Bottom Sticky Action Bar */}
+      <footer className="p-4 bg-white border-t border-[#e0e3e7] relative z-10 space-y-2 max-w-lg w-full mx-auto shadow-sm">
         <button
           onClick={checkPermissions}
           disabled={checking}
-          className="w-full py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center justify-center gap-2 border border-slate-700 active:scale-[0.99] transition-all"
+          className="w-full flex items-center justify-center gap-2 bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white rounded-full py-3.5 text-sm font-semibold tracking-wide shadow-xs transition-all cursor-pointer disabled:opacity-60"
         >
-          <RefreshCw className={`w-4 h-4 ${checking ? 'animate-spin text-blue-400' : ''}`} />
-          <span>{checking ? 'Checking permissions...' : 'Re-check Permissions'}</span>
+          <RefreshCw className={`w-4 h-4 ${checking ? 'animate-spin' : ''}`} />
+          <span>{checking ? 'Checking Status...' : 'Re-check Permissions'}</span>
         </button>
 
-        <div className="text-center pt-2">
+        <div className="text-center pt-1">
           <button
             onClick={() => signOut()}
-            className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 transition-colors py-1"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-800 transition-colors py-1"
           >
             <LogOut className="w-3.5 h-3.5" />
             <span>Switch Account / Sign Out</span>
           </button>
         </div>
-      </div>
+      </footer>
     </div>
   );
 }
