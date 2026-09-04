@@ -1,53 +1,36 @@
 <?php
-require __DIR__ . '/../vendor/autoload.php';
-require __DIR__ . '/../src/Database.php';
 
-use App\Database;
+require __DIR__ . '/../vendor/autoload.php';
+
+use App\Config\Database;
+use App\Utils\AttendanceReconciler;
+use Dotenv\Dotenv;
+
+// Load environment variables
+$dotenv = Dotenv::createImmutable(__DIR__ . '/..');
+$dotenv->safeLoad();
+
+// Set default timezone to Indian Standard Time (IST)
+date_default_timezone_set('Asia/Kolkata');
 
 try {
     $db = new Database();
     $conn = $db->getConnection();
 
-    // Find all attendance records from strictly past dates where:
-    // - checkIn is not null
-    // - checkOut is null
-    // - status is 'present' or 'present (late)'
-    
-    $stmt = $conn->prepare("
-        SELECT id, status 
-        FROM attendance 
-        WHERE \"checkIn\" IS NOT NULL 
-          AND \"checkOut\" IS NULL 
-          AND date < CURRENT_DATE
-          AND status ILIKE 'present%'
-          AND status NOT ILIKE '%checkout missing%'
-    ");
-    $stmt->execute();
-    $records = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
-    $updatedCount = 0;
+    echo "[" . date('Y-m-d H:i:s') . "] Running missing checkout reconciliation cron job...\n";
 
-    if (count($records) > 0) {
-        $updateStmt = $conn->prepare("UPDATE attendance SET status = ?, \"updatedAt\" = CURRENT_TIMESTAMP WHERE id = ?");
-        
-        foreach ($records as $record) {
-            $currentStatus = strtolower($record['status']);
-            
-            // Map to new status
-            if (strpos($currentStatus, '(late)') !== false) {
-                $newStatus = 'present (late+checkout missing)';
-            } else {
-                $newStatus = 'present (checkout missing)';
-            }
-            
-            $updateStmt->execute([$newStatus, $record['id']]);
-            $updatedCount++;
-        }
+    $result = AttendanceReconciler::reconcileMissingCheckouts($conn);
+    $count = $result['updatedCount'];
+
+    echo "[" . date('Y-m-d H:i:s') . "] Successfully reconciled $count attendance records.\n";
+
+    foreach ($result['records'] as $r) {
+        echo " - [{$r['date']}] CheckIn: {$r['checkIn']} | ShiftEnd: {$r['shiftEndTime']} => {$r['status']} ({$r['hours']} hrs)\n";
     }
 
-    echo "Successfully ran missing checkout cron job. Updated $updatedCount records.\n";
+    exit(0);
 
 } catch (Exception $e) {
-    echo "Error running missing checkout cron job: " . $e->getMessage() . "\n";
+    echo "[" . date('Y-m-d H:i:s') . "] Error running missing checkout cron job: " . $e->getMessage() . "\n";
     exit(1);
 }

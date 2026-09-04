@@ -729,5 +729,24 @@ $app->get('/Training-Video/{filename:.+}', function (Request $request, Response 
     $supabaseUrl = $_ENV['VITE_SUPABASE_URL'] . "/storage/v1/object/public/training_videos/" . $encodedFilename;
     return $response->withHeader('Location', $supabaseUrl)->withStatus(302);
 });
+
+// Cron job route for reconciling missing checkouts
+$app->map(['GET', 'POST'], '/api/cron/mark-missing-checkouts', function (Request $request, Response $response) {
+    try {
+        $db = new \App\Config\Database();
+        $conn = $db->getConnection();
+        $result = \App\Utils\AttendanceReconciler::reconcileMissingCheckouts($conn);
+        $response->getBody()->write(json_encode($result));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+    } catch (\Exception $e) {
+        $response->getBody()->write(json_encode([
+            'success' => false,
+            'error' => $e->getMessage()
+        ]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    }
+});
+
 // Run app
 $app->run();
+

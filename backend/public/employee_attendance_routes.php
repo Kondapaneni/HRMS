@@ -15,6 +15,9 @@ $app->get('/api/employee/attendance', function (Request $request, Response $resp
     $db = new Database();
     $conn = $db->getConnection();
     
+    // Automatically reconcile any past missing checkouts so hours are always accurate
+    \App\Utils\AttendanceReconciler::reconcileMissingCheckouts($conn);
+    
     if ($month) {
         $startDate = $month . '-01';
         $endDate = date('Y-m-t', strtotime($startDate));
