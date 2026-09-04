@@ -629,28 +629,6 @@ const EmployeeDashboard = () => {
               </div>
             </div>
 
-            {/* Mobile App Download Card (Web Only) */}
-            {!isNativeApp && (
-              <div className="bg-gradient-to-br from-[#1a73e8]/5 via-white to-[#4285F4]/10 rounded-2xl border border-[#d2e3fc] p-5 shadow-xs space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#1a73e8] text-white flex items-center justify-center shadow-xs shrink-0">
-                    <Smartphone className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-[#1f1f1f]">Acme HRMS Mobile App</h4>
-                    <p className="text-[11px] text-[#5f6368]">Download Android APK for mobile punch &amp; location tracking</p>
-                  </div>
-                </div>
-                <a
-                  href="/downloads/Acme%20HRMS.apk"
-                  download="Acme HRMS.apk"
-                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white transition-all shadow-xs cursor-pointer active:scale-95"
-                >
-                  <Download className="w-4 h-4" />
-                  <span>Download Acme HRMS.apk</span>
-                </a>
-              </div>
-            )}
 
             {/* Latest Payslip Quick Banner */}
             {latestPayslip && (
