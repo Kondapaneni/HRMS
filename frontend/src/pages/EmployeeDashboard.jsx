@@ -22,9 +22,11 @@ import {
   Award,
   Wallet,
   TrendingUp,
-  ExternalLink
+  ExternalLink,
+  Smartphone,
+  Download
 } from 'lucide-react';
-import api from '../api/axios';
+import api, { isNativeApp } from '../api/axios';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
@@ -403,9 +405,21 @@ const EmployeeDashboard = () => {
                 {/* Punch Action Buttons */}
                 <div className="flex flex-wrap gap-2.5 justify-center sm:justify-end">
                   {!isWebAttendanceEnabled ? (
-                    <div className="flex items-center gap-2 p-3 bg-[#fce8e6] text-[#c5221f] rounded-2xl border border-[#fad2cf] text-xs font-semibold">
-                      <AlertCircle className="w-4 h-4 shrink-0" />
-                      <span>Web Attendance is disabled for your profile. Please use the mobile app.</span>
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 bg-[#fce8e6] text-[#c5221f] rounded-2xl border border-[#fad2cf] text-xs font-semibold w-full">
+                      <div className="flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 shrink-0" />
+                        <span>Web Attendance is disabled for your profile. Please use the mobile app.</span>
+                      </div>
+                      {!isNativeApp && (
+                        <a
+                          href="/downloads/Acme%20HRMS.apk"
+                          download="Acme HRMS.apk"
+                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#c5221f] hover:bg-[#a51d24] text-white text-xs font-semibold transition-all shadow-xs shrink-0 cursor-pointer"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                          <span>Download Acme HRMS.apk</span>
+                        </a>
+                      )}
                     </div>
                   ) : (
                     <>
@@ -614,6 +628,29 @@ const EmployeeDashboard = () => {
                 </Link>
               </div>
             </div>
+
+            {/* Mobile App Download Card (Web Only) */}
+            {!isNativeApp && (
+              <div className="bg-gradient-to-br from-[#1a73e8]/5 via-white to-[#4285F4]/10 rounded-2xl border border-[#d2e3fc] p-5 shadow-xs space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#1a73e8] text-white flex items-center justify-center shadow-xs shrink-0">
+                    <Smartphone className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-[#1f1f1f]">Acme HRMS Mobile App</h4>
+                    <p className="text-[11px] text-[#5f6368]">Download Android APK for mobile punch &amp; location tracking</p>
+                  </div>
+                </div>
+                <a
+                  href="/downloads/Acme%20HRMS.apk"
+                  download="Acme HRMS.apk"
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white transition-all shadow-xs cursor-pointer active:scale-95"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Download Acme HRMS.apk</span>
+                </a>
+              </div>
+            )}
 
             {/* Latest Payslip Quick Banner */}
             {latestPayslip && (

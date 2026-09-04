@@ -12,12 +12,14 @@ import {
   Play, 
   Building2, 
   ShoppingBag,
-  Cake
+  Cake,
+  Smartphone,
+  Download
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import api from '../api/axios';
+import api, { isNativeApp } from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 
 const EmployeeMobileDashboard = () => {
@@ -397,6 +399,29 @@ const EmployeeMobileDashboard = () => {
           </div>
         </div>
       </section>
+
+      {/* Mobile Web Only: Download Native App Card */}
+      {!isNativeApp && (
+        <div className="bg-white rounded-[24px] shadow-sm border border-slate-200/80 p-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-2xl bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] flex items-center justify-center shrink-0">
+              <Smartphone className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-slate-900 leading-tight">Acme HRMS Mobile App</p>
+              <p className="text-[11px] text-slate-500 mt-0.5">Download Android APK for daily punch</p>
+            </div>
+          </div>
+          <a
+            href="/downloads/Acme%20HRMS.apk"
+            download="Acme HRMS.apk"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] active:scale-95 text-white text-xs font-bold shrink-0 shadow-xs cursor-pointer transition-all"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Download</span>
+          </a>
+        </div>
+      )}
 
       {/* Business Apps Entry (Round Circle Apps in a Row) */}
       {(profile?.featureAccess?.canLoanOrigination || profile?.featureAccess?.canSalesOrigination || profile?.featureAccess?.canBranchOperations || hasTrainingVideos) && (

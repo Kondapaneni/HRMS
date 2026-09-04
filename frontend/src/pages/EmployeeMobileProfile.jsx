@@ -5,11 +5,12 @@ import {
   User, Mail, Phone, MapPin, Briefcase, CalendarDays, Building2,
   Shield, CreditCard, Heart, HeartHandshake, Globe, Clock3, Laptop,
   Calendar, Clock, UserCheck, Users, Camera, ChevronRight, FileText,
-  X, Edit2, Sparkles, Building, ScanFace, Trash2, CheckCircle2, AlertCircle
+  X, Edit2, Sparkles, Building, ScanFace, Trash2, CheckCircle2, AlertCircle,
+  Smartphone, Download
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import api from '../api/axios';
+import api, { isNativeApp } from '../api/axios';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
@@ -527,6 +528,29 @@ const EmployeeMobileProfile = () => {
 
         </div>
       </section>
+
+      {/* Mobile Web Only: Download Native App Card */}
+      {!isNativeApp && (
+        <section className="bg-white rounded-[1.5rem] border border-slate-200 shadow-sm p-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center shrink-0">
+              <Smartphone className="w-5 h-5" />
+            </div>
+            <div>
+              <span className="text-sm font-bold text-slate-800 block">Download Mobile App</span>
+              <span className="text-[10.5px] text-slate-500 font-medium">Acme HRMS Android APK</span>
+            </div>
+          </div>
+          <a
+            href="/downloads/Acme%20HRMS.apk"
+            download="Acme HRMS.apk"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] active:scale-95 text-white text-xs font-bold shrink-0 shadow-xs cursor-pointer transition-all"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Download</span>
+          </a>
+        </section>
+      )}
 
       {/* Profile Section Navigation Cards */}
       <section className="space-y-3">

@@ -5,14 +5,14 @@ import {
   LogOut, User, Calendar, Users, Briefcase, Monitor,
   Home, Clock, BarChart2, DollarSign, Activity, Bell, Search, Menu, Wallet,
   Award, Megaphone, Play, Palmtree, Terminal, ShieldCheck, Building2, ShoppingBag,
-  Sparkles, X
+  Sparkles, X, Smartphone, Download
 } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import MaintenanceOverlay from './MaintenanceOverlay';
 import LogoutModal from './LogoutModal';
-import api from '../api/axios';
+import api, { isNativeApp } from '../api/axios';
 import GlobalSearch from './GlobalSearch';
 
 const EmployeeLayout = () => {
@@ -366,7 +366,19 @@ const EmployeeLayout = () => {
           </div>
 
           {/* Bottom Actions */}
-          <div className="p-2.5 border-t border-[#f1f3f4] bg-white">
+          <div className="p-2.5 border-t border-[#f1f3f4] bg-white space-y-1">
+            {!isNativeApp && (
+              <a
+                href="/downloads/Acme%20HRMS.apk"
+                download="Acme HRMS.apk"
+                className="w-full flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] rounded-full hover:bg-[#d2e3fc] transition-all shadow-2xs group cursor-pointer"
+                title="Download Acme HRMS Mobile App (APK)"
+              >
+                <Smartphone size={14} className="text-[#1a73e8] shrink-0" />
+                <span className="text-[11px] truncate flex-1">Download App</span>
+                <span className="text-[9px] font-bold bg-[#1a73e8] text-white px-1.5 py-0.2 rounded-full">APK</span>
+              </a>
+            )}
             <button
               type="button"
               onClick={() => setShowLogoutModal(true)}
@@ -442,6 +454,19 @@ const EmployeeLayout = () => {
             )}
 
             <div className="flex items-center gap-3 shrink-0">
+              {/* Desktop Download App Button */}
+              {!isNativeApp && (
+                <a
+                  href="/downloads/Acme%20HRMS.apk"
+                  download="Acme HRMS.apk"
+                  className="hidden lg:flex items-center gap-1.5 px-3 py-1 bg-[#e8f0fe] hover:bg-[#d2e3fc] text-[#1a73e8] border border-[#d2e3fc] rounded-full text-xs font-semibold transition-all shadow-2xs cursor-pointer active:scale-95"
+                  title="Download Acme HRMS Android App (APK)"
+                >
+                  <Download size={13} />
+                  <span>Download App (APK)</span>
+                </a>
+              )}
+
               {/* Desktop Profile Pill */}
               <div className="hidden md:flex items-center gap-2.5 select-none bg-[#f8fafd] border border-[#e0e3e7] pl-1.5 pr-3 py-1 rounded-full">
                 <div className="w-7 h-7 bg-[#e8f0fe] text-[#1a73e8] rounded-full flex items-center justify-center font-bold text-xs overflow-hidden border border-[#d2e3fc]">
@@ -460,7 +485,17 @@ const EmployeeLayout = () => {
               </div>
 
               {/* Mobile Right Side Actions */}
-              <div className="flex md:hidden items-center">
+              <div className="flex md:hidden items-center gap-1">
+                {!isNativeApp && (
+                  <a
+                    href="/downloads/Acme%20HRMS.apk"
+                    download="Acme HRMS.apk"
+                    className="p-2 rounded-full text-[#1a73e8] hover:bg-[#e8f0fe] transition-colors cursor-pointer active:scale-95"
+                    title="Download Acme HRMS App (APK)"
+                  >
+                    <Download className="w-5 h-5" />
+                  </a>
+                )}
                 <button
                   type="button"
                   onClick={() => setShowLogoutModal(true)}

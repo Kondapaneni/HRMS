@@ -9,3 +9,4 @@ build/
 ngrok.log
 *.zip
 *.apk
+!frontend/public/downloads/*.apk
