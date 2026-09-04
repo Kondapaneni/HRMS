@@ -242,9 +242,6 @@ $app->get('/api/admin/attendance', function (Request $request, Response $respons
     $db = new Database();
     $conn = $db->getConnection();
     
-    // Automatically reconcile any past missing checkouts so hours are always accurate
-    \App\Utils\AttendanceReconciler::reconcileMissingCheckouts($conn);
-    
     $shiftTimesMap = getShiftTimesMap($conn);
 
     try {
