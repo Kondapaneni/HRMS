@@ -31,7 +31,20 @@ public class LocationTrackerPlugin extends Plugin {
         Context context = getContext();
         String serverUrl = call.getString("serverUrl", "https://hrms-qwv3.onrender.com/api/employee/attendance/punch");
         String token = call.getString("token", "");
-        Long intervalMs = call.getLong("intervalMs", 15L * 60 * 1000);
+
+        // Safely extract intervalMs — JS numbers may arrive as Integer, not Long.
+        // call.getLong() fails silently in that case and returns the default.
+        long intervalMs = 15L * 60 * 1000; // fallback
+        try {
+            Object raw = call.getData().opt("intervalMs");
+            if (raw instanceof Number) {
+                intervalMs = ((Number) raw).longValue();
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "Failed to parse intervalMs, using default: " + e.getMessage());
+        }
+
+        Log.i(TAG, "startTracking called: serverUrl=" + serverUrl + ", intervalMs=" + intervalMs);
 
         Intent intent = new Intent(context, LocationTrackerService.class);
         intent.setAction(LocationTrackerService.ACTION_START);
@@ -47,7 +60,7 @@ public class LocationTrackerPlugin extends Plugin {
 
         JSObject ret = new JSObject();
         ret.put("success", true);
-        ret.put("message", "Foreground location tracking started");
+        ret.put("message", "Foreground location tracking started with interval " + (intervalMs / 60000) + " min(s)");
         call.resolve(ret);
     }
 

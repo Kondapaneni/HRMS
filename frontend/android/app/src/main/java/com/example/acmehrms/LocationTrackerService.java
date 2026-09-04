@@ -97,6 +97,8 @@ public class LocationTrackerService extends Service implements LocationListener 
                 Log.d(TAG, "Received ACTION_PUNCH_TICK from AlarmManager (Device sleep wakeup)");
                 if (isTracking && bgHandler != null) {
                     bgHandler.post(() -> {
+                        // Self-fetch latest dynamic interval from server BEFORE scheduling next alarm
+                        fetchDynamicIntervalFromServer();
                         sendPunchRequest();
                         scheduleNextPunchAlarm();
                     });
@@ -240,6 +242,8 @@ public class LocationTrackerService extends Service implements LocationListener 
         Log.d(TAG, "Triggering immediate first punch on service start");
         if (bgHandler != null) {
             bgHandler.post(() -> {
+                // Fetch latest dynamic interval from server on start
+                fetchDynamicIntervalFromServer();
                 sendPunchRequest();
                 scheduleNextPunchAlarm();
             });
@@ -271,6 +275,55 @@ public class LocationTrackerService extends Service implements LocationListener 
             }
         } catch (Exception e) {
             Log.e(TAG, "Failed to schedule punch alarm: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Self-fetch the dynamic tracking interval from the server.
+     * Called on every punch tick so the native service stays in sync
+     * with admin settings WITHOUT relying on the WebView.
+     */
+    private void fetchDynamicIntervalFromServer() {
+        try {
+            // Use the /api/news endpoint which returns tracking_interval_minutes
+            String newsUrl = serverUrl.replace("/employee/attendance/punch", "/news");
+            URL url = new URL(newsUrl);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("Authorization", "Bearer " + authToken);
+            conn.setConnectTimeout(10000);
+            conn.setReadTimeout(10000);
+
+            int code = conn.getResponseCode();
+            if (code >= 200 && code < 400) {
+                StringBuilder sb = new StringBuilder();
+                try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        sb.append(line);
+                    }
+                }
+                JSONObject resp = new JSONObject(sb.toString());
+                if (resp.has("tracking_interval_minutes")) {
+                    int serverMins = Math.max(1, resp.getInt("tracking_interval_minutes"));
+                    long newIntervalMs = serverMins * 60L * 1000;
+                    if (newIntervalMs != intervalMs) {
+                        long oldIntervalMs = intervalMs;
+                        intervalMs = newIntervalMs;
+
+                        // Persist to SharedPreferences
+                        SharedPreferences prefs = getSharedPreferences("hrms_tracker_prefs", MODE_PRIVATE);
+                        prefs.edit().putLong("interval_ms", intervalMs).apply();
+
+                        int oldMins = (int)(oldIntervalMs / 60000);
+                        updateNotification("Duty Active • Tracking every " + serverMins + " min(s)");
+                        Log.i(TAG, "Dynamic interval updated from server: " + oldMins + " min(s) -> " + serverMins + " min(s)");
+                    }
+                }
+            }
+            conn.disconnect();
+        } catch (Exception e) {
+            Log.w(TAG, "Failed to fetch dynamic interval from server (will use current): " + e.getMessage());
         }
     }
 
