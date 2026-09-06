@@ -131,8 +131,8 @@ const AdminDashboard = () => {
             <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
             <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Workspace Executive Dashboard</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
-            Welcome Back, <span className="font-normal italic text-[#1a73e8]">{profile?.email?.split('@')[0] || 'Admin'}</span>
+          <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
+            Welcome Back, <span className="font-medium italic text-[#1a73e8]">{profile?.email?.split('@')[0] || 'Admin'}</span>
           </h1>
           <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
             Real-time analytics and workforce management overview.
