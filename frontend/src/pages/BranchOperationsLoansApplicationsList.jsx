@@ -322,8 +322,8 @@ const BranchOperationsLoansApplicationsList = () => {
               <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
               <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Branch Operations Hub</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight flex items-center gap-2.5">
-              Loan Applications
+            <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight flex items-center gap-2.5" style={{ fontWeight: 500 }}>
+              <span>Loan <span className="font-medium italic text-[#7C4DFF]">Applications</span></span>
               <span className="text-xs font-semibold text-[#7C4DFF] bg-[#7C4DFF]/10 border border-[#7C4DFF]/25 px-2.5 py-0.5 rounded-full">
                 {branch.name} &bull; {applications.length} Total Applications
               </span>

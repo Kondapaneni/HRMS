@@ -82,7 +82,7 @@ const OriginationMobileLoanMemberList = () => {
   };
 
   return (
-    <div className="space-y-4 pb-14">
+    <div className="space-y-4 pb-14 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
 
       {/* 1. Hero Section with Animated Motion Graphics */}
       <section className="-mx-4 -mt-4 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900">
@@ -110,8 +110,8 @@ const OriginationMobileLoanMemberList = () => {
           <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">
             Origination &bull; Loan Pipeline
           </p>
-          <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">
-            Converted Members
+          <h2 className="text-3xl font-medium text-white tracking-tight mb-0.5 drop-shadow-sm" style={{ fontWeight: 500 }}>
+            Converted <span className="font-medium italic text-[#38bdf8]">Members</span>
           </h2>
           <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">
             {members.length} Verified Borrower Profiles

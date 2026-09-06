@@ -122,7 +122,7 @@ const OriginationMobileLoanDashboard = () => {
   }
 
   return (
-    <div className="space-y-4 pb-12">
+    <div className="space-y-4 pb-12 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
 
       {/* 1. Hero Section with Animated Motion Graphics */}
       <section className="-mx-4 -mt-4 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900">
@@ -150,8 +150,8 @@ const OriginationMobileLoanDashboard = () => {
           <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">
             {getGreeting()} &bull; Loan Origination
           </p>
-          <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">
-            {profile?.firstName || 'Origination'} {profile?.lastName || 'Officer'}
+          <h2 className="text-3xl font-medium text-white tracking-tight mb-0.5 drop-shadow-sm" style={{ fontWeight: 500 }}>
+            {profile?.firstName || 'Origination'} <span className="font-medium italic text-[#38bdf8]">{profile?.lastName || 'Officer'}</span>
           </h2>
           <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">
             {currentTime.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })} &bull; Performance &amp; Leads
@@ -265,8 +265,8 @@ const OriginationMobileLoanDashboard = () => {
       <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs">
         <div className="flex items-center justify-between gap-2 mb-4">
           <div className="min-w-0 pr-1">
-            <h3 className="text-sm font-bold text-[#1f1f1f] truncate">
-              {chartTab === 'daily' ? 'Daily Leads (7 Days)' : 'Monthly Performance'}
+            <h3 className="text-sm font-medium text-[#1f1f1f] tracking-tight truncate" style={{ fontWeight: 500 }}>
+              {chartTab === 'daily' ? <span>Daily <span className="font-medium italic text-[#1a73e8]">Leads</span> (7 Days)</span> : <span>Monthly <span className="font-medium italic text-[#1a73e8]">Performance</span></span>}
             </h3>
             <p className="text-[11px] text-[#5f6368] truncate">
               {chartTab === 'daily' ? 'Acquisition & Conversion' : '6-Month Performance Trend'}
@@ -361,7 +361,9 @@ const OriginationMobileLoanDashboard = () => {
               <TrendingUp size={14} />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-[#1f1f1f]">Recent Pipeline Leads</h3>
+              <h3 className="text-sm font-medium text-[#1f1f1f] tracking-tight" style={{ fontWeight: 500 }}>
+                Recent Pipeline <span className="font-medium italic text-[#1a73e8]">Leads</span>
+              </h3>
               <p className="text-[11px] text-[#5f6368]">Latest prospects registered</p>
             </div>
           </div>

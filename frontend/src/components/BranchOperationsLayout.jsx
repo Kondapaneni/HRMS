@@ -135,7 +135,7 @@ const BranchOperationsLayout = () => {
 
   return (
     <>
-      <div className="h-[100dvh] w-full overflow-hidden bg-[#f8fafd] flex font-sans text-[#1f1f1f] selection:bg-[#c2e7ff] selection:text-[#001d35] antialiased relative z-0">
+      <div className="h-[100dvh] w-full overflow-hidden bg-[#f8fafd] flex font-editorial text-[#1f1f1f] selection:bg-[#c2e7ff] selection:text-[#001d35] antialiased relative z-0" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
         
         {/* Google Ambient Multi-color Background Glows */}
         <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
@@ -154,8 +154,8 @@ const BranchOperationsLayout = () => {
           <div className="h-14 flex items-center justify-between px-4 border-b border-[#f1f3f4] shrink-0 mt-0.5">
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="text-base font-bold tracking-tight text-[#1f1f1f]">Acme</span>
-                <span className="text-base font-semibold tracking-tight text-[#4285F4]">Branch Operations</span>
+                <span className="text-base font-medium tracking-tight text-[#1f1f1f]">Acme</span>
+                <span className="text-base font-medium italic tracking-tight text-[#4285F4]">Branch Operations</span>
               </div>
               <div className="flex items-center gap-1 mt-0.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
@@ -253,8 +253,8 @@ const BranchOperationsLayout = () => {
             {/* Mobile Center: Acme Branch Operations with 4 Google dots */}
             <div className="md:hidden absolute left-1/2 -translate-x-1/2 flex items-center pointer-events-auto">
               <Link to="/employee/branch-operations" className="flex items-center gap-1.5 shrink-0">
-                <span className="text-sm font-bold tracking-tight text-[#1f1f1f]">Acme</span>
-                <span className="text-sm font-semibold tracking-tight text-[#4285F4]">Branch Operations</span>
+                <span className="text-sm font-medium tracking-tight text-[#1f1f1f]">Acme</span>
+                <span className="text-sm font-medium italic tracking-tight text-[#4285F4]">Branch Operations</span>
                 <div className="flex items-center gap-0.5 ml-0.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
                   <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
@@ -410,14 +410,16 @@ const BranchOperationsLayout = () => {
         {showBackModal && createPortal(
           <div 
             onClick={() => setShowBackModal(false)}
-            className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200"
+            className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200 font-editorial antialiased"
+            style={{ fontFamily: "'Newsreader', Georgia, serif" }}
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-sm overflow-hidden p-6 space-y-4 text-center"
+              className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-sm overflow-hidden p-6 space-y-4 text-center font-editorial antialiased"
+              style={{ fontFamily: "'Newsreader', Georgia, serif" }}
             >
               {/* Top Icon Badge */}
               <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto bg-[#f3e8fd] text-[#8430ce] border border-[#e9d5ff]">
@@ -426,10 +428,10 @@ const BranchOperationsLayout = () => {
 
               {/* Content */}
               <div className="space-y-1.5">
-                <h3 className="text-base font-bold text-slate-900">
-                  Back to HRMS Dashboard?
+                <h3 className="text-base font-medium text-slate-900" style={{ fontWeight: 500 }}>
+                  Back to HRMS <span className="font-medium italic text-[#8430ce]">Dashboard?</span>
                 </h3>
-                <p className="text-xs text-slate-500 font-medium">
+                <p className="text-xs text-slate-500 font-normal">
                   Return to the main Employee Workspace and attendance portal.
                 </p>
               </div>
@@ -439,7 +441,8 @@ const BranchOperationsLayout = () => {
                 <button
                   type="button"
                   onClick={() => setShowBackModal(false)}
-                  className="w-full py-3.5 px-4 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-bold transition-all cursor-pointer shadow-2xs"
+                  className="w-full py-3.5 px-4 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium transition-all cursor-pointer shadow-2xs"
+                  style={{ fontWeight: 500 }}
                 >
                   Cancel
                 </button>
@@ -449,7 +452,8 @@ const BranchOperationsLayout = () => {
                     setShowBackModal(false);
                     navigate('/employee');
                   }}
-                  className="w-full py-3.5 px-4 rounded-full text-white text-sm font-bold transition-all cursor-pointer shadow-xs active:scale-95 bg-[#1a73e8] hover:bg-[#1557b0]"
+                  className="w-full py-3.5 px-4 rounded-full text-white text-sm font-medium transition-all cursor-pointer shadow-xs active:scale-95 bg-[#1a73e8] hover:bg-[#1557b0]"
+                  style={{ fontWeight: 500 }}
                 >
                   Yes, Return
                 </button>

@@ -451,8 +451,8 @@ const OriginationActivities = () => {
               {isBranchOperations ? (branchInfo?.name ? `${branchInfo.name} Branch` : 'Branch Operations') : 'Origination Pipeline'}
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight flex items-center gap-2.5">
-            Activities & Follow-Ups
+          <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight flex items-center gap-2.5" style={{ fontWeight: 500 }}>
+            <span>Activities &amp; <span className="font-medium italic text-[#1a73e8]">Follow-Ups</span></span>
             <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">
               {stats.total} Total Tasks
             </span>

@@ -60,7 +60,7 @@ const OriginationMobileLoanForms = () => {
   };
 
   return (
-    <div className="space-y-4 pb-14 w-full">
+    <div className="space-y-4 pb-14 w-full font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
       {/* 1. Hero Section with Animated Motion Graphics */}
       <section className="-mx-4 -mt-4 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900">
         {/* Animated Liquid Orbs with Loans Origination Blue & Indigo Theme */}
@@ -88,8 +88,8 @@ const OriginationMobileLoanForms = () => {
             <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">
               Origination &bull; Loan Pipeline
             </p>
-            <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">
-              {loanType}
+            <h2 className="text-3xl font-medium text-white tracking-tight mb-0.5 drop-shadow-sm" style={{ fontWeight: 500 }}>
+              {loanType} <span className="font-medium italic text-[#38bdf8]">Form</span>
             </h2>
             <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">
               {isDraft ? 'Draft Application Form' : isEditMode ? 'Edit Application Form' : 'New Loan Application'}

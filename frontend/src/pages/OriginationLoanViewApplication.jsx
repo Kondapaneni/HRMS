@@ -342,8 +342,8 @@ export default function OriginationLoanViewApplication() {
             </div>
             
             <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
-              <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight whitespace-nowrap">
-                {loanType} Application
+              <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight whitespace-nowrap" style={{ fontWeight: 500 }}>
+                <span>{loanType} <span className="font-medium italic text-[#1a73e8]">Application</span></span>
               </h1>
 
               {/* Read Only Indicator */}
