@@ -1,12 +1,21 @@
 @import "tailwindcss";
 
+@keyframes shimmer {
+  0% { transform: translateX(-150%) skewX(-15deg); }
+  100% { transform: translateX(150%) skewX(-15deg); }
+}
+
 @theme {
-  --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif;
-  --animate-shimmer: shimmer 2.5s infinite linear;
-  --keyframes-shimmer: {
-    0% { transform: translateX(-150%) skewX(-15deg); }
-    100% { transform: translateX(150%) skewX(-15deg); }
-  }
+  --font-sans: "Inter", "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-editorial: "Newsreader", Georgia, serif;
+}
+
+@utility font-editorial {
+  font-family: 'Newsreader', Georgia, serif;
+}
+
+.font-editorial {
+  font-family: 'Newsreader', Georgia, serif !important;
 }
 
 :root {
@@ -21,7 +30,7 @@ html, body {
   position: fixed; /* Lock body in place for iOS PWA bounce prevention */
   overscroll-behavior: none; /* Disable bounce */
   -webkit-overflow-scrolling: auto;
-  font-family: "Nunito", ui-sans-serif, system-ui, sans-serif;
+  font-family: "Inter", "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--bg-color);

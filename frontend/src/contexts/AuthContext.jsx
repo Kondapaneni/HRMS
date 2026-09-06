@@ -101,10 +101,13 @@ export const AuthProvider = ({ children }) => {
     return userData;
   };
 
-  const signInWithFace = async (email, faceDescriptor) => {
-    // Convert descriptor array to string for pgvector format `[1, 2, ...]`
-    const vectorString = `[${faceDescriptor.join(',')}]`;
-    const response = await api.post('/login/face', { email, faceDescriptor: vectorString });
+  const sendLoginOtp = async (email) => {
+    const response = await api.post('/auth/otp/send', { email });
+    return response.data;
+  };
+
+  const signInWithOtp = async (email, otp) => {
+    const response = await api.post('/auth/otp/verify', { email, otp });
     const { token, user: userData } = response.data;
     if (token) {
       localStorage.setItem('token', token);
@@ -132,7 +135,8 @@ export const AuthProvider = ({ children }) => {
     profileLoading,
     isInitialized,
     signIn,
-    signInWithFace,
+    sendLoginOtp,
+    signInWithOtp,
     signOut,
     fetchProfile,
   };

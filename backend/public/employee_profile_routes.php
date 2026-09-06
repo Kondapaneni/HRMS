@@ -19,12 +19,9 @@ $app->get('/api/employee/profile', function (Request $request, Response $respons
                    e."noticePeriod", e."shiftTime", e."workMode", e."weekOff", e."joinDate", e."managerId",
                    e.avatar, e.status, e.timeline, e."geoFenceEnabled", e."webAttendanceEnabled",
                    e."emergencyContact", e."emergencyPhone",
-                   b.name as branch_name,
-                   CASE WHEN bio.face_descriptor IS NOT NULL THEN true ELSE false END as "isFaceRegistered",
-                   bio.updated_at as "biometricsUpdatedAt"
+                   b.name as branch_name
             FROM employee e 
             LEFT JOIN branches b ON e.branch::uuid = b.id 
-            LEFT JOIN user_biometrics bio ON e."userId" = bio.user_id
             WHERE e."userId" = ? LIMIT 1
         ');
         $stmt->execute([$decodedToken->id]);
@@ -33,8 +30,6 @@ $app->get('/api/employee/profile', function (Request $request, Response $respons
         if (!$employee) {
             throw new Exception("Employee profile not found.");
         }
-
-        $employee['isFaceRegistered'] = ($employee['isFaceRegistered'] === true || $employee['isFaceRegistered'] === 'true' || $employee['isFaceRegistered'] === 't' || $employee['isFaceRegistered'] == 1);
 
         // We could also fetch manager details, peers, and subordinates here if needed,
         // but for now we just return the employee data directly.
@@ -225,57 +220,4 @@ $app->get('/api/employee/birthdays', function (Request $request, Response $respo
     }
 })->add(new AuthMiddleware(['employee']));
 
-// Update Employee Biometrics
-$app->post('/api/employee/biometrics/face', function (Request $request, Response $response, $args) {
-    $decodedToken = $request->getAttribute('user');
-    $data = $request->getParsedBody();
-    
-    $faceDescriptorStr = trim($data['faceDescriptor'] ?? '');
-
-    if (empty($faceDescriptorStr) || $faceDescriptorStr === '[]') {
-        $response->getBody()->write(json_encode(['error' => 'Face descriptor is required']));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
-    }
-
-    $db = new Database();
-    $conn = $db->getConnection();
-
-    try {
-        $stmt = $conn->prepare('
-            INSERT INTO user_biometrics (user_id, face_descriptor) 
-            VALUES (?, ?::vector) 
-            ON CONFLICT (user_id) 
-            DO UPDATE SET face_descriptor = EXCLUDED.face_descriptor, updated_at = CURRENT_TIMESTAMP
-        ');
-        $stmt->execute([$decodedToken->id, $faceDescriptorStr]);
-        
-        $response->getBody()->write(json_encode(['message' => 'Biometrics updated successfully']));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
-    } catch (Exception $e) {
-        file_put_contents('biometric_error.log', $e->getMessage() . "\n", FILE_APPEND);
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
-    }
-})->add(new AuthMiddleware(['employee']));
-
-// Delete / Reset Employee Biometrics
-$app->delete('/api/employee/biometrics/face', function (Request $request, Response $response, $args) {
-    $decodedToken = $request->getAttribute('user');
-    $db = new Database();
-    $conn = $db->getConnection();
-
-    try {
-        $stmt = $conn->prepare('DELETE FROM user_biometrics WHERE user_id = ?');
-        $stmt->execute([$decodedToken->id]);
-
-        $response->getBody()->write(json_encode([
-            'message' => 'Biometrics removed successfully',
-            'isFaceRegistered' => false
-        ]));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
-    } catch (Exception $e) {
-        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
-        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
-    }
-})->add(new AuthMiddleware(['employee']));
 

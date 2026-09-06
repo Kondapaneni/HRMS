@@ -66,7 +66,6 @@ try {
             'sale_leads',
             'shift_times',
             'training_videos',
-            'user_biometrics',
             'user_feature_access',
             'users'
         ];

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Acme HRMS Login Verification Code</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f8fafd; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #1f1f1f; -webkit-font-smoothing: antialiased;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafd; padding: 32px 16px; margin: 0; width: 100%;">
+    <tr>
+      <td align="center">
+        <!-- Main Email Container Card -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 540px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e0e3e7; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.04);">
+          <!-- Google 4-Color Accent Line -->
+          <tr>
+            <td height="4" style="background: linear-gradient(90deg, #4285F4 0%, #EA4335 33%, #FBBC05 66%, #34A853 100%); font-size: 0; line-height: 0;">&nbsp;</td>
+          </tr>
+          
+          <!-- Header Banner -->
+          <tr>
+            <td style="padding: 32px 32px 24px 32px; background-color: #f8fafd; border-bottom: 1px solid #e0e3e7;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td>
+                    <div style="display: inline-block; padding: 4px 10px; background-color: #e8f0fe; border: 1px solid #d2e3fc; border-radius: 100px; color: #1967d2; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
+                      Secure Sign-In
+                    </div>
+                    <h1 style="margin: 0; font-size: 22px; font-weight: 600; color: #1f1f1f; letter-spacing: -0.3px;">
+                      Login Verification Code
+                    </h1>
+                    <p style="margin: 4px 0 0 0; font-size: 13px; color: #5f6368;">
+                      Acme HRMS Enterprise Authentication
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Body Content -->
+          <tr>
+            <td style="padding: 32px; text-align: left;">
+              <p style="margin: 0 0 12px 0; font-size: 14px; line-height: 1.6; color: #3c4043;">
+                Hello <strong style="color: #1f1f1f;">{{firstName}}</strong>,
+              </p>
+              <p style="margin: 0 0 24px 0; font-size: 14px; line-height: 1.6; color: #3c4043;">
+                Use the following 6-digit one-time verification code to complete your sign-in to Acme HRMS:
+              </p>
+
+              <!-- OTP Code Display Card -->
+              <div style="text-align: center; margin: 24px 0; padding: 24px; background-color: #f8fafd; border: 1px dashed #4285F4; border-radius: 16px;">
+                <span style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 36px; font-weight: 700; letter-spacing: 8px; color: #1a73e8; display: inline-block;">
+                  {{otpCode}}
+                </span>
+                <p style="margin: 8px 0 0 0; font-size: 12px; color: #5f6368;">
+                  This code expires in <strong>10 minutes</strong>.
+                </p>
+              </div>
+
+              <!-- Security Info Notice -->
+              <div style="background-color: #fef7e0; border: 1px solid #fce293; color: #7a4100; border-radius: 12px; padding: 14px 16px; font-size: 12px; line-height: 1.5; margin-top: 20px;">
+                <strong style="color: #5c3200;">Security Reminder:</strong> Never share this code with anyone. Acme HRMS administrators will never ask for your verification code. If you did not attempt to sign in, please contact your HR administrator immediately.
+              </div>
+            </td>
+          </tr>
+
+          <!-- Card Footer -->
+          <tr>
+            <td style="padding: 20px 32px; background-color: #f8fafd; border-top: 1px solid #e0e3e7; text-align: center;">
+              <p style="margin: 0; font-size: 11px; color: #5f6368; line-height: 1.5;">
+                This is an automated system notification from Acme HRMS Workspace. Please do not reply directly to this email.
+              </p>
+            </td>
+          </tr>
+        </table>
+        
+        <!-- Bottom Sub-Footer -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 540px; margin: 16px auto 0 auto;">
+          <tr>
+            <td align="center" style="color: #5f6368; font-size: 11px;">
+              &copy; {{currentYear}} Acme Corp HRMS. All rights reserved.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

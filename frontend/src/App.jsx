@@ -22,7 +22,6 @@ import EmployeeProfile from './pages/EmployeeProfile'
 import EmployeePerformance from './pages/EmployeePerformance'
 import EmployeeExpenses from './pages/EmployeeExpenses'
 import EditProfile from './pages/EditProfile'
-import EmployeeFaceRegistration from './pages/EmployeeFaceRegistration'
 import EmployeeMobileMap from './pages/EmployeeMobileMap'
 import EmployeeMobileCamera from './pages/EmployeeMobileCamera'
 
@@ -318,14 +317,6 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
                   <EmployeeMobileMap />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/employee/face-registration"
-              element={
-                <ProtectedRoute allowedRoles={EMPLOYEE_DASHBOARD_ROLES}>
-                  <EmployeeFaceRegistration />
                 </ProtectedRoute>
               }
             />

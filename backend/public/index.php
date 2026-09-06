@@ -128,10 +128,8 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
     }
 
     $stmt = $conn->prepare('
-        SELECT u.id, u.email, u.password, u."firstName", u."lastName", u.role, u.department, u.position, u."isActive", u."forcePasswordChange",
-               CASE WHEN b.face_descriptor IS NOT NULL THEN true ELSE false END as "isFaceRegistered"
+        SELECT u.id, u.email, u.password, u."firstName", u."lastName", u.role, u.department, u.position, u."isActive", u."forcePasswordChange"
         FROM users u
-        LEFT JOIN user_biometrics b ON u.id = b.user_id
         WHERE u.email = ?
     ');
     $stmt->execute([$email]);
@@ -145,7 +143,6 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
         }
         
         $secret = $_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '';
-        $user['isFaceRegistered'] = ($user['isFaceRegistered'] === true || $user['isFaceRegistered'] === 'true' || $user['isFaceRegistered'] === 't' || $user['isFaceRegistered'] == 1);
         
         $payload = [
             'iss' => 'acme_hrms',
@@ -153,8 +150,7 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
             'exp' => ($sessionTimeout === 'never') ? time() + (60 * 60 * 24 * 365 * 10) : time() + ((int)$sessionTimeout * 60), // Dynamic expiration
             'id' => $user['id'],
             'email' => $user['email'],
-            'role' => $user['role'],
-            'isFaceRegistered' => $user['isFaceRegistered']
+            'role' => $user['role']
         ];
         
         $jwt = JWT::encode($payload, $secret, 'HS256');
@@ -198,14 +194,14 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
     return $response->withHeader('Content-Type', 'application/json')->withStatus(401);
 });
 
-// Face Login endpoint
-$app->post('/api/login/face', function (Request $request, Response $response, $args) {
-    $data = $request->getParsedBody();
-    $email = $data['email'] ?? '';
-    $faceDescriptor = $data['faceDescriptor'] ?? ''; // "[1.2, 0.5, ...]"
+// Send Email OTP for Login
+$app->post('/api/auth/otp/send', function (Request $request, Response $response, $args) {
+    $rawBody = (string)$request->getBody();
+    $data = json_decode($rawBody, true) ?: $request->getParsedBody() ?: [];
+    $email = trim($data['email'] ?? '');
 
-    if (!$email || !$faceDescriptor) {
-        $response->getBody()->write(json_encode(['error' => 'Email and face descriptor required']));
+    if (!$email) {
+        $response->getBody()->write(json_encode(['error' => 'Email address is required']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
 
@@ -213,17 +209,92 @@ $app->post('/api/login/face', function (Request $request, Response $response, $a
     $conn = $db->getConnection();
 
     $ip = RateLimiter::getClientIp();
-    $action = 'login';
-    
-    // Check rate limit
-    $stmt = $conn->query('SELECT login_rate_limit_attempts, login_rate_limit_window, session_timeout FROM global_settings ORDER BY id ASC LIMIT 1');
-    $settings = $stmt->fetch(PDO::FETCH_ASSOC);
-    $maxAttempts = $settings['login_rate_limit_attempts'] ?? 5;
-    $windowMinutes = $settings['login_rate_limit_window'] ?? 15;
-    $sessionTimeout = $settings['session_timeout'] ?? '30';
+    $action = 'otp_send';
 
-    if (!RateLimiter::checkLimit($conn, $ip, $action, $maxAttempts, $windowMinutes)) {
-        $secondsRemaining = RateLimiter::getLockoutRemainingTime($conn, $ip, $action, $maxAttempts, $windowMinutes);
+    // Rate limit check: max 5 OTP requests per 10 minutes
+    if (!RateLimiter::checkLimit($conn, $ip, $action, 5, 10)) {
+        $secondsRemaining = RateLimiter::getLockoutRemainingTime($conn, $ip, $action, 5, 10);
+        $response->getBody()->write(json_encode([
+            'error' => "Too many verification attempts. Please wait before requesting another code.",
+            'secondsRemaining' => $secondsRemaining
+        ]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(429);
+    }
+
+    RateLimiter::recordAttempt($conn, $ip, $action);
+
+    // Verify user exists and is active
+    $stmt = $conn->prepare('SELECT id, email, "firstName", "lastName", "isActive" FROM users WHERE LOWER(email) = LOWER(?)');
+    $stmt->execute([$email]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$user) {
+        $response->getBody()->write(json_encode(['error' => 'No employee account found with that email address']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+    }
+
+    $isActive = ($user['isActive'] === true || $user['isActive'] === 'true' || $user['isActive'] === 't' || $user['isActive'] == 1);
+    if (!$isActive) {
+        $response->getBody()->write(json_encode(['error' => 'Your account has been deactivated. Please contact your administrator.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
+    }
+
+    // Generate 6-digit cryptographically secure OTP
+    $otp = strval(random_int(100000, 999999));
+    $expiresAt = date('Y-m-d H:i:s', strtotime('+10 minutes'));
+
+    // Save OTP to user record
+    $updateStmt = $conn->prepare('UPDATE users SET otp_code = ?, otp_expires_at = ? WHERE id = ?');
+    $updateStmt->execute([$otp, $expiresAt, $user['id']]);
+
+    // Load and render OTP email template
+    $templatePath = __DIR__ . '/../src/Templates/otp_login_email.html';
+    $emailBody = '';
+    if (file_exists($templatePath)) {
+        $emailBody = file_get_contents($templatePath);
+        $emailBody = str_replace('{{firstName}}', htmlspecialchars($user['firstName'] ?? 'Employee'), $emailBody);
+        $emailBody = str_replace('{{otpCode}}', $otp, $emailBody);
+        $emailBody = str_replace('{{currentYear}}', date('Y'), $emailBody);
+    } else {
+        $emailBody = "Your Acme HRMS verification code is: {$otp}. It expires in 10 minutes.";
+    }
+
+    // Insert into email_queue
+    $queueStmt = $conn->prepare('INSERT INTO email_queue (to_email, subject, body) VALUES (?, ?, ?)');
+    $queueStmt->execute([
+        $user['email'],
+        "{$otp} is your Acme HRMS verification code",
+        $emailBody
+    ]);
+
+    $response->getBody()->write(json_encode([
+        'status' => 'success',
+        'message' => 'Verification code sent to your email'
+    ]));
+    return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+});
+
+// Verify Email OTP and Sign In
+$app->post('/api/auth/otp/verify', function (Request $request, Response $response, $args) {
+    $rawBody = (string)$request->getBody();
+    $data = json_decode($rawBody, true) ?: $request->getParsedBody() ?: [];
+    $email = trim($data['email'] ?? '');
+    $otp = trim($data['otp'] ?? '');
+
+    if (!$email || !$otp) {
+        $response->getBody()->write(json_encode(['error' => 'Email and verification code are required']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+
+    $db = new Database();
+    $conn = $db->getConnection();
+
+    $ip = RateLimiter::getClientIp();
+    $action = 'otp_verify';
+
+    // Rate limit check
+    if (!RateLimiter::checkLimit($conn, $ip, $action, 6, 15)) {
+        $secondsRemaining = RateLimiter::getLockoutRemainingTime($conn, $ip, $action, 6, 15);
         $response->getBody()->write(json_encode([
             'error' => "Too Many Login Attempts. Please Try Again Later.",
             'secondsRemaining' => $secondsRemaining
@@ -231,91 +302,95 @@ $app->post('/api/login/face', function (Request $request, Response $response, $a
         return $response->withHeader('Content-Type', 'application/json')->withStatus(429);
     }
 
-    // Fetch user and biometric data
     $stmt = $conn->prepare('
-        SELECT u.id, u.email, u."firstName", u."lastName", u.role, u.department, u.position, u."isActive", u."forcePasswordChange", b.face_descriptor
+        SELECT u.id, u.email, u."firstName", u."lastName", u.role, u.department, u.position, u."isActive", u."forcePasswordChange", u.otp_code, u.otp_expires_at
         FROM users u
-        LEFT JOIN user_biometrics b ON u.id = b.user_id
-        WHERE u.email = ?
+        WHERE LOWER(u.email) = LOWER(?)
     ');
     $stmt->execute([$email]);
-    $user = $stmt->fetch();
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$user) {
         RateLimiter::recordAttempt($conn, $ip, $action);
-        $response->getBody()->write(json_encode(['error' => 'Invalid email or face match failed.']));
+        $response->getBody()->write(json_encode(['error' => 'Invalid email or verification code']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(401);
     }
 
-    if (empty($user['face_descriptor'])) {
-        $response->getBody()->write(json_encode(['error' => 'Face is not Registered']));
+    $isActive = ($user['isActive'] === true || $user['isActive'] === 'true' || $user['isActive'] === 't' || $user['isActive'] == 1);
+    if (!$isActive) {
+        $response->getBody()->write(json_encode(['error' => 'Your account has been deactivated. Please contact your administrator.']));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
     }
 
-    // Verify distance using pgvector. <= 0.5 is a strict threshold for Euclidean distance (face-api.js standard).
-    $distStmt = $conn->prepare('SELECT (face_descriptor <-> ?::vector) as distance FROM user_biometrics WHERE user_id = ?');
-    $distStmt->execute([$faceDescriptor, $user['id']]);
-    $distRow = $distStmt->fetch(PDO::FETCH_ASSOC);
-
-    if ($distRow && (float)$distRow['distance'] <= 0.5) {
-        // Successful login
-        $isActive = ($user['isActive'] === true || $user['isActive'] === 'true' || $user['isActive'] === 't' || $user['isActive'] == 1);
-        if (!$isActive) {
-            $response->getBody()->write(json_encode(['error' => 'Your account has been deactivated. Please contact your administrator.']));
-            return $response->withHeader('Content-Type', 'application/json')->withStatus(403);
-        }
-
-        $secret = $_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '';
-        $user['isFaceRegistered'] = true;
-        
-        $payload = [
-            'iss' => 'acme_hrms',
-            'iat' => time(),
-            'exp' => ($sessionTimeout === 'never') ? time() + (60 * 60 * 24 * 365 * 10) : time() + ((int)$sessionTimeout * 60),
-            'id' => $user['id'],
-            'email' => $user['email'],
-            'role' => $user['role'],
-            'isFaceRegistered' => true
-        ];
-        
-        $jwt = JWT::encode($payload, $secret, 'HS256');
-
-        $faStmt = $conn->prepare('SELECT "canAttendance", "canLeave", "canPayroll", "canEmployees", "canRecruitment", "canAssets", "canLoanOrigination", "canSalesOrigination", "canBranchOperations", "canAdminAssessments" FROM user_feature_access WHERE "userId" = ?');
-        $faStmt->execute([$user['id']]);
-        $fa = $faStmt->fetch(PDO::FETCH_ASSOC);
-        
-        if ($fa) {
-            $user['featureAccess'] = [
-                'canAttendance' => (bool)$fa['canAttendance'],
-                'canLeave' => (bool)$fa['canLeave'],
-                'canPayroll' => (bool)$fa['canPayroll'],
-                'canEmployees' => (bool)$fa['canEmployees'],
-                'canRecruitment' => (bool)$fa['canRecruitment'],
-                'canAssets' => (bool)$fa['canAssets'],
-                'canLoanOrigination' => (bool)$fa['canLoanOrigination'],
-                'canSalesOrigination' => (bool)($fa['canSalesOrigination'] ?? false),
-                'canBranchOperations' => (bool)($fa['canBranchOperations'] ?? false),
-                'canAdminAssessments' => (bool)($fa['canAdminAssessments'] ?? false),
-            ];
-        }
-
-        unset($user['face_descriptor']); // don't return vector
-
-        $response->getBody()->write(json_encode([
-            'token' => $jwt,
-            'user' => $user
-        ]));
-        
-        RateLimiter::clearAttempts($conn, $ip, $action);
-        
-        return $response
-            ->withHeader('Content-Type', 'application/json')
-            ->withStatus(200);
+    if (empty($user['otp_code']) || empty($user['otp_expires_at'])) {
+        RateLimiter::recordAttempt($conn, $ip, $action);
+        $response->getBody()->write(json_encode(['error' => 'No active verification code found. Please request a new code.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
     }
 
-    RateLimiter::recordAttempt($conn, $ip, $action);
-    $response->getBody()->write(json_encode(['error' => 'Face match failed. Unrecognized face.']));
-    return $response->withHeader('Content-Type', 'application/json')->withStatus(401);
+    if (strtotime($user['otp_expires_at']) < time()) {
+        RateLimiter::recordAttempt($conn, $ip, $action);
+        $response->getBody()->write(json_encode(['error' => 'Verification code has expired. Please request a new one.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+
+    if ($user['otp_code'] !== $otp) {
+        RateLimiter::recordAttempt($conn, $ip, $action);
+        $response->getBody()->write(json_encode(['error' => 'Invalid verification code. Please check your email.']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(401);
+    }
+
+    // OTP matched! Clear OTP immediately
+    $clearStmt = $conn->prepare('UPDATE users SET otp_code = NULL, otp_expires_at = NULL WHERE id = ?');
+    $clearStmt->execute([$user['id']]);
+
+    // Fetch session settings
+    $settingsStmt = $conn->query('SELECT session_timeout FROM global_settings ORDER BY id ASC LIMIT 1');
+    $settings = $settingsStmt->fetch(PDO::FETCH_ASSOC);
+    $sessionTimeout = $settings['session_timeout'] ?? '30';
+
+    $secret = $_ENV['JWT_SECRET'] ?? getenv('JWT_SECRET') ?? '';
+
+    $payload = [
+        'iss' => 'acme_hrms',
+        'iat' => time(),
+        'exp' => ($sessionTimeout === 'never') ? time() + (60 * 60 * 24 * 365 * 10) : time() + ((int)$sessionTimeout * 60),
+        'id' => $user['id'],
+        'email' => $user['email'],
+        'role' => $user['role']
+    ];
+
+    $jwt = JWT::encode($payload, $secret, 'HS256');
+
+    unset($user['otp_code'], $user['otp_expires_at']);
+
+    // Fetch feature access
+    $faStmt = $conn->prepare('SELECT "canAttendance", "canLeave", "canPayroll", "canEmployees", "canRecruitment", "canAssets", "canLoanOrigination", "canSalesOrigination", "canBranchOperations", "canAdminAssessments" FROM user_feature_access WHERE "userId" = ?');
+    $faStmt->execute([$user['id']]);
+    $fa = $faStmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($fa) {
+        $user['featureAccess'] = [
+            'canAttendance' => (bool)$fa['canAttendance'],
+            'canLeave' => (bool)$fa['canLeave'],
+            'canPayroll' => (bool)$fa['canPayroll'],
+            'canEmployees' => (bool)$fa['canEmployees'],
+            'canRecruitment' => (bool)$fa['canRecruitment'],
+            'canAssets' => (bool)$fa['canAssets'],
+            'canLoanOrigination' => (bool)$fa['canLoanOrigination'],
+            'canSalesOrigination' => (bool)($fa['canSalesOrigination'] ?? false),
+            'canBranchOperations' => (bool)($fa['canBranchOperations'] ?? false),
+            'canAdminAssessments' => (bool)($fa['canAdminAssessments'] ?? false),
+        ];
+    }
+
+    RateLimiter::clearAttempts($conn, $ip, $action);
+
+    $response->getBody()->write(json_encode([
+        'token' => $jwt,
+        'user' => $user
+    ]));
+    return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
 });
 
 $app->post('/api/logout', function (Request $request, Response $response, $args) {
@@ -355,12 +430,10 @@ $app->get('/api/me', function (Request $request, Response $response, $args) {
     
     $stmt = $conn->prepare('
         SELECT u.id, u.email, u."firstName", u."lastName", u.role, u.department, u.position, u."isActive", u."forcePasswordChange", e.avatar, e."employeeId", e."geoFenceEnabled", e."webAttendanceEnabled",
-               fa."canAttendance", fa."canLeave", fa."canPayroll", fa."canEmployees", fa."canRecruitment", fa."canAssets", fa."canLoanOrigination", fa."canSalesOrigination", fa."canBranchOperations", fa."canAdminAssessments",
-               CASE WHEN b.face_descriptor IS NOT NULL THEN true ELSE false END as "isFaceRegistered"
+               fa."canAttendance", fa."canLeave", fa."canPayroll", fa."canEmployees", fa."canRecruitment", fa."canAssets", fa."canLoanOrigination", fa."canSalesOrigination", fa."canBranchOperations", fa."canAdminAssessments"
         FROM users u 
         LEFT JOIN employee e ON u.id = e."userId" 
         LEFT JOIN user_feature_access fa ON u.id = fa."userId"
-        LEFT JOIN user_biometrics b ON u.id = b.user_id
         WHERE u.id = ?
     ');
     $stmt->execute([$decodedToken->id]);
@@ -382,7 +455,7 @@ $app->get('/api/me', function (Request $request, Response $response, $args) {
                 'canLeave' => (bool)$user['canLeave'],
                 'canPayroll' => (bool)$user['canPayroll'],
                 'canEmployees' => (bool)$user['canEmployees'],
-                'canRecruitment' => (bool)$user['canRecruitment'],
+                'canRecruitment' => (bool)$fa['canRecruitment'],
                 'canAssets' => (bool)$user['canAssets'],
                 'canLoanOrigination' => (bool)$user['canLoanOrigination'],
                 'canSalesOrigination' => (bool)($user['canSalesOrigination'] ?? false),
@@ -390,7 +463,6 @@ $app->get('/api/me', function (Request $request, Response $response, $args) {
                 'canAdminAssessments' => (bool)($user['canAdminAssessments'] ?? false),
             ];
         }
-        $user['isFaceRegistered'] = ($user['isFaceRegistered'] === true || $user['isFaceRegistered'] === 'true' || $user['isFaceRegistered'] === 't' || $user['isFaceRegistered'] == 1);
         unset($user['canAttendance'], $user['canLeave'], $user['canPayroll'], $user['canEmployees'], $user['canRecruitment'], $user['canAssets'], $user['canLoanOrigination'], $user['canSalesOrigination'], $user['canBranchOperations'], $user['canAdminAssessments']);
         
         $response->getBody()->write(json_encode($user));
