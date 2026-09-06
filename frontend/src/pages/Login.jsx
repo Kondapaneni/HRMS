@@ -219,7 +219,7 @@ const Login = () => {
           <div className="flex flex-col justify-between h-full pr-0 md:pr-2 mb-6 md:mb-0">
             <div>
               <h1 className="font-editorial text-[28px] sm:text-[34px] font-medium text-[#1f1f1f] mt-1 md:mt-2 mb-1.5 leading-tight tracking-tight" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
-                Sign in to <span className="italic font-normal">Acme HRMS</span>
+                Sign in to <span className="italic font-normal text-[#4285F4]">Acme HRMS</span>
               </h1>
               <p className="text-xs sm:text-sm text-[#5f6368] font-normal leading-relaxed">
                 Use your Acme authenticated enterprise account
