@@ -207,7 +207,7 @@ const AdminPerformance = () => {
   if (isLoadingEmployees && !employees.length && !debouncedSearch) return <PageLoader message="Loading Performance Analytics..." />;
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6 pb-12 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -218,7 +218,7 @@ const AdminPerformance = () => {
             <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
             <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Team Analytics & Metrics</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
             Team Performance Analytics
           </h1>
           <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
