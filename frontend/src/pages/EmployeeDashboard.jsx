@@ -303,7 +303,7 @@ const EmployeeDashboard = () => {
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard 
             title="Today's Status" 
-            value={checkedIn ? 'Checked In' : (checkOutTime ? 'Checked Out' : 'Not Checked In')} 
+            value={checkedIn ? 'Checked In' : (checkOutTime ? 'Checked Out' : 'Not Yet!')} 
             subtitle={todayRecord?.checkIn ? `Since ${new Date(todayRecord.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'Awaiting punch'} 
             icon={Clock} 
             colorTheme={checkedIn ? 'green' : 'blue'} 
