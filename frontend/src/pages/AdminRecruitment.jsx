@@ -943,7 +943,10 @@ const AdminRecruitment = () => {
 
       {/* Configure Job Offer Letter Full Screen Studio (Takes over entire page, hiding sidebar) */}
       {isOfferModalOpen && createPortal(
-        <div className="fixed inset-0 z-[10000] w-screen h-screen bg-white flex flex-col overflow-hidden animate-in fade-in duration-200">
+        <div 
+          className="fixed inset-0 z-[10000] w-screen h-screen bg-white flex flex-col overflow-hidden animate-in fade-in duration-200 font-editorial antialiased"
+          style={{ fontFamily: "'Newsreader', Georgia, serif" }}
+        >
           {/* Top 4-Color Gradient Accent Line */}
           <div className="h-1 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] shrink-0" />
 
@@ -966,7 +969,9 @@ const AdminRecruitment = () => {
                   <Award size={18} />
                 </div>
                 <div>
-                  <h1 className="text-sm font-bold text-[#1f1f1f]">Configure Job Offer Letter</h1>
+                  <h1 className="text-base font-medium text-[#1f1f1f]" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
+                    Configure <span className="font-medium italic text-[#1a73e8]">Job Offer Letter</span>
+                  </h1>
                   <p className="text-[11px] text-[#5f6368]">
                     Candidate: <strong className="text-[#1f1f1f]">{offerData.firstName} {offerData.lastName}</strong> &bull; {offerData.position || 'Software Engineer'}
                   </p>
@@ -1128,7 +1133,8 @@ const AdminRecruitment = () => {
       {isConvertModalOpen && createPortal(
         <div 
           onClick={(e) => { if (e.target === e.currentTarget) setIsConvertModalOpen(false); }}
-          className="fixed inset-0 z-[10000] flex justify-end bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-[10000] flex justify-end bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200 font-editorial antialiased"
+          style={{ fontFamily: "'Newsreader', Georgia, serif" }}
         >
           <motion.div 
             initial={{ x: '100%' }}
@@ -1142,7 +1148,9 @@ const AdminRecruitment = () => {
 
             <div className="p-5 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd] mt-1 shrink-0">
               <div>
-                <h3 className="text-base font-semibold text-[#1f1f1f]">Convert to Employee</h3>
+                <h3 className="text-base font-medium text-[#1f1f1f] tracking-tight font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
+                  Convert to <span className="font-medium italic text-[#1a73e8]">Employee</span>
+                </h3>
                 <p className="text-xs text-[#5f6368]">Create staff account and official employee profile</p>
               </div>
               <button onClick={() => setIsConvertModalOpen(false)} className="p-1.5 rounded-full text-[#5f6368] hover:bg-[#e8eaed] transition-colors cursor-pointer">
@@ -1219,7 +1227,8 @@ const AdminRecruitment = () => {
       {isTimelineModalOpen && timelineApp && createPortal(
         <div 
           onClick={(e) => { if (e.target === e.currentTarget) setIsTimelineModalOpen(false); }}
-          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm"
+          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm font-editorial antialiased"
+          style={{ fontFamily: "'Newsreader', Georgia, serif" }}
         >
           <motion.div 
             initial={{ x: '100%' }}
@@ -1241,7 +1250,9 @@ const AdminRecruitment = () => {
                   <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
                   <span className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Application Pipeline</span>
                 </div>
-                <h2 className="text-lg font-semibold text-[#1f1f1f]">Application Timeline</h2>
+                <h2 className="text-lg font-medium text-[#1f1f1f] tracking-tight font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
+                  Application <span className="font-medium italic text-[#1a73e8]">Timeline</span>
+                </h2>
               </div>
               <button 
                 onClick={() => setIsTimelineModalOpen(false)} 
@@ -1295,7 +1306,8 @@ const AdminRecruitment = () => {
       {isScheduleModalOpen && createPortal(
         <div 
           onClick={(e) => { if (e.target === e.currentTarget) setIsScheduleModalOpen(false); }}
-          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm"
+          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm font-editorial antialiased"
+          style={{ fontFamily: "'Newsreader', Georgia, serif" }}
         >
           <motion.div 
             initial={{ x: '100%' }}
@@ -1317,7 +1329,9 @@ const AdminRecruitment = () => {
                   <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
                   <span className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Candidate Interview</span>
                 </div>
-                <h2 className="text-lg font-semibold text-[#1f1f1f]">Schedule {interviewData.status}</h2>
+                <h2 className="text-lg font-medium text-[#1f1f1f] tracking-tight font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
+                  Schedule <span className="font-medium italic text-[#1a73e8]">{interviewData.status}</span>
+                </h2>
               </div>
               <button 
                 onClick={() => setIsScheduleModalOpen(false)} 
@@ -1366,7 +1380,8 @@ const AdminRecruitment = () => {
       {isJobModalOpen && createPortal(
         <div 
           onClick={(e) => { if (e.target === e.currentTarget) setIsJobModalOpen(false); }}
-          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm"
+          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm font-editorial antialiased"
+          style={{ fontFamily: "'Newsreader', Georgia, serif" }}
         >
           <motion.div 
             initial={{ x: '100%' }}
@@ -1388,7 +1403,9 @@ const AdminRecruitment = () => {
                   <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
                   <span className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Recruitment Opening</span>
                 </div>
-                <h2 className="text-lg font-semibold text-[#1f1f1f]">Create Job Requisition</h2>
+                <h2 className="text-lg font-medium text-[#1f1f1f] tracking-tight font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
+                  Create <span className="font-medium italic text-[#1a73e8]">Job Requisition</span>
+                </h2>
               </div>
               <button 
                 onClick={() => setIsJobModalOpen(false)} 

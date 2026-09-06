@@ -482,7 +482,8 @@ const AdminExpenses = () => {
       {isDrawerOpen && selectedExpense && createPortal(
         <div 
           onClick={(e) => { if (e.target === e.currentTarget) closeReviewDrawer(); }}
-          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm"
+          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm font-editorial antialiased"
+          style={{ fontFamily: "'Newsreader', Georgia, serif" }}
         >
           <motion.div 
             initial={{ x: '100%' }}
@@ -504,7 +505,9 @@ const AdminExpenses = () => {
                   <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
                   <span className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Expense Claim</span>
                 </div>
-                <h2 className="text-lg font-semibold text-[#1f1f1f]">Expense Claim Details</h2>
+                <h2 className="text-lg font-medium text-[#1f1f1f] tracking-tight font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
+                  Expense Claim <span className="font-medium italic text-[#1a73e8]">Details</span>
+                </h2>
               </div>
               <button 
                 onClick={closeReviewDrawer} 

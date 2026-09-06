@@ -557,7 +557,8 @@ const AdminAssets = () => {
       {modalMode && createPortal(
         <div 
           onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}
-          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm"
+          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm font-editorial antialiased"
+          style={{ fontFamily: "'Newsreader', Georgia, serif" }}
         >
           <motion.div 
             initial={{ x: '100%' }}
@@ -582,10 +583,10 @@ const AdminAssets = () => {
                      modalMode === 'history' ? 'Asset Audit Log' : 'Asset Management'}
                   </span>
                 </div>
-                <h2 className="text-lg font-semibold text-[#1f1f1f]">
-                  {modalMode === 'assign' ? 'Assign Asset' :
-                   modalMode === 'add' ? 'Add New Asset' :
-                   modalMode === 'history' ? 'Track History' : 'Edit Asset Details'}
+                <h2 className="text-lg font-medium text-[#1f1f1f] tracking-tight font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
+                  {modalMode === 'assign' ? <>Assign <span className="font-medium italic text-[#1a73e8]">Asset</span></> :
+                   modalMode === 'add' ? <>Add <span className="font-medium italic text-[#1a73e8]">New Asset</span></> :
+                   modalMode === 'history' ? <>Track <span className="font-medium italic text-[#1a73e8]">History</span></> : <>Edit <span className="font-medium italic text-[#1a73e8]">Asset Details</span></>}
                 </h2>
               </div>
               <button 

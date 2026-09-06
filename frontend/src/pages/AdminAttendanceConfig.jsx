@@ -314,7 +314,8 @@ const AdminAttendanceConfig = () => {
       {showGeoModal && createPortal(
         <div 
           onClick={(e) => { if (e.target === e.currentTarget && !isSubmitting) { setShowGeoModal(false); setEditingGeo(null); } }}
-          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm"
+          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm font-editorial antialiased"
+          style={{ fontFamily: "'Newsreader', Georgia, serif" }}
         >
           <motion.div 
             initial={{ x: '100%' }}
@@ -336,7 +337,9 @@ const AdminAttendanceConfig = () => {
                   <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
                   <span className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Geo-Fence Configuration</span>
                 </div>
-                <h2 className="text-lg font-semibold text-[#1f1f1f]">{editingGeo ? 'Edit Geo Location' : 'Add Geo Location'}</h2>
+                <h2 className="text-lg font-medium text-[#1f1f1f] tracking-tight font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
+                  {editingGeo ? <>Edit <span className="font-medium italic text-[#1a73e8]">Geo Location</span></> : <>Add <span className="font-medium italic text-[#1a73e8]">Geo Location</span></>}
+                </h2>
               </div>
               <button 
                 type="button" 
@@ -439,7 +442,8 @@ const AdminAttendanceConfig = () => {
       {showShiftModal && createPortal(
         <div 
           onClick={(e) => { if (e.target === e.currentTarget && !isSubmitting) { setShowShiftModal(false); setEditingShift(null); } }}
-          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm"
+          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm font-editorial antialiased"
+          style={{ fontFamily: "'Newsreader', Georgia, serif" }}
         >
           <motion.div 
             initial={{ x: '100%' }}
@@ -461,7 +465,9 @@ const AdminAttendanceConfig = () => {
                   <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
                   <span className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Shift Timings</span>
                 </div>
-                <h2 className="text-lg font-semibold text-[#1f1f1f]">{editingShift ? 'Edit Shift Time' : 'Add Shift Time'}</h2>
+                <h2 className="text-lg font-medium text-[#1f1f1f] tracking-tight font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
+                  {editingShift ? <>Edit <span className="font-medium italic text-[#1a73e8]">Shift Time</span></> : <>Add <span className="font-medium italic text-[#1a73e8]">Shift Time</span></>}
+                </h2>
               </div>
               <button 
                 type="button" 
@@ -534,7 +540,10 @@ const AdminAttendanceConfig = () => {
 
       {/* Delete Confirmation Dialog */}
       {itemToDelete && createPortal(
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+        <div 
+          className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm font-editorial antialiased"
+          style={{ fontFamily: "'Newsreader', Georgia, serif" }}
+        >
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -547,7 +556,9 @@ const AdminAttendanceConfig = () => {
               <div className="w-12 h-12 rounded-full bg-[#fce8e6] text-[#c5221f] flex items-center justify-center mx-auto mb-3 border border-[#fad2cf]">
                 <AlertTriangle size={22} />
               </div>
-              <h2 className="text-base font-semibold text-[#1f1f1f] mb-1.5">Confirm Deletion</h2>
+              <h2 className="text-lg font-medium text-[#1f1f1f] mb-1.5" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
+                Confirm <span className="font-medium italic text-[#d93025]">Deletion</span>
+              </h2>
               <p className="text-xs text-[#5f6368] leading-relaxed">
                 Are you sure you want to delete this {itemToDelete.type === 'geo' ? 'Geo Location' : 'Shift Time'}? This configuration rule will no longer apply.
               </p>

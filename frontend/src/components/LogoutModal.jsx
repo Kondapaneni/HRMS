@@ -34,9 +34,13 @@ export default function LogoutModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ duration: 0.15 }}
-            className="relative w-full max-w-sm bg-white rounded-3xl shadow-xl border border-[#e0e3e7] overflow-hidden z-10"
+            className="relative w-full max-w-sm bg-white rounded-3xl shadow-xl border border-[#e0e3e7] overflow-hidden z-10 font-editorial antialiased"
+            style={{ fontFamily: "'Newsreader', Georgia, serif" }}
           >
-            <div className="p-6 text-center space-y-4">
+            {/* Top 4-Color Accent */}
+            <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
+
+            <div className="p-6 text-center space-y-4 pt-7">
               {/* Icon */}
               <div className="w-12 h-12 rounded-2xl bg-[#fce8e6] border border-[#fad2cf] text-[#d93025] flex items-center justify-center mx-auto shadow-2xs">
                 <LogOut className="w-6 h-6" />
@@ -44,7 +48,7 @@ export default function LogoutModal({
 
               {/* Text */}
               <div className="space-y-1">
-                <h3 className="text-lg font-semibold text-[#1f1f1f] tracking-tight">
+                <h3 className="text-xl font-medium text-[#1f1f1f] tracking-tight" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
                   {title}
                 </h3>
                 <p className="text-xs text-[#5f6368] leading-relaxed">

@@ -168,7 +168,9 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
               <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
               <span className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Staff Onboarding</span>
             </div>
-            <h2 className="text-lg font-semibold text-[#1f1f1f]">Add New Employee</h2>
+            <h2 className="text-lg font-medium text-[#1f1f1f] tracking-tight font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
+              Add <span className="font-medium italic text-[#1a73e8]">New Employee</span>
+            </h2>
           </div>
           <button 
             onClick={onClose} 

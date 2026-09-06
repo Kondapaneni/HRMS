@@ -502,7 +502,7 @@ const AdminAuditLogs = () => {
 
       {/* Slideover Right Drawer: Audit Log Details (createPortal) */}
       {selectedLog && createPortal(
-        <div className="fixed inset-0 z-50 overflow-hidden">
+        <div className="fixed inset-0 z-50 overflow-hidden font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
           <div 
             className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity" 
             onClick={() => setSelectedLog(null)} 
@@ -518,7 +518,9 @@ const AdminAuditLogs = () => {
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h3 className="text-base font-semibold text-[#1f1f1f]">Audit Log Details</h3>
+                      <h3 className="text-base font-medium text-[#1f1f1f] tracking-tight font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
+                        Audit Log <span className="font-medium italic text-[#1a73e8]">Details</span>
+                      </h3>
                       {getActionBadge(selectedLog.action_type)}
                     </div>
                     <p className="text-xs text-[#5f6368] font-mono mt-0.5">

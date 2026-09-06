@@ -460,7 +460,8 @@ const AdminTrainingVideos = () => {
       {isModalOpen && createPortal(
         <div 
           onClick={(e) => { if (e.target === e.currentTarget && !isBusy) setIsModalOpen(false); }}
-          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm"
+          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm font-editorial antialiased"
+          style={{ fontFamily: "'Newsreader', Georgia, serif" }}
         >
           <motion.div 
             initial={{ x: '100%' }}
@@ -482,7 +483,9 @@ const AdminTrainingVideos = () => {
                   <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
                   <span className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Training Hub</span>
                 </div>
-                <h2 className="text-lg font-semibold text-[#1f1f1f]">Upload Training Video</h2>
+                <h2 className="text-xl font-medium text-[#1f1f1f]" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
+                  Upload <span className="font-medium italic text-[#1a73e8]">Training Video</span>
+                </h2>
               </div>
               <button
                 type="button"
@@ -695,7 +698,8 @@ const AdminTrainingVideos = () => {
       {isAssignModalOpen && selectedVideoForAssign && createPortal(
         <div 
           onClick={(e) => { if (e.target === e.currentTarget) setIsAssignModalOpen(false); }}
-          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm"
+          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm font-editorial antialiased"
+          style={{ fontFamily: "'Newsreader', Georgia, serif" }}
         >
           <motion.div 
             initial={{ x: '100%' }}
@@ -717,7 +721,9 @@ const AdminTrainingVideos = () => {
                   <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
                   <span className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Course Enrollment</span>
                 </div>
-                <h2 className="text-lg font-semibold text-[#1f1f1f]">Assign Employees</h2>
+                <h2 className="text-xl font-medium text-[#1f1f1f]" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
+                  Assign <span className="font-medium italic text-[#1a73e8]">Employees</span>
+                </h2>
               </div>
               <button
                 type="button"

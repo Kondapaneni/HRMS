@@ -335,7 +335,8 @@ const AdminHolidays = () => {
       {showModal && createPortal(
         <div 
           onClick={(e) => { if (e.target === e.currentTarget && !saving) closeModal(); }}
-          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm"
+          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm font-editorial antialiased"
+          style={{ fontFamily: "'Newsreader', Georgia, serif" }}
         >
           <motion.div 
             initial={{ x: '100%' }}
@@ -354,8 +355,8 @@ const AdminHolidays = () => {
                   <CalendarIcon size={15} />
                   <span className="text-[10.5px] font-bold uppercase tracking-wider">Holiday Management</span>
                 </div>
-                <h2 className="text-lg font-semibold text-[#1f1f1f]">
-                  {existingImage ? 'Edit Holiday' : 'Add Holiday'}
+                <h2 className="text-lg font-medium text-[#1f1f1f] tracking-tight font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
+                  {existingImage ? <>Edit <span className="font-medium italic text-[#1a73e8]">Holiday</span></> : <>Add <span className="font-medium italic text-[#1a73e8]">Holiday</span></>}
                 </h2>
                 <p className="text-xs text-[#5f6368] mt-0.5">Date: <strong className="text-[#1f1f1f]">{selectedDate}</strong></p>
               </div>

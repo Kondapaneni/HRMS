@@ -306,7 +306,8 @@ const AdminEmployeeSettings = () => {
       {showExitModal && createPortal(
         <div 
           onClick={(e) => { if (e.target === e.currentTarget) setShowExitModal(false); }}
-          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm"
+          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm font-editorial antialiased"
+          style={{ fontFamily: "'Newsreader', Georgia, serif" }}
         >
           <motion.div 
             initial={{ x: '100%' }}
@@ -325,7 +326,9 @@ const AdminEmployeeSettings = () => {
                   <AlertTriangle size={15} />
                   <span className="text-[10.5px] font-bold uppercase tracking-wider">Offboarding Confirmation</span>
                 </div>
-                <h2 className="text-lg font-semibold text-[#1f1f1f]">Confirm Employment Status</h2>
+                <h2 className="text-lg font-medium text-[#1f1f1f] tracking-tight font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
+                  Confirm <span className="font-medium italic text-[#EA4335]">Employment Status</span>
+                </h2>
                 <p className="text-xs text-[#5f6368] mt-0.5">
                   Marking employee as <strong className="text-[#EA4335] font-semibold">{pendingStatus}</strong>.
                 </p>

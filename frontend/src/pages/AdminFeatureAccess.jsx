@@ -503,7 +503,7 @@ const AdminFeatureAccess = () => {
 
       {/* Slideover Right Drawer: Manage Users (createPortal) */}
       {selectedFeature && createPortal(
-        <div className="fixed inset-0 z-50 overflow-hidden">
+        <div className="fixed inset-0 z-50 overflow-hidden font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
           <div
             className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity"
             onClick={() => !saving && setSelectedFeature(null)}
@@ -518,8 +518,8 @@ const AdminFeatureAccess = () => {
                     <Shield className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-base font-semibold text-[#1f1f1f]">
-                      Manage {selectedFeature.title.endsWith('Manager') ? `${selectedFeature.title}s` : selectedFeature.title}
+                    <h3 className="text-base font-medium text-[#1f1f1f] tracking-tight font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
+                      Manage <span className="font-medium italic text-[#1a73e8]">{selectedFeature.title.endsWith('Manager') ? `${selectedFeature.title}s` : selectedFeature.title}</span>
                     </h3>
                     <p className="text-xs text-[#5f6368] line-clamp-1">Select staff who should have this permission</p>
                   </div>
