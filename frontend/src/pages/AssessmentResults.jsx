@@ -205,7 +205,7 @@ const AssessmentResults = () => {
   if (isLoading && !attempts.length && !debouncedSearchTerm) return <PageLoader message="Loading Assessment Results..." />;
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6 pb-12 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -216,8 +216,8 @@ const AssessmentResults = () => {
             <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
             <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Test Center</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight flex items-center gap-2">
-            Employee Assessment Results <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">{attempts.length} Evaluated</span>
+          <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight flex items-center gap-2 font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
+            Employee Assessment <span className="font-medium italic text-[#1a73e8]">Results</span> <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">{attempts.length} Evaluated</span>
           </h1>
           <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
             Monitor employee scores, pass benchmarks, integrity proctoring logs, and question-by-question breakdowns.
@@ -467,25 +467,32 @@ const AssessmentResults = () => {
       </div>
 
       {/* Slideover Right Drawer for Detailed Evaluation Sheet */}
+      {/* Attempt Details Slideover Modal */}
       {selectedAttempt && createPortal(
-        <div className="fixed inset-0 z-50 overflow-hidden">
+        <div 
+          className="fixed inset-0 z-50 overflow-hidden font-editorial antialiased"
+          style={{ fontFamily: "'Newsreader', Georgia, serif" }}
+        >
           <div 
             className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity" 
             onClick={() => setSelectedAttempt(null)} 
           />
           <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-            <div className="w-screen max-w-2xl bg-white shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
+            <div className="w-screen max-w-2xl bg-white shadow-2xl flex flex-col relative animate-in slide-in-from-right duration-300 border-l border-[#e0e3e7]">
               
+              {/* Top 4-Color Google Accent Line */}
+              <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
+
               {/* Header */}
-              <div className="p-5 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd]">
+              <div className="p-5 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd] mt-1 shrink-0">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] flex items-center justify-center font-bold text-sm shrink-0">
                     {(selectedAttempt.employee_name || 'E').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h3 className="text-base font-semibold text-[#1f1f1f]">
-                        {selectedAttempt.employee_name}
+                      <h3 className="text-base font-medium text-[#1f1f1f] font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
+                        <span className="font-medium italic text-[#1a73e8]">{selectedAttempt.employee_name}</span>
                       </h3>
                       {selectedAttempt.employee_code && (
                         <span className="px-2 py-0.5 rounded-full bg-[#f1f3f4] text-[#5f6368] font-mono text-[10px] font-semibold">

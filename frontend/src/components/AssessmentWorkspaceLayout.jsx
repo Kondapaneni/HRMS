@@ -83,7 +83,10 @@ const AssessmentWorkspaceLayout = () => {
   };
 
   return (
-    <div className="h-[100dvh] w-full overflow-hidden bg-[#f8fafd] text-[#1f1f1f] selection:bg-[#c2e7ff] selection:text-[#001d35] flex font-sans antialiased relative z-0">
+    <div 
+      className="h-[100dvh] w-full overflow-hidden bg-[#f8fafd] text-[#1f1f1f] selection:bg-[#c2e7ff] selection:text-[#001d35] flex font-editorial antialiased relative z-0"
+      style={{ fontFamily: "'Newsreader', Georgia, serif" }}
+    >
 
       {/* Ambient background glows */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
@@ -102,9 +105,9 @@ const AssessmentWorkspaceLayout = () => {
         {/* Brand Header */}
         <div className="h-14 flex items-center justify-between px-4 border-b border-[#f1f3f4] shrink-0 mt-0.5">
           <div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-lg font-bold tracking-tight text-[#1f1f1f]">Acme</span>
-              <span className="text-lg font-semibold tracking-tight text-[#4285F4]">Assessment</span>
+            <div className="flex items-center gap-1.5 font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+              <span className="text-xl font-medium tracking-tight text-[#1f1f1f]">Acme</span>
+              <span className="text-xl font-medium italic tracking-tight text-[#4285F4]">Assessment</span>
             </div>
             <div className="flex items-center gap-1 mt-0.5">
               <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
@@ -196,8 +199,8 @@ const AssessmentWorkspaceLayout = () => {
                 )}
               </div>
               <div className="hidden sm:block text-left">
-                <p className="text-xs font-semibold text-[#1f1f1f] leading-none">
-                  {profile?.email?.split('@')[0] || 'Admin User'}
+                <p className="text-xs font-medium text-[#1f1f1f] leading-none" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+                  <span className="font-medium italic text-[#1a73e8]">{profile?.email?.split('@')[0] || 'Admin'}</span>
                 </p>
                 <p className="text-[10px] text-[#5f6368] mt-0.5 capitalize">{profile?.role || 'Administrator'}</p>
               </div>
@@ -232,9 +235,9 @@ const AssessmentWorkspaceLayout = () => {
             <div className="w-screen max-w-xs bg-white shadow-2xl flex flex-col">
               <div className="p-4 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd]">
                 <div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-base font-bold text-[#1f1f1f]">Acme</span>
-                    <span className="text-base font-semibold text-[#4285F4]">Assessment</span>
+                  <div className="flex items-center gap-1.5 font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+                    <span className="text-lg font-medium text-[#1f1f1f]">Acme</span>
+                    <span className="text-lg font-medium italic text-[#4285F4]">Assessment</span>
                   </div>
                   <p className="text-[10px] text-[#5f6368]">Training Hub</p>
                 </div>

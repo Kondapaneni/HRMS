@@ -223,7 +223,7 @@ const AssessmentCreate = () => {
   ];
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6 pb-12 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -234,8 +234,12 @@ const AssessmentCreate = () => {
             <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
             <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Assessment Builder</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight">
-            {isEditing ? `Edit: ${form.title || 'Assessment'}` : 'Create New Assessment'}
+          <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
+            {isEditing ? (
+              <>Edit: <span className="font-medium italic text-[#1a73e8]">{form.title || 'Assessment'}</span></>
+            ) : (
+              <>Create <span className="font-medium italic text-[#1a73e8]">New Assessment</span></>
+            )}
           </h1>
           <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
             Select questions from bank, assign targeted staff, and set custom timings & anti-cheating controls.

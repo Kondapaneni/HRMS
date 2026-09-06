@@ -238,7 +238,7 @@ const DepartmentQuestionBank = () => {
   if (isLoading && !questions.length && !debouncedSearchQuery) return <PageLoader message="Loading Question Bank..." />;
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6 pb-12 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -249,8 +249,8 @@ const DepartmentQuestionBank = () => {
             <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
             <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Test Center</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight flex items-center gap-2">
-            Department Question Bank <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">{questions.length} Items</span>
+          <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight flex items-center gap-2 font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
+            Department Question <span className="font-medium italic text-[#1a73e8]">Bank</span> <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">{questions.length} Items</span>
           </h1>
           <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
             Curate objective single and multiple-choice questions for employee competency evaluations.
@@ -484,7 +484,8 @@ const DepartmentQuestionBank = () => {
       {showModal && createPortal(
         <div 
           onClick={(e) => { if (e.target === e.currentTarget) setShowModal(false); }}
-          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm"
+          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm font-editorial antialiased"
+          style={{ fontFamily: "'Newsreader', Georgia, serif" }}
         >
           <motion.div 
             initial={{ x: '100%' }}
@@ -506,8 +507,12 @@ const DepartmentQuestionBank = () => {
                   <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
                   <span className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Question Bank</span>
                 </div>
-                <h2 className="text-lg font-semibold text-[#1f1f1f]">
-                  {editingId ? 'Edit Department Question' : 'Add Question to Bank'}
+                <h2 className="text-xl font-medium text-[#1f1f1f]" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
+                  {editingId ? (
+                    <>Edit <span className="font-medium italic text-[#1a73e8]">Department Question</span></>
+                  ) : (
+                    <>Add Question to <span className="font-medium italic text-[#1a73e8]">Bank</span></>
+                  )}
                 </h2>
               </div>
               <button
