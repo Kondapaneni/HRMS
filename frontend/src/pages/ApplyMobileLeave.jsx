@@ -200,7 +200,7 @@ const ApplyMobileLeave = () => {
             <ArrowLeft className="w-5 h-5" />
           </button>
           <h2 className="text-xl font-medium text-white tracking-tight" style={{ fontWeight: 500 }}>
-            Apply <span className="font-medium italic text-[#7bdff2]">Leave</span>
+            Apply <span className="font-medium italic text-[#1a73e8]">Leave</span>
           </h2>
           <div className="w-10 h-10"></div>
         </div>

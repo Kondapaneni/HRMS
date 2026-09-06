@@ -148,7 +148,7 @@ const EditMobileProfile = () => {
           <div className="text-center">
             <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest drop-shadow-md">Employee Self-Service</p>
             <h2 className="text-xl font-medium text-white tracking-tight drop-shadow-sm" style={{ fontWeight: 500 }}>
-              Edit <span className="font-medium italic text-[#7bdff2]">Profile</span>
+              Edit <span className="font-medium italic text-[#1a73e8]">Profile</span>
             </h2>
           </div>
 
