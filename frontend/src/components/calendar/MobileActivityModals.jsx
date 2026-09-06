@@ -134,24 +134,24 @@ export const MobileActivityCreatePage = ({
   };
 
   return (
-    <div className="space-y-4 pb-14 select-none">
+    <div className="space-y-4 pb-14 select-none font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
       {/* 1. Hero Section with Animated Motion Graphics */}
       <section className="-mx-4 -mt-4 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900">
         {/* Animated Liquid Orbs */}
         <motion.div
           animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
           transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-          className={`absolute -top-20 -left-10 w-72 h-72 ${theme?.orbs?.[0] || 'bg-blue-500'} rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none`}
+          className={`absolute -top-20 -left-10 w-72 h-72 ${theme?.orbs?.[0] || (isSales ? 'bg-emerald-600' : 'bg-blue-500')} rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none`}
         />
         <motion.div
           animate={{ scale: [1, 1.4, 1], x: [0, -40, 0], y: [0, 50, 0] }}
           transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-          className={`absolute -top-10 -right-10 w-64 h-64 ${theme?.orbs?.[1] || 'bg-indigo-500'} rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none`}
+          className={`absolute -top-10 -right-10 w-64 h-64 ${theme?.orbs?.[1] || (isSales ? 'bg-green-600' : 'bg-indigo-500')} rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none`}
         />
         <motion.div
           animate={{ scale: [1, 1.3, 1], x: [0, 30, 0], y: [0, -40, 0] }}
           transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-          className={`absolute bottom-0 left-20 w-80 h-80 ${theme?.orbs?.[2] || 'bg-sky-400'} rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none`}
+          className={`absolute bottom-0 left-20 w-80 h-80 ${theme?.orbs?.[2] || (isSales ? 'bg-emerald-700' : 'bg-sky-400')} rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none`}
         />
 
         <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none" />
@@ -160,10 +160,10 @@ export const MobileActivityCreatePage = ({
         <div className="relative z-10 px-2 flex items-center justify-between">
           <div>
             <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">
-              {theme?.tagText || 'Origination • Loan Activities'}
+              {theme?.tagText || (isSales ? 'ORIGINATION • SALES ACTIVITIES' : 'ORIGINATION • LOAN ACTIVITIES')}
             </p>
-            <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">
-              Schedule Activity
+            <h2 className="text-3xl font-medium text-white tracking-tight mb-0.5 drop-shadow-sm" style={{ fontWeight: 500 }}>
+              Schedule <span className={`font-medium italic ${theme?.titleAccent || (isSales ? 'text-[#34d399]' : 'text-[#38bdf8]')}`}>Activity</span>
             </h2>
             <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">
               Register New Activity / Task
@@ -214,7 +214,11 @@ export const MobileActivityCreatePage = ({
                   placeholder="e.g. Client KYC Verification, Follow-up Call"
                   required
                   className={`w-full bg-[#f8fafd] border ${
-                    formErrors.title ? 'border-[#d93025] focus:border-[#d93025] focus:ring-[#d93025]/20' : 'border-[#dadce0] focus:border-[#1a73e8] focus:ring-[#1a73e8]/20'
+                    formErrors.title 
+                      ? 'border-[#d93025] focus:border-[#d93025] focus:ring-[#d93025]/20' 
+                      : isSales 
+                        ? 'border-[#dadce0] focus:border-[#137333] focus:ring-[#137333]/20' 
+                        : 'border-[#dadce0] focus:border-[#1a73e8] focus:ring-[#1a73e8]/20'
                   } rounded-full pl-10 pr-4 py-3 text-xs font-semibold text-[#1f1f1f] placeholder:text-[#80868b] focus:bg-white focus:ring-2 outline-none transition-all`}
                 />
               </div>
@@ -264,7 +268,7 @@ export const MobileActivityCreatePage = ({
                     type="checkbox"
                     checked={formData.allDay}
                     onChange={(e) => setFormData({ ...formData, allDay: e.target.checked })}
-                    className="w-4 h-4 rounded text-[#1a73e8] focus:ring-[#1a73e8] cursor-pointer"
+                    className={`w-4 h-4 rounded ${isSales ? 'text-[#137333] focus:ring-[#137333]' : 'text-[#1a73e8] focus:ring-[#1a73e8]'} cursor-pointer`}
                   />
                 </label>
               </div>
@@ -289,7 +293,7 @@ export const MobileActivityCreatePage = ({
                       if (formErrors.startDate) setFormErrors({ ...formErrors, startDate: null });
                       if (formErrors.endDate) setFormErrors({ ...formErrors, endDate: null });
                     }}
-                    className="w-full bg-[#f8fafd] border border-[#dadce0] rounded-full px-4 py-2.5 text-xs font-semibold text-[#1f1f1f] outline-none min-h-[42px] focus:bg-white focus:ring-2 focus:ring-[#1a73e8]/20 transition-all"
+                    className={`w-full bg-[#f8fafd] border border-[#dadce0] rounded-full px-4 py-2.5 text-xs font-semibold text-[#1f1f1f] outline-none min-h-[42px] focus:bg-white focus:ring-2 ${isSales ? 'focus:ring-[#137333]/20 focus:border-[#137333]' : 'focus:ring-[#1a73e8]/20 focus:border-[#1a73e8]'} transition-all`}
                   />
                 </div>
 
@@ -313,7 +317,7 @@ export const MobileActivityCreatePage = ({
                         }));
                         if (formErrors.endTime) setFormErrors({ ...formErrors, endTime: null });
                       }}
-                      className="w-full bg-[#f8fafd] border border-[#dadce0] rounded-full px-4 py-2.5 text-xs font-semibold text-[#1f1f1f] outline-none min-h-[42px] focus:bg-white focus:ring-2 focus:ring-[#1a73e8]/20 transition-all"
+                      className={`w-full bg-[#f8fafd] border border-[#dadce0] rounded-full px-4 py-2.5 text-xs font-semibold text-[#1f1f1f] outline-none min-h-[42px] focus:bg-white focus:ring-2 ${isSales ? 'focus:ring-[#137333]/20 focus:border-[#137333]' : 'focus:ring-[#1a73e8]/20 focus:border-[#1a73e8]'} transition-all`}
                     />
                   </div>
                 )}
@@ -341,7 +345,7 @@ export const MobileActivityCreatePage = ({
                         setFormData((prev) => ({ ...prev, endDate: newEnd }));
                         if (formErrors.endDate) setFormErrors({ ...formErrors, endDate: null });
                       }}
-                      className="w-full bg-[#f8fafd] border border-[#dadce0] rounded-full px-4 py-2.5 text-xs font-semibold text-[#1f1f1f] outline-none min-h-[42px] focus:bg-white focus:ring-2 focus:ring-[#1a73e8]/20 transition-all"
+                      className={`w-full bg-[#f8fafd] border border-[#dadce0] rounded-full px-4 py-2.5 text-xs font-semibold text-[#1f1f1f] outline-none min-h-[42px] focus:bg-white focus:ring-2 ${isSales ? 'focus:ring-[#137333]/20 focus:border-[#137333]' : 'focus:ring-[#1a73e8]/20 focus:border-[#1a73e8]'} transition-all`}
                     />
                   </div>
 
@@ -363,7 +367,7 @@ export const MobileActivityCreatePage = ({
                         setFormData((prev) => ({ ...prev, endTime: newEndTime }));
                         if (formErrors.endTime) setFormErrors({ ...formErrors, endTime: null });
                       }}
-                      className="w-full bg-[#f8fafd] border border-[#dadce0] rounded-full px-4 py-2.5 text-xs font-semibold text-[#1f1f1f] outline-none min-h-[42px] focus:bg-white focus:ring-2 focus:ring-[#1a73e8]/20 transition-all"
+                      className={`w-full bg-[#f8fafd] border border-[#dadce0] rounded-full px-4 py-2.5 text-xs font-semibold text-[#1f1f1f] outline-none min-h-[42px] focus:bg-white focus:ring-2 ${isSales ? 'focus:ring-[#137333]/20 focus:border-[#137333]' : 'focus:ring-[#1a73e8]/20 focus:border-[#1a73e8]'} transition-all`}
                     />
                   </div>
                 </div>
@@ -382,7 +386,7 @@ export const MobileActivityCreatePage = ({
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                   placeholder="e.g. Gurunanak Colony, Vijayawada"
-                  className="w-full bg-[#f8fafd] border border-[#dadce0] rounded-full pl-10 pr-4 py-3 text-xs font-semibold text-[#1f1f1f] placeholder:text-[#80868b] focus:bg-white focus:ring-2 focus:ring-[#1a73e8]/20 outline-none transition-all"
+                  className={`w-full bg-[#f8fafd] border border-[#dadce0] rounded-full pl-10 pr-4 py-3 text-xs font-semibold text-[#1f1f1f] placeholder:text-[#80868b] focus:bg-white focus:ring-2 ${isSales ? 'focus:ring-[#137333]/20 focus:border-[#137333]' : 'focus:ring-[#1a73e8]/20 focus:border-[#1a73e8]'} outline-none transition-all`}
                 />
               </div>
             </div>
@@ -399,7 +403,7 @@ export const MobileActivityCreatePage = ({
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                   placeholder="Add special instructions, document checklist, or notes..."
-                  className="w-full bg-[#f8fafd] border border-[#dadce0] rounded-2xl pl-10 pr-4 py-3 text-xs font-semibold text-[#1f1f1f] placeholder:text-[#80868b] focus:bg-white focus:ring-2 focus:ring-[#1a73e8]/20 outline-none transition-all resize-none"
+                  className={`w-full bg-[#f8fafd] border border-[#dadce0] rounded-2xl pl-10 pr-4 py-3 text-xs font-semibold text-[#1f1f1f] placeholder:text-[#80868b] focus:bg-white focus:ring-2 ${isSales ? 'focus:ring-[#137333]/20 focus:border-[#137333]' : 'focus:ring-[#1a73e8]/20 focus:border-[#1a73e8]'} outline-none transition-all resize-none`}
                 />
               </div>
             </div>
@@ -471,7 +475,7 @@ export const MobileActivityCreatePage = ({
               disabled={isSubmitting}
               className={`inline-flex items-center justify-center gap-1.5 rounded-full text-xs font-semibold ${
                 isSales 
-                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
+                  ? 'bg-[#137333] hover:bg-[#0b5324] text-white' 
                   : 'bg-[#1a73e8] hover:bg-[#1557b0] text-white'
               } px-6 py-3 transition-all shadow-xs cursor-pointer disabled:opacity-50`}
             >

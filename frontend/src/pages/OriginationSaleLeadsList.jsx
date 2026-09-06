@@ -151,9 +151,9 @@ const OriginationSaleLeadsList = () => {
                 Sales Pipeline Directory
               </span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight flex items-center gap-2">
-              All Leads 
-              <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">
+            <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight flex items-center gap-2" style={{ fontWeight: 500 }}>
+              <span>Sales Leads <span className="font-medium italic text-[#137333]">Directory</span></span>
+              <span className="text-xs font-semibold text-[#137333] bg-[#e6f4ea] border border-[#ceead6] px-2.5 py-0.5 rounded-full">
                 {rawLeads.length} Total
               </span>
             </h1>
@@ -165,7 +165,7 @@ const OriginationSaleLeadsList = () => {
           <button 
             type="button"
             onClick={() => setIsAddLeadOpen(true)}
-            className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white h-9 px-4.5 transition-all gap-1.5 shadow-xs cursor-pointer active:scale-95 shrink-0 self-start sm:self-auto"
+            className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[#137333] hover:bg-[#0b5324] text-white h-9 px-4.5 transition-all gap-1.5 shadow-xs cursor-pointer active:scale-95 shrink-0 self-start sm:self-auto"
           >
             <Plus size={15} />
             <span>Add Lead</span>
@@ -191,14 +191,14 @@ const OriginationSaleLeadsList = () => {
                   onClick={() => setSelectedStatusFilter(tab.id)}
                   className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
                     isSelected
-                      ? 'bg-[#c2e7ff]/70 text-[#001d35] border border-[#b2d7ff]/80 shadow-2xs'
+                      ? 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6] shadow-2xs'
                       : 'bg-[#f8fafd] text-[#5f6368] hover:bg-[#f1f3f4] hover:text-[#1f1f1f] border border-[#dadce0]'
                   }`}
                 >
                   <span>{tab.label}</span>
                   {tab.count !== undefined && (
                     <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                      isSelected ? 'bg-[#1a73e8] text-white' : 'bg-[#e0e3e7] text-[#5f6368]'
+                      isSelected ? 'bg-[#137333] text-white' : 'bg-[#e0e3e7] text-[#5f6368]'
                     }`}>
                       {tab.count}
                     </span>

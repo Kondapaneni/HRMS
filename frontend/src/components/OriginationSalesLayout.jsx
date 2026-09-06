@@ -162,7 +162,7 @@ const OriginationSalesLayout = () => {
 
   return (
     <>
-      <div className="h-[100dvh] w-full overflow-hidden bg-[#f8fafd] flex font-sans text-[#1f1f1f] selection:bg-[#c2e7ff] selection:text-[#001d35] antialiased relative z-0">
+      <div className="h-[100dvh] w-full overflow-hidden bg-[#f8fafd] flex font-editorial text-[#1f1f1f] selection:bg-[#c2e7ff] selection:text-[#001d35] antialiased relative z-0" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
         
         {/* Google Ambient Multi-color Background Glows */}
         <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
@@ -181,8 +181,8 @@ const OriginationSalesLayout = () => {
           <div className="h-14 flex items-center justify-between px-4 border-b border-[#f1f3f4] shrink-0 mt-0.5">
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="text-lg font-bold tracking-tight text-[#1f1f1f]">Acme</span>
-                <span className="text-lg font-semibold tracking-tight text-[#4285F4]">Sales</span>
+                <span className="text-lg font-medium tracking-tight text-[#1f1f1f]">Acme</span>
+                <span className="text-lg font-medium italic tracking-tight text-[#137333]">Sales</span>
               </div>
               <div className="flex items-center gap-1 mt-0.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
@@ -211,11 +211,11 @@ const OriginationSalesLayout = () => {
                     to={item.path}
                     className={`w-full flex items-center gap-2.5 px-3 py-1.5 rounded-full text-xs transition-all ${
                       isActive 
-                        ? 'bg-[#c2e7ff]/70 text-[#001d35] font-semibold shadow-xs' 
+                        ? 'bg-[#e6f4ea] text-[#137333] font-semibold shadow-xs' 
                         : 'text-[#444746] hover:bg-[#f1f3f4] hover:text-[#1f1f1f] font-medium'
                     }`}
                   >
-                    <span className={`shrink-0 ${isActive ? 'text-[#1a73e8]' : 'text-[#5f6368]'}`}>{item.icon}</span>
+                    <span className={`shrink-0 ${isActive ? 'text-[#137333]' : 'text-[#5f6368]'}`}>{item.icon}</span>
                     <span className="flex-1 whitespace-nowrap truncate text-[11.5px]">{item.label}</span>
                   </Link>
                 );
@@ -269,8 +269,8 @@ const OriginationSalesLayout = () => {
             {/* Mobile Center: Acme Sales with 4 Google dots */}
             <div className="md:hidden absolute left-1/2 -translate-x-1/2 flex items-center pointer-events-auto">
               <Link to="/employee/sales/origination" className="flex items-center gap-1.5 shrink-0">
-                <span className="text-base font-bold tracking-tight text-[#1f1f1f]">Acme</span>
-                <span className="text-base font-semibold tracking-tight text-[#4285F4]">Sales</span>
+                <span className="text-base font-medium tracking-tight text-[#1f1f1f]">Acme</span>
+                <span className="text-base font-medium italic tracking-tight text-[#137333]">Sales</span>
                 <div className="flex items-center gap-0.5 ml-0.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
                   <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
@@ -391,12 +391,12 @@ const OriginationSalesLayout = () => {
                             {item.isActive && (
                               <motion.div
                                 layoutId="salesMobileNavBubble"
-                                className="absolute inset-0 z-[-1] rounded-full bg-[#c2e7ff]/70 border border-[#b2d7ff]/80 shadow-2xs"
+                                className="absolute inset-0 z-[-1] rounded-full bg-[#e6f4ea] border border-[#ceead6] shadow-2xs"
                                 transition={{ type: 'spring', bounce: 0.15, duration: 0.35 }}
                               />
                             )}
-                            <Icon className={`relative z-10 w-5 h-5 mb-0.5 transition-colors duration-150 ${item.isActive ? 'text-[#001d35] scale-105' : 'text-[#5f6368]'}`} />
-                            <span className={`relative z-10 text-[10px] font-semibold tracking-wide transition-colors duration-150 ${item.isActive ? 'text-[#001d35]' : 'text-[#5f6368]'}`}>
+                            <Icon className={`relative z-10 w-5 h-5 mb-0.5 transition-colors duration-150 ${item.isActive ? 'text-[#137333] scale-105' : 'text-[#5f6368]'}`} />
+                            <span className={`relative z-10 text-[10px] font-semibold tracking-wide transition-colors duration-150 ${item.isActive ? 'text-[#137333]' : 'text-[#5f6368]'}`}>
                               {item.label}
                             </span>
                           </Link>
@@ -412,12 +412,12 @@ const OriginationSalesLayout = () => {
                         {isMoreActive && (
                           <motion.div
                             layoutId="salesMobileNavBubble"
-                            className="absolute inset-0 z-[-1] rounded-full bg-[#c2e7ff]/70 border border-[#b2d7ff]/80 shadow-2xs"
+                            className="absolute inset-0 z-[-1] rounded-full bg-[#e6f4ea] border border-[#ceead6] shadow-2xs"
                             transition={{ type: 'spring', bounce: 0.15, duration: 0.35 }}
                           />
                         )}
-                        <Menu className={`relative z-10 w-5 h-5 mb-0.5 transition-colors duration-150 ${isMoreActive ? 'text-[#001d35] scale-105' : 'text-[#5f6368]'}`} />
-                        <span className={`relative z-10 text-[10px] font-semibold tracking-wide transition-colors duration-150 ${isMoreActive ? 'text-[#001d35]' : 'text-[#5f6368]'}`}>More</span>
+                        <Menu className={`relative z-10 w-5 h-5 mb-0.5 transition-colors duration-150 ${isMoreActive ? 'text-[#137333] scale-105' : 'text-[#5f6368]'}`} />
+                        <span className={`relative z-10 text-[10px] font-semibold tracking-wide transition-colors duration-150 ${isMoreActive ? 'text-[#137333]' : 'text-[#5f6368]'}`}>More</span>
                       </button>
                     </>
                   );
@@ -430,7 +430,7 @@ const OriginationSalesLayout = () => {
 
       {/* Mobile Left Slide-Over Sidebar Drawer (createPortal) */}
       {isMobileSidebarOpen && typeof document !== 'undefined' && createPortal(
-        <div className="fixed inset-0 z-[99999] md:hidden">
+        <div className="fixed inset-0 z-[99999] md:hidden font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
           {/* Dark Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -446,7 +446,8 @@ const OriginationSalesLayout = () => {
             animate={{ x: 0 }}
             exit={{ x: '-100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 240 }}
-            className="fixed inset-y-0 left-0 w-[290px] sm:w-[320px] bg-white z-10 shadow-2xl flex flex-col justify-between border-r border-[#e0e3e7] overflow-hidden"
+            className="fixed inset-y-0 left-0 w-[290px] sm:w-[320px] bg-white z-10 shadow-2xl flex flex-col justify-between border-r border-[#e0e3e7] overflow-hidden font-editorial antialiased"
+            style={{ fontFamily: "'Newsreader', Georgia, serif" }}
           >
             {/* Top Accent Line */}
             <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
@@ -457,15 +458,15 @@ const OriginationSalesLayout = () => {
               <div className="flex items-center justify-between pb-3 border-b border-[#f1f3f4]">
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-lg font-bold tracking-tight text-[#1f1f1f]">Acme</span>
-                    <span className="text-lg font-semibold tracking-tight text-[#4285F4]">Sales</span>
+                    <span className="text-xl font-medium tracking-tight text-[#1f1f1f]" style={{ fontWeight: 500 }}>Acme</span>
+                    <span className="text-xl font-medium italic tracking-tight text-[#4285F4]">Sales</span>
                   </div>
                   <div className="flex items-center gap-1 mt-0.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
                     <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
                     <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
                     <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-                    <span className="text-[10px] font-medium text-[#5f6368] ml-1">Sales Origination Hub</span>
+                    <span className="text-[11px] font-medium text-[#5f6368] ml-1">Sales Origination Hub</span>
                   </div>
                 </div>
 
@@ -480,7 +481,7 @@ const OriginationSalesLayout = () => {
 
               {/* Module Links */}
               <div>
-                <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider mb-2 px-2">
+                <p className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider mb-2 px-2">
                   Sales Modules &amp; Activities
                 </p>
                 <nav className="space-y-1">
@@ -502,19 +503,44 @@ const OriginationSalesLayout = () => {
                         key={idx}
                         to={item.path}
                         onClick={() => setIsMobileSidebarOpen(false)}
-                        className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-full text-xs transition-all ${
+                        className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-full text-[13.5px] transition-all ${
                           isActive
-                            ? 'bg-[#c2e7ff]/70 text-[#001d35] font-bold shadow-xs'
-                            : 'text-[#444746] hover:bg-[#f1f3f4] hover:text-[#1f1f1f] font-medium'
+                            ? 'bg-[#e6f4ea] text-[#137333] font-medium shadow-xs'
+                            : 'text-[#444746] hover:bg-[#f1f3f4] hover:text-[#1f1f1f] font-normal'
                         }`}
+                        style={isActive ? { fontWeight: 500 } : undefined}
                       >
-                        <span className={`shrink-0 ${isActive ? 'text-[#1a73e8]' : 'text-[#5f6368]'}`}>{item.icon}</span>
-                        <span className="flex-1 truncate text-xs">{item.label}</span>
+                        <span className={`shrink-0 ${isActive ? 'text-[#137333]' : 'text-[#5f6368]'}`}>{item.icon}</span>
+                        <span className={`flex-1 truncate ${isActive ? 'font-medium' : 'font-normal'}`}>{item.label}</span>
                       </Link>
                     );
                   })}
                 </nav>
               </div>
+            </div>
+
+            {/* Drawer Bottom Actions */}
+            <div className="p-3 border-t border-[#f1f3f4] bg-white space-y-1">
+              <Link
+                to="/employee"
+                onClick={() => setIsMobileSidebarOpen(false)}
+                className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-[#444746] rounded-full hover:bg-[#f1f3f4] hover:text-[#1f1f1f] transition-colors cursor-pointer"
+              >
+                <ArrowLeft size={15} className="text-[#5f6368]" />
+                <span className="text-xs">Back to HRMS</span>
+              </Link>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMobileSidebarOpen(false);
+                  setShowLogoutModal(true);
+                }}
+                className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-[#5f6368] rounded-full hover:bg-[#fce8e6] hover:text-[#d93025] transition-colors cursor-pointer"
+              >
+                <LogOut size={15} className="text-[#5f6368]" />
+                <span className="text-xs">Sign Out</span>
+              </button>
             </div>
           </motion.div>
         </div>,
@@ -525,54 +551,58 @@ const OriginationSalesLayout = () => {
       {showBackModal && createPortal(
         <div 
           onClick={() => setShowBackModal(false)}
-            className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200"
+          className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200 font-editorial antialiased"
+          style={{ fontFamily: "'Newsreader', Georgia, serif" }}
+        >
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.95, opacity: 0 }}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-sm overflow-hidden p-6 space-y-4 text-center font-editorial antialiased"
+            style={{ fontFamily: "'Newsreader', Georgia, serif" }}
           >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-sm overflow-hidden p-6 space-y-4 text-center"
-            >
-              {/* Top Icon Badge */}
-              <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">
-                <ArrowLeft className="w-7 h-7" />
-              </div>
+            {/* Top Icon Badge */}
+            <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">
+              <ArrowLeft className="w-7 h-7" />
+            </div>
 
-              {/* Content */}
-              <div className="space-y-1.5">
-                <h3 className="text-base font-bold text-slate-900">
-                  Back to HRMS Dashboard?
-                </h3>
-                <p className="text-xs text-slate-500 font-medium">
-                  Return to the main Employee Workspace and attendance portal.
-                </p>
-              </div>
+            {/* Content */}
+            <div className="space-y-1.5">
+              <h3 className="text-base font-medium text-slate-900" style={{ fontWeight: 500 }}>
+                Back to HRMS <span className="font-medium italic text-[#137333]">Dashboard?</span>
+              </h3>
+              <p className="text-xs text-slate-500 font-normal">
+                Return to the main Employee Workspace and attendance portal.
+              </p>
+            </div>
 
-              {/* Actions */}
-              <div className="grid grid-cols-2 gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowBackModal(false)}
-                  className="w-full py-3.5 px-4 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-bold transition-all cursor-pointer shadow-2xs"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowBackModal(false);
-                    navigate('/employee');
-                  }}
-                  className="w-full py-3.5 px-4 rounded-full text-white text-sm font-bold transition-all cursor-pointer shadow-xs active:scale-95 bg-[#1a73e8] hover:bg-[#1557b0]"
-                >
-                  Yes, Return
-                </button>
-              </div>
-            </motion.div>
-          </div>,
-          document.body
-        )}
+            {/* Actions */}
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowBackModal(false)}
+                className="w-full py-3.5 px-4 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium transition-all cursor-pointer shadow-2xs"
+                style={{ fontWeight: 500 }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowBackModal(false);
+                  navigate('/employee');
+                }}
+                className="w-full py-3.5 px-4 rounded-full text-white text-sm font-medium transition-all cursor-pointer shadow-xs active:scale-95 bg-[#1a73e8] hover:bg-[#1557b0]"
+                style={{ fontWeight: 500 }}
+              >
+                Yes, Return
+              </button>
+            </div>
+          </motion.div>
+        </div>,
+        document.body
+      )}
 
       {/* Global Logout Modal */}
       <LogoutModal

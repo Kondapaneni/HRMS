@@ -13,7 +13,8 @@ import {
   MapPin, 
   Award,
   RefreshCw,
-  XCircle
+  XCircle,
+  Calendar
 } from 'lucide-react';
 import {
   LineChart,
@@ -128,15 +129,25 @@ const OriginationSaleDashboard = () => {
                 Sales Origination Overview
               </span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight flex items-center gap-2">
-              Origination Sales Dashboard 
-              <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">
+            <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight flex items-center gap-2" style={{ fontWeight: 500 }}>
+              <span>Origination Sales <span className="font-medium italic text-[#137333]">Dashboard</span></span>
+              <span className="text-xs font-semibold text-[#137333] bg-[#e6f4ea] border border-[#ceead6] px-2.5 py-0.5 rounded-full">
                 Active Hub
               </span>
             </h1>
             <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
               Overview of lead generation, pipeline conversion, and monthly sales trends.
             </p>
+          </div>
+
+          <div className="flex items-center gap-2.5">
+            <Link
+              to="/employee/sales/origination/activities"
+              className="px-4 py-2 rounded-full bg-white border border-[#dadce0] hover:bg-[#f8fafd] hover:border-[#137333]/40 text-xs font-semibold text-[#1f1f1f] shadow-xs flex items-center gap-2 transition-all cursor-pointer hover:shadow-sm"
+            >
+              <Calendar className="w-4 h-4 text-[#137333]" />
+              <span>Activities & Tasks</span>
+            </Link>
           </div>
         </div>
 
@@ -219,7 +230,7 @@ const OriginationSaleDashboard = () => {
             <div className="space-y-1">
               <p className="text-xs font-semibold text-[#5f6368] uppercase tracking-wider">Conversion Rate</p>
               <div className="flex items-baseline gap-2">
-                <p className="text-2xl font-bold text-[#1a73e8] tracking-tight">
+                <p className="text-2xl font-bold text-[#137333] tracking-tight">
                   {conversionRate}%
                 </p>
                 <span className="text-xs font-semibold text-[#137333]">Active</span>
@@ -243,7 +254,7 @@ const OriginationSaleDashboard = () => {
                 </h3>
                 <p className="text-xs text-[#5f6368]">Velocity over the last 7 days</p>
               </div>
-              <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
+              <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">
                 Daily Activity
               </span>
             </div>
@@ -258,7 +269,7 @@ const OriginationSaleDashboard = () => {
                     contentStyle={{ borderRadius: '12px', border: '1px solid #e0e3e7', boxShadow: '0 4px 12px rgba(0,0,0,0.06)', backgroundColor: '#fff', fontSize: '12px' }}
                   />
                   <Legend iconType="circle" wrapperStyle={{ paddingTop: '15px', fontSize: '12px' }} />
-                  <Line type="monotone" dataKey="leads" name="Total Leads" stroke="#1a73e8" strokeWidth={2.5} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6, strokeWidth: 0, fill: '#1a73e8' }} />
+                  <Line type="monotone" dataKey="leads" name="Total Leads" stroke="#10b981" strokeWidth={2.5} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6, strokeWidth: 0, fill: '#10b981' }} />
                   <Line type="monotone" dataKey="converted" name="Converted" stroke="#137333" strokeWidth={2.5} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6, strokeWidth: 0, fill: '#137333' }} />
                 </LineChart>
               </ResponsiveContainer>
@@ -290,8 +301,8 @@ const OriginationSaleDashboard = () => {
                     cursor={{ fill: '#f8fafd' }}
                   />
                   <Legend iconType="circle" wrapperStyle={{ paddingTop: '15px', fontSize: '12px' }} />
-                  <Bar dataKey="leads" name="Total Leads" fill="#4285F4" radius={[6, 6, 0, 0]} barSize={26} />
-                  <Bar dataKey="converted" name="Converted" fill="#34A853" radius={[6, 6, 0, 0]} barSize={26} />
+                  <Bar dataKey="leads" name="Total Leads" fill="#10b981" radius={[6, 6, 0, 0]} barSize={26} />
+                  <Bar dataKey="converted" name="Converted" fill="#137333" radius={[6, 6, 0, 0]} barSize={26} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

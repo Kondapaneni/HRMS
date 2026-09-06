@@ -123,34 +123,34 @@ const OriginationMobileSaleDashboard = () => {
 
   return (
     <div className="space-y-4 pb-12">
-      {/* 1. Hero Section with Animated Emerald/Teal Motion Graphics for Sales */}
+      {/* 1. Hero Section with Animated Deep Emerald & Forest Green Motion Graphics */}
       <section className="-mx-4 -mt-4 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900">
-        {/* Animated Liquid Orbs with Sales Origination Emerald, Teal & Cyan Theme */}
+        {/* Animated Liquid Orbs with Deep Emerald & Forest Green Theme */}
         <motion.div
           animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
           transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute -top-20 -left-10 w-72 h-72 bg-emerald-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+          className="absolute -top-20 -left-10 w-72 h-72 bg-emerald-600 rounded-full mix-blend-screen filter blur-[40px] opacity-65 pointer-events-none"
         />
         <motion.div
           animate={{ scale: [1, 1.4, 1], x: [0, -40, 0], y: [0, 50, 0] }}
           transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-          className="absolute -top-10 -right-10 w-64 h-64 bg-teal-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+          className="absolute -top-10 -right-10 w-64 h-64 bg-green-600 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
         />
         <motion.div
           animate={{ scale: [1, 1.3, 1], x: [0, 30, 0], y: [0, -40, 0] }}
           transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-          className="absolute bottom-0 left-20 w-80 h-80 bg-cyan-400 rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
+          className="absolute bottom-0 left-20 w-80 h-80 bg-emerald-700 rounded-full mix-blend-screen filter blur-[50px] opacity-55 pointer-events-none"
         />
 
         {/* Subtle Glass Overlay */}
         <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none" />
 
         <div className="relative z-10 px-2">
-          <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">
+          <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">
             {getGreeting()} &bull; Sales Origination
           </p>
-          <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">
-            {profile?.firstName || profile?.name?.split(' ')[0] || 'Sales'} {profile?.lastName || profile?.name?.split(' ')[1] || 'Officer'}
+          <h2 className="text-3xl font-medium text-white tracking-tight mb-0.5 drop-shadow-sm" style={{ fontWeight: 500 }}>
+            Hello, <span className="font-medium italic text-[#34d399] drop-shadow-[0_2px_6px_rgba(0,0,0,0.5)]">{profile?.firstName || profile?.name?.split(' ')[0] || 'Sales'}</span>
           </h2>
           <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">
             {currentTime.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })} &bull; Performance &amp; Leads
@@ -306,8 +306,8 @@ const OriginationMobileSaleDashboard = () => {
                     <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
                   </linearGradient>
                   <linearGradient id="salesConvertedGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.25}/>
-                    <stop offset="95%" stopColor="#06b6d4" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#059669" stopOpacity={0.25}/>
+                    <stop offset="95%" stopColor="#059669" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f3f4" />
@@ -324,7 +324,7 @@ const OriginationMobileSaleDashboard = () => {
                 />
                 <Legend iconType="circle" wrapperStyle={{ paddingTop: '10px', fontSize: '11px' }} />
                 <Area type="monotone" dataKey="leads" name="Total Leads" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#salesLeadsGradient)" />
-                <Area type="monotone" dataKey="converted" name="Converted" stroke="#06b6d4" strokeWidth={2} fillOpacity={1} fill="url(#salesConvertedGradient)" />
+                <Area type="monotone" dataKey="converted" name="Converted" stroke="#059669" strokeWidth={2} fillOpacity={1} fill="url(#salesConvertedGradient)" />
               </AreaChart>
             ) : (
               <BarChart data={monthlyData} margin={{ top: 10, right: 10, bottom: 5, left: -20 }}>
@@ -343,7 +343,7 @@ const OriginationMobileSaleDashboard = () => {
                 />
                 <Legend iconType="circle" wrapperStyle={{ paddingTop: '10px', fontSize: '11px' }} />
                 <Bar dataKey="leads" name="Leads" fill="#10b981" radius={[4, 4, 0, 0]} barSize={12} />
-                <Bar dataKey="converted" name="Converted" fill="#06b6d4" radius={[4, 4, 0, 0]} barSize={12} />
+                <Bar dataKey="converted" name="Converted" fill="#059669" radius={[4, 4, 0, 0]} barSize={12} />
               </BarChart>
             )}
           </ResponsiveContainer>

@@ -45,8 +45,8 @@ export default function OriginationSaleForms() {
                 Sales Workspace &bull; Application Form
               </span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight flex items-center gap-2">
-              Sales Origination Form
+            <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight flex items-center gap-2" style={{ fontWeight: 500 }}>
+              <span>Sales Origination <span className="font-medium italic text-[#137333]">Form</span></span>
             </h1>
             <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
               Online Registration &amp; Onboarding Module

@@ -164,8 +164,8 @@ const OriginationMobileSaleLeadDetails = () => {
 
         {/* Heading + Back Button Row */}
         <div className="flex items-center justify-between gap-3">
-          <h1 className="text-xl font-bold text-[#1f1f1f] tracking-tight">
-            Lead Details
+          <h1 className="text-xl font-medium text-[#1f1f1f] tracking-tight" style={{ fontWeight: 500 }}>
+            Lead <span className="font-medium italic text-[#137333]">Details</span>
           </h1>
 
           <button

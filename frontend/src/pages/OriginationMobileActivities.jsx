@@ -87,7 +87,8 @@ const OriginationMobileActivities = () => {
       return {
         moduleName: 'Sales',
         tagText: 'ORIGINATION • SALES ACTIVITIES',
-        orbs: ['bg-emerald-500', 'bg-teal-500', 'bg-cyan-400'],
+        titleAccent: 'text-[#34d399]',
+        orbs: ['bg-emerald-600', 'bg-green-600', 'bg-emerald-700'],
         activeChip: 'bg-[#e6f4ea] text-[#137333] border-[#ceead6] shadow-2xs font-bold',
         activeBadgeText: 'bg-[#137333] text-white',
         todayDotColor: '#059669',
@@ -106,6 +107,7 @@ const OriginationMobileActivities = () => {
       return {
         moduleName: 'Branch',
         tagText: branchInfo?.name ? `${branchInfo.name.toUpperCase()} BRANCH` : 'BRANCH ACTIVITIES',
+        titleAccent: 'text-[#38bdf8]',
         orbs: ['bg-blue-500', 'bg-indigo-500', 'bg-sky-400'],
         activeChip: 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc] shadow-2xs font-bold',
         activeBadgeText: 'bg-[#1a73e8] text-white',
@@ -125,6 +127,7 @@ const OriginationMobileActivities = () => {
     return {
       moduleName: 'Loans',
       tagText: 'ORIGINATION • LOAN ACTIVITIES',
+      titleAccent: 'text-[#38bdf8]',
       orbs: ['bg-blue-500', 'bg-indigo-500', 'bg-sky-400'],
       activeChip: 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc] shadow-2xs font-bold',
       activeBadgeText: 'bg-[#1a73e8] text-white',
@@ -377,7 +380,7 @@ const OriginationMobileActivities = () => {
         return (
           <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold shrink-0 ${
             isSales 
-              ? 'bg-[#e6fffa] text-[#0d9488] border-[#b2f5ea]' 
+              ? 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]' 
               : 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc]'
           }`}>
             Medium
@@ -440,7 +443,7 @@ const OriginationMobileActivities = () => {
               {theme.tagText}
             </p>
             <h2 className="text-3xl font-medium text-white tracking-tight mb-0.5 drop-shadow-sm" style={{ fontWeight: 500 }}>
-              All <span className="font-medium italic text-[#38bdf8]">Activities</span>
+              All <span className={`font-medium italic ${theme.titleAccent || 'text-[#38bdf8]'}`}>Activities</span>
             </h2>
             <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">
               {rawEvents.length} Total Scheduled Tasks

@@ -89,8 +89,8 @@ const OriginationSaleMembersList = () => {
                 Converted Members Directory
               </span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight flex items-center gap-2">
-              Members <span className="text-xs font-semibold text-[#137333] bg-[#e6f4ea] border border-[#ceead6] px-2.5 py-0.5 rounded-full">{members.length} Converted</span>
+            <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight flex items-center gap-2" style={{ fontWeight: 500 }}>
+              <span>Sales <span className="font-medium italic text-[#137333]">Members</span></span> <span className="text-xs font-semibold text-[#137333] bg-[#e6f4ea] border border-[#ceead6] px-2.5 py-0.5 rounded-full">{members.length} Converted</span>
             </h1>
             <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
               Comprehensive list of sales prospects converted into active members.

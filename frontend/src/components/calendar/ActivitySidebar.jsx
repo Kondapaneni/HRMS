@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   X,
@@ -24,8 +25,11 @@ const ActivitySidebar = ({
   onSave,
   selectedDate = null,
   assignableEmployees = [],
-  showAssigneeSelector = false
+  showAssigneeSelector = false,
+  isSales = false
 }) => {
+  const location = useLocation();
+  const resolvedIsSales = isSales || location?.pathname?.startsWith('/employee/sales');
   const [formData, setFormData] = useState({
     title: '',
     priority: 'Medium',
@@ -193,23 +197,37 @@ const ActivitySidebar = ({
         transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
         className="bg-white shadow-2xl w-full max-w-lg h-[100dvh] flex flex-col overflow-hidden relative z-10 border-l border-[#dadce0]"
       >
-        {/* Top 4-Color Google Accent Line */}
-        <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
+        {/* Top Module Accent Line */}
+        <div className={`h-1.5 w-full absolute top-0 left-0 ${
+          resolvedIsSales 
+            ? 'bg-gradient-to-r from-emerald-600 via-green-600 to-teal-600' 
+            : 'bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853]'
+        }`} />
 
         {/* Modal Header */}
         <div className="px-6 py-4 border-b border-[#dadce0] flex justify-between items-center bg-[#f8fafd] mt-1 shrink-0">
           <div>
             <div className="flex items-center gap-1.5 mb-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+              {resolvedIsSales ? (
+                <>
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#137333]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#059669]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#34d399]" />
+                </>
+              ) : (
+                <>
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+                </>
+              )}
               <span className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">
-                Loan Origination Hub
+                {resolvedIsSales ? 'Sales Origination Hub' : 'Loan Origination Hub'}
               </span>
             </div>
-            <h2 className="text-base sm:text-lg font-bold text-[#1f1f1f]">
-              Schedule New Activity
+            <h2 className="text-base sm:text-lg font-medium text-[#1f1f1f]" style={{ fontWeight: 500 }}>
+              Schedule New <span className={`font-medium italic ${resolvedIsSales ? 'text-[#137333]' : 'text-[#1a73e8]'}`}>Activity</span>
             </h2>
           </div>
           <button
@@ -237,7 +255,9 @@ const ActivitySidebar = ({
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 placeholder="e.g. KYC Verification Visit, Follow-up Call or Document Collection"
-                className="w-full px-4 py-2.5 rounded-xl border border-[#dadce0] focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 outline-none text-xs sm:text-sm font-medium text-[#1f1f1f] transition-all bg-white"
+                className={`w-full px-4 py-2.5 rounded-xl border border-[#dadce0] ${
+                  resolvedIsSales ? 'focus:border-[#137333] focus:ring-[#137333]/20' : 'focus:border-[#1a73e8] focus:ring-[#1a73e8]/20'
+                } focus:ring-2 outline-none text-xs sm:text-sm font-medium text-[#1f1f1f] transition-all bg-white`}
               />
             </div>
 
@@ -249,7 +269,7 @@ const ActivitySidebar = ({
               <div className="grid grid-cols-4 gap-2">
                 {[
                   { id: 'Low', label: 'Low', activeClass: 'bg-[#f1f3f4] text-[#5f6368] border-[#dadce0]' },
-                  { id: 'Medium', label: 'Medium', activeClass: 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc]' },
+                  { id: 'Medium', label: 'Medium', activeClass: resolvedIsSales ? 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]' : 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc]' },
                   { id: 'High', label: 'High', activeClass: 'bg-[#fef7e0] text-[#b06000] border-[#feefc3]' },
                   { id: 'Urgent', label: 'Urgent', activeClass: 'bg-[#fce8e6] text-[#c5221f] border-[#fad2cf]' }
                 ].map((p) => {
@@ -348,7 +368,9 @@ const ActivitySidebar = ({
                       startDate: e.target.value,
                       endDate: e.target.value > formData.endDate ? e.target.value : formData.endDate
                     })}
-                    className="w-full px-3.5 py-2 rounded-xl border border-[#dadce0] focus:border-[#1a73e8] outline-none text-xs text-[#1f1f1f] bg-white font-medium"
+                    className={`w-full px-3.5 py-2 rounded-xl border border-[#dadce0] ${
+                      resolvedIsSales ? 'focus:border-[#137333]' : 'focus:border-[#1a73e8]'
+                    } outline-none text-xs text-[#1f1f1f] bg-white font-medium`}
                   />
                 </div>
               </div>
@@ -364,7 +386,9 @@ const ActivitySidebar = ({
                     min={formData.startDate}
                     value={formData.endDate}
                     onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl border border-[#dadce0] focus:border-[#1a73e8] outline-none text-xs text-[#1f1f1f] bg-white font-medium"
+                    className={`w-full px-3.5 py-2 rounded-xl border border-[#dadce0] ${
+                      resolvedIsSales ? 'focus:border-[#137333]' : 'focus:border-[#1a73e8]'
+                    } outline-none text-xs text-[#1f1f1f] bg-white font-medium`}
                   />
                 </div>
               </div>
@@ -379,7 +403,7 @@ const ActivitySidebar = ({
                     type="checkbox"
                     checked={formData.allDay}
                     onChange={(e) => setFormData({ ...formData, allDay: e.target.checked })}
-                    className="rounded text-[#1a73e8] focus:ring-[#1a73e8] w-3.5 h-3.5 cursor-pointer"
+                    className={`rounded ${resolvedIsSales ? 'text-[#137333] focus:ring-[#137333]' : 'text-[#1a73e8] focus:ring-[#1a73e8]'} w-3.5 h-3.5 cursor-pointer`}
                   />
                   <span className="text-xs font-semibold text-[#5f6368]">All day activity</span>
                 </label>
@@ -396,7 +420,9 @@ const ActivitySidebar = ({
                       required={!formData.allDay}
                       value={formData.startTime}
                       onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                      className="w-full px-3.5 py-2 rounded-xl border border-[#dadce0] focus:border-[#1a73e8] outline-none text-xs text-[#1f1f1f] bg-white font-medium"
+                      className={`w-full px-3.5 py-2 rounded-xl border border-[#dadce0] ${
+                        resolvedIsSales ? 'focus:border-[#137333]' : 'focus:border-[#1a73e8]'
+                      } outline-none text-xs text-[#1f1f1f] bg-white font-medium`}
                     />
                   </div>
                   <div>
@@ -408,7 +434,9 @@ const ActivitySidebar = ({
                       required={!formData.allDay}
                       value={formData.endTime}
                       onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                      className="w-full px-3.5 py-2 rounded-xl border border-[#dadce0] focus:border-[#1a73e8] outline-none text-xs text-[#1f1f1f] bg-white font-medium"
+                      className={`w-full px-3.5 py-2 rounded-xl border border-[#dadce0] ${
+                        resolvedIsSales ? 'focus:border-[#137333]' : 'focus:border-[#1a73e8]'
+                      } outline-none text-xs text-[#1f1f1f] bg-white font-medium`}
                     />
                   </div>
                 </div>
@@ -427,7 +455,9 @@ const ActivitySidebar = ({
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                 placeholder="e.g. Applicant residence, branch office, Google Meet"
-                className="w-full px-3.5 py-2 rounded-xl border border-[#dadce0] focus:border-[#1a73e8] outline-none text-xs text-[#1f1f1f] bg-white"
+                className={`w-full px-3.5 py-2 rounded-xl border border-[#dadce0] ${
+                  resolvedIsSales ? 'focus:border-[#137333]' : 'focus:border-[#1a73e8]'
+                } outline-none text-xs text-[#1f1f1f] bg-white`}
               />
             </div>
 
@@ -443,7 +473,9 @@ const ActivitySidebar = ({
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 placeholder="Key points, documents required, borrower questions..."
-                className="w-full px-3.5 py-2 rounded-xl border border-[#dadce0] focus:border-[#1a73e8] outline-none text-xs text-[#1f1f1f] resize-none bg-white"
+                className={`w-full px-3.5 py-2 rounded-xl border border-[#dadce0] ${
+                  resolvedIsSales ? 'focus:border-[#137333]' : 'focus:border-[#1a73e8]'
+                } outline-none text-xs text-[#1f1f1f] resize-none bg-white`}
               />
             </div>
 
@@ -463,7 +495,11 @@ const ActivitySidebar = ({
             type="submit"
             form="activity-form"
             disabled={isSubmitting}
-            className="px-5 py-2 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] text-xs font-semibold text-white shadow-xs transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer active:scale-95"
+            className={`px-5 py-2 rounded-full ${
+              resolvedIsSales 
+                ? 'bg-[#137333] hover:bg-[#0b5324]' 
+                : 'bg-[#1a73e8] hover:bg-[#1557b0]'
+            } text-xs font-semibold text-white shadow-xs transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer active:scale-95`}
           >
             {isSubmitting ? (
               <>

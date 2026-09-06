@@ -84,6 +84,7 @@ const OriginationActivities = () => {
 
   // Detect workspace context
   const isBranchOperations = location.pathname.startsWith('/employee/branch-operations');
+  const isSales = location.pathname.startsWith('/employee/sales');
   const workspaceScope = isBranchOperations ? 'branch' : 'personal';
 
   // Fetch activities (personal or branch-wide depending on route)
@@ -452,8 +453,12 @@ const OriginationActivities = () => {
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight flex items-center gap-2.5" style={{ fontWeight: 500 }}>
-            <span>Activities &amp; <span className="font-medium italic text-[#1a73e8]">Follow-Ups</span></span>
-            <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">
+            <span>Activities &amp; <span className={`font-medium italic ${isSales ? 'text-[#137333]' : 'text-[#1a73e8]'}`}>Follow-Ups</span></span>
+            <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${
+              isSales 
+                ? 'text-[#137333] bg-[#e6f4ea] border border-[#ceead6]' 
+                : 'text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc]'
+            }`}>
               {stats.total} Total Tasks
             </span>
           </h1>
@@ -469,7 +474,9 @@ const OriginationActivities = () => {
           <button
             type="button"
             onClick={handleOpenNew}
-            className="px-4.5 py-2 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs sm:text-sm font-semibold shadow-xs flex items-center gap-2 cursor-pointer active:scale-95 transition-all"
+            className={`px-4.5 py-2 rounded-full text-white text-xs sm:text-sm font-semibold shadow-xs flex items-center gap-2 cursor-pointer active:scale-95 transition-all ${
+              isSales ? 'bg-[#137333] hover:bg-[#0b5324]' : 'bg-[#1a73e8] hover:bg-[#1557b0]'
+            }`}
           >
             <Plus size={16} />
             <span>Schedule Activity</span>
@@ -704,6 +711,7 @@ const OriginationActivities = () => {
         isOpen={isActivitySidebarOpen}
         onClose={() => setIsActivitySidebarOpen(false)}
         onSave={handleCreateActivity}
+        isSales={isSales}
         assignableEmployees={isBranchOperations ? assignableEmployees : []}
         showAssigneeSelector={isBranchOperations}
       />

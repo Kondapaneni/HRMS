@@ -27,22 +27,23 @@ const OriginationMobileSaleForms = () => {
   return (
     <div className="space-y-4 pb-14">
       {/* 1. Hero Section with Animated Emerald/Teal Motion Graphics */}
+      {/* 1. Hero Section with Animated Deep Emerald & Forest Green Motion Graphics */}
       <section className="-mx-4 -mt-4 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900">
-        {/* Animated Liquid Orbs with Sales Origination Emerald, Teal & Cyan Theme */}
+        {/* Animated Liquid Orbs with Deep Emerald & Forest Green Theme */}
         <motion.div
           animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
           transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute -top-20 -left-10 w-72 h-72 bg-emerald-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+          className="absolute -top-20 -left-10 w-72 h-72 bg-emerald-600 rounded-full mix-blend-screen filter blur-[40px] opacity-65 pointer-events-none"
         />
         <motion.div
           animate={{ scale: [1, 1.4, 1], x: [0, -40, 0], y: [0, 50, 0] }}
           transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-          className="absolute -top-10 -right-10 w-64 h-64 bg-teal-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
+          className="absolute -top-10 -right-10 w-64 h-64 bg-green-600 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
         />
         <motion.div
           animate={{ scale: [1, 1.3, 1], x: [0, 30, 0], y: [0, -40, 0] }}
           transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-          className="absolute bottom-0 left-20 w-80 h-80 bg-cyan-400 rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
+          className="absolute bottom-0 left-20 w-80 h-80 bg-emerald-700 rounded-full mix-blend-screen filter blur-[50px] opacity-55 pointer-events-none"
         />
 
         {/* Subtle Glass Overlay */}
@@ -53,8 +54,8 @@ const OriginationMobileSaleForms = () => {
             <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">
               Origination &bull; Sales Pipeline
             </p>
-            <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">
-              Sales Form
+            <h2 className="text-3xl font-medium text-white tracking-tight mb-0.5 drop-shadow-sm" style={{ fontWeight: 500 }}>
+              Sales <span className="font-medium italic text-[#34d399]">Form</span>
             </h2>
             <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">
               Online Registration &amp; Onboarding
