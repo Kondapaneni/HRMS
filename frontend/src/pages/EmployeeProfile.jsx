@@ -6,8 +6,7 @@ import {
   User, Mail, Phone, MapPin, Briefcase, CalendarDays, Building2,
   Shield, CreditCard, Heart, HeartHandshake, Globe, Clock3, Laptop,
   Calendar, Clock, UserCheck, Users, Search, Edit3, ChevronDown, ChevronUp, Camera,
-  Sparkles, CheckCircle2, History, Award, AlertCircle, Trash2,
-  Download
+  Sparkles, CheckCircle2, History, Award, AlertCircle, Trash2
 } from 'lucide-react';
 import { Tree, TreeNode } from 'react-organizational-chart';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
@@ -850,31 +849,6 @@ const EmployeeProfile = () => {
 
         </div>
 
-        {/* Desktop Profile Version Footer */}
-        <div className="pt-6 pb-2 text-center select-none space-y-1.5 border-t border-[#e0e3e7]">
-          <div className="flex items-center justify-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-            <span className="text-[11px] font-bold text-[#5f6368] tracking-wide">
-              Acme HRMS {import.meta.env.VITE_APP_SEMVER || 'v2.4.0'}
-            </span>
-          </div>
-          <p className="text-[10px] text-[#80868b] font-medium">
-            Build {import.meta.env.VITE_APP_VERSION || '2026.08.28'}
-          </p>
-          <div className="pt-1">
-            <a
-              href="/downloads/Acme%20HRMS.apk"
-              download="Acme HRMS.apk"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1a73e8] hover:text-[#1557b0] hover:underline cursor-pointer transition-all"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>Download Mobile App (APK)</span>
-            </a>
-          </div>
-        </div>
 
       </div>
 
