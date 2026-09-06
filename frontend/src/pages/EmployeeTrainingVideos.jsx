@@ -142,55 +142,52 @@ const EmployeeTrainingVideos = () => {
       </div>
 
       {/* Desktop Experience */}
-      <div className="hidden md:block w-full space-y-6 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
-        {/* Header Section with Google Workspace Accent */}
-        <div className="bg-white rounded-3xl border border-[#e0e3e7] p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#4285F4]" />
-              <span className="w-2.5 h-2.5 rounded-full bg-[#EA4335]" />
-              <span className="w-2.5 h-2.5 rounded-full bg-[#FBBC05]" />
-              <span className="w-2.5 h-2.5 rounded-full bg-[#34A853]" />
-              <span className="text-xs font-bold uppercase tracking-wider text-[#5f6368] ml-1">
-                Learning & Development
-              </span>
+      <div className="hidden md:block space-y-6 pb-12 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+        
+        {/* Header Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+              <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Learning &amp; Development</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight flex items-center gap-2" style={{ fontWeight: 500 }}>
-              <span>Training Videos &amp; <span className="font-medium italic text-[#1a73e8]">Modules</span></span>
+              <span>Training Videos &amp; <span className="font-medium italic text-[#1a73e8]">Modules</span></span> <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">{videos.length} Modules</span>
             </h1>
-            <p className="text-xs text-[#5f6368]">
+            <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
               Watch assigned training modules, orientation courses, and company learning materials.
             </p>
           </div>
 
           {/* View Mode Toggle */}
-          <div className="flex items-center gap-3">
-            <div className="flex items-center bg-[#f1f3f4] p-1 rounded-2xl border border-[#e0e3e7]">
-              <button
-                onClick={() => setViewMode('theater')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-                  viewMode === 'theater'
-                    ? 'bg-white text-[#1a73e8] shadow-xs'
-                    : 'text-[#5f6368] hover:text-[#1f1f1f]'
-                }`}
-                title="Theater View"
-              >
-                <Tv className="w-3.5 h-3.5" />
-                <span>Player</span>
-              </button>
-              <button
-                onClick={() => setViewMode('grid')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-                  viewMode === 'grid'
-                    ? 'bg-white text-[#1a73e8] shadow-xs'
-                    : 'text-[#5f6368] hover:text-[#1f1f1f]'
-                }`}
-                title="Grid View"
-              >
-                <LayoutGrid className="w-3.5 h-3.5" />
-                <span>Grid</span>
-              </button>
-            </div>
+          <div className="flex items-center gap-2 bg-white border border-[#e0e3e7] p-1.5 rounded-full shadow-2xs self-start sm:self-auto">
+            <button
+              onClick={() => setViewMode('theater')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                viewMode === 'theater'
+                  ? 'bg-[#c2e7ff]/70 text-[#001d35] shadow-xs'
+                  : 'text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4]'
+              }`}
+              title="Theater View"
+            >
+              <Tv className="w-3.5 h-3.5" />
+              <span>Player</span>
+            </button>
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                viewMode === 'grid'
+                  ? 'bg-[#c2e7ff]/70 text-[#001d35] shadow-xs'
+                  : 'text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4]'
+              }`}
+              title="Grid View"
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span>Grid</span>
+            </button>
           </div>
         </div>
 
