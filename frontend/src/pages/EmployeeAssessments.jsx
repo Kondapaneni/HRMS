@@ -251,13 +251,22 @@ const EmployeeAssessments = () => {
   }
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-6 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Assessments</h1>
-          <p className="text-sm text-slate-500 mt-1">Your scheduled employee assessments and evaluations for today.</p>
+          <div className="flex items-center gap-1.5 mb-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+            <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Learning &amp; Evaluations</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight flex items-center gap-2" style={{ fontWeight: 500 }}>
+            <span>Scheduled <span className="font-medium italic text-[#1a73e8]">Assessments</span></span>
+          </h1>
+          <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">Your scheduled employee assessments and evaluations for today.</p>
         </div>
-        <div className="text-sm font-semibold text-slate-500 bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm">
+        <div className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-3 py-1.5 rounded-full shadow-2xs">
           {todayAssessments.length} Scheduled Today
         </div>
       </div>
@@ -267,7 +276,7 @@ const EmployeeAssessments = () => {
           <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto text-amber-500 mb-2">
             <Calendar size={40} />
           </div>
-          <h3 className="text-2xl font-bold text-slate-800 tracking-tight">No Assessment Scheduled for Today</h3>
+          <h3 className="text-2xl font-medium text-slate-800 tracking-tight" style={{ fontWeight: 500 }}>No Assessment Scheduled for Today</h3>
           <p className="text-slate-500 text-sm leading-relaxed max-w-md mx-auto">
             You can access the Assessment Portal only on the specific day an assessment is scheduled for you.
           </p>

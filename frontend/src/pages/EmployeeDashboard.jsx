@@ -266,7 +266,7 @@ const EmployeeDashboard = () => {
       </div>
 
       {/* Web Desktop Experience (Google Material 3 Workspace UI) */}
-      <div className="hidden md:block space-y-6 pb-12">
+      <div className="hidden md:block space-y-6 pb-12 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
         
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -278,8 +278,8 @@ const EmployeeDashboard = () => {
               <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
               <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Workspace Overview</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight flex items-center gap-2">
-              {getGreeting()}, {profile?.firstName || 'Colleague'}! <span className="text-xs font-semibold text-[#137333] bg-[#e6f4ea] border border-[#ceead6] px-2.5 py-0.5 rounded-full">Active Staff</span>
+            <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight flex items-center gap-2" style={{ fontWeight: 500 }}>
+              <span>{getGreeting()}, <span className="font-medium italic text-[#1a73e8]">{profile?.firstName || 'Colleague'}</span>!</span> <span className="text-xs font-semibold text-[#137333] bg-[#e6f4ea] border border-[#ceead6] px-2.5 py-0.5 rounded-full">Active Staff</span>
             </h1>
             <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
               Daily attendance check-in, shift assignments, performance benchmarks, and leave balances.

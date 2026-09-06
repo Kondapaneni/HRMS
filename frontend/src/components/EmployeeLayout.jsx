@@ -264,13 +264,13 @@ const EmployeeLayout = () => {
         <div className="h-1 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0 right-0 z-50 pointer-events-none" />
 
         {/* Google Material 3 Left Sidebar (w-[215px]) */}
-        <aside className="w-[215px] h-full bg-white border-r border-[#e0e3e7] hidden md:flex flex-col z-20 relative shrink-0 shadow-none">
+        <aside className="w-[215px] h-full bg-white border-r border-[#e0e3e7] hidden md:flex flex-col z-20 relative shrink-0 shadow-none font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
           {/* Brand Header */}
           <div className="h-14 flex items-center justify-between px-4 border-b border-[#f1f3f4] shrink-0 mt-0.5">
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="text-lg font-bold tracking-tight text-[#1f1f1f]">Acme</span>
-                <span className="text-lg font-semibold tracking-tight text-[#4285F4]">HRMS</span>
+                <span className="text-xl font-medium tracking-tight text-[#1f1f1f]">Acme</span>
+                <span className="text-xl font-medium italic tracking-tight text-[#4285F4]">HRMS</span>
               </div>
               <div className="flex items-center gap-1 mt-0.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
@@ -454,7 +454,7 @@ const EmployeeLayout = () => {
 
             <div className="flex items-center gap-3 shrink-0">
               {/* Desktop Profile Pill */}
-              <div className="hidden md:flex items-center gap-2.5 select-none bg-[#f8fafd] border border-[#e0e3e7] pl-1.5 pr-3 py-1 rounded-full">
+              <div className="hidden md:flex items-center gap-2.5 select-none bg-[#f8fafd] border border-[#e0e3e7] pl-1.5 pr-3 py-1 rounded-full font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
                 <div className="w-7 h-7 bg-[#e8f0fe] text-[#1a73e8] rounded-full flex items-center justify-center font-bold text-xs overflow-hidden border border-[#d2e3fc]">
                   {profile?.avatar ? (
                     <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
@@ -464,7 +464,7 @@ const EmployeeLayout = () => {
                 </div>
                 <div className="text-left">
                   <p className="text-xs font-semibold text-[#1f1f1f] leading-none">
-                    {profile?.email?.split('@')[0] || 'Employee'}
+                    <span className="italic text-[#1a73e8]">{profile?.email?.split('@')[0] || 'Employee'}</span>
                   </p>
                   <p className="text-[10px] text-[#5f6368] mt-0.5 capitalize">{profile?.role || 'Employee'}</p>
                 </div>

@@ -141,7 +141,7 @@ const EmployeePayroll = () => {
       </div>
 
       {/* Web Desktop Experience (Google Material 3 Workspace UI) */}
-      <div className="hidden md:block space-y-6 pb-12">
+      <div className="hidden md:block space-y-6 pb-12 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
         
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -153,8 +153,8 @@ const EmployeePayroll = () => {
               <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
               <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Compensation &amp; Statements</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight flex items-center gap-2">
-              Payroll &amp; Salary Records <span className="text-xs font-semibold text-[#137333] bg-[#e6f4ea] border border-[#ceead6] px-2.5 py-0.5 rounded-full">{payslips.length} Statements</span>
+            <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight flex items-center gap-2" style={{ fontWeight: 500 }}>
+              <span>Payroll &amp; Salary <span className="font-medium italic text-[#1a73e8]">Records</span></span> <span className="text-xs font-semibold text-[#137333] bg-[#e6f4ea] border border-[#ceead6] px-2.5 py-0.5 rounded-full">{payslips.length} Statements</span>
             </h1>
             <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
               Monthly compensation ledger, gross breakdown, statutory deductions, and downloadable payslip PDFs.
@@ -305,7 +305,7 @@ const EmployeePayroll = () => {
           onClick={(e) => { if (e.target === e.currentTarget) setSelectedPayslip(null); }}
           className="fixed inset-0 z-[10000] flex justify-end bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200"
         >
-          <div className="bg-white shadow-2xl w-full max-w-xl h-full flex flex-col overflow-hidden animate-in slide-in-from-right duration-300">
+          <div className="bg-white shadow-2xl w-full max-w-xl h-full flex flex-col overflow-hidden animate-in slide-in-from-right duration-300 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
             
             {/* 4-Color Gradient Top Line */}
             <div className="h-1 bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853]" />
@@ -317,8 +317,8 @@ const EmployeePayroll = () => {
                   <FileText className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-semibold text-[#1f1f1f]">
-                    Payslip Breakdown Details
+                  <h3 className="text-base font-medium text-[#1f1f1f]" style={{ fontWeight: 500 }}>
+                    Payslip <span className="font-medium italic text-[#1a73e8]">Breakdown</span>
                   </h3>
                   <p className="text-xs text-[#5f6368] mt-0.5">
                     {(selectedPayslip.employeeName || `${profile?.firstName || ''} ${profile?.lastName || ''}`.trim() || 'Employee')} &bull; {getMonthYearString(selectedPayslip.month, selectedPayslip.year)}

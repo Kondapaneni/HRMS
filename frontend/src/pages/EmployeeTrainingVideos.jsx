@@ -142,7 +142,7 @@ const EmployeeTrainingVideos = () => {
       </div>
 
       {/* Desktop Experience */}
-      <div className="hidden md:block w-full space-y-6">
+      <div className="hidden md:block w-full space-y-6 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
         {/* Header Section with Google Workspace Accent */}
         <div className="bg-white rounded-3xl border border-[#e0e3e7] p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
@@ -155,8 +155,8 @@ const EmployeeTrainingVideos = () => {
                 Learning & Development
               </span>
             </div>
-            <h1 className="text-2xl font-bold text-[#1f1f1f] tracking-tight">
-              Training Videos & Modules
+            <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight flex items-center gap-2" style={{ fontWeight: 500 }}>
+              <span>Training Videos &amp; <span className="font-medium italic text-[#1a73e8]">Modules</span></span>
             </h1>
             <p className="text-xs text-[#5f6368]">
               Watch assigned training modules, orientation courses, and company learning materials.

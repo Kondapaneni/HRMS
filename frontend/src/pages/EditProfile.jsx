@@ -116,7 +116,7 @@ const EditProfile = () => {
       </div>
 
       {/* Web Desktop Experience (Google Material 3 Workspace UI) */}
-      <div className="hidden md:block space-y-6 pb-12">
+      <div className="hidden md:block space-y-6 pb-12 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
         
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -128,8 +128,8 @@ const EditProfile = () => {
               <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
               <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Staff Identity &amp; Records</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight flex items-center gap-2">
-              Edit Profile Details <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">Self-Service</span>
+            <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight flex items-center gap-2" style={{ fontWeight: 500 }}>
+              <span>Edit Profile <span className="font-medium italic text-[#1a73e8]">Details</span></span> <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">Self-Service</span>
             </h1>
             <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
               Update personal demographic details, communication coordinates, and emergency contacts.

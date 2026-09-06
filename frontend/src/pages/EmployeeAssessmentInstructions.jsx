@@ -100,7 +100,7 @@ const EmployeeAssessmentInstructions = () => {
   const totalMarks = questionsCount * (assessment?.marks_per_question || 1);
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-6 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
       {/* Side-by-Side Grid: Header & Rules */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-stretch">
       {/* Header */}
@@ -110,7 +110,7 @@ const EmployeeAssessmentInstructions = () => {
             <BookOpen size={24} />
           </div>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900">{assessment.title}</h1>
+            <h1 className="text-2xl sm:text-3xl font-medium tracking-tight text-[#1f1f1f]" style={{ fontWeight: 500 }}>{assessment.title}</h1>
             <p className="text-slate-500 text-sm font-medium mt-1">
               {assessment.department || 'General'} Department Assessment
             </p>

@@ -127,7 +127,7 @@ const EmployeePerformance = () => {
   }
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6 pb-12 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -138,8 +138,8 @@ const EmployeePerformance = () => {
             <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
             <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Productivity &amp; Analytics</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight flex items-center gap-2">
-            Performance &amp; Time Analytics <span className="text-xs font-semibold text-[#137333] bg-[#e6f4ea] border border-[#ceead6] px-2.5 py-0.5 rounded-full">Active Tracking</span>
+          <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight flex items-center gap-2" style={{ fontWeight: 500 }}>
+            <span>Performance &amp; Time <span className="font-medium italic text-[#1a73e8]">Analytics</span></span> <span className="text-xs font-semibold text-[#137333] bg-[#e6f4ea] border border-[#ceead6] px-2.5 py-0.5 rounded-full">Active Tracking</span>
           </h1>
           <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
             Weekly velocity, 6-month attendance consistency trends, and department benchmark comparisons.

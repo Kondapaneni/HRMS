@@ -185,7 +185,7 @@ const EmployeeExpenses = () => {
       </div>
 
       {/* Web Desktop Experience (Google Material 3 Workspace UI) */}
-      <div className="hidden md:block space-y-6 pb-12">
+      <div className="hidden md:block space-y-6 pb-12 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
         
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -197,8 +197,8 @@ const EmployeeExpenses = () => {
               <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
               <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Reimbursements &amp; Claims</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight flex items-center gap-2">
-              Expense Reimbursements <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">{expensesData.length} Claims</span>
+            <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight flex items-center gap-2" style={{ fontWeight: 500 }}>
+              <span>Expense <span className="font-medium italic text-[#1a73e8]">Reimbursements</span></span> <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">{expensesData.length} Claims</span>
             </h1>
             <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
               Submit corporate out-of-pocket receipts, upload vouchers, and track reimbursement status.
@@ -367,7 +367,7 @@ const EmployeeExpenses = () => {
           onClick={(e) => { if (e.target === e.currentTarget) handleCloseModal(); }}
           className="fixed inset-0 z-[10000] flex justify-end bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200"
         >
-          <div className="bg-white shadow-2xl w-full max-w-lg h-full flex flex-col overflow-hidden animate-in slide-in-from-right duration-300">
+          <div className="bg-white shadow-2xl w-full max-w-lg h-full flex flex-col overflow-hidden animate-in slide-in-from-right duration-300 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
             
             {/* 4-Color Gradient Top Line */}
             <div className="h-1 bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853]" />
@@ -379,7 +379,9 @@ const EmployeeExpenses = () => {
                   <Receipt className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-base font-semibold text-[#1f1f1f]">Submit Expense Claim</h2>
+                  <h2 className="text-base font-medium text-[#1f1f1f]" style={{ fontWeight: 500 }}>
+                    Submit <span className="font-medium italic text-[#1a73e8]">Expense Claim</span>
+                  </h2>
                   <p className="text-xs text-[#5f6368]">Submit out-of-pocket receipts for reimbursement</p>
                 </div>
               </div>
