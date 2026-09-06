@@ -41,6 +41,30 @@ const Login = () => {
     return () => clearInterval(timer);
   }, [otpCountdown]);
 
+  // Automatically detect and sync autofilled or prefilled values from browser credentials managers
+  useEffect(() => {
+    const syncAutofill = () => {
+      const emailEl = document.getElementById('google-email') || document.getElementById('otp-email');
+      const passEl = document.getElementById('google-password');
+      if (emailEl && emailEl.value) {
+        setEmail(emailEl.value);
+      }
+      if (passEl && passEl.value) {
+        setPassword(passEl.value);
+      }
+    };
+
+    syncAutofill();
+    const t1 = setTimeout(syncAutofill, 100);
+    const t2 = setTimeout(syncAutofill, 400);
+    const t3 = setTimeout(syncAutofill, 1000);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
+  }, [loginMethod]);
+
   const { user, profile, profileLoading, signIn, sendLoginOtp, signInWithOtp, signOut } = useAuth();
 
   const ADMIN_ROLES = ['admin'];
@@ -310,12 +334,30 @@ const Login = () => {
                 {/* Email Input Field */}
                 <div className="relative">
                   <div
-                    className={`relative rounded-[8px] border transition-all duration-200 bg-white ${
+                    className={`relative rounded-[8px] border transition-all duration-200 bg-white floating-input-group ${
                       emailFocused
                         ? 'border-[#4285F4] ring-2 ring-[#4285F4]/20 shadow-sm shadow-[#4285F4]/10'
                         : 'border-[#dadce0] hover:border-[#5f6368]'
                     }`}
                   >
+                    <input
+                      id="google-email"
+                      type="email"
+                      placeholder=" "
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      onInput={(e) => setEmail(e.target.value)}
+                      onFocus={() => setEmailFocused(true)}
+                      onBlur={() => setEmailFocused(false)}
+                      onAnimationStart={(e) => {
+                        if (e.animationName === 'onAutoFillStart' || e.target.value) {
+                          setEmail(e.target.value);
+                        }
+                      }}
+                      className="w-full px-3.5 pt-3 pb-2.5 bg-transparent outline-none text-[#1f1f1f] text-sm"
+                      required
+                      autoComplete="email"
+                    />
                     <label
                       htmlFor="google-email"
                       className={`absolute left-3 transition-all duration-200 pointer-events-none px-1 bg-white font-medium ${
@@ -326,29 +368,36 @@ const Login = () => {
                     >
                       Email address
                     </label>
-                    <input
-                      id="google-email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      onFocus={() => setEmailFocused(true)}
-                      onBlur={() => setEmailFocused(false)}
-                      className="w-full px-3.5 pt-3 pb-2.5 bg-transparent outline-none text-[#1f1f1f] text-sm"
-                      required
-                      autoComplete="email"
-                    />
                   </div>
                 </div>
 
                 {/* Password Input Field */}
                 <div className="relative">
                   <div
-                    className={`relative rounded-[8px] border transition-all duration-200 bg-white flex items-center ${
+                    className={`relative rounded-[8px] border transition-all duration-200 bg-white flex items-center floating-input-group ${
                       passwordFocused
                         ? 'border-[#FBBC05] ring-2 ring-[#FBBC05]/30 shadow-sm shadow-[#FBBC05]/15'
                         : 'border-[#dadce0] hover:border-[#5f6368]'
                     }`}
                   >
+                    <input
+                      id="google-password"
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder=" "
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      onInput={(e) => setPassword(e.target.value)}
+                      onFocus={() => setPasswordFocused(true)}
+                      onBlur={() => setPasswordFocused(false)}
+                      onAnimationStart={(e) => {
+                        if (e.animationName === 'onAutoFillStart' || e.target.value) {
+                          setPassword(e.target.value);
+                        }
+                      }}
+                      className="w-full pl-3.5 pr-9 pt-3 pb-2.5 bg-transparent outline-none text-[#1f1f1f] text-sm"
+                      required
+                      autoComplete="current-password"
+                    />
                     <label
                       htmlFor="google-password"
                       className={`absolute left-3 transition-all duration-200 pointer-events-none px-1 bg-white font-medium ${
@@ -359,21 +408,10 @@ const Login = () => {
                     >
                       Enter your password
                     </label>
-                    <input
-                      id="google-password"
-                      type={showPassword ? 'text' : 'password'}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      onFocus={() => setPasswordFocused(true)}
-                      onBlur={() => setPasswordFocused(false)}
-                      className="w-full pl-3.5 pr-9 pt-3 pb-2.5 bg-transparent outline-none text-[#1f1f1f] text-sm"
-                      required
-                      autoComplete="current-password"
-                    />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-2.5 p-1 text-[#5f6368] hover:text-[#1f1f1f] transition-colors rounded-full hover:bg-black/5 cursor-pointer"
+                      className="absolute right-2.5 p-1 text-[#5f6368] hover:text-[#1f1f1f] transition-colors rounded-full hover:bg-black/5 cursor-pointer z-10"
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
                     >
                       {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -434,12 +472,31 @@ const Login = () => {
                 {/* Email Input Field */}
                 <div className="relative">
                   <div
-                    className={`relative rounded-[8px] border transition-all duration-200 bg-white ${
+                    className={`relative rounded-[8px] border transition-all duration-200 bg-white floating-input-group ${
                       emailFocused
                         ? 'border-[#1e8e3e] ring-2 ring-[#34A853]/20 shadow-sm shadow-[#34A853]/10'
                         : 'border-[#dadce0] hover:border-[#5f6368]'
                     }`}
                   >
+                    <input
+                      id="otp-email"
+                      type="email"
+                      placeholder=" "
+                      value={email}
+                      disabled={otpSent}
+                      onChange={(e) => setEmail(e.target.value)}
+                      onInput={(e) => setEmail(e.target.value)}
+                      onFocus={() => setEmailFocused(true)}
+                      onBlur={() => setEmailFocused(false)}
+                      onAnimationStart={(e) => {
+                        if (e.animationName === 'onAutoFillStart' || e.target.value) {
+                          setEmail(e.target.value);
+                        }
+                      }}
+                      className="w-full px-3.5 pt-3 pb-2.5 bg-transparent outline-none text-[#1f1f1f] text-sm disabled:text-[#70757a]"
+                      required
+                      autoComplete="email"
+                    />
                     <label
                       htmlFor="otp-email"
                       className={`absolute left-3 transition-all duration-200 pointer-events-none px-1 bg-white font-medium ${
@@ -450,18 +507,6 @@ const Login = () => {
                     >
                       Email address
                     </label>
-                    <input
-                      id="otp-email"
-                      type="email"
-                      value={email}
-                      disabled={otpSent}
-                      onChange={(e) => setEmail(e.target.value)}
-                      onFocus={() => setEmailFocused(true)}
-                      onBlur={() => setEmailFocused(false)}
-                      className="w-full px-3.5 pt-3 pb-2.5 bg-transparent outline-none text-[#1f1f1f] text-sm disabled:text-[#70757a]"
-                      required
-                      autoComplete="email"
-                    />
                   </div>
                 </div>
 
@@ -474,12 +519,27 @@ const Login = () => {
                     className="space-y-2"
                   >
                     <div
-                      className={`relative rounded-[8px] border transition-all duration-200 bg-white ${
+                      className={`relative rounded-[8px] border transition-all duration-200 bg-white floating-input-group ${
                         otpFocused
                           ? 'border-[#1e8e3e] ring-2 ring-[#34A853]/20 shadow-sm shadow-[#34A853]/10'
                           : 'border-[#dadce0] hover:border-[#5f6368]'
                       }`}
                     >
+                      <input
+                        id="login-otp"
+                        type="text"
+                        maxLength={6}
+                        inputMode="numeric"
+                        placeholder=" "
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                        onInput={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                        onFocus={() => setOtpFocused(true)}
+                        onBlur={() => setOtpFocused(false)}
+                        className="w-full px-3.5 pt-3 pb-2.5 bg-transparent outline-none text-[#1f1f1f] text-lg font-mono tracking-widest text-center"
+                        required
+                        autoFocus
+                      />
                       <label
                         htmlFor="login-otp"
                         className={`absolute left-3 transition-all duration-200 pointer-events-none px-1 bg-white font-medium ${
@@ -490,20 +550,6 @@ const Login = () => {
                       >
                         6-Digit Verification Code
                       </label>
-                      <input
-                        id="login-otp"
-                        type="text"
-                        maxLength={6}
-                        inputMode="numeric"
-                        value={otp}
-                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                        onFocus={() => setOtpFocused(true)}
-                        onBlur={() => setOtpFocused(false)}
-                        placeholder="123456"
-                        className="w-full px-3.5 pt-3 pb-2.5 bg-transparent outline-none text-[#1f1f1f] text-lg font-mono tracking-widest text-center"
-                        required
-                        autoFocus
-                      />
                     </div>
 
                     <div className="flex items-center justify-between text-xs px-1">
