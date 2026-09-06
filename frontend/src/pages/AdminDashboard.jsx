@@ -120,7 +120,7 @@ const AdminDashboard = () => {
   ];
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-8">
+    <div className="space-y-6 max-w-7xl mx-auto pb-8 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
       {/* Google Header Welcome Banner */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
         <div>
@@ -131,8 +131,8 @@ const AdminDashboard = () => {
             <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
             <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Workspace Executive Dashboard</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight">
-            Welcome Back, <span className="font-semibold text-[#1a73e8]">{profile?.email?.split('@')[0] || 'Admin'}</span>
+          <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+            Welcome Back, <span className="font-normal italic text-[#1a73e8]">{profile?.email?.split('@')[0] || 'Admin'}</span>
           </h1>
           <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
             Real-time analytics and workforce management overview.
@@ -203,8 +203,8 @@ const AdminDashboard = () => {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={dashboardData.attendanceData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f3f4" />
-                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#5f6368', fontSize: 11 }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#5f6368', fontSize: 11 }} />
+                <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#5f6368', fontSize: 11, fontFamily: "'Newsreader', Georgia, serif" }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#5f6368', fontSize: 11, fontFamily: "'Newsreader', Georgia, serif" }} />
                 <RechartsTooltip
                   cursor={{ fill: '#f8fafd' }}
                   contentStyle={{
@@ -212,10 +212,11 @@ const AdminDashboard = () => {
                     border: '1px solid #e0e3e7',
                     boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
                     fontSize: '11px',
-                    backgroundColor: '#ffffff'
+                    backgroundColor: '#ffffff',
+                    fontFamily: "'Newsreader', Georgia, serif"
                   }}
                 />
-                <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+                <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', paddingTop: '10px', fontFamily: "'Newsreader', Georgia, serif" }} />
                 <Bar dataKey="present" name="Present" fill="#34A853" radius={[4, 4, 0, 0]} maxBarSize={32} />
                 <Bar dataKey="leave" name="Leave" fill="#4285F4" radius={[4, 4, 0, 0]} maxBarSize={32} />
               </BarChart>
@@ -254,7 +255,7 @@ const AdminDashboard = () => {
                     const x = cx + radius * Math.cos(-midAngle * (Math.PI / 180));
                     const y = cy + radius * Math.sin(-midAngle * (Math.PI / 180));
                     return (
-                      <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize="11" fontWeight="bold">
+                      <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize="11" fontWeight="bold" fontFamily="'Newsreader', Georgia, serif">
                         {`${(percent * 100).toFixed(0)}%`}
                       </text>
                     );
@@ -270,10 +271,11 @@ const AdminDashboard = () => {
                     border: '1px solid #e0e3e7',
                     boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
                     fontSize: '11px',
-                    backgroundColor: '#ffffff'
+                    backgroundColor: '#ffffff',
+                    fontFamily: "'Newsreader', Georgia, serif"
                   }}
                 />
-                <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+                <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', paddingTop: '10px', fontFamily: "'Newsreader', Georgia, serif" }} />
               </PieChart>
             </ResponsiveContainer>
           </div>

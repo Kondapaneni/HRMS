@@ -84,7 +84,7 @@ const AdminLayoutContent = () => {
   });
 
   return (
-    <div className="h-[100dvh] w-full overflow-hidden bg-[#f8fafd] text-[#1f1f1f] selection:bg-[#c2e7ff] selection:text-[#001d35] flex font-sans antialiased relative z-0">
+    <div className="h-[100dvh] w-full overflow-hidden bg-[#f8fafd] text-[#1f1f1f] selection:bg-[#c2e7ff] selection:text-[#001d35] flex font-editorial antialiased relative z-0" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
       
       {/* Google Ambient Multi-color Background Glows */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
@@ -103,8 +103,8 @@ const AdminLayoutContent = () => {
         <div className="h-14 flex items-center justify-between px-4 border-b border-[#f1f3f4] shrink-0 mt-0.5">
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="text-lg font-bold tracking-tight text-[#1f1f1f]">Acme</span>
-              <span className="text-lg font-semibold tracking-tight text-[#4285F4]">HRMS</span>
+              <span className="text-xl font-medium tracking-tight text-[#1f1f1f]">Acme</span>
+              <span className="text-xl font-medium italic tracking-tight text-[#4285F4]">HRMS</span>
             </div>
             <div className="flex items-center gap-1 mt-0.5">
               <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
