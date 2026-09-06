@@ -303,7 +303,8 @@ const AdminAttendanceLocation = () => {
 
   return (
     <div
-      className="flex flex-col overflow-hidden -mx-4 sm:-mx-6 -my-4 sm:-my-6 h-[calc(100vh-61px)]"
+      className="flex flex-col overflow-hidden -mx-4 sm:-mx-6 -my-4 sm:-my-6 h-[calc(100vh-61px)] font-editorial antialiased"
+      style={{ fontFamily: "'Newsreader', Georgia, serif" }}
     >
       <style>{`
         .gm-ui-hover-effect {

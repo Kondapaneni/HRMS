@@ -107,7 +107,7 @@ const AdminAttendanceConfig = () => {
   if (isLoading) return <PageLoader message="Loading Attendance Configuration..." />;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -118,7 +118,7 @@ const AdminAttendanceConfig = () => {
             <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
             <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Attendance Configuration & Rules</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
             Locations & Shift Timings
           </h1>
           <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
