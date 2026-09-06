@@ -24,15 +24,21 @@ export default function CapacitorLifecycle() {
     };
     setupStatusBar();
 
-    // 2. Hide Splash Screen after React mounts
+    // 2. Smoothly fade out Splash Screen after React mounts and paints
     const hideSplash = async () => {
       try {
-        await SplashScreen.hide();
+        await SplashScreen.hide({ fadeOutDuration: 350 });
       } catch (e) {
         // Ignored on web
       }
     };
-    hideSplash();
+
+    // Double RAF ensures React has completed DOM paint before fading out native splash
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        hideSplash();
+      });
+    });
 
     // 3. Handle Android Hardware Back Button
     let backListener;

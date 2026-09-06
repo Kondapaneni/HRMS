@@ -22,11 +22,9 @@ import {
   Award,
   Wallet,
   TrendingUp,
-  ExternalLink,
-  Smartphone,
-  Download
+  ExternalLink
 } from 'lucide-react';
-import api, { isNativeApp } from '../api/axios';
+import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
@@ -405,21 +403,9 @@ const EmployeeDashboard = () => {
                 {/* Punch Action Buttons */}
                 <div className="flex flex-wrap gap-2.5 justify-center sm:justify-end">
                   {!isWebAttendanceEnabled ? (
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 bg-[#fce8e6] text-[#c5221f] rounded-2xl border border-[#fad2cf] text-xs font-semibold w-full">
-                      <div className="flex items-center gap-2">
-                        <AlertCircle className="w-4 h-4 shrink-0" />
-                        <span>Web Attendance is disabled for your profile. Please use the mobile app.</span>
-                      </div>
-                      {!isNativeApp && (
-                        <a
-                          href="/downloads/Acme%20HRMS.apk"
-                          download="Acme HRMS.apk"
-                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#c5221f] hover:bg-[#a51d24] text-white text-xs font-semibold transition-all shadow-xs shrink-0 cursor-pointer"
-                        >
-                          <Download className="w-3.5 h-3.5" />
-                          <span>Download Acme HRMS.apk</span>
-                        </a>
-                      )}
+                    <div className="flex items-center gap-2.5 p-3.5 bg-[#fce8e6] text-[#c5221f] rounded-2xl border border-[#fad2cf] text-xs font-semibold w-full">
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      <span>Web Attendance is disabled for your profile. Please use the mobile app.</span>
                     </div>
                   ) : (
                     <>
