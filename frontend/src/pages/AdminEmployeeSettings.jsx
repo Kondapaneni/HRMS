@@ -133,7 +133,7 @@ const AdminEmployeeSettings = () => {
   const isExit = ['Exited', 'Terminated', 'Absconded'].includes(settings.employmentStatus);
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto pb-12">
+    <div className="space-y-6 max-w-5xl mx-auto pb-12 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -144,8 +144,8 @@ const AdminEmployeeSettings = () => {
             <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
             <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Security & Governance Controls</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight">
-            Security Settings: <span className="font-semibold text-[#1a73e8]">{empName}</span> <span className="text-xs font-medium text-[#5f6368] bg-[#f1f3f4] border border-[#e0e3e7] px-2.5 py-0.5 rounded-full align-middle ml-1.5">{employeeData?.employeeId}</span>
+          <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+            Security Settings: <span className="font-normal italic text-[#1a73e8]">{empName}</span> <span className="text-xs font-medium text-[#5f6368] bg-[#f1f3f4] border border-[#e0e3e7] px-2.5 py-0.5 rounded-full align-middle ml-1.5">{employeeData?.employeeId}</span>
           </h1>
           <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
             Configure authentication protocols, attendance geofence gates, and account lifecycles.

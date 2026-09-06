@@ -146,9 +146,9 @@ const AdminDirectory = () => {
         </div>
       </div>
 
-      <div className="font-bold text-xs tracking-wider text-[#1f1f1f] truncate w-full flex items-center justify-center gap-1">
-        <span>ACME</span>
-        <span className="text-[#1a73e8]">HRMS</span>
+      <div className="text-sm font-medium tracking-tight text-[#1f1f1f] truncate w-full flex items-center justify-center gap-1 font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+        <span>Acme</span>
+        <span className="italic text-[#4285F4]">HRMS</span>
       </div>
       <div className="text-[10px] font-medium text-[#5f6368] uppercase tracking-wider mt-0.5 truncate w-full">
         Root Organization
@@ -210,7 +210,7 @@ const AdminDirectory = () => {
   if (isLoading) return <PageLoader message="Loading Organization Directory..." />;
 
   return (
-    <div className="space-y-4 h-[calc(100vh-6.5rem)] flex flex-col max-w-7xl mx-auto pb-4">
+    <div className="space-y-4 h-[calc(100vh-6.5rem)] flex flex-col max-w-7xl mx-auto pb-4 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
         <div>
@@ -221,7 +221,7 @@ const AdminDirectory = () => {
             <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
             <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Organizational Hierarchy & Tree</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
             Organization Directory <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full align-middle ml-1.5">{employees.length} Members</span>
           </h1>
           <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">

@@ -145,7 +145,8 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
   return createPortal(
     <div 
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-      className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm"
+      className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm font-editorial antialiased"
+      style={{ fontFamily: "'Newsreader', Georgia, serif" }}
     >
       <motion.div 
         initial={{ x: '100%' }}
