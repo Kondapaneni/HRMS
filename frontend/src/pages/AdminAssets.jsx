@@ -293,12 +293,13 @@ const AdminAssets = () => {
   };
 
   const filteredUsersForModal = users.filter(u => {
-    const fullName = `${u.firstName} ${u.lastName}`.toLowerCase();
-    const employeeId = (u.employeeId || '').toLowerCase();
+    const fullName = `${u.firstName || u.first_name || ''} ${u.lastName || u.last_name || ''}`.toLowerCase();
+    const employeeId = (u.employeeId || u.employee_id || '').toLowerCase();
     const email = (u.email || '').toLowerCase();
     const q = modalSearch.toLowerCase();
     return fullName.includes(q) || employeeId.includes(q) || email.includes(q);
   });
+  const filteredEmployees = filteredUsersForModal;
 
   if (loading) return <PageLoader message="Loading Assets..." />;
 
@@ -648,11 +649,11 @@ const AdminAssets = () => {
                         >
                           <div className="flex items-center gap-2.5">
                             <div className="w-8 h-8 rounded-full bg-white border border-[#dadce0] flex items-center justify-center font-bold text-xs text-[#1a73e8]">
-                              {emp.first_name ? emp.first_name.charAt(0) : 'E'}
+                              {(emp.first_name || emp.firstName || 'E').charAt(0).toUpperCase()}
                             </div>
                             <div>
-                              <p className="font-semibold text-[#1f1f1f]">{emp.first_name} {emp.last_name}</p>
-                              <p className="text-[11px] text-[#5f6368]">{emp.designation || 'Staff'} • {emp.department || 'General'}</p>
+                              <p className="font-semibold text-[#1f1f1f]">{emp.first_name || emp.firstName} {emp.last_name || emp.lastName}</p>
+                              <p className="text-[11px] text-[#5f6368]">{emp.designation || emp.position || 'Staff'} • {emp.department || 'General'}</p>
                             </div>
                           </div>
                           {selectedAsset?.employee_id === emp.id ? (
