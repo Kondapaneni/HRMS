@@ -134,11 +134,11 @@ const AdminEmployees = () => {
                 <tr>
                   <th className="px-5 py-3.5">Employee</th>
                   <th className="px-5 py-3.5">Employee ID</th>
-                  <th className="px-5 py-3.5">Department</th>
+                  <th className="px-5 py-3.5 text-center">Department</th>
                   <th className="px-5 py-3.5">Position</th>
                   <th className="px-5 py-3.5">Join Date</th>
                   <th className="px-5 py-3.5">Salary</th>
-                  <th className="px-5 py-3.5">Status</th>
+                  <th className="px-5 py-3.5 text-center">Status</th>
                   <th className="px-5 py-3.5 text-right">Actions</th>
                 </tr>
               </thead>
@@ -179,8 +179,8 @@ const AdminEmployees = () => {
                       </td>
 
                       {/* Department */}
-                      <td className="px-5 py-3.5 align-middle">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10.5px] font-medium bg-[#f1f3f4] text-[#444746]">
+                      <td className="px-5 py-3.5 align-middle text-center">
+                        <span className="inline-block text-center px-2.5 py-1 rounded-full text-[10.5px] font-medium bg-[#f1f3f4] text-[#444746] leading-tight max-w-[160px]">
                           {emp.department || 'General'}
                         </span>
                       </td>
@@ -201,8 +201,8 @@ const AdminEmployees = () => {
                       </td>
 
                       {/* Status Badge */}
-                      <td className="px-5 py-3.5 align-middle">
-                        <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10.5px] font-semibold ${getStatusBadge(emp.status)}`}>
+                      <td className="px-5 py-3.5 align-middle text-center">
+                        <span className={`inline-block text-center rounded-full border px-2.5 py-1 text-[10.5px] font-semibold leading-tight ${getStatusBadge(emp.status)}`}>
                           {emp.status || 'Active'}
                         </span>
                       </td>
