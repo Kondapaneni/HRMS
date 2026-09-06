@@ -250,7 +250,7 @@ const EmployeeLayout = () => {
         </motion.div>
       )}
 
-      <div className="h-[100dvh] w-full overflow-hidden bg-[#f8fafd] flex font-sans text-[#1f1f1f] selection:bg-[#c2e7ff] selection:text-[#001d35] antialiased relative z-0">
+      <div className="h-[100dvh] w-full overflow-hidden bg-[#f8fafd] flex font-editorial text-[#1f1f1f] selection:bg-[#c2e7ff] selection:text-[#001d35] antialiased relative z-0" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
 
         {/* Google Ambient Multi-color Background Glows */}
         <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
@@ -419,8 +419,8 @@ const EmployeeLayout = () => {
             {/* Mobile Center: Acme HRMS with 4 Google dots */}
             <div className="md:hidden absolute left-1/2 -translate-x-1/2 flex items-center pointer-events-auto">
               <Link to="/employee" className="flex items-center gap-1.5 shrink-0">
-                <span className="text-base font-bold tracking-tight text-[#1f1f1f]">Acme</span>
-                <span className="text-base font-semibold tracking-tight text-[#4285F4]">HRMS</span>
+                <span className="text-base font-medium tracking-tight text-[#1f1f1f]">Acme</span>
+                <span className="text-base font-medium italic tracking-tight text-[#4285F4]">HRMS</span>
                 <div className="flex items-center gap-0.5 ml-0.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
                   <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />

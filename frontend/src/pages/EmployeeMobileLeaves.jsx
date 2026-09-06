@@ -81,7 +81,7 @@ const EmployeeMobileLeaves = () => {
   if (loading) return <PageLoader message="Loading Leaves Data..." />;
 
   return (
-    <div className="space-y-6 pb-4">
+    <div className="space-y-6 pb-4 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
 
       {/* Hero Section with Animated Motion Graphics */}
       <section className="-mx-4 -mt-4 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900">
@@ -109,7 +109,9 @@ const EmployeeMobileLeaves = () => {
           <div className="flex justify-between items-start mb-5">
             <div>
               <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">My Leaves</p>
-              <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">Balance & History</h2>
+              <h2 className="text-3xl font-medium text-white tracking-tight mb-0.5 drop-shadow-sm" style={{ fontWeight: 500 }}>
+                Leave <span className="font-medium italic text-[#7bdff2]">Applications</span>
+              </h2>
               <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">Manage your annual time off & leave records</p>
             </div>
           </div>

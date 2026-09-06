@@ -255,7 +255,7 @@ const EmployeeMobileCamera = () => {
   };
 
   return (
-    <div className="flex h-[100dvh] flex-col bg-slate-900 overflow-hidden relative">
+    <div className="flex h-[100dvh] flex-col bg-slate-900 overflow-hidden relative font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-4 bg-transparent z-10 absolute top-0 left-0 right-0">
         <button

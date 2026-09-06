@@ -383,7 +383,7 @@ const EmployeeMobileProfile = () => {
   if (loading) return <PageLoader message="Loading Profile Data..." />;
 
   return (
-    <div className="space-y-6 pb-4">
+    <div className="space-y-6 pb-4 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
 
       {/* Hero Section with Animated Motion Graphics */}
       <section className="-mx-4 -mt-4 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900">
@@ -411,7 +411,9 @@ const EmployeeMobileProfile = () => {
           <div className="flex justify-between items-start">
             <div>
               <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">My Profile</p>
-              <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">Account &amp; Info</h2>
+              <h2 className="text-3xl font-medium text-white tracking-tight mb-0.5 drop-shadow-sm" style={{ fontWeight: 500 }}>
+                Account &amp; <span className="font-medium italic text-[#7bdff2]">Profile</span>
+              </h2>
               <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">Personal credentials, settings &amp; assets</p>
             </div>
           </div>
@@ -589,7 +591,8 @@ const EmployeeMobileProfile = () => {
                     setActiveSection(null);
                   }
                 }}
-                className="bg-white rounded-t-[2rem] shadow-2xl border-t border-slate-200 w-full max-w-md mx-auto max-h-[85vh] flex flex-col overflow-hidden relative z-10"
+                className="bg-white rounded-t-[2rem] shadow-2xl border-t border-slate-200 w-full max-w-md mx-auto max-h-[85vh] flex flex-col overflow-hidden relative z-10 font-editorial antialiased"
+                style={{ fontFamily: "'Newsreader', Georgia, serif" }}
               >
                 {/* Top Drag Indicator Area */}
                 <div 
@@ -613,7 +616,7 @@ const EmployeeMobileProfile = () => {
                       );
                     })()}
                     <div>
-                      <h3 className="text-sm font-bold text-slate-900">
+                      <h3 className="text-sm font-medium text-slate-900" style={{ fontWeight: 500 }}>
                         {sections.find(s => s.id === activeSection)?.label}
                       </h3>
                     </div>

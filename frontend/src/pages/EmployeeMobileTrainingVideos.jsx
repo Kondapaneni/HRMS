@@ -135,7 +135,7 @@ const EmployeeMobileTrainingVideos = () => {
   }
 
   return (
-    <div className="space-y-6 pb-6">
+    <div className="space-y-6 pb-6 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
 
       {/* Hero Section with Animated Motion Graphics */}
       <section className="-mx-4 -mt-4 px-4 pt-8 pb-7 relative overflow-hidden bg-slate-900">
@@ -163,7 +163,9 @@ const EmployeeMobileTrainingVideos = () => {
           <div className="flex justify-between items-start mb-3">
             <div>
               <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">Learning Hub</p>
-              <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">Training Videos</h2>
+              <h2 className="text-3xl font-medium text-white tracking-tight mb-0.5 drop-shadow-sm" style={{ fontWeight: 500 }}>
+                Training <span className="font-medium italic text-[#7bdff2]">Videos</span>
+              </h2>
               <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">
                 {completedCount} of {videos.length} Modules Completed ({progressPercent}%)
               </p>
@@ -307,8 +309,8 @@ const EmployeeMobileTrainingVideos = () => {
           {/* Video Modules Playlist (Above Videos) */}
           <div className="space-y-2.5 mx-0.5">
             <div className="flex items-center justify-between px-1">
-              <h3 className="text-base font-bold text-slate-900 tracking-tight">
-                Module Playlist ({filteredVideos.length})
+              <h3 className="text-base font-medium text-slate-900 tracking-tight" style={{ fontWeight: 500 }}>
+                Module <span className="font-medium italic text-[#1a73e8]">Playlist</span> ({filteredVideos.length})
               </h3>
               <span className="text-[10px] font-semibold text-slate-500">Tap module to play</span>
             </div>

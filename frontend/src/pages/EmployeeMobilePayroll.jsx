@@ -126,7 +126,7 @@ const EmployeeMobilePayroll = ({ profile }) => {
   const latestNet = latestPayslip ? (latestPayslip.netSalary || 0) : 0;
 
   return (
-    <div className="space-y-6 pb-4">
+    <div className="space-y-6 pb-4 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
 
       {/* Hero Section with Animated Motion Graphics */}
       <section className="-mx-4 -mt-4 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900">
@@ -154,7 +154,9 @@ const EmployeeMobilePayroll = ({ profile }) => {
           <div className="flex justify-between items-start">
             <div>
               <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">My Finances</p>
-              <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">Payroll & Salary</h2>
+              <h2 className="text-3xl font-medium text-white tracking-tight mb-0.5 drop-shadow-sm" style={{ fontWeight: 500 }}>
+                Payroll & <span className="font-medium italic text-[#7bdff2]">Salary</span>
+              </h2>
               <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">View compensation breakdown & payslip archive</p>
             </div>
           </div>
@@ -249,7 +251,9 @@ const EmployeeMobilePayroll = ({ profile }) => {
       {/* Payslip Archive Feed */}
       <section className="space-y-3">
         <div className="flex items-center justify-between px-1">
-          <h3 className="text-base font-bold text-slate-900 tracking-tight">Payslip Archive</h3>
+          <h3 className="text-base font-medium text-slate-900 tracking-tight" style={{ fontWeight: 500 }}>
+            Payslip <span className="font-medium italic text-[#1a73e8]">Archive</span>
+          </h3>
           <span className="text-xs font-semibold text-slate-400">{payslips.length} Statements</span>
         </div>
 
@@ -340,7 +344,8 @@ const EmployeeMobilePayroll = ({ profile }) => {
                     setSelectedPayslip(null);
                   }
                 }}
-                className="bg-white rounded-t-[2rem] shadow-2xl border-t border-[#e0e3e7] w-full max-w-md mx-auto max-h-[85vh] flex flex-col overflow-hidden relative z-10"
+                className="bg-white rounded-t-[2rem] shadow-2xl border-t border-[#e0e3e7] w-full max-w-md mx-auto max-h-[85vh] flex flex-col overflow-hidden relative z-10 font-editorial antialiased"
+                style={{ fontFamily: "'Newsreader', Georgia, serif" }}
               >
                 {/* Top Drag Handle Bar */}
                 <div 
@@ -359,8 +364,8 @@ const EmployeeMobilePayroll = ({ profile }) => {
                     </div>
                     <div>
                       <span className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368] block">Payroll Breakdown</span>
-                      <h3 className="text-sm font-bold text-[#1f1f1f]">
-                        {getMonthYearString(selectedPayslip.month, selectedPayslip.year)} Payslip
+                      <h3 className="text-sm font-medium text-[#1f1f1f]" style={{ fontWeight: 500 }}>
+                        {getMonthYearString(selectedPayslip.month, selectedPayslip.year)} <span className="font-medium italic text-[#1a73e8]">Payslip</span>
                       </h3>
                     </div>
                   </div>

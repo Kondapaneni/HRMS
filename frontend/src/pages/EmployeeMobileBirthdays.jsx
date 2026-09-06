@@ -59,7 +59,7 @@ const EmployeeMobileBirthdays = () => {
   if (loading) return <PageLoader message="Loading Birthday Celebrations..." />;
 
   return (
-    <div className="space-y-6 pb-4">
+    <div className="space-y-6 pb-4 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
 
       {/* Hero Section with Animated Motion Graphics */}
       <section className="-mx-4 -mt-4 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900">
@@ -87,7 +87,9 @@ const EmployeeMobileBirthdays = () => {
           <div className="flex justify-between items-start">
             <div>
               <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">Team Celebrations</p>
-              <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">Upcoming Birthdays</h2>
+              <h2 className="text-3xl font-medium text-white tracking-tight mb-0.5 drop-shadow-sm" style={{ fontWeight: 500 }}>
+                Upcoming <span className="font-medium italic text-[#7bdff2]">Birthdays</span>
+              </h2>
               <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">Celebrate your colleagues and share joy on their special days</p>
             </div>
           </div>

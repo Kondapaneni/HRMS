@@ -75,7 +75,7 @@ const EmployeeMobileAttendance = () => {
   });
 
   const getAttendanceBadge = (status) => {
-    if (!status) return { label: 'Not Marked', className: 'bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]' };
+    if (!status) return { label: 'Not Yet!', className: 'bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]' };
     const s = String(status).toLowerCase().trim();
     const capitalize = (str) => String(str).replace(/\b\w/g, c => c.toUpperCase());
 
@@ -128,7 +128,7 @@ const EmployeeMobileAttendance = () => {
   if (loading) return <PageLoader message="Loading Attendance History..." />;
 
   return (
-    <div className="space-y-6 pb-4">
+    <div className="space-y-6 pb-4 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
 
       {/* Hero Section with Animated Motion Graphics */}
       <section className="-mx-4 -mt-4 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900">
@@ -156,7 +156,9 @@ const EmployeeMobileAttendance = () => {
           <div className="flex justify-between items-start">
             <div>
               <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">My Attendance</p>
-              <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">History & Stats</h2>
+              <h2 className="text-3xl font-medium text-white tracking-tight mb-0.5 drop-shadow-sm" style={{ fontWeight: 500 }}>
+                Daily <span className="font-medium italic text-[#7bdff2]">Attendance</span>
+              </h2>
               <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">Track your daily punches and approved leaves</p>
             </div>
           </div>
@@ -273,7 +275,9 @@ const EmployeeMobileAttendance = () => {
       {/* Attendance Records List */}
       <section className="space-y-3">
         <div className="flex items-center justify-between px-1">
-          <h3 className="text-base font-bold text-slate-900 tracking-tight">Recent Records</h3>
+          <h3 className="text-base font-medium text-slate-900 tracking-tight" style={{ fontWeight: 500 }}>
+            Recent <span className="font-medium italic text-[#1a73e8]">Records</span>
+          </h3>
           <span className="text-xs font-semibold text-slate-400">{filteredHistory.length} Days</span>
         </div>
 

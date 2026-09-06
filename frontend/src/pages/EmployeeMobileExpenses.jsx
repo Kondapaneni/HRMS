@@ -188,7 +188,7 @@ const EmployeeMobileExpenses = () => {
     const isSubmitting = submitExpenseMutation.isPending;
 
     return (
-      <div className="space-y-6 pb-6">
+      <div className="space-y-6 pb-6 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
 
         {/* Hero Section with Animated Motion Graphics */}
         <section className="-mx-4 -mt-4 px-4 pt-8 pb-14 relative overflow-hidden bg-slate-900">
@@ -224,7 +224,9 @@ const EmployeeMobileExpenses = () => {
             
             <div className="text-center">
               <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest drop-shadow-md">Expense Reimbursements</p>
-              <h2 className="text-xl font-black text-white tracking-tight drop-shadow-sm">New Expense Claim</h2>
+              <h2 className="text-xl font-medium text-white tracking-tight drop-shadow-sm" style={{ fontWeight: 500 }}>
+                New <span className="font-medium italic text-[#7bdff2]">Expense Claim</span>
+              </h2>
             </div>
 
             <button 
@@ -361,7 +363,7 @@ const EmployeeMobileExpenses = () => {
   // VIEW 2: EXPENSES DASHBOARD & CLAIM HISTORY
   // ==========================================
   return (
-    <div className="space-y-6 pb-4">
+    <div className="space-y-6 pb-4 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
 
       {/* Hero Section with Animated Motion Graphics */}
       <section className="-mx-4 -mt-4 px-4 pt-8 pb-14 relative overflow-hidden bg-slate-900">
@@ -389,7 +391,9 @@ const EmployeeMobileExpenses = () => {
           <div className="flex justify-between items-start mb-5">
             <div>
               <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">My Expenses</p>
-              <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">Claims &amp; History</h2>
+              <h2 className="text-3xl font-medium text-white tracking-tight mb-0.5 drop-shadow-sm" style={{ fontWeight: 500 }}>
+                Expense <span className="font-medium italic text-[#7bdff2]">Reimbursements</span>
+              </h2>
               <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">Track your corporate expenses and claim payouts</p>
             </div>
           </div>
@@ -622,7 +626,8 @@ const EmployeeMobileExpenses = () => {
                     setSelectedBillUrl(null);
                   }
                 }}
-                className="bg-white rounded-t-[2rem] shadow-2xl border-t border-slate-200 w-full max-w-md mx-auto max-h-[85vh] h-[80vh] flex flex-col overflow-hidden relative z-10"
+                className="bg-white rounded-t-[2rem] shadow-2xl border-t border-slate-200 w-full max-w-md mx-auto max-h-[85vh] h-[80vh] flex flex-col overflow-hidden relative z-10 font-editorial antialiased"
+                style={{ fontFamily: "'Newsreader', Georgia, serif" }}
               >
                 {/* Top Drag Indicator Area */}
                 <div 

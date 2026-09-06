@@ -203,7 +203,7 @@ const EmployeeMobileDashboard = () => {
   };
 
   const getAttendanceBadge = (status) => {
-    if (!status) return { label: 'Not Marked', className: 'bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]' };
+    if (!status) return { label: 'Not Yet!', className: 'bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]' };
     const s = String(status).toLowerCase().trim();
     const capitalize = (str) => String(str).replace(/\b\w/g, c => c.toUpperCase());
 
@@ -250,7 +250,7 @@ const EmployeeMobileDashboard = () => {
   if (loading) return <PageLoader message="Loading Dashboard..." />;
 
   return (
-    <div className="space-y-6 pb-4">
+    <div className="space-y-6 pb-4 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
 
       {/* Hero Section with Animated Motion Graphics */}
       <section className="-mx-4 -mt-4 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900">
@@ -288,7 +288,9 @@ const EmployeeMobileDashboard = () => {
 
         <div className="relative z-10 px-2">
           <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">Employee Portal</p>
-          <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">Hello, {profile?.firstName || 'Employee'}</h2>
+          <h2 className="text-3xl font-medium text-white tracking-tight mb-0.5 drop-shadow-sm" style={{ fontWeight: 500 }}>
+            Hello, <span className="font-medium italic text-[#7bdff2]">{profile?.firstName || 'Employee'}</span>
+          </h2>
           <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">{heroSubtitle}</p>
         </div>
       </section>
@@ -297,7 +299,9 @@ const EmployeeMobileDashboard = () => {
       <section className="bg-white rounded-[24px] shadow-lg border border-slate-100/50 overflow-hidden relative z-20 -mt-12">
         <div className="px-6 pt-6 pb-4 border-b border-slate-100 flex justify-between items-start">
           <div>
-            <h2 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">Attendance Tracker</h2>
+            <h2 className="text-lg font-medium text-slate-900 tracking-tight leading-tight" style={{ fontWeight: 500 }}>
+              Attendance <span className="font-medium italic text-[#1a73e8]">Tracker</span>
+            </h2>
             <p className="text-[11px] font-medium text-slate-500 mt-1 uppercase tracking-wider">Today's Check-In Status</p>
           </div>
           <span className={`inline-flex items-center px-3.5 py-1.5 rounded-full text-[12.5px] font-bold shrink-0 shadow-2xs ${attendanceBadge.className}`}>
@@ -404,7 +408,9 @@ const EmployeeMobileDashboard = () => {
         <section className="bg-white rounded-[24px] shadow-sm border border-slate-200/80 overflow-hidden p-5">
           <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
             <div>
-              <h2 className="text-base font-bold text-slate-900 tracking-tight leading-tight">Business Apps</h2>
+              <h2 className="text-base font-medium text-slate-900 tracking-tight leading-tight" style={{ fontWeight: 500 }}>
+                Business <span className="font-medium italic text-[#1a73e8]">Apps</span>
+              </h2>
               <p className="text-[11px] font-medium text-slate-500 mt-0.5">Tap to open application</p>
             </div>
             <span className="inline-flex items-center px-3.5 py-1.5 rounded-full text-[12.5px] font-bold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] shrink-0 shadow-2xs">
@@ -460,7 +466,9 @@ const EmployeeMobileDashboard = () => {
               <Receipt className="w-5 h-5 text-orange-500" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">My Expenses</h2>
+              <h2 className="text-lg font-medium text-slate-900 tracking-tight leading-tight" style={{ fontWeight: 500 }}>
+                My <span className="font-medium italic text-[#1a73e8]">Expenses</span>
+              </h2>
               <p className="text-[11px] font-medium text-slate-500 mt-1 uppercase tracking-wider">Track your claims</p>
             </div>
           </div>
@@ -501,7 +509,9 @@ const EmployeeMobileDashboard = () => {
               <Calendar className="w-5 h-5 text-emerald-500" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">Upcoming Holidays</h2>
+              <h2 className="text-lg font-medium text-slate-900 tracking-tight leading-tight" style={{ fontWeight: 500 }}>
+                Upcoming <span className="font-medium italic text-[#1a73e8]">Holidays</span>
+              </h2>
               <p className="text-[11px] font-medium text-slate-500 mt-1 uppercase tracking-wider">Company calendar</p>
             </div>
           </div>
@@ -546,7 +556,9 @@ const EmployeeMobileDashboard = () => {
               <Cake className="w-5 h-5 text-purple-500" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-900 tracking-tight leading-tight">Upcoming Birthdays</h2>
+              <h2 className="text-lg font-medium text-slate-900 tracking-tight leading-tight" style={{ fontWeight: 500 }}>
+                Upcoming <span className="font-medium italic text-[#1a73e8]">Birthdays</span>
+              </h2>
               <p className="text-[11px] font-medium text-slate-500 mt-1 uppercase tracking-wider">Celebrate with team</p>
             </div>
           </div>

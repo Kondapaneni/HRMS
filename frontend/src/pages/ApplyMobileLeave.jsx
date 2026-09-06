@@ -170,7 +170,7 @@ const ApplyMobileLeave = () => {
   if (loading) return <PageLoader message="Loading Leave Form..." />;
 
   return (
-    <div className="relative pb-6">
+    <div className="relative pb-6 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
       
       {/* Mobile Header Hero */}
       <div className="-mx-4 -mt-4 px-4 pt-8 pb-20 relative overflow-hidden bg-slate-900">
@@ -199,7 +199,9 @@ const ApplyMobileLeave = () => {
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <h2 className="text-xl font-bold text-white tracking-tight">Apply Leave</h2>
+          <h2 className="text-xl font-medium text-white tracking-tight" style={{ fontWeight: 500 }}>
+            Apply <span className="font-medium italic text-[#7bdff2]">Leave</span>
+          </h2>
           <div className="w-10 h-10"></div>
         </div>
       </div>

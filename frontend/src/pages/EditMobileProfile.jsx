@@ -112,7 +112,7 @@ const EditMobileProfile = () => {
   if (loading) return <PageLoader message="Loading Profile Form..." />;
 
   return (
-    <div className="space-y-6 pb-6">
+    <div className="space-y-6 pb-6 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
 
       {/* Hero Section with Animated Motion Graphics */}
       <section className="-mx-4 -mt-4 px-4 pt-8 pb-14 relative overflow-hidden bg-slate-900">
@@ -147,7 +147,9 @@ const EditMobileProfile = () => {
           
           <div className="text-center">
             <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest drop-shadow-md">Employee Self-Service</p>
-            <h2 className="text-xl font-black text-white tracking-tight drop-shadow-sm">Edit Profile</h2>
+            <h2 className="text-xl font-medium text-white tracking-tight drop-shadow-sm" style={{ fontWeight: 500 }}>
+              Edit <span className="font-medium italic text-[#7bdff2]">Profile</span>
+            </h2>
           </div>
 
           <button 
