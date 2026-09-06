@@ -455,7 +455,7 @@ $app->get('/api/me', function (Request $request, Response $response, $args) {
                 'canLeave' => (bool)$user['canLeave'],
                 'canPayroll' => (bool)$user['canPayroll'],
                 'canEmployees' => (bool)$user['canEmployees'],
-                'canRecruitment' => (bool)$fa['canRecruitment'],
+                'canRecruitment' => (bool)$user['canRecruitment'],
                 'canAssets' => (bool)$user['canAssets'],
                 'canLoanOrigination' => (bool)$user['canLoanOrigination'],
                 'canSalesOrigination' => (bool)($user['canSalesOrigination'] ?? false),
