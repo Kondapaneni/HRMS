@@ -264,7 +264,7 @@ const AdminAttendance = () => {
                   <th className="h-10 px-4 font-semibold text-[#5f6368] text-[11px] uppercase tracking-wider">Check In</th>
                   <th className="h-10 px-4 font-semibold text-[#5f6368] text-[11px] uppercase tracking-wider">Check Out</th>
                   <th className="h-10 px-4 font-semibold text-[#5f6368] text-[11px] uppercase tracking-wider">Hours</th>
-                  <th className="h-10 px-4 font-semibold text-[#5f6368] text-[11px] uppercase tracking-wider">Status</th>
+                  <th className="h-10 px-4 font-semibold text-[#5f6368] text-[11px] uppercase tracking-wider text-center">Status</th>
                   <th className="h-10 px-4 font-semibold text-[#5f6368] text-[11px] uppercase tracking-wider text-right">Actions</th>
                 </tr>
               </thead>
@@ -289,8 +289,8 @@ const AdminAttendance = () => {
                       <td className="px-4 py-3 text-xs text-[#1f1f1f] font-medium">{formatTime(row.checkIn)}</td>
                       <td className="px-4 py-3 text-xs text-[#1f1f1f] font-medium">{formatTime(row.checkOut)}</td>
                       <td className="px-4 py-3 text-xs text-[#5f6368]">{row.hours ? `${row.hours} hrs` : '-'}</td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold ${palette.badge}`}>
+                      <td className="px-4 py-3 text-center">
+                        <span className={`inline-block text-center rounded-full border px-2.5 py-1 text-[10px] font-bold leading-tight ${palette.badge}`}>
                           {displayLabel}
                         </span>
                       </td>
