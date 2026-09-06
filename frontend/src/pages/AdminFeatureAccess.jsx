@@ -17,7 +17,6 @@ import {
   Layers,
   UserCheck,
   Sparkles,
-  RefreshCw,
   Award,
   Package,
   Clock,
@@ -155,8 +154,7 @@ const AdminFeatureAccess = () => {
 
   const {
     data: users = [],
-    isLoading: loading,
-    refetch
+    isLoading: loading
   } = useQuery({
     queryKey: ['admin', 'feature-access'],
     queryFn: async () => {
@@ -339,14 +337,6 @@ const AdminFeatureAccess = () => {
             Delegate granular module managerial permissions across employees without granting global superadmin status.
           </p>
         </div>
-
-        <button
-          onClick={() => refetch()}
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer shadow-2xs self-start sm:self-auto"
-        >
-          <RefreshCw className="w-3.5 h-3.5 text-[#5f6368]" />
-          <span>Refresh Roles</span>
-        </button>
       </div>
 
       {/* KPI Stats Cards */}
