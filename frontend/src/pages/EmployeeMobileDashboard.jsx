@@ -289,7 +289,7 @@ const EmployeeMobileDashboard = () => {
         <div className="relative z-10 px-2">
           <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">Employee Portal</p>
           <h2 className="text-3xl font-medium text-white tracking-tight mb-0.5 drop-shadow-sm" style={{ fontWeight: 500 }}>
-            Hello, <span className="font-medium italic text-[#7bdff2]">{profile?.firstName || 'Employee'}</span>
+            Hello, <span className="font-medium italic text-[#a8c7fa]">{profile?.firstName || 'Employee'}</span>
           </h2>
           <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">{heroSubtitle}</p>
         </div>

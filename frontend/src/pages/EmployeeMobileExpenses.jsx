@@ -225,7 +225,7 @@ const EmployeeMobileExpenses = () => {
             <div className="text-center">
               <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest drop-shadow-md">Expense Reimbursements</p>
               <h2 className="text-xl font-medium text-white tracking-tight drop-shadow-sm" style={{ fontWeight: 500 }}>
-                New <span className="font-medium italic text-[#7bdff2]">Expense Claim</span>
+                New <span className="font-medium italic text-[#1a73e8]">Expense Claim</span>
               </h2>
             </div>
 
@@ -392,7 +392,7 @@ const EmployeeMobileExpenses = () => {
             <div>
               <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">My Expenses</p>
               <h2 className="text-3xl font-medium text-white tracking-tight mb-0.5 drop-shadow-sm" style={{ fontWeight: 500 }}>
-                Expense <span className="font-medium italic text-[#7bdff2]">Reimbursements</span>
+                Expense <span className="font-medium italic text-[#1a73e8]">Reimbursements</span>
               </h2>
               <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">Track your corporate expenses and claim payouts</p>
             </div>

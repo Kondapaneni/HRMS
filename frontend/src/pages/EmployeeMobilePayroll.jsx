@@ -155,7 +155,7 @@ const EmployeeMobilePayroll = ({ profile }) => {
             <div>
               <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">My Finances</p>
               <h2 className="text-3xl font-medium text-white tracking-tight mb-0.5 drop-shadow-sm" style={{ fontWeight: 500 }}>
-                Payroll & <span className="font-medium italic text-[#7bdff2]">Salary</span>
+                Payroll & <span className="font-medium italic text-[#1a73e8]">Salary</span>
               </h2>
               <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">View compensation breakdown & payslip archive</p>
             </div>

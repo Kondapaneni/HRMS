@@ -157,7 +157,7 @@ const EmployeeMobileAttendance = () => {
             <div>
               <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">My Attendance</p>
               <h2 className="text-3xl font-medium text-white tracking-tight mb-0.5 drop-shadow-sm" style={{ fontWeight: 500 }}>
-                Daily <span className="font-medium italic text-[#7bdff2]">Attendance</span>
+                Daily <span className="font-medium italic text-[#1a73e8]">Attendance</span>
               </h2>
               <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">Track your daily punches and approved leaves</p>
             </div>
