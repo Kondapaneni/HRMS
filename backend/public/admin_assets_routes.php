@@ -184,8 +184,8 @@ $app->put('/api/admin/assets/{id}', function (Request $request, Response $respon
         if (array_key_exists('assigned_to', $data)) {
             $assigned_to = $data['assigned_to'];
             if ($assigned_to) {
-                $empStmt = $conn->prepare('SELECT id FROM employee WHERE "userId" = ?');
-                $empStmt->execute([$assigned_to]);
+                $empStmt = $conn->prepare('SELECT id FROM employee WHERE "userId" = ? OR id::text = ?');
+                $empStmt->execute([$assigned_to, $assigned_to]);
                 $emp = $empStmt->fetch();
                 if ($emp) {
                     $assigned_to = $emp['id'];

@@ -255,6 +255,8 @@ const AdminAssets = () => {
     }
   };
 
+  const handleAssign = handleAssignUser;
+
   const getStatusBadge = (status) => {
     switch (status) {
       case 'Available':
@@ -613,7 +615,7 @@ const AdminAssets = () => {
                   </div>
 
                   {/* Unassign Option */}
-                  {selectedAsset?.employee_id && (
+                  {(selectedAsset?.employee_id || selectedAsset?.assigned_to) && (
                     <button
                       onClick={() => handleAssign(null)}
                       disabled={saving}
@@ -638,32 +640,37 @@ const AdminAssets = () => {
                     {filteredEmployees.length === 0 ? (
                       <p className="text-center py-6 text-[#5f6368]">No employees found</p>
                     ) : (
-                      filteredEmployees.map(emp => (
-                        <div
-                          key={emp.id}
-                          onClick={() => handleAssign(emp.id)}
-                          className={`p-3 rounded-2xl border flex items-center justify-between cursor-pointer transition-all ${
-                            selectedAsset?.employee_id === emp.id
-                              ? 'border-[#4285F4] bg-[#e8f0fe]'
-                              : 'border-[#e0e3e7] bg-[#f8fafd] hover:bg-[#f1f3f4]'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-full bg-white border border-[#dadce0] flex items-center justify-center font-bold text-xs text-[#1a73e8]">
-                              {(emp.first_name || emp.firstName || 'E').charAt(0).toUpperCase()}
+                      filteredEmployees.map(emp => {
+                        const isAssigned = 
+                          (selectedAsset?.employee_id && (selectedAsset.employee_id === emp.userId || selectedAsset.employee_id === emp.id)) ||
+                          (selectedAsset?.assigned_to && (selectedAsset.assigned_to === emp.id || selectedAsset.assigned_to === emp.userId));
+                        return (
+                          <div
+                            key={emp.id}
+                            onClick={() => handleAssign(emp.userId || emp.id)}
+                            className={`p-3 rounded-2xl border flex items-center justify-between cursor-pointer transition-all ${
+                              isAssigned
+                                ? 'border-[#4285F4] bg-[#e8f0fe]'
+                                : 'border-[#e0e3e7] bg-[#f8fafd] hover:bg-[#f1f3f4]'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-8 h-8 rounded-full bg-white border border-[#dadce0] flex items-center justify-center font-bold text-xs text-[#1a73e8]">
+                                {(emp.first_name || emp.firstName || 'E').charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <p className="font-semibold text-[#1f1f1f]">{emp.first_name || emp.firstName} {emp.last_name || emp.lastName}</p>
+                                <p className="text-[11px] text-[#5f6368]">{emp.designation || emp.position || 'Staff'} • {emp.department || 'General'}</p>
+                              </div>
                             </div>
-                            <div>
-                              <p className="font-semibold text-[#1f1f1f]">{emp.first_name || emp.firstName} {emp.last_name || emp.lastName}</p>
-                              <p className="text-[11px] text-[#5f6368]">{emp.designation || emp.position || 'Staff'} • {emp.department || 'General'}</p>
-                            </div>
+                            {isAssigned ? (
+                              <span className="text-[10px] font-bold text-[#1a73e8] bg-white px-2 py-0.5 rounded-full border border-[#d2e3fc]">Assigned</span>
+                            ) : (
+                              <ChevronRight className="w-4 h-4 text-[#5f6368]" />
+                            )}
                           </div>
-                          {selectedAsset?.employee_id === emp.id ? (
-                            <span className="text-[10px] font-bold text-[#1a73e8] bg-white px-2 py-0.5 rounded-full border border-[#d2e3fc]">Assigned</span>
-                          ) : (
-                            <ChevronRight className="w-4 h-4 text-[#5f6368]" />
-                          )}
-                        </div>
-                      ))
+                        );
+                      })
                     )}
                   </div>
                 </>
