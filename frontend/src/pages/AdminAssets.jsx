@@ -315,7 +315,7 @@ const AdminAssets = () => {
             <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Hardware & Devices</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight flex items-center gap-2 font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
-            Asset Management <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">{totalCount} Items</span>
+            Asset <span className="font-medium italic text-[#1a73e8]">Management</span> <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">{totalCount} Items</span>
           </h1>
           <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
             Track company equipment, monitor inventory allocation, and audit employee hardware history.

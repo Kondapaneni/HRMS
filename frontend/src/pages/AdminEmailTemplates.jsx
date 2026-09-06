@@ -234,7 +234,7 @@ const AdminEmailTemplates = () => {
             <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Communications &amp; Notifications</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight flex items-center gap-2 font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
-            Automated Email Templates <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">{templates.length} Templates</span>
+            Automated <span className="font-medium italic text-[#1a73e8]">Email Templates</span> <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">{templates.length} Templates</span>
           </h1>
           <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
             Audit and preview automated transactional messages dispatched across employee HR, assessments, and candidate recruiting workflows.

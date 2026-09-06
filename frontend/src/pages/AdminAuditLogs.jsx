@@ -269,7 +269,7 @@ const AdminAuditLogs = () => {
             <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Compliance &amp; Security</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight flex items-center gap-2 font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
-            System Audit Logs <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">{pagination.total} Logged Events</span>
+            System <span className="font-medium italic text-[#1a73e8]">Audit Logs</span> <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">{pagination.total} Logged Events</span>
           </h1>
           <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
             Tamper-evident audit trail recording all administrative actions, data modifications, and security events.

@@ -197,7 +197,7 @@ const AdminLayoutContent = () => {
               </div>
               <div className="hidden sm:block text-left">
                 <p className="text-xs font-semibold text-[#1f1f1f] leading-none">
-                  {profile?.email?.split('@')[0] || 'Admin User'}
+                  <span className="italic text-[#1a73e8]">{profile?.email?.split('@')[0] || 'Admin User'}</span>
                 </p>
                 <p className="text-[10px] text-[#5f6368] mt-0.5 capitalize">{profile?.role || 'Administrator'}</p>
               </div>

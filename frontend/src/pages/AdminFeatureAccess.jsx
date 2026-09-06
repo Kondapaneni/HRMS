@@ -333,7 +333,7 @@ const AdminFeatureAccess = () => {
             <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Access Control &amp; RBAC</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight flex items-center gap-2 font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
-            Feature Access &amp; Manager Roles <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">{featuresList.length} Roles</span>
+            Feature Access &amp; <span className="font-medium italic text-[#1a73e8]">Manager Roles</span> <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">{featuresList.length} Roles</span>
           </h1>
           <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
             Delegate granular module managerial permissions across employees without granting global superadmin status.

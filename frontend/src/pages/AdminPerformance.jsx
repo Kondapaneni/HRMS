@@ -219,7 +219,7 @@ const AdminPerformance = () => {
             <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Team Analytics & Metrics</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
-            Team Performance Analytics
+            Team Performance <span className="font-medium italic text-[#1a73e8]">Analytics</span>
           </h1>
           <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
             Real-time attendance, work hours, leave patterns, and peer benchmarks across your organization.

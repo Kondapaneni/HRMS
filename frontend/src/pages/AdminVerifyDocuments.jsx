@@ -377,7 +377,7 @@ const AdminVerifyDocuments = () => {
             <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Onboarding Compliance</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight flex items-center gap-2 font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
-            Verify Candidate Documents
+            Verify <span className="font-medium italic text-[#1a73e8]">Candidate Documents</span>
           </h1>
           <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
             Audit compliance certificates, identity papers, bank accounts, and offer letters.

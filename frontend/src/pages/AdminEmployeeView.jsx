@@ -223,8 +223,8 @@ const AdminEmployeeView = () => {
             <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
             <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Staff Profile & Records</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
-            {fullName} <span className="text-xs font-medium text-[#5f6368] bg-[#f1f3f4] border border-[#e0e3e7] px-2.5 py-0.5 rounded-full align-middle ml-1.5">{employeeId}</span>
+          <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
+            <span className="font-medium italic text-[#1a73e8]">{fullName}</span> <span className="text-xs font-medium text-[#5f6368] bg-[#f1f3f4] border border-[#e0e3e7] px-2.5 py-0.5 rounded-full align-middle ml-1.5">{employeeId}</span>
           </h1>
           <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
             {position || 'Staff Member'} &bull; {department || 'General'} &bull; {branch_name || branch || 'Main Branch'}

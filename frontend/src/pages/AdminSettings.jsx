@@ -180,7 +180,7 @@ const AdminSettings = () => {
             <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Workspace Configuration</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight flex flex-wrap items-center gap-2 font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
-            Global System Settings 
+            Global System <span className="font-medium italic text-[#1a73e8]">Settings</span> 
             <span className="text-xs font-semibold text-[#137333] bg-[#e6f4ea] border border-[#ceead6] px-2.5 py-0.5 rounded-full">Active Security Guard</span>
             <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full flex items-center gap-1">
               <Sparkles className="w-3 h-3 text-[#1a73e8]" />
