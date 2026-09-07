@@ -405,16 +405,14 @@ const BranchOperationsLayout = () => {
                   const isDashboard = currentPath === '/employee/branch-operations' || currentPath === '/employee/branch-operations/dashboard';
                   const isLeads = currentPath.startsWith('/employee/branch-operations/leads');
                   const isActivities = currentPath.startsWith('/employee/branch-operations/activities');
-                  const isApplications = currentPath.startsWith('/employee/branch-operations/loans-applications') || currentPath.startsWith('/employee/branch-operations/loans-view-applications') || currentPath.startsWith('/employee/branch-operations/loans-edit-application');
-                  const isMoreActive = !isDashboard && !isLeads && !isActivities && !isApplications;
+                  const isMoreActive = !isDashboard && !isLeads && !isActivities;
 
                   return (
                     <>
                       {[
                         { label: 'Dashboard', icon: Activity, path: '/employee/branch-operations', isActive: isDashboard },
-                        { label: 'Leads', icon: TrendingUp, path: '/employee/branch-operations/leads', isActive: isLeads },
                         { label: 'Activities', icon: CalendarIcon, path: '/employee/branch-operations/activities', isActive: isActivities },
-                        { label: 'Applications', icon: Briefcase, path: '/employee/branch-operations/loans-applications', isActive: isApplications },
+                        { label: 'Leads', icon: TrendingUp, path: '/employee/branch-operations/leads', isActive: isLeads },
                       ].map((item) => {
                         const Icon = item.icon;
 
