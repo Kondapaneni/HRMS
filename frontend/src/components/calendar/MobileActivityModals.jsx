@@ -135,54 +135,34 @@ export const MobileActivityCreatePage = ({
 
   return (
     <div className="space-y-4 pb-14 select-none font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
-      {/* 1. Hero Section with Animated Motion Graphics */}
-      <section className="-mx-4 -mt-4 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900">
-        {/* Animated Liquid Orbs */}
-        <motion.div
-          animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
-          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-          className={`absolute -top-20 -left-10 w-72 h-72 ${theme?.orbs?.[0] || (isSales ? 'bg-emerald-600' : 'bg-blue-500')} rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none`}
-        />
-        <motion.div
-          animate={{ scale: [1, 1.4, 1], x: [0, -40, 0], y: [0, 50, 0] }}
-          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-          className={`absolute -top-10 -right-10 w-64 h-64 ${theme?.orbs?.[1] || (isSales ? 'bg-green-600' : 'bg-indigo-500')} rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none`}
-        />
-        <motion.div
-          animate={{ scale: [1, 1.3, 1], x: [0, 30, 0], y: [0, -40, 0] }}
-          transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-          className={`absolute bottom-0 left-20 w-80 h-80 ${theme?.orbs?.[2] || (isSales ? 'bg-emerald-700' : 'bg-sky-400')} rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none`}
-        />
-
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none" />
-
-        {/* Hero Content matching Add New Lead header */}
-        <div className="relative z-10 px-2 flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">
-              {theme?.tagText || (isSales ? 'ORIGINATION • SALES ACTIVITIES' : 'ORIGINATION • LOAN ACTIVITIES')}
-            </p>
-            <h2 className="text-3xl font-medium text-white tracking-tight mb-0.5 drop-shadow-sm" style={{ fontWeight: 500 }}>
-              Schedule <span className={`font-medium italic ${theme?.titleAccent || (isSales ? 'text-[#34d399]' : 'text-[#38bdf8]')}`}>Activity</span>
+      {/* Clean White Header & Back Action */}
+      <section className="relative z-30 pt-1 pb-1">
+        <div className="pt-0.5">
+          <p className="text-[10.5px] font-bold text-[#5f6368] uppercase tracking-wider mb-1">
+            {theme?.tagText || (isSales ? 'ORIGINATION • SALES ACTIVITIES' : 'ORIGINATION • LOAN ACTIVITIES')}
+          </p>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight leading-tight min-w-0" style={{ fontWeight: 500 }}>
+              Schedule <span className={`font-medium italic ${isSales ? 'text-[#137333]' : isBranchOperations ? 'text-[#7C4DFF]' : 'text-[#1a73e8]'}`}>Activity</span>
             </h2>
-            <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">
-              Register New Activity / Task
-            </p>
-          </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            className="inline-flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white px-4 py-3 rounded-full text-xs font-bold backdrop-blur-md border border-white/30 shadow-xs transition-all active:scale-95 cursor-pointer shrink-0"
-          >
-            <ArrowLeft size={14} />
-            <span>Back</span>
-          </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="shrink-0 inline-flex items-center gap-1.5 rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] px-3.5 py-1.5 transition-all shadow-2xs active:scale-95 cursor-pointer whitespace-nowrap"
+            >
+              <ArrowLeft size={14} className="text-[#5f6368]" />
+              <span>Back</span>
+            </button>
+          </div>
+          <p className="text-xs sm:text-sm font-medium text-[#5f6368] mt-1">
+            Register New Activity / Task
+          </p>
         </div>
       </section>
 
-      {/* 2. Elevated Form Container Card matching AddLead */}
-      <div className="relative z-20 -mt-8 mx-0.5 space-y-4">
+      {/* 2. Form Container Card matching AddLead */}
+      <div className="relative z-20 mx-0.5 space-y-4">
         <form onSubmit={handleSubmit} className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs space-y-4.5">
           
           {/* Card Header */}

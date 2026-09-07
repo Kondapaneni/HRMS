@@ -133,54 +133,34 @@ const OriginationMobileSaleLeadsList = () => {
   ];
 
   return (
-    <div className="space-y-4 pb-14">
-      {/* 1. Hero Section with Animated Deep Emerald & Forest Green Motion Graphics */}
-      <section className="-mx-4 -mt-4 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900">
-        {/* Animated Liquid Orbs with Deep Emerald & Forest Green Theme */}
-        <motion.div
-          animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
-          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute -top-20 -left-10 w-72 h-72 bg-emerald-600 rounded-full mix-blend-screen filter blur-[40px] opacity-65 pointer-events-none"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.4, 1], x: [0, -40, 0], y: [0, 50, 0] }}
-          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-          className="absolute -top-10 -right-10 w-64 h-64 bg-green-600 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.3, 1], x: [0, 30, 0], y: [0, -40, 0] }}
-          transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-          className="absolute bottom-0 left-20 w-80 h-80 bg-emerald-700 rounded-full mix-blend-screen filter blur-[50px] opacity-55 pointer-events-none"
-        />
-
-        {/* Subtle Glass Overlay */}
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none" />
-
-        <div className="relative z-10 px-2 flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">
-              Origination &bull; Sales Pipeline
-            </p>
-            <h2 className="text-3xl font-medium text-white tracking-tight mb-0.5 drop-shadow-sm" style={{ fontWeight: 500 }}>
-              Sales <span className="font-medium italic text-[#34d399]">Leads</span>
+    <div className="space-y-4 pb-14 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+      {/* Clean White Header (Direct Page Layout) */}
+      <section className="relative z-30 pt-1 pb-1">
+        <div className="pt-0.5">
+          <p className="text-[10.5px] font-bold text-[#5f6368] uppercase tracking-wider mb-1">
+            Origination &bull; Sales Pipeline
+          </p>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight leading-tight min-w-0" style={{ fontWeight: 500 }}>
+              Sales <span className="font-medium italic text-[#137333]">Leads</span>
             </h2>
-            <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">
-              {rawLeads.length} Total Prospect Entries
-            </p>
-          </div>
 
-          <button
-            onClick={() => navigate('/employee/sales/origination/leads/add')}
-            className="inline-flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white px-4 py-3 rounded-full text-xs font-bold backdrop-blur-md border border-white/30 shadow-xs transition-all active:scale-95 cursor-pointer shrink-0"
-          >
-            <Plus size={14} />
-            <span>Add Lead</span>
-          </button>
+            <button
+              onClick={() => navigate('/employee/sales/origination/leads/add')}
+              className="shrink-0 inline-flex items-center gap-1.5 bg-[#137333] hover:bg-[#0d5926] active:scale-95 text-white rounded-full px-3.5 py-2 text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
+            >
+              <Plus size={14} />
+              <span>Add Lead</span>
+            </button>
+          </div>
+          <p className="text-xs sm:text-sm font-medium text-[#5f6368] mt-1">
+            {rawLeads.length} Total Prospect Entries
+          </p>
         </div>
       </section>
 
-      {/* 2. Elevated Content Layer */}
-      <div className="relative z-20 -mt-8 mx-0.5 space-y-3.5">
+      {/* 2. Content Layer */}
+      <div className="relative z-20 mx-0.5 space-y-3.5">
         {/* Search Box */}
         <div className="bg-white rounded-full border border-[#e0e3e7] px-4 py-2.5 shadow-xs flex items-center gap-2.5">
           <Search className="w-4.5 h-4.5 text-[#5f6368] shrink-0" />

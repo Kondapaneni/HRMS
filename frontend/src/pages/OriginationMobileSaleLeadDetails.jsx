@@ -148,44 +148,35 @@ const OriginationMobileSaleLeadDetails = () => {
   const isConverted = currentStatus === 'Converted';
 
   return (
-    <div className="space-y-4 pb-14">
-      {/* 1. Header Card (Google Material 3 Workspace) */}
-      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs relative overflow-hidden bg-gradient-to-br from-white via-[#f8fafd] to-[#e8f0fe]/30 space-y-2">
-        {/* Workspace Tag */}
-        <div className="flex items-center gap-1.5 whitespace-nowrap shrink-0">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4] shrink-0" />
-          <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335] shrink-0" />
-          <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05] shrink-0" />
-          <span className="w-1.5 h-1.5 rounded-full bg-[#34A853] shrink-0" />
-          <span className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368] ml-0.5 whitespace-nowrap">
-            Origination Workspace
-          </span>
+    <div className="space-y-4 pb-14 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+      {/* Clean White Header & Back Action */}
+      <section className="relative z-30 pt-1 pb-1">
+        <div className="pt-0.5">
+          <p className="text-[10.5px] font-bold text-[#5f6368] uppercase tracking-wider mb-1">
+            Origination &bull; Sales Pipeline
+          </p>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight leading-tight min-w-0" style={{ fontWeight: 500 }}>
+              Lead <span className="font-medium italic text-[#137333]">Details</span>
+            </h2>
+
+            <button
+              type="button"
+              onClick={() => navigate('/employee/sales/origination/leads')}
+              className="shrink-0 inline-flex items-center gap-1.5 rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] px-3.5 py-1.5 transition-all shadow-2xs active:scale-95 cursor-pointer whitespace-nowrap"
+            >
+              <ArrowLeft size={14} className="text-[#5f6368]" />
+              <span>Back</span>
+            </button>
+          </div>
+          <p className="text-xs sm:text-sm font-medium text-[#5f6368] mt-1">
+            Prospect ID &bull; Pipeline Verification Profile
+          </p>
         </div>
-
-        {/* Heading + Back Button Row */}
-        <div className="flex items-center justify-between gap-3">
-          <h1 className="text-xl font-medium text-[#1f1f1f] tracking-tight" style={{ fontWeight: 500 }}>
-            Lead <span className="font-medium italic text-[#137333]">Details</span>
-          </h1>
-
-          <button
-            type="button"
-            onClick={() => navigate('/employee/sales/origination/leads')}
-            className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] px-3.5 py-1.5 transition-all gap-1.5 shadow-2xs cursor-pointer shrink-0 whitespace-nowrap"
-          >
-            <ArrowLeft className="w-3.5 h-3.5 text-[#5f6368]" />
-            <span>Back</span>
-          </button>
-        </div>
-
-        {/* Subtitle Row (Full Width - Always Single Line) */}
-        <p className="text-xs text-[#5f6368] truncate">
-          Prospect ID &bull; Pipeline Verification Profile
-        </p>
-      </div>
+      </section>
 
       {/* 2. Lead Profile Card */}
-      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs space-y-4">
+      <div className="relative z-20 mx-0.5 space-y-4">
         {/* Avatar, Name & Status Pill */}
         <div className="flex items-center justify-between gap-3 pb-4 border-b border-[#f1f3f4]">
           <div className="flex items-center gap-3 min-w-0">

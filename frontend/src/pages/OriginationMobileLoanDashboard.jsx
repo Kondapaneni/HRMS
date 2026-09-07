@@ -10,7 +10,8 @@ import {
   Award,
   Clock,
   ChevronRight,
-  Phone
+  Phone,
+  Plus
 } from 'lucide-react';
 import {
   BarChart,
@@ -124,43 +125,33 @@ const OriginationMobileLoanDashboard = () => {
   return (
     <div className="space-y-4 pb-12 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
 
-      {/* 1. Hero Section with Animated Motion Graphics */}
-      <section className="-mx-4 -mt-4 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900">
-        {/* Animated Liquid Orbs with Loans Origination Blue & Indigo Theme */}
-        <motion.div
-          animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-20 -left-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.4, 1], x: [0, -40, 0], y: [0, 50, 0] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute -top-10 -right-10 w-64 h-64 bg-indigo-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.3, 1], x: [0, 30, 0], y: [0, -40, 0] }}
-          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-0 left-20 w-80 h-80 bg-sky-400 rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
-        />
-        
-        {/* Subtle Glass Overlay */}
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
-
-        <div className="relative z-10 px-2">
-          <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">
+      {/* Clean White Header (Direct Page Layout) */}
+      <section className="relative z-30 pt-1 pb-1">
+        <div className="pt-0.5">
+          <p className="text-[10.5px] font-bold text-[#5f6368] uppercase tracking-wider mb-1">
             {getGreeting()} &bull; Loan Origination
           </p>
-          <h2 className="text-3xl font-medium text-white tracking-tight mb-0.5 drop-shadow-sm" style={{ fontWeight: 500 }}>
-            {profile?.firstName || 'Origination'} <span className="font-medium italic text-[#38bdf8]">{profile?.lastName || 'Officer'}</span>
-          </h2>
-          <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight leading-tight min-w-0" style={{ fontWeight: 500 }}>
+              {profile?.firstName || 'Origination'} <span className="font-medium italic text-[#1a73e8]">{profile?.lastName || 'Officer'}</span>
+            </h2>
+
+            <button
+              onClick={() => navigate('/employee/loans/origination/leads/add')}
+              className="shrink-0 inline-flex items-center gap-1.5 bg-[#1a73e8] hover:bg-[#1557b0] active:scale-95 text-white rounded-full px-3.5 py-2 text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
+            >
+              <Plus size={14} />
+              <span>Add Lead</span>
+            </button>
+          </div>
+          <p className="text-xs sm:text-sm font-medium text-[#5f6368] mt-1">
             {currentTime.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })} &bull; Performance &amp; Leads
           </p>
         </div>
       </section>
 
       {/* 2. Exactly the 4 KPI Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 relative z-20 -mt-8 mx-0.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 relative z-20 mx-0.5">
         
         {/* Card 1: Total Leads */}
         <div className="bg-white rounded-2xl border border-[#e0e3e7] p-4.5 shadow-xs flex items-center justify-between">

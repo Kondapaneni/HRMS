@@ -83,45 +83,26 @@ const OriginationMobileSaleMemberList = () => {
   }, [members, searchTerm]);
 
   return (
-    <div className="space-y-4 pb-14">
-
-      {/* 1. Hero Section with Animated Motion Graphics */}
-      <section className="-mx-4 -mt-4 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900">
-        {/* Animated Liquid Orbs with Deep Emerald & Forest Green Theme */}
-        <motion.div
-          animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-20 -left-10 w-72 h-72 bg-emerald-600 rounded-full mix-blend-screen filter blur-[40px] opacity-65 pointer-events-none"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.4, 1], x: [0, -40, 0], y: [0, 50, 0] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute -top-10 -right-10 w-64 h-64 bg-green-600 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.3, 1], x: [0, 30, 0], y: [0, -40, 0] }}
-          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-0 left-20 w-80 h-80 bg-emerald-700 rounded-full mix-blend-screen filter blur-[50px] opacity-55 pointer-events-none"
-        />
-        
-        {/* Subtle Glass Overlay */}
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
-
-        <div className="relative z-10 px-2">
-          <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">
+    <div className="space-y-4 pb-14 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+      {/* Clean White Header (Direct Page Layout) */}
+      <section className="relative z-30 pt-1 pb-1">
+        <div className="pt-0.5">
+          <p className="text-[10.5px] font-bold text-[#5f6368] uppercase tracking-wider mb-1">
             Origination &bull; Sales Pipeline
           </p>
-          <h2 className="text-3xl font-medium text-white tracking-tight mb-0.5 drop-shadow-sm" style={{ fontWeight: 500 }}>
-            Converted <span className="font-medium italic text-[#34d399]">Members</span>
-          </h2>
-          <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight leading-tight min-w-0" style={{ fontWeight: 500 }}>
+              Converted <span className="font-medium italic text-[#137333]">Members</span>
+            </h2>
+          </div>
+          <p className="text-xs sm:text-sm font-medium text-[#5f6368] mt-1">
             {members.length} Active Member Profiles
           </p>
         </div>
       </section>
 
-      {/* 2. Elevated Content Layer */}
-      <div className="relative z-20 -mt-8 mx-0.5 space-y-3.5">
+      {/* 2. Content Layer */}
+      <div className="relative z-20 mx-0.5 space-y-3.5">
 
         {/* Search Box */}
         <div className="bg-white rounded-full border border-[#e0e3e7] px-4 py-2.5 shadow-xs flex items-center gap-2.5">
