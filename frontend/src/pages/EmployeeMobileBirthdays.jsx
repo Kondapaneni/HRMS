@@ -61,43 +61,24 @@ const EmployeeMobileBirthdays = () => {
   return (
     <div className="space-y-6 pb-4 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
 
-      {/* Hero Section with Animated Motion Graphics */}
-      <section className="-mx-4 -mt-4 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900">
-        {/* Animated Liquid Orbs */}
-        <motion.div
-          animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-20 -left-10 w-72 h-72 bg-[#ff928b] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.4, 1], x: [0, -40, 0], y: [0, 50, 0] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute -top-10 -right-10 w-64 h-64 bg-[#7bdff2] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.3, 1], x: [0, 30, 0], y: [0, -40, 0] }}
-          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-0 left-20 w-80 h-80 bg-[#84dcc6] rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
-        />
-
-        {/* Subtle Glass Overlay */}
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none" />
-
-        <div className="relative z-10 px-2">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">Team Celebrations</p>
-              <h2 className="text-3xl font-medium text-white tracking-tight mb-0.5 drop-shadow-sm" style={{ fontWeight: 500 }}>
-                Upcoming <span className="font-medium italic text-[#1a73e8]">Birthdays</span>
-              </h2>
-              <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">Celebrate your colleagues and share joy on their special days</p>
-            </div>
-          </div>
+      {/* Clean White Header (Direct Page Layout, Non-Card) */}
+      <section className="relative z-30 pt-1 pb-1">
+        {/* Header Title */}
+        <div className="pt-0.5">
+          <p className="text-[10.5px] font-bold text-[#5f6368] uppercase tracking-wider mb-1">
+            Team Celebrations
+          </p>
+          <h2 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight leading-tight" style={{ fontWeight: 500 }}>
+            Upcoming <span className="font-medium italic text-[#1a73e8]">Birthdays</span>
+          </h2>
+          <p className="text-xs sm:text-sm font-medium text-[#5f6368] mt-0.5">
+            Celebrate your colleagues and share joy on their special days
+          </p>
         </div>
       </section>
 
-      {/* KPI Stats Grid (2x2 Grid overlapping the hero) */}
-      <section className="grid grid-cols-2 gap-3 relative z-20 -mt-12 mx-0.5">
+      {/* KPI Stats Grid (2x2 Grid) */}
+      <section className="grid grid-cols-2 gap-3 relative z-20 mx-0.5">
         {/* Today's Birthdays */}
         <div 
           onClick={() => setFilterMode(filterMode === 'today' ? 'all' : 'today')}

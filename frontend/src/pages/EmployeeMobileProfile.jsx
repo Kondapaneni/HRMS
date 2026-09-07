@@ -385,43 +385,36 @@ const EmployeeMobileProfile = () => {
   return (
     <div className="space-y-6 pb-4 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
 
-      {/* Hero Section with Animated Motion Graphics */}
-      <section className="-mx-4 -mt-4 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900">
-        {/* Animated Liquid Orbs */}
-        <motion.div
-          animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-20 -left-10 w-72 h-72 bg-[#ff928b] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.4, 1], x: [0, -40, 0], y: [0, 50, 0] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute -top-10 -right-10 w-64 h-64 bg-[#7bdff2] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.3, 1], x: [0, 30, 0], y: [0, -40, 0] }}
-          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-0 left-20 w-80 h-80 bg-[#84dcc6] rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
-        />
-        
-        {/* Subtle Glass Overlay */}
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
+      {/* Clean White Header (Direct Page Layout, Non-Card) */}
+      <section className="relative z-30 pt-1 pb-1">
+        {/* Header Title & Action */}
+        <div className="pt-0.5">
+          <p className="text-[10.5px] font-bold text-[#5f6368] uppercase tracking-wider mb-1">
+            My Profile
+          </p>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight leading-tight min-w-0" style={{ fontWeight: 500 }}>
+              Account & <span className="font-medium italic text-[#1a73e8]">Profile</span>
+            </h2>
 
-        <div className="relative z-10 px-2">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">My Profile</p>
-              <h2 className="text-3xl font-medium text-white tracking-tight mb-0.5 drop-shadow-sm" style={{ fontWeight: 500 }}>
-                Account &amp; <span className="font-medium italic text-[#1a73e8]">Profile</span>
-              </h2>
-              <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">Personal credentials, settings &amp; assets</p>
-            </div>
+            {/* Compact Action Button Aligned Straight to Main Heading */}
+            <button
+              type="button"
+              onClick={handleEditClick}
+              className="shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white border border-slate-200 hover:bg-slate-50 active:scale-95 text-slate-900 text-xs font-semibold shadow-xs transition-all cursor-pointer whitespace-nowrap"
+            >
+              <Edit2 className="w-3.5 h-3.5 text-slate-700" />
+              <span>Edit Profile</span>
+            </button>
           </div>
+          <p className="text-xs sm:text-sm font-medium text-[#5f6368] mt-1">
+            Personal credentials, settings & assets
+          </p>
         </div>
       </section>
 
       {/* Profile Identity Card (Elevated Floating Card) */}
-      <section className="bg-white rounded-[1.5rem] border border-slate-100 shadow-md p-5 relative z-20 -mt-12 mx-0.5 space-y-4">
+      <section className="bg-white rounded-[1.5rem] border border-[#e0e3e7] shadow-xs p-5 relative z-20 mx-0.5 space-y-4">
         <div className="flex flex-col items-center text-center space-y-3">
           
           {/* Avatar Container with Upload Badge */}
@@ -454,18 +447,6 @@ const EmployeeMobileProfile = () => {
           <div>
             <h2 className="text-lg font-black text-slate-900 tracking-tight">{fullName}</h2>
             <p className="text-xs font-semibold text-slate-400 mt-0.5">{position || 'Employee'}</p>
-          </div>
-
-          {/* Quick Action Badges */}
-          <div className="flex items-center gap-2 flex-wrap justify-center">
-            <button
-              type="button"
-              onClick={handleEditClick}
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-white border border-slate-200 hover:bg-slate-50 active:scale-95 text-slate-900 text-xs font-bold shadow-xs transition-all cursor-pointer"
-            >
-              <Edit2 className="w-3.5 h-3.5 text-slate-900" />
-              <span>Edit Profile</span>
-            </button>
           </div>
 
           {/* Compact 2-column details with vibrant themed colors */}

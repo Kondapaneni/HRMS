@@ -83,52 +83,35 @@ const EmployeeMobileLeaves = () => {
   return (
     <div className="space-y-6 pb-4 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
 
-      {/* Hero Section with Animated Motion Graphics */}
-      <section className="-mx-4 -mt-4 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900">
-        {/* Animated Liquid Orbs */}
-        <motion.div
-          animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-20 -left-10 w-72 h-72 bg-[#ff928b] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.4, 1], x: [0, -40, 0], y: [0, 50, 0] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute -top-10 -right-10 w-64 h-64 bg-[#7bdff2] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.3, 1], x: [0, 30, 0], y: [0, -40, 0] }}
-          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-0 left-20 w-80 h-80 bg-[#84dcc6] rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
-        />
+      {/* Clean White Header (Direct Page Layout, Non-Card) */}
+      <section className="relative z-30 pt-1 pb-1">
+        {/* Header Title & Action */}
+        <div className="pt-0.5">
+          <p className="text-[10.5px] font-bold text-[#5f6368] uppercase tracking-wider mb-1">
+            My Leaves
+          </p>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight leading-tight min-w-0" style={{ fontWeight: 500 }}>
+              Leave <span className="font-medium italic text-[#1a73e8]">Applications</span>
+            </h2>
 
-        {/* Subtle Glass Overlay */}
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
-
-        <div className="relative z-10 px-2">
-          <div className="flex justify-between items-start mb-5">
-            <div>
-              <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">My Leaves</p>
-              <h2 className="text-3xl font-medium text-white tracking-tight mb-0.5 drop-shadow-sm" style={{ fontWeight: 500 }}>
-                Leave <span className="font-medium italic text-[#1a73e8]">Applications</span>
-              </h2>
-              <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">Manage your annual time off & leave records</p>
-            </div>
+            {/* Compact Action Button Aligned Straight to Main Heading */}
+            <Link
+              to="/employee/leaves/apply"
+              className="shrink-0 inline-flex items-center gap-1.5 bg-[#1a73e8] hover:bg-[#1557b0] active:scale-95 text-white rounded-full px-3.5 py-2 text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
+            >
+              <Plus className="w-3.5 h-3.5 text-white" />
+              <span>Apply Leave</span>
+            </Link>
           </div>
-
-          {/* Premium White Apply for Leave Button */}
-          <Link
-            to="/employee/leaves/apply"
-            className="w-full flex items-center justify-center gap-2 bg-white hover:bg-slate-50 active:scale-[0.98] text-slate-900 rounded-full py-3.5 text-sm font-bold tracking-wide shadow-md transition-all cursor-pointer"
-          >
-            <Plus className="w-4 h-4 text-slate-900" />
-            <span>Apply for Leave</span>
-          </Link>
+          <p className="text-xs sm:text-sm font-medium text-[#5f6368] mt-1">
+            Manage your annual time off & leave records
+          </p>
         </div>
       </section>
 
       {/* KPI Stats Grid (4 Cards in Compact Google aesthetic) */}
-      <section className="grid grid-cols-2 gap-3 relative z-20 -mt-12 mx-0.5">
+      <section className="grid grid-cols-2 gap-3 relative z-20 mx-0.5">
         {/* Paid Left */}
         <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3.5 shadow-xs space-y-1">
           <div className="flex items-center justify-between">
@@ -213,10 +196,19 @@ const EmployeeMobileLeaves = () => {
             {error}
           </div>
         ) : history.length === 0 ? (
-          <div className="bg-white p-8 rounded-[1.5rem] text-center border border-slate-200 shadow-sm space-y-2">
+          <div className="bg-white p-8 rounded-[1.5rem] text-center border border-slate-200 shadow-sm space-y-3">
             <AlertCircle className="w-8 h-8 text-slate-400 mx-auto opacity-60" />
-            <p className="text-sm font-bold text-slate-800">No leave history found</p>
-            <p className="text-xs text-slate-500">You have not submitted any leave requests yet.</p>
+            <div>
+              <p className="text-sm font-bold text-slate-800">No leave history found</p>
+              <p className="text-xs text-slate-500 mt-0.5">You have not submitted any leave requests yet.</p>
+            </div>
+            <Link
+              to="/employee/leaves/apply"
+              className="inline-flex items-center gap-1.5 bg-[#1a73e8] hover:bg-[#1557b0] active:scale-95 text-white rounded-full px-4 py-2 text-xs font-semibold shadow-xs transition-all cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5 text-white" />
+              <span>Apply for Leave</span>
+            </Link>
           </div>
         ) : (
           <div className="space-y-3">

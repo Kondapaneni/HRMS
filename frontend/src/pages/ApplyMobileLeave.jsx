@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import PageLoader from '../components/PageLoader';
-import { ArrowLeft, Loader2, Calendar as CalendarIcon, ChevronLeft, ChevronRight, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Loader2, Calendar as CalendarIcon, ChevronLeft, ChevronRight, AlertCircle, CheckCircle2, Send } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
-import { motion } from 'framer-motion';
 
 const ApplyMobileLeave = () => {
   const navigate = useNavigate();
@@ -101,7 +100,7 @@ const ApplyMobileLeave = () => {
 
     const days = [];
     for (let i = 0; i < firstDay; i++) {
-      days.push(<div key={`empty-${i}`} />);
+      days.push(<div key={`empty-${i}`} className="w-full max-w-[38px] aspect-square mx-auto" />);
     }
 
     for (let day = 1; day <= daysInMonth; day++) {
@@ -124,7 +123,7 @@ const ApplyMobileLeave = () => {
       const isSelectedEnd = endDate === dateStr;
       const isInRange = startDate && endDate && dateStr > startDate && dateStr < endDate;
 
-      let btnClass = "rounded-full py-2 text-xs font-semibold transition-all ";
+      let btnClass = "w-full max-w-[38px] aspect-square mx-auto flex items-center justify-center rounded-full text-xs font-semibold transition-all ";
 
       if (isSelectedStart || isSelectedEnd) {
         btnClass += "bg-[#1a73e8] text-white font-bold shadow-xs ";
@@ -170,44 +169,50 @@ const ApplyMobileLeave = () => {
   if (loading) return <PageLoader message="Loading Leave Form..." />;
 
   return (
-    <div className="relative pb-6 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+    <div className="relative pb-6 font-editorial antialiased space-y-6" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
       
-      {/* Mobile Header Hero */}
-      <div className="-mx-4 -mt-4 px-4 pt-8 pb-20 relative overflow-hidden bg-slate-900">
-        <motion.div
-          animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-20 -left-10 w-72 h-72 bg-[#ff928b] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.4, 1], x: [0, -40, 0], y: [0, 50, 0] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute -top-10 -right-10 w-64 h-64 bg-[#7bdff2] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.3, 1], x: [0, 30, 0], y: [0, -40, 0] }}
-          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-0 left-20 w-80 h-80 bg-[#84dcc6] rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
-        />
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
+      {/* Clean White Header & Action */}
+      <section className="relative z-30 pt-1 pb-1">
+        <div className="pt-0.5">
+          <p className="text-[10.5px] font-bold text-[#5f6368] uppercase tracking-wider mb-1 pl-[46px]">
+            My Leaves
+          </p>
 
-        <div className="relative z-10 flex items-center justify-between mb-2">
-          <button 
-            type="button"
-            onClick={() => navigate('/employee/leaves')} 
-            className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white active:scale-95 transition-all border border-white/20 shadow-lg cursor-pointer"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <h2 className="text-xl font-medium text-white tracking-tight" style={{ fontWeight: 500 }}>
-            Apply <span className="font-medium italic text-[#1a73e8]">Leave</span>
-          </h2>
-          <div className="w-10 h-10"></div>
+          <div className="flex items-center justify-between gap-2.5">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <button 
+                type="button"
+                onClick={() => navigate('/employee/leaves')} 
+                className="w-9 h-9 rounded-full bg-white border border-[#e0e3e7] hover:bg-[#f1f3f4] active:scale-95 text-[#5f6368] flex items-center justify-center shrink-0 shadow-2xs transition-all cursor-pointer"
+                aria-label="Back to Leaves"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <h2 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight leading-tight min-w-0" style={{ fontWeight: 500 }}>
+                Apply <span className="font-medium italic text-[#1a73e8]">Leave</span>
+              </h2>
+            </div>
+
+            {/* Compact Action Button Aligned Straight to Main Heading */}
+            <button 
+              type="button"
+              onClick={handleApplyLeave} 
+              disabled={submitting || loading} 
+              className="shrink-0 inline-flex items-center gap-1.5 bg-[#1a73e8] hover:bg-[#1557b0] active:scale-95 text-white rounded-full px-4 py-2 text-xs font-semibold shadow-xs transition-all cursor-pointer whitespace-nowrap disabled:opacity-50"
+            >
+              {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin text-white" /> : <Send className="w-3.5 h-3.5 text-white" />}
+              <span>{submitting ? 'Submitting...' : 'Submit'}</span>
+            </button>
+          </div>
+
+          <p className="text-xs sm:text-sm font-medium text-[#5f6368] mt-1 pl-[46px]">
+            Submit a new leave request for manager approval
+          </p>
         </div>
-      </div>
+      </section>
 
-      <div className="relative z-20 -mt-12 mx-0.5 space-y-6">
-        <form onSubmit={handleApplyLeave} className="bg-white p-5 rounded-[24px] shadow-lg border border-slate-100/50 space-y-5">
+      <div className="relative z-20 mx-0.5 space-y-6">
+        <form onSubmit={handleApplyLeave} className="bg-white p-5 rounded-[24px] shadow-xs border border-[#e0e3e7] space-y-5">
           
           {/* Leave Type */}
           <div className="space-y-2">
@@ -304,7 +309,7 @@ const ApplyMobileLeave = () => {
               <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-[#5f6368] uppercase pb-1 border-b border-[#e0e3e7]">
                 <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
               </div>
-              <div className="grid grid-cols-7 gap-1">
+              <div className="grid grid-cols-7 gap-1 items-center justify-items-center">
                 {renderCalendar()}
               </div>
             </div>

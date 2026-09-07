@@ -190,62 +190,51 @@ const EmployeeMobileExpenses = () => {
     return (
       <div className="space-y-6 pb-6 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
 
-        {/* Hero Section with Animated Motion Graphics */}
-        <section className="-mx-4 -mt-4 px-4 pt-8 pb-14 relative overflow-hidden bg-slate-900">
-          {/* Animated Liquid Orbs */}
-          <motion.div
-            animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
-            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute -top-20 -left-10 w-72 h-72 bg-[#ff928b] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-          />
-          <motion.div
-            animate={{ scale: [1, 1.4, 1], x: [0, -40, 0], y: [0, 50, 0] }}
-            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-            className="absolute -top-10 -right-10 w-64 h-64 bg-[#7bdff2] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-          />
-          <motion.div
-            animate={{ scale: [1, 1.3, 1], x: [0, 30, 0], y: [0, -40, 0] }}
-            transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-            className="absolute bottom-0 left-20 w-80 h-80 bg-[#84dcc6] rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
-          />
-          
-          {/* Subtle Glass Overlay */}
-          <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none" />
+        {/* Clean White Header & Action */}
+        <section className="relative z-30 pt-1 pb-1">
+          <div className="pt-0.5">
+            <p className="text-[10.5px] font-bold text-[#5f6368] uppercase tracking-wider mb-1 pl-[46px]">
+              Expense Reimbursements
+            </p>
 
-          <div className="relative z-10 flex items-center justify-between px-2">
-            <button 
-              type="button"
-              onClick={handleCloseForm} 
-              className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center backdrop-blur-md transition-all active:scale-95 cursor-pointer"
-              title="Back to Claims"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            
-            <div className="text-center">
-              <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest drop-shadow-md">Expense Reimbursements</p>
-              <h2 className="text-xl font-medium text-white tracking-tight drop-shadow-sm" style={{ fontWeight: 500 }}>
-                New <span className="font-medium italic text-[#1a73e8]">Expense Claim</span>
-              </h2>
+            <div className="flex items-center justify-between gap-2.5">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <button 
+                  type="button"
+                  onClick={handleCloseForm} 
+                  className="w-9 h-9 rounded-full bg-white border border-[#e0e3e7] hover:bg-[#f1f3f4] active:scale-95 text-[#5f6368] flex items-center justify-center shrink-0 shadow-2xs transition-all cursor-pointer"
+                  aria-label="Back to Claims"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <h2 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight leading-tight min-w-0" style={{ fontWeight: 500 }}>
+                  New <span className="font-medium italic text-[#1a73e8]">Claim</span>
+                </h2>
+              </div>
+
+              {/* Compact Action Button Aligned Straight to Main Heading */}
+              <button 
+                type="button"
+                onClick={handleSubmit} 
+                disabled={isSubmitting} 
+                className="shrink-0 inline-flex items-center gap-1.5 bg-[#1a73e8] hover:bg-[#1557b0] active:scale-95 text-white rounded-full px-4 py-2 text-xs font-semibold shadow-xs transition-all cursor-pointer whitespace-nowrap disabled:opacity-50"
+              >
+                {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin text-white" /> : <Save className="w-3.5 h-3.5 text-white" />}
+                <span>{isSubmitting ? 'Saving...' : 'Save Claim'}</span>
+              </button>
             </div>
 
-            <button 
-              type="button"
-              onClick={handleSubmit} 
-              disabled={isSubmitting} 
-              className="px-4 py-3 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white text-xs font-semibold flex items-center gap-1.5 shadow-md disabled:opacity-50 transition-all active:scale-95 cursor-pointer"
-            >
-              {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-              <span>Save</span>
-            </button>
+            <p className="text-xs sm:text-sm font-medium text-[#5f6368] mt-1 pl-[46px]">
+              Submit receipts and expense information for manager review
+            </p>
           </div>
         </section>
 
         {/* Claim Form Cards */}
-        <form onSubmit={handleSubmit} className="space-y-4 relative z-20 -mt-10 mx-0.5">
+        <form onSubmit={handleSubmit} className="space-y-4 relative z-20 mx-0.5">
           
           {/* Expense Information Card */}
-          <div className="bg-white p-5 rounded-[1.5rem] border border-slate-100 shadow-md space-y-4">
+          <div className="bg-white p-4 sm:p-5 rounded-[1.5rem] border border-[#e0e3e7] shadow-xs space-y-4">
             <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">
               Expense Details
             </h3>
@@ -365,53 +354,36 @@ const EmployeeMobileExpenses = () => {
   return (
     <div className="space-y-6 pb-4 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
 
-      {/* Hero Section with Animated Motion Graphics */}
-      <section className="-mx-4 -mt-4 px-4 pt-8 pb-14 relative overflow-hidden bg-slate-900">
-        {/* Animated Liquid Orbs */}
-        <motion.div
-          animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-20 -left-10 w-72 h-72 bg-[#ff928b] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.4, 1], x: [0, -40, 0], y: [0, 50, 0] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute -top-10 -right-10 w-64 h-64 bg-[#7bdff2] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.3, 1], x: [0, 30, 0], y: [0, -40, 0] }}
-          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-0 left-20 w-80 h-80 bg-[#84dcc6] rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
-        />
+      {/* Clean White Header (Direct Page Layout, Non-Card) */}
+      <section className="relative z-30 pt-1 pb-1">
+        {/* Header Title & Action */}
+        <div className="pt-0.5">
+          <p className="text-[10.5px] font-bold text-[#5f6368] uppercase tracking-wider mb-1">
+            My Expenses
+          </p>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight leading-tight min-w-0" style={{ fontWeight: 500 }}>
+              Expense <span className="font-medium italic text-[#1a73e8]">Claims</span>
+            </h2>
 
-        {/* Subtle Glass Overlay */}
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none" />
-
-        <div className="relative z-10 px-2">
-          <div className="flex justify-between items-start mb-5">
-            <div>
-              <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1.5 drop-shadow-md">My Expenses</p>
-              <h2 className="text-3xl font-medium text-white tracking-tight mb-0.5 drop-shadow-sm" style={{ fontWeight: 500 }}>
-                Expense <span className="font-medium italic text-[#1a73e8]">Reimbursements</span>
-              </h2>
-              <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">Track your corporate expenses and claim payouts</p>
-            </div>
+            {/* Compact Action Button Aligned Straight to Main Heading */}
+            <button
+              type="button"
+              onClick={() => setIsFormOpen(true)}
+              className="shrink-0 inline-flex items-center gap-1.5 bg-[#1a73e8] hover:bg-[#1557b0] active:scale-95 text-white rounded-full px-3.5 py-2 text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
+            >
+              <Plus className="w-3.5 h-3.5 text-white" />
+              <span>Claim Expense</span>
+            </button>
           </div>
-
-          {/* Premium White Claim New Expense Button */}
-          <button
-            type="button"
-            onClick={() => setIsFormOpen(true)}
-            className="w-full flex items-center justify-center gap-2 bg-white hover:bg-slate-50 active:scale-[0.98] text-slate-900 rounded-full py-3.5 text-sm font-bold tracking-wide shadow-md transition-all cursor-pointer"
-          >
-            <Plus className="w-4 h-4 text-slate-900" />
-            <span>Claim New Expense</span>
-          </button>
+          <p className="text-xs sm:text-sm font-medium text-[#5f6368] mt-1">
+            Track your corporate expenses and claim payouts
+          </p>
         </div>
       </section>
 
       {/* KPI Stats Grid (2x2 Grid) */}
-      <section className="grid grid-cols-2 gap-3 relative z-20 -mt-12 mx-0.5">
+      <section className="grid grid-cols-2 gap-3 relative z-20 mx-0.5">
         {/* Approved */}
         <div 
           onClick={() => setFilterStatus(filterStatus === 'approved' ? 'all' : 'approved')}

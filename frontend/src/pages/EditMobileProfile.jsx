@@ -114,61 +114,51 @@ const EditMobileProfile = () => {
   return (
     <div className="space-y-6 pb-6 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
 
-      {/* Hero Section with Animated Motion Graphics */}
-      <section className="-mx-4 -mt-4 px-4 pt-8 pb-14 relative overflow-hidden bg-slate-900">
-        {/* Animated Liquid Orbs */}
-        <motion.div
-          animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-20 -left-10 w-72 h-72 bg-[#ff928b] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.4, 1], x: [0, -40, 0], y: [0, 50, 0] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute -top-10 -right-10 w-64 h-64 bg-[#7bdff2] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.3, 1], x: [0, 30, 0], y: [0, -40, 0] }}
-          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-0 left-20 w-80 h-80 bg-[#84dcc6] rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
-        />
-        
-        {/* Subtle Glass Overlay */}
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
+      {/* Clean White Header & Action */}
+      <section className="relative z-30 pt-1 pb-1">
+        <div className="pt-0.5">
+          <p className="text-[10.5px] font-bold text-[#5f6368] uppercase tracking-wider mb-1 pl-[46px]">
+            Employee Self-Service
+          </p>
 
-        <div className="relative z-10 flex items-center justify-between px-2">
-          <button 
-            type="button"
-            onClick={() => navigate('/employee/profile')} 
-            className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center backdrop-blur-md transition-all active:scale-95 cursor-pointer"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          
-          <div className="text-center">
-            <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest drop-shadow-md">Employee Self-Service</p>
-            <h2 className="text-xl font-medium text-white tracking-tight drop-shadow-sm" style={{ fontWeight: 500 }}>
-              Edit <span className="font-medium italic text-[#1a73e8]">Profile</span>
-            </h2>
+          <div className="flex items-center justify-between gap-2.5">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <button 
+                type="button"
+                onClick={() => navigate('/employee/profile')} 
+                className="w-9 h-9 rounded-full bg-white border border-[#e0e3e7] hover:bg-[#f1f3f4] active:scale-95 text-[#5f6368] flex items-center justify-center shrink-0 shadow-2xs transition-all cursor-pointer"
+                aria-label="Back to Profile"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <h2 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight leading-tight min-w-0" style={{ fontWeight: 500 }}>
+                Edit <span className="font-medium italic text-[#1a73e8]">Profile</span>
+              </h2>
+            </div>
+
+            {/* Compact Action Button Aligned Straight to Main Heading */}
+            <button 
+              type="button"
+              onClick={handleSaveProfile} 
+              disabled={isSaving} 
+              className="shrink-0 inline-flex items-center gap-1.5 bg-[#1a73e8] hover:bg-[#1557b0] active:scale-95 text-white rounded-full px-4 py-2 text-xs font-semibold shadow-xs transition-all cursor-pointer whitespace-nowrap disabled:opacity-50"
+            >
+              {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin text-white" /> : <Save className="w-3.5 h-3.5 text-white" />}
+              <span>{isSaving ? 'Saving...' : 'Save'}</span>
+            </button>
           </div>
 
-          <button 
-            type="button"
-            onClick={handleSaveProfile} 
-            disabled={isSaving} 
-            className="px-4 py-3 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white text-xs font-semibold flex items-center gap-1.5 shadow-md disabled:opacity-50 transition-all active:scale-95 cursor-pointer"
-          >
-            {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-            <span>Save</span>
-          </button>
+          <p className="text-xs sm:text-sm font-medium text-[#5f6368] mt-1 pl-[46px]">
+            Update your personal credentials & contact details
+          </p>
         </div>
       </section>
 
       {/* Edit Form */}
-      <form onSubmit={handleSaveProfile} className="space-y-4 relative z-20 -mt-12 mx-0.5">
+      <form onSubmit={handleSaveProfile} className="space-y-4 relative z-20 mx-0.5">
         
         {/* Personal Details Card */}
-        <div className="bg-white p-5 rounded-[1.5rem] border border-slate-100 shadow-md space-y-4">
+        <div className="bg-white p-4 sm:p-5 rounded-[1.5rem] border border-[#e0e3e7] shadow-xs space-y-4">
           <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">
             Personal Information
           </h3>
@@ -302,7 +292,7 @@ const EditMobileProfile = () => {
         </div>
 
         {/* Emergency Contact Card */}
-        <div className="bg-white p-5 rounded-[1.5rem] border border-slate-100 shadow-md space-y-4">
+        <div className="bg-white p-4 sm:p-5 rounded-[1.5rem] border border-[#e0e3e7] shadow-xs space-y-4">
           <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">
             Emergency Contact Details
           </h3>
@@ -335,9 +325,9 @@ const EditMobileProfile = () => {
           <button
             type="submit"
             disabled={isSaving}
-            className="w-full py-3.5 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white text-xs font-bold flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer disabled:opacity-50 active:scale-98"
+            className="w-full py-3 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] active:scale-[0.98] text-white text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer disabled:opacity-50"
           >
-            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            {isSaving ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : <Save className="w-4 h-4 text-white" />}
             <span>Save Profile Updates</span>
           </button>
         </div>
