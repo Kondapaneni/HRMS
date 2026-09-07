@@ -32,7 +32,7 @@ import {
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import BranchOperationsMobileDashboard from './BranchOperationsMobileDashboard';
-import { maskPhoneNumber } from '../utils/phoneUtils';
+import { maskPhoneNumber, maskAddress } from '../utils/phoneUtils';
 
 const BranchOperationsDashboard = () => {
   const navigate = useNavigate();
@@ -372,30 +372,52 @@ const BranchOperationsDashboard = () => {
               </div>
             </div>
 
-            {/* Google Rounded Pill Tabs */}
-            <div className="flex items-center gap-1.5 bg-[#f8fafd] border border-[#e0e3e7] p-1 rounded-full">
-              <button
-                type="button"
-                onClick={() => setActiveTableTab('leads')}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-                  activeTableTab === 'leads'
-                    ? 'bg-white text-[#1a73e8] shadow-xs'
-                    : 'text-[#5f6368] hover:text-[#1f1f1f]'
-                }`}
-              >
-                Recent Leads ({recentLeads.length})
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTableTab('applications')}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-                  activeTableTab === 'applications'
-                    ? 'bg-white text-[#1a73e8] shadow-xs'
-                    : 'text-[#5f6368] hover:text-[#1f1f1f]'
-                }`}
-              >
-                Recent Applications ({recentApplications.length})
-              </button>
+            {/* Google Rounded Pill Tabs and View All Link */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-1.5 bg-[#f8fafd] border border-[#e0e3e7] p-1 rounded-full">
+                <button
+                  type="button"
+                  onClick={() => setActiveTableTab('leads')}
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                    activeTableTab === 'leads'
+                      ? 'bg-white text-[#1a73e8] shadow-xs font-bold'
+                      : 'text-[#5f6368] hover:text-[#1f1f1f]'
+                  }`}
+                >
+                  Recent Leads ({recentLeads.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTableTab('applications')}
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                    activeTableTab === 'applications'
+                      ? 'bg-white text-[#1a73e8] shadow-xs font-bold'
+                      : 'text-[#5f6368] hover:text-[#1f1f1f]'
+                  }`}
+                >
+                  Recent Applications ({recentApplications.length})
+                </button>
+              </div>
+
+              {activeTableTab === 'leads' ? (
+                <button
+                  type="button"
+                  onClick={() => navigate('/employee/branch-operations/leads')}
+                  className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] hover:bg-[#d2e3fc] border border-[#d2e3fc] transition-colors cursor-pointer"
+                >
+                  <span>View All Leads</span>
+                  <ArrowUpRight size={13} />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => navigate('/employee/branch-operations/loans-applications')}
+                  className="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] hover:bg-[#d2e3fc] border border-[#d2e3fc] transition-colors cursor-pointer"
+                >
+                  <span>View All Applications</span>
+                  <ArrowUpRight size={13} />
+                </button>
+              )}
             </div>
           </div>
 
@@ -430,12 +452,16 @@ const BranchOperationsDashboard = () => {
                           {maskPhoneNumber(lead.phone)}
                         </td>
                         <td className="px-4 py-3.5 text-[#5f6368] max-w-[180px] truncate" title={lead.address}>
-                          {lead.address || '—'}
+                          {maskAddress(lead.address)}
                         </td>
                         <td className="px-4 py-3.5 text-center whitespace-nowrap">
-                          <span className="inline-flex items-center justify-center px-3 py-1 rounded-full text-[11px] font-medium bg-[#f1f3f4] text-[#444746] whitespace-nowrap text-center">
-                            {lead.loan_type || 'Personal Loan'}
-                          </span>
+                          {lead.loan_type && lead.loan_type.trim().toLowerCase() !== 'opportunity' ? (
+                            <span className="inline-flex items-center justify-center px-3 py-1 rounded-full text-[11px] font-medium bg-[#f1f3f4] text-[#444746] whitespace-nowrap text-center">
+                              {lead.loan_type}
+                            </span>
+                          ) : (
+                            <span className="text-[#80868b] font-medium">-</span>
+                          )}
                         </td>
                         <td className="px-4 py-3.5 font-medium text-[#444746]">
                           {lead.creator_name || 'Branch Officer'}

@@ -48,6 +48,7 @@ import OriginationLoanViewApplication from './pages/OriginationLoanViewApplicati
 import OriginationActivities from './pages/OriginationActivities'
 import BranchOperationsLayout from './components/BranchOperationsLayout'
 import BranchOperationsDashboard from './pages/BranchOperationsDashboard'
+import BranchOperationsLeads from './pages/BranchOperationsLeads'
 import BranchOperationsLoansApplicationsList from './pages/BranchOperationsLoansApplicationsList'
 import BranchOperationsLoansViewApplication from './pages/BranchOperationsLoansViewApplication'
 import BranchOperationsLoansEditApplication from './pages/BranchOperationsLoansEditApplication'
@@ -306,6 +307,7 @@ function App() {
             >
               <Route index element={<BranchOperationsDashboard />} />
               <Route path="dashboard" element={<BranchOperationsDashboard />} />
+              <Route path="leads" element={<BranchOperationsLeads />} />
               <Route path="activities" element={<OriginationActivities />} />
               <Route path="loans-applications" element={<BranchOperationsLoansApplicationsList />} />
               <Route path="loans-view-applications" element={<BranchOperationsLoansViewApplication />} />

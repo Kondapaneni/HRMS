@@ -216,30 +216,6 @@ const BranchOperationsMobileDashboard = () => {
       {/* 2. Elevated Content Layer */}
       <div className="relative z-20 mx-0.5 space-y-3.5">
         
-        {/* Activities Quick Access Card */}
-        <div 
-          onClick={() => navigate('/employee/branch-operations/activities')}
-          className="bg-white rounded-2xl border border-[#e0e3e7] p-3.5 shadow-xs flex items-center justify-between cursor-pointer hover:bg-[#f8fafd] transition-all active:scale-[0.99]"
-        >
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-2xl bg-[#f3e8fd] text-[#7C4DFF] flex items-center justify-center shrink-0 border border-[#e9d5ff]">
-              <Calendar className="w-5 h-5" />
-            </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <p className="text-sm font-bold text-[#1f1f1f]">Branch Activities &amp; Schedule</p>
-                <span className="text-[10px] font-bold text-[#7C4DFF] bg-[#7C4DFF]/10 px-2 py-0.5 rounded-full">
-                  Tasks
-                </span>
-              </div>
-              <p className="text-xs text-[#5f6368] truncate">Manage tasks, meetings, follow-ups &amp; field schedules</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-1 text-xs font-semibold text-[#7C4DFF] shrink-0">
-            <span>Open</span>
-            <ChevronRight className="w-4 h-4" />
-          </div>
-        </div>
 
         {/* Dual Filter Selectors (1. Pipeline Selector, 2. Officer Selector) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -558,7 +534,7 @@ const BranchOperationsMobileDashboard = () => {
                               <Phone size={10} className="text-[#80868b]" />
                               {lead.phone ? maskPhoneNumber(lead.phone) : '—'}
                             </span>
-                            {lead.loan_type && (
+                            {lead.loan_type && lead.loan_type.trim().toLowerCase() !== 'opportunity' && (
                               <>
                                 <span>&bull;</span>
                                 <span className="truncate text-[#7C4DFF] font-semibold">{lead.loan_type}</span>
@@ -622,6 +598,29 @@ const BranchOperationsMobileDashboard = () => {
                   );
                 })
               )
+            )}
+          </div>
+
+          {/* Footer View All Link */}
+          <div className="pt-2.5 mt-1 border-t border-[#f1f3f4]">
+            {activityTab === 'leads' ? (
+              <button
+                type="button"
+                onClick={() => navigate('/employee/branch-operations/leads')}
+                className="w-full py-2 flex items-center justify-center gap-1.5 text-xs font-bold text-[#7C4DFF] hover:bg-[#f3e8fd]/50 active:bg-[#f3e8fd] rounded-xl transition-colors cursor-pointer"
+              >
+                <span>View All Branch Leads</span>
+                <ChevronRight size={14} />
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => navigate('/employee/branch-operations/loans-applications')}
+                className="w-full py-2 flex items-center justify-center gap-1.5 text-xs font-bold text-[#7C4DFF] hover:bg-[#f3e8fd]/50 active:bg-[#f3e8fd] rounded-xl transition-colors cursor-pointer"
+              >
+                <span>View All Loan Applications</span>
+                <ChevronRight size={14} />
+              </button>
             )}
           </div>
         </div>

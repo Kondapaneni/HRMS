@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import api, { isNativeApp, isIOS, REMOTE_ORIGIN, getAssetUrl } from '../api/axios';
+import api, { isNativeApp, isIOS, getAssetUrl } from '../api/axios';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
@@ -22,67 +22,7 @@ const EmployeeMobileProfile = () => {
   const { fetchProfile } = useAuth();
   const [activeSection, setActiveSection] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [updateAvailable, setUpdateAvailable] = useState(false);
-  const [latestVersion, setLatestVersion] = useState(null);
-  const [isUpdating, setIsUpdating] = useState(false);
   const controls = useDragControls();
-
-  // Check for native app updates
-  useEffect(() => {
-    if (!isNativeApp) return;
-
-    const checkAppVersion = async () => {
-      try {
-        const versionUrl = REMOTE_ORIGIN
-          ? `${REMOTE_ORIGIN}/version.json?t=${Date.now()}`
-          : `/version.json?t=${Date.now()}`;
-
-        const res = await fetch(versionUrl, { cache: 'no-store' });
-        if (res.ok) {
-          const data = await res.json();
-          const currentVersion = Number(import.meta.env.VITE_APP_VERSION);
-          const currentSemver = import.meta.env.VITE_APP_SEMVER;
-
-          if (
-            (data.version && currentVersion && Number(data.version) > currentVersion) ||
-            (data.semver && currentSemver && data.semver !== currentSemver)
-          ) {
-            setUpdateAvailable(true);
-            setLatestVersion(data);
-          } else {
-            setUpdateAvailable(false);
-          }
-        }
-      } catch (err) {
-        console.error('Failed to check for native app update:', err);
-      }
-    };
-
-    checkAppVersion();
-    const interval = setInterval(checkAppVersion, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const handleUpdateApp = () => {
-    setIsUpdating(true);
-    toast.loading('Updating app to latest version...', { id: 'native-update' });
-
-    if ('caches' in window) {
-      caches.keys().then((names) => {
-        names.forEach(name => caches.delete(name));
-      });
-    }
-
-    setTimeout(() => {
-      toast.success('App updated!', { id: 'native-update' });
-      const isLocalhost = typeof window !== 'undefined' && (window.location.origin.includes('localhost') || window.location.origin.includes('capacitor://'));
-      if (isLocalhost && REMOTE_ORIGIN) {
-        window.location.href = REMOTE_ORIGIN;
-      } else {
-        window.location.reload(true);
-      }
-    }, 800);
-  };
 
   useEffect(() => {
     if (activeSection) {
@@ -511,8 +451,8 @@ const EmployeeMobileProfile = () => {
           Build {import.meta.env.VITE_APP_VERSION || '2026.08.28'}
         </p>
 
-        {/* Text link: In Web Mobile show Download App APK (Android / Desktop only; hidden on iOS devices); In Native App show Update only if update is available */}
-        {!isNativeApp && !isIOS ? (
+        {/* Text link: In Web Mobile show Download App APK (Android / Desktop only; hidden on iOS devices) */}
+        {!isNativeApp && !isIOS && (
           <div className="pt-1">
             <a
               href={getAssetUrl('/downloads/Acme%20HRMS.apk')}
@@ -523,20 +463,6 @@ const EmployeeMobileProfile = () => {
               <span>Download Mobile App (APK)</span>
             </a>
           </div>
-        ) : (
-          isNativeApp && updateAvailable && (
-            <div className="pt-1">
-              <button
-                type="button"
-                onClick={handleUpdateApp}
-                disabled={isUpdating}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1a73e8] hover:text-[#1557b0] bg-[#e8f0fe] hover:bg-[#d2e3fc] px-3.5 py-1.5 rounded-full border border-[#d2e3fc] shadow-2xs transition-all cursor-pointer active:scale-95 disabled:opacity-60"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${isUpdating ? 'animate-spin' : ''}`} />
-                <span>{isUpdating ? 'Updating App...' : `Update Available (${latestVersion?.semver || 'Tap to Update'})`}</span>
-              </button>
-            </div>
-          )
         )}
       </div>
 

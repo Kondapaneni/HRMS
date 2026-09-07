@@ -202,7 +202,25 @@ export const getBranches = async () => {
   }
 };
 
+/**
+ * Fetches all leads (both loan and sales) belonging to the user's branch for Branch Operations.
+ * @param {Object} context - React Query query context
+ * @returns {Promise<Object>}
+ */
+export const getBranchLeads = async ({ queryKey } = {}) => {
+  const employeeId = queryKey?.[1] || '';
+  const pipeline = queryKey?.[2] || 'all';
+  const status = queryKey?.[3] || 'All';
+  const search = queryKey?.[4] || '';
 
+  const params = new URLSearchParams();
+  if (employeeId && employeeId !== 'all') params.append('employee_id', employeeId);
+  if (pipeline && pipeline !== 'all') params.append('pipeline', pipeline);
+  if (status && status !== 'All') params.append('status', status);
+  if (search && search.trim()) params.append('search', search.trim());
 
-
-
+  const qs = params.toString();
+  const url = qs ? `/branch-operations/leads?${qs}` : '/branch-operations/leads';
+  const response = await api.get(url);
+  return response.data;
+};

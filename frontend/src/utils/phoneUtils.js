@@ -27,3 +27,23 @@ export const maskPhoneNumber = (phone) => {
 
   return str;
 };
+
+/**
+ * Masks address from the second letter up to the last 4 letters with '*'.
+ * e.g., 'Hyderabad, 500001' -> 'H************0001'
+ *
+ * @param {string} address
+ * @returns {string}
+ */
+export const maskAddress = (address) => {
+  if (!address) return '-';
+  const str = String(address).trim();
+  if (!str) return '-';
+  if (str.length <= 5) {
+    return str.length > 1 ? `${str.charAt(0)}${'*'.repeat(str.length - 1)}` : str;
+  }
+  const firstLetter = str.slice(0, 1);
+  const lastFour = str.slice(-4);
+  const middleMask = '*'.repeat(str.length - 5);
+  return `${firstLetter}${middleMask}${lastFour}`;
+};

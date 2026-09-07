@@ -13,7 +13,8 @@ import {
   ChevronLeft,
   Calendar as CalendarIcon,
   Menu,
-  X
+  X,
+  TrendingUp
 } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -133,6 +134,11 @@ const BranchOperationsLayout = () => {
       icon: <Activity size={15} />, 
       label: 'Dashboard', 
       path: '/employee/branch-operations' 
+    },
+    { 
+      icon: <TrendingUp size={15} />, 
+      label: 'Leads', 
+      path: '/employee/branch-operations/leads' 
     },
     { 
       icon: <CalendarIcon size={15} />, 
@@ -397,14 +403,16 @@ const BranchOperationsLayout = () => {
                 {(() => {
                   const currentPath = swipePath || location.pathname;
                   const isDashboard = currentPath === '/employee/branch-operations' || currentPath === '/employee/branch-operations/dashboard';
+                  const isLeads = currentPath.startsWith('/employee/branch-operations/leads');
                   const isActivities = currentPath.startsWith('/employee/branch-operations/activities');
                   const isApplications = currentPath.startsWith('/employee/branch-operations/loans-applications') || currentPath.startsWith('/employee/branch-operations/loans-view-applications') || currentPath.startsWith('/employee/branch-operations/loans-edit-application');
-                  const isMoreActive = !isDashboard && !isActivities && !isApplications;
+                  const isMoreActive = !isDashboard && !isLeads && !isActivities && !isApplications;
 
                   return (
                     <>
                       {[
                         { label: 'Dashboard', icon: Activity, path: '/employee/branch-operations', isActive: isDashboard },
+                        { label: 'Leads', icon: TrendingUp, path: '/employee/branch-operations/leads', isActive: isLeads },
                         { label: 'Activities', icon: CalendarIcon, path: '/employee/branch-operations/activities', isActive: isActivities },
                         { label: 'Applications', icon: Briefcase, path: '/employee/branch-operations/loans-applications', isActive: isApplications },
                       ].map((item) => {
