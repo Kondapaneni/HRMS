@@ -208,13 +208,14 @@ const BranchOperationsLayout = () => {
 
           {/* Bottom Actions */}
           <div className="p-2.5 border-t border-[#f1f3f4] bg-white space-y-1">
-            <Link
-              to="/employee"
-              className="w-full flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-[#444746] rounded-full hover:bg-[#f1f3f4] hover:text-[#1f1f1f] transition-colors cursor-pointer"
+            <button
+              type="button"
+              onClick={() => setShowBackModal(true)}
+              className="w-full flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-[#444746] rounded-full hover:bg-[#f1f3f4] hover:text-[#1f1f1f] transition-colors cursor-pointer text-left"
             >
               <ArrowLeft size={15} className="text-[#5f6368]" />
               <span className="text-[11.5px]">Back to HRMS</span>
-            </Link>
+            </button>
 
             <button
               type="button"

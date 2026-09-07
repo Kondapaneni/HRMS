@@ -1,7 +1,21 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
+const LOADING_STEPS = [
+  'Loading Workspace...',
+  'Synchronizing Secure Profile...',
+  'Preparing Dashboard...'
+];
+
 const SplashScreen = () => {
+  const [stepIndex, setStepIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setStepIndex((prev) => (prev + 1) % LOADING_STEPS.length);
+    }, 900);
+    return () => clearInterval(timer);
+  }, []);
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: { 
@@ -24,7 +38,10 @@ const SplashScreen = () => {
   };
 
   return (
-    <div className="fixed inset-0 flex flex-col items-center justify-center bg-[#f8fafd] overflow-hidden z-[9999] select-none">
+    <div 
+      className="fixed inset-0 flex flex-col items-center justify-center bg-[#f8fafd] overflow-hidden z-[9999] select-none font-editorial antialiased"
+      style={{ fontFamily: "'Newsreader', Georgia, serif" }}
+    >
       
       {/* Google Ambient Glow Blobs */}
       <motion.div 
@@ -191,16 +208,18 @@ const SplashScreen = () => {
           </svg>
         </motion.div>
 
-        {/* Branding & Loading Text */}
+        {/* Branding & Loading Text with Editorial Typography */}
         <motion.div variants={itemVariants} className="text-center flex flex-col items-center w-full">
           
-          {/* Logo with 4-Color Accent Dots */}
-          <div className="flex items-center gap-2 mb-2">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight">
-              <span className="text-[#1f1f1f]">Acme </span>
-              <span className="text-[#4285F4]">HRMS</span>
+          {/* Logo with Newsreader Editorial Font & 4-Color Accent Dots */}
+          <div className="flex items-center gap-2 mb-1">
+            <h1 
+              className="font-editorial text-3xl sm:text-4xl md:text-[42px] font-medium tracking-tight text-[#1f1f1f]"
+              style={{ fontFamily: "'Newsreader', Georgia, serif" }}
+            >
+              Acme <span className="italic font-medium text-[#1a73e8]">HRMS</span>
             </h1>
-            <div className="flex items-center gap-1 mt-1">
+            <div className="flex items-center gap-1 mt-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
               <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
               <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
@@ -208,30 +227,55 @@ const SplashScreen = () => {
             </div>
           </div>
           
-          <div className="flex flex-col items-center w-full space-y-4">
+          {/* Tagline */}
+          <p 
+            className="font-editorial text-xs sm:text-sm text-[#5f6368] italic font-normal tracking-normal mb-5"
+            style={{ fontFamily: "'Newsreader', Georgia, serif" }}
+          >
+            Enterprise Human Resource & Workspace
+          </p>
+          
+          <div className="flex flex-col items-center w-full space-y-3.5">
             
-            {/* Status Loading Text */}
-            <div className="flex items-center space-x-1.5">
-              <p className="text-xs sm:text-sm font-semibold text-[#5f6368] tracking-wide animate-pulse">
-                Loading Workspace...
-              </p>
+            {/* Status Pill Badge */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/90 border border-[#e0e3e7] shadow-2xs backdrop-blur-xs">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#1a73e8] opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#1a73e8]" />
+              </span>
+              <span className="font-sans text-[11px] font-medium text-[#444746] tracking-wide">
+                {LOADING_STEPS[stepIndex]}
+              </span>
             </div>
             
             {/* Google 4-Color Gradient Progress Bar */}
-            <div className="w-48 sm:w-56 md:w-64 h-1.5 bg-[#e0e3e7] rounded-full overflow-hidden p-0.25">
+            <div className="w-48 sm:w-56 md:w-64 h-1.5 bg-[#e0e3e7] rounded-full overflow-hidden p-0.25 relative shadow-inner">
                <motion.div 
                  className="h-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] rounded-full"
-                 initial={{ width: "0%" }}
-                 animate={{ width: "100%" }}
-                 transition={{ duration: 2.8, ease: [0.4, 0, 0.2, 1] }}
+                 animate={{
+                   x: ['-100%', '100%'],
+                   width: ['40%', '60%', '40%']
+                 }}
+                 transition={{
+                   repeat: Infinity,
+                   duration: 1.8,
+                   ease: "easeInOut"
+                 }}
                />
             </div>
 
-            <p className="text-[10px] text-[#5f6368]/80 font-medium">
-              Enterprise Human Resource Management
-            </p>
+            <div className="flex items-center gap-2 pt-1">
+              <span className="font-sans text-[10px] tracking-widest uppercase font-semibold text-[#80868b]">
+                Enterprise Cloud Portal
+              </span>
+              <span className="w-1 h-1 rounded-full bg-[#dadce0]" />
+              <span className="font-sans text-[10px] font-medium text-[#80868b]">
+                Secure Auth
+              </span>
+            </div>
           </div>
         </motion.div>
+
       </motion.div>
     </div>
   );

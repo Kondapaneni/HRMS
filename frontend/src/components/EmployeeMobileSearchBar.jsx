@@ -211,7 +211,7 @@ const EmployeeMobileSearchBar = ({ placeholder = "Search your pages, leaves, pay
 
   const filteredPages = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    if (!q) return searchablePages;
+    if (!q) return [];
     return searchablePages.filter((item) => {
       const matchTitle = item.title.toLowerCase().includes(q);
       const matchSubtitle = item.subtitle.toLowerCase().includes(q);
@@ -232,14 +232,21 @@ const EmployeeMobileSearchBar = ({ placeholder = "Search your pages, leaves, pay
             setSearchQuery(e.target.value);
             setIsSearchOpen(true);
           }}
-          onFocus={() => setIsSearchOpen(true)}
+          onFocus={() => {
+            if (searchQuery.trim()) {
+              setIsSearchOpen(true);
+            }
+          }}
           placeholder={placeholder}
           className="w-full h-12 bg-white border border-[#dadce0] focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 rounded-full pl-11.5 pr-10 text-sm font-medium text-[#1f1f1f] placeholder:text-[#80868b] outline-none transition-all shadow-xs"
         />
         {searchQuery && (
           <button
             type="button"
-            onClick={() => setSearchQuery('')}
+            onClick={() => {
+              setSearchQuery('');
+              setIsSearchOpen(false);
+            }}
             className="absolute right-3.5 p-1 text-[#80868b] hover:text-[#1f1f1f] rounded-full transition-colors cursor-pointer"
           >
             <X size={15} />
@@ -247,21 +254,9 @@ const EmployeeMobileSearchBar = ({ placeholder = "Search your pages, leaves, pay
         )}
       </div>
 
-      {/* Quick Dropdown Results / Suggestions */}
-      {isSearchOpen && (
+      {/* Dropdown Results - Only shows when actively searching */}
+      {isSearchOpen && searchQuery.trim().length > 0 && (
         <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl border border-[#dadce0] shadow-xl overflow-hidden z-50 max-h-80 overflow-y-auto divide-y divide-[#f1f3f4] [scrollbar-width:thin]">
-          <div className="px-3.5 py-2 bg-[#f8fafd] flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368]">
-              {searchQuery.trim() ? `Matching Pages (${filteredPages.length})` : 'Quick Navigation Pages'}
-            </span>
-            <button
-              type="button"
-              onClick={() => setIsSearchOpen(false)}
-              className="text-[11px] font-semibold text-[#1a73e8] hover:underline cursor-pointer"
-            >
-              Close
-            </button>
-          </div>
 
           {filteredPages.length > 0 ? (
             filteredPages.map((page) => {

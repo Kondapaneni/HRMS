@@ -15,7 +15,8 @@ import {
   Film,
   Sparkles,
   Award,
-  RotateCcw
+  RotateCcw,
+  X
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -135,63 +136,65 @@ const EmployeeMobileTrainingVideos = () => {
   }
 
   return (
-    <div className="space-y-6 pb-6 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+    <div className="space-y-4 pb-14 select-none font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
 
-      {/* Hero Section with Animated Motion Graphics */}
-      <section className="-mx-4 -mt-4 px-4 pt-8 pb-7 relative overflow-hidden bg-slate-900">
-        {/* Animated Liquid Orbs */}
-        <motion.div
-          animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-20 -left-10 w-72 h-72 bg-[#ff928b] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.4, 1], x: [0, -40, 0], y: [0, 50, 0] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute -top-10 -right-10 w-64 h-64 bg-[#7bdff2] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.3, 1], x: [0, 30, 0], y: [0, -40, 0] }}
-          transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute bottom-0 left-20 w-80 h-80 bg-[#84dcc6] rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
-        />
-        
-        {/* Subtle Glass Overlay */}
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none"></div>
+      {/* Clean White Header matching all Mobile Pages */}
+      <section className="relative z-30 pt-1 pb-1">
+        <div className="pt-0.5">
+          <p className="text-[10.5px] font-bold text-[#5f6368] uppercase tracking-wider mb-1">
+            Learning &amp; Development
+          </p>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight leading-tight min-w-0" style={{ fontWeight: 500 }}>
+              Training <span className="font-medium italic text-[#1a73e8]">Videos</span>
+            </h2>
 
-        <div className="relative z-10 px-2">
-          <div className="flex justify-between items-start mb-3">
-            <div>
-              <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">Learning Hub</p>
-              <h2 className="text-3xl font-medium text-white tracking-tight mb-0.5 drop-shadow-sm" style={{ fontWeight: 500 }}>
-                Training <span className="font-medium italic text-[#1a73e8]">Videos</span>
-              </h2>
-              <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90">
-                {completedCount} of {videos.length} Modules Completed ({progressPercent}%)
-              </p>
-            </div>
-
-            <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white shrink-0 mt-1 shadow-md border border-white/20">
-              <GraduationCap className="w-5 h-5" />
-            </div>
+            {/* Standardized Header Back Button matching all other mobile pages */}
+            <button
+              type="button"
+              onClick={() => navigate('/employee')}
+              className="shrink-0 h-10 px-4 inline-flex items-center justify-center gap-1.5 rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] shadow-xs active:scale-95 transition-all cursor-pointer whitespace-nowrap"
+            >
+              <ArrowLeft size={14} className="text-[#5f6368]" />
+              <span>Back</span>
+            </button>
           </div>
-
-          {/* Progress Bar in Hero */}
-          {videos.length > 0 && (
-            <div className="w-full h-2 rounded-full bg-white/20 overflow-hidden backdrop-blur-xs">
-              <motion.div
-                className="h-full rounded-full bg-white shadow-xs"
-                initial={{ width: 0 }}
-                animate={{ width: `${progressPercent}%` }}
-                transition={{ duration: 0.6, ease: 'easeOut' }}
-              />
-            </div>
-          )}
+          <p className="text-xs sm:text-sm font-medium text-[#5f6368] mt-1">
+            {completedCount} of {videos.length} Modules Completed ({progressPercent}%)
+          </p>
         </div>
       </section>
 
+      {/* Curriculum Progress Bar Card */}
+      {videos.length > 0 && (
+        <section className="bg-white rounded-3xl border border-[#e0e3e7] p-4.5 shadow-xs space-y-2.5 mx-0.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center shrink-0">
+                <GraduationCap className="w-4.5 h-4.5" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-[#1f1f1f]">Curriculum Progress</p>
+                <p className="text-[10.5px] text-[#5f6368]">{completedCount} of {videos.length} completed</p>
+              </div>
+            </div>
+            <span className="text-xs font-bold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full shadow-2xs">
+              {progressPercent}%
+            </span>
+          </div>
+          <div className="w-full h-2 rounded-full bg-[#f1f3f4] overflow-hidden">
+            <motion.div
+              className="h-full rounded-full bg-gradient-to-r from-[#4285F4] to-[#34A853]"
+              initial={{ width: 0 }}
+              animate={{ width: `${progressPercent}%` }}
+              transition={{ duration: 0.6, ease: 'easeOut' }}
+            />
+          </div>
+        </section>
+      )}
+
       {/* KPI Stats Grid (4 Cards in Compact Google aesthetic) */}
-      <section className="grid grid-cols-2 gap-3 relative z-20 -mt-3 mx-0.5">
+      <section className="grid grid-cols-2 gap-3 relative z-20 mx-0.5">
         {/* Total Modules */}
         <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3.5 shadow-xs space-y-1">
           <div className="flex items-center justify-between">
@@ -239,7 +242,7 @@ const EmployeeMobileTrainingVideos = () => {
 
       {videos.length === 0 ? (
         /* Empty State */
-        <div className="bg-white rounded-[1.5rem] border border-slate-100 p-8 text-center shadow-md space-y-3 mx-0.5">
+        <div className="bg-white rounded-3xl border border-[#e0e3e7] p-8 text-center shadow-xs space-y-3 mx-0.5">
           <div className="w-16 h-16 bg-[#fce8e6] border border-[#fad2cf] rounded-full flex items-center justify-center mx-auto text-[#d93025]">
             <Film className="w-8 h-8" />
           </div>
@@ -250,42 +253,138 @@ const EmployeeMobileTrainingVideos = () => {
         </div>
       ) : (
         <>
+          {/* Active Featured Video Player (Featured Above Playlist for Quick Viewing) */}
+          {activeVideo && (
+            <div className="bg-white rounded-3xl border border-[#e0e3e7] overflow-hidden shadow-xs space-y-3 mx-0.5 pt-1">
+              <div className="px-4 pt-3 flex items-center justify-between">
+                <span className="text-xs font-bold text-[#1f1f1f] uppercase tracking-wider">Currently Playing</span>
+                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
+                  Module {activeIndex + 1} of {videos.length}
+                </span>
+              </div>
+
+              {/* Video Box */}
+              <div className="aspect-video bg-black relative">
+                <video
+                  ref={videoPlayerRef}
+                  key={activeVideo.id}
+                  src={activeVideo.video_url}
+                  className="w-full h-full object-contain"
+                  controls
+                  playsInline
+                  preload="metadata"
+                />
+              </div>
+
+              {/* Video Details */}
+              <div className="p-4 pt-1 space-y-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    {activeVideo.is_completed && (
+                      <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#e6f4ea] text-[#137333] border border-[#ceead6] inline-flex items-center gap-1 mb-1.5">
+                        <Check className="w-3 h-3" /> Completed
+                      </span>
+                    )}
+                    <h2 className="text-base font-bold text-[#1f1f1f] leading-snug">
+                      {activeVideo.title}
+                    </h2>
+                    <p className="text-[11px] text-[#5f6368] mt-1 flex items-center gap-1">
+                      <Clock className="w-3 h-3 text-[#5f6368]" />
+                      Added {new Date(activeVideo.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Video Action Pill Buttons with Standardized h-10 Height */}
+                <div className="flex items-center gap-2 pt-2 border-t border-[#f1f3f4]">
+                  {activeIndex > 0 && (
+                    <button
+                      type="button"
+                      onClick={handlePrevVideo}
+                      className="h-10 px-3.5 inline-flex items-center justify-center gap-1 rounded-full bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] text-xs font-semibold border border-[#dadce0] transition-all active:scale-95 shadow-2xs cursor-pointer shrink-0"
+                    >
+                      <ChevronLeft className="w-4 h-4 text-[#5f6368]" />
+                      <span>Prev</span>
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={(e) => triggerToggleComplete(activeVideo, e)}
+                    disabled={toggleProgressMutation.isPending}
+                    className={`h-10 px-4 flex-1 inline-flex items-center justify-center gap-1.5 rounded-full text-xs font-semibold tracking-wide transition-all active:scale-95 cursor-pointer shadow-xs ${
+                      activeVideo.is_completed
+                        ? 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6] hover:bg-[#d5eedc]'
+                        : 'bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white'
+                    }`}
+                  >
+                    {activeVideo.is_completed ? (
+                      <>
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>Completed</span>
+                      </>
+                    ) : (
+                      <>
+                        <Check className="w-4 h-4" />
+                        <span>Mark as Completed</span>
+                      </>
+                    )}
+                  </button>
+
+                  {activeIndex < videos.length - 1 && (
+                    <button
+                      type="button"
+                      onClick={handleNextVideo}
+                      className="h-10 px-3.5 inline-flex items-center justify-center gap-1 rounded-full bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] text-xs font-semibold border border-[#dadce0] transition-all active:scale-95 shadow-2xs cursor-pointer shrink-0"
+                    >
+                      <span>Next</span>
+                      <ChevronRight className="w-4 h-4 text-[#5f6368]" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Search & Filter Bar */}
-          <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3.5 shadow-xs space-y-2.5 mx-0.5">
-            <div className="relative">
-              <Search className="w-4 h-4 text-[#5f6368] absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <div className="bg-white rounded-3xl border border-[#e0e3e7] p-4 shadow-xs space-y-3 mx-0.5">
+            <div className="relative flex items-center">
+              <Search className="w-4 h-4 text-[#80868b] absolute left-4 pointer-events-none" />
               <input
                 type="text"
                 placeholder="Search training modules..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-8 py-2.5 bg-slate-50 border border-slate-200 rounded-full text-xs font-semibold text-slate-800 placeholder-slate-400 focus:bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                className="w-full h-11 pl-10 pr-9 bg-[#f8fafd] border border-[#dadce0] focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 focus:bg-white rounded-full text-xs font-semibold text-[#1f1f1f] placeholder-[#80868b] outline-none transition-all shadow-2xs"
               />
               {searchQuery && (
                 <button
+                  type="button"
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-700"
+                  className="absolute right-3.5 p-1 text-[#80868b] hover:text-[#1f1f1f] rounded-full transition-colors cursor-pointer"
                 >
-                  ✕
+                  <X size={14} />
                 </button>
               )}
             </div>
 
             {/* Filter Pills */}
-            <div className="flex items-center gap-1.5 pt-1 overflow-x-auto [scrollbar-width:none]">
+            <div className="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none]">
               <button
+                type="button"
                 onClick={() => setActiveFilter('all')}
-                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                className={`h-8 px-3.5 rounded-full text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
                   activeFilter === 'all'
                     ? 'bg-[#1a73e8] text-white shadow-xs'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    : 'bg-[#f1f3f4] text-[#5f6368] hover:bg-[#e3e3e3]'
                 }`}
               >
                 All ({videos.length})
               </button>
               <button
+                type="button"
                 onClick={() => setActiveFilter('pending')}
-                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                className={`h-8 px-3.5 rounded-full text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
                   activeFilter === 'pending'
                     ? 'bg-[#b06000] text-white shadow-xs'
                     : 'bg-[#fef7e0] text-[#b06000] border border-[#feefc3] hover:bg-[#feeec3]'
@@ -294,8 +393,9 @@ const EmployeeMobileTrainingVideos = () => {
                 To Watch ({videos.length - completedCount})
               </button>
               <button
+                type="button"
                 onClick={() => setActiveFilter('completed')}
-                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                className={`h-8 px-3.5 rounded-full text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
                   activeFilter === 'completed'
                     ? 'bg-[#137333] text-white shadow-xs'
                     : 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6] hover:bg-[#d5eedc]'
@@ -306,7 +406,7 @@ const EmployeeMobileTrainingVideos = () => {
             </div>
           </div>
 
-          {/* Video Modules Playlist (Above Videos) */}
+          {/* Video Modules Playlist */}
           <div className="space-y-2.5 mx-0.5">
             <div className="flex items-center justify-between px-1">
               <h3 className="text-base font-medium text-slate-900 tracking-tight" style={{ fontWeight: 500 }}>
@@ -398,97 +498,6 @@ const EmployeeMobileTrainingVideos = () => {
               })
             )}
           </div>
-
-          {/* Active Featured Video Player (Below Playlist) */}
-          {activeVideo && (
-            <div className="bg-white rounded-[1.5rem] border border-slate-100 overflow-hidden shadow-md space-y-3 mx-0.5 pt-1">
-              <div className="px-4 pt-3 flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-900 uppercase tracking-wider">Currently Playing</span>
-                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
-                  Module {activeIndex + 1} of {videos.length}
-                </span>
-              </div>
-
-              {/* Video Box */}
-              <div className="aspect-video bg-black relative">
-                <video
-                  ref={videoPlayerRef}
-                  key={activeVideo.id}
-                  src={activeVideo.video_url}
-                  className="w-full h-full object-contain"
-                  controls
-                  playsInline
-                  preload="metadata"
-                />
-              </div>
-
-              {/* Video Details */}
-              <div className="p-4 pt-1 space-y-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    {activeVideo.is_completed && (
-                      <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#e6f4ea] text-[#137333] border border-[#ceead6] inline-flex items-center gap-1 mb-1.5">
-                        <Check className="w-3 h-3" /> Completed
-                      </span>
-                    )}
-                    <h2 className="text-base font-bold text-[#1f1f1f] leading-snug">
-                      {activeVideo.title}
-                    </h2>
-                    <p className="text-[11px] text-[#5f6368] mt-1 flex items-center gap-1">
-                      <Clock className="w-3 h-3 text-[#5f6368]" />
-                      Added {new Date(activeVideo.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Video Action Pill Buttons */}
-                <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
-                  {activeIndex > 0 && (
-                    <button
-                      onClick={handlePrevVideo}
-                      className="flex items-center justify-center gap-1 py-3 px-3.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all active:scale-95 cursor-pointer shrink-0"
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                      <span>Prev</span>
-                    </button>
-                  )}
-
-                  <button
-                    type="button"
-                    onClick={(e) => triggerToggleComplete(activeVideo, e)}
-                    disabled={toggleProgressMutation.isPending}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-3 px-3 rounded-full text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-xs ${
-                      activeVideo.is_completed
-                        ? 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6] hover:bg-[#d5eedc]'
-                        : 'bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white'
-                    }`}
-                  >
-                    {activeVideo.is_completed ? (
-                      <>
-                        <CheckCircle2 className="w-4 h-4" />
-                        <span>Completed</span>
-                      </>
-                    ) : (
-                      <>
-                        <Check className="w-4 h-4" />
-                        <span>Mark as Completed</span>
-                      </>
-                    )}
-                  </button>
-
-                  {activeIndex < videos.length - 1 && (
-                    <button
-                      onClick={handleNextVideo}
-                      className="flex items-center justify-center gap-1 py-3 px-3.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition-all active:scale-95 cursor-pointer shrink-0"
-                    >
-                      <span>Next</span>
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
         </>
       )}
 
@@ -538,7 +547,7 @@ const EmployeeMobileTrainingVideos = () => {
               <button
                 type="button"
                 onClick={() => setConfirmingVideo(null)}
-                className="w-full py-3 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all cursor-pointer"
+                className="w-full h-11 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] text-xs font-semibold transition-all cursor-pointer shadow-2xs active:scale-95"
               >
                 Cancel
               </button>
@@ -546,7 +555,7 @@ const EmployeeMobileTrainingVideos = () => {
                 type="button"
                 onClick={handleConfirmToggle}
                 disabled={toggleProgressMutation.isPending}
-                className={`w-full py-3 rounded-full text-white text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95 ${
+                className={`w-full h-11 rounded-full text-white text-xs font-semibold transition-all cursor-pointer shadow-xs active:scale-95 ${
                   confirmingVideo.is_completed
                     ? 'bg-[#d93025] hover:bg-[#b31412]'
                     : 'bg-[#1a73e8] hover:bg-[#1557b0]'
