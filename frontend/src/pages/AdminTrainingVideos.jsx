@@ -607,7 +607,7 @@ const AdminTrainingVideos = () => {
 
                       <div className="w-full h-2 rounded-full bg-[#e0e3e7] overflow-hidden">
                         <div 
-                          className="h-full rounded-full bg-gradient-to-r from-[#8430ce] to-[#1a73e8] transition-all duration-200"
+                          className="h-full rounded-full bg-[#8430ce] transition-all duration-200"
                           style={{ width: `${isCompressing ? compressProgress : compressionResult ? 100 : 0}%` }}
                         />
                       </div>
@@ -639,7 +639,7 @@ const AdminTrainingVideos = () => {
 
                     <div className="w-full h-2.5 rounded-full bg-[#e0e3e7] overflow-hidden">
                       <div 
-                        className="h-full rounded-full bg-gradient-to-r from-[#4285F4] via-[#34A853] to-[#4285F4] bg-[length:200%_100%] transition-all duration-150 animate-pulse"
+                        className="h-full rounded-full bg-[#1a73e8] transition-all duration-150"
                         style={{ width: `${uploadProgress.percent}%` }}
                       />
                     </div>

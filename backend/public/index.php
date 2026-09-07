@@ -92,6 +92,25 @@ $app->get('/', function ($request, $response, $args) {
     return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
 });
 
+// App version check endpoint (supports CORS for all origins)
+$app->get('/version.json', function (Request $request, Response $response, $args) {
+    $versionFile = __DIR__ . '/version.json';
+    if (file_exists($versionFile)) {
+        $content = file_get_contents($versionFile);
+        $response->getBody()->write($content);
+    } else {
+        $response->getBody()->write(json_encode([
+            'version' => time() * 1000,
+            'semver' => 'v1.0.0',
+            'commit' => 'live'
+        ]));
+    }
+    return $response
+        ->withHeader('Content-Type', 'application/json')
+        ->withHeader('Access-Control-Allow-Origin', '*')
+        ->withHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+});
+
 use App\Utils\RateLimiter;
 
 // Login endpoint

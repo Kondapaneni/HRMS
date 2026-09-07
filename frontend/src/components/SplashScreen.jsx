@@ -248,10 +248,10 @@ const SplashScreen = () => {
               </span>
             </div>
             
-            {/* Google 4-Color Gradient Progress Bar */}
+            {/* Solid Color Progress Bar */}
             <div className="w-48 sm:w-56 md:w-64 h-1.5 bg-[#e0e3e7] rounded-full overflow-hidden p-0.25 relative shadow-inner">
                <motion.div 
-                 className="h-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] rounded-full"
+                 className="h-full bg-[#1a73e8] rounded-full"
                  animate={{
                    x: ['-100%', '100%'],
                    width: ['40%', '60%', '40%']

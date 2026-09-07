@@ -361,7 +361,7 @@ const EmployeeTrainingVideos = () => {
                   </div>
                   <div className="w-24 h-2 rounded-full bg-[#f1f3f4] overflow-hidden">
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-[#4285F4] to-[#34A853]"
+                      className="h-full rounded-full bg-[#1a73e8]"
                       style={{ width: `${progressPercent}%` }}
                     />
                   </div>

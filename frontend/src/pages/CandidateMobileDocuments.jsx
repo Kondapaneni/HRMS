@@ -246,7 +246,7 @@ const CandidateMobileDocuments = ({
           {/* Progress Bar */}
           <div className="w-full h-2 bg-[#f1f3f4] rounded-full overflow-hidden border border-[#e0e3e7]">
             <div 
-              className="h-full bg-gradient-to-r from-[#4285F4] to-[#34A853] rounded-full transition-all duration-500" 
+              className="h-full bg-[#1a73e8] rounded-full transition-all duration-500" 
               style={{ width: `${progressPercent}%` }} 
             />
           </div>

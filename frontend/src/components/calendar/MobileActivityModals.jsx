@@ -167,7 +167,7 @@ export const MobileActivityCreatePage = ({
           
           {/* Card Header */}
           <div className="flex items-center gap-2 pb-3 border-b border-[#e0e3e7]">
-            <div className={`p-1.5 rounded-xl ${isSales ? 'bg-[#e6f4ea] text-[#137333]' : 'bg-[#e8f0fe] text-[#1a73e8]'}`}>
+            <div className={`p-1.5 rounded-xl ${isSales ? 'bg-[#e6f4ea] text-[#137333]' : isBranchOperations ? 'bg-[#f3e8fd] text-[#7C4DFF]' : 'bg-[#e8f0fe] text-[#1a73e8]'}`}>
               <CalendarDays className="w-4 h-4" />
             </div>
             <div>
@@ -411,14 +411,16 @@ export const MobileActivityCreatePage = ({
                             prev.includes(emp.id) ? prev.filter(id => id !== emp.id) : [...prev, emp.id]
                           );
                         }}
-                        className={`p-2.5 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
+                        className={`p-2.5 rounded-2xl border flex items-center justify-between cursor-pointer transition-all ${
                           isChecked 
-                            ? 'bg-[#e8f0fe] border-[#d2e3fc] text-[#1a73e8]' 
+                            ? isBranchOperations
+                              ? 'bg-[#f3e8fd] border-[#e9d5ff] text-[#7C4DFF]'
+                              : 'bg-[#e8f0fe] border-[#d2e3fc] text-[#1a73e8]' 
                             : 'bg-[#f8fafd] border-[#e0e3e7] text-[#1f1f1f] hover:bg-slate-100'
                         }`}
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="w-7 h-7 rounded-full bg-white text-[#1a73e8] border border-[#d2e3fc] flex items-center justify-center font-bold text-xs shrink-0">
+                          <div className={`w-7 h-7 rounded-full bg-white ${isBranchOperations ? 'text-[#7C4DFF] border-[#e9d5ff]' : 'text-[#1a73e8] border-[#d2e3fc]'} border flex items-center justify-center font-bold text-xs shrink-0`}>
                             {(emp.name || 'E').charAt(0).toUpperCase()}
                           </div>
                           <div className="truncate">
@@ -428,7 +430,11 @@ export const MobileActivityCreatePage = ({
                         </div>
 
                         <div className={`w-5 h-5 rounded-full flex items-center justify-center border shrink-0 ${
-                          isChecked ? 'bg-[#1a73e8] text-white border-[#1a73e8]' : 'border-[#dadce0] bg-white'
+                          isChecked 
+                            ? isBranchOperations
+                              ? 'bg-[#7C4DFF] text-white border-[#7C4DFF]'
+                              : 'bg-[#1a73e8] text-white border-[#1a73e8]' 
+                            : 'border-[#dadce0] bg-white'
                         }`}>
                           {isChecked && <Check size={12} strokeWidth={3} />}
                         </div>
@@ -456,6 +462,8 @@ export const MobileActivityCreatePage = ({
               className={`h-11 px-6 inline-flex items-center justify-center gap-1.5 rounded-full text-xs font-semibold ${
                 isSales 
                   ? 'bg-[#137333] hover:bg-[#0b5324]' 
+                  : isBranchOperations
+                  ? 'bg-[#7C4DFF] hover:bg-[#651fff]'
                   : 'bg-[#1a73e8] hover:bg-[#1557b0]'
               } text-white active:scale-95 transition-all shadow-xs cursor-pointer disabled:opacity-50`}
             >
@@ -487,7 +495,9 @@ export const MobileActivityDetailsModal = ({
   onClose,
   event,
   onToggleStatus,
-  getPriorityBadge
+  getPriorityBadge,
+  isSales = false,
+  isBranchOperations = false
 }) => {
   useEffect(() => {
     if (isOpen) {
@@ -581,7 +591,7 @@ export const MobileActivityDetailsModal = ({
           <div className="space-y-2.5 bg-[#f8fafd] rounded-2xl p-4 border border-[#e0e3e7]/80 text-xs">
             {/* Date & Time */}
             <div className="flex items-start gap-2.5 text-[#1f1f1f]">
-              <Clock className="w-4 h-4 text-[#1a73e8] mt-0.5 shrink-0" />
+              <Clock className={`w-4 h-4 ${isBranchOperations ? 'text-[#7C4DFF]' : 'text-[#1a73e8]'} mt-0.5 shrink-0`} />
               <div>
                 <p className="font-bold">{formatEventDate(event)}</p>
                 <p className="text-[11px] text-[#5f6368]">{formatEventTime(event)}</p>
@@ -602,7 +612,7 @@ export const MobileActivityDetailsModal = ({
             {/* Assignee */}
             {event.assignedToName && (
               <div className="flex items-start gap-2.5 text-[#1f1f1f] pt-2 border-t border-[#e0e3e7]/60">
-                <User className="w-4 h-4 text-[#1a73e8] mt-0.5 shrink-0" />
+                <User className={`w-4 h-4 ${isBranchOperations ? 'text-[#7C4DFF]' : 'text-[#1a73e8]'} mt-0.5 shrink-0`} />
                 <div>
                   <p className="font-bold">Assigned To</p>
                   <p className="text-[11px] text-[#5f6368]">{event.assignedToName}</p>

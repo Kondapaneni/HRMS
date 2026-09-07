@@ -183,49 +183,64 @@ const BranchOperationsMobileDashboard = () => {
   }
 
   return (
-    <div className="space-y-4 pb-12">
-      {/* 1. Hero Section with Animated Purple Motion Graphics */}
-      <section className="-mx-4 -mt-4 px-4 pt-8 pb-12 relative overflow-hidden bg-slate-900">
-        {/* Animated Liquid Orbs with Branch Operations Purple/Violet Theme */}
-        <motion.div
-          animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
-          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute -top-20 -left-10 w-72 h-72 bg-[#7C4DFF] rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.4, 1], x: [0, -40, 0], y: [0, 50, 0] }}
-          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-          className="absolute -top-10 -right-10 w-64 h-64 bg-[#9575FF] rounded-full mix-blend-screen filter blur-[40px] opacity-50 pointer-events-none"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.3, 1], x: [0, 30, 0], y: [0, -40, 0] }}
-          transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-          className="absolute bottom-0 left-20 w-80 h-80 bg-[#B388FF] rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
-        />
-
-        {/* Subtle Glass Overlay */}
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none" />
-
-        <div className="relative z-10 px-2">
-          <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md">
+    <div className="space-y-4 pb-12 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+      {/* 1. Clean White Header (Direct Page Layout) */}
+      <section className="relative z-30 pt-1 pb-1">
+        <div className="pt-0.5">
+          <p className="text-[10.5px] font-bold text-[#5f6368] uppercase tracking-wider mb-1">
             {getGreeting()} &bull; Branch Operations
           </p>
-          <h2 className="text-3xl font-black text-white tracking-tight mb-0.5 drop-shadow-sm">
-            {profile?.firstName || 'Operations'} {profile?.lastName || 'Manager'}
-          </h2>
-          <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90 flex items-center gap-1.5 flex-wrap">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight leading-tight min-w-0" style={{ fontWeight: 500 }}>
+              {profile?.firstName || 'Operations'} <span className="font-medium italic text-[#7C4DFF]">{profile?.lastName || 'Manager'}</span>
+            </h2>
+
+            <button
+              onClick={() => navigate('/employee/branch-operations/activities')}
+              className="shrink-0 h-10 px-4 inline-flex items-center justify-center gap-1.5 bg-[#7C4DFF] hover:bg-[#651fff] active:scale-95 text-white rounded-full text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
+            >
+              <Calendar size={14} />
+              <span>Activities</span>
+            </button>
+          </div>
+          <p className="text-xs sm:text-sm font-medium text-[#5f6368] mt-1 flex items-center gap-1.5">
             <span>{currentTime.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}</span>
             <span>&bull;</span>
-            <span className="inline-flex items-center gap-1 font-bold text-[#D1C4E9]">
-              <Building2 size={13} className="text-[#B388FF]" /> {branch.name}
+            <span className="inline-flex items-center gap-1 font-semibold text-[#7C4DFF]">
+              <Building2 size={13} className="text-[#7C4DFF]" /> {branch.name}
             </span>
           </p>
         </div>
       </section>
 
       {/* 2. Elevated Content Layer */}
-      <div className="relative z-20 -mt-8 mx-0.5 space-y-3.5">
+      <div className="relative z-20 mx-0.5 space-y-3.5">
         
+        {/* Activities Quick Access Card */}
+        <div 
+          onClick={() => navigate('/employee/branch-operations/activities')}
+          className="bg-white rounded-2xl border border-[#e0e3e7] p-3.5 shadow-xs flex items-center justify-between cursor-pointer hover:bg-[#f8fafd] transition-all active:scale-[0.99]"
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-2xl bg-[#f3e8fd] text-[#7C4DFF] flex items-center justify-center shrink-0 border border-[#e9d5ff]">
+              <Calendar className="w-5 h-5" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-bold text-[#1f1f1f]">Branch Activities &amp; Schedule</p>
+                <span className="text-[10px] font-bold text-[#7C4DFF] bg-[#7C4DFF]/10 px-2 py-0.5 rounded-full">
+                  Tasks
+                </span>
+              </div>
+              <p className="text-xs text-[#5f6368] truncate">Manage tasks, meetings, follow-ups &amp; field schedules</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1 text-xs font-semibold text-[#7C4DFF] shrink-0">
+            <span>Open</span>
+            <ChevronRight className="w-4 h-4" />
+          </div>
+        </div>
+
         {/* Dual Filter Selectors (1. Pipeline Selector, 2. Officer Selector) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           {/* Dropdown 1: Pipeline Selector (All / Loans / Sales) */}

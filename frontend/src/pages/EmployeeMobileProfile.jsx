@@ -33,8 +33,7 @@ const EmployeeMobileProfile = () => {
 
     const checkAppVersion = async () => {
       try {
-        const isLocalhost = typeof window !== 'undefined' && (window.location.origin.includes('localhost') || window.location.origin.includes('capacitor://'));
-        const versionUrl = (isLocalhost && REMOTE_ORIGIN)
+        const versionUrl = REMOTE_ORIGIN
           ? `${REMOTE_ORIGIN}/version.json?t=${Date.now()}`
           : `/version.json?t=${Date.now()}`;
 

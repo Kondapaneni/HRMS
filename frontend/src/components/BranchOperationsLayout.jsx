@@ -11,7 +11,9 @@ import {
   LogOut, 
   Megaphone,
   ChevronLeft,
-  Calendar as CalendarIcon
+  Calendar as CalendarIcon,
+  Menu,
+  X
 } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -25,9 +27,24 @@ const BranchOperationsLayout = () => {
   const [showBackModal, setShowBackModal] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    setIsMobileSidebarOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (isMobileSidebarOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobileSidebarOpen]);
 
   const hideBottomNavPatterns = [
-    '/employee/branch-operations/activities',
     '/employee/branch-operations/loans-view-applications',
     '/employee/branch-operations/loans-edit-application',
     '/employee/branch-operations/view-application',
@@ -234,20 +251,16 @@ const BranchOperationsLayout = () => {
           {/* Top Header */}
           <header className="h-14 bg-white border-b border-[#e0e3e7] px-4 sm:px-5 flex items-center justify-between z-10 shrink-0 relative">
             <div className="flex items-center gap-3 shrink-0">
-              {/* Mobile Left Edge: Profile Avatar */}
+              {/* Mobile Left Edge: Menu Button */}
               <div className="md:hidden flex items-center">
-                <Link
-                  to="/employee/profile"
-                  className="w-8 h-8 rounded-full bg-[#e8f0fe] border border-[#d2e3fc] flex items-center justify-center overflow-hidden shrink-0 shadow-2xs cursor-pointer active:scale-95 transition-transform"
+                <button
+                  type="button"
+                  onClick={() => setIsMobileSidebarOpen(true)}
+                  className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-[#f1f3f4] text-[#5f6368] active:scale-95 transition-transform cursor-pointer"
+                  aria-label="Open navigation menu"
                 >
-                  {profile?.avatar ? (
-                    <img src={profile.avatar} alt="Profile" className="h-full w-full object-cover" />
-                  ) : (
-                    <span className="text-xs font-bold text-[#1a73e8]">
-                      {(profile?.firstName || profile?.email || 'E').charAt(0).toUpperCase()}
-                    </span>
-                  )}
-                </Link>
+                  <Menu className="w-5 h-5 text-[#5f6368]" />
+                </button>
               </div>
             </div>
 
@@ -305,8 +318,20 @@ const BranchOperationsLayout = () => {
                 </div>
               </div>
 
-              {/* Mobile Right Side Actions */}
-              <div className="flex md:hidden items-center">
+              {/* Mobile Right Side Actions: Profile Avatar & Sign Out */}
+              <div className="flex md:hidden items-center gap-2">
+                <Link
+                  to="/employee/profile"
+                  className="w-8 h-8 rounded-full bg-[#e8f0fe] border border-[#d2e3fc] flex items-center justify-center overflow-hidden shrink-0 shadow-2xs cursor-pointer active:scale-95 transition-transform"
+                >
+                  {profile?.avatar ? (
+                    <img src={profile.avatar} alt="Profile" className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="text-xs font-bold text-[#1a73e8]">
+                      {(profile?.firstName || profile?.email || 'E').charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                </Link>
                 <button
                   type="button"
                   onClick={() => setShowLogoutModal(true)}
@@ -369,43 +394,190 @@ const BranchOperationsLayout = () => {
                   <span className="relative z-10 text-[10px] font-semibold tracking-wide text-[#5f6368]">HRMS</span>
                 </button>
 
-                {[
-                  { label: 'Dashboard', icon: Activity, path: '/employee/branch-operations' },
-                  { label: 'Applications', icon: Briefcase, path: '/employee/branch-operations/loans-applications' }
-                ].map((item) => {
+                {(() => {
                   const currentPath = swipePath || location.pathname;
-                  const isDashboard = item.path === '/employee/branch-operations';
-                  const isOtherTab = currentPath.startsWith('/employee/branch-operations/loans-applications') || currentPath.startsWith('/employee/branch-operations/loans-view-applications') || currentPath.startsWith('/employee/branch-operations/loans-edit-application');
-                  const isActive = isDashboard 
-                    ? (currentPath === '/employee/branch-operations' || !isOtherTab) 
-                    : (currentPath === item.path || (!swipePath && currentPath.startsWith(item.path)));
-                  const Icon = item.icon;
+                  const isDashboard = currentPath === '/employee/branch-operations' || currentPath === '/employee/branch-operations/dashboard';
+                  const isActivities = currentPath.startsWith('/employee/branch-operations/activities');
+                  const isApplications = currentPath.startsWith('/employee/branch-operations/loans-applications') || currentPath.startsWith('/employee/branch-operations/loans-view-applications') || currentPath.startsWith('/employee/branch-operations/loans-edit-application');
+                  const isMoreActive = !isDashboard && !isActivities && !isApplications;
 
                   return (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      data-nav-path={item.path}
-                      onClick={(e) => { if (swipePath) e.preventDefault(); }}
-                      className="relative flex flex-col items-center justify-center flex-1 h-[52px] z-10 group cursor-pointer active:scale-95 transition-transform duration-100"
-                    >
-                      {isActive && (
-                        <motion.div
-                          layoutId="branchOpsMobileNavBubble"
-                          className="absolute inset-0 z-[-1] rounded-full bg-[#c2e7ff]/70 border border-[#b2d7ff]/80 shadow-2xs"
-                          transition={{ type: 'spring', bounce: 0.15, duration: 0.35 }}
-                        />
-                      )}
-                      <Icon className={`relative z-10 w-5 h-5 mb-0.5 transition-colors duration-150 ${isActive ? 'text-[#001d35] scale-105' : 'text-[#5f6368]'}`} />
-                      <span className={`relative z-10 text-[10px] font-semibold tracking-wide transition-colors duration-150 ${isActive ? 'text-[#001d35]' : 'text-[#5f6368]'}`}>{item.label}</span>
-                    </Link>
+                    <>
+                      {[
+                        { label: 'Dashboard', icon: Activity, path: '/employee/branch-operations', isActive: isDashboard },
+                        { label: 'Activities', icon: CalendarIcon, path: '/employee/branch-operations/activities', isActive: isActivities },
+                        { label: 'Applications', icon: Briefcase, path: '/employee/branch-operations/loans-applications', isActive: isApplications },
+                      ].map((item) => {
+                        const Icon = item.icon;
+
+                        return (
+                          <Link
+                            key={item.path}
+                            to={item.path}
+                            data-nav-path={item.path}
+                            onClick={(e) => { if (swipePath) e.preventDefault(); }}
+                            className="relative flex flex-col items-center justify-center flex-1 h-[52px] z-10 group cursor-pointer active:scale-95 transition-transform duration-100"
+                          >
+                            {item.isActive && (
+                              <motion.div
+                                layoutId="branchOpsMobileNavBubble"
+                                className="absolute inset-0 z-[-1] rounded-full bg-[#f3e8fd] border border-[#e9d5ff] shadow-2xs"
+                                transition={{ type: 'spring', bounce: 0.15, duration: 0.35 }}
+                              />
+                            )}
+                            <Icon className={`relative z-10 w-5 h-5 mb-0.5 transition-colors duration-150 ${item.isActive ? 'text-[#7C4DFF] scale-105' : 'text-[#5f6368]'}`} />
+                            <span className={`relative z-10 text-[10px] font-semibold tracking-wide transition-colors duration-150 ${item.isActive ? 'text-[#7C4DFF]' : 'text-[#5f6368]'}`}>{item.label}</span>
+                          </Link>
+                        );
+                      })}
+
+                      {/* More Button (Opens Mobile Left Sidebar Drawer) */}
+                      <button
+                        type="button"
+                        onClick={() => setIsMobileSidebarOpen(true)}
+                        className="relative flex flex-col items-center justify-center flex-1 h-[52px] z-10 group cursor-pointer active:scale-95 transition-transform duration-100"
+                      >
+                        {isMoreActive && (
+                          <motion.div
+                            layoutId="branchOpsMobileNavBubble"
+                            className="absolute inset-0 z-[-1] rounded-full bg-[#f3e8fd] border border-[#e9d5ff] shadow-2xs"
+                            transition={{ type: 'spring', bounce: 0.15, duration: 0.35 }}
+                          />
+                        )}
+                        <Menu className={`relative z-10 w-5 h-5 mb-0.5 transition-colors duration-150 ${isMoreActive ? 'text-[#7C4DFF]' : 'text-[#5f6368]'}`} />
+                        <span className={`relative z-10 text-[10px] font-semibold tracking-wide transition-colors duration-150 ${isMoreActive ? 'text-[#7C4DFF]' : 'text-[#5f6368]'}`}>More</span>
+                      </button>
+                    </>
                   );
-                })}
+                })()}
               </div>
             </div>
           )}
         </main>
       </div>
+
+      {/* Mobile Left Slide-Over Sidebar Drawer (createPortal) */}
+      {isMobileSidebarOpen && typeof document !== 'undefined' && createPortal(
+        <div className="fixed inset-0 z-[99999] md:hidden font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+          {/* Dark Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsMobileSidebarOpen(false)}
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs"
+          />
+
+          {/* Left Slide-Over Drawer Panel */}
+          <motion.div
+            initial={{ x: '-100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '-100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 240 }}
+            className="fixed inset-y-0 left-0 w-[290px] sm:w-[320px] bg-white z-10 shadow-2xl flex flex-col justify-between border-r border-[#e0e3e7] overflow-hidden font-editorial antialiased"
+            style={{ fontFamily: "'Newsreader', Georgia, serif" }}
+          >
+            {/* Top Accent Line */}
+            <div className="h-1.5 w-full bg-gradient-to-r from-[#7C4DFF] via-[#4285F4] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
+
+            {/* Drawer Top Header & Navigation */}
+            <div className="flex-1 overflow-y-auto pt-4 px-4 space-y-4">
+              {/* Brand & Close Button */}
+              <div className="flex items-center justify-between pb-3 border-b border-[#f1f3f4]">
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xl font-medium tracking-tight text-[#1f1f1f]" style={{ fontWeight: 500 }}>Acme</span>
+                    <span className="text-xl font-medium italic tracking-tight text-[#7C4DFF]">Branch Operations</span>
+                  </div>
+                  <div className="flex items-center gap-1 mt-0.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+                    <span className="text-[11px] font-medium text-[#5f6368] ml-1">Operations Hub</span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsMobileSidebarOpen(false)}
+                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Module Links */}
+              <div>
+                <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider mb-2 px-2">
+                  Operations Modules
+                </p>
+                <nav className="space-y-1">
+                  {navItems.map((item, idx) => {
+                    const isLoansAppPage = 
+                      location.pathname.startsWith('/employee/branch-operations/loans-applications') ||
+                      location.pathname.startsWith('/employee/branch-operations/loans-view-applications') ||
+                      location.pathname.startsWith('/employee/branch-operations/loans-edit-application');
+
+                    let isActive = false;
+                    if (item.path === '/employee/branch-operations/loans-applications') {
+                      isActive = isLoansAppPage;
+                    } else if (item.path === '/employee/branch-operations') {
+                      isActive = (location.pathname === '/employee/branch-operations' || location.pathname === '/employee/branch-operations/dashboard') && !isLoansAppPage;
+                    } else {
+                      isActive = location.pathname === item.path || location.pathname.startsWith(`${item.path}/`) || (item.activePaths && item.activePaths.some(p => location.pathname.startsWith(p)));
+                    }
+
+                    return (
+                      <Link
+                        key={idx}
+                        to={item.path}
+                        onClick={() => setIsMobileSidebarOpen(false)}
+                        className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-full text-xs transition-all ${
+                          isActive
+                            ? 'bg-[#f3e8fd] text-[#7C4DFF] font-bold shadow-xs'
+                            : 'text-[#444746] hover:bg-[#f1f3f4] hover:text-[#1f1f1f] font-medium'
+                        }`}
+                      >
+                        <span className={`shrink-0 ${isActive ? 'text-[#7C4DFF]' : 'text-[#5f6368]'}`}>{item.icon}</span>
+                        <span className={`flex-1 truncate ${isActive ? 'font-semibold' : 'font-normal'}`}>{item.label}</span>
+                      </Link>
+                    );
+                  })}
+                </nav>
+              </div>
+            </div>
+
+            {/* Drawer Bottom Actions */}
+            <div className="p-3 border-t border-[#f1f3f4] bg-white space-y-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMobileSidebarOpen(false);
+                  setShowBackModal(true);
+                }}
+                className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-[#444746] rounded-full hover:bg-[#f1f3f4] hover:text-[#1f1f1f] transition-colors cursor-pointer text-left"
+              >
+                <ArrowLeft size={15} className="text-[#5f6368]" />
+                <span className="text-xs">Back to HRMS</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMobileSidebarOpen(false);
+                  setShowLogoutModal(true);
+                }}
+                className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-[#5f6368] rounded-full hover:bg-[#fce8e6] hover:text-[#d93025] transition-colors cursor-pointer"
+              >
+                <LogOut size={15} className="text-[#5f6368]" />
+                <span className="text-xs">Sign Out</span>
+              </button>
+            </div>
+          </motion.div>
+        </div>,
+        document.body
+      )}
 
         {/* Back to HRMS Confirmation Modal */}
         {showBackModal && createPortal(

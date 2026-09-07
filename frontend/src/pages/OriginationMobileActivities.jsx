@@ -107,19 +107,19 @@ const OriginationMobileActivities = () => {
       return {
         moduleName: 'Branch',
         tagText: branchInfo?.name ? `${branchInfo.name.toUpperCase()} BRANCH` : 'BRANCH ACTIVITIES',
-        titleAccent: 'text-[#38bdf8]',
-        orbs: ['bg-blue-500', 'bg-indigo-500', 'bg-sky-400'],
-        activeChip: 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc] shadow-2xs font-bold',
-        activeBadgeText: 'bg-[#1a73e8] text-white',
-        todayDotColor: '#1a73e8',
-        todayBadgeStyle: 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc]',
-        titleHover: 'group-hover:text-[#1557b0]',
-        clockColor: 'text-[#1a73e8]',
-        scheduleBtnHover: 'hover:bg-[#1557b0]',
-        scheduleBtnBg: 'bg-[#1a73e8]',
-        primaryBtn: 'bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white',
-        borderHighlight: 'hover:border-[#1a73e8]',
-        ringHighlight: 'focus:ring-[#1a73e8] focus:border-[#1a73e8]'
+        titleAccent: 'text-[#7C4DFF]',
+        orbs: ['bg-[#7C4DFF]', 'bg-[#9575FF]', 'bg-[#B388FF]'],
+        activeChip: 'bg-[#f3e8fd] text-[#7C4DFF] border-[#e9d5ff] shadow-2xs font-bold',
+        activeBadgeText: 'bg-[#7C4DFF] text-white',
+        todayDotColor: '#7C4DFF',
+        todayBadgeStyle: 'bg-[#f3e8fd] text-[#7C4DFF] border-[#e9d5ff]',
+        titleHover: 'group-hover:text-[#651fff]',
+        clockColor: 'text-[#7C4DFF]',
+        scheduleBtnHover: 'hover:bg-[#651fff]',
+        scheduleBtnBg: 'bg-[#7C4DFF]',
+        primaryBtn: 'bg-[#7C4DFF] hover:bg-[#651fff] active:bg-[#5319e0] text-white',
+        borderHighlight: 'hover:border-[#7C4DFF]',
+        ringHighlight: 'focus:ring-[#7C4DFF] focus:border-[#7C4DFF]'
       };
     }
 
@@ -348,6 +348,8 @@ const OriginationMobileActivities = () => {
           <span className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold shrink-0 shadow-2xs ${
             isSales 
               ? 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6]' 
+              : isBranchOperations
+              ? 'bg-[#f3e8fd] text-[#7C4DFF] border border-[#e9d5ff]'
               : 'bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]'
           }`}>
             <Clock size={14} /> Scheduled
@@ -428,7 +430,13 @@ const OriginationMobileActivities = () => {
 
             <button
               onClick={() => setViewMode('create')}
-              className="shrink-0 h-10 px-4 inline-flex items-center justify-center gap-1.5 bg-[#1a73e8] hover:bg-[#1557b0] active:scale-95 text-white rounded-full text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
+              className={`shrink-0 h-10 px-4 inline-flex items-center justify-center gap-1.5 ${
+                isSales 
+                  ? 'bg-[#137333] hover:bg-[#0d652d]' 
+                  : isBranchOperations 
+                  ? 'bg-[#7C4DFF] hover:bg-[#651fff]' 
+                  : 'bg-[#1a73e8] hover:bg-[#1557b0]'
+              } active:scale-95 text-white rounded-full text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap`}
             >
               <Plus size={14} />
               <span>Schedule</span>
@@ -494,7 +502,7 @@ const OriginationMobileActivities = () => {
             </div>
           ) : isLoading ? (
             <div className="flex justify-center items-center py-16">
-              <Loader2 className={`animate-spin h-7 w-7 ${isSales ? 'text-emerald-600' : 'text-[#1a73e8]'}`} />
+              <Loader2 className={`animate-spin h-7 w-7 ${isSales ? 'text-emerald-600' : isBranchOperations ? 'text-[#7C4DFF]' : 'text-[#1a73e8]'}`} />
             </div>
           ) : sections.length === 0 ? (
             <div className="bg-white rounded-3xl border border-[#e0e3e7] p-8 text-center space-y-2 shadow-xs">
@@ -508,7 +516,7 @@ const OriginationMobileActivities = () => {
               {searchTerm ? (
                 <button
                   onClick={() => setSearchTerm('')}
-                  className={`mt-2 inline-flex items-center text-xs font-semibold ${isSales ? 'text-emerald-600' : 'text-[#1a73e8]'} hover:underline cursor-pointer`}
+                  className={`mt-2 inline-flex items-center text-xs font-semibold ${isSales ? 'text-emerald-600' : isBranchOperations ? 'text-[#7C4DFF]' : 'text-[#1a73e8]'} hover:underline cursor-pointer`}
                 >
                   Clear search query
                 </button>
@@ -563,7 +571,9 @@ const OriginationMobileActivities = () => {
                                   ? 'bg-[#e6f4ea] text-[#137333] border-[#ceead6] cursor-default'
                                   : isSales
                                     ? 'bg-[#e6f4ea] text-[#137333] border-[#ceead6] hover:bg-emerald-100 cursor-pointer active:scale-95'
-                                    : 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc] hover:bg-blue-100 cursor-pointer active:scale-95'
+                                    : isBranchOperations
+                                      ? 'bg-[#f3e8fd] text-[#7C4DFF] border-[#e9d5ff] hover:bg-[#ede0fd] cursor-pointer active:scale-95'
+                                      : 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc] hover:bg-blue-100 cursor-pointer active:scale-95'
                               }`}
                               title={isCompleted ? 'Completed' : 'Click to complete'}
                             >
@@ -581,7 +591,9 @@ const OriginationMobileActivities = () => {
                                   ? 'line-through text-[#80868b]' 
                                   : isSales
                                     ? 'group-hover:text-emerald-700'
-                                    : 'group-hover:text-[#1a73e8]'
+                                    : isBranchOperations
+                                      ? 'group-hover:text-[#7C4DFF]'
+                                      : 'group-hover:text-[#1a73e8]'
                               }`}>
                                 {act.title}
                               </h3>
@@ -593,7 +605,7 @@ const OriginationMobileActivities = () => {
                                 {isBranchOperations && act.assignedToName && (
                                   <>
                                     <span>&bull;</span>
-                                    <span className="truncate text-[#1a73e8] font-semibold">{act.assignedToName}</span>
+                                    <span className="truncate text-[#7C4DFF] font-semibold">{act.assignedToName}</span>
                                   </>
                                 )}
                               </div>
@@ -640,6 +652,8 @@ const OriginationMobileActivities = () => {
         isOpen={Boolean(selectedEvent)}
         onClose={() => setSelectedEvent(null)}
         event={selectedEvent}
+        isSales={isSales}
+        isBranchOperations={isBranchOperations}
         onToggleStatus={(act) => toggleMutation.mutate({ id: act.id, status: act.status })}
         getPriorityBadge={getPriorityBadge}
       />

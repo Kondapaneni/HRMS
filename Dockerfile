@@ -31,8 +31,8 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Enable Apache mod_rewrite
-RUN a2enmod rewrite
+# Enable Apache mod_rewrite and mod_headers
+RUN a2enmod rewrite headers
 
 # Update Apache configuration to use the public folder as DocumentRoot
 ENV APACHE_DOCUMENT_ROOT /var/www/html/public
