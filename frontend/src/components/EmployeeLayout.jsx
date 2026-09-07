@@ -12,7 +12,7 @@ import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import MaintenanceOverlay from './MaintenanceOverlay';
 import LogoutModal from './LogoutModal';
-import api, { isNativeApp } from '../api/axios';
+import api, { isNativeApp, isIOS } from '../api/axios';
 import GlobalSearch from './GlobalSearch';
 
 const EmployeeLayout = () => {
@@ -367,7 +367,7 @@ const EmployeeLayout = () => {
 
           {/* Bottom Actions */}
           <div className="p-2.5 border-t border-[#f1f3f4] bg-white space-y-1">
-            {!isNativeApp && (
+            {!isNativeApp && !isIOS && (
               <a
                 href="/downloads/Acme%20HRMS.apk"
                 download="Acme HRMS.apk"

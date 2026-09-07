@@ -11,7 +11,6 @@ import {
   Sparkles, 
   User, 
   Cake, 
-  Award, 
   Briefcase, 
   ShoppingBag, 
   Building2, 
@@ -117,13 +116,13 @@ const EmployeeMobileSearchBar = ({ placeholder = "Search your pages, leaves, pay
       },
       {
         id: 'profile',
-        title: 'My Profile & Documents',
-        subtitle: 'Personal details, KYC, bank info & badge',
+        title: 'My Profile',
+        subtitle: 'Personal details, work credentials, team & assets',
         category: 'Profile',
         path: '/employee/profile',
         icon: User,
         color: 'bg-slate-100 text-slate-700',
-        keywords: ['profile', 'documents', 'kyc', 'bank', 'aadhaar', 'pan', 'address', 'account', 'personal']
+        keywords: ['profile', 'my profile', 'account', 'personal', 'work info', 'manager', 'team', 'shift', 'assets', 'emergency contact']
       },
       {
         id: 'birthdays',
@@ -134,16 +133,6 @@ const EmployeeMobileSearchBar = ({ placeholder = "Search your pages, leaves, pay
         icon: Cake,
         color: 'bg-rose-50 text-rose-600',
         keywords: ['birthdays', 'colleagues', 'team', 'celebrations', 'events']
-      },
-      {
-        id: 'performance',
-        title: 'My Performance',
-        subtitle: 'Attendance benchmarks, metrics & scores',
-        category: 'Performance',
-        path: '/employee/performance',
-        icon: Award,
-        color: 'bg-[#e8f0fe] text-[#1a73e8]',
-        keywords: ['performance', 'attendance score', 'on time', 'benchmarks', 'review', 'rating']
       }
     ];
 
@@ -235,7 +224,7 @@ const EmployeeMobileSearchBar = ({ placeholder = "Search your pages, leaves, pay
   return (
     <div ref={searchRef} className="relative z-40">
       <div className="relative flex items-center">
-        <Search className="w-4 h-4 text-[#80868b] absolute left-3.5 pointer-events-none" />
+        <Search className="w-4.5 h-4.5 text-[#80868b] absolute left-4 pointer-events-none" />
         <input
           type="text"
           value={searchQuery}
@@ -245,15 +234,15 @@ const EmployeeMobileSearchBar = ({ placeholder = "Search your pages, leaves, pay
           }}
           onFocus={() => setIsSearchOpen(true)}
           placeholder={placeholder}
-          className="w-full bg-white border border-[#dadce0] focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 rounded-full pl-10 pr-9 py-2.5 text-xs sm:text-sm font-medium text-[#1f1f1f] placeholder:text-[#80868b] outline-none transition-all shadow-xs"
+          className="w-full h-12 bg-white border border-[#dadce0] focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 rounded-full pl-11.5 pr-10 text-sm font-medium text-[#1f1f1f] placeholder:text-[#80868b] outline-none transition-all shadow-xs"
         />
         {searchQuery && (
           <button
             type="button"
             onClick={() => setSearchQuery('')}
-            className="absolute right-3 p-1 text-[#80868b] hover:text-[#1f1f1f] rounded-full transition-colors cursor-pointer"
+            className="absolute right-3.5 p-1 text-[#80868b] hover:text-[#1f1f1f] rounded-full transition-colors cursor-pointer"
           >
-            <X size={14} />
+            <X size={15} />
           </button>
         )}
       </div>

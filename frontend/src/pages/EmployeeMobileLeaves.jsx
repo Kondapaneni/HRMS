@@ -95,10 +95,10 @@ const EmployeeMobileLeaves = () => {
               Leave <span className="font-medium italic text-[#1a73e8]">Applications</span>
             </h2>
 
-            {/* Compact Action Button Aligned Straight to Main Heading */}
+            {/* Unified Action Button Aligned Straight to Main Heading */}
             <Link
               to="/employee/leaves/apply"
-              className="shrink-0 inline-flex items-center gap-1.5 bg-[#1a73e8] hover:bg-[#1557b0] active:scale-95 text-white rounded-full px-3.5 py-2 text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
+              className="shrink-0 h-10 px-4 inline-flex items-center justify-center gap-1.5 bg-[#1a73e8] hover:bg-[#1557b0] active:scale-95 text-white rounded-full text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
             >
               <Plus className="w-3.5 h-3.5 text-white" />
               <span>Apply Leave</span>

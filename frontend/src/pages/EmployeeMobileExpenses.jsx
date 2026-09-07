@@ -193,8 +193,8 @@ const EmployeeMobileExpenses = () => {
         {/* Clean White Header & Action */}
         <section className="relative z-30 pt-1 pb-1">
           <div className="pt-0.5">
-            <p className="text-[10.5px] font-bold text-[#5f6368] uppercase tracking-wider mb-1 pl-[46px]">
-              Expense Reimbursements
+            <p className="text-[10.5px] font-bold text-[#5f6368] uppercase tracking-wider mb-1 pl-[50px]">
+              My Expenses
             </p>
 
             <div className="flex items-center justify-between gap-2.5">
@@ -202,7 +202,7 @@ const EmployeeMobileExpenses = () => {
                 <button 
                   type="button"
                   onClick={handleCloseForm} 
-                  className="w-9 h-9 rounded-full bg-white border border-[#e0e3e7] hover:bg-[#f1f3f4] active:scale-95 text-[#5f6368] flex items-center justify-center shrink-0 shadow-2xs transition-all cursor-pointer"
+                  className="w-10 h-10 rounded-full bg-white border border-[#e0e3e7] hover:bg-[#f1f3f4] active:scale-95 text-[#5f6368] flex items-center justify-center shrink-0 shadow-2xs transition-all cursor-pointer"
                   aria-label="Back to Claims"
                 >
                   <ChevronLeft className="w-5 h-5" />
@@ -212,19 +212,19 @@ const EmployeeMobileExpenses = () => {
                 </h2>
               </div>
 
-              {/* Compact Action Button Aligned Straight to Main Heading */}
+              {/* Unified Action Button Aligned Straight to Main Heading */}
               <button 
                 type="button"
                 onClick={handleSubmit} 
                 disabled={isSubmitting} 
-                className="shrink-0 inline-flex items-center gap-1.5 bg-[#1a73e8] hover:bg-[#1557b0] active:scale-95 text-white rounded-full px-4 py-2 text-xs font-semibold shadow-xs transition-all cursor-pointer whitespace-nowrap disabled:opacity-50"
+                className="shrink-0 h-10 px-4 inline-flex items-center justify-center gap-1.5 bg-[#1a73e8] hover:bg-[#1557b0] active:scale-95 text-white rounded-full text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap disabled:opacity-50"
               >
                 {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin text-white" /> : <Save className="w-3.5 h-3.5 text-white" />}
                 <span>{isSubmitting ? 'Saving...' : 'Save Claim'}</span>
               </button>
             </div>
 
-            <p className="text-xs sm:text-sm font-medium text-[#5f6368] mt-1 pl-[46px]">
+            <p className="text-xs sm:text-sm font-medium text-[#5f6368] mt-1 pl-[50px]">
               Submit receipts and expense information for manager review
             </p>
           </div>
@@ -341,6 +341,17 @@ const EmployeeMobileExpenses = () => {
             )}
           </div>
 
+          {/* Submit Actions */}
+          <div className="pt-2">
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full h-12 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] active:scale-[0.98] text-white text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer disabled:opacity-50"
+            >
+              {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : <Save className="w-4 h-4 text-white" />}
+              <span>{isSubmitting ? 'Saving Claim...' : 'Save & Submit Claim'}</span>
+            </button>
+          </div>
 
         </form>
 
@@ -366,11 +377,11 @@ const EmployeeMobileExpenses = () => {
               Expense <span className="font-medium italic text-[#1a73e8]">Claims</span>
             </h2>
 
-            {/* Compact Action Button Aligned Straight to Main Heading */}
+            {/* Unified Action Button Aligned Straight to Main Heading */}
             <button
               type="button"
               onClick={() => setIsFormOpen(true)}
-              className="shrink-0 inline-flex items-center gap-1.5 bg-[#1a73e8] hover:bg-[#1557b0] active:scale-95 text-white rounded-full px-3.5 py-2 text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
+              className="shrink-0 h-10 px-4 inline-flex items-center justify-center gap-1.5 bg-[#1a73e8] hover:bg-[#1557b0] active:scale-95 text-white rounded-full text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
             >
               <Plus className="w-3.5 h-3.5 text-white" />
               <span>Claim Expense</span>

@@ -87,7 +87,7 @@ const OriginationMobileSaleAddLead = () => {
             <button
               type="button"
               onClick={() => navigate('/employee/sales/origination/leads')}
-              className="shrink-0 inline-flex items-center gap-1.5 rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] px-3.5 py-1.5 transition-all shadow-2xs active:scale-95 cursor-pointer whitespace-nowrap"
+              className="shrink-0 h-10 px-4 inline-flex items-center justify-center gap-1.5 rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] shadow-xs active:scale-95 transition-all cursor-pointer whitespace-nowrap"
             >
               <ArrowLeft size={14} className="text-[#5f6368]" />
               <span>Back</span>
@@ -183,7 +183,7 @@ const OriginationMobileSaleAddLead = () => {
             <button
               type="button"
               onClick={() => navigate('/employee/sales/origination/leads')}
-              className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] px-5 py-3 transition-all shadow-2xs cursor-pointer"
+              className="h-11 px-5 inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] shadow-xs transition-all active:scale-95 cursor-pointer"
             >
               Cancel
             </button>
@@ -191,7 +191,7 @@ const OriginationMobileSaleAddLead = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="inline-flex items-center justify-center gap-1.5 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white px-6 py-3 transition-all shadow-xs cursor-pointer disabled:opacity-50"
+              className="h-11 px-6 inline-flex items-center justify-center gap-1.5 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] active:scale-95 text-white transition-all shadow-xs cursor-pointer disabled:opacity-50"
             >
               {isSubmitting ? (
                 <>

@@ -174,7 +174,7 @@ const ApplyMobileLeave = () => {
       {/* Clean White Header & Action */}
       <section className="relative z-30 pt-1 pb-1">
         <div className="pt-0.5">
-          <p className="text-[10.5px] font-bold text-[#5f6368] uppercase tracking-wider mb-1 pl-[46px]">
+          <p className="text-[10.5px] font-bold text-[#5f6368] uppercase tracking-wider mb-1 pl-[50px]">
             My Leaves
           </p>
 
@@ -183,7 +183,7 @@ const ApplyMobileLeave = () => {
               <button 
                 type="button"
                 onClick={() => navigate('/employee/leaves')} 
-                className="w-9 h-9 rounded-full bg-white border border-[#e0e3e7] hover:bg-[#f1f3f4] active:scale-95 text-[#5f6368] flex items-center justify-center shrink-0 shadow-2xs transition-all cursor-pointer"
+                className="w-10 h-10 rounded-full bg-white border border-[#e0e3e7] hover:bg-[#f1f3f4] active:scale-95 text-[#5f6368] flex items-center justify-center shrink-0 shadow-2xs transition-all cursor-pointer"
                 aria-label="Back to Leaves"
               >
                 <ChevronLeft className="w-5 h-5" />
@@ -193,19 +193,19 @@ const ApplyMobileLeave = () => {
               </h2>
             </div>
 
-            {/* Compact Action Button Aligned Straight to Main Heading */}
+            {/* Unified Action Button Aligned Straight to Main Heading */}
             <button 
               type="button"
               onClick={handleApplyLeave} 
               disabled={submitting || loading} 
-              className="shrink-0 inline-flex items-center gap-1.5 bg-[#1a73e8] hover:bg-[#1557b0] active:scale-95 text-white rounded-full px-4 py-2 text-xs font-semibold shadow-xs transition-all cursor-pointer whitespace-nowrap disabled:opacity-50"
+              className="shrink-0 h-10 px-4 inline-flex items-center justify-center gap-1.5 bg-[#1a73e8] hover:bg-[#1557b0] active:scale-95 text-white rounded-full text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap disabled:opacity-50"
             >
               {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin text-white" /> : <Send className="w-3.5 h-3.5 text-white" />}
               <span>{submitting ? 'Submitting...' : 'Submit'}</span>
             </button>
           </div>
 
-          <p className="text-xs sm:text-sm font-medium text-[#5f6368] mt-1 pl-[46px]">
+          <p className="text-xs sm:text-sm font-medium text-[#5f6368] mt-1 pl-[50px]">
             Submit a new leave request for manager approval
           </p>
         </div>
@@ -347,7 +347,7 @@ const ApplyMobileLeave = () => {
             <button
               type="submit"
               disabled={submitting || loading}
-              className="w-full rounded-full bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white font-semibold text-sm py-3.5 flex items-center justify-center gap-2 shadow-xs hover:shadow transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="w-full h-12 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-xs hover:shadow transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {submitting ? (
                 <>

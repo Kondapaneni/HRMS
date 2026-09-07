@@ -428,9 +428,7 @@ const OriginationMobileActivities = () => {
 
             <button
               onClick={() => setViewMode('create')}
-              className={`shrink-0 inline-flex items-center gap-1.5 ${
-                isSales ? 'bg-[#137333] hover:bg-[#0d5926]' : isBranchOperations ? 'bg-[#7C4DFF] hover:bg-[#651FFF]' : 'bg-[#1a73e8] hover:bg-[#1557b0]'
-              } active:scale-95 text-white rounded-full px-3.5 py-2 text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap`}
+              className="shrink-0 h-10 px-4 inline-flex items-center justify-center gap-1.5 bg-[#1a73e8] hover:bg-[#1557b0] active:scale-95 text-white rounded-full text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
             >
               <Plus size={14} />
               <span>Schedule</span>

@@ -3,6 +3,15 @@ import toast from 'react-hot-toast';
 import { Capacitor } from '@capacitor/core';
 
 export const isNativeApp = Capacitor.isNativePlatform();
+export const isIOS = (() => {
+  if (typeof window === 'undefined') return false;
+  if (Capacitor.getPlatform() === 'ios') return true;
+  const ua = window.navigator.userAgent || window.navigator.vendor || window.opera || '';
+  const platform = window.navigator.platform || '';
+  const isApple = (/iPad|iPhone|iPod/i.test(ua) || /iPad|iPhone|iPod/i.test(platform)) && !window.MSStream;
+  const isIPadOS = (platform === 'MacIntel' || /Macintosh/i.test(ua)) && window.navigator.maxTouchPoints > 1;
+  return Boolean(isApple || isIPadOS);
+})();
 export const REMOTE_API_URL = import.meta.env.VITE_API_URL || 'https://hrms-qwv3.onrender.com/api';
 export const REMOTE_ORIGIN = import.meta.env.VITE_BACKEND_URL || 'https://hrms-qwv3.onrender.com';
 

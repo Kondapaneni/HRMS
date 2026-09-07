@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import api, { isNativeApp, REMOTE_ORIGIN, getAssetUrl } from '../api/axios';
+import api, { isNativeApp, isIOS, REMOTE_ORIGIN, getAssetUrl } from '../api/axios';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
@@ -397,13 +397,13 @@ const EmployeeMobileProfile = () => {
               Account & <span className="font-medium italic text-[#1a73e8]">Profile</span>
             </h2>
 
-            {/* Compact Action Button Aligned Straight to Main Heading */}
+            {/* Unified Action Button Aligned Straight to Main Heading */}
             <button
               type="button"
               onClick={handleEditClick}
-              className="shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white border border-slate-200 hover:bg-slate-50 active:scale-95 text-slate-900 text-xs font-semibold shadow-xs transition-all cursor-pointer whitespace-nowrap"
+              className="shrink-0 h-10 px-4 inline-flex items-center justify-center gap-1.5 bg-[#1a73e8] hover:bg-[#1557b0] active:scale-95 text-white rounded-full text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
             >
-              <Edit2 className="w-3.5 h-3.5 text-slate-700" />
+              <Edit2 className="w-3.5 h-3.5 text-white" />
               <span>Edit Profile</span>
             </button>
           </div>
@@ -512,8 +512,8 @@ const EmployeeMobileProfile = () => {
           Build {import.meta.env.VITE_APP_VERSION || '2026.08.28'}
         </p>
 
-        {/* Text link: In Web Mobile show Download App APK; In Native App show Update only if update is available */}
-        {!isNativeApp ? (
+        {/* Text link: In Web Mobile show Download App APK (Android / Desktop only; hidden on iOS devices); In Native App show Update only if update is available */}
+        {!isNativeApp && !isIOS ? (
           <div className="pt-1">
             <a
               href={getAssetUrl('/downloads/Acme%20HRMS.apk')}
@@ -525,7 +525,7 @@ const EmployeeMobileProfile = () => {
             </a>
           </div>
         ) : (
-          updateAvailable && (
+          isNativeApp && updateAvailable && (
             <div className="pt-1">
               <button
                 type="button"
