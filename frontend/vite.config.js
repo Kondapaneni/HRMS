@@ -69,57 +69,38 @@ export default defineConfig({
   ],
   server: {
     allowedHosts: true,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:8081',
-        changeOrigin: true
-      },
-      '/Avatar': {
-        target: 'http://localhost:8081',
-        changeOrigin: true
-      },
-      '/Bills': {
-        target: 'http://localhost:8081',
-        changeOrigin: true
-      },
-      '/Holiday': {
-        target: 'http://localhost:8081',
-        changeOrigin: true
-      },
-      '/Attendance': {
-        target: 'http://localhost:8081',
-        changeOrigin: true
-      },
-
-      '/Candidate-Document': {
-        target: 'http://localhost:8081',
-        changeOrigin: true
-      },
-      '/Loan-Document': {
-        target: 'http://localhost:8081',
-        changeOrigin: true
-      },
-      '/Loan-Signature': {
-        target: 'http://localhost:8081',
-        changeOrigin: true
-      },
-      '/Resume': {
-        target: 'http://localhost:8081',
-        changeOrigin: true
-      },
-      '/Job-Description': {
-        target: 'http://localhost:8081',
-        changeOrigin: true
-      },
-      '/Offer-Letter': {
-        target: 'http://localhost:8081',
-        changeOrigin: true
-      },
-      '/Training-Video': {
-        target: 'http://localhost:8081',
-        changeOrigin: true
-      }
-    },
+    proxy: Object.fromEntries(
+      [
+        '/api',
+        '/Avatar',
+        '/Bills',
+        '/Holiday',
+        '/Attendance',
+        '/Candidate-Document',
+        '/Loan-Document',
+        '/Loan-Signature',
+        '/Resume',
+        '/Job-Description',
+        '/Offer-Letter',
+        '/Training-Video'
+      ].map(path => [
+        path,
+        {
+          target: 'http://localhost:8081',
+          changeOrigin: true,
+          configure: (proxy) => {
+            proxy.on('error', (err, _req, res) => {
+              if (res && !res.headersSent && typeof res.writeHead === 'function') {
+                try {
+                  res.writeHead(502, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ error: 'Bad Gateway / Proxy Error', message: err?.message }));
+                } catch (_) {}
+              }
+            });
+          }
+        }
+      ])
+    ),
     historyApiFallback: true
   }
 })
