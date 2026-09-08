@@ -267,9 +267,9 @@ const AdminEmployeeView = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-8 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+    <div className="space-y-6 w-full pb-8 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 w-full">
         <div>
           <div className="flex items-center gap-1.5 mb-1">
             <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
@@ -287,32 +287,32 @@ const AdminEmployeeView = () => {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
           <button
             type="button"
             onClick={openPromoteModal}
-            className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[#137333] hover:bg-[#0d652d] text-white px-4 py-2 shadow-md shadow-[#34A853]/25 hover:shadow-lg transition-all cursor-pointer gap-1.5"
+            className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[#137333] hover:bg-[#0d652d] text-white px-4 py-2 shadow-md shadow-[#34A853]/25 hover:shadow-lg transition-all cursor-pointer gap-1.5 whitespace-nowrap"
           >
             <TrendingUp size={14} />
             <span>Promote Employee</span>
           </button>
           <button
             onClick={() => navigate(`/admin/employees/${id}/edit`)}
-            className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white px-4 py-2 shadow-md shadow-[#4285F4]/25 hover:shadow-lg transition-all cursor-pointer gap-1.5"
+            className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white px-4 py-2 shadow-md shadow-[#4285F4]/25 hover:shadow-lg transition-all cursor-pointer gap-1.5 whitespace-nowrap"
           >
             <Edit3 size={14} />
             <span>Edit Profile</span>
           </button>
           <button
             onClick={() => navigate(`/admin/employees/${id}/settings`)}
-            className="inline-flex items-center justify-center rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#444746] px-4 py-2 transition-colors cursor-pointer gap-1.5 shadow-xs"
+            className="inline-flex items-center justify-center rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#444746] px-4 py-2 transition-colors cursor-pointer gap-1.5 shadow-xs whitespace-nowrap"
           >
             <Settings size={14} />
             <span>Access Settings</span>
           </button>
           <button
             onClick={() => navigate('/admin/employees')}
-            className="inline-flex items-center justify-center rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#5f6368] px-3.5 py-2 transition-colors cursor-pointer gap-1.5 shadow-xs"
+            className="inline-flex items-center justify-center rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#5f6368] px-3.5 py-2 transition-colors cursor-pointer gap-1.5 shadow-xs whitespace-nowrap"
           >
             <ArrowLeft size={14} />
             <span>Back To Employees</span>
@@ -320,7 +320,7 @@ const AdminEmployeeView = () => {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-3 w-full">
         {/* Left Column - Profile Card, Leave Quota & Recent Payslips */}
         <div className="space-y-6">
           {/* Profile Card */}
