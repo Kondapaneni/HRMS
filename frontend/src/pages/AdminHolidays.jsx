@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import PageLoader from '../components/PageLoader';
 import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Loader2, X, Trash2, ArrowLeft, Plus, Sparkles, Image as ImageIcon, Archive } from 'lucide-react';
@@ -26,14 +26,21 @@ const AdminHolidays = () => {
 
   const monthStr = format(currentMonth, 'yyyy-MM');
 
-  const { data: holidays = [], isLoading: loading } = useQuery({
+  const { data: holidays = [], isLoading: loading, isFetching } = useQuery({
     queryKey: ['admin', 'holidays', monthStr],
     queryFn: async () => {
       const response = await api.get(`/admin/holidays?month=${monthStr}`);
       return response.data;
     },
+    placeholderData: (previousData) => previousData,
+    staleTime: 60 * 1000,
     onError: () => toast.error('Failed to load holidays'),
   });
+
+  const hasLoadedOnce = useRef(false);
+  if (!loading && holidays) {
+    hasLoadedOnce.current = true;
+  }
 
   const handlePrevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
   const handleNextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
@@ -135,7 +142,9 @@ const AdminHolidays = () => {
   const todayStr = format(new Date(), 'yyyy-MM-dd');
   const upcomingHolidays = holidays.filter(h => h.holidayDate >= todayStr);
 
-  if (loading) return <PageLoader message="Loading Company Holidays..." />;
+  if (!hasLoadedOnce.current && loading && !holidays.length) {
+    return <PageLoader message="Loading Company Holidays..." />;
+  }
 
   return (
     <div className="space-y-5 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
@@ -176,7 +185,7 @@ const AdminHolidays = () => {
       </div>
 
       {/* Calendar Card */}
-      <div className="rounded-2xl border border-[#e0e3e7] bg-white shadow-xs overflow-hidden flex flex-col">
+      <div className={`rounded-2xl border border-[#e0e3e7] bg-white shadow-xs overflow-hidden flex flex-col transition-opacity duration-150 ${isFetching ? 'opacity-75' : 'opacity-100'}`}>
         {/* Calendar Header Bar */}
         <div className="p-4 sm:p-5 border-b border-[#f1f3f4] bg-[#f8fafd]/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
@@ -196,7 +205,7 @@ const AdminHolidays = () => {
             >
               <ChevronLeft size={14} />
             </button>
-            <div className="relative">
+            <div className="relative flex items-center">
               <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#5f6368] pointer-events-none" />
               <input
                 type="month"
@@ -204,6 +213,9 @@ const AdminHolidays = () => {
                 onChange={handleMonthChange}
                 className="h-8 rounded-full border border-[#dadce0] bg-white px-3 py-1 text-xs pl-8 outline-none focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 text-[#1f1f1f] cursor-pointer"
               />
+              {isFetching && (
+                <Loader2 className="w-3.5 h-3.5 text-[#1a73e8] animate-spin ml-1.5 mr-0.5" />
+              )}
             </div>
             <button
               onClick={handleNextMonth}

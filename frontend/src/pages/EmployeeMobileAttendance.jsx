@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import PageLoader from '../components/PageLoader';
 import { 
   Calendar as CalendarIcon, 
@@ -11,7 +11,8 @@ import {
   CheckCircle2, 
   AlertCircle,
   CalendarDays,
-  CalendarCheck2
+  CalendarCheck2,
+  Loader2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
@@ -24,14 +25,20 @@ const EmployeeMobileAttendance = () => {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
   });
 
-  const { data: history = [], isLoading: loading, error: queryError } = useQuery({
+  const { data: history = [], isLoading: loading, isFetching, error: queryError } = useQuery({
     queryKey: ['employee', 'attendance', selectedMonth],
     queryFn: async () => {
       const res = await api.get(`/employee/attendance?month=${selectedMonth}`);
       return res.data;
     },
+    placeholderData: (previousData) => previousData,
     staleTime: 5 * 60 * 1000,
   });
+
+  const hasLoadedOnce = useRef(false);
+  if (!loading && history) {
+    hasLoadedOnce.current = true;
+  }
 
   const error = queryError ? 'Failed to load attendance history.' : null;
   const presentCount = history.filter(r => r.status?.toLowerCase().startsWith('present')).length;
@@ -125,7 +132,9 @@ const EmployeeMobileAttendance = () => {
     }
   };
 
-  if (loading) return <PageLoader message="Loading Attendance History..." />;
+  if (!hasLoadedOnce.current && loading && !history.length) {
+    return <PageLoader message="Loading Attendance History..." />;
+  }
 
   return (
     <div className="space-y-6 pb-4 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
@@ -147,7 +156,7 @@ const EmployeeMobileAttendance = () => {
       </section>
 
       {/* KPI Stats Cards (2x2 Grid) */}
-      <section className="grid grid-cols-2 gap-3 relative z-20 mx-0.5">
+      <section className={`grid grid-cols-2 gap-3 relative z-20 mx-0.5 transition-opacity duration-150 ${isFetching ? 'opacity-75' : 'opacity-100'}`}>
         {/* Present */}
         <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3.5 shadow-xs space-y-1">
           <div className="flex items-center justify-between">
@@ -214,8 +223,9 @@ const EmployeeMobileAttendance = () => {
             <ChevronLeft className="w-4 h-4" />
           </button>
 
-          <span className="text-sm font-bold text-slate-800 select-none">
+          <span className="text-sm font-bold text-slate-800 select-none flex items-center gap-1.5">
             {format(new Date(selectedMonth + '-01'), 'MMMM yyyy')}
+            {isFetching && <Loader2 className="w-3.5 h-3.5 text-[#1a73e8] animate-spin inline-block" />}
           </span>
 
           <button
@@ -254,7 +264,7 @@ const EmployeeMobileAttendance = () => {
       </section>
 
       {/* Attendance Records List */}
-      <section className="space-y-3">
+      <section className={`space-y-3 transition-opacity duration-150 ${isFetching ? 'opacity-70' : 'opacity-100'}`}>
         <div className="flex items-center justify-between px-1">
           <h3 className="text-base font-medium text-slate-900 tracking-tight" style={{ fontWeight: 500 }}>
             Recent <span className="font-medium italic text-[#1a73e8]">Records</span>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import PageLoader from '../components/PageLoader';
 import { 
   Calendar, 
@@ -12,7 +12,8 @@ import {
   Filter,
   TrendingUp,
   MapPin,
-  Sparkles
+  Sparkles,
+  Loader2
 } from 'lucide-react';
 import api from '../api/axios';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -85,6 +86,7 @@ const EmployeeAttendance = () => {
   const {
     data: history = [],
     isLoading: loading,
+    isFetching,
     error: queryError
   } = useQuery({
     queryKey: ['employee', 'attendance', selectedMonth],
@@ -92,8 +94,14 @@ const EmployeeAttendance = () => {
       const res = await api.get(`/employee/attendance?month=${selectedMonth}`);
       return res.data;
     },
+    placeholderData: (previousData) => previousData,
     staleTime: 30 * 1000
   });
+
+  const hasLoadedOnce = useRef(false);
+  if (!loading && history) {
+    hasLoadedOnce.current = true;
+  }
 
   const { data: leavesData } = useQuery({
     queryKey: ['employee', 'leaves'],
@@ -249,7 +257,9 @@ const EmployeeAttendance = () => {
 
   const displayError = error || (queryError ? 'Failed to load attendance history.' : null);
 
-  if (loading) return <PageLoader message="Loading Attendance History..." />;
+  if (!hasLoadedOnce.current && loading && !history.length) {
+    return <PageLoader message="Loading Attendance History..." />;
+  }
 
   return (
     <>
@@ -397,7 +407,7 @@ const EmployeeAttendance = () => {
         </div>
 
         {/* Attendance Summary KPI Cards */}
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <div className={`grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 transition-opacity duration-150 ${isFetching ? 'opacity-75' : 'opacity-100'}`}>
           <StatCard 
             title="Present Days" 
             value={`${presentCount} Days`} 
@@ -437,12 +447,17 @@ const EmployeeAttendance = () => {
             </div>
             
             <div className="flex flex-wrap items-center gap-3">
-              <input
-                type="month"
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                className="h-9 rounded-full border border-[#dadce0] px-3.5 text-xs text-[#1f1f1f] bg-white focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] focus:outline-none transition-all cursor-pointer shadow-2xs"
-              />
+              <div className="relative flex items-center">
+                <input
+                  type="month"
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  className="h-9 rounded-full border border-[#dadce0] px-3.5 text-xs text-[#1f1f1f] bg-white focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] focus:outline-none transition-all cursor-pointer shadow-2xs"
+                />
+                {isFetching && (
+                  <Loader2 className="w-3.5 h-3.5 text-[#1a73e8] animate-spin ml-2" />
+                )}
+              </div>
 
               <select
                 value={statusFilter}
@@ -459,7 +474,7 @@ const EmployeeAttendance = () => {
             </div>
           </div>
 
-          <div className="overflow-x-auto">
+          <div className={`overflow-x-auto transition-opacity duration-150 ${isFetching ? 'opacity-70' : 'opacity-100'}`}>
             <table className="w-full text-xs text-left">
               <thead className="bg-[#f8fafd] border-b border-[#e0e3e7] text-[#5f6368] font-semibold uppercase tracking-wider text-[10px]">
                 <tr>
@@ -471,10 +486,13 @@ const EmployeeAttendance = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#f1f3f4]">
-                {loading ? (
+                {loading && !history.length ? (
                   <tr>
                     <td colSpan="5" className="text-center py-12 text-[#5f6368]">
-                      Loading attendance records...
+                      <div className="flex items-center justify-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin text-[#1a73e8]" />
+                        <span>Loading attendance records...</span>
+                      </div>
                     </td>
                   </tr>
                 ) : filteredHistory.length === 0 ? (

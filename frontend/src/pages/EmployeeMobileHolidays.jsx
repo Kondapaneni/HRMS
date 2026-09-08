@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   ArrowLeft,
   Calendar as CalendarIcon, 
@@ -9,7 +9,8 @@ import {
   CheckCircle2, 
   PartyPopper,
   Flame,
-  Check
+  Check,
+  Loader2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
@@ -21,14 +22,20 @@ const EmployeeMobileHolidays = () => {
   const navigate = useNavigate();
   const [filterMode, setFilterMode] = useState('upcoming'); // 'upcoming' | 'all' | 'past'
 
-  const { data: holidays = [], isLoading: loading } = useQuery({
+  const { data: holidays = [], isLoading: loading, isFetching } = useQuery({
     queryKey: ['employee', 'holidays'],
     queryFn: async () => {
       const response = await api.get('/employee/holidays');
       return response.data || [];
     },
+    placeholderData: (previousData) => previousData,
     staleTime: 5 * 60 * 1000,
   });
+
+  const hasLoadedOnce = useRef(false);
+  if (!loading && holidays) {
+    hasLoadedOnce.current = true;
+  }
 
   const todayStr = new Date().toLocaleDateString('en-CA');
   const currentYear = new Date().getFullYear();
@@ -63,7 +70,9 @@ const EmployeeMobileHolidays = () => {
       ? pastHolidays 
       : thisYearHolidays;
 
-  if (loading) return <PageLoader message="Loading Company Holidays..." />;
+  if (!hasLoadedOnce.current && loading && !holidays.length) {
+    return <PageLoader message="Loading Company Holidays..." />;
+  }
 
   return (
     <div className="space-y-6 pb-4 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>

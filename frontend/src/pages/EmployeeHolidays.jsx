@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import PageLoader from '../components/PageLoader';
 import { 
   ChevronLeft, 
@@ -63,14 +63,21 @@ const EmployeeHolidays = () => {
 
   const monthStr = format(currentMonth, 'yyyy-MM');
 
-  const { data: holidays = [], isLoading: loading } = useQuery({
+  const { data: holidays = [], isLoading: loading, isFetching } = useQuery({
     queryKey: ['employee', 'holidays', monthStr],
     queryFn: async () => {
       const response = await api.get(`/employee/holidays?month=${monthStr}`);
       return response.data;
     },
+    placeholderData: (previousData) => previousData,
+    staleTime: 60 * 1000,
     onError: () => toast.error('Failed to load holidays'),
   });
+
+  const hasLoadedOnce = useRef(false);
+  if (!loading && holidays) {
+    hasLoadedOnce.current = true;
+  }
 
   const handlePrevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
   const handleNextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
@@ -89,7 +96,9 @@ const EmployeeHolidays = () => {
 
   const nextHoliday = upcomingHolidays[0] || null;
 
-  if (loading) return <PageLoader message="Loading Company Holidays..." />;
+  if (!hasLoadedOnce.current && loading && !holidays.length) {
+    return <PageLoader message="Loading Company Holidays..." />;
+  }
 
   return (
     <>
@@ -129,13 +138,16 @@ const EmployeeHolidays = () => {
               <ChevronLeft className="w-4 h-4" />
             </button>
 
-            <div className="relative">
+            <div className="relative flex items-center">
               <input
                 type="month"
                 value={format(currentMonth, 'yyyy-MM')}
                 onChange={handleMonthChange}
                 className="h-8 rounded-full border-0 bg-[#f8fafd] px-3 text-xs font-semibold text-[#1f1f1f] focus:outline-none cursor-pointer"
               />
+              {isFetching && (
+                <Loader2 className="w-3.5 h-3.5 text-[#1a73e8] animate-spin ml-1 mr-1" />
+              )}
             </div>
 
             <button
@@ -150,7 +162,7 @@ const EmployeeHolidays = () => {
         </div>
 
         {/* KPI Summary Cards */}
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <div className={`grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 transition-opacity duration-150 ${isFetching ? 'opacity-75' : 'opacity-100'}`}>
           <StatCard 
             title="Selected Month" 
             value={format(currentMonth, 'MMMM yyyy')} 
@@ -182,7 +194,7 @@ const EmployeeHolidays = () => {
         </div>
 
         {/* Calendar Card Container */}
-        <div className="bg-white rounded-2xl border border-[#e0e3e7] shadow-xs overflow-hidden">
+        <div className={`bg-white rounded-2xl border border-[#e0e3e7] shadow-xs overflow-hidden transition-opacity duration-150 ${isFetching ? 'opacity-75' : 'opacity-100'}`}>
           <div className="p-6 border-b border-[#e0e3e7] flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="p-2 rounded-xl bg-[#e8f0fe] text-[#1a73e8]">
@@ -194,8 +206,9 @@ const EmployeeHolidays = () => {
               </div>
             </div>
 
-            <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] px-3 py-1 rounded-full border border-[#d2e3fc]">
+            <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] px-3 py-1 rounded-full border border-[#d2e3fc] flex items-center gap-1.5">
               {format(currentMonth, 'MMMM yyyy')}
+              {isFetching && <Loader2 className="w-3 h-3 text-[#1a73e8] animate-spin" />}
             </span>
           </div>
 
