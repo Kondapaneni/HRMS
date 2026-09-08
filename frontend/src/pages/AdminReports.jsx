@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Download, Users, Calendar, IndianRupee, Filter, Building2, CheckCircle2, Clock, Activity, BarChart2 } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Download, Users, Calendar, IndianRupee, Filter, Building2, CheckCircle2, Clock, Activity, BarChart2, Loader2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { format } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
@@ -92,24 +92,35 @@ const AdminReports = () => {
     queryFn: async () => {
       const res = await api.get('/admin/reports/employees?format=json');
       return res.data;
-    }
+    },
+    staleTime: 60 * 1000,
   });
 
-  const { data: attendanceData = [], isLoading: loadingAttendance } = useQuery({
+  const { data: attendanceData = [], isLoading: loadingAttendance, isFetching: isFetchingAttendance } = useQuery({
     queryKey: ['admin_report_attendance', attendanceMonth],
     queryFn: async () => {
       const res = await api.get(`/admin/reports/attendance?month=${attendanceMonth}&format=json`);
       return res.data;
-    }
+    },
+    placeholderData: (previousData) => previousData,
+    staleTime: 60 * 1000,
   });
 
-  const { data: payrollData = [], isLoading: loadingPayroll } = useQuery({
+  const { data: payrollData = [], isLoading: loadingPayroll, isFetching: isFetchingPayroll } = useQuery({
     queryKey: ['admin_report_payroll', payrollMonth],
     queryFn: async () => {
       const res = await api.get(`/admin/reports/payroll?month=${payrollMonth}&format=json`);
       return res.data;
-    }
+    },
+    placeholderData: (previousData) => previousData,
+    staleTime: 60 * 1000,
   });
+
+  // Track if initial load has finished to prevent full page loaders on date/filter changes
+  const hasLoadedOnce = useRef(false);
+  if (!loadingEmployees && !loadingAttendance && !loadingPayroll) {
+    hasLoadedOnce.current = true;
+  }
 
   // --- Process Employee Data ---
   const safeEmployees = Array.isArray(employeesData) ? employeesData : [];
@@ -156,7 +167,8 @@ const AdminReports = () => {
   }, {});
   const payrollChartData = Object.values(departmentPayroll);
 
-  if (loadingEmployees || loadingAttendance || loadingPayroll) {
+  // Only show full PageLoader on the true initial mount before data arrives
+  if (!hasLoadedOnce.current && (loadingEmployees || loadingAttendance || loadingPayroll)) {
     return <PageLoader message="Loading Graphical Reports..." />;
   }
 
@@ -208,14 +220,14 @@ const AdminReports = () => {
         <StatCard 
           title="Attendance Entries" 
           value={safeAttendance.length} 
-          subtitle={`Logged for ${attendanceMonth}`} 
+          subtitle={isFetchingAttendance ? 'Updating records...' : `Logged for ${attendanceMonth}`} 
           icon={Calendar} 
           colorTheme="purple" 
         />
         <StatCard 
           title="Payroll Records" 
           value={safePayroll.length} 
-          subtitle={`Disbursements for ${payrollMonth}`} 
+          subtitle={isFetchingPayroll ? 'Updating records...' : `Disbursements for ${payrollMonth}`} 
           icon={IndianRupee} 
           colorTheme="yellow" 
         />
@@ -304,13 +316,18 @@ const AdminReports = () => {
             </div>
           </div>
           <div className="mt-4 md:mt-0 flex items-center gap-3">
-            <div className="flex items-center gap-2 border border-[#dadce0] rounded-full px-3 py-1.5 bg-white shadow-2xs">
-              <Filter size={13} className="text-[#5f6368]" />
+            <div className={`flex items-center gap-2 border rounded-full px-3 py-1.5 bg-white shadow-2xs transition-all ${isFetchingAttendance ? 'border-[#4285F4] ring-2 ring-[#4285F4]/20' : 'border-[#dadce0]'}`}>
+              {isFetchingAttendance ? (
+                <Loader2 size={13} className="text-[#1a73e8] animate-spin shrink-0" />
+              ) : (
+                <Filter size={13} className="text-[#5f6368] shrink-0" />
+              )}
               <input
                 type="month"
                 value={attendanceMonth}
                 onChange={(e) => setAttendanceMonth(e.target.value)}
                 className="text-xs focus:outline-none bg-transparent font-medium text-[#1f1f1f] cursor-pointer"
+                title="Select month for attendance"
               />
             </div>
             <button
@@ -323,7 +340,13 @@ const AdminReports = () => {
           </div>
         </div>
 
-        <div className="border border-[#e0e3e7] rounded-xl p-4 bg-[#ffffff] min-w-0">
+        <div className={`border border-[#e0e3e7] rounded-xl p-4 bg-[#ffffff] min-w-0 relative transition-opacity duration-200 ${isFetchingAttendance ? 'opacity-70' : 'opacity-100'}`}>
+          {isFetchingAttendance && (
+            <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-white/95 border border-[#d2e3fc] px-2.5 py-1 rounded-full text-[11px] font-medium text-[#1a73e8] shadow-xs z-10">
+              <Loader2 size={12} className="animate-spin text-[#1a73e8]" />
+              <span>Updating attendance...</span>
+            </div>
+          )}
           <div className="w-full h-[300px] min-w-0">
             {attendanceChartData.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
@@ -372,13 +395,18 @@ const AdminReports = () => {
             </div>
           </div>
           <div className="mt-4 md:mt-0 flex items-center gap-3">
-            <div className="flex items-center gap-2 border border-[#dadce0] rounded-full px-3 py-1.5 bg-white shadow-2xs">
-              <Filter size={13} className="text-[#5f6368]" />
+            <div className={`flex items-center gap-2 border rounded-full px-3 py-1.5 bg-white shadow-2xs transition-all ${isFetchingPayroll ? 'border-[#4285F4] ring-2 ring-[#4285F4]/20' : 'border-[#dadce0]'}`}>
+              {isFetchingPayroll ? (
+                <Loader2 size={13} className="text-[#1a73e8] animate-spin shrink-0" />
+              ) : (
+                <Filter size={13} className="text-[#5f6368] shrink-0" />
+              )}
               <input
                 type="month"
                 value={payrollMonth}
                 onChange={(e) => setPayrollMonth(e.target.value)}
                 className="text-xs focus:outline-none bg-transparent font-medium text-[#1f1f1f] cursor-pointer"
+                title="Select month for payroll"
               />
             </div>
             <button
@@ -391,7 +419,13 @@ const AdminReports = () => {
           </div>
         </div>
 
-        <div className="border border-[#e0e3e7] rounded-xl p-4 bg-[#ffffff] min-w-0">
+        <div className={`border border-[#e0e3e7] rounded-xl p-4 bg-[#ffffff] min-w-0 relative transition-opacity duration-200 ${isFetchingPayroll ? 'opacity-70' : 'opacity-100'}`}>
+          {isFetchingPayroll && (
+            <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-white/95 border border-[#d2e3fc] px-2.5 py-1 rounded-full text-[11px] font-medium text-[#1a73e8] shadow-xs z-10">
+              <Loader2 size={12} className="animate-spin text-[#1a73e8]" />
+              <span>Updating payroll...</span>
+            </div>
+          )}
           <div className="w-full h-[300px] min-w-0">
             {payrollChartData.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
