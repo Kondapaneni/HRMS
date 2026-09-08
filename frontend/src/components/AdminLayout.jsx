@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { 
   LogOut, Users, Settings, Activity, Briefcase, 
   Search, Bell, Menu, Home, Calendar, Clock, 
-  BarChart2, ChevronDown, IndianRupee, Monitor, FileText, Shield, Network, Mail, Award, X, AlertCircle
+  BarChart2, ChevronDown, IndianRupee, Monitor, FileText, Shield, Network, Mail, Award, X, AlertCircle, PieChart
 } from 'lucide-react';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -64,6 +64,7 @@ const AdminLayoutContent = () => {
     { icon: <Briefcase size={15} />, label: 'Recruitment', path: '/admin/recruitment' },
     { icon: <Award size={15} />, label: 'Assessment & Training', path: '/admin/assessments' },
     { icon: <Mail size={15} />, label: 'Email Templates', path: '/admin/email-templates' },
+    { icon: <PieChart size={15} />, label: 'Reports', path: '/admin/reports' },
     { icon: <FileText size={15} />, label: 'Audit Logs', path: '/admin/audit-logs' },
     { icon: <Shield size={15} />, label: 'Feature Access', path: '/admin/feature-access' },
     { icon: <Settings size={15} />, label: 'Settings', path: '/admin/settings' },

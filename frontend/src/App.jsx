@@ -80,6 +80,7 @@ import AdminSettings from './pages/AdminSettings'
 import AdminEmailTemplates from './pages/AdminEmailTemplates'
 import AdminPerformance from './pages/AdminPerformance'
 import AdminExpenses from './pages/AdminExpenses'
+import AdminReports from './pages/AdminReports'
 
 import AdminRecruitment from './pages/AdminRecruitment'
 import EmployeeAssessments from './pages/EmployeeAssessments'
@@ -187,6 +188,7 @@ function App() {
               <Route path="audit-logs" element={<AdminAuditLogs />} />
               <Route path="assets" element={<AdminAssets />} />
               <Route path="expenses" element={<AdminExpenses />} />
+              <Route path="reports" element={<AdminReports />} />
               <Route path="holidays" element={<AdminHolidays />} />
               <Route path="holidays/archive" element={<AdminHolidaysArchive />} />
               <Route path="email-templates" element={<AdminEmailTemplates />} />

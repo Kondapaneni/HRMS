@@ -556,6 +556,7 @@ require __DIR__ . '/admin_settings_routes.php';
 require __DIR__ . '/admin_recruitment_routes.php';
 require __DIR__ . '/admin_assessments_routes.php';
 require __DIR__ . '/admin_training_routes.php';
+require __DIR__ . '/admin_reports_routes.php';
 require __DIR__ . '/candidate_auth_routes.php';
 require __DIR__ . '/candidate_recruitment_routes.php';
 require __DIR__ . '/origination_loans_dashboard_routes.php';
