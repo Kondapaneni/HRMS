@@ -586,19 +586,76 @@ $app->post('/api/admin/employees/{id}/promote', function (Request $request, Resp
         $oldSalary = (float)($emp['salary'] ?? 0);
         $revisedSalary = (float)$newSalary;
 
+        $positionChanged = (trim($newPosition) !== trim($oldPosition));
+        $salaryChanged = (abs($revisedSalary - $oldSalary) > 0.01);
+
         // Calculate hike percentage
         $hikeText = '';
-        $hikeBadge = 'Revised';
+        $hikeBadge = 'Unchanged';
         if ($oldSalary > 0 && $revisedSalary > $oldSalary) {
             $diff = $revisedSalary - $oldSalary;
             $pct = round(($diff / $oldSalary) * 100);
             $hikeText = "+{$pct}% hike";
             $hikeBadge = "+{$pct}% Hike";
+        } elseif ($revisedSalary < $oldSalary) {
+            $diff = $oldSalary - $revisedSalary;
+            $pct = $oldSalary > 0 ? round(($diff / $oldSalary) * 100) : 0;
+            $hikeBadge = "-{$pct}% Adjustment";
         } elseif ($revisedSalary === $oldSalary) {
-            $hikeBadge = 'Same Salary';
+            $hikeBadge = 'Retained (Same Pay)';
         }
 
-        // 2. Parse and update timeline
+        // 2. Determine titles, badges, and opening paragraphs adaptively
+        $formattedEffectiveDate = date('F j, Y', strtotime($effectiveDate));
+        $empFullName = trim(($emp['firstName'] ?? '') . ' ' . ($emp['lastName'] ?? ''));
+
+        if ($positionChanged && $salaryChanged) {
+            // Case A: Full Promotion & Salary Revision
+            $actionType = 'Promotion & Salary Revision';
+            $letterBadge = '★ Official Promotion & Salary Revision';
+            $letterHeading = "Congratulations, {$emp['firstName']}!";
+            $letterSubheading = "We are proud to announce your promotion to <strong style=\"color: #1a73e8;\">{$newPosition}</strong> and revision of your monthly compensation.";
+            $openingParagraph = "In recognition of your exceptional dedication, sustained performance, and impactful contributions to <strong>Acme Corp</strong>, the management and leadership team are pleased to officially promote you to the designation of <strong>{$newPosition}</strong> along with a revised compensation structure.";
+            $closingNote = "Your revised compensation and elevated role responsibilities will take effect as of <strong>{$formattedEffectiveDate}</strong>. All other terms and conditions of your employment contract remain in full force and effect.";
+            $emailSubject = "Congratulations on Your Promotion to {$newPosition} - Acme Corp";
+            $timelineTitle = "Promoted to {$newPosition}";
+            $timelineDesc = "Promoted from {$oldPosition} to {$newPosition}. Revised monthly compensation: ₹" . number_format($revisedSalary, 2) . ($hikeText ? " ({$hikeText})" : "") . ($notes ? ". Remarks: {$notes}" : "");
+        } elseif ($positionChanged && !$salaryChanged) {
+            // Case B: Role / Title Promotion Only (Salary remains unchanged)
+            $actionType = 'Role Advancement & Promotion';
+            $letterBadge = '★ Official Role Advancement';
+            $letterHeading = "Congratulations, {$emp['firstName']}!";
+            $letterSubheading = "We are proud to announce your career advancement to <strong style=\"color: #1a73e8;\">{$newPosition}</strong>.";
+            $openingParagraph = "In recognition of your demonstrated leadership, technical expertise, and outstanding commitments to <strong>Acme Corp</strong>, the management team is proud to officially promote you to the designation of <strong>{$newPosition}</strong>.";
+            $closingNote = "Your new role responsibilities will take effect as of <strong>{$formattedEffectiveDate}</strong>. Your current compensation remains in effect. All other terms and conditions remain in full force.";
+            $emailSubject = "Congratulations on Your Promotion to {$newPosition} - Acme Corp";
+            $timelineTitle = "Promoted to {$newPosition}";
+            $timelineDesc = "Promoted from {$oldPosition} to {$newPosition}. Base compensation retained at ₹" . number_format($revisedSalary, 2) . ($notes ? ". Remarks: {$notes}" : "");
+        } elseif (!$positionChanged && $salaryChanged) {
+            // Case C: Salary Appraisal / Increment Only (Designation remains unchanged)
+            $actionType = 'Compensation Appraisal & Revision';
+            $letterBadge = '★ Official Compensation Revision';
+            $letterHeading = "Salary Revision Notification, {$emp['firstName']}";
+            $letterSubheading = "We are pleased to communicate the revision of your monthly compensation as <strong style=\"color: #1a73e8;\">{$newPosition}</strong>.";
+            $openingParagraph = "In appreciation of your valued contributions, commitment, and performance during this cycle, the leadership team at <strong>Acme Corp</strong> is pleased to approve a revision in your monthly compensation.";
+            $closingNote = "Your revised monthly compensation will take effect as of <strong>{$formattedEffectiveDate}</strong>. All other terms and conditions of your employment contract remain unchanged.";
+            $emailSubject = "Official Notification: Salary Revision & Compensation Update - Acme Corp";
+            $timelineTitle = "Salary Revised to ₹" . number_format($revisedSalary, 2);
+            $timelineDesc = "Monthly compensation revised from ₹" . number_format($oldSalary, 2) . " to ₹" . number_format($revisedSalary, 2) . ($hikeText ? " ({$hikeText})" : "") . ($notes ? ". Remarks: {$notes}" : "");
+        } else {
+            // Case D: Administrative update / notes update
+            $actionType = 'Employee Record Update';
+            $letterBadge = '★ Official Employment Record Update';
+            $letterHeading = "Employment Record Confirmation, {$emp['firstName']}";
+            $letterSubheading = "Confirmation of your current designation as <strong style=\"color: #1a73e8;\">{$newPosition}</strong>.";
+            $openingParagraph = "This letter serves to confirm your active designation and compensation terms with <strong>Acme Corp</strong>.";
+            $closingNote = "All terms and conditions of your employment contract remain in full force and effect.";
+            $emailSubject = "Employment Record Confirmation - Acme Corp";
+            $timelineTitle = "Profile Milestone Confirmed";
+            $timelineDesc = "Designation: {$newPosition}, monthly compensation: ₹" . number_format($revisedSalary, 2) . ($notes ? ". Remarks: {$notes}" : "");
+        }
+
+        // 3. Parse and update timeline
         $timeline = [];
         if (!empty($emp['timeline'])) {
             $parsed = json_decode($emp['timeline'], true);
@@ -609,12 +666,12 @@ $app->post('/api/admin/employees/{id}/promote', function (Request $request, Resp
 
         $timelineEntry = [
             'date' => $effectiveDate,
-            'title' => "Promoted to {$newPosition}",
-            'description' => "Promoted from {$oldPosition} to {$newPosition}. Revised monthly compensation: ₹" . number_format($revisedSalary, 2) . ($hikeText ? " ({$hikeText})" : "") . ($notes ? ". Remarks: {$notes}" : "")
+            'title' => $timelineTitle,
+            'description' => $timelineDesc
         ];
         $timeline[] = $timelineEntry;
 
-        // 3. Update employee table
+        // 4. Update employee table
         $stmtUpdateEmp = $conn->prepare('
             UPDATE employee 
             SET position = ?, salary = ?, timeline = ?
@@ -627,22 +684,24 @@ $app->post('/api/admin/employees/{id}/promote', function (Request $request, Resp
             $empId
         ]);
 
-        // 4. Update users table position if userId exists
+        // 5. Update users table position if userId exists
         if (!empty($emp['userId'])) {
             $stmtUpdateUser = $conn->prepare('UPDATE users SET position = ? WHERE id = ?');
             $stmtUpdateUser->execute([$newPosition, $emp['userId']]);
         }
 
-        // 5. Generate and queue promotion letter email if requested
+        // 6. Generate and queue promotion letter email if requested
         if ($sendEmail && !empty($emp['email'])) {
             $templatePath = __DIR__ . '/../src/Templates/promotion_letter_email.html';
             if (file_exists($templatePath)) {
                 $template = file_get_contents($templatePath);
 
-                $formattedEffectiveDate = date('F j, Y', strtotime($effectiveDate));
-                $empFullName = trim(($emp['firstName'] ?? '') . ' ' . ($emp['lastName'] ?? ''));
-
                 $placeholders = [
+                    '{{letterBadge}}' => htmlspecialchars($letterBadge),
+                    '{{letterHeading}}' => htmlspecialchars($letterHeading),
+                    '{{letterSubheading}}' => $letterSubheading,
+                    '{{openingParagraph}}' => $openingParagraph,
+                    '{{closingNote}}' => $closingNote,
                     '{{firstName}}' => htmlspecialchars($emp['firstName'] ?? 'Employee'),
                     '{{employeeName}}' => htmlspecialchars($empFullName),
                     '{{employeeId}}' => htmlspecialchars($emp['employeeId'] ?? ''),
@@ -661,8 +720,6 @@ $app->post('/api/admin/employees/{id}/promote', function (Request $request, Resp
                     array_values($placeholders),
                     $template
                 );
-
-                $emailSubject = "Congratulations on Your Promotion to {$newPosition} - Acme Corp";
 
                 $stmtQueue = $conn->prepare('INSERT INTO email_queue (to_email, subject, body) VALUES (?, ?, ?)');
                 $stmtQueue->execute([$emp['email'], $emailSubject, $emailBody]);

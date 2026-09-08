@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import PageLoader from '../components/PageLoader';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
@@ -734,108 +736,133 @@ const AdminEmployeeView = () => {
         </div>
       </div>
 
-      {/* Promote Employee Modal */}
-      {isPromoteModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs font-sans">
-          <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-[#dadce0] overflow-hidden flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-200">
-            {/* Google 4-Color Accent Line */}
-            <div className="h-1 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853]" />
+      {/* Slideover Right Drawer (createPortal) */}
+      {isPromoteModalOpen && createPortal(
+        <div 
+          onClick={(e) => { if (e.target === e.currentTarget) setIsPromoteModalOpen(false); }}
+          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-xs font-editorial antialiased"
+          style={{ fontFamily: "'Newsreader', Georgia, serif" }}
+        >
+          <motion.div 
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
+            className="bg-white shadow-2xl w-full max-w-md md:max-w-lg h-[100dvh] flex flex-col overflow-hidden relative z-10 border-l border-[#e0e3e7]"
+          >
+            {/* Top 4-Color Google Accent Line */}
+            <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
 
             {/* Modal Header */}
-            <div className="p-5 sm:p-6 bg-[#f8fafd] border-b border-[#e0e3e7] flex items-start justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-[#e6f4ea] text-[#137333] border border-[#ceead6] flex items-center justify-center shrink-0 shadow-xs">
-                  <TrendingUp size={20} />
+            <div className="px-6 py-4 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd] mt-1.5 shrink-0">
+              <div>
+                <div className="flex items-center gap-1 mb-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
+                  <span className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">
+                    {(() => {
+                      const isPosChanged = promoteForm.newPosition.trim() !== (position || '').trim();
+                      const isSalChanged = Math.abs(Number(promoteForm.newSalary) - Number(employee?.salary || 0)) > 0.01;
+                      if (isPosChanged && !isSalChanged) return 'Role Advancement';
+                      if (!isPosChanged && isSalChanged) return 'Compensation Revision';
+                      return 'Employee Advancement';
+                    })()}
+                  </span>
                 </div>
-                <div>
-                  <h3 className="text-base sm:text-lg font-semibold text-[#1f1f1f]">
-                    Promote Employee
-                  </h3>
-                  <p className="text-xs text-[#5f6368] mt-0.5">
-                    Advance <span className="font-semibold text-[#1f1f1f]">{fullName}</span> ({employeeId}) and update compensation
-                  </p>
-                </div>
+                <h2 className="text-xl font-medium text-[#1f1f1f] tracking-tight font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
+                  {(() => {
+                    const isPosChanged = promoteForm.newPosition.trim() !== (position || '').trim();
+                    const isSalChanged = Math.abs(Number(promoteForm.newSalary) - Number(employee?.salary || 0)) > 0.01;
+                    if (isPosChanged && !isSalChanged) return <>Designation <span className="font-medium italic text-[#1a73e8]">Promotion</span></>;
+                    if (!isPosChanged && isSalChanged) return <>Salary <span className="font-medium italic text-[#1a73e8]">Revision & Appraisal</span></>;
+                    return <>Promote <span className="font-medium italic text-[#1a73e8]">Employee</span></>;
+                  })()}
+                </h2>
               </div>
-              <button
+              <button 
                 type="button"
-                onClick={() => setIsPromoteModalOpen(false)}
-                className="text-[#5f6368] hover:text-[#1f1f1f] p-1.5 rounded-full hover:bg-[#e0e3e7] transition-colors cursor-pointer"
+                onClick={() => setIsPromoteModalOpen(false)} 
+                className="text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4] p-1.5 rounded-full transition-colors cursor-pointer"
               >
                 <X size={18} />
               </button>
             </div>
 
-            {/* Modal Form */}
-            <form onSubmit={handlePromoteSubmit} className="p-5 sm:p-6 space-y-4 overflow-y-auto font-sans">
+            {/* Modal Form Body */}
+            <form id="promote-form" onSubmit={handlePromoteSubmit} className="flex-1 overflow-y-auto p-6 space-y-4.5 font-sans text-xs">
+              {/* Employee Target Pill */}
+              <div className="p-3 bg-[#f8fafd] rounded-xl border border-[#e0e3e7] flex items-center justify-between">
+                <div>
+                  <p className="text-[11px] text-[#5f6368] font-medium">Employee Target</p>
+                  <p className="text-xs font-semibold text-[#1f1f1f]">{fullName} <span className="font-normal text-[#5f6368]">({employeeId})</span></p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[11px] text-[#5f6368] font-medium">Department</p>
+                  <p className="text-xs font-semibold text-[#1a73e8]">{department || 'General'}</p>
+                </div>
+              </div>
+
               {/* Current Overview Card */}
-              <div className="p-3.5 bg-[#f8fafd] rounded-xl border border-[#e0e3e7] grid grid-cols-2 gap-3 text-xs">
+              <div className="p-3.5 bg-white rounded-xl border border-[#e0e3e7] grid grid-cols-2 gap-3 shadow-2xs">
                 <div>
                   <span className="text-[#5f6368] block text-[11px] font-medium">Current Designation</span>
-                  <span className="font-semibold text-[#1f1f1f]">{position || 'Staff Member'}</span>
+                  <span className="font-semibold text-[#1f1f1f] text-xs">{position || 'Staff Member'}</span>
                 </div>
                 <div>
                   <span className="text-[#5f6368] block text-[11px] font-medium">Current Monthly Salary</span>
-                  <span className="font-semibold text-[#1f1f1f]">₹{Number(employee?.salary || 0).toLocaleString('en-IN')}</span>
+                  <span className="font-semibold text-[#1f1f1f] text-xs">₹{Number(employee?.salary || 0).toLocaleString('en-IN')}</span>
                 </div>
               </div>
 
               {/* New Position */}
               <div>
-                <label className="block text-xs font-semibold text-[#1f1f1f] mb-1.5">
-                  New Designation / Role <span className="text-[#EA4335]">*</span>
+                <label className="block font-semibold text-[#1f1f1f] mb-1.5">
+                  Designation / Role <span className="text-[#EA4335]">*</span>
                 </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#5f6368]">
-                    <Briefcase size={15} />
-                  </div>
-                  <input
-                    type="text"
-                    required
-                    value={promoteForm.newPosition}
-                    onChange={(e) => setPromoteForm({ ...promoteForm, newPosition: e.target.value })}
-                    placeholder="e.g. Senior Software Engineer"
-                    className="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl border border-[#dadce0] focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 outline-none transition-all"
-                  />
-                </div>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Senior Software Engineer"
+                  value={promoteForm.newPosition}
+                  onChange={(e) => setPromoteForm({ ...promoteForm, newPosition: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all"
+                />
               </div>
 
               {/* Revised Salary */}
               <div>
-                <label className="block text-xs font-semibold text-[#1f1f1f] mb-1.5">
-                  Revised Monthly Salary (₹) <span className="text-[#EA4335]">*</span>
+                <label className="block font-semibold text-[#1f1f1f] mb-1.5">
+                  Monthly Salary (₹) <span className="text-[#EA4335]">*</span>
                 </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#5f6368]">
-                    <IndianRupee size={15} />
-                  </div>
-                  <input
-                    type="number"
-                    required
-                    min="0"
-                    step="500"
-                    value={promoteForm.newSalary}
-                    onChange={(e) => setPromoteForm({ ...promoteForm, newSalary: e.target.value })}
-                    placeholder="e.g. 75000"
-                    className="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl border border-[#dadce0] focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 outline-none transition-all"
-                  />
-                </div>
+                <input
+                  type="number"
+                  required
+                  min="0"
+                  step="500"
+                  placeholder="e.g. 75000"
+                  value={promoteForm.newSalary}
+                  onChange={(e) => setPromoteForm({ ...promoteForm, newSalary: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none font-mono transition-all"
+                />
 
                 {/* Hike Calculation Banner */}
-                {Number(promoteForm.newSalary) > 0 && Number(employee?.salary || 0) > 0 && (
-                  <div className={`mt-2 p-2.5 rounded-xl border text-xs flex items-center justify-between ${
+                {Number(promoteForm.newSalary) > 0 && (
+                  <div className={`mt-2 p-2.5 rounded-xl border text-xs flex items-center justify-between transition-all ${
                     (Number(promoteForm.newSalary) - Number(employee?.salary || 0)) > 0
                       ? 'bg-[#e6f4ea] border-[#ceead6] text-[#137333]'
                       : (Number(promoteForm.newSalary) - Number(employee?.salary || 0)) === 0
                         ? 'bg-[#f1f3f4] border-[#dadce0] text-[#444746]'
                         : 'bg-[#fef7e0] border-[#feefc3] text-[#b06000]'
                   }`}>
-                    <span className="font-medium text-[11.5px]">Salary Adjustment:</span>
+                    <span className="font-medium text-[11px]">Compensation Adjustment:</span>
                     <span className="font-bold">
                       {(Number(promoteForm.newSalary) - Number(employee?.salary || 0)) > 0
-                        ? `+₹${(Number(promoteForm.newSalary) - Number(employee?.salary || 0)).toLocaleString('en-IN')} (+${Math.round(((Number(promoteForm.newSalary) - Number(employee?.salary || 0)) / Number(employee?.salary || 1)) * 100)}% Hike)`
+                        ? `+₹${(Number(promoteForm.newSalary) - Number(employee?.salary || 0)).toLocaleString('en-IN')} (+${Number(employee?.salary || 0) > 0 ? Math.round(((Number(promoteForm.newSalary) - Number(employee?.salary || 0)) / Number(employee?.salary || 1)) * 100) : 0}% Hike)`
                         : (Number(promoteForm.newSalary) - Number(employee?.salary || 0)) === 0
-                          ? 'Same Base Pay'
-                          : `-₹${Math.abs(Number(promoteForm.newSalary) - Number(employee?.salary || 0)).toLocaleString('en-IN')} (${Math.round(((Number(promoteForm.newSalary) - Number(employee?.salary || 0)) / Number(employee?.salary || 1)) * 100)}% Adjustment)`}
+                          ? 'No change in base pay (Retained)'
+                          : `-₹${Math.abs(Number(promoteForm.newSalary) - Number(employee?.salary || 0)).toLocaleString('en-IN')} (${Number(employee?.salary || 0) > 0 ? Math.round(((Number(promoteForm.newSalary) - Number(employee?.salary || 0)) / Number(employee?.salary || 1)) * 100) : 0}% Adjustment)`}
                     </span>
                   </div>
                 )}
@@ -843,85 +870,90 @@ const AdminEmployeeView = () => {
 
               {/* Effective Date */}
               <div>
-                <label className="block text-xs font-semibold text-[#1f1f1f] mb-1.5">
+                <label className="block font-semibold text-[#1f1f1f] mb-1.5">
                   Effective Date <span className="text-[#EA4335]">*</span>
                 </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#5f6368]">
-                    <CalendarDays size={15} />
-                  </div>
-                  <input
-                    type="date"
-                    required
-                    value={promoteForm.effectiveDate}
-                    onChange={(e) => setPromoteForm({ ...promoteForm, effectiveDate: e.target.value })}
-                    className="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl border border-[#dadce0] focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 outline-none transition-all"
-                  />
-                </div>
+                <input
+                  type="date"
+                  required
+                  value={promoteForm.effectiveDate}
+                  onChange={(e) => setPromoteForm({ ...promoteForm, effectiveDate: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all"
+                />
               </div>
 
               {/* Remarks / Promotion Notes */}
               <div>
-                <label className="block text-xs font-semibold text-[#1f1f1f] mb-1.5">
-                  Promotion Remarks / Notes <span className="text-[#5f6368] font-normal">(Included in letter)</span>
+                <label className="block font-semibold text-[#1f1f1f] mb-1.5">
+                  Remarks / Notes <span className="text-[#5f6368] font-normal">(Included in letter)</span>
                 </label>
                 <textarea
-                  rows={2}
+                  rows={3}
                   value={promoteForm.notes}
                   onChange={(e) => setPromoteForm({ ...promoteForm, notes: e.target.value })}
                   placeholder="e.g. In recognition of outstanding contributions, leadership on core initiatives, and mentoring peers..."
-                  className="w-full p-2.5 text-xs rounded-xl border border-[#dadce0] focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 outline-none transition-all"
+                  className="w-full p-3 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all"
                 />
               </div>
 
               {/* Send Promotion Letter Email Checkbox */}
-              <div className="p-3 bg-[#e8f0fe]/60 rounded-xl border border-[#d2e3fc] flex items-start gap-2.5">
+              <div className="p-3.5 bg-[#e8f0fe]/60 rounded-xl border border-[#d2e3fc] flex items-start gap-3">
                 <input
                   type="checkbox"
                   id="sendEmailCheckbox"
                   checked={promoteForm.sendEmail}
                   onChange={(e) => setPromoteForm({ ...promoteForm, sendEmail: e.target.checked })}
-                  className="mt-0.5 h-4 w-4 rounded text-[#1a73e8] focus:ring-[#1a73e8] border-[#dadce0]"
+                  className="mt-0.5 h-4 w-4 rounded text-[#1a73e8] focus:ring-[#1a73e8] border-[#dadce0] cursor-pointer"
                 />
                 <label htmlFor="sendEmailCheckbox" className="text-xs cursor-pointer select-none">
-                  <span className="font-semibold text-[#1a73e8] block">Send Official Promotion Letter to Employee Email</span>
-                  <span className="text-[11px] text-[#5f6368] block mt-0.5">
-                    Dispatches a formatted congratulations letter with revised compensation breakdown directly to <strong>{email || 'employee address'}</strong>.
+                  <span className="font-semibold text-[#1a73e8] block">Send Official Letter to Employee Email</span>
+                  <span className="text-[11px] text-[#5f6368] block mt-0.5 leading-relaxed">
+                    Dispatches an official congratulations and terms breakdown directly to <strong>{email || 'employee address'}</strong>.
                   </span>
                 </label>
               </div>
-
-              {/* Modal Footer Actions */}
-              <div className="pt-3 flex items-center justify-end gap-2 border-t border-[#e0e3e7]">
-                <button
-                  type="button"
-                  disabled={isPromoting}
-                  onClick={() => setIsPromoteModalOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold text-[#444746] hover:bg-[#f1f3f4] rounded-full border border-[#dadce0] transition-colors cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isPromoting}
-                  className="inline-flex items-center justify-center gap-1.5 px-5 py-2 text-xs font-semibold text-white bg-[#137333] hover:bg-[#0d652d] rounded-full shadow-md shadow-[#34A853]/20 hover:shadow-lg transition-all cursor-pointer disabled:opacity-50"
-                >
-                  {isPromoting ? (
-                    <>
-                      <div className="h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      <span>Processing...</span>
-                    </>
-                  ) : (
-                    <>
-                      <TrendingUp size={14} />
-                      <span>Confirm Promotion</span>
-                    </>
-                  )}
-                </button>
-              </div>
             </form>
-          </div>
-        </div>
+
+            {/* Footer Actions */}
+            <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex justify-end gap-2.5 shrink-0 font-sans">
+              <button
+                type="button"
+                disabled={isPromoting}
+                onClick={() => setIsPromoteModalOpen(false)}
+                className="px-5 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                form="promote-form"
+                disabled={isPromoting}
+                className="inline-flex items-center justify-center gap-2 px-6 py-2 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs hover:shadow-md transition-all cursor-pointer disabled:opacity-50"
+              >
+                {isPromoting ? (
+                  <>
+                    <div className="h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>Processing...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>
+                      {(() => {
+                        const isPosChanged = promoteForm.newPosition.trim() !== (position || '').trim();
+                        const isSalChanged = Math.abs(Number(promoteForm.newSalary) - Number(employee?.salary || 0)) > 0.01;
+                        if (isPosChanged && !isSalChanged) return 'Promote Role';
+                        if (!isPosChanged && isSalChanged) return 'Update Compensation';
+                        return 'Confirm Promotion';
+                      })()}
+                    </span>
+                  </>
+                )}
+              </button>
+            </div>
+          </motion.div>
+        </div>,
+        document.body
       )}
     </div>
   );
