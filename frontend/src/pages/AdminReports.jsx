@@ -3,6 +3,7 @@ import { Download, Users, Calendar, IndianRupee, Filter, Building2, CheckCircle2
 import { useAuth } from '../contexts/AuthContext';
 import { format } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 import api from '../api/axios';
 import PageLoader from '../components/PageLoader';
 import {
@@ -56,23 +57,19 @@ const AdminReports = () => {
   // States for date filters
   const [attendanceMonth, setAttendanceMonth] = useState(format(new Date(), 'yyyy-MM'));
   const [payrollMonth, setPayrollMonth] = useState(format(new Date(), 'yyyy-MM'));
+  const [downloadingSection, setDownloadingSection] = useState(null);
 
-  // Utility to handle downloading the CSV directly from the API endpoint
-  const handleDownload = (endpoint, filename) => {
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-    const url = `${apiUrl}${endpoint}`;
-    
-    fetch(url, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    })
-    .then(response => {
-      if (!response.ok) throw new Error('Network response was not ok');
-      return response.blob();
-    })
-    .then(blob => {
+  // Utility to handle downloading the CSV using configured axios api instance (handles baseUrl & auth token automatically)
+  const handleDownload = async (endpoint, filename, sectionKey) => {
+    try {
+      if (sectionKey) setDownloadingSection(sectionKey);
+      const res = await api.get(endpoint, {
+        responseType: 'blob',
+        headers: {
+          'Accept': 'text/csv'
+        }
+      });
+      const blob = new Blob([res.data], { type: 'text/csv;charset=utf-8;' });
       const downloadUrl = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.style.display = 'none';
@@ -82,8 +79,13 @@ const AdminReports = () => {
       a.click();
       window.URL.revokeObjectURL(downloadUrl);
       document.body.removeChild(a);
-    })
-    .catch(error => console.error('Error downloading report:', error));
+      toast.success('Report downloaded successfully');
+    } catch (error) {
+      console.error('Error downloading report:', error);
+      toast.error('Failed to download report. Please try again.');
+    } finally {
+      if (sectionKey) setDownloadingSection(null);
+    }
   };
 
   // --- Fetch Data ---
@@ -248,10 +250,15 @@ const AdminReports = () => {
             </div>
           </div>
           <button
-            onClick={() => handleDownload('/api/admin/reports/employees', `employee_directory_${format(new Date(), 'yyyy-MM-dd')}.csv`)}
-            className="mt-4 sm:mt-0 flex items-center gap-2 bg-[#f8fafd] border border-[#e0e3e7] hover:bg-[#f1f3f4] text-[#1f1f1f] px-4 py-2 rounded-full text-xs font-semibold transition-colors cursor-pointer shadow-2xs"
+            onClick={() => handleDownload('/admin/reports/employees', `employee_directory_${format(new Date(), 'yyyy-MM-dd')}.csv`, 'employees')}
+            disabled={downloadingSection === 'employees'}
+            className="mt-4 sm:mt-0 flex items-center gap-2 bg-[#f8fafd] border border-[#e0e3e7] hover:bg-[#f1f3f4] text-[#1f1f1f] px-4 py-2 rounded-full text-xs font-semibold transition-colors cursor-pointer shadow-2xs disabled:opacity-60"
           >
-            <Download size={14} className="text-[#5f6368]" /> 
+            {downloadingSection === 'employees' ? (
+              <Loader2 size={14} className="text-[#1a73e8] animate-spin" />
+            ) : (
+              <Download size={14} className="text-[#5f6368]" />
+            )}
             <span>Export CSV</span>
           </button>
         </div>
@@ -331,10 +338,15 @@ const AdminReports = () => {
               />
             </div>
             <button
-              onClick={() => handleDownload(`/api/admin/reports/attendance?month=${attendanceMonth}`, `attendance_report_${attendanceMonth}.csv`)}
-              className="flex items-center gap-2 bg-[#f8fafd] border border-[#e0e3e7] hover:bg-[#f1f3f4] text-[#1f1f1f] px-4 py-2 rounded-full text-xs font-semibold transition-colors cursor-pointer shadow-2xs"
+              onClick={() => handleDownload(`/admin/reports/attendance?month=${attendanceMonth}`, `attendance_report_${attendanceMonth}.csv`, 'attendance')}
+              disabled={downloadingSection === 'attendance'}
+              className="flex items-center gap-2 bg-[#f8fafd] border border-[#e0e3e7] hover:bg-[#f1f3f4] text-[#1f1f1f] px-4 py-2 rounded-full text-xs font-semibold transition-colors cursor-pointer shadow-2xs disabled:opacity-60"
             >
-              <Download size={14} className="text-[#5f6368]" /> 
+              {downloadingSection === 'attendance' ? (
+                <Loader2 size={14} className="text-[#1a73e8] animate-spin" />
+              ) : (
+                <Download size={14} className="text-[#5f6368]" />
+              )}
               <span>Export CSV</span>
             </button>
           </div>
@@ -399,7 +411,7 @@ const AdminReports = () => {
               {isFetchingPayroll ? (
                 <Loader2 size={13} className="text-[#1a73e8] animate-spin shrink-0" />
               ) : (
-                <Filter size={13} className="text-[#5f6368] shrink-0" />
+                <Filter size={13} className="text-[#5f6368]" />
               )}
               <input
                 type="month"
@@ -410,10 +422,15 @@ const AdminReports = () => {
               />
             </div>
             <button
-              onClick={() => handleDownload(`/api/admin/reports/payroll?month=${payrollMonth}`, `payroll_report_${payrollMonth}.csv`)}
-              className="flex items-center gap-2 bg-[#f8fafd] border border-[#e0e3e7] hover:bg-[#f1f3f4] text-[#1f1f1f] px-4 py-2 rounded-full text-xs font-semibold transition-colors cursor-pointer shadow-2xs"
+              onClick={() => handleDownload(`/admin/reports/payroll?month=${payrollMonth}`, `payroll_report_${payrollMonth}.csv`, 'payroll')}
+              disabled={downloadingSection === 'payroll'}
+              className="flex items-center gap-2 bg-[#f8fafd] border border-[#e0e3e7] hover:bg-[#f1f3f4] text-[#1f1f1f] px-4 py-2 rounded-full text-xs font-semibold transition-colors cursor-pointer shadow-2xs disabled:opacity-60"
             >
-              <Download size={14} className="text-[#5f6368]" /> 
+              {downloadingSection === 'payroll' ? (
+                <Loader2 size={14} className="text-[#1a73e8] animate-spin" />
+              ) : (
+                <Download size={14} className="text-[#5f6368]" />
+              )}
               <span>Export CSV</span>
             </button>
           </div>
