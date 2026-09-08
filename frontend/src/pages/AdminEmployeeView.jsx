@@ -5,7 +5,7 @@ import {
   ArrowLeft, Edit3, Settings, User, Mail, Phone, MapPin, Briefcase,
   CalendarDays, Building2, Shield, CreditCard, HeartHandshake, Globe,
   Clock, Laptop, Droplets, Heart, Download, Camera, IndianRupee,
-  CheckCircle2, Sparkles, AlertCircle
+  CheckCircle2, Sparkles, AlertCircle, TrendingUp, Award, X
 } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { pdf } from '@react-pdf/renderer';
@@ -20,6 +20,15 @@ const AdminEmployeeView = () => {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('personal');
   const [isUploading, setIsUploading] = useState(false);
+  const [isPromoteModalOpen, setIsPromoteModalOpen] = useState(false);
+  const [promoteForm, setPromoteForm] = useState({
+    newPosition: '',
+    newSalary: '',
+    effectiveDate: new Date().toISOString().split('T')[0],
+    notes: '',
+    sendEmail: true
+  });
+  const [isPromoting, setIsPromoting] = useState(false);
 
   const { data, isLoading: loading, isFetching } = useQuery({
     queryKey: ['admin', 'employee', id],
@@ -81,6 +90,50 @@ const AdminEmployeeView = () => {
 
   const fullName = `${firstName} ${lastName}`.trim();
   const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+
+  const openPromoteModal = () => {
+    setPromoteForm({
+      newPosition: position || '',
+      newSalary: employee?.salary ? String(employee.salary) : '',
+      effectiveDate: new Date().toISOString().split('T')[0],
+      notes: '',
+      sendEmail: true
+    });
+    setIsPromoteModalOpen(true);
+  };
+
+  const handlePromoteSubmit = async (e) => {
+    e.preventDefault();
+    if (!promoteForm.newPosition.trim()) {
+      toast.error('Please enter a new designation / role');
+      return;
+    }
+    if (!promoteForm.newSalary || isNaN(promoteForm.newSalary) || Number(promoteForm.newSalary) < 0) {
+      toast.error('Please enter a valid salary amount');
+      return;
+    }
+
+    try {
+      setIsPromoting(true);
+      const res = await api.post(`/admin/employees/${id}/promote`, {
+        newPosition: promoteForm.newPosition.trim(),
+        newSalary: Number(promoteForm.newSalary),
+        effectiveDate: promoteForm.effectiveDate,
+        notes: promoteForm.notes.trim(),
+        sendEmail: promoteForm.sendEmail
+      });
+
+      toast.success(res.data?.message || 'Employee promoted successfully!');
+      setIsPromoteModalOpen(false);
+      queryClient.invalidateQueries(['admin', 'employee', id]);
+      queryClient.invalidateQueries(['admin', 'employees']);
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.error || 'Failed to promote employee');
+    } finally {
+      setIsPromoting(false);
+    }
+  };
 
   const tabs = [
     { id: 'personal', label: 'Personal Info', icon: User },
@@ -233,6 +286,14 @@ const AdminEmployeeView = () => {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={openPromoteModal}
+            className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[#137333] hover:bg-[#0d652d] text-white px-4 py-2 shadow-md shadow-[#34A853]/25 hover:shadow-lg transition-all cursor-pointer gap-1.5"
+          >
+            <TrendingUp size={14} />
+            <span>Promote Employee</span>
+          </button>
           <button
             onClick={() => navigate(`/admin/employees/${id}/edit`)}
             className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white px-4 py-2 shadow-md shadow-[#4285F4]/25 hover:shadow-lg transition-all cursor-pointer gap-1.5"
@@ -672,6 +733,196 @@ const AdminEmployeeView = () => {
           </div>
         </div>
       </div>
+
+      {/* Promote Employee Modal */}
+      {isPromoteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs font-sans">
+          <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-[#dadce0] overflow-hidden flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-200">
+            {/* Google 4-Color Accent Line */}
+            <div className="h-1 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853]" />
+
+            {/* Modal Header */}
+            <div className="p-5 sm:p-6 bg-[#f8fafd] border-b border-[#e0e3e7] flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-[#e6f4ea] text-[#137333] border border-[#ceead6] flex items-center justify-center shrink-0 shadow-xs">
+                  <TrendingUp size={20} />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-semibold text-[#1f1f1f]">
+                    Promote Employee
+                  </h3>
+                  <p className="text-xs text-[#5f6368] mt-0.5">
+                    Advance <span className="font-semibold text-[#1f1f1f]">{fullName}</span> ({employeeId}) and update compensation
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPromoteModalOpen(false)}
+                className="text-[#5f6368] hover:text-[#1f1f1f] p-1.5 rounded-full hover:bg-[#e0e3e7] transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Form */}
+            <form onSubmit={handlePromoteSubmit} className="p-5 sm:p-6 space-y-4 overflow-y-auto font-sans">
+              {/* Current Overview Card */}
+              <div className="p-3.5 bg-[#f8fafd] rounded-xl border border-[#e0e3e7] grid grid-cols-2 gap-3 text-xs">
+                <div>
+                  <span className="text-[#5f6368] block text-[11px] font-medium">Current Designation</span>
+                  <span className="font-semibold text-[#1f1f1f]">{position || 'Staff Member'}</span>
+                </div>
+                <div>
+                  <span className="text-[#5f6368] block text-[11px] font-medium">Current Monthly Salary</span>
+                  <span className="font-semibold text-[#1f1f1f]">₹{Number(employee?.salary || 0).toLocaleString('en-IN')}</span>
+                </div>
+              </div>
+
+              {/* New Position */}
+              <div>
+                <label className="block text-xs font-semibold text-[#1f1f1f] mb-1.5">
+                  New Designation / Role <span className="text-[#EA4335]">*</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#5f6368]">
+                    <Briefcase size={15} />
+                  </div>
+                  <input
+                    type="text"
+                    required
+                    value={promoteForm.newPosition}
+                    onChange={(e) => setPromoteForm({ ...promoteForm, newPosition: e.target.value })}
+                    placeholder="e.g. Senior Software Engineer"
+                    className="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl border border-[#dadce0] focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 outline-none transition-all"
+                  />
+                </div>
+              </div>
+
+              {/* Revised Salary */}
+              <div>
+                <label className="block text-xs font-semibold text-[#1f1f1f] mb-1.5">
+                  Revised Monthly Salary (₹) <span className="text-[#EA4335]">*</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#5f6368]">
+                    <IndianRupee size={15} />
+                  </div>
+                  <input
+                    type="number"
+                    required
+                    min="0"
+                    step="500"
+                    value={promoteForm.newSalary}
+                    onChange={(e) => setPromoteForm({ ...promoteForm, newSalary: e.target.value })}
+                    placeholder="e.g. 75000"
+                    className="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl border border-[#dadce0] focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 outline-none transition-all"
+                  />
+                </div>
+
+                {/* Hike Calculation Banner */}
+                {Number(promoteForm.newSalary) > 0 && Number(employee?.salary || 0) > 0 && (
+                  <div className={`mt-2 p-2.5 rounded-xl border text-xs flex items-center justify-between ${
+                    (Number(promoteForm.newSalary) - Number(employee?.salary || 0)) > 0
+                      ? 'bg-[#e6f4ea] border-[#ceead6] text-[#137333]'
+                      : (Number(promoteForm.newSalary) - Number(employee?.salary || 0)) === 0
+                        ? 'bg-[#f1f3f4] border-[#dadce0] text-[#444746]'
+                        : 'bg-[#fef7e0] border-[#feefc3] text-[#b06000]'
+                  }`}>
+                    <span className="font-medium text-[11.5px]">Salary Adjustment:</span>
+                    <span className="font-bold">
+                      {(Number(promoteForm.newSalary) - Number(employee?.salary || 0)) > 0
+                        ? `+₹${(Number(promoteForm.newSalary) - Number(employee?.salary || 0)).toLocaleString('en-IN')} (+${Math.round(((Number(promoteForm.newSalary) - Number(employee?.salary || 0)) / Number(employee?.salary || 1)) * 100)}% Hike)`
+                        : (Number(promoteForm.newSalary) - Number(employee?.salary || 0)) === 0
+                          ? 'Same Base Pay'
+                          : `-₹${Math.abs(Number(promoteForm.newSalary) - Number(employee?.salary || 0)).toLocaleString('en-IN')} (${Math.round(((Number(promoteForm.newSalary) - Number(employee?.salary || 0)) / Number(employee?.salary || 1)) * 100)}% Adjustment)`}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Effective Date */}
+              <div>
+                <label className="block text-xs font-semibold text-[#1f1f1f] mb-1.5">
+                  Effective Date <span className="text-[#EA4335]">*</span>
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#5f6368]">
+                    <CalendarDays size={15} />
+                  </div>
+                  <input
+                    type="date"
+                    required
+                    value={promoteForm.effectiveDate}
+                    onChange={(e) => setPromoteForm({ ...promoteForm, effectiveDate: e.target.value })}
+                    className="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl border border-[#dadce0] focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 outline-none transition-all"
+                  />
+                </div>
+              </div>
+
+              {/* Remarks / Promotion Notes */}
+              <div>
+                <label className="block text-xs font-semibold text-[#1f1f1f] mb-1.5">
+                  Promotion Remarks / Notes <span className="text-[#5f6368] font-normal">(Included in letter)</span>
+                </label>
+                <textarea
+                  rows={2}
+                  value={promoteForm.notes}
+                  onChange={(e) => setPromoteForm({ ...promoteForm, notes: e.target.value })}
+                  placeholder="e.g. In recognition of outstanding contributions, leadership on core initiatives, and mentoring peers..."
+                  className="w-full p-2.5 text-xs rounded-xl border border-[#dadce0] focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 outline-none transition-all"
+                />
+              </div>
+
+              {/* Send Promotion Letter Email Checkbox */}
+              <div className="p-3 bg-[#e8f0fe]/60 rounded-xl border border-[#d2e3fc] flex items-start gap-2.5">
+                <input
+                  type="checkbox"
+                  id="sendEmailCheckbox"
+                  checked={promoteForm.sendEmail}
+                  onChange={(e) => setPromoteForm({ ...promoteForm, sendEmail: e.target.checked })}
+                  className="mt-0.5 h-4 w-4 rounded text-[#1a73e8] focus:ring-[#1a73e8] border-[#dadce0]"
+                />
+                <label htmlFor="sendEmailCheckbox" className="text-xs cursor-pointer select-none">
+                  <span className="font-semibold text-[#1a73e8] block">Send Official Promotion Letter to Employee Email</span>
+                  <span className="text-[11px] text-[#5f6368] block mt-0.5">
+                    Dispatches a formatted congratulations letter with revised compensation breakdown directly to <strong>{email || 'employee address'}</strong>.
+                  </span>
+                </label>
+              </div>
+
+              {/* Modal Footer Actions */}
+              <div className="pt-3 flex items-center justify-end gap-2 border-t border-[#e0e3e7]">
+                <button
+                  type="button"
+                  disabled={isPromoting}
+                  onClick={() => setIsPromoteModalOpen(false)}
+                  className="px-4 py-2 text-xs font-semibold text-[#444746] hover:bg-[#f1f3f4] rounded-full border border-[#dadce0] transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isPromoting}
+                  className="inline-flex items-center justify-center gap-1.5 px-5 py-2 text-xs font-semibold text-white bg-[#137333] hover:bg-[#0d652d] rounded-full shadow-md shadow-[#34A853]/20 hover:shadow-lg transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {isPromoting ? (
+                    <>
+                      <div className="h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>Processing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <TrendingUp size={14} />
+                      <span>Confirm Promotion</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

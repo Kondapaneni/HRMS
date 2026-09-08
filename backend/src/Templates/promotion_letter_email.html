@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Official Promotion & Salary Revision Letter</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f8fafd; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #1f1f1f; -webkit-font-smoothing: antialiased;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafd; padding: 32px 16px; margin: 0; width: 100%;">
+    <tr>
+      <td align="center">
+        <!-- Main Container Card -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 560px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e0e3e7; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
+          <!-- Google 4-Color Accent Line -->
+          <tr>
+            <td height="4" style="background: linear-gradient(90deg, #4285F4 0%, #EA4335 33%, #FBBC05 66%, #34A853 100%); font-size: 0; line-height: 0;">&nbsp;</td>
+          </tr>
+          
+          <!-- Header Banner -->
+          <tr>
+            <td style="padding: 32px 32px 24px 32px; background-color: #f8fafd; border-bottom: 1px solid #e0e3e7;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td>
+                    <div style="display: inline-block; padding: 4px 12px; background-color: #e6f4ea; border: 1px solid #ceead6; border-radius: 100px; color: #137333; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;">
+                      ★ Official Promotion Letter
+                    </div>
+                    <h1 style="margin: 0; font-size: 24px; font-weight: 700; color: #1f1f1f; letter-spacing: -0.4px;">
+                      Congratulations, {{firstName}}!
+                    </h1>
+                    <p style="margin: 6px 0 0 0; font-size: 14px; color: #5f6368;">
+                      We are proud to announce your promotion to <strong style="color: #1a73e8;">{{newPosition}}</strong>.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Body Content -->
+          <tr>
+            <td style="padding: 32px; text-align: left;">
+              <p style="margin: 0 0 18px 0; font-size: 14px; line-height: 1.6; color: #3c4043;">
+                Dear <strong>{{employeeName}}</strong> (ID: <span style="font-family: monospace; font-size: 13px; color: #1f1f1f;">{{employeeId}}</span>),
+              </p>
+
+              <p style="margin: 0 0 24px 0; font-size: 14px; line-height: 1.6; color: #3c4043;">
+                In recognition of your exceptional dedication, sustained performance, and impactful contributions to <strong>Acme Corp</strong>, the management and leadership team are pleased to officially promote you to the designation of <strong>{{newPosition}}</strong>.
+              </p>
+
+              <!-- Promotion Details Summary Card -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 24px; background-color: #f8fafd; border: 1px solid #e0e3e7; border-radius: 14px; overflow: hidden; border-collapse: separate;">
+                <tr>
+                  <td colspan="2" style="padding: 12px 18px; background-color: #e8f0fe; border-bottom: 1px solid #d2e3fc;">
+                    <span style="font-size: 12px; font-weight: 700; color: #1a73e8; text-transform: uppercase; letter-spacing: 0.5px;">Summary of Revised Terms</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 14px 18px; border-bottom: 1px solid #eef0f2; font-size: 13px; color: #5f6368; width: 45%;">
+                    Previous Designation:
+                  </td>
+                  <td style="padding: 14px 18px; border-bottom: 1px solid #eef0f2; font-size: 13px; font-weight: 600; color: #1f1f1f; text-align: right;">
+                    {{oldPosition}}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 14px 18px; border-bottom: 1px solid #eef0f2; font-size: 13px; color: #137333; font-weight: 600;">
+                    New Designation:
+                  </td>
+                  <td style="padding: 14px 18px; border-bottom: 1px solid #eef0f2; font-size: 14px; font-weight: 700; color: #1a73e8; text-align: right;">
+                    {{newPosition}}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 14px 18px; border-bottom: 1px solid #eef0f2; font-size: 13px; color: #5f6368;">
+                    Previous Monthly Salary:
+                  </td>
+                  <td style="padding: 14px 18px; border-bottom: 1px solid #eef0f2; font-size: 13px; font-weight: 600; color: #5f6368; text-align: right; text-decoration: line-through;">
+                    ₹{{oldSalary}}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 14px 18px; border-bottom: 1px solid #eef0f2; font-size: 13px; color: #137333; font-weight: 600;">
+                    Revised Monthly Salary:
+                  </td>
+                  <td style="padding: 14px 18px; border-bottom: 1px solid #eef0f2; font-size: 15px; font-weight: 700; color: #137333; text-align: right;">
+                    ₹{{newSalary}} <span style="font-size: 11px; background-color: #e6f4ea; border: 1px solid #ceead6; color: #137333; padding: 2px 8px; border-radius: 100px; margin-left: 4px;">{{hikePercentage}}</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 14px 18px; border-bottom: 1px solid #eef0f2; font-size: 13px; color: #5f6368;">
+                    Effective Date:
+                  </td>
+                  <td style="padding: 14px 18px; border-bottom: 1px solid #eef0f2; font-size: 13px; font-weight: 600; color: #1f1f1f; text-align: right;">
+                    {{effectiveDate}}
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 14px 18px; font-size: 13px; color: #5f6368; vertical-align: top;">
+                    Promotion Remarks:
+                  </td>
+                  <td style="padding: 14px 18px; font-size: 13px; font-style: italic; color: #3c4043; text-align: right;">
+                    "{{notes}}"
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin: 0 0 16px 0; font-size: 14px; line-height: 1.6; color: #3c4043;">
+                Your revised compensation and role responsibilities will take effect as of <strong>{{effectiveDate}}</strong>. All other terms and conditions of your employment contract remain in full force and effect.
+              </p>
+
+              <p style="margin: 0 0 24px 0; font-size: 14px; line-height: 1.6; color: #3c4043;">
+                We deeply appreciate your hard work, leadership, and continued pursuit of excellence. Please accept our warmest congratulations and best wishes for continued success in your elevated role!
+              </p>
+
+              <!-- HR Sign-off -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="border-top: 1px solid #e0e3e7; padding-top: 20px;">
+                <tr>
+                  <td>
+                    <p style="margin: 0 0 4px 0; font-size: 13px; font-weight: 700; color: #1f1f1f;">
+                      Human Resources Operations
+                    </p>
+                    <p style="margin: 0; font-size: 12px; color: #5f6368;">
+                      Acme Corp &bull; People & Culture Division
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Card Footer -->
+          <tr>
+            <td style="padding: 18px 32px; background-color: #f8fafd; border-top: 1px solid #e0e3e7; text-align: center;">
+              <p style="margin: 0; font-size: 11px; color: #5f6368; line-height: 1.5;">
+                This is an official system-generated notification from Acme HRMS Workspace. Please contact HR if you have any questions.
+              </p>
+            </td>
+          </tr>
+        </table>
+        
+        <!-- Bottom Sub-Footer -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 560px; margin: 16px auto 0 auto;">
+          <tr>
+            <td align="center" style="color: #5f6368; font-size: 11px;">
+              &copy; {{currentYear}} Acme Corp HRMS. All rights reserved.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

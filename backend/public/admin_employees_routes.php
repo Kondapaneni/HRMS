@@ -539,3 +539,155 @@ $app->post('/api/employees', function (Request $request, Response $response, $ar
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
     }
 })->add(new AuthMiddleware(['admin'], 'employees'));
+
+// Promote employee with position & salary update, timeline milestone, and promotion letter email
+$app->post('/api/admin/employees/{id}/promote', function (Request $request, Response $response, $args) {
+    $empId = $args['id'];
+    $data = $request->getParsedBody() ?? [];
+
+    $newPosition = trim($data['newPosition'] ?? '');
+    $newSalary = $data['newSalary'] ?? null;
+    $effectiveDate = !empty($data['effectiveDate']) ? $data['effectiveDate'] : date('Y-m-d');
+    $notes = trim($data['notes'] ?? '');
+    $sendEmail = isset($data['sendEmail']) ? filter_var($data['sendEmail'], FILTER_VALIDATE_BOOLEAN) : true;
+
+    if (empty($newPosition)) {
+        $response->getBody()->write(json_encode(['error' => 'New position is required']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+
+    if ($newSalary === null || !is_numeric($newSalary) || (float)$newSalary < 0) {
+        $response->getBody()->write(json_encode(['error' => 'A valid salary amount is required']));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+    }
+
+    $db = new Database();
+    $conn = $db->getConnection();
+
+    try {
+        $conn->beginTransaction();
+
+        // 1. Fetch current employee
+        $stmt = $conn->prepare('
+            SELECT id, "userId", "employeeId", "firstName", "lastName", email, position, salary, department, timeline 
+            FROM employee 
+            WHERE id = ?
+        ');
+        $stmt->execute([$empId]);
+        $emp = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$emp) {
+            $conn->rollBack();
+            $response->getBody()->write(json_encode(['error' => 'Employee not found']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+        }
+
+        $oldPosition = $emp['position'] ?: 'Staff Member';
+        $oldSalary = (float)($emp['salary'] ?? 0);
+        $revisedSalary = (float)$newSalary;
+
+        // Calculate hike percentage
+        $hikeText = '';
+        $hikeBadge = 'Revised';
+        if ($oldSalary > 0 && $revisedSalary > $oldSalary) {
+            $diff = $revisedSalary - $oldSalary;
+            $pct = round(($diff / $oldSalary) * 100);
+            $hikeText = "+{$pct}% hike";
+            $hikeBadge = "+{$pct}% Hike";
+        } elseif ($revisedSalary === $oldSalary) {
+            $hikeBadge = 'Same Salary';
+        }
+
+        // 2. Parse and update timeline
+        $timeline = [];
+        if (!empty($emp['timeline'])) {
+            $parsed = json_decode($emp['timeline'], true);
+            if (is_array($parsed)) {
+                $timeline = $parsed;
+            }
+        }
+
+        $timelineEntry = [
+            'date' => $effectiveDate,
+            'title' => "Promoted to {$newPosition}",
+            'description' => "Promoted from {$oldPosition} to {$newPosition}. Revised monthly compensation: ₹" . number_format($revisedSalary, 2) . ($hikeText ? " ({$hikeText})" : "") . ($notes ? ". Remarks: {$notes}" : "")
+        ];
+        $timeline[] = $timelineEntry;
+
+        // 3. Update employee table
+        $stmtUpdateEmp = $conn->prepare('
+            UPDATE employee 
+            SET position = ?, salary = ?, timeline = ?
+            WHERE id = ?
+        ');
+        $stmtUpdateEmp->execute([
+            $newPosition,
+            $revisedSalary,
+            json_encode($timeline),
+            $empId
+        ]);
+
+        // 4. Update users table position if userId exists
+        if (!empty($emp['userId'])) {
+            $stmtUpdateUser = $conn->prepare('UPDATE users SET position = ? WHERE id = ?');
+            $stmtUpdateUser->execute([$newPosition, $emp['userId']]);
+        }
+
+        // 5. Generate and queue promotion letter email if requested
+        if ($sendEmail && !empty($emp['email'])) {
+            $templatePath = __DIR__ . '/../src/Templates/promotion_letter_email.html';
+            if (file_exists($templatePath)) {
+                $template = file_get_contents($templatePath);
+
+                $formattedEffectiveDate = date('F j, Y', strtotime($effectiveDate));
+                $empFullName = trim(($emp['firstName'] ?? '') . ' ' . ($emp['lastName'] ?? ''));
+
+                $placeholders = [
+                    '{{firstName}}' => htmlspecialchars($emp['firstName'] ?? 'Employee'),
+                    '{{employeeName}}' => htmlspecialchars($empFullName),
+                    '{{employeeId}}' => htmlspecialchars($emp['employeeId'] ?? ''),
+                    '{{oldPosition}}' => htmlspecialchars($oldPosition),
+                    '{{newPosition}}' => htmlspecialchars($newPosition),
+                    '{{oldSalary}}' => number_format($oldSalary, 2),
+                    '{{newSalary}}' => number_format($revisedSalary, 2),
+                    '{{hikePercentage}}' => htmlspecialchars($hikeBadge),
+                    '{{effectiveDate}}' => htmlspecialchars($formattedEffectiveDate),
+                    '{{notes}}' => htmlspecialchars(!empty($notes) ? $notes : 'In recognition of your exceptional performance, dedication, and leadership.'),
+                    '{{currentYear}}' => date('Y')
+                ];
+
+                $emailBody = str_replace(
+                    array_keys($placeholders),
+                    array_values($placeholders),
+                    $template
+                );
+
+                $emailSubject = "Congratulations on Your Promotion to {$newPosition} - Acme Corp";
+
+                $stmtQueue = $conn->prepare('INSERT INTO email_queue (to_email, subject, body) VALUES (?, ?, ?)');
+                $stmtQueue->execute([$emp['email'], $emailSubject, $emailBody]);
+            }
+        }
+
+        $conn->commit();
+
+        \App\Utils\Cache::delete('dashboard_stats');
+
+        $response->getBody()->write(json_encode([
+            'message' => 'Employee promoted successfully and promotion letter queued',
+            'position' => $newPosition,
+            'salary' => $revisedSalary,
+            'timeline' => $timeline,
+            'emailQueued' => $sendEmail && !empty($emp['email'])
+        ]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
+
+    } catch (\Exception $e) {
+        if ($conn->inTransaction()) {
+            $conn->rollBack();
+        }
+        $response->getBody()->write(json_encode(['error' => 'Failed to promote employee: ' . $e->getMessage()]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+    }
+})->add(new AuthMiddleware(['admin'], 'employees'));
+

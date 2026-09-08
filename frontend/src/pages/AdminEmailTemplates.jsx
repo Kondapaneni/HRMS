@@ -43,6 +43,7 @@ import CandidateRejectedEmailTemplate from '../components/emailTemplates/Candida
 import CandidateDocumentsVerifiedEmailTemplate from '../components/emailTemplates/CandidateDocumentsVerifiedEmailTemplate';
 import AssessmentAssignedEmailTemplate from '../components/emailTemplates/AssessmentAssignedEmailTemplate';
 import AssessmentResultEmailTemplate from '../components/emailTemplates/AssessmentResultEmailTemplate';
+import PromotionEmailTemplate from '../components/emailTemplates/PromotionEmailTemplate';
 
 const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme }) => {
   const themes = {
@@ -105,6 +106,15 @@ const AdminEmailTemplates = () => {
       icon: CalendarDays,
       subject: 'Update on your Leave Request Status',
       content: <LeaveEmailTemplate />
+    },
+    {
+      id: 'promotion',
+      name: 'Promotion Letter (Employees)',
+      category: 'Employee HR',
+      description: 'Dispatched to employees upon promotion with revised designation, salary increment breakdown, and official congratulations.',
+      icon: Award,
+      subject: 'Congratulations on Your Promotion - Acme Corp',
+      content: <PromotionEmailTemplate />
     },
     {
       id: 'assessment_assigned',
