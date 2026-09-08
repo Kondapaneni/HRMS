@@ -696,12 +696,75 @@ $app->post('/api/admin/employees/{id}/promote', function (Request $request, Resp
             if (file_exists($templatePath)) {
                 $template = file_get_contents($templatePath);
 
+                // Construct dynamic terms breakdown HTML for letter
+                $termsBreakdownHtml = '';
+                if ($positionChanged) {
+                    $termsBreakdownHtml .= '
+                <tr>
+                  <td style="padding: 14px 18px; border-bottom: 1px solid #eef0f2; font-size: 13px; color: #5f6368; width: 45%;">
+                    Previous Designation:
+                  </td>
+                  <td style="padding: 14px 18px; border-bottom: 1px solid #eef0f2; font-size: 13px; font-weight: 600; color: #5f6368; text-align: right;">
+                    ' . htmlspecialchars($oldPosition) . '
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 14px 18px; border-bottom: 1px solid #eef0f2; font-size: 13px; color: #137333; font-weight: 600;">
+                    Promoted Designation:
+                  </td>
+                  <td style="padding: 14px 18px; border-bottom: 1px solid #eef0f2; font-size: 14px; font-weight: 700; color: #1a73e8; text-align: right;">
+                    ' . htmlspecialchars($newPosition) . '
+                  </td>
+                </tr>';
+                } else {
+                    $termsBreakdownHtml .= '
+                <tr>
+                  <td style="padding: 14px 18px; border-bottom: 1px solid #eef0f2; font-size: 13px; color: #5f6368; width: 45%;">
+                    Official Designation:
+                  </td>
+                  <td style="padding: 14px 18px; border-bottom: 1px solid #eef0f2; font-size: 13px; font-weight: 600; color: #1f1f1f; text-align: right;">
+                    ' . htmlspecialchars($newPosition) . ' <span style="font-size: 11px; background-color: #f1f3f4; color: #444746; padding: 2px 8px; border-radius: 100px; margin-left: 4px;">Current Role</span>
+                  </td>
+                </tr>';
+                }
+
+                if ($salaryChanged) {
+                    $termsBreakdownHtml .= '
+                <tr>
+                  <td style="padding: 14px 18px; border-bottom: 1px solid #eef0f2; font-size: 13px; color: #5f6368;">
+                    Previous Monthly Salary:
+                  </td>
+                  <td style="padding: 14px 18px; border-bottom: 1px solid #eef0f2; font-size: 13px; font-weight: 600; color: #5f6368; text-align: right; text-decoration: line-through;">
+                    ₹' . number_format($oldSalary, 2) . '
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 14px 18px; border-bottom: 1px solid #eef0f2; font-size: 13px; color: #137333; font-weight: 600;">
+                    Revised Monthly Salary:
+                  </td>
+                  <td style="padding: 14px 18px; border-bottom: 1px solid #eef0f2; font-size: 15px; font-weight: 700; color: #137333; text-align: right;">
+                    ₹' . number_format($revisedSalary, 2) . ' <span style="font-size: 11px; background-color: #e6f4ea; border: 1px solid #ceead6; color: #137333; padding: 2px 8px; border-radius: 100px; margin-left: 4px;">' . htmlspecialchars($hikeBadge) . '</span>
+                  </td>
+                </tr>';
+                } else {
+                    $termsBreakdownHtml .= '
+                <tr>
+                  <td style="padding: 14px 18px; border-bottom: 1px solid #eef0f2; font-size: 13px; color: #5f6368;">
+                    Base Monthly Salary:
+                  </td>
+                  <td style="padding: 14px 18px; border-bottom: 1px solid #eef0f2; font-size: 13px; font-weight: 600; color: #1f1f1f; text-align: right;">
+                    ₹' . number_format($revisedSalary, 2) . ' <span style="font-size: 11px; background-color: #f1f3f4; color: #444746; padding: 2px 8px; border-radius: 100px; margin-left: 4px;">Retained (Unchanged)</span>
+                  </td>
+                </tr>';
+                }
+
                 $placeholders = [
                     '{{letterBadge}}' => htmlspecialchars($letterBadge),
                     '{{letterHeading}}' => htmlspecialchars($letterHeading),
                     '{{letterSubheading}}' => $letterSubheading,
                     '{{openingParagraph}}' => $openingParagraph,
                     '{{closingNote}}' => $closingNote,
+                    '{{termsBreakdownHtml}}' => $termsBreakdownHtml,
                     '{{firstName}}' => htmlspecialchars($emp['firstName'] ?? 'Employee'),
                     '{{employeeName}}' => htmlspecialchars($empFullName),
                     '{{employeeId}}' => htmlspecialchars($emp['employeeId'] ?? ''),
