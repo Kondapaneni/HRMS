@@ -23,7 +23,8 @@ import {
   Phone, 
   X,
   Check,
-  FileEdit
+  FileEdit,
+  Loader2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { getBranchLoanApplications } from '../services/loanServices';
@@ -121,7 +122,7 @@ const BranchOperationsLoansApplicationsList = () => {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  const { data: response, isLoading, error } = useQuery({
+  const { data: response, isLoading, isFetching, error } = useQuery({
     queryKey: ['branchOperations', 'applications', 'list'],
     queryFn: getBranchLoanApplications,
     staleTime: 2 * 60 * 1000,
@@ -398,23 +399,18 @@ const BranchOperationsLoansApplicationsList = () => {
         <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3.5 shadow-xs flex flex-col md:flex-row items-center justify-between gap-3">
           {/* Search Box */}
           <div className="relative w-full md:w-80">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#80868b]" />
+            {isFetching ? (
+              <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#1a73e8] animate-spin pointer-events-none" />
+            ) : (
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368] pointer-events-none" />
+            )}
             <input
               type="search"
               placeholder="Search by name, phone, App ID..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9.5 pr-8 py-2 text-xs bg-[#f8fafd] border border-[#dadce0] rounded-full focus:outline-none focus:ring-2 focus:ring-[#7C4DFF]/30 focus:border-[#7C4DFF] transition-all text-[#1f1f1f] placeholder:text-[#80868b]"
+              className="w-full pl-10 pr-4 py-2 text-xs bg-[#f1f3f4] hover:bg-[#e8eaed] focus:bg-white border border-transparent focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-full text-[#1f1f1f] placeholder:text-[#5f6368] outline-none transition-all shadow-none focus:shadow-sm"
             />
-            {searchTerm && (
-              <button
-                type="button"
-                onClick={() => setSearchTerm('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-[#80868b] hover:text-[#1f1f1f] rounded-full"
-              >
-                <X size={13} />
-              </button>
-            )}
           </div>
 
           {/* Controls */}
