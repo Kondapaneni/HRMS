@@ -93,7 +93,7 @@ const AdminReports = () => {
     queryKey: ['admin_report_employees'],
     queryFn: async () => {
       const res = await api.get('/admin/reports/employees?format=json');
-      return res.data;
+      return res.data?.data || (Array.isArray(res.data) ? res.data : []);
     },
     staleTime: 60 * 1000,
   });
@@ -102,7 +102,7 @@ const AdminReports = () => {
     queryKey: ['admin_report_attendance', attendanceMonth],
     queryFn: async () => {
       const res = await api.get(`/admin/reports/attendance?month=${attendanceMonth}&format=json`);
-      return res.data;
+      return res.data?.data || (Array.isArray(res.data) ? res.data : []);
     },
     placeholderData: (previousData) => previousData,
     staleTime: 60 * 1000,
@@ -112,7 +112,7 @@ const AdminReports = () => {
     queryKey: ['admin_report_payroll', payrollMonth],
     queryFn: async () => {
       const res = await api.get(`/admin/reports/payroll?month=${payrollMonth}&format=json`);
-      return res.data;
+      return res.data?.data || (Array.isArray(res.data) ? res.data : []);
     },
     placeholderData: (previousData) => previousData,
     staleTime: 60 * 1000,

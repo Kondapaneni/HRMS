@@ -105,7 +105,7 @@ const AdminTrainingVideos = () => {
     queryKey: ['admin', 'trainingVideos'],
     queryFn: async () => {
       const res = await api.get('/admin/training/videos');
-      return res.data || [];
+      return res.data?.videos || res.data?.data || (Array.isArray(res.data) ? res.data : []);
     }
   });
 

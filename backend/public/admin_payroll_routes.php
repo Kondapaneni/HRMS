@@ -338,6 +338,36 @@ $app->post('/api/admin/payroll/generate-bulk', function (Request $request, Respo
     $employeesMap = [];
     foreach ($stmtEmp->fetchAll(PDO::FETCH_ASSOC) as $emp) $employeesMap[$emp['userId']] = $emp;
 
+    // 3. Batch Missed Attendance
+    $stmtMissing = $conn->prepare("
+        SELECT \"employeeId\", date 
+        FROM attendance 
+        WHERE status = 'missed' AND date BETWEEN ? AND ? AND \"employeeId\" IN ($placeholders)
+    ");
+    $stmtMissing->execute(array_merge([$monthStart, $monthEnd], $employeeIds));
+    $missedAttendanceByEmp = [];
+    while ($row = $stmtMissing->fetch(PDO::FETCH_ASSOC)) {
+        $missedAttendanceByEmp[$row['employeeId']][] = $row['date'];
+    }
+
+    // 4. Batch Approved Unpaid Leaves
+    $stmtLeaves = $conn->prepare("
+        SELECT \"employeeId\", \"startDate\", \"endDate\", days 
+        FROM leaves 
+        WHERE LOWER(\"leaveType\") = 'unpaid' AND status = 'approved' AND \"startDate\" <= ? AND \"endDate\" >= ? AND \"employeeId\" IN ($placeholders)
+    ");
+    $stmtLeaves->execute(array_merge([$monthEnd, $monthStart], $employeeIds));
+    $unpaidLeavesByEmp = [];
+    while ($row = $stmtLeaves->fetch(PDO::FETCH_ASSOC)) {
+        $unpaidLeavesByEmp[$row['employeeId']][] = $row;
+    }
+
+    // 5. Prepare Payslip Insert Statement
+    $stmtInsert = $conn->prepare('
+        INSERT INTO payslips (id, "employeeId", month, year, "earningsJson", "deductionsJson", "detailsJson", "netSalary", status)
+        VALUES (gen_random_uuid(), ?, ?, ?, ?, ?, ?, ?, \'generated\')
+    ');
+
     foreach ($employeeIds as $employeeId) {
         try {
             if (isset($existingPayslips[$employeeId])) {
@@ -366,23 +396,25 @@ $app->post('/api/admin/payroll/generate-bulk', function (Request $request, Respo
                 $totalWorkingDays = $actualPayableDays;
             }
 
-            // Missing Days
-            $stmtMissing = $conn->prepare("
-                SELECT COUNT(*) as count 
-                FROM attendance 
-                WHERE status = 'missed' AND date BETWEEN ? AND ? AND \"employeeId\" = ?
-            ");
-            $stmtMissing->execute([$effectiveStartDate, $monthEnd, $employeeId]);
-            $missingDays = (int)$stmtMissing->fetchColumn();
+            // Missing Days (from pre-fetched batch)
+            $missingDays = 0;
+            if (!empty($missedAttendanceByEmp[$employeeId])) {
+                foreach ($missedAttendanceByEmp[$employeeId] as $mDate) {
+                    if ($mDate >= $effectiveStartDate && $mDate <= $monthEnd) {
+                        $missingDays++;
+                    }
+                }
+            }
 
-            // Unpaid Leaves
-            $stmtLeaves = $conn->prepare("
-                SELECT SUM(days) as days 
-                FROM leaves 
-                WHERE LOWER(\"leaveType\") = 'unpaid' AND status = 'approved' AND \"startDate\" <= ? AND \"endDate\" >= ? AND \"employeeId\" = ?
-            ");
-            $stmtLeaves->execute([$monthEnd, $effectiveStartDate, $employeeId]);
-            $unpaidLeaveDays = (int)$stmtLeaves->fetchColumn();
+            // Unpaid Leaves (from pre-fetched batch)
+            $unpaidLeaveDays = 0;
+            if (!empty($unpaidLeavesByEmp[$employeeId])) {
+                foreach ($unpaidLeavesByEmp[$employeeId] as $l) {
+                    if ($l['startDate'] <= $monthEnd && $l['endDate'] >= $effectiveStartDate) {
+                        $unpaidLeaveDays += (int)$l['days'];
+                    }
+                }
+            }
 
             $lossOfPayDays = min($unpaidLeaveDays + $missingDays, $totalWorkingDays);
             $payableDays = max(0, $totalWorkingDays - $lossOfPayDays);
@@ -438,12 +470,7 @@ $app->post('/api/admin/payroll/generate-bulk', function (Request $request, Respo
                 'paymentMode' => 'Bank Transfer'
             ];
 
-            // Insert into DB
-            $stmtInsert = $conn->prepare('
-                INSERT INTO payslips (id, "employeeId", month, year, "earningsJson", "deductionsJson", "detailsJson", "netSalary", status)
-                VALUES (gen_random_uuid(), ?, ?, ?, ?, ?, ?, ?, \'generated\')
-            ');
-
+            // Execute Insert using pre-prepared statement
             $stmtInsert->execute([
                 $employeeId,
                 $month,

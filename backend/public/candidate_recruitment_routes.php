@@ -189,12 +189,44 @@ $app->delete('/api/candidate/documents/{type}', function (Request $request, Resp
 $app->get('/api/candidate/jobs', function (Request $request, Response $response, $args) {
     $db = new Database();
     $conn = $db->getConnection();
+    $params = $request->getQueryParams();
+    $limit = isset($params['limit']) ? (int)$params['limit'] : 50;
+    $offset = isset($params['offset']) ? (int)$params['offset'] : (isset($params['page']) ? (max(1, (int)$params['page']) - 1) * $limit : 0);
+    if ($limit <= 0) $limit = 50;
+    if ($offset < 0) $offset = 0;
+    $search = trim($params['search'] ?? '');
     
     try {
-        $stmt = $conn->query('SELECT id, title, department, location, type, status, description, experience, salary_min, salary_max, vacancy, skills, qualification, deadline, description_pdf_url, created_at, updated_at FROM jobs WHERE status = \'Published\' ORDER BY created_at DESC');
+        $where = "WHERE status = 'Published'";
+        $queryParams = [];
+        if (!empty($search)) {
+            $where .= ' AND (title ILIKE ? OR department ILIKE ? OR location ILIKE ?)';
+            $searchTerm = '%' . $search . '%';
+            $queryParams = [$searchTerm, $searchTerm, $searchTerm];
+        }
+
+        $stmt = $conn->prepare("SELECT id, title, department, location, type, status, description, experience, salary_min, salary_max, vacancy, skills, qualification, deadline, description_pdf_url, created_at, updated_at FROM jobs {$where} ORDER BY created_at DESC LIMIT ? OFFSET ?");
+        $paramIndex = 1;
+        foreach ($queryParams as $p) {
+            $stmt->bindValue($paramIndex++, $p);
+        }
+        $stmt->bindValue($paramIndex++, $limit, PDO::PARAM_INT);
+        $stmt->bindValue($paramIndex, $offset, PDO::PARAM_INT);
+        $stmt->execute();
         $jobs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $response->getBody()->write(json_encode(['jobs' => $jobs]));
+        $stmtCount = $conn->prepare("SELECT COUNT(*) FROM jobs {$where}");
+        $paramIndex = 1;
+        foreach ($queryParams as $p) {
+            $stmtCount->bindValue($paramIndex++, $p);
+        }
+        $stmtCount->execute();
+        $totalCount = (int)$stmtCount->fetchColumn();
+
+        $response->getBody()->write(json_encode([
+            'jobs' => $jobs,
+            'total' => $totalCount
+        ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
@@ -208,6 +240,11 @@ $app->get('/api/candidate/applications', function (Request $request, Response $r
     
     $db = new Database();
     $conn = $db->getConnection();
+    $params = $request->getQueryParams();
+    $limit = isset($params['limit']) ? (int)$params['limit'] : 50;
+    $offset = isset($params['offset']) ? (int)$params['offset'] : (isset($params['page']) ? (max(1, (int)$params['page']) - 1) * $limit : 0);
+    if ($limit <= 0) $limit = 50;
+    if ($offset < 0) $offset = 0;
     
     try {
         // Fetch applications with job details and timeline
@@ -217,14 +254,31 @@ $app->get('/api/candidate/applications', function (Request $request, Response $r
             JOIN jobs j ON a.job_id = j.id 
             WHERE a.candidate_id = ? 
             ORDER BY a.applied_date DESC
+            LIMIT ? OFFSET ?
         ');
-        $stmt->execute([$decodedToken->id]);
+        $stmt->bindValue(1, $decodedToken->id);
+        $stmt->bindValue(2, $limit, PDO::PARAM_INT);
+        $stmt->bindValue(3, $offset, PDO::PARAM_INT);
+        $stmt->execute();
         $applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+        $stmtCount = $conn->prepare('SELECT COUNT(*) FROM applications WHERE candidate_id = ?');
+        $stmtCount->execute([$decodedToken->id]);
+        $totalCount = (int)$stmtCount->fetchColumn();
+
+        $appIds = array_column($applications, 'id');
+        $timelinesByApp = [];
+        if (!empty($appIds)) {
+            $inPlaceholders = implode(',', array_fill(0, count($appIds), '?'));
+            $stmtTimeline = $conn->prepare("SELECT id, application_id, status_change, notes, created_at FROM application_timeline WHERE application_id IN ($inPlaceholders) ORDER BY created_at DESC");
+            $stmtTimeline->execute($appIds);
+            while ($row = $stmtTimeline->fetch(PDO::FETCH_ASSOC)) {
+                $timelinesByApp[$row['application_id']][] = $row;
+            }
+        }
+
         foreach ($applications as &$app) {
-            $stmtTimeline = $conn->prepare('SELECT id, application_id, status_change, notes, created_at FROM application_timeline WHERE application_id = ? ORDER BY created_at DESC');
-            $stmtTimeline->execute([$app['id']]);
-            $app['application_timeline'] = $stmtTimeline->fetchAll(PDO::FETCH_ASSOC);
+            $app['application_timeline'] = $timelinesByApp[$app['id']] ?? [];
             
             // Format to match Supabase structure expectations
             $app['jobs'] = [
@@ -233,8 +287,12 @@ $app->get('/api/candidate/applications', function (Request $request, Response $r
             ];
             unset($app['job_title'], $app['job_department']);
         }
+        unset($app);
 
-        $response->getBody()->write(json_encode(['applications' => $applications]));
+        $response->getBody()->write(json_encode([
+            'applications' => $applications,
+            'total' => $totalCount
+        ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));

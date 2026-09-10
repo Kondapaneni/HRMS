@@ -4,6 +4,8 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Middleware\AuthMiddleware;
 use App\Config\Database;
 
+require_once __DIR__ . '/attendance_helpers.php';
+
 // Get Employee Leaves and Balance
 /** @var \Slim\App $app */
 $app->get('/api/employee/leaves', function (Request $request, Response $response, $args) {
@@ -90,10 +92,8 @@ $app->post('/api/employee/leaves/apply', function (Request $request, Response $r
         $start = new DateTime($startDate);
         $end = new DateTime($endDate);
 
-        $stmtEmpOff = $conn->prepare('SELECT "weekOff" FROM employee WHERE "userId" = ?');
-        $stmtEmpOff->execute([$decodedToken->id]);
-        $weekOff = $stmtEmpOff->fetchColumn() ?: 'sunday';
-        $weekOffDays = array_map('trim', explode(',', strtolower($weekOff)));
+        $weekOffDays = getEmployeeWeekOffDays($conn, $decodedToken->id);
+        $holidaysMap = getActiveHolidaysMap($conn);
 
         // Calculate Days excluding weekOffs and company holidays
         $days = 0;
@@ -103,10 +103,7 @@ $app->post('/api/employee/leaves/apply', function (Request $request, Response $r
             $dayOfWeekName = strtolower($current->format('l'));
             
             $isWeekend = in_array($dayOfWeekName, $weekOffDays);
-            
-            $stmtHol = $conn->prepare('SELECT COUNT(*) FROM company_holidays WHERE "holidayDate" = ? AND "isActive" = 1');
-            $stmtHol->execute([$dateStr]);
-            $isHoliday = $stmtHol->fetchColumn() > 0;
+            $isHoliday = isset($holidaysMap[$dateStr]);
             
             if (!$isWeekend && !$isHoliday) {
                 $days++;

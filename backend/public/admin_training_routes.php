@@ -11,16 +11,47 @@ use App\Config\Database;
 $app->get('/api/admin/training/videos', function (Request $request, Response $response, $args) {
     $db = new Database();
     $conn = $db->getConnection();
+    $params = $request->getQueryParams();
+    $limit = isset($params['limit']) ? (int)$params['limit'] : 50;
+    $offset = isset($params['offset']) ? (int)$params['offset'] : (isset($params['page']) ? (max(1, (int)$params['page']) - 1) * $limit : 0);
+    if ($limit <= 0) $limit = 50;
+    if ($offset < 0) $offset = 0;
+    $search = trim($params['search'] ?? '');
+
+    $where = '';
+    $queryParams = [];
+    if (!empty($search)) {
+        $where = 'WHERE tv.title ILIKE ?';
+        $queryParams = ['%' . $search . '%'];
+    }
 
     try {
-        $sql = '
-            SELECT tv.*, u."firstName", u."lastName" 
+        $sql = "
+            SELECT tv.*, u.\"firstName\", u.\"lastName\" 
             FROM training_videos tv
             LEFT JOIN users u ON tv.created_by = u.id
+            {$where}
             ORDER BY tv.created_at DESC
-        ';
-        $stmt = $conn->query($sql);
+            LIMIT ? OFFSET ?
+        ";
+        $stmt = $conn->prepare($sql);
+        $paramIndex = 1;
+        foreach ($queryParams as $p) {
+            $stmt->bindValue($paramIndex++, $p);
+        }
+        $stmt->bindValue($paramIndex++, $limit, PDO::PARAM_INT);
+        $stmt->bindValue($paramIndex, $offset, PDO::PARAM_INT);
+        $stmt->execute();
         $videos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $countSql = "SELECT COUNT(*) FROM training_videos tv {$where}";
+        $stmtCount = $conn->prepare($countSql);
+        $paramIndex = 1;
+        foreach ($queryParams as $p) {
+            $stmtCount->bindValue($paramIndex++, $p);
+        }
+        $stmtCount->execute();
+        $totalCount = (int)$stmtCount->fetchColumn();
 
         foreach ($videos as &$video) {
             if (!empty($video['assigned_employee_ids']) && is_string($video['assigned_employee_ids'])) {
@@ -29,8 +60,13 @@ $app->get('/api/admin/training/videos', function (Request $request, Response $re
                 $video['assigned_employee_ids'] = [];
             }
         }
+        unset($video);
 
-        $response->getBody()->write(json_encode($videos));
+        $response->getBody()->write(json_encode([
+            'data' => $videos,
+            'videos' => $videos,
+            'total' => $totalCount
+        ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (\Exception $e) {
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));

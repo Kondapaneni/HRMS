@@ -25,24 +25,12 @@ function getShiftTimesMap($conn) {
     return $shiftTimesMap;
 }
 
-function getActiveHolidaysMap($conn) {
-    static $map = null;
-    if ($map !== null) return $map;
-    
-    $stmt = $conn->query('SELECT "holidayDate" FROM company_holidays WHERE "isActive" = 1');
-    $holidays = $stmt->fetchAll(PDO::FETCH_COLUMN);
-    $map = array_flip($holidays);
-    return $map;
-}
+require_once __DIR__ . '/attendance_helpers.php';
 
 function getNextLeaveWorkingDate($conn, $employeeId, $dateStr) {
     $current = strtotime('+1 day', strtotime($dateStr));
-    
-    // Get weekOff
-    $stmt = $conn->prepare('SELECT "weekOff" FROM employee WHERE "userId" = ?');
-    $stmt->execute([$employeeId]);
-    $weekOff = $stmt->fetchColumn() ?: 'sunday';
-    $weekOffDays = array_map('trim', explode(',', strtolower($weekOff)));
+    $weekOffDays = getEmployeeWeekOffDays($conn, $employeeId);
+    $holidaysMap = getActiveHolidaysMap($conn);
     
     while (true) {
         $date = date('Y-m-d', $current);
@@ -54,7 +42,6 @@ function getNextLeaveWorkingDate($conn, $employeeId, $dateStr) {
             continue;
         }
         
-        $holidaysMap = getActiveHolidaysMap($conn);
         $isHoliday = isset($holidaysMap[$date]);
         if ($isHoliday) {
             $current = strtotime('+1 day', $current);
@@ -67,12 +54,8 @@ function getNextLeaveWorkingDate($conn, $employeeId, $dateStr) {
 
 function getPreviousLeaveWorkingDate($conn, $employeeId, $dateStr) {
     $current = strtotime('-1 day', strtotime($dateStr));
-    
-    // Get weekOff
-    $stmt = $conn->prepare('SELECT "weekOff" FROM employee WHERE "userId" = ?');
-    $stmt->execute([$employeeId]);
-    $weekOff = $stmt->fetchColumn() ?: 'sunday';
-    $weekOffDays = array_map('trim', explode(',', strtolower($weekOff)));
+    $weekOffDays = getEmployeeWeekOffDays($conn, $employeeId);
+    $holidaysMap = getActiveHolidaysMap($conn);
     
     while (true) {
         $date = date('Y-m-d', $current);
@@ -84,7 +67,6 @@ function getPreviousLeaveWorkingDate($conn, $employeeId, $dateStr) {
             continue;
         }
         
-        $holidaysMap = getActiveHolidaysMap($conn);
         $isHoliday = isset($holidaysMap[$date]);
         if ($isHoliday) {
             $current = strtotime('-1 day', $current);
@@ -98,10 +80,8 @@ function getPreviousLeaveWorkingDate($conn, $employeeId, $dateStr) {
 function calculateWorkingDaysBetween($conn, $employeeId, $startDate, $endDate) {
     if ($startDate > $endDate) return 0;
     
-    $stmt = $conn->prepare('SELECT "weekOff" FROM employee WHERE "userId" = ?');
-    $stmt->execute([$employeeId]);
-    $weekOff = $stmt->fetchColumn() ?: 'sunday';
-    $weekOffDays = array_map('trim', explode(',', strtolower($weekOff)));
+    $weekOffDays = getEmployeeWeekOffDays($conn, $employeeId);
+    $holidaysMap = getActiveHolidaysMap($conn);
     
     $current = strtotime($startDate);
     $end = strtotime($endDate);
@@ -112,8 +92,6 @@ function calculateWorkingDaysBetween($conn, $employeeId, $startDate, $endDate) {
         $dayName = strtolower(date('l', $current));
         
         $isWeekend = in_array($dayName, $weekOffDays);
-        
-        $holidaysMap = getActiveHolidaysMap($conn);
         $isHoliday = isset($holidaysMap[$date]);
         
         if (!$isWeekend && !$isHoliday) {
@@ -130,10 +108,7 @@ function generateUUIDv4() {
 
 function adjustApprovedLeaveRecordForDate($conn, $employeeId, $date, $adminId) {
     // Check if it's a weekend or holiday, if so, no leave deduction anyway
-    $stmt = $conn->prepare('SELECT "weekOff" FROM employee WHERE "userId" = ?');
-    $stmt->execute([$employeeId]);
-    $weekOff = $stmt->fetchColumn() ?: 'sunday';
-    $weekOffDays = array_map('trim', explode(',', strtolower($weekOff)));
+    $weekOffDays = getEmployeeWeekOffDays($conn, $employeeId);
     $dayName = strtolower(date('l', strtotime($date)));
     if (in_array($dayName, $weekOffDays)) return true;
     

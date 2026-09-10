@@ -10,12 +10,44 @@ use App\Config\Database;
 $app->get('/api/admin/candidates', function (Request $request, Response $response, $args) {
     $db = new Database();
     $conn = $db->getConnection();
+    $params = $request->getQueryParams();
+    $limit = isset($params['limit']) ? (int)$params['limit'] : 50;
+    $offset = isset($params['offset']) ? (int)$params['offset'] : (isset($params['page']) ? (max(1, (int)$params['page']) - 1) * $limit : 0);
+    if ($limit <= 0) $limit = 50;
+    if ($offset < 0) $offset = 0;
+    $search = trim($params['search'] ?? '');
+
+    $where = "WHERE role IN ('candidate', 'employee')";
+    $queryParams = [];
+    if (!empty($search)) {
+        $where .= ' AND ("firstName" ILIKE ? OR "lastName" ILIKE ? OR email ILIKE ?)';
+        $searchTerm = '%' . $search . '%';
+        $queryParams = [$searchTerm, $searchTerm, $searchTerm];
+    }
     
     try {
-        $stmt = $conn->query('SELECT id, "firstName", "lastName", email FROM users WHERE role IN (\'candidate\', \'employee\')');
+        $stmt = $conn->prepare("SELECT id, \"firstName\", \"lastName\", email FROM users {$where} ORDER BY \"firstName\" ASC, \"lastName\" ASC LIMIT ? OFFSET ?");
+        $paramIndex = 1;
+        foreach ($queryParams as $p) {
+            $stmt->bindValue($paramIndex++, $p);
+        }
+        $stmt->bindValue($paramIndex++, $limit, PDO::PARAM_INT);
+        $stmt->bindValue($paramIndex, $offset, PDO::PARAM_INT);
+        $stmt->execute();
         $candidates = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $response->getBody()->write(json_encode(['candidates' => $candidates]));
+        $stmtCount = $conn->prepare("SELECT COUNT(*) FROM users {$where}");
+        $paramIndex = 1;
+        foreach ($queryParams as $p) {
+            $stmtCount->bindValue($paramIndex++, $p);
+        }
+        $stmtCount->execute();
+        $totalCount = (int)$stmtCount->fetchColumn();
+
+        $response->getBody()->write(json_encode([
+            'candidates' => $candidates,
+            'total' => $totalCount
+        ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
@@ -54,15 +86,38 @@ $app->post('/api/admin/send-email', function (Request $request, Response $respon
 $app->get('/api/admin/jobs', function (Request $request, Response $response, $args) {
     $db = new Database();
     $conn = $db->getConnection();
+    $params = $request->getQueryParams();
+    $limit = isset($params['limit']) ? (int)$params['limit'] : 50;
+    $offset = isset($params['offset']) ? (int)$params['offset'] : (isset($params['page']) ? (max(1, (int)$params['page']) - 1) * $limit : 0);
+    if ($limit <= 0) $limit = 50;
+    if ($offset < 0) $offset = 0;
+    $search = trim($params['search'] ?? '');
+
+    $where = '';
+    $queryParams = [];
+    if (!empty($search)) {
+        $where = 'WHERE j.title ILIKE ? OR j.department ILIKE ? OR j.location ILIKE ?';
+        $searchTerm = '%' . $search . '%';
+        $queryParams = [$searchTerm, $searchTerm, $searchTerm];
+    }
     
     try {
         // We need to fetch jobs along with the count of applications
-        $stmt = $conn->query('
+        $stmt = $conn->prepare("
             SELECT j.*, 
                    (SELECT COUNT(*) FROM applications a WHERE a.job_id = j.id) as applications_count
             FROM jobs j
+            {$where}
             ORDER BY j.created_at DESC
-        ');
+            LIMIT ? OFFSET ?
+        ");
+        $paramIndex = 1;
+        foreach ($queryParams as $p) {
+            $stmt->bindValue($paramIndex++, $p);
+        }
+        $stmt->bindValue($paramIndex++, $limit, PDO::PARAM_INT);
+        $stmt->bindValue($paramIndex, $offset, PDO::PARAM_INT);
+        $stmt->execute();
         $jobs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         // Format it similarly to Supabase `applications: [{ count }]` structure
@@ -70,8 +125,20 @@ $app->get('/api/admin/jobs', function (Request $request, Response $response, $ar
             $job['applications'] = [['count' => (int)$job['applications_count']]];
             unset($job['applications_count']);
         }
+        unset($job);
 
-        $response->getBody()->write(json_encode(['jobs' => $jobs]));
+        $stmtCount = $conn->prepare("SELECT COUNT(*) FROM jobs j {$where}");
+        $paramIndex = 1;
+        foreach ($queryParams as $p) {
+            $stmtCount->bindValue($paramIndex++, $p);
+        }
+        $stmtCount->execute();
+        $totalCount = (int)$stmtCount->fetchColumn();
+
+        $response->getBody()->write(json_encode([
+            'jobs' => $jobs,
+            'total' => $totalCount
+        ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
@@ -159,6 +226,10 @@ $app->get('/api/admin/applications', function (Request $request, Response $respo
     $db = new Database();
     $conn = $db->getConnection();
     $params = $request->getQueryParams();
+    $limit = isset($params['limit']) ? (int)$params['limit'] : 50;
+    $offset = isset($params['offset']) ? (int)$params['offset'] : (isset($params['page']) ? (max(1, (int)$params['page']) - 1) * $limit : 0);
+    if ($limit <= 0) $limit = 50;
+    if ($offset < 0) $offset = 0;
     $search = trim($params['search'] ?? '');
 
     try {
@@ -179,16 +250,46 @@ $app->get('/api/admin/applications', function (Request $request, Response $respo
             LEFT JOIN users u ON a.candidate_id = u.id
             {$where}
             ORDER BY a.applied_date DESC
+            LIMIT ? OFFSET ?
         ";
         
         $stmt = $conn->prepare($sql);
-        $stmt->execute($queryParams);
+        $paramIndex = 1;
+        foreach ($queryParams as $p) {
+            $stmt->bindValue($paramIndex++, $p);
+        }
+        $stmt->bindValue($paramIndex++, $limit, PDO::PARAM_INT);
+        $stmt->bindValue($paramIndex, $offset, PDO::PARAM_INT);
+        $stmt->execute();
         $applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+        $stmtCount = $conn->prepare("
+            SELECT COUNT(*) 
+            FROM applications a 
+            JOIN jobs j ON a.job_id = j.id
+            LEFT JOIN users u ON a.candidate_id = u.id
+            {$where}
+        ");
+        $paramIndex = 1;
+        foreach ($queryParams as $p) {
+            $stmtCount->bindValue($paramIndex++, $p);
+        }
+        $stmtCount->execute();
+        $totalCount = (int)$stmtCount->fetchColumn();
+
+        $appIds = array_column($applications, 'id');
+        $timelinesByApp = [];
+        if (!empty($appIds)) {
+            $inPlaceholders = implode(',', array_fill(0, count($appIds), '?'));
+            $stmtTimeline = $conn->prepare("SELECT id, application_id, status_change, notes, created_at FROM application_timeline WHERE application_id IN ($inPlaceholders) ORDER BY created_at DESC");
+            $stmtTimeline->execute($appIds);
+            while ($row = $stmtTimeline->fetch(PDO::FETCH_ASSOC)) {
+                $timelinesByApp[$row['application_id']][] = $row;
+            }
+        }
+
         foreach ($applications as &$app) {
-            $stmtTimeline = $conn->prepare('SELECT id, application_id, status_change, notes, created_at FROM application_timeline WHERE application_id = ? ORDER BY created_at DESC');
-            $stmtTimeline->execute([$app['id']]);
-            $app['application_timeline'] = $stmtTimeline->fetchAll(PDO::FETCH_ASSOC);
+            $app['application_timeline'] = $timelinesByApp[$app['id']] ?? [];
             
             // Format to match Supabase structure expectations
             $app['jobs'] = [
@@ -197,8 +298,12 @@ $app->get('/api/admin/applications', function (Request $request, Response $respo
             ];
             unset($app['job_title'], $app['job_department']);
         }
+        unset($app);
 
-        $response->getBody()->write(json_encode(['applications' => $applications]));
+        $response->getBody()->write(json_encode([
+            'applications' => $applications,
+            'total' => $totalCount
+        ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
@@ -301,12 +406,25 @@ $app->get('/api/admin/applications/{id}', function (Request $request, Response $
 $app->get('/api/admin/candidate-profiles', function (Request $request, Response $response, $args) {
     $db = new Database();
     $conn = $db->getConnection();
+    $params = $request->getQueryParams();
+    $limit = isset($params['limit']) ? (int)$params['limit'] : 50;
+    $offset = isset($params['offset']) ? (int)$params['offset'] : (isset($params['page']) ? (max(1, (int)$params['page']) - 1) * $limit : 0);
+    if ($limit <= 0) $limit = 50;
+    if ($offset < 0) $offset = 0;
     
     try {
-        $stmt = $conn->query('SELECT id, user_id, phone, address, current_title, experience, resume_url, avatar_url, created_at, updated_at FROM candidate_profiles');
+        $stmt = $conn->prepare('SELECT id, user_id, phone, address, current_title, experience, resume_url, avatar_url, created_at, updated_at FROM candidate_profiles ORDER BY created_at DESC LIMIT ? OFFSET ?');
+        $stmt->bindValue(1, $limit, PDO::PARAM_INT);
+        $stmt->bindValue(2, $offset, PDO::PARAM_INT);
+        $stmt->execute();
         $profiles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $response->getBody()->write(json_encode(['profiles' => $profiles]));
+        $totalCount = (int)$conn->query('SELECT COUNT(*) FROM candidate_profiles')->fetchColumn();
+
+        $response->getBody()->write(json_encode([
+            'profiles' => $profiles,
+            'total' => $totalCount
+        ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
@@ -319,18 +437,42 @@ $app->get('/api/admin/candidate-documents', function (Request $request, Response
     $db = new Database();
     $conn = $db->getConnection();
     $params = $request->getQueryParams();
+    $limit = isset($params['limit']) ? (int)$params['limit'] : 50;
+    $offset = isset($params['offset']) ? (int)$params['offset'] : (isset($params['page']) ? (max(1, (int)$params['page']) - 1) * $limit : 0);
+    if ($limit <= 0) $limit = 50;
+    if ($offset < 0) $offset = 0;
     $candidateId = $params['candidate_id'] ?? '';
     
     try {
+        $where = '';
+        $queryParams = [];
         if (!empty($candidateId)) {
-            $stmt = $conn->prepare('SELECT id, candidate_id, document_type, file_name, file_path, status, uploaded_at FROM candidate_documents WHERE candidate_id = ? ORDER BY uploaded_at DESC');
-            $stmt->execute([$candidateId]);
-        } else {
-            $stmt = $conn->query('SELECT id, candidate_id, document_type, file_name, file_path, status, uploaded_at FROM candidate_documents ORDER BY uploaded_at DESC');
+            $where = 'WHERE candidate_id = ?';
+            $queryParams[] = $candidateId;
         }
+
+        $stmt = $conn->prepare("SELECT id, candidate_id, document_type, file_name, file_path, status, uploaded_at FROM candidate_documents {$where} ORDER BY uploaded_at DESC LIMIT ? OFFSET ?");
+        $paramIndex = 1;
+        foreach ($queryParams as $p) {
+            $stmt->bindValue($paramIndex++, $p);
+        }
+        $stmt->bindValue($paramIndex++, $limit, PDO::PARAM_INT);
+        $stmt->bindValue($paramIndex, $offset, PDO::PARAM_INT);
+        $stmt->execute();
         $documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $response->getBody()->write(json_encode(['documents' => $documents]));
+        $stmtCount = $conn->prepare("SELECT COUNT(*) FROM candidate_documents {$where}");
+        $paramIndex = 1;
+        foreach ($queryParams as $p) {
+            $stmtCount->bindValue($paramIndex++, $p);
+        }
+        $stmtCount->execute();
+        $totalCount = (int)$stmtCount->fetchColumn();
+
+        $response->getBody()->write(json_encode([
+            'documents' => $documents,
+            'total' => $totalCount
+        ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));

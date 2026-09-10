@@ -13,6 +13,10 @@ $app->get('/api/admin/assessments', function (Request $request, Response $respon
     $queryParams = $request->getQueryParams();
     $department = trim($queryParams['department'] ?? '');
     $search = trim($queryParams['search'] ?? '');
+    $limit = isset($queryParams['limit']) ? (int)$queryParams['limit'] : 50;
+    $offset = isset($queryParams['offset']) ? (int)$queryParams['offset'] : (isset($queryParams['page']) ? (max(1, (int)$queryParams['page']) - 1) * $limit : 0);
+    if ($limit <= 0) $limit = 50;
+    if ($offset < 0) $offset = 0;
 
     $db = new Database();
     $conn = $db->getConnection();
@@ -35,10 +39,25 @@ $app->get('/api/admin/assessments', function (Request $request, Response $respon
         }
 
         $whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
-        $sql = "SELECT * FROM assessments {$whereClause} ORDER BY created_at DESC";
+        $sql = "SELECT id, title, department, duration_minutes, passing_percentage, max_attempts, marks_per_question, randomize_questions, randomize_options, result_visibility, status, assessment_date, questions_count, selected_questions, assigned_employee_ids, created_by, created_at, updated_at FROM assessments {$whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?";
         $stmt = $conn->prepare($sql);
-        $stmt->execute($params);
+        $paramIndex = 1;
+        foreach ($params as $p) {
+            $stmt->bindValue($paramIndex++, $p);
+        }
+        $stmt->bindValue($paramIndex++, $limit, PDO::PARAM_INT);
+        $stmt->bindValue($paramIndex, $offset, PDO::PARAM_INT);
+        $stmt->execute();
         $assessments = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $countSql = "SELECT COUNT(*) FROM assessments {$whereClause}";
+        $stmtCount = $conn->prepare($countSql);
+        $paramIndex = 1;
+        foreach ($params as $p) {
+            $stmtCount->bindValue($paramIndex++, $p);
+        }
+        $stmtCount->execute();
+        $totalCount = (int)$stmtCount->fetchColumn();
 
         foreach ($assessments as &$a) {
             $a['instructions'] = AssessmentConstants::DEFAULT_INSTRUCTIONS;
@@ -47,8 +66,13 @@ $app->get('/api/admin/assessments', function (Request $request, Response $respon
                 if (is_array($decoded)) $a['selected_questions'] = $decoded;
             }
         }
+        unset($a);
 
-        $response->getBody()->write(json_encode($assessments));
+        $response->getBody()->write(json_encode([
+            'data' => $assessments,
+            'assessments' => $assessments,
+            'total' => $totalCount
+        ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (\Exception $e) {
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
@@ -60,37 +84,60 @@ $app->get('/api/admin/assessments', function (Request $request, Response $respon
 $app->get('/api/admin/assessments/attempts', function (Request $request, Response $response, $args) {
     $queryParams = $request->getQueryParams();
     $assessmentId = $queryParams['assessment_id'] ?? null;
+    $limit = isset($queryParams['limit']) ? (int)$queryParams['limit'] : 50;
+    $offset = isset($queryParams['offset']) ? (int)$queryParams['offset'] : (isset($queryParams['page']) ? (max(1, (int)$queryParams['page']) - 1) * $limit : 0);
+    if ($limit <= 0) $limit = 50;
+    if ($offset < 0) $offset = 0;
+
     $db = new Database();
     $conn = $db->getConnection();
 
     try {
-        $sql = '
+        $whereSql = "WHERE att.status != 'in_progress'";
+        $params = [];
+        if ($assessmentId) {
+            $whereSql .= ' AND att.assessment_id = ?';
+            $params[] = $assessmentId;
+        }
+
+        $sql = "
             SELECT att.*, 
                    att.score as total_score,
                    att.total_marks as max_score,
                    a.title as assessment_title, 
                    a.department as assessment_department,
                    a.passing_percentage,
-                   COALESCE(e."firstName" || \' \' || e."lastName", u."firstName" || \' \' || u."lastName", \'Unknown Employee\') as employee_name,
-                   COALESCE(e.email, u.email, \'\') as employee_email,
-                   COALESCE(e.department, u.department, \'General\') as employee_department,
-                   e."employeeId" as employee_code
+                   COALESCE(e.\"firstName\" || ' ' || e.\"lastName\", u.\"firstName\" || ' ' || u.\"lastName\", 'Unknown Employee') as employee_name,
+                   COALESCE(e.email, u.email, '') as employee_email,
+                   COALESCE(e.department, u.department, 'General') as employee_department,
+                   e.\"employeeId\" as employee_code
             FROM assessment_attempts att
             JOIN assessments a ON att.assessment_id = a.id
-            LEFT JOIN employee e ON att.employee_id = e."userId" OR att.employee_id = e.id
+            LEFT JOIN employee e ON att.employee_id = e.\"userId\" OR att.employee_id = e.id
             LEFT JOIN users u ON att.employee_id = u.id
-            WHERE att.status != \'in_progress\'
-        ';
-        $params = [];
-        if ($assessmentId) {
-            $sql .= ' AND att.assessment_id = ?';
-            $params[] = $assessmentId;
-        }
-        $sql .= ' ORDER BY COALESCE(att.end_time, att.start_time) DESC';
+            {$whereSql}
+            ORDER BY COALESCE(att.end_time, att.start_time) DESC
+            LIMIT ? OFFSET ?
+        ";
 
         $stmt = $conn->prepare($sql);
-        $stmt->execute($params);
+        $paramIndex = 1;
+        foreach ($params as $p) {
+            $stmt->bindValue($paramIndex++, $p);
+        }
+        $stmt->bindValue($paramIndex++, $limit, PDO::PARAM_INT);
+        $stmt->bindValue($paramIndex, $offset, PDO::PARAM_INT);
+        $stmt->execute();
         $attempts = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $countSql = "SELECT COUNT(*) FROM assessment_attempts att {$whereSql}";
+        $stmtCount = $conn->prepare($countSql);
+        $paramIndex = 1;
+        foreach ($params as $p) {
+            $stmtCount->bindValue($paramIndex++, $p);
+        }
+        $stmtCount->execute();
+        $totalCount = (int)$stmtCount->fetchColumn();
 
         foreach ($attempts as &$att) {
             $att['score'] = isset($att['score']) ? (float)$att['score'] : 0;
@@ -118,8 +165,13 @@ $app->get('/api/admin/assessments/attempts', function (Request $request, Respons
             }
             $att['breakdown'] = $breakdownArr;
         }
+        unset($att);
 
-        $response->getBody()->write(json_encode($attempts));
+        $response->getBody()->write(json_encode([
+            'data' => $attempts,
+            'attempts' => $attempts,
+            'total' => $totalCount
+        ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (\Exception $e) {
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
@@ -155,7 +207,7 @@ $app->get('/api/admin/assessments/{id}', function (Request $request, Response $r
     $conn = $db->getConnection();
 
     try {
-        $stmt = $conn->prepare('SELECT * FROM assessments WHERE id = ?');
+        $stmt = $conn->prepare('SELECT id, title, department, duration_minutes, passing_percentage, max_attempts, marks_per_question, randomize_questions, randomize_options, result_visibility, status, assessment_date, questions_count, selected_questions, assigned_employee_ids, created_by, created_at, updated_at FROM assessments WHERE id = ?');
         $stmt->execute([$id]);
         $assessment = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -366,6 +418,10 @@ $app->get('/api/admin/questions', function (Request $request, Response $response
     $queryParams = $request->getQueryParams();
     $department = trim($queryParams['department'] ?? '');
     $search = trim($queryParams['search'] ?? '');
+    $limit = isset($queryParams['limit']) ? (int)$queryParams['limit'] : 50;
+    $offset = isset($queryParams['offset']) ? (int)$queryParams['offset'] : (isset($queryParams['page']) ? (max(1, (int)$queryParams['page']) - 1) * $limit : 0);
+    if ($limit <= 0) $limit = 50;
+    if ($offset < 0) $offset = 0;
 
     $db = new Database();
     $conn = $db->getConnection();
@@ -388,10 +444,25 @@ $app->get('/api/admin/questions', function (Request $request, Response $response
         }
 
         $whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
-        $sql = "SELECT * FROM department_question_bank {$whereClause} ORDER BY created_at DESC";
+        $sql = "SELECT id, department, question_type, question_text, options, correct_option, correct_options, created_by, created_at, updated_at FROM department_question_bank {$whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?";
         $stmt = $conn->prepare($sql);
-        $stmt->execute($params);
+        $paramIndex = 1;
+        foreach ($params as $p) {
+            $stmt->bindValue($paramIndex++, $p);
+        }
+        $stmt->bindValue($paramIndex++, $limit, PDO::PARAM_INT);
+        $stmt->bindValue($paramIndex, $offset, PDO::PARAM_INT);
+        $stmt->execute();
         $questions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $countSql = "SELECT COUNT(*) FROM department_question_bank {$whereClause}";
+        $stmtCount = $conn->prepare($countSql);
+        $paramIndex = 1;
+        foreach ($params as $p) {
+            $stmtCount->bindValue($paramIndex++, $p);
+        }
+        $stmtCount->execute();
+        $totalCount = (int)$stmtCount->fetchColumn();
 
         // Decode options and correct_options json
         foreach ($questions as &$q) {
@@ -414,8 +485,13 @@ $app->get('/api/admin/questions', function (Request $request, Response $response
                 $q['question_type'] = 'mcq_single';
             }
         }
+        unset($q);
 
-        $response->getBody()->write(json_encode($questions));
+        $response->getBody()->write(json_encode([
+            'data' => $questions,
+            'questions' => $questions,
+            'total' => $totalCount
+        ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (\Exception $e) {
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));

@@ -12,25 +12,47 @@ $app->get('/api/admin/employees', function (Request $request, Response $response
     $conn = $db->getConnection();
     
     $params = $request->getQueryParams();
+    $limit = isset($params['limit']) ? (int)$params['limit'] : 50;
+    $offset = isset($params['offset']) ? (int)$params['offset'] : (isset($params['page']) ? (max(1, (int)$params['page']) - 1) * $limit : 0);
+    if ($limit <= 0) $limit = 50;
+    if ($offset < 0) $offset = 0;
     $search = $params['search'] ?? '';
 
-    $sql = 'SELECT e.id, e."userId", e."employeeId", e."firstName", e."lastName", e.email, e.department, e.position, e.branch, e."joinDate", e.salary, e.status, e.avatar, e."managerId", b.name as branch_name FROM employee e LEFT JOIN branches b ON e.branch::uuid = b.id';
+    $whereClause = '';
     $queryParams = [];
 
     if (!empty($search)) {
-        $sql .= ' WHERE e."firstName" ILIKE ? OR e."lastName" ILIKE ? OR e.email ILIKE ? OR e."employeeId" ILIKE ?';
+        $whereClause = ' WHERE e."firstName" ILIKE ? OR e."lastName" ILIKE ? OR e.email ILIKE ? OR e."employeeId" ILIKE ?';
         $searchParam = '%' . $search . '%';
         $queryParams = [$searchParam, $searchParam, $searchParam, $searchParam];
     }
 
-    $sql .= ' ORDER BY e."firstName" ASC';
+    $sql = 'SELECT e.id, e."userId", e."employeeId", e."firstName", e."lastName", e.email, e.department, e.position, e.branch, e."joinDate", e.salary, e.status, e.avatar, e."managerId", b.name as branch_name FROM employee e LEFT JOIN branches b ON e.branch::uuid = b.id' . $whereClause . ' ORDER BY e."firstName" ASC LIMIT ? OFFSET ?';
 
     try {
         $stmt = $conn->prepare($sql);
-        $stmt->execute($queryParams);
+        $paramIndex = 1;
+        foreach ($queryParams as $param) {
+            $stmt->bindValue($paramIndex++, $param);
+        }
+        $stmt->bindValue($paramIndex++, $limit, PDO::PARAM_INT);
+        $stmt->bindValue($paramIndex, $offset, PDO::PARAM_INT);
+        $stmt->execute();
         $employees = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $response->getBody()->write(json_encode(['employees' => $employees]));
+        $countSql = 'SELECT COUNT(*) FROM employee e' . $whereClause;
+        $stmtCount = $conn->prepare($countSql);
+        $paramIndex = 1;
+        foreach ($queryParams as $param) {
+            $stmtCount->bindValue($paramIndex++, $param);
+        }
+        $stmtCount->execute();
+        $totalCount = (int)$stmtCount->fetchColumn();
+
+        $response->getBody()->write(json_encode([
+            'employees' => $employees,
+            'total' => $totalCount
+        ]));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(200);
     } catch (Exception $e) {
         $response->getBody()->write(json_encode(['error' => $e->getMessage()]));

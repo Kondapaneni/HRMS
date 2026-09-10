@@ -192,7 +192,13 @@ $app->post('/api/employee/assessments/{id}/start', function (Request $request, R
 
     try {
         // Verify assignment and get assessment rules
-        $stmt = $conn->prepare('SELECT * FROM assessments WHERE id = ? AND status = \'Active\'');
+        $stmt = $conn->prepare('
+            SELECT id, title, duration_minutes, passing_percentage, max_attempts, marks_per_question,
+                   randomize_questions, randomize_options, result_visibility, assessment_date,
+                   selected_questions, assigned_employee_ids
+            FROM assessments
+            WHERE id = ? AND status = \'Active\'
+        ');
         $stmt->execute([$id]);
         $assessment = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -225,7 +231,12 @@ $app->post('/api/employee/assessments/{id}/start', function (Request $request, R
         }
 
         // Check if there is an in-progress attempt
-        $attStmt = $conn->prepare('SELECT * FROM assessment_attempts WHERE assessment_id = ? AND employee_id = ? AND status = \'in_progress\' LIMIT 1');
+        $attStmt = $conn->prepare('
+            SELECT id, start_time, answers_data
+            FROM assessment_attempts
+            WHERE assessment_id = ? AND employee_id = ? AND status = \'in_progress\'
+            LIMIT 1
+        ');
         $attStmt->execute([$id, $user->id]);
         $attempt = $attStmt->fetch(PDO::FETCH_ASSOC);
 

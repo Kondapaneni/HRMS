@@ -14,16 +14,26 @@ function getPeerEmployees($conn, $managerId, $department, $currentEmployeeId) {
 
 function getSubordinateTree($conn, $employeeId, array &$employeeMap = null) {
     if ($employeeMap === null) {
-        $stmt = $conn->query('
-            SELECT e.id, e."employeeId", e."userId", e."firstName", e."lastName", e.email,
-                   e.department, e.position, e.status, e.avatar, e."joinDate", e."managerId"
-            FROM employee e
-            WHERE e.status = \'active\'
+        $stmt = $conn->prepare('
+            WITH RECURSIVE subordinates AS (
+                SELECT e.id, e."employeeId", e."userId", e."firstName", e."lastName", e.email,
+                       e.department, e.position, e.status, e.avatar, e."joinDate", e."managerId"
+                FROM employee e
+                WHERE e."managerId" = ? AND e.status = \'active\'
+                UNION ALL
+                SELECT e.id, e."employeeId", e."userId", e."firstName", e."lastName", e.email,
+                       e.department, e.position, e.status, e.avatar, e."joinDate", e."managerId"
+                FROM employee e
+                JOIN subordinates s ON e."managerId" = s.id
+                WHERE e.status = \'active\'
+            )
+            SELECT * FROM subordinates
         ');
-        $allEmployees = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->execute([$employeeId]);
+        $subordinates = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         $employeeMap = [];
-        foreach ($allEmployees as $emp) {
+        foreach ($subordinates as $emp) {
             $mgrId = $emp['managerId'];
             if ($mgrId) {
                 $employeeMap[$mgrId][] = $emp;

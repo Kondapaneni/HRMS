@@ -159,7 +159,7 @@ const AdminFeatureAccess = () => {
     queryKey: ['admin', 'feature-access'],
     queryFn: async () => {
       const response = await api.get('/admin/feature-access');
-      return response.data;
+      return response.data?.users || response.data?.data || (Array.isArray(response.data) ? response.data : []);
     }
   });
 

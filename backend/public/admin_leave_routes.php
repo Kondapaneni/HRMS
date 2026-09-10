@@ -5,6 +5,8 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use App\Middleware\AuthMiddleware;
 use App\Config\Database;
 
+require_once __DIR__ . '/attendance_helpers.php';
+
 function queueLeaveEmail($conn, $empId, $leaveType, $startDate, $endDate, $status) {
     $stmtEmp = $conn->prepare('SELECT "firstName", "lastName", email FROM users WHERE id = ?');
     $stmtEmp->execute([$empId]);
@@ -58,11 +60,12 @@ function insertSandwichLeave($conn, $employeeId, $dateStr, $adminId) {
 }
 
 function applySandwichPolicy($conn, $employeeId, $startDate, $endDate, $adminId) {
-    $stmt = $conn->prepare('SELECT "weekOff" FROM employee WHERE "userId" = ?');
-    $stmt->execute([$employeeId]);
-    $weekOff = $stmt->fetchColumn() ?: 'sunday';
-    $weekOffDays = array_map('trim', explode(',', strtolower($weekOff)));
+    $weekOffDays = getEmployeeWeekOffDays($conn, $employeeId);
+    $holidaysMap = getActiveHolidaysMap($conn);
     
+    // Prepare stmtLeave once outside loops instead of preparing repeatedly inside loops
+    $stmtLeave = $conn->prepare('SELECT COUNT(*) FROM leaves WHERE "employeeId" = ? AND CAST("startDate" AS DATE) <= ? AND CAST("endDate" AS DATE) >= ? AND status ILIKE \'approved\'');
+
     // Backward check
     $prevDate = strtotime('-1 day', strtotime($startDate));
     $sandwichedBefore = [];
@@ -71,15 +74,12 @@ function applySandwichPolicy($conn, $employeeId, $startDate, $endDate, $adminId)
         $dayName = strtolower(date('l', $prevDate));
         
         $isWeekend = in_array($dayName, $weekOffDays);
-        $stmtHol = $conn->prepare('SELECT COUNT(*) FROM company_holidays WHERE "holidayDate" = ? AND "isActive" = 1');
-        $stmtHol->execute([$dateStr]);
-        $isHoliday = $stmtHol->fetchColumn() > 0;
+        $isHoliday = isset($holidaysMap[$dateStr]);
         
         if ($isWeekend || $isHoliday) {
             $sandwichedBefore[] = $dateStr;
             $prevDate = strtotime('-1 day', $prevDate);
         } else {
-            $stmtLeave = $conn->prepare('SELECT COUNT(*) FROM leaves WHERE "employeeId" = ? AND CAST("startDate" AS DATE) <= ? AND CAST("endDate" AS DATE) >= ? AND status ILIKE \'approved\'');
             $stmtLeave->execute([$employeeId, $dateStr, $dateStr]);
             if ($stmtLeave->fetchColumn() > 0 && count($sandwichedBefore) > 0) {
                 foreach ($sandwichedBefore as $sd) {
@@ -98,15 +98,12 @@ function applySandwichPolicy($conn, $employeeId, $startDate, $endDate, $adminId)
         $dayName = strtolower(date('l', $nextDate));
         
         $isWeekend = in_array($dayName, $weekOffDays);
-        $stmtHol = $conn->prepare('SELECT COUNT(*) FROM company_holidays WHERE "holidayDate" = ? AND "isActive" = 1');
-        $stmtHol->execute([$dateStr]);
-        $isHoliday = $stmtHol->fetchColumn() > 0;
+        $isHoliday = isset($holidaysMap[$dateStr]);
         
         if ($isWeekend || $isHoliday) {
             $sandwichedAfter[] = $dateStr;
             $nextDate = strtotime('+1 day', $nextDate);
         } else {
-            $stmtLeave = $conn->prepare('SELECT COUNT(*) FROM leaves WHERE "employeeId" = ? AND CAST("startDate" AS DATE) <= ? AND CAST("endDate" AS DATE) >= ? AND status ILIKE \'approved\'');
             $stmtLeave->execute([$employeeId, $dateStr, $dateStr]);
             if ($stmtLeave->fetchColumn() > 0 && count($sandwichedAfter) > 0) {
                 foreach ($sandwichedAfter as $sd) {
@@ -125,9 +122,7 @@ function applySandwichPolicy($conn, $employeeId, $startDate, $endDate, $adminId)
         $dayName = strtolower(date('l', $currentDate));
         
         $isWeekend = in_array($dayName, $weekOffDays);
-        $stmtHol = $conn->prepare('SELECT COUNT(*) FROM company_holidays WHERE "holidayDate" = ? AND "isActive" = 1');
-        $stmtHol->execute([$dateStr]);
-        $isHoliday = $stmtHol->fetchColumn() > 0;
+        $isHoliday = isset($holidaysMap[$dateStr]);
         
         if ($isWeekend || $isHoliday) {
             insertSandwichLeave($conn, $employeeId, $dateStr, $adminId);
@@ -333,10 +328,8 @@ $app->post('/api/admin/leaves/{id}/approve', function (Request $request, Respons
             }
         }
 
-        $stmtEmpOff = $conn->prepare('SELECT "weekOff" FROM employee WHERE "userId" = ?');
-        $stmtEmpOff->execute([$empId]);
-        $weekOff = $stmtEmpOff->fetchColumn() ?: 'sunday';
-        $weekOffDays = array_map('trim', explode(',', strtolower($weekOff)));
+        $weekOffDays = getEmployeeWeekOffDays($conn, $empId);
+        $holidaysMap = getActiveHolidaysMap($conn);
         
         // Find contiguous blocks of working days
         $currentDate = strtotime($leaveToApprove['startDate']);
@@ -351,10 +344,7 @@ $app->post('/api/admin/leaves/{id}/approve', function (Request $request, Respons
             $dateStr = date('Y-m-d', $currentDate);
             $dayOfWeekName = strtolower(date('l', $currentDate));
             $isWeekend = in_array($dayOfWeekName, $weekOffDays);
-            
-            $stmtHol = $conn->prepare('SELECT COUNT(*) FROM company_holidays WHERE "holidayDate" = ? AND "isActive" = 1');
-            $stmtHol->execute([$dateStr]);
-            $isHoliday = $stmtHol->fetchColumn() > 0;
+            $isHoliday = isset($holidaysMap[$dateStr]);
             
             if (!$isWeekend && !$isHoliday) {
                 if ($currentBlockStart === null) {
