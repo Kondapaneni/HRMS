@@ -235,6 +235,218 @@ $app->post('/api/employee/chatbot/query', function (Request $request, Response $
         }
     }
 
+    // 8. Fetch Feature Access & Business Apps Data (if permitted)
+    $userRole = $user->role ?? 'employee';
+    $isAdmin = ($userRole === 'admin');
+
+    $faStmt = $conn->prepare('
+        SELECT "canAttendance", "canLeave", "canPayroll", "canEmployees", "canRecruitment",
+               "canAssets", "canLoanOrigination", "canSalesOrigination", "canBranchOperations", "canAdminAssessments"
+        FROM user_feature_access
+        WHERE "userId" = ?
+        LIMIT 1
+    ');
+    $faStmt->execute([$userId]);
+    $featureAccess = $faStmt->fetch(PDO::FETCH_ASSOC) ?: [];
+
+    $canLoanOrigination = $isAdmin || !empty($featureAccess['canLoanOrigination']);
+    $canSalesOrigination = $isAdmin || !empty($featureAccess['canSalesOrigination']);
+    $canBranchOperations = $isAdmin || !empty($featureAccess['canBranchOperations']);
+
+    // Loans Origination Data
+    $userLoans = [];
+    $loansStats = ['total' => 0, 'by_status' => []];
+    if ($canLoanOrigination) {
+        $lStmt = $conn->prepare('
+            SELECT application_id, loan_type, status, form_data, created_at
+            FROM public.loan_applications
+            WHERE created_by = ?
+            ORDER BY created_at DESC
+            LIMIT 10
+        ');
+        $lStmt->execute([$userId]);
+        $rawLoans = $lStmt->fetchAll(PDO::FETCH_ASSOC);
+        $loansStats['total'] = count($rawLoans);
+        foreach ($rawLoans as $l) {
+            $st = $l['status'] ?: 'Draft';
+            $loansStats['by_status'][$st] = ($loansStats['by_status'][$st] ?? 0) + 1;
+            $fData = is_string($l['form_data']) ? json_decode($l['form_data'], true) : ($l['form_data'] ?? []);
+            $userLoans[] = [
+                'application_id' => $l['application_id'] ?: 'N/A',
+                'applicant_name' => $fData['applicant_name'] ?? $fData['business_name'] ?? 'Applicant',
+                'loan_type' => $l['loan_type'] ?: 'Loan',
+                'status' => $st,
+                'created_at' => substr($l['created_at'] ?? '', 0, 10)
+            ];
+        }
+    }
+
+    // Sales Origination Data
+    $userSales = [];
+    $salesStats = ['total' => 0, 'by_status' => []];
+    if ($canSalesOrigination) {
+        $sStmt = $conn->prepare('
+            SELECT name, phone, product_type, status, created_at
+            FROM public.sale_leads
+            WHERE created_by = ?::uuid
+            ORDER BY created_at DESC
+            LIMIT 10
+        ');
+        $sStmt->execute([$userId]);
+        $rawSales = $sStmt->fetchAll(PDO::FETCH_ASSOC);
+        $salesStats['total'] = count($rawSales);
+        foreach ($rawSales as $s) {
+            $st = $s['status'] ?: 'New';
+            $salesStats['by_status'][$st] = ($salesStats['by_status'][$st] ?? 0) + 1;
+            $userSales[] = [
+                'name' => $s['name'],
+                'product_type' => $s['product_type'] ?: 'General Product',
+                'status' => $st,
+                'phone' => $s['phone'],
+                'created_at' => substr($s['created_at'] ?? '', 0, 10)
+            ];
+        }
+    }
+
+    // Branch Operations Data
+    $branchApps = [];
+    $branchAppsStats = ['total' => 0, 'by_status' => []];
+    if ($canBranchOperations && !empty($employee['branch'])) {
+        $bStmt = $conn->prepare('
+            SELECT application_id, loan_type, status, form_data, created_at
+            FROM public.loan_applications
+            WHERE branch = :branch
+            ORDER BY created_at DESC
+            LIMIT 10
+        ');
+        $bStmt->execute([':branch' => $employee['branch']]);
+        $rawBranch = $bStmt->fetchAll(PDO::FETCH_ASSOC);
+        $branchAppsStats['total'] = count($rawBranch);
+        foreach ($rawBranch as $ba) {
+            $st = $ba['status'] ?: 'In Review';
+            $branchAppsStats['by_status'][$st] = ($branchAppsStats['by_status'][$st] ?? 0) + 1;
+            $fData = is_string($ba['form_data']) ? json_decode($ba['form_data'], true) : ($ba['form_data'] ?? []);
+            $branchApps[] = [
+                'application_id' => $ba['application_id'] ?: 'N/A',
+                'applicant_name' => $fData['applicant_name'] ?? $fData['business_name'] ?? 'Applicant',
+                'loan_type' => $ba['loan_type'] ?: 'Loan',
+                'status' => $st,
+                'created_at' => substr($ba['created_at'] ?? '', 0, 10)
+            ];
+        }
+    }
+
+    // Assessments Data
+    $userAssessments = [];
+    try {
+        $assStmt = $conn->prepare('
+            SELECT a.id, a.title, a.assessment_date, a.questions_count, a.duration_minutes
+            FROM assessments a
+            WHERE a.status = \'Active\'
+              AND (a.assigned_employee_ids @> :uidJson::jsonb OR a.assigned_employee_ids @> :empIdJson::jsonb)
+            ORDER BY a.created_at DESC
+            LIMIT 5
+        ');
+        $assStmt->execute([
+            ':uidJson' => json_encode([$userId]),
+            ':empIdJson' => json_encode([(string)$employee['id']])
+        ]);
+        $userAssessments = $assStmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (\Exception $e) {
+        $userAssessments = [];
+    }
+
+    // Training Videos Data
+    $userVideos = [];
+    try {
+        $vStmt = $conn->prepare('
+            SELECT tv.id, tv.title, COALESCE(etp.completed, false) as is_completed
+            FROM training_videos tv
+            LEFT JOIN employee_training_progress etp ON etp.video_id = tv.id AND (etp.user_id = :uid OR etp.employee_id = :empId)
+            WHERE tv.assigned_employee_ids @> :uidJson::jsonb OR tv.assigned_employee_ids @> :empIdJson::jsonb
+            ORDER BY tv.created_at DESC
+            LIMIT 5
+        ');
+        $vStmt->execute([
+            ':uid' => $userId,
+            ':empId' => $employee['id'],
+            ':uidJson' => json_encode([$userId]),
+            ':empIdJson' => json_encode([(string)$employee['id']])
+        ]);
+        $userVideos = $vStmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (\Exception $e) {
+        $userVideos = [];
+    }
+
+    $businessAppsData = [
+        'canLoanOrigination' => $canLoanOrigination,
+        'canSalesOrigination' => $canSalesOrigination,
+        'canBranchOperations' => $canBranchOperations,
+        'userLoans' => $userLoans,
+        'loansStats' => $loansStats,
+        'userSales' => $userSales,
+        'salesStats' => $salesStats,
+        'branchApps' => $branchApps,
+        'branchAppsStats' => $branchAppsStats,
+        'userAssessments' => $userAssessments,
+        'userVideos' => $userVideos,
+    ];
+
+    $contextText .= "\nBUSINESS APPS ACCESS & DATA (Scope: Authenticated User Only):\n";
+    $contextText .= "- Loans Origination: " . ($canLoanOrigination ? "ENABLED (Access Granted)" : "DISABLED (No Access)") . "\n";
+    if ($canLoanOrigination) {
+        $contextText .= "  * Total Loan Applications Created: {$loansStats['total']}\n";
+        if (!empty($loansStats['by_status'])) {
+            $contextText .= "  * Status Counts: " . json_encode($loansStats['by_status']) . "\n";
+        }
+        if (!empty($userLoans)) {
+            $contextText .= "  * Recent Applications:\n";
+            foreach ($userLoans as $l) {
+                $contextText .= "    - App ID: {$l['application_id']}, Applicant: {$l['applicant_name']}, Type: {$l['loan_type']}, Status: {$l['status']}, Date: {$l['created_at']}\n";
+            }
+        }
+    }
+
+    $contextText .= "- Sales Origination: " . ($canSalesOrigination ? "ENABLED (Access Granted)" : "DISABLED (No Access)") . "\n";
+    if ($canSalesOrigination) {
+        $contextText .= "  * Total Sales Leads: {$salesStats['total']}\n";
+        if (!empty($salesStats['by_status'])) {
+            $contextText .= "  * Status Counts: " . json_encode($salesStats['by_status']) . "\n";
+        }
+        if (!empty($userSales)) {
+            $contextText .= "  * Recent Leads:\n";
+            foreach ($userSales as $s) {
+                $contextText .= "    - Name: {$s['name']}, Product: {$s['product_type']}, Status: {$s['status']}, Date: {$s['created_at']}\n";
+            }
+        }
+    }
+
+    $contextText .= "- Branch Operations: " . ($canBranchOperations ? "ENABLED (Access Granted for branch: {$resolvedBranch})" : "DISABLED (No Access)") . "\n";
+    if ($canBranchOperations) {
+        $contextText .= "  * Total Applications at Branch: {$branchAppsStats['total']}\n";
+        if (!empty($branchAppsStats['by_status'])) {
+            $contextText .= "  * Status Counts: " . json_encode($branchAppsStats['by_status']) . "\n";
+        }
+        if (!empty($branchApps)) {
+            $contextText .= "  * Recent Branch Applications:\n";
+            foreach ($branchApps as $ba) {
+                $contextText .= "    - App ID: {$ba['application_id']}, Applicant: {$ba['applicant_name']}, Type: {$ba['loan_type']}, Status: {$ba['status']}\n";
+            }
+        }
+    }
+
+    if (!empty($userAssessments)) {
+        $contextText .= "- Assigned Assessments: " . count($userAssessments) . " active\n";
+        foreach ($userAssessments as $a) {
+            $contextText .= "  * Title: {$a['title']}, Date: " . ($a['assessment_date'] ?: 'Open') . ", Duration: {$a['duration_minutes']} min, Questions: {$a['questions_count']}\n";
+        }
+    }
+
+    if (!empty($userVideos)) {
+        $completedVids = count(array_filter($userVideos, fn($v) => !empty($v['is_completed'])));
+        $contextText .= "- Assigned Training Videos: " . count($userVideos) . " total, {$completedVids} completed.\n";
+    }
+
     // Try Gemini API first if configured
     $geminiApiKey = $_ENV['GEMINI_API_KEY'] ?? getenv('GEMINI_API_KEY') ?? '';
     $aiResponseText = null;
@@ -245,17 +457,27 @@ $app->post('/api/employee/chatbot/query', function (Request $request, Response $
 
     // If Gemini wasn't called or failed, fall back to our rich local rule-based intent engine
     if (empty($aiResponseText)) {
-        $aiResponseText = fallbackLocalRuleEngine($message, $employee, $paidRemaining, $paidTotal, $paidUsed, $recentLeaves, $todayAtt, $monthPresent, $monthTotalHours, $latestPayslip, $assignedAssets, $upcomingHolidays, $managerName, $resolvedBranch);
+        $aiResponseText = fallbackLocalRuleEngine($message, $employee, $paidRemaining, $paidTotal, $paidUsed, $recentLeaves, $todayAtt, $monthPresent, $monthTotalHours, $latestPayslip, $assignedAssets, $upcomingHolidays, $managerName, $resolvedBranch, $businessAppsData);
     }
 
-    // Suggested follow-up chips
+    // Dynamic suggested follow-up chips based on permissions
     $suggestedActions = [
         "What is my leave balance?",
         "Show my attendance this month",
-        "Which branch am I assigned to?",
-        "When is the next company holiday?",
-        "Details of my latest payslip"
+        "Which branch am I assigned to?"
     ];
+    if ($canLoanOrigination) {
+        $suggestedActions[] = "Show my loan applications";
+    }
+    if ($canSalesOrigination) {
+        $suggestedActions[] = "Show my sales leads";
+    }
+    if ($canBranchOperations) {
+        $suggestedActions[] = "What applications are in Branch Operations?";
+    }
+    $suggestedActions[] = "What business apps do I have access to?";
+    $suggestedActions[] = "When is the next company holiday?";
+    $suggestedActions = array_slice($suggestedActions, 0, 5);
 
     $response->getBody()->write(json_encode([
         'response' => $aiResponseText,
@@ -275,8 +497,13 @@ SECURITY & PRIVACY BOUNDARY:
 - You ONLY answer questions using the authenticated employee's own data provided below, and standard Acme HR policies.
 - Under NO circumstances reveal or extrapolate data about other employees. If asked about another employee or organization-wide restricted data, politely refuse and state that you can only answer questions about their own records.
 - CRITICAL: Never display or mention database UUIDs, technical codes, internal hash IDs, or \"branch code\" (e.g. 55b41227-9025-4204-9088-e1762f3096e0). Always use friendly human-readable names (e.g. for branch, simply state the branch name such as 'Gurunak Colony' or 'Corporate Office'). Do NOT refer to it as a 'branch code' or output any alphanumeric IDs.
+- BUSINESS APPS ACCESS PERMISSIONS:
+  * When the employee inquires about Business Apps (Loan Origination, Sales Origination, Branch Operations, Assessments, Training Videos):
+    - If the feature is ENABLED / Access Granted for them, give comprehensive answers, status breakdowns, counts, and recent records strictly from the data provided in their context.
+    - If the feature is DISABLED / No Access, politely inform them that their user account does not currently have permission to access that business app, and advise them to contact an administrator if they require access.
+    - If asked \"what business apps do I have access to\" or \"my apps\", summarize the apps they have permission for.
 - Be concise, professional, friendly, and structured. Use markdown formatting (bold text, bullet points, numbers) for readability.
-- If the employee asks how to take an action (e.g. apply for leave, punch attendance, download payslip, claim expense), guide them to the appropriate portal page (e.g. Leaves > Apply Leave, Attendance punch button, Payroll > Download Payslip).
+- If the employee asks how to take an action (e.g. apply for leave, punch attendance, download payslip, claim expense, view business apps), guide them to the appropriate portal page (e.g. Leaves > Apply Leave, Attendance punch button, Payroll > Download Payslip, Business Apps section in sidebar).
 
 " . $contextText;
 
@@ -340,12 +567,132 @@ SECURITY & PRIVACY BOUNDARY:
 /**
  * Built-in fallback intent and rule engine for offline or API limit scenarios
  */
-function fallbackLocalRuleEngine($message, $employee, $paidRemaining, $paidTotal, $paidUsed, $recentLeaves, $todayAtt, $monthPresent, $monthTotalHours, $latestPayslip, $assignedAssets, $upcomingHolidays, $managerName, $resolvedBranch = 'Corporate Office') {
+function fallbackLocalRuleEngine($message, $employee, $paidRemaining, $paidTotal, $paidUsed, $recentLeaves, $todayAtt, $monthPresent, $monthTotalHours, $latestPayslip, $assignedAssets, $upcomingHolidays, $managerName, $resolvedBranch = 'Corporate Office', array $bApps = []) {
     $msg = strtolower(trim($message));
+
+    $canLoan = !empty($bApps['canLoanOrigination']);
+    $canSales = !empty($bApps['canSalesOrigination']);
+    $canBranch = !empty($bApps['canBranchOperations']);
+    $userLoans = $bApps['userLoans'] ?? [];
+    $loansStats = $bApps['loansStats'] ?? ['total' => 0, 'by_status' => []];
+    $userSales = $bApps['userSales'] ?? [];
+    $salesStats = $bApps['salesStats'] ?? ['total' => 0, 'by_status' => []];
+    $branchApps = $bApps['branchApps'] ?? [];
+    $branchAppsStats = $bApps['branchAppsStats'] ?? ['total' => 0, 'by_status' => []];
+    $userAssessments = $bApps['userAssessments'] ?? [];
+    $userVideos = $bApps['userVideos'] ?? [];
 
     // Greetings
     if (preg_match('/\b(hi|hello|hey|good morning|good afternoon|greetings)\b/i', $msg)) {
-        return "Hello **{$employee['firstName']}**! 👋\n\nI am your HR Assistant. You can ask me questions regarding your **branch location**, **leave balances**, **attendance records**, **payslips**, **shift schedule**, **assigned assets**, or **upcoming company holidays**.\n\nHow can I help you today?";
+        return "Hello **{$employee['firstName']}**! 👋\n\nI am your HR Assistant. You can ask me questions regarding your **branch location**, **business apps**, **leave balances**, **attendance records**, **payslips**, **shift schedule**, **assigned assets**, or **upcoming company holidays**.\n\nHow can I help you today?";
+    }
+
+    // What business apps do I have access to / apps access
+    if (preg_match('/\b(business apps?|my apps?|what apps?|app access|feature access|my permissions?)\b/i', $msg) && !str_contains($msg, 'application')) {
+        $res = "### 📱 Your Business Apps & Feature Access\n";
+        $res .= "* **Loans Origination**: " . ($canLoan ? "✅ **Active** ({$loansStats['total']} applications created)" : "🔒 *No Access*") . "\n";
+        $res .= "* **Sales Origination**: " . ($canSales ? "✅ **Active** ({$salesStats['total']} leads registered)" : "🔒 *No Access*") . "\n";
+        $res .= "* **Branch Operations**: " . ($canBranch ? "✅ **Active** at {$resolvedBranch} ({$branchAppsStats['total']} applications)" : "🔒 *No Access*") . "\n";
+        $res .= "* **Assessments**: " . (!empty($userAssessments) ? "✅ **" . count($userAssessments) . " Active Assessment(s)**" : "None currently scheduled") . "\n";
+        $res .= "* **Training Videos**: " . (!empty($userVideos) ? "✅ **" . count($userVideos) . " Video Module(s)**" : "None currently assigned") . "\n";
+        $res .= "\nYou can access enabled apps directly from the **Business Apps** section on your sidebar.";
+        return $res;
+    }
+
+    // Loan Origination
+    if (str_contains($msg, 'loan') || str_contains($msg, 'origination') || str_contains($msg, 'borrower') || str_contains($msg, 'applicant')) {
+        if (!$canLoan) {
+            return "🔒 **Access Notice**: You currently do not have access permissions for the **Loan Origination** business app in your employee profile. Please contact your manager or HR administrator to request access.";
+        }
+        $res = "### 💼 Loan Origination Overview\n";
+        $res .= "* **Total Applications Created**: **{$loansStats['total']}**\n";
+        if (!empty($loansStats['by_status'])) {
+            $res .= "* **Status Summary**:\n";
+            foreach ($loansStats['by_status'] as $statusName => $count) {
+                $res .= "  - {$statusName}: **{$count}**\n";
+            }
+        }
+        if (!empty($userLoans)) {
+            $res .= "\n**Recent Loan Applications:**\n";
+            foreach (array_slice($userLoans, 0, 5) as $l) {
+                $res .= "* **{$l['application_id']}**: {$l['applicant_name']} ({$l['loan_type']}) — *{$l['status']}* ({$l['created_at']})\n";
+            }
+        }
+        $res .= "\nYou can view and manage full loan files in **Business Apps > Loans Origination**.";
+        return $res;
+    }
+
+    // Sales Origination
+    if (str_contains($msg, 'sale') || str_contains($msg, 'sales') || str_contains($msg, 'lead') || str_contains($msg, 'merchant')) {
+        if (!$canSales) {
+            return "🔒 **Access Notice**: You currently do not have access permissions for the **Sales Origination** business app in your employee profile. Please contact your manager or HR administrator to request access.";
+        }
+        $res = "### 📈 Sales Origination Pipeline\n";
+        $res .= "* **Total Sales Leads**: **{$salesStats['total']}**\n";
+        if (!empty($salesStats['by_status'])) {
+            $res .= "* **Status Summary**:\n";
+            foreach ($salesStats['by_status'] as $statusName => $count) {
+                $res .= "  - {$statusName}: **{$count}**\n";
+            }
+        }
+        if (!empty($userSales)) {
+            $res .= "\n**Recent Leads:**\n";
+            foreach (array_slice($userSales, 0, 5) as $s) {
+                $res .= "* **{$s['name']}** ({$s['product_type']}) — *{$s['status']}* (Ph: {$s['phone']})\n";
+            }
+        }
+        $res .= "\nYou can register new leads in **Business Apps > Sales Origination**.";
+        return $res;
+    }
+
+    // Branch Operations
+    if (str_contains($msg, 'branch operation') || str_contains($msg, 'branch app') || str_contains($msg, 'branch review') || str_contains($msg, 'branch pipeline') || (str_contains($msg, 'branch') && (str_contains($msg, 'loan') || str_contains($msg, 'application') || str_contains($msg, 'queue')))) {
+        if (!$canBranch) {
+            return "🔒 **Access Notice**: You currently do not have access permissions for the **Branch Operations** business app in your employee profile. Please contact your manager or HR administrator to request access.";
+        }
+        $res = "### 🏬 Branch Operations Pipeline\n";
+        $res .= "* **Assigned Branch**: **{$resolvedBranch}**\n";
+        $res .= "* **Total Applications in Branch Queue**: **{$branchAppsStats['total']}**\n";
+        if (!empty($branchApps)) {
+            $res .= "\n**Recent Applications at Branch:**\n";
+            foreach (array_slice($branchApps, 0, 5) as $ba) {
+                $res .= "* **{$ba['application_id']}**: {$ba['applicant_name']} ({$ba['loan_type']}) — *{$ba['status']}*\n";
+            }
+        }
+        $res .= "\nYou can review applications in **Business Apps > Branch Operations**.";
+        return $res;
+    }
+
+    // Assessments
+    if (str_contains($msg, 'assessment') || str_contains($msg, 'exam') || str_contains($msg, 'test') || str_contains($msg, 'quiz')) {
+        $res = "### 📝 Your Assessments\n";
+        if (!empty($userAssessments)) {
+            $res .= "You have **" . count($userAssessments) . "** active assessment(s) assigned:\n";
+            foreach ($userAssessments as $a) {
+                $res .= "* **{$a['title']}**: Date: " . ($a['assessment_date'] ?: 'Available now') . " | {$a['duration_minutes']} mins | {$a['questions_count']} questions\n";
+            }
+            $res .= "\nYou can take your assessments under **Business Apps > Assessments**.";
+        } else {
+            $res .= "You have no active assessments scheduled at this time.";
+        }
+        return $res;
+    }
+
+    // Training
+    if (str_contains($msg, 'training') || str_contains($msg, 'video') || str_contains($msg, 'course') || str_contains($msg, 'lms')) {
+        $res = "### 🎓 Training & Learning\n";
+        if (!empty($userVideos)) {
+            $completed = count(array_filter($userVideos, fn($v) => !empty($v['is_completed'])));
+            $res .= "You have **" . count($userVideos) . "** training module(s) assigned (**{$completed}** completed):\n";
+            foreach ($userVideos as $v) {
+                $statusIcon = !empty($v['is_completed']) ? '✅ Completed' : '⏳ Pending';
+                $res .= "* **{$v['title']}** — {$statusIcon}\n";
+            }
+            $res .= "\nYou can watch training modules under **Business Apps > Training Videos**.";
+        } else {
+            $res .= "You currently have no training video modules assigned.";
+        }
+        return $res;
     }
 
     // Branch / Location / Office

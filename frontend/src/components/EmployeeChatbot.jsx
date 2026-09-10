@@ -39,13 +39,31 @@ const EmployeeChatbot = () => {
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
+  // Dynamic suggestion chips based on user's business app permissions
+  const activeSuggestions = React.useMemo(() => {
+    const list = [...INITIAL_SUGGESTIONS];
+    const fa = profile?.featureAccess || {};
+    const isAdmin = profile?.role === 'admin';
+    if (fa.canLoanOrigination || isAdmin) {
+      list.splice(2, 0, { label: '💼 Loan Applications', query: 'Show my loan applications' });
+    }
+    if (fa.canSalesOrigination || isAdmin) {
+      list.splice(3, 0, { label: '📈 Sales Leads', query: 'What are my sales leads?' });
+    }
+    if (fa.canBranchOperations || isAdmin) {
+      list.splice(4, 0, { label: '🏬 Branch Operations', query: 'What applications are in Branch Operations?' });
+    }
+    list.push({ label: '📱 My Business Apps', query: 'What business apps do I have access to?' });
+    return list;
+  }, [profile]);
+
   // Initialize greeting on first load if empty
   useEffect(() => {
     if (messages.length === 0) {
       const firstName = profile?.firstName || 'there';
       const welcomeMsg = {
         role: 'assistant',
-        content: `Hi **${firstName}**! 👋\n\nI am your **HR Assistant**. I can answer questions regarding your:\n* 🌿 **Leave balances** & requests\n* ⏱️ **Attendance**, punch records & hours\n* 🏢 **Assigned branch** & office\n* 💰 **Payslips** & take-home pay\n* 🗓️ **Shift timings** & week offs\n* 💻 **Company assets**\n* 🎈 **Company holidays**\n\nFeel free to ask a question or select one of the suggestions below!`
+        content: `Hi **${firstName}**! 👋\n\nI am your **HR Assistant**. I can answer questions regarding your:\n* 🌿 **Leave balances** & requests\n* ⏱️ **Attendance**, punch records & hours\n* 📱 **Business Apps** (Loans, Sales, Branch Ops)\n* 🏢 **Assigned branch** & office\n* 💰 **Payslips** & take-home pay\n* 🗓️ **Shift timings** & week offs\n* 💻 **Company assets**\n* 🎈 **Company holidays**\n\nFeel free to ask a question or select one of the suggestions below!`
       };
       setMessages([welcomeMsg]);
       try {
@@ -348,7 +366,7 @@ const EmployeeChatbot = () => {
             {/* Quick Suggestion Chips Carousel */}
             <div className="px-3 py-1.5 border-t border-neutral-100 dark:border-neutral-800/80 bg-neutral-50/50 dark:bg-neutral-900/50">
               <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
-                {INITIAL_SUGGESTIONS.map((sug, idx) => (
+                {activeSuggestions.map((sug, idx) => (
                   <button
                     key={idx}
                     disabled={loading}
@@ -415,7 +433,7 @@ const EmployeeChatbot = () => {
                       </button>
                     </div>
                     <div className="max-h-48 overflow-y-auto space-y-1">
-                      {INITIAL_SUGGESTIONS.map((sug, i) => (
+                      {activeSuggestions.map((sug, i) => (
                         <button
                           key={i}
                           onClick={() => handleSendMessage(sug.query)}
