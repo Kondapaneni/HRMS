@@ -14,6 +14,7 @@ import MaintenanceOverlay from './MaintenanceOverlay';
 import LogoutModal from './LogoutModal';
 import api, { isNativeApp, isIOS } from '../api/axios';
 import GlobalSearch from './GlobalSearch';
+import EmployeeChatbot from './EmployeeChatbot';
 
 const EmployeeLayout = () => {
   const { profile, signOut } = useAuth();
@@ -564,6 +565,9 @@ const EmployeeLayout = () => {
           )}
 
         </main>
+
+        {/* Employee AI Assistant Chatbot */}
+        <EmployeeChatbot />
 
         {/* Global Logout Modal */}
         <LogoutModal

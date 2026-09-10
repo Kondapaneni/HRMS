@@ -86,11 +86,11 @@ export default defineConfig({
       ].map(path => [
         path,
         {
-          target: 'http://localhost:8081',
+          target: 'http://127.0.0.1:8081',
           changeOrigin: true,
           configure: (proxy) => {
             proxy.on('error', (err, _req, res) => {
-              if (res && !res.headersSent && typeof res.writeHead === 'function') {
+              if (res && !res.headersSent && !res.writableEnded && typeof res.writeHead === 'function') {
                 try {
                   res.writeHead(502, { 'Content-Type': 'application/json' });
                   res.end(JSON.stringify({ error: 'Bad Gateway / Proxy Error', message: err?.message }));
