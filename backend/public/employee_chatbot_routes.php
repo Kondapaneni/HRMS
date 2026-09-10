@@ -497,6 +497,7 @@ SECURITY & PRIVACY BOUNDARY:
 - You ONLY answer questions using the authenticated employee's own data provided below, and standard Acme HR policies.
 - Under NO circumstances reveal or extrapolate data about other employees. If asked about another employee or organization-wide restricted data, politely refuse and state that you can only answer questions about their own records.
 - CRITICAL: Never display or mention database UUIDs, technical codes, internal hash IDs, or \"branch code\" (e.g. 55b41227-9025-4204-9088-e1762f3096e0). Always use friendly human-readable names (e.g. for branch, simply state the branch name such as 'Gurunak Colony' or 'Corporate Office'). Do NOT refer to it as a 'branch code' or output any alphanumeric IDs.
+- CRITICAL FORMATTING RULE: Do NOT include any emojis, emoticons, or symbol icons in your responses. Keep headers, lists, and status indicators purely textual, professional, and clean.
 - BUSINESS APPS ACCESS PERMISSIONS:
   * When the employee inquires about Business Apps (Loan Origination, Sales Origination, Branch Operations, Assessments, Training Videos):
     - If the feature is ENABLED / Access Granted for them, give comprehensive answers, status breakdowns, counts, and recent records strictly from the data provided in their context.
@@ -584,17 +585,17 @@ function fallbackLocalRuleEngine($message, $employee, $paidRemaining, $paidTotal
 
     // Greetings
     if (preg_match('/\b(hi|hello|hey|good morning|good afternoon|greetings)\b/i', $msg)) {
-        return "Hello **{$employee['firstName']}**! 👋\n\nI am your HR Assistant. You can ask me questions regarding your **branch location**, **business apps**, **leave balances**, **attendance records**, **payslips**, **shift schedule**, **assigned assets**, or **upcoming company holidays**.\n\nHow can I help you today?";
+        return "Hello **{$employee['firstName']}**.\n\nI am your Acme HRMS Assistant. You can ask me questions regarding your **branch location**, **business apps**, **leave balances**, **attendance records**, **payslips**, **shift schedule**, **assigned assets**, or **upcoming company holidays**.\n\nHow can I help you today?";
     }
 
     // What business apps do I have access to / apps access
     if (preg_match('/\b(business apps?|my apps?|what apps?|app access|feature access|my permissions?)\b/i', $msg) && !str_contains($msg, 'application')) {
-        $res = "### 📱 Your Business Apps & Feature Access\n";
-        $res .= "* **Loans Origination**: " . ($canLoan ? "✅ **Active** ({$loansStats['total']} applications created)" : "🔒 *No Access*") . "\n";
-        $res .= "* **Sales Origination**: " . ($canSales ? "✅ **Active** ({$salesStats['total']} leads registered)" : "🔒 *No Access*") . "\n";
-        $res .= "* **Branch Operations**: " . ($canBranch ? "✅ **Active** at {$resolvedBranch} ({$branchAppsStats['total']} applications)" : "🔒 *No Access*") . "\n";
-        $res .= "* **Assessments**: " . (!empty($userAssessments) ? "✅ **" . count($userAssessments) . " Active Assessment(s)**" : "None currently scheduled") . "\n";
-        $res .= "* **Training Videos**: " . (!empty($userVideos) ? "✅ **" . count($userVideos) . " Video Module(s)**" : "None currently assigned") . "\n";
+        $res = "### Your Business Apps & Feature Access\n";
+        $res .= "* **Loans Origination**: " . ($canLoan ? "**Active** ({$loansStats['total']} applications created)" : "*No Access*") . "\n";
+        $res .= "* **Sales Origination**: " . ($canSales ? "**Active** ({$salesStats['total']} leads registered)" : "*No Access*") . "\n";
+        $res .= "* **Branch Operations**: " . ($canBranch ? "**Active** at {$resolvedBranch} ({$branchAppsStats['total']} applications)" : "*No Access*") . "\n";
+        $res .= "* **Assessments**: " . (!empty($userAssessments) ? "**" . count($userAssessments) . " Active Assessment(s)**" : "None currently scheduled") . "\n";
+        $res .= "* **Training Videos**: " . (!empty($userVideos) ? "**" . count($userVideos) . " Video Module(s)**" : "None currently assigned") . "\n";
         $res .= "\nYou can access enabled apps directly from the **Business Apps** section on your sidebar.";
         return $res;
     }
@@ -602,9 +603,9 @@ function fallbackLocalRuleEngine($message, $employee, $paidRemaining, $paidTotal
     // Loan Origination
     if (str_contains($msg, 'loan') || str_contains($msg, 'origination') || str_contains($msg, 'borrower') || str_contains($msg, 'applicant')) {
         if (!$canLoan) {
-            return "🔒 **Access Notice**: You currently do not have access permissions for the **Loan Origination** business app in your employee profile. Please contact your manager or HR administrator to request access.";
+            return "Notice: You currently do not have access permissions for the **Loan Origination** business app in your employee profile. Please contact your manager or HR administrator to request access.";
         }
-        $res = "### 💼 Loan Origination Overview\n";
+        $res = "### Loan Origination Overview\n";
         $res .= "* **Total Applications Created**: **{$loansStats['total']}**\n";
         if (!empty($loansStats['by_status'])) {
             $res .= "* **Status Summary**:\n";
@@ -625,9 +626,9 @@ function fallbackLocalRuleEngine($message, $employee, $paidRemaining, $paidTotal
     // Sales Origination
     if (str_contains($msg, 'sale') || str_contains($msg, 'sales') || str_contains($msg, 'lead') || str_contains($msg, 'merchant')) {
         if (!$canSales) {
-            return "🔒 **Access Notice**: You currently do not have access permissions for the **Sales Origination** business app in your employee profile. Please contact your manager or HR administrator to request access.";
+            return "Notice: You currently do not have access permissions for the **Sales Origination** business app in your employee profile. Please contact your manager or HR administrator to request access.";
         }
-        $res = "### 📈 Sales Origination Pipeline\n";
+        $res = "### Sales Origination Pipeline\n";
         $res .= "* **Total Sales Leads**: **{$salesStats['total']}**\n";
         if (!empty($salesStats['by_status'])) {
             $res .= "* **Status Summary**:\n";
@@ -638,7 +639,7 @@ function fallbackLocalRuleEngine($message, $employee, $paidRemaining, $paidTotal
         if (!empty($userSales)) {
             $res .= "\n**Recent Leads:**\n";
             foreach (array_slice($userSales, 0, 5) as $s) {
-                $res .= "* **{$s['name']}** ({$s['product_type']}) — *{$s['status']}* (Ph: {$s['phone']})\n";
+                $res .= "* **{$s['name']}** ({$s['product_type']}) — *{$s['status']}* (Phone: {$s['phone']})\n";
             }
         }
         $res .= "\nYou can register new leads in **Business Apps > Sales Origination**.";
@@ -648,9 +649,9 @@ function fallbackLocalRuleEngine($message, $employee, $paidRemaining, $paidTotal
     // Branch Operations
     if (str_contains($msg, 'branch operation') || str_contains($msg, 'branch app') || str_contains($msg, 'branch review') || str_contains($msg, 'branch pipeline') || (str_contains($msg, 'branch') && (str_contains($msg, 'loan') || str_contains($msg, 'application') || str_contains($msg, 'queue')))) {
         if (!$canBranch) {
-            return "🔒 **Access Notice**: You currently do not have access permissions for the **Branch Operations** business app in your employee profile. Please contact your manager or HR administrator to request access.";
+            return "Notice: You currently do not have access permissions for the **Branch Operations** business app in your employee profile. Please contact your manager or HR administrator to request access.";
         }
-        $res = "### 🏬 Branch Operations Pipeline\n";
+        $res = "### Branch Operations Pipeline\n";
         $res .= "* **Assigned Branch**: **{$resolvedBranch}**\n";
         $res .= "* **Total Applications in Branch Queue**: **{$branchAppsStats['total']}**\n";
         if (!empty($branchApps)) {
@@ -665,7 +666,7 @@ function fallbackLocalRuleEngine($message, $employee, $paidRemaining, $paidTotal
 
     // Assessments
     if (str_contains($msg, 'assessment') || str_contains($msg, 'exam') || str_contains($msg, 'test') || str_contains($msg, 'quiz')) {
-        $res = "### 📝 Your Assessments\n";
+        $res = "### Your Assessments\n";
         if (!empty($userAssessments)) {
             $res .= "You have **" . count($userAssessments) . "** active assessment(s) assigned:\n";
             foreach ($userAssessments as $a) {
@@ -680,13 +681,13 @@ function fallbackLocalRuleEngine($message, $employee, $paidRemaining, $paidTotal
 
     // Training
     if (str_contains($msg, 'training') || str_contains($msg, 'video') || str_contains($msg, 'course') || str_contains($msg, 'lms')) {
-        $res = "### 🎓 Training & Learning\n";
+        $res = "### Training & Learning Modules\n";
         if (!empty($userVideos)) {
             $completed = count(array_filter($userVideos, fn($v) => !empty($v['is_completed'])));
             $res .= "You have **" . count($userVideos) . "** training module(s) assigned (**{$completed}** completed):\n";
             foreach ($userVideos as $v) {
-                $statusIcon = !empty($v['is_completed']) ? '✅ Completed' : '⏳ Pending';
-                $res .= "* **{$v['title']}** — {$statusIcon}\n";
+                $statusIcon = !empty($v['is_completed']) ? 'Completed' : 'Pending';
+                $res .= "* **{$v['title']}** — [{$statusIcon}]\n";
             }
             $res .= "\nYou can watch training modules under **Business Apps > Training Videos**.";
         } else {
@@ -697,7 +698,7 @@ function fallbackLocalRuleEngine($message, $employee, $paidRemaining, $paidTotal
 
     // Branch / Location / Office
     if (str_contains($msg, 'branch') || str_contains($msg, 'barach') || str_contains($msg, 'location') || str_contains($msg, 'office')) {
-        $res = "### 🏢 Assigned Branch & Office\n";
+        $res = "### Assigned Branch & Office\n";
         $res .= "* **Assigned Branch**: **{$resolvedBranch}**\n";
         $res .= "* **Department**: " . ($employee['department'] ?: 'N/A') . "\n";
         $res .= "* **Work Mode**: " . ($employee['workMode'] ?: 'On-site') . "\n";
@@ -706,7 +707,7 @@ function fallbackLocalRuleEngine($message, $employee, $paidRemaining, $paidTotal
 
     // Leaves
     if (str_contains($msg, 'leave') || str_contains($msg, 'vacation') || str_contains($msg, 'time off') || str_contains($msg, 'holiday balance')) {
-        $res = "### 🌿 Your Leave Summary\n";
+        $res = "### Leave Summary\n";
         $res .= "* **Remaining Paid Leaves**: **{$paidRemaining}** day(s)\n";
         $res .= "* **Total Annual Quota**: {$paidTotal} days\n";
         $res .= "* **Paid Leaves Used**: {$paidUsed} days\n\n";
@@ -714,12 +715,7 @@ function fallbackLocalRuleEngine($message, $employee, $paidRemaining, $paidTotal
         if (!empty($recentLeaves)) {
             $res .= "**Recent Applications:**\n";
             foreach ($recentLeaves as $l) {
-                $statusEmoji = match(strtolower($l['status'])) {
-                    'approved' => '✅',
-                    'rejected' => '❌',
-                    default => '⏳'
-                };
-                $res .= "- {$statusEmoji} **{$l['leaveType']}** ({$l['startDate']} to {$l['endDate']}): *{$l['status']}*\n";
+                $res .= "- **{$l['leaveType']}** ({$l['startDate']} to {$l['endDate']}): *{$l['status']}*\n";
             }
         }
         $res .= "\nYou can apply for a new leave request under the **Leaves > Apply Leave** page.";
@@ -728,7 +724,7 @@ function fallbackLocalRuleEngine($message, $employee, $paidRemaining, $paidTotal
 
     // Attendance
     if (str_contains($msg, 'attendance') || str_contains($msg, 'punch') || str_contains($msg, 'check in') || str_contains($msg, 'check out') || str_contains($msg, 'hours') || str_contains($msg, 'working hours')) {
-        $res = "### ⏱️ Attendance Overview\n";
+        $res = "### Attendance Overview\n";
         if ($todayAtt) {
             $res .= "* **Today's Status**: **{$todayAtt['status']}**\n";
             $res .= "* **Punch In**: " . ($todayAtt['checkIn'] ?: 'None recorded') . "\n";
@@ -747,7 +743,7 @@ function fallbackLocalRuleEngine($message, $employee, $paidRemaining, $paidTotal
 
     // Salary / Payslip
     if (str_contains($msg, 'salary') || str_contains($msg, 'payslip') || str_contains($msg, 'pay') || str_contains($msg, 'compensation') || str_contains($msg, 'earnings')) {
-        $res = "### 💰 Payroll & Salary Information\n";
+        $res = "### Payroll & Salary Information\n";
         if ($latestPayslip) {
             $monthName = date('F', mktime(0, 0, 0, (int)$latestPayslip['month'], 10));
             $res .= "* **Latest Payslip**: {$monthName} {$latestPayslip['year']}\n";
@@ -763,7 +759,7 @@ function fallbackLocalRuleEngine($message, $employee, $paidRemaining, $paidTotal
 
     // Shift / Timings
     if (str_contains($msg, 'shift') || str_contains($msg, 'timing') || str_contains($msg, 'schedule') || str_contains($msg, 'week off') || str_contains($msg, 'weekend')) {
-        $res = "### 🗓️ Work Schedule\n";
+        $res = "### Work Schedule\n";
         $res .= "* **Shift Timings**: " . ($employee['shiftTime'] ?: '09:30 AM - 06:30 PM') . "\n";
         $res .= "* **Designated Week Off**: **" . ($employee['weekOff'] ?: 'Sunday') . "**\n";
         $res .= "* **Work Mode**: " . ($employee['workMode'] ?: 'On-site') . "\n";
@@ -773,7 +769,7 @@ function fallbackLocalRuleEngine($message, $employee, $paidRemaining, $paidTotal
 
     // Manager / Department / Profile
     if (str_contains($msg, 'manager') || str_contains($msg, 'boss') || str_contains($msg, 'supervisor') || str_contains($msg, 'who is my') || str_contains($msg, 'department') || str_contains($msg, 'profile') || str_contains($msg, 'designation') || str_contains($msg, 'role')) {
-        $res = "### 👤 Your Employment Profile\n";
+        $res = "### Your Employment Profile\n";
         $res .= "* **Name**: {$employee['firstName']} {$employee['lastName']} ({$employee['employeeId']})\n";
         $res .= "* **Department**: {$employee['department']}\n";
         $res .= "* **Designation**: {$employee['position']}\n";
@@ -785,7 +781,7 @@ function fallbackLocalRuleEngine($message, $employee, $paidRemaining, $paidTotal
 
     // Assets / Hardware
     if (str_contains($msg, 'asset') || str_contains($msg, 'laptop') || str_contains($msg, 'device') || str_contains($msg, 'hardware') || str_contains($msg, 'equipment')) {
-        $res = "### 💻 Assigned Company Assets\n";
+        $res = "### Assigned Company Assets\n";
         if (!empty($assignedAssets)) {
             foreach ($assignedAssets as $ast) {
                 $res .= "* **{$ast['name']}** ({$ast['category']}) - Serial No: `{$ast['serial_number']}`\n";
@@ -798,7 +794,7 @@ function fallbackLocalRuleEngine($message, $employee, $paidRemaining, $paidTotal
 
     // Company Holidays
     if (str_contains($msg, 'holiday') || str_contains($msg, 'festival') || str_contains($msg, 'calendar') || str_contains($msg, 'next holiday')) {
-        $res = "### 🎈 Upcoming Company Holidays\n";
+        $res = "### Upcoming Company Holidays\n";
         if (!empty($upcomingHolidays)) {
             foreach ($upcomingHolidays as $h) {
                 $formattedDate = date('D, M j, Y', strtotime($h['holidayDate']));
@@ -812,9 +808,9 @@ function fallbackLocalRuleEngine($message, $employee, $paidRemaining, $paidTotal
 
     // Privacy guard
     if (str_contains($msg, 'other employee') || str_contains($msg, 'someone else') || str_contains($msg, 'all employee') || str_contains($msg, 'who is') && !str_contains($msg, 'manager')) {
-        return "🔒 **Privacy Notice**: For data security and confidentiality, I can only provide information directly concerning your own employee records (your leaves, attendance, payroll, assets, and schedule). I cannot display or search records of other staff members.";
+        return "Privacy Notice: For data security and confidentiality, I can only provide information directly concerning your own employee records (your leaves, attendance, payroll, assets, schedule, and business apps). I cannot display or search records of other staff members.";
     }
 
     // General fallback
-    return "I can help you with details regarding your **leaves**, **attendance**, **latest payslips**, **shift timings**, **assigned assets**, or **upcoming company holidays**.\n\nPlease select one of the suggested questions below or ask specifically about your records!";
+    return "I can help you with details regarding your **leaves**, **attendance**, **latest payslips**, **business apps**, **shift timings**, **assigned assets**, or **upcoming company holidays**.\n\nPlease select one of the suggested questions below or ask specifically about your records.";
 }
