@@ -32,9 +32,11 @@ $app->post('/api/employee/chatbot/query', function (Request $request, Response $
         SELECT e.id, e."employeeId", e."userId", e."firstName", e."lastName", e.email,
                e.department, e.position, e.status, e."joinDate", e."managerId", e."shiftTime",
                e."weekOff", e."workMode", e.branch, e.salary,
+               b.name as "branchName",
                m."firstName" as "managerFirstName", m."lastName" as "managerLastName", m.email as "managerEmail"
         FROM employee e
         LEFT JOIN employee m ON e."managerId" = m.id::text
+        LEFT JOIN branches b ON (b.id::text = e.branch OR LOWER(b.name) = LOWER(e.branch))
         WHERE e."userId" = ?
         LIMIT 1
     ');
@@ -163,13 +165,19 @@ $app->post('/api/employee/chatbot/query', function (Request $request, Response $
     $managerName = trim(($employee['managerFirstName'] ?? '') . ' ' . ($employee['managerLastName'] ?? ''));
     if (empty($managerName)) $managerName = 'Not currently assigned';
 
+    $resolvedBranch = !empty($employee['branchName'])
+        ? $employee['branchName']
+        : (!empty($employee['branch']) && !preg_match('/^[0-9a-fA-F-]{36}$/', $employee['branch'])
+            ? $employee['branch']
+            : 'Corporate Office');
+
     $contextText = "CURRENT LOGGED-IN EMPLOYEE DATA:\n";
     $contextText .= "- Name: {$employee['firstName']} {$employee['lastName']}\n";
     $contextText .= "- Employee Code: {$employee['employeeId']}\n";
     $contextText .= "- Email: {$employee['email']}\n";
     $contextText .= "- Department: {$employee['department']}\n";
     $contextText .= "- Position: {$employee['position']}\n";
-    $contextText .= "- Branch: " . ($employee['branch'] ?: 'Main Office') . "\n";
+    $contextText .= "- Assigned Branch / Location: {$resolvedBranch}\n";
     $contextText .= "- Join Date: {$employee['joinDate']}\n";
     $contextText .= "- Shift Schedule: " . ($employee['shiftTime'] ?: 'Standard 09:30 AM - 06:30 PM') . "\n";
     $contextText .= "- Week Off: " . ($employee['weekOff'] ?: 'Sunday') . "\n";
@@ -237,16 +245,16 @@ $app->post('/api/employee/chatbot/query', function (Request $request, Response $
 
     // If Gemini wasn't called or failed, fall back to our rich local rule-based intent engine
     if (empty($aiResponseText)) {
-        $aiResponseText = fallbackLocalRuleEngine($message, $employee, $paidRemaining, $paidTotal, $paidUsed, $recentLeaves, $todayAtt, $monthPresent, $monthTotalHours, $latestPayslip, $assignedAssets, $upcomingHolidays, $managerName);
+        $aiResponseText = fallbackLocalRuleEngine($message, $employee, $paidRemaining, $paidTotal, $paidUsed, $recentLeaves, $todayAtt, $monthPresent, $monthTotalHours, $latestPayslip, $assignedAssets, $upcomingHolidays, $managerName, $resolvedBranch);
     }
 
     // Suggested follow-up chips
     $suggestedActions = [
         "What is my leave balance?",
         "Show my attendance this month",
+        "Which branch am I assigned to?",
         "When is the next company holiday?",
-        "Details of my latest payslip",
-        "Who is my manager?"
+        "Details of my latest payslip"
     ];
 
     $response->getBody()->write(json_encode([
@@ -266,6 +274,7 @@ function callGeminiAssistant($apiKey, $contextText, $userMessage, array $history
 SECURITY & PRIVACY BOUNDARY:
 - You ONLY answer questions using the authenticated employee's own data provided below, and standard Acme HR policies.
 - Under NO circumstances reveal or extrapolate data about other employees. If asked about another employee or organization-wide restricted data, politely refuse and state that you can only answer questions about their own records.
+- CRITICAL: Never display or mention database UUIDs, technical codes, internal hash IDs, or \"branch code\" (e.g. 55b41227-9025-4204-9088-e1762f3096e0). Always use friendly human-readable names (e.g. for branch, simply state the branch name such as 'Gurunak Colony' or 'Corporate Office'). Do NOT refer to it as a 'branch code' or output any alphanumeric IDs.
 - Be concise, professional, friendly, and structured. Use markdown formatting (bold text, bullet points, numbers) for readability.
 - If the employee asks how to take an action (e.g. apply for leave, punch attendance, download payslip, claim expense), guide them to the appropriate portal page (e.g. Leaves > Apply Leave, Attendance punch button, Payroll > Download Payslip).
 
@@ -331,12 +340,21 @@ SECURITY & PRIVACY BOUNDARY:
 /**
  * Built-in fallback intent and rule engine for offline or API limit scenarios
  */
-function fallbackLocalRuleEngine($message, $employee, $paidRemaining, $paidTotal, $paidUsed, $recentLeaves, $todayAtt, $monthPresent, $monthTotalHours, $latestPayslip, $assignedAssets, $upcomingHolidays, $managerName) {
+function fallbackLocalRuleEngine($message, $employee, $paidRemaining, $paidTotal, $paidUsed, $recentLeaves, $todayAtt, $monthPresent, $monthTotalHours, $latestPayslip, $assignedAssets, $upcomingHolidays, $managerName, $resolvedBranch = 'Corporate Office') {
     $msg = strtolower(trim($message));
 
     // Greetings
     if (preg_match('/\b(hi|hello|hey|good morning|good afternoon|greetings)\b/i', $msg)) {
-        return "Hello **{$employee['firstName']}**! 👋\n\nI am your HR Assistant. You can ask me questions regarding your **leave balances**, **attendance records**, **payslips**, **shift schedule**, **assigned assets**, or **upcoming company holidays**.\n\nHow can I help you today?";
+        return "Hello **{$employee['firstName']}**! 👋\n\nI am your HR Assistant. You can ask me questions regarding your **branch location**, **leave balances**, **attendance records**, **payslips**, **shift schedule**, **assigned assets**, or **upcoming company holidays**.\n\nHow can I help you today?";
+    }
+
+    // Branch / Location / Office
+    if (str_contains($msg, 'branch') || str_contains($msg, 'barach') || str_contains($msg, 'location') || str_contains($msg, 'office')) {
+        $res = "### 🏢 Assigned Branch & Office\n";
+        $res .= "* **Assigned Branch**: **{$resolvedBranch}**\n";
+        $res .= "* **Department**: " . ($employee['department'] ?: 'N/A') . "\n";
+        $res .= "* **Work Mode**: " . ($employee['workMode'] ?: 'On-site') . "\n";
+        return $res;
     }
 
     // Leaves
@@ -402,7 +420,7 @@ function fallbackLocalRuleEngine($message, $employee, $paidRemaining, $paidTotal
         $res .= "* **Shift Timings**: " . ($employee['shiftTime'] ?: '09:30 AM - 06:30 PM') . "\n";
         $res .= "* **Designated Week Off**: **" . ($employee['weekOff'] ?: 'Sunday') . "**\n";
         $res .= "* **Work Mode**: " . ($employee['workMode'] ?: 'On-site') . "\n";
-        $res .= "* **Assigned Branch**: " . ($employee['branch'] ?: 'Main Office') . "\n";
+        $res .= "* **Assigned Branch**: **{$resolvedBranch}**\n";
         return $res;
     }
 
@@ -412,6 +430,7 @@ function fallbackLocalRuleEngine($message, $employee, $paidRemaining, $paidTotal
         $res .= "* **Name**: {$employee['firstName']} {$employee['lastName']} ({$employee['employeeId']})\n";
         $res .= "* **Department**: {$employee['department']}\n";
         $res .= "* **Designation**: {$employee['position']}\n";
+        $res .= "* **Branch**: **{$resolvedBranch}**\n";
         $res .= "* **Reporting Manager**: **{$managerName}**" . (!empty($employee['managerEmail']) ? " ({$employee['managerEmail']})" : '') . "\n";
         $res .= "* **Joining Date**: {$employee['joinDate']}\n";
         return $res;

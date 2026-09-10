@@ -12,6 +12,7 @@ import toast from 'react-hot-toast';
 const INITIAL_SUGGESTIONS = [
   { label: '🌿 My leave balance', query: 'How many leaves do I have left?' },
   { label: '⏱️ Today’s punch status', query: 'What is my attendance status today?' },
+  { label: '🏢 My assigned branch', query: 'Which branch am I assigned to?' },
   { label: '💰 Latest payslip info', query: 'What was my net salary in my latest payslip?' },
   { label: '🗓️ Work shift & week off', query: 'What are my shift timings and week off?' },
   { label: '🎈 Upcoming holidays', query: 'When is the next company holiday?' },
@@ -44,7 +45,7 @@ const EmployeeChatbot = () => {
       const firstName = profile?.firstName || 'there';
       const welcomeMsg = {
         role: 'assistant',
-        content: `Hi **${firstName}**! 👋\n\nI am your **HR Assistant**. I can answer questions regarding your:\n* 🌿 **Leave balances** & requests\n* ⏱️ **Attendance**, punch records & hours\n* 💰 **Payslips** & take-home pay\n* 🗓️ **Shift timings** & week offs\n* 💻 **Company assets**\n* 🎈 **Company holidays**\n\nFeel free to ask a question or select one of the suggestions below!`
+        content: `Hi **${firstName}**! 👋\n\nI am your **HR Assistant**. I can answer questions regarding your:\n* 🌿 **Leave balances** & requests\n* ⏱️ **Attendance**, punch records & hours\n* 🏢 **Assigned branch** & office\n* 💰 **Payslips** & take-home pay\n* 🗓️ **Shift timings** & week offs\n* 💻 **Company assets**\n* 🎈 **Company holidays**\n\nFeel free to ask a question or select one of the suggestions below!`
       };
       setMessages([welcomeMsg]);
       try {
