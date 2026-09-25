@@ -9,14 +9,16 @@ import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 
 const INITIAL_SUGGESTIONS = [
+  { label: 'My Identity & ID', query: 'What is my name and employee ID?' },
+  { label: 'My Profile Details', query: 'Tell me about myself and my employee details' },
   { label: 'My Leave Balance', query: 'How many leaves do I have left?' },
   { label: 'Today\'s Attendance', query: 'What is my attendance status today?' },
+  { label: 'Reporting Manager', query: 'Who is my reporting manager?' },
   { label: 'Assigned Branch', query: 'Which branch am I assigned to?' },
   { label: 'Latest Payslip', query: 'What was my net salary in my latest payslip?' },
   { label: 'Work Shift & Week Off', query: 'What are my shift timings and week off?' },
-  { label: 'Upcoming Holidays', query: 'When is the next company holiday?' },
-  { label: 'Reporting Manager', query: 'Who is my reporting manager?' },
-  { label: 'Assigned Assets', query: 'What company hardware or assets are assigned to me?' }
+  { label: 'Assigned Assets', query: 'What company hardware or assets are assigned to me?' },
+  { label: 'Upcoming Holidays', query: 'When is the next company holiday?' }
 ];
 
 const EmployeeChatbot = () => {
@@ -44,13 +46,13 @@ const EmployeeChatbot = () => {
     const fa = profile?.featureAccess || {};
     const isAdmin = profile?.role === 'admin';
     if (fa.canLoanOrigination || isAdmin) {
-      list.splice(2, 0, { label: 'Loan Applications', query: 'Show my loan applications' });
+      list.splice(4, 0, { label: 'Loan Applications', query: 'Show my loan applications' });
     }
     if (fa.canSalesOrigination || isAdmin) {
-      list.splice(3, 0, { label: 'Sales Leads', query: 'What are my sales leads?' });
+      list.splice(5, 0, { label: 'Sales Leads', query: 'What are my sales leads?' });
     }
     if (fa.canBranchOperations || isAdmin) {
-      list.splice(4, 0, { label: 'Branch Operations', query: 'What applications are in Branch Operations?' });
+      list.splice(6, 0, { label: 'Branch Operations', query: 'What applications are in Branch Operations?' });
     }
     list.push({ label: 'My Business Apps', query: 'What business apps do I have access to?' });
     return list;
@@ -62,7 +64,7 @@ const EmployeeChatbot = () => {
       const firstName = profile?.firstName || 'there';
       const welcomeMsg = {
         role: 'assistant',
-        content: `Hi **${firstName}**!\n\nI am your **HR Assistant**. I can answer questions regarding your:\n* **Leave balances** & requests\n* **Attendance**, punch records & hours\n* **Business Apps** (Loans, Sales, Branch Operations)\n* **Assigned branch** & office\n* **Payslips** & salary details\n* **Shift timings** & week offs\n* **Company assets**\n* **Company holidays**\n\nFeel free to ask a question or select one of the suggestions below.`
+        content: `Hi **${firstName}**!\n\nI am your **HR Assistant**. I can answer all questions regarding your personal and employment records:\n* **Your Name & Employee ID** (e.g. "What is my name?")\n* **Your Profile & Role** (Designation, Department, Branch)\n* **Reporting Manager** & Contact info\n* **Leave balances** & leave requests\n* **Attendance**, check-in/out & logged hours\n* **Salary** & latest payslip breakdown\n* **Shift timings** & weekly off\n* **Assigned company assets**\n* **Business Apps** (Loans, Sales, Branch Operations)\n\nAsk me anything about your records or select one of the suggestions below.`
       };
       setMessages([welcomeMsg]);
       try {
