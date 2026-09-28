@@ -9,10 +9,12 @@ import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 
 const INITIAL_SUGGESTIONS = [
-  { label: 'Total Employees', query: 'List all active employees' },
-  { label: 'IT Department', query: 'How many employees are in the IT department?' },
-  { label: 'Corporate Branch', query: 'Show me all employees in the Corporate branch' },
-  { label: 'Find Manager', query: 'Who reports to the manager?' }
+  { label: 'All Employees', query: 'List all active employees' },
+  { label: 'Headcount', query: 'Total employees count' },
+  { label: 'IT Department', query: 'Show employees in IT department' },
+  { label: 'Corporate Branch', query: 'Show employees in Corporate branch' },
+  { label: 'Salaries', query: 'Show salaries overview' },
+  { label: 'Attendance', query: 'Attendance today' }
 ];
 
 const AdminChatbot = () => {
@@ -30,11 +32,12 @@ const AdminChatbot = () => {
   const [copiedIndex, setCopiedIndex] = useState(null);
   const [showSuggestionsMenu, setShowSuggestionsMenu] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [dynamicSuggestions, setDynamicSuggestions] = useState([]);
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
-  const activeSuggestions = INITIAL_SUGGESTIONS;
+  const activeSuggestions = dynamicSuggestions.length > 0 ? dynamicSuggestions : INITIAL_SUGGESTIONS;
 
   // Initialize greeting on first load if empty
   useEffect(() => {
@@ -103,6 +106,10 @@ const AdminChatbot = () => {
       const botReply = res?.data?.response || "I'm sorry, I couldn't retrieve that information right now. Please try again.";
       const newMessages = [...updatedMessages, { role: 'assistant', content: botReply }];
       setMessages(newMessages);
+
+      if (Array.isArray(res?.data?.suggested_actions) && res.data.suggested_actions.length > 0) {
+        setDynamicSuggestions(res.data.suggested_actions.map(s => ({ label: s, query: s })));
+      }
 
       if (!isOpen) {
         setUnreadCount(prev => prev + 1);
