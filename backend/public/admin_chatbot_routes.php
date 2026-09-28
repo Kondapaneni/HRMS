@@ -66,7 +66,7 @@ $app->post('/api/admin/chatbot/query', function (Request $request, Response $res
     }
 
     if (empty($aiResponseText)) {
-        $aiResponseText = "I am currently unable to process your request as the AI service is not properly configured.";
+        $aiResponseText = fallbackAdminLocalRuleEngine($message, $employees);
     }
 
     $suggestedActions = [
@@ -162,4 +162,46 @@ CORE SCOPE & SELF DATA INSTRUCTION:
     }
 
     return null;
+}
+
+function fallbackAdminLocalRuleEngine($message, $employees) {
+    $msg = strtolower(trim($message));
+
+    if (str_contains($msg, 'total') || str_contains($msg, 'how many') || str_contains($msg, 'all active employees')) {
+        return "There are a total of " . count($employees) . " active employees in the system.";
+    }
+
+    if (str_contains($msg, 'it department') || str_contains($msg, 'in it')) {
+        $itCount = 0;
+        foreach ($employees as $emp) {
+            if (stripos($emp['department'] ?? '', 'IT') !== false) {
+                $itCount++;
+            }
+        }
+        return "There are {$itCount} employees in the IT department.";
+    }
+
+    if (str_contains($msg, 'corporate branch') || str_contains($msg, 'corporate')) {
+        $corpEmployees = [];
+        foreach ($employees as $emp) {
+            if (stripos($emp['branch'] ?? '', 'Corporate') !== false) {
+                $fullName = trim(($emp['firstName'] ?? '') . ' ' . ($emp['lastName'] ?? ''));
+                $corpEmployees[] = "- " . $fullName . " (" . $emp['department'] . ")";
+            }
+        }
+        if (empty($corpEmployees)) {
+            return "There are no employees currently assigned to the Corporate branch.";
+        }
+        return "**Employees in Corporate Branch:**\n" . implode("\n", $corpEmployees);
+    }
+
+    if (str_contains($msg, 'reports to') || str_contains($msg, 'manager')) {
+        return "To find out who reports to a specific manager, please ask when the AI is online. Currently running in offline fallback mode.";
+    }
+
+    if (str_contains($msg, 'hello') || str_contains($msg, 'hi') || str_contains($msg, 'hey')) {
+        return "Hello! I am your Admin HR Assistant (running in offline mode). How can I help you with employee data today?";
+    }
+
+    return "I am currently running in offline fallback mode (AI service not configured). I can answer basic questions like:\n* How many total employees are there?\n* How many employees in the IT department?\n* Show employees in the Corporate branch.";
 }
