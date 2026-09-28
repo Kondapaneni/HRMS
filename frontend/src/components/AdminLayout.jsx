@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import GlobalSearch from './GlobalSearch';
 import EmployeeLayout from './EmployeeLayout';
 import LogoutModal from './LogoutModal';
+import AdminChatbot from './AdminChatbot';
 import api from '../api/axios';
 import { supabase } from '../lib/supabase';
 
@@ -274,6 +275,9 @@ const AdminLayoutContent = () => {
           <span>Sign Out</span>
         </button>
       </div>
+
+      {/* Admin AI Assistant Chatbot */}
+      <AdminChatbot />
 
       {/* Global Logout Modal */}
       <LogoutModal

@@ -541,6 +541,7 @@ require __DIR__ . '/employee_expenses_routes.php';
 require __DIR__ . '/employee_assessments_routes.php';
 require __DIR__ . '/employee_training_routes.php';
 require __DIR__ . '/employee_chatbot_routes.php';
+require __DIR__ . '/admin_chatbot_routes.php';
 
 require __DIR__ . '/admin_dashboard_routes.php';
 require __DIR__ . '/admin_employees_routes.php';
