@@ -31,63 +31,326 @@ $app->post('/api/admin/chatbot/query', function (Request $request, Response $res
         return $response->withHeader('Content-Type', 'application/json')->withStatus(503);
     }
 
-    // 1. Fetch all employees with full joined details
-    $empStmt = $conn->query('
-        SELECT e.*,
-               b.name as "branchName",
-               m."firstName" as "managerFirstName", m."lastName" as "managerLastName", m.email as "managerEmail"
-        FROM employee e
-        LEFT JOIN employee m ON e."managerId" = m.id::text
-        LEFT JOIN branches b ON (b.id::text = e.branch OR LOWER(b.name) = LOWER(e.branch))
-        ORDER BY e."firstName" ASC, e."lastName" ASC
-    ');
-    $employees = $empStmt ? $empStmt->fetchAll(PDO::FETCH_ASSOC) : [];
+    // =========================================================================
+    // 1. EMPLOYEES: Full details from Admin Employees page
+    // =========================================================================
+    $employees = [];
+    try {
+        $empStmt = $conn->query('
+            SELECT e.*,
+                   b.name as "branchName",
+                   m."firstName" as "managerFirstName", m."lastName" as "managerLastName", m.email as "managerEmail"
+            FROM employee e
+            LEFT JOIN employee m ON e."managerId" = m.id::text
+            LEFT JOIN branches b ON (b.id::text = e.branch OR LOWER(b.name) = LOWER(e.branch))
+            ORDER BY e."firstName" ASC, e."lastName" ASC
+        ');
+        $employees = $empStmt ? $empStmt->fetchAll(PDO::FETCH_ASSOC) : [];
+    } catch (\Throwable $t) {}
 
-    // 2. Fetch today\'s attendance stats
-    $attStats = ['present_count' => 0, 'leave_count' => 0];
+    // =========================================================================
+    // 2. ATTENDANCE: Today\'s stats & recent logs from Admin Attendance page
+    // =========================================================================
+    $attStats = ['present_today' => 0, 'leave_today' => 0, 'late_today' => 0, 'total_today' => 0];
+    $todayAttendanceLogs = [];
     try {
         $attStmt = $conn->query("
             SELECT 
-                SUM(CASE WHEN LOWER(TRIM(status)) LIKE 'present%' THEN 1 ELSE 0 END) as present_count,
-                SUM(CASE WHEN LOWER(TRIM(status)) LIKE '%leave%' THEN 1 ELSE 0 END) as leave_count
+                COUNT(*) as total_today,
+                SUM(CASE WHEN LOWER(TRIM(status)) LIKE 'present%' THEN 1 ELSE 0 END) as present_today,
+                SUM(CASE WHEN LOWER(TRIM(status)) LIKE '%leave%' THEN 1 ELSE 0 END) as leave_today,
+                SUM(CASE WHEN LOWER(TRIM(status)) LIKE '%late%' THEN 1 ELSE 0 END) as late_today
             FROM attendance
             WHERE date = CURRENT_DATE
         ");
         if ($attStmt) {
             $row = $attStmt->fetch(PDO::FETCH_ASSOC);
             if ($row) {
-                $attStats['present_count'] = (int)($row['present_count'] ?? 0);
-                $attStats['leave_count'] = (int)($row['leave_count'] ?? 0);
+                $attStats['total_today'] = (int)($row['total_today'] ?? 0);
+                $attStats['present_today'] = (int)($row['present_today'] ?? 0);
+                $attStats['leave_today'] = (int)($row['leave_today'] ?? 0);
+                $attStats['late_today'] = (int)($row['late_today'] ?? 0);
             }
         }
+
+        $logsStmt = $conn->query('
+            SELECT a.status, a."checkIn", a."checkOut", a.hours,
+                   e."firstName", e."lastName", e."employeeId"
+            FROM attendance a
+            JOIN employee e ON a."employeeId" = e."userId"
+            WHERE a.date = CURRENT_DATE
+            ORDER BY a."checkIn" DESC NULLS LAST
+            LIMIT 15
+        ');
+        $todayAttendanceLogs = $logsStmt ? $logsStmt->fetchAll(PDO::FETCH_ASSOC) : [];
     } catch (\Throwable $t) {}
 
-    // 3. Fetch pending leaves count
-    $pendingLeaves = 0;
+    // =========================================================================
+    // 3. LEAVES: Requests & status from Admin Leaves page
+    // =========================================================================
+    $leaveStats = ['total' => 0, 'pending' => 0, 'approved' => 0, 'rejected' => 0];
+    $recentLeaves = [];
     try {
-        $leaveStmt = $conn->query("
-            SELECT COUNT(*) as pending_count FROM leaves WHERE LOWER(TRIM(status)) = 'pending'
+        $leaveSummaryStmt = $conn->query("
+            SELECT 
+                COUNT(*) as total,
+                SUM(CASE WHEN LOWER(TRIM(status)) = 'pending' THEN 1 ELSE 0 END) as pending,
+                SUM(CASE WHEN LOWER(TRIM(status)) = 'approved' THEN 1 ELSE 0 END) as approved,
+                SUM(CASE WHEN LOWER(TRIM(status)) = 'rejected' THEN 1 ELSE 0 END) as rejected
+            FROM leaves
         ");
-        if ($leaveStmt) {
-            $pendingLeaves = (int)$leaveStmt->fetchColumn();
+        if ($leaveSummaryStmt) {
+            $lRow = $leaveSummaryStmt->fetch(PDO::FETCH_ASSOC);
+            if ($lRow) {
+                $leaveStats['total'] = (int)($lRow['total'] ?? 0);
+                $leaveStats['pending'] = (int)($lRow['pending'] ?? 0);
+                $leaveStats['approved'] = (int)($lRow['approved'] ?? 0);
+                $leaveStats['rejected'] = (int)($lRow['rejected'] ?? 0);
+            }
         }
+
+        $recentLeavesStmt = $conn->query('
+            SELECT l.id, l."leaveType", l."startDate", l."endDate", l.days, l.reason, l.status, l."appliedDate",
+                   e."firstName", e."lastName", e."employeeId"
+            FROM leaves l
+            LEFT JOIN employee e ON l."employeeId" = e."userId"
+            ORDER BY (CASE WHEN LOWER(TRIM(l.status)) = \'pending\' THEN 0 ELSE 1 END), l."appliedDate" DESC
+            LIMIT 10
+        ');
+        $recentLeaves = $recentLeavesStmt ? $recentLeavesStmt->fetchAll(PDO::FETCH_ASSOC) : [];
     } catch (\Throwable $t) {}
 
-    // 4. Build context string for Gemini prompt
-    $contextText = "ORGANIZATION METRICS:\n";
-    $contextText .= "- Total Employees: " . count($employees) . "\n";
-    $contextText .= "- Present Today: {$attStats['present_count']}\n";
-    $contextText .= "- On Leave Today: {$attStats['leave_count']}\n";
-    $contextText .= "- Pending Leave Requests: {$pendingLeaves}\n\n";
+    // =========================================================================
+    // 4. EXPENSES: Claims & amounts from Admin Expenses page
+    // =========================================================================
+    $expenseStats = ['totalAmount' => 0, 'totalCount' => 0, 'pendingAmount' => 0, 'pendingCount' => 0, 'approvedAmount' => 0, 'approvedCount' => 0];
+    $recentExpenses = [];
+    try {
+        $expStmt = $conn->query("
+            SELECT 
+                COALESCE(SUM(amount), 0) as total_amount,
+                COUNT(*) as total_count,
+                COALESCE(SUM(CASE WHEN LOWER(TRIM(status)) = 'pending' THEN amount ELSE 0 END), 0) as pending_amount,
+                COALESCE(COUNT(CASE WHEN LOWER(TRIM(status)) = 'pending' THEN 1 END), 0) as pending_count,
+                COALESCE(SUM(CASE WHEN LOWER(TRIM(status)) = 'approved' THEN amount ELSE 0 END), 0) as approved_amount,
+                COALESCE(COUNT(CASE WHEN LOWER(TRIM(status)) = 'approved' THEN 1 END), 0) as approved_count
+            FROM expenses
+        ");
+        if ($expStmt) {
+            $eRow = $expStmt->fetch(PDO::FETCH_ASSOC);
+            if ($eRow) {
+                $expenseStats['totalAmount'] = (float)$eRow['total_amount'];
+                $expenseStats['totalCount'] = (int)$eRow['total_count'];
+                $expenseStats['pendingAmount'] = (float)$eRow['pending_amount'];
+                $expenseStats['pendingCount'] = (int)$eRow['pending_count'];
+                $expenseStats['approvedAmount'] = (float)$eRow['approved_amount'];
+                $expenseStats['approvedCount'] = (int)$eRow['approved_count'];
+            }
+        }
 
-    $contextText .= "ALL EMPLOYEES DATA IN THE SYSTEM:\n";
+        $recentExpStmt = $conn->query('
+            SELECT ex.title, ex.amount, ex.category, ex.status, ex.created_at,
+                   e."firstName", e."lastName", e."employeeId"
+            FROM expenses ex
+            LEFT JOIN employee e ON ex.user_id = e."userId"
+            ORDER BY ex.created_at DESC
+            LIMIT 10
+        ');
+        $recentExpenses = $recentExpStmt ? $recentExpStmt->fetchAll(PDO::FETCH_ASSOC) : [];
+    } catch (\Throwable $t) {}
+
+    // =========================================================================
+    // 5. ASSETS: Inventory & allocations from Admin Assets page
+    // =========================================================================
+    $assetStats = ['total' => 0, 'available' => 0, 'assigned' => 0, 'maintenance' => 0];
+    $assetsList = [];
+    try {
+        $assetStmt = $conn->query("
+            SELECT 
+                COUNT(*) as total,
+                COALESCE(COUNT(CASE WHEN LOWER(TRIM(status)) = 'available' THEN 1 END), 0) as available,
+                COALESCE(COUNT(CASE WHEN LOWER(TRIM(status)) = 'assigned' THEN 1 END), 0) as assigned,
+                COALESCE(COUNT(CASE WHEN LOWER(TRIM(status)) = 'maintenance' THEN 1 END), 0) as maintenance
+            FROM assets
+        ");
+        if ($assetStmt) {
+            $aRow = $assetStmt->fetch(PDO::FETCH_ASSOC);
+            if ($aRow) {
+                $assetStats['total'] = (int)$aRow['total'];
+                $assetStats['available'] = (int)$aRow['available'];
+                $assetStats['assigned'] = (int)$aRow['assigned'];
+                $assetStats['maintenance'] = (int)$aRow['maintenance'];
+            }
+        }
+
+        $listAssetStmt = $conn->query('
+            SELECT a.name, a.category, a.serial_number, a.status,
+                   e."firstName", e."lastName", e."employeeId"
+            FROM assets a
+            LEFT JOIN employee e ON (a.assigned_to = e."userId" OR a.assigned_to = e.id::text)
+            ORDER BY a.name ASC
+            LIMIT 20
+        ');
+        $assetsList = $listAssetStmt ? $listAssetStmt->fetchAll(PDO::FETCH_ASSOC) : [];
+    } catch (\Throwable $t) {}
+
+    // =========================================================================
+    // 6. PAYROLL: Overview from Admin Payroll page
+    // =========================================================================
+    $payrollStats = ['total_payslips' => 0, 'total_net_payroll' => 0, 'paid_count' => 0, 'pending_count' => 0];
+    $recentPayslips = [];
+    try {
+        $payStmt = $conn->query("
+            SELECT 
+                COUNT(*) as total_payslips,
+                COALESCE(SUM(\"netSalary\"), 0) as total_net_payroll,
+                COALESCE(COUNT(CASE WHEN LOWER(TRIM(status)) = 'paid' THEN 1 END), 0) as paid_count,
+                COALESCE(COUNT(CASE WHEN LOWER(TRIM(status)) = 'pending' THEN 1 END), 0) as pending_count
+            FROM payslips
+        ");
+        if ($payStmt) {
+            $pRow = $payStmt->fetch(PDO::FETCH_ASSOC);
+            if ($pRow) {
+                $payrollStats['total_payslips'] = (int)$pRow['total_payslips'];
+                $payrollStats['total_net_payroll'] = (float)$pRow['total_net_payroll'];
+                $payrollStats['paid_count'] = (int)$pRow['paid_count'];
+                $payrollStats['pending_count'] = (int)$pRow['pending_count'];
+            }
+        }
+
+        $recentPayStmt = $conn->query('
+            SELECT p.month, p.year, p."netSalary", p.status,
+                   e."firstName", e."lastName", e."employeeId"
+            FROM payslips p
+            LEFT JOIN employee e ON p."employeeId" = e."userId"
+            ORDER BY p.year DESC, p.month DESC
+            LIMIT 10
+        ');
+        $recentPayslips = $recentPayStmt ? $recentPayStmt->fetchAll(PDO::FETCH_ASSOC) : [];
+    } catch (\Throwable $t) {}
+
+    // =========================================================================
+    // 7. HOLIDAYS: Upcoming dates from Admin Holidays page
+    // =========================================================================
+    $upcomingHolidays = [];
+    try {
+        $holStmt = $conn->query('
+            SELECT "holidayDate", "holidayName"
+            FROM company_holidays
+            WHERE "isActive" = 1 AND "holidayDate" >= CURRENT_DATE
+            ORDER BY "holidayDate" ASC
+            LIMIT 10
+        ');
+        $upcomingHolidays = $holStmt ? $holStmt->fetchAll(PDO::FETCH_ASSOC) : [];
+    } catch (\Throwable $t) {}
+
+    // =========================================================================
+    // 8. RECRUITMENT & CANDIDATES: From Admin Recruitment page
+    // =========================================================================
+    $candidates = [];
+    try {
+        $candStmt = $conn->query("
+            SELECT id, \"firstName\", \"lastName\", email, role, created_at
+            FROM users
+            WHERE role = 'candidate'
+            ORDER BY created_at DESC
+            LIMIT 15
+        ");
+        $candidates = $candStmt ? $candStmt->fetchAll(PDO::FETCH_ASSOC) : [];
+    } catch (\Throwable $t) {}
+
+    // =========================================================================
+    // 9. ASSESSMENTS & TRAININGS: From Admin Assessments & Training pages
+    // =========================================================================
+    $assessments = [];
+    try {
+        $assStmt = $conn->query('
+            SELECT id, title, department, duration_minutes, questions_count, is_active
+            FROM assessments
+            ORDER BY created_at DESC
+            LIMIT 10
+        ');
+        $assessments = $assStmt ? $assStmt->fetchAll(PDO::FETCH_ASSOC) : [];
+    } catch (\Throwable $t) {}
+
+    $trainingVideos = [];
+    try {
+        $trainStmt = $conn->query('
+            SELECT id, title, category, duration, is_active
+            FROM training_videos
+            ORDER BY created_at DESC
+            LIMIT 10
+        ');
+        $trainingVideos = $trainStmt ? $trainStmt->fetchAll(PDO::FETCH_ASSOC) : [];
+    } catch (\Throwable $t) {}
+
+    // =========================================================================
+    // 10. AUDIT LOGS: Recent admin operations from Admin Audit page
+    // =========================================================================
+    $auditLogs = [];
+    try {
+        $auditStmt = $conn->query('
+            SELECT timestamp, action_type, actor_name, entity_type, new_values
+            FROM audit_logs
+            ORDER BY timestamp DESC
+            LIMIT 8
+        ');
+        $auditLogs = $auditStmt ? $auditStmt->fetchAll(PDO::FETCH_ASSOC) : [];
+    } catch (\Throwable $t) {}
+
+    // =========================================================================
+    // 11. BUSINESS APPS: Loans & Sales stats
+    // =========================================================================
+    $businessAppsStats = ['loans' => 0, 'sales' => 0];
+    try {
+        $loanStmt = $conn->query('SELECT COUNT(*) FROM loan_leads');
+        if ($loanStmt) $businessAppsStats['loans'] = (int)$loanStmt->fetchColumn();
+        $saleStmt = $conn->query('SELECT COUNT(*) FROM sales_leads');
+        if ($saleStmt) $businessAppsStats['sales'] = (int)$saleStmt->fetchColumn();
+    } catch (\Throwable $t) {}
+
+    // Bundle all module data
+    $adminData = [
+        'employees' => $employees,
+        'attendanceStats' => $attStats,
+        'todayAttendanceLogs' => $todayAttendanceLogs,
+        'leaveStats' => $leaveStats,
+        'recentLeaves' => $recentLeaves,
+        'expenseStats' => $expenseStats,
+        'recentExpenses' => $recentExpenses,
+        'assetStats' => $assetStats,
+        'assetsList' => $assetsList,
+        'payrollStats' => $payrollStats,
+        'recentPayslips' => $recentPayslips,
+        'upcomingHolidays' => $upcomingHolidays,
+        'candidates' => $candidates,
+        'assessments' => $assessments,
+        'trainingVideos' => $trainingVideos,
+        'auditLogs' => $auditLogs,
+        'businessApps' => $businessAppsStats
+    ];
+
+    // =========================================================================
+    // Build Prompt Context for Gemini AI (if available)
+    // =========================================================================
+    $contextText = "HRMS ADMINISTRATIVE SYSTEM DATA ACROSS ALL MODULES:\n\n";
+    $contextText .= "1. HEADCOUNT & WORKFORCE: Total " . count($employees) . " employees.\n";
+    $contextText .= "2. ATTENDANCE TODAY: {$attStats['present_today']} present, {$attStats['leave_today']} on leave, {$attStats['late_today']} late.\n";
+    $contextText .= "3. LEAVE REQUESTS: {$leaveStats['pending']} pending approval, {$leaveStats['approved']} approved.\n";
+    $contextText .= "4. EXPENSES: {$expenseStats['pendingCount']} pending claims (₹{$expenseStats['pendingAmount']}), Total approved ₹{$expenseStats['approvedAmount']}.\n";
+    $contextText .= "5. ASSETS: {$assetStats['total']} total assets, {$assetStats['assigned']} assigned, {$assetStats['available']} available.\n";
+    $contextText .= "6. PAYROLL: Total processed net payroll ₹" . number_format($payrollStats['total_net_payroll']) . ", {$payrollStats['paid_count']} paid slips.\n";
+    $contextText .= "7. RECRUITMENT: " . count($candidates) . " candidate applicants in pipeline.\n";
+    $contextText .= "8. ASSESSMENTS & TRAINING: " . count($assessments) . " active assessments, " . count($trainingVideos) . " training videos.\n\n";
+
+    $contextText .= "DETAILED EMPLOYEES RECORD:\n";
     foreach ($employees as $emp) {
         $fullName = trim(($emp['firstName'] ?? '') . ' ' . ($emp['lastName'] ?? ''));
         $managerName = trim(($emp['managerFirstName'] ?? '') . ' ' . ($emp['managerLastName'] ?? ''));
         if (empty($managerName)) $managerName = 'None';
         $branch = !empty($emp['branchName']) ? $emp['branchName'] : ($emp['branch'] ?: 'Corporate Office');
         
-        $contextText .= "- Name: {$fullName}, EmpID: {$emp['employeeId']}, Email: {$emp['email']}, Phone: {$emp['phone']}, Dept: {$emp['department']}, Role: {$emp['position']}, Status: {$emp['status']}, Branch: {$branch}, Manager: {$managerName}, Salary: {$emp['salary']}, JoinDate: {$emp['joinDate']}\n";
+        $contextText .= "- {$fullName} (ID: {$emp['employeeId']}) | Dept: {$emp['department']} | Role: {$emp['position']} | Branch: {$branch} | Status: {$emp['status']} | Salary: {$emp['salary']} | Manager: {$managerName} | Email: {$emp['email']} | Phone: {$emp['phone']}\n";
     }
 
     $geminiApiKey = $_ENV['GEMINI_API_KEY'] ?? $_SERVER['GEMINI_API_KEY'] ?? getenv('GEMINI_API_KEY') ?? '';
@@ -97,18 +360,18 @@ $app->post('/api/admin/chatbot/query', function (Request $request, Response $res
         $aiResponseText = callGeminiAdminAssistant($geminiApiKey, $contextText, $message, $history);
     }
 
-    // Seamless Fallback Rule Engine if AI service is not available or fails
+    // Seamless Fallback Rule Engine across ALL Admin Pages
     if (empty($aiResponseText)) {
-        $aiResponseText = fallbackAdminLocalRuleEngine($message, $employees, $attStats, $pendingLeaves);
+        $aiResponseText = fallbackAdminLocalRuleEngine($message, $adminData);
     }
 
     $suggestedActions = [
         "List all active employees",
-        "Total employees & headcount",
-        "Show IT department",
-        "Corporate branch employees",
-        "Show salaries overview",
-        "Attendance today"
+        "Attendance today",
+        "Pending leave requests",
+        "Expense claims overview",
+        "Company assets status",
+        "Show salaries & payroll"
     ];
 
     $response->getBody()->write(json_encode([
@@ -129,9 +392,8 @@ function callGeminiAdminAssistant($apiKey, $contextText, $userMessage, array $hi
     $systemInstruction = "You are the Acme HRMS Admin AI Assistant. You are currently chatting with the Administrator inside their corporate portal.
 
 CORE SCOPE & SELF DATA INSTRUCTION:
-- You answer all questions regarding the organization and ALL employees' data.
-- When the Administrator asks about employees, answer directly, thoroughly, and accurately using the data provided below.
-- You can summarize data, count employees, or list employees by specific criteria (department, branch, manager, salary, status) if asked.
+- You answer all questions regarding the organization, ALL employees, and ALL administrative pages (Attendance, Leaves, Expenses, Payroll, Assets, Recruitment, Training, Holidays, and Audit Logs).
+- When the Administrator asks about employees or modules, answer directly, thoroughly, and accurately using the data provided below.
 - CRITICAL FORMATTING RULE: Do NOT include any emojis, emoticons, or symbol icons in your responses. Keep headers, lists, and status indicators purely textual, professional, and clean.
 - Be concise, professional, friendly, and structured. Use markdown formatting (bold text, bullet points, numbers) for readability.
 
@@ -200,73 +462,322 @@ CORE SCOPE & SELF DATA INSTRUCTION:
 }
 
 /**
- * Comprehensive fallback rule and intent engine for Admin queries.
- * Provides complete data access across all employees, departments, branches, salaries, and attendance.
+ * Universal fallback rule engine for Admin queries.
+ * Integrates live data queries across ALL admin pages:
+ * - Employees & Headcount
+ * - Attendance & Today's punches
+ * - Leaves & Approvals
+ * - Expenses & Claims
+ * - Assets & Device Allocation
+ * - Payroll & Payslips
+ * - Company Holidays
+ * - Recruitment & Candidates
+ * - Assessments & Training
+ * - Audit Logs & Activity
  */
-function fallbackAdminLocalRuleEngine($message, array $employees, array $attStats = [], int $pendingLeaves = 0) {
+function fallbackAdminLocalRuleEngine($message, array $data) {
     $msg = strtolower(trim($message));
     $cleanQuery = preg_replace('/[^a-z0-9\s]/', ' ', $msg);
     $cleanQuery = trim(preg_replace('/\s+/', ' ', $cleanQuery));
 
-    // Precompute common lists
-    $activeEmployees = array_filter($employees, function($e) {
-        return strtolower($e['status'] ?? 'active') === 'active';
-    });
-    $totalCount = count($employees);
+    $employees = $data['employees'] ?? [];
+    $attStats = $data['attendanceStats'] ?? [];
+    $todayAttendanceLogs = $data['todayAttendanceLogs'] ?? [];
+    $leaveStats = $data['leaveStats'] ?? [];
+    $recentLeaves = $data['recentLeaves'] ?? [];
+    $expenseStats = $data['expenseStats'] ?? [];
+    $recentExpenses = $data['recentExpenses'] ?? [];
+    $assetStats = $data['assetStats'] ?? [];
+    $assetsList = $data['assetsList'] ?? [];
+    $payrollStats = $data['payrollStats'] ?? [];
+    $recentPayslips = $data['recentPayslips'] ?? [];
+    $upcomingHolidays = $data['upcomingHolidays'] ?? [];
+    $candidates = $data['candidates'] ?? [];
+    $assessments = $data['assessments'] ?? [];
+    $trainingVideos = $data['trainingVideos'] ?? [];
+    $auditLogs = $data['auditLogs'] ?? [];
+    $businessApps = $data['businessApps'] ?? [];
+
+    $totalEmployees = count($employees);
+    $activeEmployees = array_filter($employees, fn($e) => strtolower($e['status'] ?? 'active') === 'active');
     $activeCount = count($activeEmployees);
-    $inactiveCount = $totalCount - $activeCount;
+    $inactiveCount = $totalEmployees - $activeCount;
 
     // Collect unique departments and branches
     $departmentsMap = [];
     $branchesMap = [];
     foreach ($employees as $e) {
         $d = trim($e['department'] ?? 'General');
-        if (!empty($d)) {
-            $departmentsMap[$d] = ($departmentsMap[$d] ?? 0) + 1;
-        }
+        if (!empty($d)) $departmentsMap[$d] = ($departmentsMap[$d] ?? 0) + 1;
         $b = !empty($e['branchName']) ? $e['branchName'] : ($e['branch'] ?: 'Corporate Office');
-        if (!empty($b)) {
-            $branchesMap[$b] = ($branchesMap[$b] ?? 0) + 1;
-        }
+        if (!empty($b)) $branchesMap[$b] = ($branchesMap[$b] ?? 0) + 1;
     }
 
-    // 1. GREETINGS & INTRO
+    // =========================================================================
+    // 1. GREETINGS & CAPABILITIES
+    // =========================================================================
     if (preg_match('/\b(hi|hello|hey|good morning|good afternoon|good evening|greetings)\b/i', $msg)) {
         $res = "Hello **Administrator**.\n\n";
-        $res .= "I am your **Admin HR Assistant**. I have complete access to the organization database and can answer queries about all **{$totalCount}** employees.\n\n";
-        $res .= "Here is what you can ask me:\n";
-        $res .= "* **Find any employee**: \"Who is Rahul?\", \"Show Dhashna profile\", \"Details of EMP001\"\n";
-        $res .= "* **Employee Specific Data**: \"What is Rahul's salary?\", \"Rahul's manager\", \"Rahul's phone / email\"\n";
-        $res .= "* **Department Staff**: \"Show employees in IT\", \"HR department list\"\n";
-        $res .= "* **Branch Staff**: \"Corporate branch employees\", \"List branches\"\n";
-        $res .= "* **Reporting & Managers**: \"Who reports to John?\", \"List all managers\"\n";
-        $res .= "* **Payroll & Salaries**: \"Show salaries overview\", \"Highest salary\"\n";
-        $res .= "* **Headcount & Attendance**: \"Total employees\", \"Attendance today\"\n\n";
-        $res .= "How can I help you today?";
+        $res .= "I am your comprehensive **Admin HR Assistant**, connected to all **" . count($employees) . "** employees and all portal modules.\n\n";
+        $res .= "Here is what I can pull for you instantly:\n";
+        $res .= "* **Employees**: \"Who is Rahul?\", \"Show Dhashna details\", \"List all active employees\"\n";
+        $res .= "* **Attendance**: \"Attendance today\", \"Who is late today?\", \"Present count\"\n";
+        $res .= "* **Leaves**: \"Pending leave requests\", \"Approved leaves\", \"Who is on leave?\"\n";
+        $res .= "* **Expenses**: \"Show expenses overview\", \"Pending expense claims\"\n";
+        $res .= "* **Assets**: \"Company assets overview\", \"Available laptops\", \"Who has what asset?\"\n";
+        $res .= "* **Payroll**: \"Show salaries overview\", \"Highest salary\", \"Total payroll\"\n";
+        $res .= "* **Recruitment**: \"Show candidate applicants\", \"Job pipeline\"\n";
+        $res .= "* **Holidays**: \"Upcoming holidays\", \"Company calendar\"\n";
+        $res .= "* **Training & Tests**: \"Show assessments\", \"Training courses\"\n";
+        $res .= "* **Audit Logs**: \"Recent activities\", \"Who made changes?\"\n\n";
+        $res .= "What would you like to view?";
         return $res;
     }
 
-    // 2. TODAY\'S ATTENDANCE & LEAVES
+    // =========================================================================
+    // 2. EXPENSES (ADMIN EXPENSES PAGE)
+    // =========================================================================
+    if (
+        str_contains($msg, 'expense') || str_contains($msg, 'claims') ||
+        str_contains($msg, 'reimbursement')
+    ) {
+        $res = "### Admin Expenses Summary\n";
+        $res .= "* **Total Submitted Claims**: **{$expenseStats['totalCount']}** (Value: **₹" . number_format($expenseStats['totalAmount']) . "**)\n";
+        $res .= "* **Pending Approvals**: **{$expenseStats['pendingCount']}** claims awaiting review (Value: **₹" . number_format($expenseStats['pendingAmount']) . "**)\n";
+        $res .= "* **Approved Claims**: **{$expenseStats['approvedCount']}** (Value: **₹" . number_format($expenseStats['approvedAmount']) . "**)\n";
+
+        if (!empty($recentExpenses)) {
+            $res .= "\n**Recent Expense Submissions:**\n";
+            foreach (array_slice($recentExpenses, 0, 5) as $ex) {
+                $eName = trim(($ex['firstName'] ?? '') . ' ' . ($ex['lastName'] ?? ''));
+                if (empty($eName)) $eName = 'Employee';
+                $statusFormatted = ucfirst($ex['status'] ?: 'Pending');
+                $res .= "* **{$ex['title']}** - ₹" . number_format((float)$ex['amount']) . " | Category: {$ex['category']} | By: **{$eName}** | Status: **{$statusFormatted}**\n";
+            }
+        }
+        return $res;
+    }
+
+    // =========================================================================
+    // 3. ASSETS & HARDWARE ALLOCATION (ADMIN ASSETS PAGE)
+    // =========================================================================
+    if (
+        str_contains($msg, 'asset') || str_contains($msg, 'laptop') ||
+        str_contains($msg, 'hardware') || str_contains($msg, 'device') ||
+        str_contains($msg, 'equipment')
+    ) {
+        $res = "### Company Assets & Inventory Overview\n";
+        $res .= "* **Total Assets in System**: **{$assetStats['total']}**\n";
+        $res .= "* **Currently Assigned to Employees**: **{$assetStats['assigned']}**\n";
+        $res .= "* **Available for Allocation**: **{$assetStats['available']}**\n";
+        $res .= "* **In Maintenance / Repair**: **{$assetStats['maintenance']}**\n";
+
+        if (!empty($assetsList)) {
+            $res .= "\n**Sample Assets & Allocation:**\n";
+            foreach (array_slice($assetsList, 0, 6) as $as) {
+                $holder = trim(($as['firstName'] ?? '') . ' ' . ($as['lastName'] ?? ''));
+                $assignedText = !empty($holder) ? "Assigned to **{$holder}**" : "Available";
+                $res .= "* **{$as['name']}** ({$as['category']}) - S/N: `{$as['serial_number']}` | Status: {$as['status']} | {$assignedText}\n";
+            }
+        }
+        return $res;
+    }
+
+    // =========================================================================
+    // 4. LEAVES & TIME OFF (ADMIN LEAVES PAGE)
+    // =========================================================================
+    if (
+        str_contains($msg, 'leave') || str_contains($msg, 'vacation') ||
+        str_contains($msg, 'time off')
+    ) {
+        $res = "### Admin Leaves & Requests Overview\n";
+        $res .= "* **Pending Approvals**: **{$leaveStats['pending']}** applications awaiting admin action\n";
+        $res .= "* **Approved Leaves**: **{$leaveStats['approved']}**\n";
+        $res .= "* **Rejected Leaves**: **{$leaveStats['rejected']}**\n";
+        $res .= "* **Total Lifetime Requests**: **{$leaveStats['total']}**\n";
+
+        if (!empty($recentLeaves)) {
+            $res .= "\n**Recent / Pending Leave Applications:**\n";
+            foreach (array_slice($recentLeaves, 0, 5) as $lv) {
+                $applicant = trim(($lv['firstName'] ?? '') . ' ' . ($lv['lastName'] ?? ''));
+                if (empty($applicant)) $applicant = 'Employee';
+                $statusFormatted = ucfirst($lv['status'] ?: 'Pending');
+                $res .= "* **{$applicant}** (`{$lv['employeeId']}`) - {$lv['leaveType']} ({$lv['days']} day(s) from {$lv['startDate']} to {$lv['endDate']}) | Status: **{$statusFormatted}**\n";
+            }
+        }
+        return $res;
+    }
+
+    // =========================================================================
+    // 5. ATTENDANCE & TODAY\'S PUNCHES (ADMIN ATTENDANCE PAGE)
+    // =========================================================================
     if (
         str_contains($msg, 'attendance') || str_contains($msg, 'present today') ||
         str_contains($msg, 'absent today') || str_contains($msg, 'on leave today') ||
-        str_contains($msg, 'pending leave') || str_contains($msg, 'leave request')
+        str_contains($msg, 'late today') || str_contains($msg, 'checked in') ||
+        str_contains($msg, 'punches')
     ) {
-        $presentToday = $attStats['present_count'] ?? 0;
-        $onLeaveToday = $attStats['leave_count'] ?? 0;
-        $res = "### Today's Attendance & Leave Summary\n";
+        $res = "### Today's Organization Attendance Summary\n";
         $res .= "* **Total Active Workforce**: **{$activeCount}** employees\n";
-        $res .= "* **Marked Present Today**: **{$presentToday}**\n";
-        $res .= "* **On Approved Leave Today**: **{$onLeaveToday}**\n";
-        $res .= "* **Pending Leave Applications**: **{$pendingLeaves}** awaiting review\n";
-        if ($presentToday > 0 && $activeCount > 0) {
-            $pct = round(($presentToday / $activeCount) * 100, 1);
-            $res .= "* **Attendance Rate**: **{$pct}%**\n";
+        $res .= "* **Present Today**: **{$attStats['present_today']}**\n";
+        $res .= "* **On Leave Today**: **{$attStats['leave_today']}**\n";
+        $res .= "* **Late Check-ins Today**: **{$attStats['late_today']}**\n";
+
+        if ($activeCount > 0 && $attStats['present_today'] > 0) {
+            $rate = round(($attStats['present_today'] / $activeCount) * 100, 1);
+            $res .= "* **Overall Daily Attendance Rate**: **{$rate}%**\n";
+        }
+
+        if (!empty($todayAttendanceLogs)) {
+            $res .= "\n**Recent Check-ins Today:**\n";
+            foreach (array_slice($todayAttendanceLogs, 0, 6) as $log) {
+                $eName = trim(($log['firstName'] ?? '') . ' ' . ($log['lastName'] ?? ''));
+                $checkIn = !empty($log['checkIn']) ? date('h:i A', strtotime($log['checkIn'])) : 'N/A';
+                $res .= "* **{$eName}** (`{$log['employeeId']}`) - Check-In: {$checkIn} | Status: {$log['status']}\n";
+            }
         }
         return $res;
     }
 
-    // 3. WHO REPORTS TO [MANAGER NAME] / DIRECT REPORTS
+    // =========================================================================
+    // 6. PAYROLL & SALARIES (ADMIN PAYROLL PAGE)
+    // =========================================================================
+    if (
+        str_contains($msg, 'salary overview') || str_contains($msg, 'salaries overview') ||
+        str_contains($msg, 'show salaries') || str_contains($msg, 'payroll') ||
+        str_contains($msg, 'total payroll') || str_contains($msg, 'average salary') ||
+        str_contains($msg, 'highest salary') || str_contains($msg, 'lowest salary') ||
+        str_contains($msg, 'payslip')
+    ) {
+        $salaries = [];
+        $totalPayroll = 0;
+        foreach ($employees as $e) {
+            $sal = (float)($e['salary'] ?? 0);
+            if ($sal > 0) {
+                $salaries[] = [
+                    'name' => trim(($e['firstName'] ?? '') . ' ' . ($e['lastName'] ?? '')),
+                    'empId' => $e['employeeId'],
+                    'role' => $e['position'],
+                    'dept' => $e['department'],
+                    'salary' => $sal
+                ];
+                $totalPayroll += $sal;
+            }
+        }
+
+        usort($salaries, fn($a, $b) => $b['salary'] <=> $a['salary']);
+        $countSal = count($salaries);
+        $avgSal = $countSal > 0 ? round($totalPayroll / $countSal) : 0;
+        $highest = $salaries[0] ?? null;
+
+        $res = "### Admin Payroll & Salary Analytics\n";
+        $res .= "* **Total Monthly Employee Payroll**: **₹" . number_format($totalPayroll) . "**\n";
+        $res .= "* **Average Base Salary**: **₹" . number_format($avgSal) . "**\n";
+        $res .= "* **Total Processed Payslips in Records**: **{$payrollStats['total_payslips']}** (Value: **₹" . number_format($payrollStats['total_net_payroll']) . "**)\n";
+        if ($highest) {
+            $res .= "* **Top Earner**: **{$highest['name']}** ({$highest['role']} - {$highest['dept']}) at **₹" . number_format($highest['salary']) . "**\n";
+        }
+
+        $res .= "\n**Top Compensated Profiles:**\n";
+        foreach (array_slice($salaries, 0, 5) as $s) {
+            $res .= "* **{$s['name']}** (`{$s['empId']}`): ₹" . number_format($s['salary']) . " ({$s['role']} - {$s['dept']})\n";
+        }
+        return $res;
+    }
+
+    // =========================================================================
+    // 7. UPCOMING HOLIDAYS (ADMIN HOLIDAYS PAGE)
+    // =========================================================================
+    if (
+        str_contains($msg, 'holiday') || str_contains($msg, 'calendar') ||
+        str_contains($msg, 'festival') || str_contains($msg, 'off days')
+    ) {
+        $res = "### Upcoming Company Holidays\n";
+        if (!empty($upcomingHolidays)) {
+            foreach ($upcomingHolidays as $h) {
+                $formattedDate = date('D, d M Y', strtotime($h['holidayDate']));
+                $res .= "* **{$h['holidayName']}**: {$formattedDate}\n";
+            }
+        } else {
+            $res .= "No upcoming holidays scheduled in the company calendar for the rest of the period.\n";
+        }
+        return $res;
+    }
+
+    // =========================================================================
+    // 8. RECRUITMENT & APPLICANTS (ADMIN RECRUITMENT PAGE)
+    // =========================================================================
+    if (
+        str_contains($msg, 'candidate') || str_contains($msg, 'applicant') ||
+        str_contains($msg, 'recruitment') || str_contains($msg, 'hiring') ||
+        str_contains($msg, 'job')
+    ) {
+        $res = "### Recruitment & Candidate Pipeline\n";
+        $res .= "* **Total Registered Candidates**: **" . count($candidates) . "** in portal\n";
+
+        if (!empty($candidates)) {
+            $res .= "\n**Recent Candidate Profiles:**\n";
+            foreach (array_slice($candidates, 0, 5) as $c) {
+                $cName = trim(($c['firstName'] ?? '') . ' ' . ($c['lastName'] ?? ''));
+                $res .= "* **{$cName}** ({$c['email']}) - Registered: " . date('d M Y', strtotime($c['created_at'])) . "\n";
+            }
+        }
+        return $res;
+    }
+
+    // =========================================================================
+    // 9. ASSESSMENTS & TRAINING (ADMIN ASSESSMENTS & TRAINING PAGES)
+    // =========================================================================
+    if (
+        str_contains($msg, 'assessment') || str_contains($msg, 'test') ||
+        str_contains($msg, 'training') || str_contains($msg, 'course') ||
+        str_contains($msg, 'video')
+    ) {
+        $res = "### Admin Assessments & Training Modules\n";
+        $res .= "* **Active Assessments Available**: **" . count($assessments) . "** tests\n";
+        $res .= "* **Training Courses / Videos**: **" . count($trainingVideos) . "** modules\n";
+
+        if (!empty($assessments)) {
+            $res .= "\n**Available Assessments:**\n";
+            foreach (array_slice($assessments, 0, 4) as $ass) {
+                $res .= "* **{$ass['title']}** ({$ass['department']}) - {$ass['questions_count']} questions | {$ass['duration_minutes']} min\n";
+            }
+        }
+        if (!empty($trainingVideos)) {
+            $res .= "\n**Training Videos:**\n";
+            foreach (array_slice($trainingVideos, 0, 4) as $tr) {
+                $res .= "* **{$tr['title']}** ({$tr['category']}) - {$tr['duration']} min\n";
+            }
+        }
+        return $res;
+    }
+
+    // =========================================================================
+    // 10. AUDIT LOGS & RECENT ADMIN ACTIVITY (ADMIN AUDIT PAGE)
+    // =========================================================================
+    if (
+        str_contains($msg, 'audit') || str_contains($msg, 'recent activity') ||
+        str_contains($msg, 'history') || str_contains($msg, 'logs') ||
+        str_contains($msg, 'who changed')
+    ) {
+        $res = "### Recent Administrative Activity & Audit Trail\n";
+        if (!empty($auditLogs)) {
+            foreach ($auditLogs as $log) {
+                $actor = $log['actor_name'] ?: 'System';
+                $entity = ucfirst(strtolower(rtrim($log['entity_type'] ?? 'Item', 's')));
+                $action = strtoupper($log['action_type'] ?? 'Action');
+                $time = date('d M, h:i A', strtotime($log['timestamp']));
+                $res .= "* `{$time}` - **{$actor}** performed **{$action}** on {$entity}\n";
+            }
+        } else {
+            $res .= "No recent audit activity records captured.\n";
+        }
+        return $res;
+    }
+
+    // =========================================================================
+    // 11. WHO REPORTS TO [MANAGER NAME] / DIRECT REPORTS
+    // =========================================================================
     if (
         preg_match('/(?:who reports to|reports to|reportees of|subordinates of|team of|direct reports of)\s+([a-z0-9\s]+)/i', $msg, $m) ||
         (str_contains($msg, 'reports to') || str_contains($msg, 'who report to'))
@@ -310,7 +821,9 @@ function fallbackAdminLocalRuleEngine($message, array $employees, array $attStat
         }
     }
 
-    // 4. LIST ALL MANAGERS & TEAM SIZES
+    // =========================================================================
+    // 12. MANAGERS DIRECTORY
+    // =========================================================================
     if (
         str_contains($msg, 'all managers') || str_contains($msg, 'list managers') ||
         str_contains($msg, 'who are the managers') || str_contains($msg, 'management team')
@@ -323,57 +836,16 @@ function fallbackAdminLocalRuleEngine($message, array $employees, array $attStat
             }
         }
         arsort($managers);
-        $res = "### Organization Managers & Direct Reports\n";
+        $res = "### Organization Managers & Team Sizes\n";
         foreach ($managers as $mgr => $cnt) {
             $res .= "* **{$mgr}**: {$cnt} direct report(s)\n";
         }
         return $res;
     }
 
-    // 5. SALARY OVERVIEW & PAYROLL STATS
-    if (
-        str_contains($msg, 'salary overview') || str_contains($msg, 'salaries overview') ||
-        str_contains($msg, 'show salaries') || str_contains($msg, 'payroll') ||
-        str_contains($msg, 'total payroll') || str_contains($msg, 'average salary') ||
-        str_contains($msg, 'highest salary') || str_contains($msg, 'salary distribution')
-    ) {
-        $salaries = [];
-        $totalPayroll = 0;
-        foreach ($employees as $e) {
-            $sal = (float)($e['salary'] ?? 0);
-            if ($sal > 0) {
-                $salaries[] = [
-                    'name' => trim(($e['firstName'] ?? '') . ' ' . ($e['lastName'] ?? '')),
-                    'empId' => $e['employeeId'],
-                    'role' => $e['position'],
-                    'dept' => $e['department'],
-                    'salary' => $sal
-                ];
-                $totalPayroll += $sal;
-            }
-        }
-
-        usort($salaries, fn($a, $b) => $b['salary'] <=> $a['salary']);
-        $countSal = count($salaries);
-        $avgSal = $countSal > 0 ? round($totalPayroll / $countSal) : 0;
-        $highest = $salaries[0] ?? null;
-
-        $res = "### Organization Payroll & Salary Overview\n";
-        $res .= "* **Total Monthly Payroll**: **₹" . number_format($totalPayroll) . "**\n";
-        $res .= "* **Average Employee Salary**: **₹" . number_format($avgSal) . "**\n";
-        if ($highest) {
-            $res .= "* **Highest Compensated**: **{$highest['name']}** ({$highest['role']} - {$highest['dept']}) at **₹" . number_format($highest['salary']) . "**\n";
-        }
-        $res .= "\n**Top Compensated Roles:**\n";
-        foreach (array_slice($salaries, 0, 5) as $s) {
-            $res .= "* **{$s['name']}** (`{$s['empId']}`): ₹" . number_format($s['salary']) . " ({$s['role']})\n";
-        }
-        $res .= "\n*To check a specific employee's compensation, ask: \"What is [Name]'s salary?\"*";
-        return $res;
-    }
-
-    // 6. SPECIFIC EMPLOYEE SEARCH (BY NAME, EMPLOYEE ID, OR EMAIL)
-    // Check if any employee name or ID appears in the message
+    // =========================================================================
+    // 13. SPECIFIC EMPLOYEE SEARCH (BY NAME, EMPLOYEE ID, OR EMAIL)
+    // =========================================================================
     $foundEmployee = null;
     $candidateMatches = [];
 
@@ -382,7 +854,6 @@ function fallbackAdminLocalRuleEngine($message, array $employees, array $attStat
         $ln = strtolower(trim($emp['lastName'] ?? ''));
         $full = trim("{$fn} {$ln}");
         $empCode = strtolower(trim($emp['employeeId'] ?? ''));
-        $email = strtolower(trim($emp['email'] ?? ''));
 
         // Match by exact employee ID (e.g. EMP001)
         if (!empty($empCode) && preg_match('/\b' . preg_quote($empCode, '/') . '\b/i', $msg)) {
@@ -473,11 +944,12 @@ function fallbackAdminLocalRuleEngine($message, array $employees, array $attStat
             $cSal = !empty($c['salary']) ? ' | Salary: ₹' . number_format((float)$c['salary']) : '';
             $res .= "* **{$cName}** (`{$c['employeeId']}`) - {$c['position']} | {$c['department']} | {$cBranch}{$cSal}\n";
         }
-        $res .= "\n*To view full profile, type the full name or employee ID.*";
         return $res;
     }
 
-    // 7. SPECIFIC DEPARTMENT FILTER (e.g. IT, HR, Sales, Marketing, etc.)
+    // =========================================================================
+    // 14. SPECIFIC DEPARTMENT FILTER
+    // =========================================================================
     foreach ($departmentsMap as $deptName => $count) {
         $deptLower = strtolower($deptName);
         if (
@@ -499,19 +971,9 @@ function fallbackAdminLocalRuleEngine($message, array $employees, array $attStat
         }
     }
 
-    // 8. LIST ALL DEPARTMENTS
-    if (
-        str_contains($msg, 'all departments') || str_contains($msg, 'list departments') ||
-        str_contains($msg, 'what departments') || str_contains($msg, 'show departments')
-    ) {
-        $res = "### Organization Departments & Headcount\n";
-        foreach ($departmentsMap as $dName => $cnt) {
-            $res .= "* **{$dName}**: {$cnt} employee(s)\n";
-        }
-        return $res;
-    }
-
-    // 9. SPECIFIC BRANCH FILTER
+    // =========================================================================
+    // 15. SPECIFIC BRANCH FILTER
+    // =========================================================================
     foreach ($branchesMap as $branchName => $count) {
         $branchLower = strtolower($branchName);
         if (
@@ -533,35 +995,29 @@ function fallbackAdminLocalRuleEngine($message, array $employees, array $attStat
         }
     }
 
-    // 10. LIST ALL BRANCHES
-    if (
-        str_contains($msg, 'all branches') || str_contains($msg, 'list branches') ||
-        str_contains($msg, 'what branches') || str_contains($msg, 'show branches')
-    ) {
-        $res = "### Organization Branches & Employee Distribution\n";
-        foreach ($branchesMap as $bName => $cnt) {
-            $res .= "* **{$bName}**: {$cnt} employee(s)\n";
-        }
-        return $res;
-    }
-
-    // 11. HEADCOUNT & TOTAL STATS
+    // =========================================================================
+    // 16. HEADCOUNT & TOTAL STATS
+    // =========================================================================
     if (
         str_contains($msg, 'total') || str_contains($msg, 'headcount') ||
         str_contains($msg, 'how many employee') || str_contains($msg, 'active employee') ||
         str_contains($msg, 'employee count')
     ) {
-        $res = "### Organization Headcount Overview\n";
-        $res .= "* **Total Employees Registered**: **{$totalCount}**\n";
+        $res = "### Organization Headcount & Portal Summary\n";
+        $res .= "* **Total Employees Registered**: **{$totalEmployees}**\n";
         $res .= "* **Active Employees**: **{$activeCount}**\n";
-        $res .= "* **Inactive / Resigned / Probation**: **{$inactiveCount}**\n";
-        $res .= "* **Total Functional Departments**: **" . count($departmentsMap) . "**\n";
+        $res .= "* **Inactive / Probation**: **{$inactiveCount}**\n";
+        $res .= "* **Total Departments**: **" . count($departmentsMap) . "**\n";
         $res .= "* **Active Branch Locations**: **" . count($branchesMap) . "**\n";
-        $res .= "\n*Ask: \"List all active employees\" or \"Show [Department] department\" for full breakdown.*";
+        $res .= "* **Total Company Assets**: **{$assetStats['total']}**\n";
+        $res .= "* **Pending Leave Applications**: **{$leaveStats['pending']}**\n";
+        $res .= "* **Pending Expense Claims**: **{$expenseStats['pendingCount']}** (₹" . number_format($expenseStats['pendingAmount']) . ")\n";
         return $res;
     }
 
-    // 12. LIST ALL EMPLOYEES / COMPLETE DIRECTORY
+    // =========================================================================
+    // 17. LIST ALL EMPLOYEES / COMPLETE DIRECTORY
+    // =========================================================================
     if (
         str_contains($msg, 'list all') || str_contains($msg, 'show all') ||
         str_contains($msg, 'all employee') || str_contains($msg, 'employee directory') ||
@@ -578,8 +1034,9 @@ function fallbackAdminLocalRuleEngine($message, array $employees, array $attStat
         return $res;
     }
 
-    // 13. SMART FUZZY / SUBSTRING MATCH
-    // If the query contains words matching role, position, or partial names
+    // =========================================================================
+    // 18. SMART FUZZY / SUBSTRING MATCH
+    // =========================================================================
     $fuzzyMatches = [];
     foreach ($employees as $emp) {
         $haystack = strtolower(implode(' ', [
@@ -603,29 +1060,23 @@ function fallbackAdminLocalRuleEngine($message, array $employees, array $attStat
             $fBranch = !empty($f['branchName']) ? $f['branchName'] : ($f['branch'] ?: 'Corporate Office');
             $res .= "* **{$fName}** (`{$f['employeeId']}`) - {$f['position']} | Dept: {$f['department']} | Branch: {$fBranch} | Status: " . ucfirst($f['status'] ?: 'Active') . "\n";
         }
-        if (count($fuzzyMatches) > 10) {
-            $res .= "\n*Showing top 10 of " . count($fuzzyMatches) . " results.*";
-        }
         return $res;
     }
 
-    // 14. HELPFUL DEFAULT GUIDANCE (NEVER REJECT OR DISPLAY A BLUNT ERROR)
-    $sampleNames = [];
-    foreach (array_slice($employees, 0, 4) as $e) {
-        $sampleNames[] = trim(($e['firstName'] ?? '') . ' ' . ($e['lastName'] ?? ''));
-    }
-    $sampleNamesStr = implode(', ', array_filter($sampleNames));
-
-    $res = "I am ready to help you explore employee and organization data.\n\n";
-    $res .= "You can ask me questions such as:\n";
-    if (!empty($sampleNamesStr)) {
-        $res .= "* **Employee Search**: \"Who is " . ($employees[0]['firstName'] ?? 'an employee') . "?\", \"Show details of " . ($employees[1]['firstName'] ?? 'staff') . "\"\n";
-        $res .= "* **Salary Queries**: \"What is " . ($employees[0]['firstName'] ?? 'Rahul') . "'s salary?\", \"Show salaries overview\"\n";
-    }
-    $res .= "* **Directory**: \"List all active employees\", \"Total headcount\"\n";
-    $res .= "* **Departments**: \"Show employees in IT\", \"List all departments\"\n";
-    $res .= "* **Branches**: \"Corporate branch employees\", \"List branches\"\n";
-    $res .= "* **Attendance**: \"Attendance today\", \"Pending leaves\"\n\n";
-    $res .= "Total **{$totalCount}** employees are currently registered in the database.";
+    // =========================================================================
+    // 19. HELPFUL COMPREHENSIVE DEFAULT
+    // =========================================================================
+    $res = "I am ready to help you with data across all admin pages.\n\n";
+    $res .= "You can ask me about:\n";
+    $res .= "* **Employees**: \"Show details of Rahul\", \"List all active employees\"\n";
+    $res .= "* **Attendance**: \"Attendance today\", \"Who is late?\"\n";
+    $res .= "* **Leaves**: \"Pending leave requests\", \"Approved leaves\"\n";
+    $res .= "* **Expenses**: \"Show expense claims\", \"Pending expenses\"\n";
+    $res .= "* **Assets**: \"Company assets overview\", \"Available laptops\"\n";
+    $res .= "* **Payroll**: \"Show salaries overview\", \"Total payroll\"\n";
+    $res .= "* **Recruitment**: \"Show candidates in pipeline\"\n";
+    $res .= "* **Holidays**: \"Upcoming holidays calendar\"\n";
+    $res .= "* **Audit**: \"Recent admin activity logs\"\n\n";
+    $res .= "Total **{$totalEmployees}** employees and **" . count($departmentsMap) . "** departments are loaded.";
     return $res;
 }
