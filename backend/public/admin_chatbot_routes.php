@@ -849,34 +849,97 @@ function fallbackAdminLocalRuleEngine($message, array $data) {
     $foundEmployee = null;
     $candidateMatches = [];
 
+    $stopWords = [
+        'who', 'is', 'are', 'the', 'tell', 'me', 'about', 'show', 'details', 'of',
+        'for', 'what', 'give', 'can', 'you', 'find', 'profile', 'info', 'record',
+        'records', 'employee', 'staff', 'person', 'user', 'a', 'an', 'please',
+        'salary', 'pay', 'compensation', 'package', 'manager', 'reports', 'to',
+        'supervisor', 'boss', 'contact', 'phone', 'mobile', 'call', 'number',
+        'email', 'mail', 'attendance', 'present', 'absent', 'leave', 'leaves'
+    ];
+
+    // 1. Match by exact employee ID (e.g. EMP001, EMP-8D48C9)
     foreach ($employees as $emp) {
-        $fn = strtolower(trim($emp['firstName'] ?? ''));
-        $ln = strtolower(trim($emp['lastName'] ?? ''));
-        $full = trim("{$fn} {$ln}");
         $empCode = strtolower(trim($emp['employeeId'] ?? ''));
-
-        // Match by exact employee ID (e.g. EMP001)
-        if (!empty($empCode) && preg_match('/\b' . preg_quote($empCode, '/') . '\b/i', $msg)) {
+        if (!empty($empCode) && (preg_match('/\b' . preg_quote($empCode, '/') . '\b/i', $msg) || str_contains($msg, $empCode))) {
             $foundEmployee = $emp;
             break;
-        }
-
-        // Match by full name
-        if (!empty($full) && strlen($full) >= 4 && str_contains($msg, $full)) {
-            $foundEmployee = $emp;
-            break;
-        }
-
-        // Match by first name (whole word)
-        if (!empty($fn) && strlen($fn) >= 3 && preg_match('/\b' . preg_quote($fn, '/') . '\b/i', $msg)) {
-            $candidateMatches[] = $emp;
-        } elseif (!empty($ln) && strlen($ln) >= 3 && preg_match('/\b' . preg_quote($ln, '/') . '\b/i', $msg)) {
-            $candidateMatches[] = $emp;
         }
     }
 
-    if (!$foundEmployee && count($candidateMatches) === 1) {
-        $foundEmployee = $candidateMatches[0];
+    // 2. Match by email
+    if (!$foundEmployee) {
+        foreach ($employees as $emp) {
+            $email = strtolower(trim($emp['email'] ?? ''));
+            if (!empty($email) && str_contains($msg, $email)) {
+                $foundEmployee = $emp;
+                break;
+            }
+        }
+    }
+
+    // 3. Match by full name
+    if (!$foundEmployee) {
+        foreach ($employees as $emp) {
+            $fn = strtolower(trim($emp['firstName'] ?? ''));
+            $ln = strtolower(trim($emp['lastName'] ?? ''));
+            $full = trim("{$fn} {$ln}");
+            if (!empty($full) && strlen($full) >= 4 && preg_match('/\b' . preg_quote($full, '/') . '\b/i', $msg)) {
+                $foundEmployee = $emp;
+                break;
+            }
+        }
+    }
+
+    // 4. Token-based matching (handles multi-word first names like "Gowtham Chowdary" when searching "Gowtham")
+    if (!$foundEmployee) {
+        $queryWords = preg_split('/[\s,\.\?\!\-\_]+/', $cleanQuery);
+        $meaningfulWords = array_values(array_filter($queryWords, function($w) use ($stopWords) {
+            return strlen($w) >= 3 && !in_array($w, $stopWords);
+        }));
+
+        if (!empty($meaningfulWords)) {
+            $scoredEmployees = [];
+
+            foreach ($employees as $emp) {
+                $fn = strtolower(trim($emp['firstName'] ?? ''));
+                $ln = strtolower(trim($emp['lastName'] ?? ''));
+                $full = trim("{$fn} {$ln}");
+
+                $nameTokens = array_filter(preg_split('/[\s,\.\-]+/', $full), fn($t) => strlen($t) >= 2);
+
+                $matchScore = 0;
+                foreach ($meaningfulWords as $qw) {
+                    foreach ($nameTokens as $token) {
+                        if ($token === $qw) {
+                            $matchScore += 10;
+                        }
+                    }
+                }
+
+                if ($matchScore > 0) {
+                    $scoredEmployees[] = [
+                        'employee' => $emp,
+                        'score' => $matchScore
+                    ];
+                }
+            }
+
+            usort($scoredEmployees, fn($a, $b) => $b['score'] <=> $a['score']);
+
+            if (!empty($scoredEmployees)) {
+                if (count($scoredEmployees) === 1 || ($scoredEmployees[0]['score'] > $scoredEmployees[1]['score'])) {
+                    $foundEmployee = $scoredEmployees[0]['employee'];
+                } else {
+                    $topScore = $scoredEmployees[0]['score'];
+                    foreach ($scoredEmployees as $item) {
+                        if ($item['score'] >= $topScore) {
+                            $candidateMatches[] = $item['employee'];
+                        }
+                    }
+                }
+            }
+        }
     }
 
     if ($foundEmployee) {
@@ -898,6 +961,34 @@ function fallbackAdminLocalRuleEngine($message, array $data) {
             return $res;
         }
 
+        // Check if user asked specifically for Attendance
+        if (str_contains($msg, 'attendance') || str_contains($msg, 'present') || str_contains($msg, 'punch') || str_contains($msg, 'check in') || str_contains($msg, 'late')) {
+            $attRecord = null;
+            foreach ($todayAttendanceLogs as $log) {
+                if (($log['employeeId'] ?? '') === ($foundEmployee['employeeId'] ?? '')) {
+                    $attRecord = $log;
+                    break;
+                }
+            }
+            $res = "### Today's Attendance: **{$fullName}** (`{$foundEmployee['employeeId']}`)\n";
+            $res .= "* **Employee Name**: **{$fullName}**\n";
+            $res .= "* **Designation**: {$foundEmployee['position']}\n";
+            if ($attRecord) {
+                $checkIn = !empty($attRecord['checkIn']) ? date('h:i A', strtotime($attRecord['checkIn'])) : 'N/A';
+                $checkOut = !empty($attRecord['checkOut']) ? date('h:i A', strtotime($attRecord['checkOut'])) : 'Not checked out yet';
+                $res .= "* **Today's Status**: **" . ucfirst($attRecord['status'] ?: 'Present') . "**\n";
+                $res .= "* **Check-In Time**: {$checkIn}\n";
+                $res .= "* **Check-Out Time**: {$checkOut}\n";
+                if (!empty($attRecord['hours'])) {
+                    $res .= "* **Total Hours**: {$attRecord['hours']} hrs\n";
+                }
+            } else {
+                $res .= "* **Today's Status**: **Not marked present / No punch recorded today** (" . date('d M Y') . ")\n";
+                $res .= "* **Designated Shift**: " . ($foundEmployee['shiftTime'] ?: 'Standard 09:30 AM - 06:30 PM') . "\n";
+            }
+            return $res;
+        }
+
         // Check if user asked specifically for Reporting Manager
         if (str_contains($msg, 'manager') || str_contains($msg, 'reports to') || str_contains($msg, 'supervisor') || str_contains($msg, 'boss')) {
             $res = "### Reporting Manager: **{$fullName}** (`{$foundEmployee['employeeId']}`)\n";
@@ -916,6 +1007,29 @@ function fallbackAdminLocalRuleEngine($message, array $data) {
             $res .= "* **Phone Number**: " . ($foundEmployee['phone'] ?: 'Not recorded in profile') . "\n";
             $res .= "* **Department**: {$foundEmployee['department']}\n";
             $res .= "* **Branch**: {$branchName}\n";
+            return $res;
+        }
+
+        // Check if user asked specifically for Leaves
+        if (str_contains($msg, 'leave') || str_contains($msg, 'vacation') || str_contains($msg, 'time off')) {
+            $empLeaves = [];
+            foreach ($recentLeaves as $rl) {
+                if (($rl['employeeId'] ?? '') === ($foundEmployee['employeeId'] ?? '')) {
+                    $empLeaves[] = $rl;
+                }
+            }
+            $res = "### Leave Records: **{$fullName}** (`{$foundEmployee['employeeId']}`)\n";
+            $res .= "* **Employee Name**: **{$fullName}**\n";
+            $res .= "* **Department**: {$foundEmployee['department']}\n";
+            if (!empty($empLeaves)) {
+                $res .= "\n**Recent Applications:**\n";
+                foreach ($empLeaves as $el) {
+                    $st = ucfirst($el['status'] ?: 'Pending');
+                    $res .= "* **{$el['leaveType']}** ({$el['days']} day(s) from {$el['startDate']} to {$el['endDate']}) - Status: **{$st}**\n";
+                }
+            } else {
+                $res .= "* **Status**: No recent leave applications found for this employee.\n";
+            }
             return $res;
         }
 
