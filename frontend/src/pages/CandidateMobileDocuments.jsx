@@ -1,47 +1,41 @@
 import React from 'react';
 import { 
   FileText, 
-  ChevronRight, 
   CheckCircle2, 
-  Clock, 
   AlertCircle, 
-  Folder, 
   Sparkles, 
-  ArrowLeft,
-  UploadCloud,
-  Eye,
-  Lock,
-  Loader2,
-  ShieldCheck,
-  FileCheck
+  ArrowLeft, 
+  UploadCloud, 
+  Eye, 
+  Lock, 
+  Loader2 
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
 const MobileDocumentUploadCard = ({ docType, currentDoc, onUpload, isUploading, onPreview }) => {
   const getStatusBadge = () => {
     if (!currentDoc) {
       return docType.isRequired ? 
-        <span className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-[#fce8e6] text-[#c5221f] rounded-full border border-[#fad2cf] whitespace-nowrap shrink-0">Required</span> :
-        <span className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-[#f1f3f4] text-[#5f6368] rounded-full border border-[#dadce0] whitespace-nowrap shrink-0">Optional</span>;
+        <span className="px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider bg-[#FDE8EA] text-[#D64550] rounded-full border border-[#FCD0D4] whitespace-nowrap shrink-0">Required</span> :
+        <span className="px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider bg-[#EFEFF1] text-[#4A4A52] rounded-full border border-[#E3E3E7] whitespace-nowrap shrink-0">Optional</span>;
     }
     
     switch (currentDoc.status) {
       case 'verified':
         return (
-          <span className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-[#e6f4ea] text-[#137333] rounded-full border border-[#ceead6] flex items-center gap-1 whitespace-nowrap shrink-0">
+          <span className="px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider bg-[#E6F6EC] text-[#1F9D55] rounded-full border border-[#CEEAD6] flex items-center gap-1 whitespace-nowrap shrink-0">
             <CheckCircle2 size={12} className="shrink-0" /> Verified
           </span>
         );
       case 'rejected':
         return (
-          <span className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-[#fce8e6] text-[#c5221f] rounded-full border border-[#fad2cf] flex items-center gap-1 whitespace-nowrap shrink-0">
+          <span className="px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider bg-[#FDE8EA] text-[#D64550] rounded-full border border-[#FCD0D4] flex items-center gap-1 whitespace-nowrap shrink-0">
             <AlertCircle size={12} className="shrink-0" /> Rejected
           </span>
         );
       default:
         return (
-          <span className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-[#e8f0fe] text-[#1a73e8] rounded-full border border-[#d2e3fc] flex items-center gap-1 whitespace-nowrap shrink-0">
+          <span className="px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider bg-[#E8F0FB] text-[#3B6FB6] rounded-full border border-[#D2E3FC] flex items-center gap-1 whitespace-nowrap shrink-0">
             <Loader2 size={12} className="animate-spin shrink-0" /> Pending Review
           </span>
         );
@@ -58,24 +52,24 @@ const MobileDocumentUploadCard = ({ docType, currentDoc, onUpload, isUploading, 
   const initials = docType.label ? docType.label.split(' ').map(n => n[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() : 'DC';
 
   return (
-    <div className={`bg-white rounded-3xl border ${docType.isSpecial ? 'border-[#d2e3fc] shadow-sm' : 'border-[#e0e3e7]'} p-5 shadow-xs space-y-3.5`}>
-      {/* 1. Header Row */}
+    <div className={`bg-[var(--surface)] rounded-[20px] border ${docType.isSpecial ? 'border-[var(--accent-pink)]/30' : 'border-[var(--line)]'} p-4 sm:p-5 shadow-xs space-y-3`}>
+      {/* Header Row */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3 min-w-0">
-          <div className={`w-11 h-11 rounded-2xl ${
+          <div className={`w-10 h-10 rounded-[12px] ${
             docType.isSpecial 
-              ? 'bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]' 
+              ? 'bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)] border border-[var(--accent-pink)]/20' 
               : docType.isRequired 
-              ? 'bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf]' 
-              : 'bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]'
+              ? 'bg-[var(--brand-tint)] text-[var(--brand-deep)] border border-[var(--brand)]/20' 
+              : 'bg-[var(--surface-alt)] text-[var(--muted)] border border-[var(--line)]'
           } flex items-center justify-center font-bold text-xs shrink-0`}>
             {initials}
           </div>
           <div className="min-w-0">
-            <h3 className="text-sm font-bold text-[#1f1f1f] leading-snug truncate">
+            <h3 className="text-sm font-semibold text-[var(--text)] leading-snug truncate">
               {docType.label}
             </h3>
-            <span className="text-[11px] text-[#5f6368] font-medium block mt-0.5">
+            <span className="text-[11px] text-[var(--muted)] font-medium block mt-0.5">
               {docType.category}
             </span>
           </div>
@@ -85,23 +79,23 @@ const MobileDocumentUploadCard = ({ docType, currentDoc, onUpload, isUploading, 
 
       {/* Description */}
       {docType.description && (
-        <p className="text-xs text-[#5f6368] leading-relaxed">
+        <p className="text-xs text-[var(--muted)] leading-relaxed">
           {docType.description}
         </p>
       )}
 
-      {/* 2. Uploaded Document Info Box */}
-      {currentDoc ? (
-        <div className="bg-[#f8fafd] rounded-2xl border border-[#e0e3e7] p-3 flex items-center justify-between gap-2">
+      {/* Uploaded Document Info Box */}
+      {currentDoc && (
+        <div className="bg-[var(--surface-alt)] rounded-[12px] border border-[var(--line)] p-3 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5 overflow-hidden">
-            <div className="w-8 h-8 rounded-xl bg-[#fce8e6] text-[#c5221f] flex items-center justify-center shrink-0 border border-[#fad2cf]">
+            <div className="w-8 h-8 rounded-[8px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center shrink-0 border border-[var(--brand)]/20">
               <FileText size={15} />
             </div>
             <div className="truncate">
-              <p className="text-xs font-semibold text-[#1f1f1f] truncate" title={currentDoc.file_name}>
+              <p className="text-xs font-semibold text-[var(--text)] truncate" title={currentDoc.file_name}>
                 {currentDoc.file_name}
               </p>
-              <p className="text-[10px] text-[#5f6368]">
+              <p className="text-[10px] text-[var(--muted)]">
                 Uploaded {new Date(currentDoc.uploaded_at).toLocaleDateString()}
               </p>
             </div>
@@ -110,29 +104,29 @@ const MobileDocumentUploadCard = ({ docType, currentDoc, onUpload, isUploading, 
           <button
             type="button"
             onClick={() => onPreview && onPreview({ ...currentDoc, docType })}
-            className="p-2 rounded-xl bg-white border border-[#dadce0] text-[#1a73e8] hover:bg-[#e8f0fe] transition-all shadow-2xs shrink-0 cursor-pointer"
+            className="p-2 rounded-[8px] bg-[var(--surface)] border border-[var(--line)] text-[var(--brand-deep)] hover:bg-[var(--line)]/50 transition-all shrink-0 cursor-pointer"
             title="Preview Document"
           >
             <Eye size={15} />
           </button>
         </div>
-      ) : null}
+      )}
 
-      {/* 3. Action Footer */}
-      <div className="pt-2 border-t border-[#f1f3f4]">
+      {/* Action Footer */}
+      <div className="pt-2 border-t border-[var(--line)]">
         {currentDoc ? (
           isVerified ? (
-            <div className="w-full h-11 rounded-full border border-[#ceead6] bg-[#e6f4ea] text-[#137333] font-bold text-xs flex items-center justify-center gap-1.5 shadow-2xs">
+            <div className="w-full h-10 rounded-full border border-[#CEEAD6] bg-[#E6F6EC] text-[#1F9D55] font-semibold text-xs flex items-center justify-center gap-1.5">
               <Lock size={13} />
               <span>Verified by HR &bull; Locked</span>
             </div>
           ) : (
-            <label className={`w-full h-11 rounded-full border border-[#dadce0] bg-[#f8fafd] hover:bg-[#e8f0fe] active:bg-[#d2e3fc] text-[#1a73e8] font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-2xs ${
+            <label className={`w-full h-10 rounded-full border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--line)]/50 text-[var(--text)] font-semibold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
               isUploading ? 'opacity-70 cursor-not-allowed' : ''
             }`}>
               {isUploading ? (
                 <>
-                  <Loader2 size={15} className="animate-spin text-[#1a73e8]" />
+                  <Loader2 size={15} className="animate-spin text-[var(--brand-deep)]" />
                   <span>Uploading PDF...</span>
                 </>
               ) : (
@@ -145,17 +139,17 @@ const MobileDocumentUploadCard = ({ docType, currentDoc, onUpload, isUploading, 
             </label>
           )
         ) : (
-          <label className={`w-full h-12 rounded-full border border-dashed border-[#1a73e8] bg-[#e8f0fe]/60 hover:bg-[#e8f0fe] active:bg-[#d2e3fc] text-[#1a73e8] font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-2xs ${
+          <label className={`w-full h-10 rounded-full border border-dashed border-[var(--brand)] bg-[var(--brand-tint)]/40 hover:bg-[var(--brand-tint)] text-[var(--brand-deep)] font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
             isUploading ? 'opacity-70 cursor-not-allowed' : ''
           }`}>
             {isUploading ? (
               <>
-                <Loader2 size={16} className="animate-spin text-[#1a73e8]" />
+                <Loader2 size={15} className="animate-spin text-[var(--brand-deep)]" />
                 <span>Uploading...</span>
               </>
             ) : (
               <>
-                <UploadCloud size={16} />
+                <UploadCloud size={15} />
                 <span>Upload PDF (Max 5MB)</span>
               </>
             )}
@@ -176,97 +170,73 @@ const CandidateMobileDocuments = ({
   const progressPercent = Math.round((uploadedMandatory / totalMandatory) * 100);
 
   return (
-    <div className="space-y-4 pb-32 md:hidden">
-      {/* 1. Hero Section with Animated Motion Graphics (Matching Applications Header) */}
-      <section className="px-4 pt-6 pb-12 relative overflow-hidden bg-slate-900">
-        {/* Soft Glowing Emerald, Teal, and Cyan Orbs */}
-        <motion.div
-          animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, 30, 0] }}
-          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute -top-20 -left-10 w-72 h-72 bg-emerald-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.4, 1], x: [0, -40, 0], y: [0, 50, 0] }}
-          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-          className="absolute -top-10 -right-10 w-64 h-64 bg-teal-500 rounded-full mix-blend-screen filter blur-[40px] opacity-60 pointer-events-none"
-        />
-        <motion.div
-          animate={{ scale: [1, 1.3, 1], x: [0, 30, 0], y: [0, -40, 0] }}
-          transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-          className="absolute bottom-0 left-20 w-80 h-80 bg-cyan-400 rounded-full mix-blend-screen filter blur-[50px] opacity-50 pointer-events-none"
-        />
-        
-        {/* Subtle Glass Overlay */}
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px] pointer-events-none" />
+    <div className="space-y-4 pb-28 antialiased select-none font-sans md:hidden">
+      {/* Header */}
+      <section className="px-4 pt-4 pb-2">
+        <p className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-1 flex items-center gap-1.5">
+          <Sparkles size={12} className="text-[var(--accent-pink-deep)]" />
+          Onboarding KYC • Candidate Portal
+        </p>
 
-        <div className="relative z-10 space-y-1">
-          <p className="text-[10px] font-bold text-slate-200 uppercase tracking-widest mb-1 drop-shadow-md flex items-center gap-1.5">
-            <Sparkles size={12} className="text-emerald-300" />
-            Onboarding KYC &bull; Candidate Portal
-          </p>
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight">
+            Documents
+          </h2>
 
-          <div className="flex items-center justify-between gap-3">
-            <h2 className="text-3xl font-black text-white tracking-tight drop-shadow-sm">
-              Documents
-            </h2>
-
-            {/* Back button aligned to the right on the same line */}
-            <Link
-              to="/candidate/applications"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 active:bg-white/30 backdrop-blur-md text-white text-xs font-semibold border border-white/20 transition-all shadow-xs shrink-0"
-            >
-              <ArrowLeft size={13} />
-              <span>Back to Applications</span>
-            </Link>
-          </div>
-
-          <p className="text-sm font-medium text-slate-100 drop-shadow-sm opacity-90 pt-0.5">
-            {documents.length} of {documentTypes.length} uploaded &bull; {verifiedCount} Verified by HR
-          </p>
+          <Link
+            to="/candidate/applications"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[var(--surface)] hover:bg-[var(--surface-alt)] text-[var(--text)] text-xs font-semibold border border-[var(--line)] transition-all shadow-xs shrink-0"
+          >
+            <ArrowLeft size={13} />
+            <span>Applications</span>
+          </Link>
         </div>
+
+        <p className="text-xs sm:text-sm font-medium text-[var(--muted)] mt-1">
+          {documents.length} of {documentTypes.length} uploaded &bull; {verifiedCount} Verified by HR
+        </p>
       </section>
 
-      {/* 2. Floating Overview Progress Card */}
-      <div className="px-4 -mt-8 relative z-20 space-y-3.5">
-        <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs space-y-3.5">
+      {/* Floating Overview Progress Card */}
+      <div className="px-4 space-y-3.5">
+        <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4 sm:p-5 shadow-xs space-y-3.5">
           <div className="flex items-center justify-between gap-2">
             <div>
-              <span className="text-[10px] font-bold text-[#1a73e8] uppercase tracking-wider block">
+              <span className="text-[10px] font-semibold text-[var(--brand-deep)] uppercase tracking-wider block">
                 Mandatory Compliance
               </span>
-              <h3 className="text-sm font-bold text-[#1f1f1f]">
+              <h3 className="text-sm font-semibold text-[var(--text)]">
                 {uploadedMandatory} of {totalMandatory} Required Attached
               </h3>
             </div>
-            <span className="text-xs font-bold text-[#137333] bg-[#e6f4ea] border border-[#ceead6] px-2.5 py-1 rounded-full">
+            <span className="text-xs font-semibold text-[#1F9D55] bg-[#E6F6EC] border border-[#CEEAD6] px-2.5 py-0.5 rounded-full">
               {progressPercent}% Complete
             </span>
           </div>
 
           {/* Progress Bar */}
-          <div className="w-full h-2 bg-[#f1f3f4] rounded-full overflow-hidden border border-[#e0e3e7]">
+          <div className="w-full h-2 bg-[var(--surface-alt)] rounded-full overflow-hidden border border-[var(--line)]">
             <div 
-              className="h-full bg-[#1a73e8] rounded-full transition-all duration-500" 
+              className="h-full bg-[var(--brand-deep)] rounded-full transition-all duration-500" 
               style={{ width: `${progressPercent}%` }} 
             />
           </div>
 
           {/* Metrics Tiles */}
           <div className="grid grid-cols-2 gap-2 text-xs pt-1">
-            <div className="bg-[#f8fafd] p-2.5 rounded-2xl border border-[#e0e3e7]">
-              <span className="text-[10px] text-[#5f6368] font-semibold block">Total Checklist</span>
-              <span className="font-bold text-[#1f1f1f] text-sm">{documents.length} / {documentTypes.length}</span>
+            <div className="bg-[var(--surface-alt)] p-2.5 rounded-[12px] border border-[var(--line)]">
+              <span className="text-[10px] text-[var(--muted)] font-semibold block">Total Checklist</span>
+              <span className="font-semibold text-[var(--text)] text-sm">{documents.length} / {documentTypes.length}</span>
             </div>
-            <div className="bg-[#f8fafd] p-2.5 rounded-2xl border border-[#e0e3e7]">
-              <span className="text-[10px] text-[#137333] font-semibold block">HR Approved</span>
-              <span className="font-bold text-[#137333] text-sm">{verifiedCount} Verified</span>
+            <div className="bg-[var(--surface-alt)] p-2.5 rounded-[12px] border border-[var(--line)]">
+              <span className="text-[10px] text-[#1F9D55] font-semibold block">HR Approved</span>
+              <span className="font-semibold text-[#1F9D55] text-sm">{verifiedCount} Verified</span>
             </div>
           </div>
         </div>
 
-        {/* 3. Document Cards List */}
+        {/* Document Cards List */}
         <div className="space-y-3.5">
-          {/* Special Offer Letter Card */}
           {specialDoc && (
             <MobileDocumentUploadCard 
               key={specialDoc.id}
@@ -278,7 +248,6 @@ const CandidateMobileDocuments = ({
             />
           )}
 
-          {/* Required Documents */}
           {requiredDocs.map(doc => (
             <MobileDocumentUploadCard 
               key={doc.id}
@@ -290,7 +259,6 @@ const CandidateMobileDocuments = ({
             />
           ))}
 
-          {/* Optional Documents */}
           {optionalDocs.map(doc => (
             <MobileDocumentUploadCard 
               key={doc.id}

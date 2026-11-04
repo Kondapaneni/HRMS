@@ -6,19 +6,12 @@ import {
   ChevronRight, 
   X, 
   Clock, 
-  CheckCircle2, 
   Calendar, 
-  Building2, 
-  MapPin, 
   ArrowRight,
   TrendingUp,
-  AlertCircle,
-  Award,
-  Sparkles,
   Folder
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
@@ -71,29 +64,29 @@ const CandidateApplications = () => {
       case 'Applied': 
         return {
           label: 'Applied',
-          className: 'bg-[#e8f0fe] text-[#1967d2] border border-[#d2e3fc]'
+          className: 'bg-[#E8F0FB] text-[#3B6FB6] border border-[#D2E3FC]'
         };
       case 'Shortlisted':
       case 'Interviewing': 
         return {
           label: status,
-          className: 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6]'
+          className: 'bg-[#E6F6EC] text-[#1F9D55] border border-[#CEEAD6]'
         };
       case 'Rejected': 
         return {
           label: 'Rejected',
-          className: 'bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf]'
+          className: 'bg-[#FDE8EA] text-[#D64550] border border-[#FCD0D4]'
         };
       case 'Hired':
       case 'Selected': 
         return {
           label: 'Hired',
-          className: 'bg-[#f3e8fd] text-[#8430ce] border border-[#e9d5ff]'
+          className: 'bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)] border border-[var(--accent-pink)]/20'
         };
       default: 
         return {
           label: status || 'Pending',
-          className: 'bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]'
+          className: 'bg-[#EFEFF1] text-[#4A4A52] border border-[#E3E3E7]'
         };
     }
   };
@@ -104,7 +97,7 @@ const CandidateApplications = () => {
 
   return (
     <>
-      {/* Mobile View - Untouched */}
+      {/* Mobile View */}
       <CandidateMobileApplications 
         applications={applications}
         getStatusBadge={(status) => getStatusBadge(status).className}
@@ -112,27 +105,23 @@ const CandidateApplications = () => {
         setTimelineApp={setTimelineApp}
       />
 
-      {/* Web Desktop Experience (Google Material 3 Workspace UI) */}
-      <div className="space-y-6 hidden md:block pb-12">
+      {/* Web Desktop View */}
+      <div className="space-y-6 hidden md:block pb-12 antialiased">
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <div className="flex items-center gap-1.5 mb-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-              <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-wide bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)] border border-[var(--accent-pink)]/20">
                 Recruitment Tracking
               </span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight flex items-center gap-2">
-              My Applications
-              <span className="text-xs font-semibold text-[#137333] bg-[#e6f4ea] border border-[#ceead6] px-2.5 py-0.5 rounded-full">
+            <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight flex items-center gap-2.5">
+              <span>My Applications</span>
+              <span className="text-xs font-semibold text-[var(--brand-deep)] bg-[var(--brand-tint)] border border-[var(--brand)]/20 px-2.5 py-0.5 rounded-full">
                 {applications.length} Submissions
               </span>
             </h1>
-            <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
+            <p className="text-xs sm:text-sm text-[var(--muted)] mt-1">
               Monitor live recruitment statuses, milestones, and hiring feedback for your submissions.
             </p>
           </div>
@@ -140,7 +129,7 @@ const CandidateApplications = () => {
           <div>
             <Link 
               to="/candidate/jobs" 
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white text-xs font-semibold tracking-wide transition-all shadow-xs"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-95 text-white text-xs font-semibold tracking-wide transition-all shadow-xs"
             >
               <span>Explore More Jobs</span>
               <ArrowRight size={14} />
@@ -151,17 +140,17 @@ const CandidateApplications = () => {
         {/* Applications List Grid */}
         <div className="grid gap-5 lg:grid-cols-2">
           {applications.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-dashed border-[#dadce0] p-12 text-center shadow-xs lg:col-span-2">
-              <div className="w-14 h-14 rounded-full bg-[#f8fafd] border border-[#e0e3e7] flex items-center justify-center mx-auto mb-3 text-[#5f6368]">
+            <div className="bg-[var(--surface)] rounded-[20px] border border-dashed border-[var(--line)] p-12 text-center shadow-xs lg:col-span-2">
+              <div className="w-14 h-14 rounded-[14px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center mx-auto mb-3 border border-[var(--brand)]/20">
                 <FileText size={24} />
               </div>
-              <h3 className="text-base font-bold text-[#1f1f1f]">No applications submitted yet</h3>
-              <p className="text-xs text-[#5f6368] mt-1 max-w-sm mx-auto">
+              <h3 className="text-base font-semibold text-[var(--text)]">No applications submitted yet</h3>
+              <p className="text-xs text-[var(--muted)] mt-1 max-w-sm mx-auto">
                 You haven't applied to any job openings. Browse our active listings and submit your profile today.
               </p>
               <Link 
                 to="/candidate/jobs" 
-                className="mt-4 inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs font-semibold text-white bg-[#1a73e8] hover:bg-[#1557b0] shadow-xs transition-colors"
+                className="mt-4 inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-xs font-semibold text-white bg-[var(--ink)] hover:bg-[var(--ink-2)] shadow-xs transition-colors"
               >
                 Browse Open Roles
               </Link>
@@ -175,66 +164,66 @@ const CandidateApplications = () => {
               return (
                 <div 
                   key={app.id}
-                  className="bg-white rounded-2xl border border-[#e0e3e7] p-6 shadow-xs hover:border-[#dadce0] hover:shadow-md transition-all duration-200 flex flex-col justify-between"
+                  className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-6 shadow-xs hover:border-[var(--brand)]/30 hover:shadow-sm transition-all duration-200 flex flex-col justify-between"
                 >
                   <div className="space-y-5">
                     {/* Header */}
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-center gap-3.5">
-                        <div className="w-11 h-11 rounded-2xl bg-[#e6f4ea] text-[#137333] flex items-center justify-center font-bold text-sm border border-[#ceead6] shrink-0 shadow-2xs">
+                        <div className="w-11 h-11 rounded-[12px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center font-bold text-sm border border-[var(--brand)]/20 shrink-0">
                           {initials}
                         </div>
                         <div>
-                          <h2 className="text-base font-bold text-[#1f1f1f] tracking-tight">{app.jobTitle}</h2>
-                          <p className="text-xs font-medium text-[#5f6368] mt-0.5">
+                          <h2 className="text-base font-semibold text-[var(--text)] tracking-tight">{app.jobTitle}</h2>
+                          <p className="text-xs font-medium text-[var(--muted)] mt-0.5">
                             {app.department} &bull; {app.location} &bull; <span className="capitalize">{app.jobType}</span>
                           </p>
                         </div>
                       </div>
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold shrink-0 shadow-2xs ${badge.className}`}>
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-semibold shrink-0 ${badge.className}`}>
                         {badge.label}
                       </span>
                     </div>
 
                     {/* 2x2 Detail Tiles */}
                     <div className="grid grid-cols-2 gap-2.5">
-                      <div className="bg-[#f8fafd] rounded-xl p-3 border border-[#e0e3e7]">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368]">Applied On</p>
-                        <p className="text-xs font-bold text-[#1f1f1f] mt-0.5 flex items-center gap-1.5">
-                          <Calendar size={13} className="text-[#1a73e8]" />
+                      <div className="bg-[var(--surface-alt)] rounded-[12px] p-3 border border-[var(--line)]">
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">Applied On</p>
+                        <p className="text-xs font-semibold text-[var(--text)] mt-0.5 flex items-center gap-1.5">
+                          <Calendar size={13} className="text-[var(--brand-deep)]" />
                           {new Date(app.appliedDate).toLocaleDateString()}
                         </p>
                       </div>
 
-                      <div className="bg-[#f8fafd] rounded-xl p-3 border border-[#e0e3e7]">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368]">Latest Activity</p>
-                        <p className="text-xs font-bold text-[#1f1f1f] mt-0.5 flex items-center gap-1.5">
-                          <Clock size={13} className="text-[#137333]" />
+                      <div className="bg-[var(--surface-alt)] rounded-[12px] p-3 border border-[var(--line)]">
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">Latest Activity</p>
+                        <p className="text-xs font-semibold text-[var(--text)] mt-0.5 flex items-center gap-1.5">
+                          <Clock size={13} className="text-[#1F9D55]" />
                           {new Date(latestUpdate).toLocaleDateString()}
                         </p>
                       </div>
 
-                      <div className="bg-[#f8fafd] rounded-xl p-3 border border-[#e0e3e7] col-span-2 overflow-hidden">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368]">Attached Resume</p>
-                        <p className="text-xs font-semibold text-[#1f1f1f] mt-0.5 truncate flex items-center gap-1.5" title={app.resumeName}>
-                          <FileText size={13} className="text-[#8430ce] shrink-0" />
+                      <div className="bg-[var(--surface-alt)] rounded-[12px] p-3 border border-[var(--line)] col-span-2 overflow-hidden">
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">Attached Resume</p>
+                        <p className="text-xs font-semibold text-[var(--text)] mt-0.5 truncate flex items-center gap-1.5" title={app.resumeName}>
+                          <FileText size={13} className="text-[var(--accent-pink-deep)] shrink-0" />
                           <span className="truncate">{app.resumeName}</span>
                         </p>
                       </div>
 
                       {app.noticePeriod && (
-                        <div className="bg-[#f8fafd] rounded-xl p-3 border border-[#e0e3e7] col-span-2">
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368]">Notice Period / Availability</p>
-                          <p className="text-xs font-semibold text-[#1a73e8] mt-0.5">
+                        <div className="bg-[var(--surface-alt)] rounded-[12px] p-3 border border-[var(--line)] col-span-2">
+                          <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">Notice Period / Availability</p>
+                          <p className="text-xs font-semibold text-[var(--brand-deep)] mt-0.5">
                             {app.noticePeriod}
                           </p>
                         </div>
                       )}
 
                       {app.coverNote && (
-                        <div className="bg-[#f8fafd] rounded-xl p-3 border border-[#e0e3e7] col-span-2">
-                          <p className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368]">Submitted Cover Note</p>
-                          <p className="text-xs text-[#444746] mt-1 whitespace-pre-line leading-relaxed italic bg-white p-2.5 rounded-lg border border-[#e0e3e7]">
+                        <div className="bg-[var(--surface-alt)] rounded-[12px] p-3 border border-[var(--line)] col-span-2">
+                          <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">Submitted Cover Note</p>
+                          <p className="text-xs text-[var(--text-2)] mt-1 whitespace-pre-line leading-relaxed italic bg-[var(--surface)] p-2.5 rounded-[8px] border border-[var(--line)]">
                             "{app.coverNote}"
                           </p>
                         </div>
@@ -243,15 +232,15 @@ const CandidateApplications = () => {
                   </div>
 
                   {/* Actions & Timeline Trigger */}
-                  <div className="pt-4 mt-4 border-t border-[#f1f3f4] flex items-center justify-between gap-2 flex-wrap">
-                    <span className="text-[11px] text-[#5f6368]">
+                  <div className="pt-4 mt-4 border-t border-[var(--line)] flex items-center justify-between gap-2 flex-wrap">
+                    <span className="text-[11px] text-[var(--muted)]">
                       {app.timeline.length} stage {app.timeline.length === 1 ? 'event' : 'events'} recorded
                     </span>
                     <div className="flex items-center gap-2">
                       {['Hired'].includes(app.status) && (
                         <Link 
                           to="/candidate/documents"
-                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-[#ceead6] bg-[#e6f4ea] hover:bg-[#ceead6] text-xs font-semibold text-[#137333] transition-all cursor-pointer shadow-2xs"
+                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-[#CEEAD6] bg-[#E6F6EC] hover:bg-[#CEEAD6] text-xs font-semibold text-[#1F9D55] transition-all cursor-pointer"
                         >
                           <Folder size={13} />
                           <span>Upload Docs</span>
@@ -260,7 +249,7 @@ const CandidateApplications = () => {
                       <button 
                         type="button"
                         onClick={() => { setTimelineApp(app); setIsTimelineModalOpen(true); }}
-                        className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-[#dadce0] bg-white hover:bg-[#f8fafd] text-xs font-semibold text-[#1a73e8] hover:border-[#1a73e8] transition-all cursor-pointer shadow-2xs"
+                        className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] text-xs font-semibold text-[var(--brand-deep)] hover:border-[var(--brand)] transition-all cursor-pointer"
                       >
                         <span>View Progress</span>
                         <ChevronRight size={13} />
@@ -274,30 +263,27 @@ const CandidateApplications = () => {
         </div>
       </div>
 
-      {/* Google Workspace Slide-Over Application Progress Timeline Drawer */}
+      {/* Slide-Over Application Progress Timeline Drawer */}
       {isTimelineModalOpen && timelineApp && typeof document !== 'undefined' && createPortal(
         <div 
           onClick={(e) => { if (e.target === e.currentTarget) setIsTimelineModalOpen(false); }}
-          className="fixed inset-0 z-[10000] flex justify-end bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-[10000] flex justify-end bg-black/40 backdrop-blur-xs animate-in fade-in duration-200"
         >
-          <div className="bg-white shadow-2xl w-full max-w-lg h-full flex flex-col overflow-hidden animate-in slide-in-from-right duration-300">
-            {/* Top 4-Color Gradient Accent Line */}
-            <div className="h-1 bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853]" />
-
+          <div className="bg-[var(--surface)] shadow-2xl w-full max-w-lg h-full flex flex-col overflow-hidden animate-in slide-in-from-right duration-300 border-l border-[var(--line)]">
             {/* Drawer Header */}
-            <div className="px-6 py-4 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd] shrink-0">
+            <div className="px-6 py-4.5 border-b border-[var(--line)] flex justify-between items-center bg-[var(--surface)] shrink-0">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-[#e6f4ea] text-[#137333]">
+                <div className="p-2 rounded-[10px] bg-[var(--brand-tint)] text-[var(--brand-deep)]">
                   <TrendingUp className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-base font-semibold text-[#1f1f1f]">Application Progress Timeline</h2>
-                  <p className="text-xs text-[#5f6368]">{timelineApp.jobTitle} &bull; {timelineApp.department}</p>
+                  <h2 className="text-base font-semibold text-[var(--text)]">Application Progress Timeline</h2>
+                  <p className="text-xs text-[var(--muted)]">{timelineApp.jobTitle} &bull; {timelineApp.department}</p>
                 </div>
               </div>
               <button 
                 onClick={() => setIsTimelineModalOpen(false)} 
-                className="p-1.5 rounded-full hover:bg-[#e0e3e7]/60 text-[#5f6368] transition-colors cursor-pointer"
+                className="p-1.5 rounded-full hover:bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)] transition-colors cursor-pointer"
                 title="Close"
               >
                 <X className="w-5 h-5" />
@@ -305,44 +291,43 @@ const CandidateApplications = () => {
             </div>
             
             {/* Drawer Body */}
-            <div className="p-6 overflow-y-auto flex-1 space-y-5">
-              
+            <div className="p-6 overflow-y-auto flex-1 space-y-5 bg-[var(--surface)]">
               {/* Application Summary Card */}
-              <div className="bg-[#f8fafd] rounded-2xl p-4 border border-[#e0e3e7] space-y-2.5">
+              <div className="bg-[var(--surface-alt)] rounded-[16px] p-4 border border-[var(--line)] space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold text-[#1f1f1f]">{timelineApp.jobTitle}</h3>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold ${getStatusBadge(timelineApp.status).className}`}>
+                  <h3 className="text-sm font-semibold text-[var(--text)]">{timelineApp.jobTitle}</h3>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${getStatusBadge(timelineApp.status).className}`}>
                     {getStatusBadge(timelineApp.status).label}
                   </span>
                 </div>
-                <p className="text-xs text-[#5f6368]">
+                <p className="text-xs text-[var(--muted)]">
                   {timelineApp.department} &bull; {timelineApp.location}
                 </p>
                 
-                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#e0e3e7]/80 text-[11px]">
+                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[var(--line)] text-[11px]">
                   <div>
-                    <span className="text-[#5f6368]">Applied On: </span>
-                    <span className="font-semibold text-[#1f1f1f]">{new Date(timelineApp.appliedDate).toLocaleDateString()}</span>
+                    <span className="text-[var(--muted)]">Applied On: </span>
+                    <span className="font-semibold text-[var(--text)]">{new Date(timelineApp.appliedDate).toLocaleDateString()}</span>
                   </div>
                   {timelineApp.noticePeriod && (
                     <div>
-                      <span className="text-[#5f6368]">Availability: </span>
-                      <span className="font-semibold text-[#1a73e8]">{timelineApp.noticePeriod}</span>
+                      <span className="text-[var(--muted)]">Availability: </span>
+                      <span className="font-semibold text-[var(--brand-deep)]">{timelineApp.noticePeriod}</span>
                     </div>
                   )}
                 </div>
 
                 {timelineApp.resumeUrl && (
-                  <div className="pt-2 border-t border-[#e0e3e7]/80 flex items-center justify-between text-xs">
-                    <span className="text-[#5f6368] truncate max-w-[200px] flex items-center gap-1">
-                      <FileText size={12} className="text-[#8430ce]" />
+                  <div className="pt-2 border-t border-[var(--line)] flex items-center justify-between text-xs">
+                    <span className="text-[var(--muted)] truncate max-w-[200px] flex items-center gap-1">
+                      <FileText size={12} className="text-[var(--accent-pink-deep)]" />
                       {timelineApp.resumeName}
                     </span>
                     <a
                       href={timelineApp.resumeUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-[11px] font-semibold text-[#1a73e8] hover:underline"
+                      className="text-[11px] font-semibold text-[var(--brand-deep)] hover:underline"
                     >
                       View Resume
                     </a>
@@ -350,9 +335,9 @@ const CandidateApplications = () => {
                 )}
 
                 {timelineApp.coverNote && (
-                  <div className="pt-2 border-t border-[#e0e3e7]/80 text-xs">
-                    <span className="text-[10px] uppercase font-bold text-[#5f6368] block mb-1">Cover Note</span>
-                    <p className="text-xs text-[#444746] bg-white p-2.5 rounded-xl border border-[#dadce0] italic leading-relaxed">
+                  <div className="pt-2 border-t border-[var(--line)] text-xs">
+                    <span className="text-[10px] uppercase font-semibold text-[var(--muted)] block mb-1">Cover Note</span>
+                    <p className="text-xs text-[var(--text-2)] bg-[var(--surface)] p-2.5 rounded-[10px] border border-[var(--line)] italic leading-relaxed">
                       "{timelineApp.coverNote}"
                     </p>
                   </div>
@@ -361,57 +346,48 @@ const CandidateApplications = () => {
 
               {/* Timeline Section Title */}
               <div className="flex items-center justify-between pt-1">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-[#5f6368]">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)]">
                   Stage Milestones ({timelineApp.timeline.length})
                 </h4>
               </div>
 
               {/* Timeline Events Body */}
               {(!timelineApp.timeline || timelineApp.timeline.length === 0) ? (
-                <div className="rounded-2xl border border-dashed border-[#dadce0] bg-[#f8fafd] p-8 text-center text-xs text-[#5f6368]">
+                <div className="rounded-[16px] border border-dashed border-[var(--line)] bg-[var(--surface-alt)] p-8 text-center text-xs text-[var(--muted)]">
                   No detailed stage updates have been logged yet. Check back soon!
                 </div>
               ) : (
                 <div className="relative pl-8 space-y-4">
-                  {/* Continuous Vertical Connector Line */}
-                  <div className="absolute left-[15px] top-3 bottom-3 w-0.5 bg-[#dadce0]" />
+                  <div className="absolute left-[15px] top-3 bottom-3 w-0.5 bg-[var(--line)]" />
 
                   {timelineApp.timeline.map((event, idx) => {
                     const isLatest = idx === 0;
                     return (
                       <div key={idx} className="relative group">
-                        {/* Status Milestone Dot with Wave Ripple Animation */}
                         <div className="absolute -left-8 top-1 w-8 flex items-center justify-center z-10">
                           {isLatest ? (
                             <div className="relative flex items-center justify-center">
-                              {/* Pulsing Wave Ripple Animations */}
-                              <span className="absolute w-7 h-7 rounded-full bg-[#1a73e8]/25 animate-ping pointer-events-none" />
-                              <span className="absolute w-5 h-5 rounded-full bg-[#1a73e8]/20 animate-pulse pointer-events-none" />
-                              
-                              {/* Core Milestone Pin */}
-                              <div className="relative z-10 w-5 h-5 rounded-full bg-[#e8f0fe] border-2 border-white ring-2 ring-[#1a73e8]/40 flex items-center justify-center shadow-xs">
-                                <div className="w-2.5 h-2.5 rounded-full bg-[#1a73e8]" />
-                              </div>
+                              <span className="absolute w-6 h-6 rounded-full bg-[var(--brand)]/20 animate-ping pointer-events-none" />
+                              <div className="relative z-10 w-4.5 h-4.5 rounded-full bg-[var(--brand)] border-2 border-[var(--surface)] shadow-xs" />
                             </div>
                           ) : (
-                            <div className="w-3.5 h-3.5 rounded-full bg-[#dadce0] border-2 border-white shadow-2xs" />
+                            <div className="w-3.5 h-3.5 rounded-full bg-[var(--line)] border-2 border-[var(--surface)]" />
                           )}
                         </div>
 
-                        {/* Event Content Box */}
-                        <div className={`p-4 rounded-2xl border transition-all ${
-                          isLatest ? 'bg-[#e8f0fe]/40 border-[#d2e3fc] shadow-2xs' : 'bg-[#f8fafd] border-[#e0e3e7]'
+                        <div className={`p-4 rounded-[16px] border transition-all ${
+                          isLatest ? 'bg-[var(--brand-tint)]/40 border-[var(--brand)]/20' : 'bg-[var(--surface-alt)] border-[var(--line)]'
                         }`}>
                           <div className="flex items-center justify-between gap-2">
-                            <h4 className={`text-xs font-bold ${isLatest ? 'text-[#1a73e8]' : 'text-[#1f1f1f]'}`}>
+                            <h4 className={`text-xs font-semibold ${isLatest ? 'text-[var(--brand-deep)]' : 'text-[var(--text)]'}`}>
                               {event.status_change}
                             </h4>
-                            <span className="text-[10px] font-medium text-[#5f6368]">
+                            <span className="text-[10px] font-medium text-[var(--muted)]">
                               {new Date(event.created_at).toLocaleDateString()} at {new Date(event.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                             </span>
                           </div>
                           {event.notes && (
-                            <p className="text-xs text-[#444746] mt-2 whitespace-pre-line leading-relaxed">
+                            <p className="text-xs text-[var(--text-2)] mt-2 whitespace-pre-line leading-relaxed">
                               {event.notes}
                             </p>
                           )}
@@ -424,10 +400,10 @@ const CandidateApplications = () => {
             </div>
             
             {/* Drawer Footer */}
-            <div className="px-6 py-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex justify-end shrink-0">
+            <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface)] flex justify-end shrink-0">
               <button 
                 onClick={() => setIsTimelineModalOpen(false)} 
-                className="px-6 py-2.5 text-xs font-semibold text-[#5f6368] hover:text-[#1f1f1f] bg-white border border-[#dadce0] rounded-full hover:bg-[#f1f3f4] transition-all cursor-pointer shadow-2xs"
+                className="px-6 py-2 text-xs font-semibold text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-alt)] border border-[var(--line)] rounded-full hover:bg-[var(--line)]/50 transition-all cursor-pointer"
               >
                 Close
               </button>

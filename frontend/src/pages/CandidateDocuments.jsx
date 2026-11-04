@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -17,17 +17,11 @@ import {
   ArrowLeft, 
   Folder, 
   ShieldCheck, 
-  Sparkles, 
   Clock, 
   Search,
-  Filter,
   ExternalLink,
-  Download,
   FileCheck,
-  Building2,
-  Calendar,
-  Layers,
-  Check
+  Layers
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import CandidateMobileDocuments from './CandidateMobileDocuments';
@@ -154,14 +148,12 @@ const CandidateDocuments = () => {
     return documentTypes.filter(doc => {
       const currentDoc = getDoc(doc.id);
       
-      // Category / Tab filter
       if (activeCategoryFilter === 'MANDATORY' && !doc.isRequired) return false;
       if (activeCategoryFilter === 'OPTIONAL' && doc.isRequired) return false;
       if (activeCategoryFilter === 'UPLOADED' && !currentDoc) return false;
       if (activeCategoryFilter === 'VERIFIED' && currentDoc?.status !== 'verified') return false;
       if (activeCategoryFilter === 'PENDING' && (!currentDoc || currentDoc?.status === 'verified')) return false;
 
-      // Search Query filter
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matchesName = doc.label.toLowerCase().includes(q);
@@ -180,32 +172,29 @@ const CandidateDocuments = () => {
   }
 
   return (
-    <div className="h-screen w-full bg-[#f8fafd] flex flex-col overflow-hidden">
-      {/* Top 4-Color Gradient Accent Line */}
-      <div className="h-1 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] shrink-0" />
-
+    <div className="h-screen w-full bg-[var(--bg)] flex flex-col overflow-hidden antialiased">
       {/* Top Header App Bar (Desktop Only) */}
-      <header className="h-16 px-6 sm:px-8 bg-white border-b border-[#e0e3e7] items-center justify-between shrink-0 sticky top-0 z-40 shadow-2xs hidden md:flex">
+      <header className="h-16 px-6 sm:px-8 bg-[var(--surface)] border-b border-[var(--line)] items-center justify-between shrink-0 sticky top-0 z-40 shadow-xs hidden md:flex">
         <div className="flex items-center gap-4">
           <button 
             type="button" 
             onClick={() => navigate('/candidate/applications')}
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-xs font-semibold text-[#5f6368] hover:text-[#1f1f1f] transition-all cursor-pointer shadow-2xs"
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--line)]/50 text-xs font-semibold text-[var(--muted)] hover:text-[var(--text)] transition-all cursor-pointer shadow-xs"
           >
             <ArrowLeft size={14} />
             <span>Back to Applications</span>
           </button>
 
-          <div className="h-6 w-px bg-[#dadce0] hidden sm:block" />
+          <div className="h-6 w-px bg-[var(--line)] hidden sm:block" />
 
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#f3e8fd] text-[#8430ce] flex items-center justify-center font-bold">
+            <div className="w-8 h-8 rounded-[10px] bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)] flex items-center justify-center font-bold">
               <Folder size={18} />
             </div>
             <div>
-              <h1 className="text-sm font-bold text-[#1f1f1f]">My Onboarding Checklist</h1>
-              <p className="text-[11px] text-[#5f6368] hidden sm:block">
-                Candidate: <strong className="text-[#1f1f1f]">{candidateDisplayName}</strong> &bull; Pre-Employment KYC Table
+              <h1 className="text-sm font-semibold text-[var(--text)]">My Onboarding Checklist</h1>
+              <p className="text-[11px] text-[var(--muted)] hidden sm:block">
+                Candidate: <strong className="text-[var(--text)] font-semibold">{candidateDisplayName}</strong> &bull; Pre-Employment KYC Table
               </p>
             </div>
           </div>
@@ -213,14 +202,14 @@ const CandidateDocuments = () => {
 
         {/* Right Header Status Badges */}
         <div className="flex items-center gap-3">
-          <div className="hidden sm:flex items-center gap-2 bg-[#f8fafd] border border-[#e0e3e7] px-3.5 py-1.5 rounded-full">
-            <ShieldCheck size={14} className={uploadedMandatory === totalMandatory ? 'text-[#137333]' : 'text-[#b06000]'} />
-            <span className="text-xs font-semibold text-[#1f1f1f]">
+          <div className="hidden sm:flex items-center gap-2 bg-[var(--surface-alt)] border border-[var(--line)] px-3.5 py-1.5 rounded-full">
+            <ShieldCheck size={14} className={uploadedMandatory === totalMandatory ? 'text-[#1F9D55]' : 'text-[#B7791F]'} />
+            <span className="text-xs font-semibold text-[var(--text)]">
               {uploadedMandatory} / {totalMandatory} Mandatory Attached
             </span>
           </div>
 
-          <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#137333] bg-[#e6f4ea] border border-[#ceead6] px-3 py-1 rounded-full shadow-2xs">
+          <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#1F9D55] bg-[#E6F6EC] border border-[#CEEAD6] px-3 py-1 rounded-full shadow-xs">
             <CheckCircle2 size={13} />
             <span>{verifiedCount} Verified by HR</span>
           </span>
@@ -242,66 +231,66 @@ const CandidateDocuments = () => {
           onPreview={setPreviewDoc}
         />
 
-        {/* Desktop Web View: Checklist Table View */}
+        {/* Desktop Web View */}
         <main className="max-w-7xl w-full mx-auto p-6 sm:p-8 space-y-6 pb-24 hidden md:block">
           
           {/* Key Metrics Cards Row */}
           <div className="grid grid-cols-4 gap-4">
             {/* Metric 1 */}
-            <div className="bg-white rounded-2xl border border-[#e0e3e7] p-4 shadow-2xs flex items-center justify-between">
+            <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4 shadow-xs flex items-center justify-between">
               <div>
-                <p className="text-[11px] font-bold uppercase tracking-wider text-[#5f6368]">Total Checklist</p>
-                <h3 className="text-2xl font-bold text-[#1f1f1f] mt-0.5">{documentTypes.length}</h3>
-                <p className="text-[10px] text-[#5f6368] mt-0.5">Required & optional items</p>
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted)]">Total Checklist</p>
+                <h3 className="text-2xl font-semibold text-[var(--text)] mt-0.5">{documentTypes.length}</h3>
+                <p className="text-[10px] text-[var(--muted)] mt-0.5">Required &amp; optional items</p>
               </div>
-              <div className="w-10 h-10 rounded-xl bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center">
+              <div className="w-10 h-10 rounded-[12px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center">
                 <Layers size={20} />
               </div>
             </div>
 
             {/* Metric 2 */}
-            <div className="bg-white rounded-2xl border border-[#e0e3e7] p-4 shadow-2xs flex items-center justify-between">
+            <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4 shadow-xs flex items-center justify-between">
               <div>
-                <p className="text-[11px] font-bold uppercase tracking-wider text-[#5f6368]">Mandatory KYC</p>
-                <h3 className="text-2xl font-bold text-[#1a73e8] mt-0.5">{uploadedMandatory} / {totalMandatory}</h3>
-                <div className="w-24 h-1.5 bg-[#f1f3f4] rounded-full overflow-hidden mt-1.5 border border-[#e0e3e7]">
-                  <div className="h-full bg-[#1a73e8] rounded-full transition-all duration-500" style={{ width: `${progressPercent}%` }} />
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted)]">Mandatory KYC</p>
+                <h3 className="text-2xl font-semibold text-[var(--text)] mt-0.5">{uploadedMandatory} / {totalMandatory}</h3>
+                <div className="w-24 h-1.5 bg-[var(--surface-alt)] rounded-full overflow-hidden mt-1.5 border border-[var(--line)]">
+                  <div className="h-full bg-[var(--brand-deep)] rounded-full transition-all duration-500" style={{ width: `${progressPercent}%` }} />
                 </div>
               </div>
-              <div className="w-10 h-10 rounded-xl bg-[#fce8e6] text-[#c5221f] flex items-center justify-center">
+              <div className="w-10 h-10 rounded-[12px] bg-[#FDE8EA] text-[#D64550] flex items-center justify-center">
                 <AlertCircle size={20} />
               </div>
             </div>
 
             {/* Metric 3 */}
-            <div className="bg-white rounded-2xl border border-[#e0e3e7] p-4 shadow-2xs flex items-center justify-between">
+            <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4 shadow-xs flex items-center justify-between">
               <div>
-                <p className="text-[11px] font-bold uppercase tracking-wider text-[#5f6368]">Files Uploaded</p>
-                <h3 className="text-2xl font-bold text-[#1f1f1f] mt-0.5">{totalUploaded}</h3>
-                <p className="text-[10px] text-[#5f6368] mt-0.5">PDF documents attached</p>
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted)]">Files Uploaded</p>
+                <h3 className="text-2xl font-semibold text-[var(--text)] mt-0.5">{totalUploaded}</h3>
+                <p className="text-[10px] text-[var(--muted)] mt-0.5">PDF documents attached</p>
               </div>
-              <div className="w-10 h-10 rounded-xl bg-[#f3e8fd] text-[#8430ce] flex items-center justify-center">
+              <div className="w-10 h-10 rounded-[12px] bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)] flex items-center justify-center">
                 <FileCheck size={20} />
               </div>
             </div>
 
             {/* Metric 4 */}
-            <div className="bg-white rounded-2xl border border-[#e0e3e7] p-4 shadow-2xs flex items-center justify-between">
+            <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4 shadow-xs flex items-center justify-between">
               <div>
-                <p className="text-[11px] font-bold uppercase tracking-wider text-[#5f6368]">HR Verified</p>
-                <h3 className="text-2xl font-bold text-[#137333] mt-0.5">{verifiedCount}</h3>
-                <p className="text-[10px] text-[#137333] mt-0.5 font-medium">Compliance approved</p>
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-[var(--muted)]">HR Verified</p>
+                <h3 className="text-2xl font-semibold text-[#1F9D55] mt-0.5">{verifiedCount}</h3>
+                <p className="text-[10px] text-[#1F9D55] mt-0.5 font-medium">Compliance approved</p>
               </div>
-              <div className="w-10 h-10 rounded-xl bg-[#e6f4ea] text-[#137333] flex items-center justify-center">
+              <div className="w-10 h-10 rounded-[12px] bg-[#E6F6EC] text-[#1F9D55] flex items-center justify-center">
                 <ShieldCheck size={20} />
               </div>
             </div>
           </div>
 
           {/* Filter, Search & Tab Controls */}
-          <div className="bg-white rounded-2xl border border-[#e0e3e7] p-4 shadow-2xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             {/* Filter Pills */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0">
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 hide-scrollbar">
               {[
                 { id: 'ALL', label: 'All Items', count: documentTypes.length },
                 { id: 'MANDATORY', label: 'Mandatory', count: totalMandatory },
@@ -316,8 +305,8 @@ const CandidateDocuments = () => {
                   onClick={() => setActiveCategoryFilter(tab.id)}
                   className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                     activeCategoryFilter === tab.id
-                      ? 'bg-[#1a73e8] text-white shadow-2xs'
-                      : 'bg-[#f8fafd] text-[#5f6368] hover:bg-[#f1f3f4] hover:text-[#1f1f1f] border border-[#e0e3e7]'
+                      ? 'bg-[var(--ink)] text-white shadow-xs'
+                      : 'bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)] border border-[var(--line)]'
                   }`}
                 >
                   {tab.label} ({tab.count})
@@ -327,19 +316,19 @@ const CandidateDocuments = () => {
 
             {/* Search Box */}
             <div className="relative w-full lg:w-72">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#5f6368]" />
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)]" />
               <input
                 type="text"
                 placeholder="Search document name..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-9 pl-9 pr-8 text-xs bg-[#f8fafd] border border-[#dadce0] rounded-full focus:outline-none focus:border-[#1a73e8] focus:bg-white text-[#1f1f1f] transition-all"
+                className="w-full h-9 pl-9 pr-8 text-xs bg-[var(--surface-alt)] border border-[var(--line)] rounded-full focus:outline-none focus:border-[var(--brand)] focus:bg-[var(--surface)] text-[var(--text)] placeholder:text-[var(--muted)] transition-all"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#5f6368] hover:text-[#1f1f1f]"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--muted)] hover:text-[var(--text)]"
                 >
                   <X size={13} />
                 </button>
@@ -347,12 +336,12 @@ const CandidateDocuments = () => {
             </div>
           </div>
 
-          {/* Google Workspace Checklist Table Container */}
-          <div className="bg-white rounded-2xl border border-[#e0e3e7] shadow-xs overflow-hidden">
+          {/* Checklist Table Container */}
+          <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] shadow-xs overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-[#f8fafd] border-b border-[#e0e3e7] text-[11px] font-bold uppercase tracking-wider text-[#5f6368]">
+                  <tr className="bg-[var(--surface-alt)] border-b border-[var(--line)] text-[11px] font-semibold uppercase tracking-wider text-[var(--muted)]">
                     <th className="py-3.5 px-5 w-8 text-center">#</th>
                     <th className="py-3.5 px-4 min-w-[280px]">Document Requirement</th>
                     <th className="py-3.5 px-4 min-w-[140px]">Category</th>
@@ -361,15 +350,15 @@ const CandidateDocuments = () => {
                     <th className="py-3.5 px-5 text-right min-w-[180px]">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#f1f3f4] text-xs">
+                <tbody className="divide-y divide-[var(--line)] text-xs">
                   {filteredDocTypes.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="py-12 text-center text-[#5f6368]">
-                        <div className="w-12 h-12 rounded-full bg-[#f8fafd] border border-[#e0e3e7] flex items-center justify-center mx-auto mb-2 text-[#5f6368]">
+                      <td colSpan={6} className="py-12 text-center text-[var(--muted)]">
+                        <div className="w-12 h-12 rounded-[14px] bg-[var(--surface-alt)] border border-[var(--line)] flex items-center justify-center mx-auto mb-2 text-[var(--muted)]">
                           <Search size={20} />
                         </div>
-                        <p className="font-semibold text-[#1f1f1f]">No matching documents found</p>
-                        <p className="text-xs text-[#5f6368] mt-0.5">Try adjusting your category filter or search keyword.</p>
+                        <p className="font-semibold text-[var(--text)]">No matching documents found</p>
+                        <p className="text-xs text-[var(--muted)] mt-0.5">Try adjusting your category filter or search keyword.</p>
                       </td>
                     </tr>
                   ) : (
@@ -382,45 +371,45 @@ const CandidateDocuments = () => {
                       return (
                         <tr 
                           key={doc.id}
-                          className={`hover:bg-[#f8fafd] transition-colors ${doc.isSpecial ? 'bg-[#f8fafd]/60' : ''}`}
+                          className="hover:bg-[var(--surface-alt)]/60 transition-colors"
                         >
                           {/* Row Number */}
-                          <td className="py-4 px-5 text-center text-[#5f6368] font-medium text-xs">
+                          <td className="py-4 px-5 text-center text-[var(--muted)] font-medium text-xs">
                             {idx + 1}
                           </td>
 
                           {/* Document Name & Description */}
                           <td className="py-4 px-4">
                             <div className="flex items-start gap-3">
-                              <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
+                              <div className={`w-8 h-8 rounded-[10px] flex items-center justify-center shrink-0 mt-0.5 ${
                                 doc.isSpecial 
-                                  ? 'bg-[#e8f0fe] text-[#1a73e8]' 
+                                  ? 'bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)]' 
                                   : doc.isRequired 
-                                    ? 'bg-[#fce8e6] text-[#c5221f]' 
-                                    : 'bg-[#f1f3f4] text-[#5f6368]'
+                                    ? 'bg-[var(--brand-tint)] text-[var(--brand-deep)]' 
+                                    : 'bg-[var(--surface-alt)] text-[var(--muted)]'
                               }`}>
                                 <FileText size={16} />
                               </div>
                               <div>
                                 <div className="flex items-center gap-2 flex-wrap">
-                                  <span className="font-bold text-[#1f1f1f]">{doc.label}</span>
+                                  <span className="font-semibold text-[var(--text)]">{doc.label}</span>
                                   {doc.isRequired ? (
-                                    <span className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-[#fce8e6] text-[#c5221f] rounded-full border border-[#fad2cf]">
+                                    <span className="px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider bg-[#FDE8EA] text-[#D64550] rounded-full border border-[#FCD0D4]">
                                       Mandatory
                                     </span>
                                   ) : (
-                                    <span className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-[#f1f3f4] text-[#5f6368] rounded-full border border-[#dadce0]">
+                                    <span className="px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider bg-[#EFEFF1] text-[#4A4A52] rounded-full border border-[#E3E3E7]">
                                       Optional
                                     </span>
                                   )}
                                   {doc.isSpecial && (
-                                    <span className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-[#e8f0fe] text-[#1a73e8] rounded-full border border-[#d2e3fc]">
+                                    <span className="px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)] rounded-full border border-[var(--accent-pink)]/20">
                                       Featured
                                     </span>
                                   )}
                                 </div>
                                 {doc.description && (
-                                  <p className="text-[11px] text-[#5f6368] mt-0.5 leading-relaxed">
+                                  <p className="text-[11px] text-[var(--muted)] mt-0.5 leading-relaxed">
                                     {doc.description}
                                   </p>
                                 )}
@@ -430,7 +419,7 @@ const CandidateDocuments = () => {
 
                           {/* Category */}
                           <td className="py-4 px-4">
-                            <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-medium bg-[#f8fafd] border border-[#e0e3e7] text-[#444746]">
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-[8px] text-[11px] font-medium bg-[var(--surface-alt)] border border-[var(--line)] text-[var(--text-2)]">
                               {doc.category}
                             </span>
                           </td>
@@ -439,20 +428,20 @@ const CandidateDocuments = () => {
                           <td className="py-4 px-4">
                             {currentDoc ? (
                               <div className="flex items-center gap-2 max-w-[240px]">
-                                <div className="w-7 h-7 rounded-lg bg-[#fce8e6] text-[#c5221f] flex items-center justify-center shrink-0 border border-[#fad2cf]">
+                                <div className="w-7 h-7 rounded-[8px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center shrink-0 border border-[var(--brand)]/20">
                                   <span className="text-[9px] font-bold">PDF</span>
                                 </div>
                                 <div className="truncate">
-                                  <p className="text-xs font-semibold text-[#1f1f1f] truncate" title={currentDoc.file_name}>
+                                  <p className="text-xs font-semibold text-[var(--text)] truncate" title={currentDoc.file_name}>
                                     {currentDoc.file_name}
                                   </p>
-                                  <p className="text-[10px] text-[#5f6368]">
+                                  <p className="text-[10px] text-[var(--muted)]">
                                     {new Date(currentDoc.uploaded_at).toLocaleDateString()}
                                   </p>
                                 </div>
                               </div>
                             ) : (
-                              <span className="text-xs italic text-[#5f6368]">
+                              <span className="text-xs italic text-[var(--muted)]">
                                 No file uploaded
                               </span>
                             )}
@@ -462,27 +451,27 @@ const CandidateDocuments = () => {
                           <td className="py-4 px-4">
                             {!currentDoc ? (
                               doc.isRequired ? (
-                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf]">
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#FDE8EA] text-[#D64550] border border-[#FCD0D4]">
                                   <AlertCircle size={12} />
                                   <span>Pending Upload</span>
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]">
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-[#EFEFF1] text-[#4A4A52] border border-[#E3E3E7]">
                                   <span>Not Provided</span>
                                 </span>
                               )
                             ) : isVerified ? (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#E6F6EC] text-[#1F9D55] border border-[#CEEAD6]">
                                 <CheckCircle2 size={12} />
                                 <span>Verified by HR</span>
                               </span>
                             ) : isRejected ? (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf]">
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#FDE8EA] text-[#D64550] border border-[#FCD0D4]">
                                 <AlertCircle size={12} />
                                 <span>Rejected</span>
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#E8F0FB] text-[#3B6FB6] border border-[#D2E3FC]">
                                 <Clock size={12} />
                                 <span>Under Review</span>
                               </span>
@@ -510,7 +499,7 @@ const CandidateDocuments = () => {
                                 <button
                                   type="button"
                                   onClick={() => setPreviewDoc({ ...currentDoc, docType: doc })}
-                                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-xs font-semibold text-[#1a73e8] transition-all cursor-pointer shadow-2xs"
+                                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--line)]/50 text-xs font-semibold text-[var(--brand-deep)] transition-all cursor-pointer shadow-xs"
                                   title="Preview Document"
                                 >
                                   <Eye size={13} />
@@ -524,10 +513,10 @@ const CandidateDocuments = () => {
                                   type="button"
                                   disabled={isUploading}
                                   onClick={() => fileInputRefs.current[doc.id]?.click()}
-                                  className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer shadow-2xs ${
+                                  className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer shadow-xs ${
                                     currentDoc 
-                                      ? 'border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#5f6368] hover:text-[#1f1f1f]' 
-                                      : 'bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white'
+                                      ? 'border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--line)]/50 text-[var(--text)]' 
+                                      : 'bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-95 text-white'
                                   }`}
                                 >
                                   {isUploading ? (
@@ -543,8 +532,8 @@ const CandidateDocuments = () => {
                                   )}
                                 </button>
                               ) : (
-                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0] cursor-not-allowed" title="Document verified and locked">
-                                  <Lock size={12} className="text-[#137333]" />
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#E6F6EC] text-[#1F9D55] border border-[#CEEAD6] cursor-not-allowed" title="Document verified and locked">
+                                  <Lock size={12} className="text-[#1F9D55]" />
                                   <span>Locked</span>
                                 </span>
                               )}
@@ -560,16 +549,16 @@ const CandidateDocuments = () => {
           </div>
 
           {/* Compliance Help Footer Card */}
-          <div className="rounded-2xl border border-[#c2e7ff] bg-[#e8f0fe]/60 p-4 flex items-start gap-3.5 text-[#001d35] shadow-2xs">
-            <div className="p-2 rounded-xl bg-[#c2e7ff] text-[#001d35] shrink-0">
+          <div className="rounded-[20px] border border-[var(--brand)]/20 bg-[var(--brand-tint)]/60 p-4.5 flex items-start gap-3.5 text-[var(--text)] shadow-xs">
+            <div className="p-2 rounded-[10px] bg-[var(--brand-tint)] text-[var(--brand-deep)] shrink-0">
               <Info className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-xs font-bold uppercase tracking-wider text-[#1a73e8]">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-[var(--brand-deep)]">
                 Document Compliance Guidelines
               </h4>
-              <p className="text-xs text-[#001d35] mt-0.5 leading-relaxed">
-                All submitted documents must be clear, legibly scanned copies in PDF format up to 5MB. Ensure academic marks memos and identity cards (Aadhaar & PAN) are self-attested. Once approved by HR, your compliance checklist status will be locked for regulatory onboarding audits.
+              <p className="text-xs text-[var(--text-2)] mt-0.5 leading-relaxed">
+                All submitted documents must be clear, legibly scanned copies in PDF format up to 5MB. Ensure academic marks memos and identity cards (Aadhaar &amp; PAN) are self-attested. Once approved by HR, your compliance checklist status will be locked for regulatory onboarding audits.
               </p>
             </div>
           </div>
@@ -580,16 +569,16 @@ const CandidateDocuments = () => {
       {/* Inline Document Preview Modal */}
       {previewDoc && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl border border-[#dadce0] w-full max-w-4xl h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+          <div className="bg-[var(--surface)] rounded-[24px] border border-[var(--line)] w-full max-w-4xl h-[90vh] flex flex-col shadow-2xl overflow-hidden">
             {/* Modal Header */}
-            <div className="h-14 px-6 bg-[#f8fafd] border-b border-[#e0e3e7] flex items-center justify-between shrink-0">
+            <div className="h-14 px-6 bg-[var(--surface)] border-b border-[var(--line)] flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl bg-[#fce8e6] text-[#c5221f] flex items-center justify-center font-bold">
+                <div className="w-8 h-8 rounded-[10px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center font-bold">
                   <FileText size={16} />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-[#1f1f1f]">{previewDoc.docType?.label || previewDoc.file_name}</h3>
-                  <p className="text-[11px] text-[#5f6368] truncate max-w-md">{previewDoc.file_name}</p>
+                  <h3 className="text-sm font-semibold text-[var(--text)]">{previewDoc.docType?.label || previewDoc.file_name}</h3>
+                  <p className="text-[11px] text-[var(--muted)] truncate max-w-md">{previewDoc.file_name}</p>
                 </div>
               </div>
 
@@ -598,7 +587,7 @@ const CandidateDocuments = () => {
                   href={previewDoc.file_path}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-xs font-semibold text-[#1a73e8] transition-all"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--line)]/50 text-xs font-semibold text-[var(--brand-deep)] transition-all"
                   title="Open in new window"
                 >
                   <ExternalLink size={13} />
@@ -608,7 +597,7 @@ const CandidateDocuments = () => {
                 <button
                   type="button"
                   onClick={() => setPreviewDoc(null)}
-                  className="w-8 h-8 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#5f6368] hover:text-[#1f1f1f] flex items-center justify-center transition-all cursor-pointer"
+                  className="w-8 h-8 rounded-full border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--line)]/50 text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center transition-all cursor-pointer"
                 >
                   <X size={16} />
                 </button>
@@ -616,7 +605,7 @@ const CandidateDocuments = () => {
             </div>
 
             {/* Modal Embedded Viewer */}
-            <div className="flex-1 bg-[#525659] relative overflow-hidden">
+            <div className="flex-1 bg-[#1F1F23] relative overflow-hidden">
               <iframe
                 src={`${previewDoc.file_path}#toolbar=0`}
                 title={previewDoc.file_name}
@@ -631,5 +620,3 @@ const CandidateDocuments = () => {
 };
 
 export default CandidateDocuments;
-
-

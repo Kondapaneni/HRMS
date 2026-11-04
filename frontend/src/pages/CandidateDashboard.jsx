@@ -8,54 +8,51 @@ import {
   BadgeCheck,
   UserCheck,
   User,
-  FileUp,
   ChevronRight,
-  Sparkles,
-  Compass,
-  ArrowUpRight,
   Clock,
-  CheckCircle2,
-  AlertCircle,
-  Building2,
-  Calendar,
   ArrowRight,
-  Folder
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import CandidateMobileDashboard from './CandidateMobileDashboard';
 
-const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme }) => {
-  const themes = {
+const StatCard = ({ title, value, subtitle, icon: Icon, theme = 'blue' }) => {
+  const themeClasses = {
     blue: {
-      iconBg: 'bg-[#e8f0fe]',
-      iconColor: 'text-[#1a73e8]',
+      bg: 'bg-[var(--brand-tint)]',
+      text: 'text-[var(--brand-deep)]',
+      border: 'border-[var(--brand)]/20',
     },
     green: {
-      iconBg: 'bg-[#e6f4ea]',
-      iconColor: 'text-[#137333]',
+      bg: 'bg-[#E6F6EC]',
+      text: 'text-[#1F9D55]',
+      border: 'border-[#CEEAD6]',
     },
     amber: {
-      iconBg: 'bg-[#fef7e0]',
-      iconColor: 'text-[#b06000]',
+      bg: 'bg-[#FDF3DC]',
+      text: 'text-[#B7791F]',
+      border: 'border-[#FCE6B8]',
     },
-    purple: {
-      iconBg: 'bg-[#f3e8fd]',
-      iconColor: 'text-[#8430ce]',
+    pink: {
+      bg: 'bg-[var(--accent-pink-tint)]',
+      text: 'text-[var(--accent-pink-deep)]',
+      border: 'border-[var(--accent-pink)]/20',
     }
+  }[theme] || {
+    bg: 'bg-[var(--brand-tint)]',
+    text: 'text-[var(--brand-deep)]',
+    border: 'border-[var(--brand)]/20',
   };
 
-  const theme = themes[colorTheme] || themes.blue;
-
   return (
-    <div className="bg-white rounded-2xl border border-[#e0e3e7] p-5 shadow-xs transition-all duration-200 hover:shadow-md hover:border-[#dadce0]">
+    <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-5 shadow-xs transition-all duration-200 hover:shadow-sm">
       <div className="flex items-start justify-between">
         <div className="space-y-1">
-          <p className="text-xs font-semibold text-[#5f6368] uppercase tracking-wider">{title}</p>
-          <p className="text-2xl font-bold text-[#1f1f1f] tracking-tight">{value}</p>
-          {subtitle && <p className="text-xs text-[#5f6368] font-normal pt-0.5">{subtitle}</p>}
+          <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">{title}</p>
+          <p className="text-2xl font-semibold text-[var(--text)] tracking-tight">{value}</p>
+          {subtitle && <p className="text-xs text-[var(--muted)] font-normal pt-0.5">{subtitle}</p>}
         </div>
-        <div className={`p-3 rounded-2xl ${theme.iconBg} ${theme.iconColor} shrink-0`}>
+        <div className={`p-3 rounded-[14px] ${themeClasses.bg} ${themeClasses.text} border ${themeClasses.border} shrink-0`}>
           <Icon className="w-5 h-5" />
         </div>
       </div>
@@ -132,17 +129,17 @@ const CandidateDashboard = () => {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'Applied':
-        return 'bg-[#e8f0fe] text-[#1967d2] border border-[#d2e3fc]';
+        return 'bg-[#E8F0FB] text-[#3B6FB6] border border-[#D2E3FC]';
       case 'Shortlisted':
       case 'Interviewing':
-        return 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6]';
+        return 'bg-[#E6F6EC] text-[#1F9D55] border border-[#CEEAD6]';
       case 'Rejected':
-        return 'bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf]';
+        return 'bg-[#FDE8EA] text-[#D64550] border border-[#FCD0D4]';
       case 'Hired':
       case 'Selected':
-        return 'bg-[#f3e8fd] text-[#8430ce] border border-[#e9d5ff]';
+        return 'bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)] border border-[var(--accent-pink)]/20';
       default:
-        return 'bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]';
+        return 'bg-[#EFEFF1] text-[#4A4A52] border border-[#E3E3E7]';
     }
   };
 
@@ -152,7 +149,7 @@ const CandidateDashboard = () => {
 
   return (
     <>
-      {/* Mobile View - Untouched */}
+      {/* Mobile View */}
       <div className="md:hidden">
         <CandidateMobileDashboard
           profileData={profileData}
@@ -163,118 +160,114 @@ const CandidateDashboard = () => {
         />
       </div>
 
-      {/* Web Desktop Experience (Google Material 3 Workspace UI matching Employee Web UI) */}
-      <div className="hidden md:block space-y-6 pb-12">
-        {/* 1. Workspace Header Bar with 4 Dots & Live Clock Widget */}
+      {/* Web Desktop View */}
+      <div className="hidden md:block space-y-6 pb-12 antialiased">
+        {/* Workspace Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <div className="flex items-center gap-1.5 mb-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-              <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">
-                Workspace Overview
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-wide bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)] border border-[var(--accent-pink)]/20">
+                Candidate Portal
               </span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-normal text-[#1f1f1f] tracking-tight flex items-center gap-2">
-              {getGreeting()}, {candidateDisplayName}!{' '}
-              <span className="text-xs font-semibold text-[#137333] bg-[#e6f4ea] border border-[#ceead6] px-2.5 py-0.5 rounded-full">
+            <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight flex items-center gap-2.5">
+              <span>{getGreeting()}, {candidateDisplayName}!</span>
+              <span className="text-xs font-semibold text-[#1F9D55] bg-[#E6F6EC] border border-[#CEEAD6] px-2.5 py-0.5 rounded-full">
                 Active Candidate
               </span>
             </h1>
-            <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
+            <p className="text-xs sm:text-sm text-[var(--muted)] mt-1">
               Track your hiring stages, discover matched job openings, and manage your credentials.
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5 self-start sm:self-auto bg-white border border-[#e0e3e7] px-3.5 py-1.5 rounded-full shadow-xs">
-            <Clock className="w-4 h-4 text-[#1a73e8]" />
+          <div className="flex items-center gap-2.5 self-start sm:self-auto bg-[var(--surface)] border border-[var(--line)] px-4 py-2 rounded-full shadow-xs">
+            <Clock className="w-4 h-4 text-[var(--brand-deep)]" />
             <div className="text-right">
-              <p className="text-xs font-semibold text-[#1f1f1f] leading-tight">
+              <p className="text-xs font-semibold text-[var(--text)] leading-tight">
                 {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
               </p>
-              <p className="text-[10px] text-[#5f6368] leading-tight">
+              <p className="text-[10px] text-[var(--muted)] leading-tight">
                 {currentTime.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
               </p>
             </div>
           </div>
         </div>
 
-        {/* 2. KPI Stats Cards (4 Columns matching Employee Layout) */}
+        {/* KPI Stats Cards */}
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
             title="Total Applications"
             value={totalApps}
             subtitle={totalApps === 1 ? '1 role submitted' : `${totalApps} roles submitted`}
             icon={FileText}
-            colorTheme="blue"
+            theme="blue"
           />
           <StatCard
             title="Shortlisted & Active"
             value={shortlisted}
             subtitle={shortlisted === 1 ? '1 active interview stage' : `${shortlisted} active interview stages`}
             icon={BadgeCheck}
-            colorTheme="green"
+            theme="green"
           />
           <StatCard
             title="Profile Readiness"
             value={`${completionStats.percentage}%`}
             subtitle={completionStats.isComplete ? '100% verified & ready' : 'Profile setup in progress'}
             icon={UserCheck}
-            colorTheme="amber"
+            theme="amber"
           />
           <StatCard
             title="Published Openings"
             value={`${totalOpenings} Roles`}
             subtitle="Available for application"
             icon={Briefcase}
-            colorTheme="purple"
+            theme="pink"
           />
         </div>
 
-        {/* 3. Profile Completion Alert / Banner if Incomplete */}
+        {/* Profile Completion Alert */}
         {!completionStats.isComplete && (
-          <div className="rounded-2xl border border-[#feefc3] bg-[#fef7e0]/60 p-4.5 flex items-center justify-between gap-4 shadow-xs">
+          <div className="rounded-[20px] border border-[#FCE6B8] bg-[#FDF3DC] p-4.5 flex items-center justify-between gap-4 shadow-xs">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-[#FBBC05] text-[#1f1f1f] flex items-center justify-center shrink-0 font-bold text-xs shadow-xs">
+              <div className="w-9 h-9 rounded-[12px] bg-[var(--surface)] text-[#B7791F] border border-[#FCE6B8] flex items-center justify-center shrink-0 font-bold text-xs shadow-xs">
                 {completionStats.percentage}%
               </div>
               <div>
-                <p className="text-xs font-semibold text-[#1f1f1f]">
+                <p className="text-xs font-semibold text-[var(--text)]">
                   Complete your profile to increase your recruiter visibility
                 </p>
-                <p className="text-[11px] text-[#5f6368] mt-0.5">
+                <p className="text-[11px] text-[var(--muted)] mt-0.5">
                   Add your contact details, experience, and upload your latest resume.
                 </p>
               </div>
             </div>
             <Link
               to="/candidate/profile"
-              className="inline-flex items-center gap-1 shrink-0 text-xs font-bold text-[#b06000] hover:text-[#8a4b00] hover:underline whitespace-nowrap"
+              className="inline-flex items-center gap-1 shrink-0 text-xs font-semibold text-[#B7791F] hover:underline whitespace-nowrap"
             >
               Complete Profile <ArrowRight size={13} />
             </Link>
           </div>
         )}
 
-        {/* 4. Main 2-Column Section */}
+        {/* Main 2-Column Section */}
         <div className="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
           {/* Left: Recent Applications Feed */}
-          <div className="rounded-2xl border border-[#e0e3e7] bg-white shadow-xs flex flex-col overflow-hidden">
-            <div className="p-5 flex items-center justify-between border-b border-[#f1f3f4]">
+          <div className="rounded-[20px] border border-[var(--line)] bg-[var(--surface)] shadow-xs flex flex-col overflow-hidden">
+            <div className="p-5 flex items-center justify-between border-b border-[var(--line)]">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-[#e6f4ea] text-[#137333] flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-[10px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center shrink-0">
                   <FileText size={16} />
                 </div>
                 <div>
-                  <h2 className="text-sm font-bold text-[#1f1f1f]">Recent Applications</h2>
-                  <p className="text-xs text-[#5f6368]">Live recruitment status updates on submitted roles</p>
+                  <h2 className="text-sm font-semibold text-[var(--text)]">Recent Applications</h2>
+                  <p className="text-xs text-[var(--muted)]">Live recruitment status updates on submitted roles</p>
                 </div>
               </div>
               <Link
                 to="/candidate/applications"
-                className="text-xs font-bold text-[#1a73e8] hover:text-[#1557b0] hover:underline"
+                className="text-xs font-semibold text-[var(--brand-deep)] hover:underline"
               >
                 View all ({totalApps})
               </Link>
@@ -282,13 +275,13 @@ const CandidateDashboard = () => {
 
             <div className="p-5 flex-1 space-y-3">
               {recentApps.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-[#dadce0] p-8 text-center bg-[#f8fafd]">
-                  <FileText className="w-8 h-8 text-[#5f6368] mx-auto mb-2 opacity-50" />
-                  <p className="text-xs font-semibold text-[#1f1f1f]">No applications submitted yet</p>
-                  <p className="text-[11px] text-[#5f6368] mt-1">Explore our current job openings and apply in minutes.</p>
+                <div className="rounded-[16px] border border-dashed border-[var(--line)] p-8 text-center bg-[var(--surface-alt)]">
+                  <FileText className="w-8 h-8 text-[var(--muted)] mx-auto mb-2 opacity-50" />
+                  <p className="text-xs font-semibold text-[var(--text)]">No applications submitted yet</p>
+                  <p className="text-[11px] text-[var(--muted)] mt-1">Explore our current job openings and apply in minutes.</p>
                   <Link
                     to="/candidate/jobs"
-                    className="inline-flex items-center gap-1.5 mt-3 px-4 py-1.5 rounded-full bg-[#1a73e8] text-white text-xs font-semibold shadow-xs hover:bg-[#1557b0] transition-colors"
+                    className="inline-flex items-center gap-1.5 mt-3 px-4 py-2 rounded-full bg-[var(--ink)] text-white text-xs font-semibold shadow-xs hover:bg-[var(--ink-2)] transition-colors"
                   >
                     Browse Jobs
                   </Link>
@@ -301,16 +294,16 @@ const CandidateDashboard = () => {
                   return (
                     <div
                       key={app.id}
-                      className="rounded-xl border border-[#e0e3e7] p-4 hover:bg-[#f8fafd] transition-all hover:border-[#dadce0]"
+                      className="rounded-[16px] border border-[var(--line)] p-4 bg-[var(--surface)] hover:bg-[var(--surface-alt)] transition-all hover:border-[var(--brand)]/30"
                     >
                       <div className="flex flex-wrap items-start justify-between gap-2">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-[#e6f4ea] text-[#137333] flex items-center justify-center font-bold text-xs border border-[#ceead6] shrink-0">
+                          <div className="w-10 h-10 rounded-[12px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center font-bold text-xs border border-[var(--brand)]/20 shrink-0">
                             {initials}
                           </div>
                           <div>
-                            <h3 className="font-semibold text-xs text-[#1f1f1f]">{jobTitle}</h3>
-                            <p className="text-[11px] text-[#5f6368] mt-0.5">
+                            <h3 className="font-semibold text-xs text-[var(--text)]">{jobTitle}</h3>
+                            <p className="text-[11px] text-[var(--muted)] mt-0.5">
                               {app.jobs?.department || 'Department'} &bull; {app.jobs?.location || 'Location'}
                             </p>
                           </div>
@@ -319,14 +312,14 @@ const CandidateDashboard = () => {
                           {app.status}
                         </span>
                       </div>
-                      <div className="mt-3 flex items-center justify-between text-[11px] text-[#5f6368] border-t border-[#f1f3f4] pt-2">
+                      <div className="mt-3 flex items-center justify-between text-[11px] text-[var(--muted)] border-t border-[var(--line)] pt-2">
                         <span className="flex items-center gap-1">
-                          <Clock size={12} className="text-[#5f6368]" />
+                          <Clock size={12} className="text-[var(--muted)]" />
                           Applied on {new Date(app.applied_date).toLocaleDateString()}
                         </span>
                         <Link
                           to="/candidate/applications"
-                          className="text-[#1a73e8] hover:underline font-semibold"
+                          className="text-[var(--brand-deep)] hover:underline font-semibold"
                         >
                           View Details &rarr;
                         </Link>
@@ -341,60 +334,60 @@ const CandidateDashboard = () => {
           {/* Right Column: Quick Actions & Fresh Openings */}
           <div className="space-y-6">
             {/* Quick Actions */}
-            <div className="rounded-2xl border border-[#e0e3e7] bg-white shadow-xs p-5">
-              <h2 className="text-sm font-bold text-[#1f1f1f] mb-3">Quick Navigation</h2>
+            <div className="rounded-[20px] border border-[var(--line)] bg-[var(--surface)] shadow-xs p-5">
+              <h2 className="text-sm font-semibold text-[var(--text)] mb-3">Quick Navigation</h2>
               <div className="flex flex-col gap-2">
                 <Link
                   to="/candidate/jobs"
-                  className="flex items-center justify-between p-3 rounded-xl bg-[#f8fafd] hover:bg-[#e8f0fe] border border-[#e0e3e7] text-xs font-semibold text-[#1f1f1f] transition-all group"
+                  className="flex items-center justify-between p-3 rounded-[14px] bg-[var(--surface-alt)] hover:bg-[var(--brand-tint)]/50 border border-[var(--line)] text-xs font-semibold text-[var(--text)] transition-all group"
                 >
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center shrink-0 border border-[#d2e3fc]">
+                    <div className="w-8 h-8 rounded-[10px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center shrink-0 border border-[var(--brand)]/20">
                       <Briefcase size={16} />
                     </div>
                     <span>Explore Open Roles</span>
                   </div>
-                  <ChevronRight size={15} className="text-[#5f6368] group-hover:text-[#1a73e8] transition-colors" />
+                  <ChevronRight size={15} className="text-[var(--muted)] group-hover:text-[var(--brand-deep)] transition-colors" />
                 </Link>
 
                 <Link
                   to="/candidate/applications"
-                  className="flex items-center justify-between p-3 rounded-xl bg-[#f8fafd] hover:bg-[#e6f4ea] border border-[#e0e3e7] text-xs font-semibold text-[#1f1f1f] transition-all group"
+                  className="flex items-center justify-between p-3 rounded-[14px] bg-[var(--surface-alt)] hover:bg-[var(--accent-pink-tint)]/50 border border-[var(--line)] text-xs font-semibold text-[var(--text)] transition-all group"
                 >
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-[#e6f4ea] text-[#137333] flex items-center justify-center shrink-0 border border-[#ceead6]">
+                    <div className="w-8 h-8 rounded-[10px] bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)] flex items-center justify-center shrink-0 border border-[var(--accent-pink)]/20">
                       <FileText size={16} />
                     </div>
                     <span>My Applications</span>
                   </div>
-                  <ChevronRight size={15} className="text-[#5f6368] group-hover:text-[#137333] transition-colors" />
+                  <ChevronRight size={15} className="text-[var(--muted)] group-hover:text-[var(--accent-pink-deep)] transition-colors" />
                 </Link>
 
                 <Link
                   to="/candidate/profile"
-                  className="flex items-center justify-between p-3 rounded-xl bg-[#f8fafd] hover:bg-[#fef7e0] border border-[#e0e3e7] text-xs font-semibold text-[#1f1f1f] transition-all group"
+                  className="flex items-center justify-between p-3 rounded-[14px] bg-[var(--surface-alt)] hover:bg-[var(--line)]/60 border border-[var(--line)] text-xs font-semibold text-[var(--text)] transition-all group"
                 >
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-[#fef7e0] text-[#b06000] flex items-center justify-center shrink-0 border border-[#feefc3]">
+                    <div className="w-8 h-8 rounded-[10px] bg-[var(--surface)] text-[var(--muted)] flex items-center justify-center shrink-0 border border-[var(--line)]">
                       <User size={16} />
                     </div>
                     <span>Update Profile &amp; Resume</span>
                   </div>
-                  <ChevronRight size={15} className="text-[#5f6368] group-hover:text-[#b06000] transition-colors" />
+                  <ChevronRight size={15} className="text-[var(--muted)] group-hover:text-[var(--text)] transition-colors" />
                 </Link>
               </div>
             </div>
 
             {/* Fresh Openings */}
-            <div className="rounded-2xl border border-[#e0e3e7] bg-white shadow-xs flex flex-col overflow-hidden">
-              <div className="p-5 flex items-center justify-between border-b border-[#f1f3f4]">
+            <div className="rounded-[20px] border border-[var(--line)] bg-[var(--surface)] shadow-xs flex flex-col overflow-hidden">
+              <div className="p-5 flex items-center justify-between border-b border-[var(--line)]">
                 <div>
-                  <h2 className="text-sm font-bold text-[#1f1f1f]">Fresh Openings</h2>
-                  <p className="text-xs text-[#5f6368] mt-0.5">Recently published opportunities</p>
+                  <h2 className="text-sm font-semibold text-[var(--text)]">Fresh Openings</h2>
+                  <p className="text-xs text-[var(--muted)] mt-0.5">Recently published opportunities</p>
                 </div>
                 <Link
                   to="/candidate/jobs"
-                  className="text-xs font-bold text-[#1a73e8] hover:text-[#1557b0] hover:underline"
+                  className="text-xs font-semibold text-[var(--brand-deep)] hover:underline"
                 >
                   Browse
                 </Link>
@@ -402,20 +395,20 @@ const CandidateDashboard = () => {
 
               <div className="p-4 space-y-2.5">
                 {jobs.length === 0 ? (
-                  <p className="text-xs text-[#5f6368] text-center py-4">No open positions currently.</p>
+                  <p className="text-xs text-[var(--muted)] text-center py-4">No open positions currently.</p>
                 ) : (
                   jobs.map((job) => (
                     <Link
                       key={job.id}
                       to="/candidate/jobs"
-                      className="block rounded-xl border border-[#e0e3e7] p-3 hover:bg-[#f8fafd] transition-colors"
+                      className="block rounded-[14px] border border-[var(--line)] p-3 hover:bg-[var(--surface-alt)] transition-colors"
                     >
                       <div className="flex items-center justify-between gap-2">
                         <div>
-                          <p className="font-semibold text-xs text-[#1f1f1f]">{job.title}</p>
-                          <p className="text-[10px] text-[#5f6368] mt-0.5">{job.department} &bull; {job.location}</p>
+                          <p className="font-semibold text-xs text-[var(--text)]">{job.title}</p>
+                          <p className="text-[10px] text-[var(--muted)] mt-0.5">{job.department} &bull; {job.location}</p>
                         </div>
-                        <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">
+                        <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-semibold bg-[#E6F6EC] text-[#1F9D55] border border-[#CEEAD6]">
                           Apply
                         </span>
                       </div>
