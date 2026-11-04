@@ -132,44 +132,42 @@ const EmployeePerformance = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="w-2 h-2 rounded-full bg-[var(--brand)]" />
-            <span className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">Productivity &amp; Analytics</span>
+            <span className="text-[12px] font-medium text-[var(--muted)]">Productivity &amp; analytics</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight flex items-center gap-2.5">
-            <span>Performance &amp; Time Analytics</span>
-            <span className="text-xs font-medium text-[#1F9D55] bg-[#E6F6EC] px-2.5 py-0.5 rounded-full">Active Tracking</span>
+          <h1 className="text-[24px] font-medium text-[var(--text)] tracking-[-0.01em] flex items-center gap-2">
+            <span>Performance &amp; time analytics</span>
+            <span className="text-[12px] font-medium text-[var(--brand-deep)] bg-[var(--brand-tint)] px-2.5 py-0.5 rounded-[9px]">
+              Active tracking
+            </span>
           </h1>
-          <p className="text-xs sm:text-sm text-[var(--text-2)] mt-0.5">
+          <p className="text-[13px] text-[var(--muted)] mt-1">
             Weekly velocity, 6-month attendance consistency trends, and department benchmark comparisons.
           </p>
         </div>
       </div>
 
       {/* KPI Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[14px]">
         <StatCard 
-          title="Work Hours (This Week)" 
+          title="Work hours (this week)" 
           value={currentWeek ? `${currentWeek.totalHours} hrs` : '0 hrs'}
           subtitle={currentWeek ? `Avg ${currentWeek.avgHoursPerDay} hrs/day (${currentWeek.presentDays} days)` : 'Current week'}
           icon={Clock} 
-          colorTheme="purple"
         />
         <StatCard 
-          title="Work Hours (This Month)" 
+          title="Work hours (this month)" 
           value={`${perfData.currentMonthSummary?.totalHours || 0} hrs`}
           subtitle="Cumulative monthly hours logged"
           icon={Clock} 
-          colorTheme="blue" 
         />
         <StatCard 
-          title="Present Days (This Month)" 
+          title="Present days (this month)" 
           value={`${perfData.currentMonthSummary?.totalPresent || 0} Days`}
           subtitle={`Out of ${perfData.currentMonthSummary?.totalWorkdays || 0} working days`}
           icon={CalendarDays} 
-          colorTheme="green" 
         />
         <StatCard 
-          title="Attendance Score" 
+          title="Attendance score" 
           value={`${perfData.currentMonthSummary?.attendancePct || 0}%`}
           subtitle="Monthly compliance rating"
           icon={Activity} 

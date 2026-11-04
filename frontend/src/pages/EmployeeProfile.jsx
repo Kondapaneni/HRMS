@@ -360,14 +360,15 @@ const EmployeeProfile = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="w-2 h-2 rounded-full bg-[var(--brand)]" />
-              <span className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">Staff Identity &amp; Records</span>
+              <span className="text-[12px] font-medium text-[var(--muted)]">Staff identity &amp; records</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight flex items-center gap-2.5">
-              <span>My Employee Profile</span>
-              <span className="text-xs font-medium text-[#1F9D55] bg-[#E6F6EC] px-2.5 py-0.5 rounded-full">Active Record</span>
+            <h1 className="text-[24px] font-medium text-[var(--text)] tracking-[-0.01em] flex items-center gap-2">
+              <span>My employee profile</span>
+              <span className="text-[12px] font-medium text-[var(--brand-deep)] bg-[var(--brand-tint)] px-2.5 py-0.5 rounded-[9px]">
+                Active staff
+              </span>
             </h1>
-            <p className="text-xs sm:text-sm text-[var(--text-2)] mt-0.5">
+            <p className="text-[13px] text-[var(--muted)] mt-1">
               Personal credentials, work assignments, organizational hierarchy, and assigned company assets.
             </p>
           </div>
@@ -376,10 +377,10 @@ const EmployeeProfile = () => {
             <button 
               type="button"
               onClick={() => navigate('/employee/profile/edit')}
-              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-[14px] text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white transition-all cursor-pointer shadow-none"
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-[10px] text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink)]/90 text-white transition-all cursor-pointer shadow-none"
             >
               <Edit3 className="w-3.5 h-3.5" />
-              <span>Edit Profile</span>
+              <span>Edit profile</span>
             </button>
           </div>
         </div>

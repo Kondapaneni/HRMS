@@ -21,6 +21,7 @@ import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
 import EmployeeMobileExpenses from './EmployeeMobileExpenses';
+import Button from '../components/ui/Button';
 
 const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme }) => {
   const themes = {
@@ -191,59 +192,55 @@ const EmployeeExpenses = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="w-2 h-2 rounded-full bg-[var(--brand)]" />
-              <span className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">Reimbursements & Claims</span>
+              <span className="text-[12px] font-medium text-[var(--muted)]">Reimbursements &amp; claims</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight flex items-center gap-2.5">
-              <span>Expense Reimbursements</span>
-              <span className="text-xs font-medium text-[var(--brand-deep)] bg-[var(--brand-tint)] px-2.5 py-0.5 rounded-full">{expensesData.length} Claims</span>
+            <h1 className="text-[24px] font-medium text-[var(--text)] tracking-[-0.01em] flex items-center gap-2">
+              <span>Expense reimbursements</span>
+              <span className="text-[12px] font-medium text-[var(--brand-deep)] bg-[var(--brand-tint)] px-2.5 py-0.5 rounded-[9px]">
+                {expensesData.length} Claims
+              </span>
             </h1>
-            <p className="text-xs sm:text-sm text-[var(--text-2)] mt-0.5">
+            <p className="text-[13px] text-[var(--muted)] mt-1">
               Submit corporate out-of-pocket receipts, upload vouchers, and track reimbursement status.
             </p>
           </div>
 
           <div className="flex items-center gap-3">
-            <button
-              type="button"
+            <Button
+              variant="primary"
               onClick={() => setIsModalOpen(true)}
-              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-[14px] text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white transition-all cursor-pointer shadow-none"
             >
-              <Plus className="w-4 h-4" />
-              <span>Submit New Expense</span>
-            </button>
+              <Plus className="w-4 h-4 mr-1.5" />
+              <span>Submit new expense</span>
+            </Button>
           </div>
         </div>
 
         {/* KPI Summary Cards */}
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-[14px] grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard 
-            title="Total Claimed" 
+            title="Total claimed" 
             value={formatCurrency(totalClaimed)} 
             subtitle="All expense submissions" 
             icon={IndianRupee} 
-            colorTheme="blue" 
           />
           <StatCard 
-            title="Approved Total" 
+            title="Approved total" 
             value={formatCurrency(approvedTotal)} 
             subtitle="Reimbursements processed" 
             icon={CheckCircle2} 
-            colorTheme="green" 
           />
           <StatCard 
-            title="Pending Review" 
+            title="Pending review" 
             value={formatCurrency(pendingTotal)} 
             subtitle="Awaiting management review" 
             icon={Clock} 
-            colorTheme="amber" 
           />
           <StatCard 
-            title="Declined Claims" 
+            title="Declined claims" 
             value={`${rejectedCount} Claims`} 
             subtitle="Rejected expense vouchers" 
             icon={XCircle} 
-            colorTheme="red" 
           />
         </div>
 

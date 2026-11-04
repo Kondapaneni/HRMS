@@ -255,16 +255,15 @@ const EmployeeAssessments = () => {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="w-2 h-2 rounded-full bg-[var(--brand)]" />
-            <span className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">Learning &amp; Evaluations</span>
+            <span className="text-[12px] font-medium text-[var(--muted)]">Learning &amp; evaluations</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight">
-            Scheduled Assessments
+          <h1 className="text-[24px] font-medium text-[var(--text)] tracking-[-0.01em] flex items-center gap-2">
+            <span>Scheduled assessments</span>
+            <span className="text-[12px] font-medium text-[var(--brand-deep)] bg-[var(--brand-tint)] px-2.5 py-0.5 rounded-[9px]">
+              {todayAssessments.length} Scheduled today
+            </span>
           </h1>
-          <p className="text-xs sm:text-sm text-[var(--text-2)] mt-0.5">Your scheduled employee assessments and evaluations for today.</p>
-        </div>
-        <div className="text-xs font-medium text-[var(--brand-deep)] bg-[var(--brand-tint)] px-3 py-1.5 rounded-full">
-          {todayAssessments.length} Scheduled Today
+          <p className="text-[13px] text-[var(--muted)] mt-1">Your scheduled employee assessments and evaluations for today.</p>
         </div>
       </div>
 

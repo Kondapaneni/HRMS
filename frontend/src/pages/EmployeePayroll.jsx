@@ -147,48 +147,45 @@ const EmployeePayroll = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="w-2 h-2 rounded-full bg-[var(--brand)]" />
-              <span className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">Compensation &amp; Statements</span>
+              <span className="text-[12px] font-medium text-[var(--muted)]">Compensation &amp; statements</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight flex items-center gap-2.5">
-              <span>Payroll &amp; Salary Records</span>
-              <span className="text-xs font-medium text-[#1F9D55] bg-[#E6F6EC] px-2.5 py-0.5 rounded-full">{payslips.length} Statements</span>
+            <h1 className="text-[24px] font-medium text-[var(--text)] tracking-[-0.01em] flex items-center gap-2">
+              <span>Payroll &amp; salary records</span>
+              <span className="text-[12px] font-medium text-[var(--brand-deep)] bg-[var(--brand-tint)] px-2.5 py-0.5 rounded-[9px]">
+                {payslips.length} Statements
+              </span>
             </h1>
-            <p className="text-xs sm:text-sm text-[var(--text-2)] mt-0.5">
+            <p className="text-[13px] text-[var(--muted)] mt-1">
               Monthly compensation ledger, gross breakdown, statutory deductions, and downloadable payslip PDFs.
             </p>
           </div>
         </div>
 
         {/* Salary Summary KPI Cards */}
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-[14px] grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard 
-            title="Monthly Basic Pay" 
+            title="Monthly basic pay" 
             value={formatCurrency(latestBasic)} 
             subtitle="Base contract component" 
             icon={IndianRupee} 
-            colorTheme="blue" 
           />
           <StatCard 
             title="Allowances &amp; HRA" 
             value={formatCurrency(latestAllowances)} 
             subtitle="Transport, special &amp; allowances" 
             icon={TrendingUp} 
-            colorTheme="green" 
           />
           <StatCard 
-            title="Total Deductions" 
+            title="Total deductions" 
             value={formatCurrency(latestDeductions)} 
             subtitle="Tax, PF, ESI &amp; withholdings" 
             icon={TrendingDown} 
-            colorTheme="red" 
           />
           <StatCard 
-            title="Net Take-Home Pay" 
+            title="Net take-home pay" 
             value={formatCurrency(latestNet)} 
             subtitle="Disbursed to bank account" 
             icon={Wallet} 
-            colorTheme="purple" 
           />
         </div>
 
