@@ -1,73 +1,30 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import PageLoader from '../components/PageLoader';
 import { useAuth } from '../contexts/AuthContext';
 import { 
   User, 
   Building, 
-  Calendar, 
-  Mail, 
-  Briefcase, 
   LogIn, 
   LogOut, 
   Clock, 
   CalendarDays, 
   BarChart3, 
   AlertCircle, 
-  Loader2, 
   Coffee,
   Sparkles,
   CheckCircle2,
-  MapPin,
-  ShieldCheck,
-  Award,
   Wallet,
   TrendingUp,
   ExternalLink
 } from 'lucide-react';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
-import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import EmployeeMobileDashboard from './EmployeeMobileDashboard';
-
-const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme }) => {
-  const themes = {
-    blue: {
-      iconBg: 'bg-[#e8f0fe]',
-      iconColor: 'text-[#1a73e8]',
-    },
-    green: {
-      iconBg: 'bg-[#e6f4ea]',
-      iconColor: 'text-[#137333]',
-    },
-    purple: {
-      iconBg: 'bg-[#f3e8fd]',
-      iconColor: 'text-[#8430ce]',
-    },
-    amber: {
-      iconBg: 'bg-[#fef7e0]',
-      iconColor: 'text-[#b06000]',
-    }
-  };
-
-  const theme = themes[colorTheme] || themes.blue;
-
-  return (
-    <div className="bg-white rounded-2xl border border-[#e0e3e7] p-5 shadow-xs transition-all duration-200 hover:shadow-md hover:border-[#dadce0]">
-      <div className="flex items-start justify-between">
-        <div className="space-y-1">
-          <p className="text-xs font-semibold text-[#5f6368] uppercase tracking-wider">{title}</p>
-          <p className="text-2xl font-bold text-[#1f1f1f] tracking-tight">{value}</p>
-          {subtitle && <p className="text-xs text-[#5f6368] font-normal pt-0.5">{subtitle}</p>}
-        </div>
-        <div className={`p-3 rounded-2xl ${theme.iconBg} ${theme.iconColor} shrink-0`}>
-          <Icon className="w-5 h-5" />
-        </div>
-      </div>
-    </div>
-  );
-};
+import StatCard from '../components/ui/StatCard';
+import StatusBadge from '../components/ui/StatusBadge';
+import Button from '../components/ui/Button';
 
 const EmployeeDashboard = () => {
   const { profile } = useAuth();
@@ -132,15 +89,8 @@ const EmployeeDashboard = () => {
   }, [lockoutSeconds, queryClient]);
 
   const isLocked = lockoutSeconds !== null && lockoutSeconds > 0;
-  const formatLockoutTimer = (seconds) => {
-    if (!seconds || seconds <= 0) return 'Locked';
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `Locked (${m}m ${String(s).padStart(2, '0')}s)`;
-  };
 
   const isWebAttendanceEnabled = fullProfile?.webAttendanceEnabled == 1 || fullProfile?.webAttendanceEnabled === true || fullProfile?.webAttendanceEnabled === '1' || fullProfile?.webAttendanceEnabled === 'true';
-
 
   const getDistanceFromLatLonInMeters = (lat1, lon1, lat2, lon2) => {
     const R = 6371e3;
@@ -241,9 +191,9 @@ const EmployeeDashboard = () => {
 
   const getGreeting = () => {
     const hour = currentTime.getHours();
-    if (hour < 12) return 'Good Morning';
-    if (hour < 18) return 'Good Afternoon';
-    return 'Good Evening';
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
   };
 
   const todayStr = new Date().toLocaleDateString('en-CA');
@@ -253,10 +203,9 @@ const EmployeeDashboard = () => {
 
   // Stats calculation
   const availablePaidLeaves = leaves?.balance ? Math.max(0, leaves.balance.paidTotal - leaves.balance.paidUsed) : '--';
-  const attendanceScore = performance?.attendancePct !== undefined ? `${performance.attendancePct}%` : '100%';
   const onTimeScore = performance?.onTimePct !== undefined ? `${performance.onTimePct}%` : '100%';
 
-  if (loading) return <PageLoader message="Loading Workspace..." />;
+  if (loading) return <PageLoader message="Loading workspace..." />;
 
   return (
     <>
@@ -265,34 +214,31 @@ const EmployeeDashboard = () => {
         <EmployeeMobileDashboard />
       </div>
 
-      {/* Web Desktop Experience (Google Material 3 Workspace UI) */}
-      <div className="hidden md:block space-y-6 pb-12 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+      {/* Web Desktop Experience */}
+      <div className="hidden md:block space-y-6 pb-12 antialiased">
         
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <div className="flex items-center gap-1.5 mb-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-              <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Workspace Overview</span>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-[12px] font-medium text-[var(--muted)]">Workspace overview</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight flex items-center gap-2" style={{ fontWeight: 500 }}>
-              <span>{getGreeting()}, <span className="font-medium italic text-[#1a73e8]">{profile?.firstName || 'Colleague'}</span>!</span> <span className="text-xs font-semibold text-[#137333] bg-[#e6f4ea] border border-[#ceead6] px-2.5 py-0.5 rounded-full">Active Staff</span>
+            <h1 className="text-[24px] font-medium text-[var(--text)] tracking-[-0.01em] flex items-center gap-2">
+              <span>{getGreeting()}, <span className="text-[var(--brand-deep)] font-semibold">{profile?.firstName || 'Colleague'}</span>!</span>
+              <StatusBadge variant="success">Active staff</StatusBadge>
             </h1>
-            <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
+            <p className="text-[13px] text-[var(--muted)] mt-1">
               Daily attendance check-in, shift assignments, performance benchmarks, and leave balances.
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5 self-start sm:self-auto bg-white border border-[#e0e3e7] px-3.5 py-1.5 rounded-full shadow-xs">
-            <Clock className="w-4 h-4 text-[#1a73e8]" />
+          <div className="flex items-center gap-2.5 self-start sm:self-auto bg-[var(--surface)] px-4 py-2 rounded-full">
+            <Clock className="w-4 h-4 text-[var(--brand-deep)]" />
             <div className="text-right">
-              <p className="text-xs font-semibold text-[#1f1f1f] leading-tight">
+              <p className="text-[13px] font-medium text-[var(--text)] leading-tight">
                 {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
               </p>
-              <p className="text-[10px] text-[#5f6368] leading-tight">
+              <p className="text-[11px] text-[var(--muted)] leading-tight">
                 {currentTime.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
               </p>
             </div>
@@ -300,248 +246,244 @@ const EmployeeDashboard = () => {
         </div>
 
         {/* KPI Stats Cards */}
-        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-[14px] grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard 
-            title="Today's Status" 
-            value={checkedIn ? 'Checked In' : (checkOutTime ? 'Checked Out' : 'Not Yet!')} 
+            title="Today's status" 
+            value={checkedIn ? 'Checked in' : (checkOutTime ? 'Checked out' : 'Not yet')} 
             subtitle={todayRecord?.checkIn ? `Since ${new Date(todayRecord.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'Awaiting punch'} 
             icon={Clock} 
-            colorTheme={checkedIn ? 'green' : 'blue'} 
           />
           <StatCard 
-            title="On-Time Score" 
+            title="On-time score" 
             value={onTimeScore} 
             subtitle="Current month benchmark" 
             icon={TrendingUp} 
-            colorTheme="purple" 
           />
           <StatCard 
-            title="Paid Leaves" 
+            title="Paid leaves" 
             value={`${availablePaidLeaves} Days`} 
             subtitle={`Out of ${leaves?.balance?.paidTotal || 12} annual days`} 
             icon={CalendarDays} 
-            colorTheme="amber" 
           />
           <StatCard 
-            title="Work Location" 
-            value={fullProfile?.branch_name || 'Main Office'} 
+            title="Work location" 
+            value={fullProfile?.branch_name || 'Main office'} 
             subtitle={fullProfile?.shiftTime ? `Shift: ${fullProfile.shiftTime}` : 'Standard 09:00 - 18:00'} 
             icon={Building} 
-            colorTheme="green" 
           />
         </div>
 
         {/* Main Grid: Quick Punch (Left) + Profile & Details (Right) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-[14px] items-start">
           
           {/* Left Column: Quick Punch Terminal & Shift Schedule */}
-          <div className="lg:col-span-8 space-y-6">
+          <div className="lg:col-span-8 space-y-[14px]">
             
             {/* Quick Punch Terminal Card */}
-            <div className="bg-white rounded-2xl border border-[#e0e3e7] p-6 shadow-xs space-y-6">
-              <div className="flex items-center justify-between pb-4 border-b border-[#e0e3e7]">
-                <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-xl bg-[#e8f0fe] text-[#1a73e8]">
+            <div className="bg-[var(--surface)] rounded-[24px] p-6 space-y-5">
+              <div className="flex items-center justify-between pb-3 border-b border-[var(--line)]">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-[14px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center">
                     <Clock className="w-5 h-5" />
                   </div>
                   <div>
-                    <h2 className="text-base font-semibold text-[#1f1f1f]">Daily Attendance Terminal</h2>
-                    <p className="text-xs text-[#5f6368]">Geofenced biometric check-in &amp; work hours logging</p>
+                    <h2 className="text-[15px] font-medium text-[var(--text)]">Daily attendance terminal</h2>
+                    <p className="text-[12px] text-[var(--muted)]">Geofenced biometric check-in & work hours logging</p>
                   </div>
                 </div>
 
                 {todayRecord?.checkIn && (
-                  <span className="text-[11px] font-semibold text-[#137333] bg-[#e6f4ea] border border-[#ceead6] px-3 py-1 rounded-full flex items-center gap-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5" /> Checked In
-                  </span>
+                  <StatusBadge variant="success">
+                    <CheckCircle2 className="w-3.5 h-3.5 mr-1 inline" /> Checked in
+                  </StatusBadge>
                 )}
               </div>
 
               {/* Punch Status & Action Buttons */}
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-6 p-5 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7]">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-[20px] bg-[var(--surface-alt)]">
                 <div className="space-y-1.5 text-center sm:text-left shrink-0">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider text-[#5f6368] whitespace-nowrap block">Punch Status</span>
+                  <span className="text-[11px] font-medium uppercase tracking-wider text-[var(--muted)] whitespace-nowrap block">Punch status</span>
                   {todayRecord?.checkIn ? (
-                    <div className="space-y-1.5 text-xs">
-                      <div className="flex items-center gap-2 text-[#1f1f1f] whitespace-nowrap">
-                        <span className="text-[#5f6368] whitespace-nowrap">Check-in Time:</span>
-                        <span className="font-semibold text-[#1f1f1f] bg-white px-3 py-0.5 rounded-full border border-[#e0e3e7] whitespace-nowrap shrink-0 shadow-2xs">
+                    <div className="space-y-1.5 text-[12px]">
+                      <div className="flex items-center gap-2 text-[var(--text)] whitespace-nowrap">
+                        <span className="text-[var(--muted)] whitespace-nowrap">Check-in time:</span>
+                        <span className="font-medium text-[var(--text)] bg-[var(--surface)] px-2.5 py-0.5 rounded-full">
                           {new Date(todayRecord.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                         </span>
                       </div>
                       {todayRecord?.checkOut && (
-                        <div className="flex items-center gap-2 text-[#1f1f1f] whitespace-nowrap">
-                          <span className="text-[#5f6368] whitespace-nowrap">Check-out Time:</span>
-                          <span className="font-semibold text-[#1f1f1f] bg-white px-3 py-0.5 rounded-full border border-[#e0e3e7] whitespace-nowrap shrink-0 shadow-2xs">
+                        <div className="flex items-center gap-2 text-[var(--text)] whitespace-nowrap">
+                          <span className="text-[var(--muted)] whitespace-nowrap">Check-out time:</span>
+                          <span className="font-medium text-[var(--text)] bg-[var(--surface)] px-2.5 py-0.5 rounded-full">
                             {new Date(todayRecord.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                           </span>
                         </div>
                       )}
                     </div>
                   ) : (
-                    <p className="text-xs font-semibold text-[#b06000] bg-[#fef7e0] border border-[#feefc3] px-3 py-1 rounded-full inline-block whitespace-nowrap">
+                    <StatusBadge variant="warning">
                       No punch recorded today
-                    </p>
+                    </StatusBadge>
                   )}
                 </div>
 
                 {/* Rate Limit Lockout Banner */}
                 {isLocked && (
-                  <div className="w-full rounded-2xl bg-[#fef7e0] border border-[#feefc3] p-3.5 flex items-center justify-between text-xs text-[#b06000] shadow-2xs">
-                    <div className="flex items-center gap-2.5">
-                      <Clock className="w-4 h-4 text-[#b06000] shrink-0 animate-pulse" />
-                      <span className="font-semibold">
-                        Rate limit active: Multiple punches detected. Attendance buttons are temporarily locked.
+                  <div className="w-full rounded-[14px] bg-[var(--warning-bg)] p-3 flex items-center justify-between text-[12px] text-[var(--warning-text)]">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-[var(--warning-text)] shrink-0 animate-pulse" />
+                      <span className="font-medium">
+                        Rate limit active: Attendance buttons temporarily locked.
                       </span>
                     </div>
-                    <span className="font-semibold font-mono bg-white px-3 py-1 rounded-full border border-[#feefc3] text-[#b06000] shadow-2xs shrink-0">
+                    <span className="font-medium font-mono bg-[var(--surface)] px-2.5 py-0.5 rounded-full">
                       Unlocks in {Math.floor(lockoutSeconds / 60)}:{String(lockoutSeconds % 60).padStart(2, '0')}
                     </span>
                   </div>
                 )}
 
                 {/* Punch Action Buttons */}
-                <div className="flex flex-wrap gap-2.5 justify-center sm:justify-end">
+                <div className="flex flex-wrap gap-2 justify-center sm:justify-end">
                   {!isWebAttendanceEnabled ? (
-                    <div className="flex items-center gap-2.5 p-3.5 bg-[#fce8e6] text-[#c5221f] rounded-2xl border border-[#fad2cf] text-xs font-semibold w-full">
+                    <div className="flex items-center gap-2 p-3 bg-[var(--danger-bg)] text-[var(--danger-text)] rounded-[14px] text-[12px] font-medium w-full">
                       <AlertCircle className="w-4 h-4 shrink-0" />
-                      <span>Web Attendance is disabled for your profile. Please use the mobile app.</span>
+                      <span>Web attendance is disabled for your profile. Please use the mobile app.</span>
                     </div>
                   ) : (
                     <>
-                      <button
+                      <Button
                         type="button"
+                        variant="primary"
                         onClick={() => handlePunch('check-in')}
                         disabled={punchingAction || checkedIn || checkOutTime || isLocked}
-                        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white disabled:opacity-40 transition-all cursor-pointer shadow-xs disabled:cursor-not-allowed"
                       >
-                        <LogIn className="w-4 h-4" />
-                        <span>{punchingAction === 'check-in' ? 'Checking In...' : 'Check In'}</span>
-                      </button>
+                        <LogIn className="w-4 h-4 mr-1.5" />
+                        <span>{punchingAction === 'check-in' ? 'Checking in...' : 'Check in'}</span>
+                      </Button>
 
-                      <button
+                      <Button
                         type="button"
+                        variant="secondary"
                         onClick={() => handlePunch('punch')}
                         disabled={punchingAction || !checkedIn || checkOutTime || isLocked}
-                        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold bg-white border border-[#dadce0] hover:bg-[#f1f3f4] text-[#1f1f1f] disabled:opacity-40 transition-all cursor-pointer shadow-2xs disabled:cursor-not-allowed"
                       >
-                        <Clock className="w-4 h-4 text-[#5f6368]" />
-                        <span>{punchingAction === 'punch' ? 'Punching...' : 'Interval Punch'}</span>
-                      </button>
+                        <Clock className="w-4 h-4 mr-1.5 text-[var(--muted)]" />
+                        <span>{punchingAction === 'punch' ? 'Punching...' : 'Interval punch'}</span>
+                      </Button>
 
-                      <button
+                      <Button
                         type="button"
+                        variant="danger"
                         onClick={() => handlePunch('check-out')}
                         disabled={punchingAction || !checkedIn || checkOutTime || isLocked}
-                        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold bg-white border border-[#dadce0] hover:bg-[#f1f3f4] text-[#d93025] hover:border-[#fad2cf] hover:bg-[#fce8e6] disabled:opacity-40 transition-all cursor-pointer shadow-2xs disabled:cursor-not-allowed"
                       >
-                        <LogOut className="w-4 h-4" />
-                        <span>{punchingAction === 'check-out' ? 'Checking Out...' : 'Check Out'}</span>
-                      </button>
+                        <LogOut className="w-4 h-4 mr-1.5" />
+                        <span>{punchingAction === 'check-out' ? 'Checking out...' : 'Check out'}</span>
+                      </Button>
                     </>
                   )}
                 </div>
               </div>
 
               {/* Shift & Office Context Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-                <div className="p-3.5 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7] flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-[#e8f0fe] text-[#1a73e8]">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                <div className="p-3.5 rounded-[16px] bg-[var(--surface-alt)] flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-[12px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center shrink-0">
                     <CalendarDays className="w-4 h-4" />
                   </div>
                   <div className="truncate">
-                    <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Standard Shift</p>
-                    <p className="text-xs font-bold text-[#1f1f1f] truncate">{fullProfile?.shiftTime || '09:00 AM - 06:00 PM'}</p>
+                    <p className="text-[11px] font-medium text-[var(--muted)] uppercase tracking-wider">Standard shift</p>
+                    <p className="text-[13px] font-medium text-[var(--text)] truncate">{fullProfile?.shiftTime || '09:00 AM - 06:00 PM'}</p>
                   </div>
                 </div>
 
-                <div className="p-3.5 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7] flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-[#f3e8fd] text-[#8430ce]">
+                <div className="p-3.5 rounded-[16px] bg-[var(--surface-alt)] flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-[12px] bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)] flex items-center justify-center shrink-0">
                     <Coffee className="w-4 h-4" />
                   </div>
                   <div className="truncate">
-                    <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Weekly Off</p>
-                    <p className="text-xs font-bold text-[#1f1f1f] truncate">{fullProfile?.weekOff || 'Sunday'}</p>
+                    <p className="text-[11px] font-medium text-[var(--muted)] uppercase tracking-wider">Weekly off</p>
+                    <p className="text-[13px] font-medium text-[var(--text)] truncate">{fullProfile?.weekOff || 'Sunday'}</p>
                   </div>
                 </div>
 
-                <div className="p-3.5 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7] flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-[#e6f4ea] text-[#137333]">
+                <div className="p-3.5 rounded-[16px] bg-[var(--surface-alt)] flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-[12px] bg-[var(--success-bg)] text-[var(--success-text)] flex items-center justify-center shrink-0">
                     <Building className="w-4 h-4" />
                   </div>
                   <div className="truncate">
-                    <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Assigned Branch</p>
-                    <p className="text-xs font-bold text-[#1f1f1f] truncate">{fullProfile?.branch_name || 'Corporate HQ'}</p>
+                    <p className="text-[11px] font-medium text-[var(--muted)] uppercase tracking-wider">Assigned branch</p>
+                    <p className="text-[13px] font-medium text-[var(--text)] truncate">{fullProfile?.branch_name || 'Corporate HQ'}</p>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Performance & Leave Balances Row */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-[14px]">
               
               {/* Performance Card */}
-              <div className="bg-white rounded-2xl border border-[#e0e3e7] p-5 shadow-xs space-y-4">
-                <div className="flex items-center gap-2 pb-3 border-b border-[#e0e3e7]">
-                  <div className="p-2 rounded-xl bg-[#f3e8fd] text-[#8430ce]">
+              <div className="bg-[var(--surface)] rounded-[24px] p-6 space-y-4">
+                <div className="flex items-center gap-2.5 pb-3 border-b border-[var(--line)]">
+                  <div className="w-8 h-8 rounded-[10px] bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)] flex items-center justify-center">
                     <BarChart3 className="w-4 h-4" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-semibold text-[#1f1f1f]">Monthly Performance</h3>
-                    <p className="text-xs text-[#5f6368]">Attendance discipline &amp; punctuality</p>
+                    <h3 className="text-[14px] font-medium text-[var(--text)]">Monthly performance</h3>
+                    <p className="text-[12px] text-[var(--muted)]">Attendance discipline & punctuality</p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 text-xs">
-                  <div className="p-3.5 rounded-xl bg-[#f8fafd] border border-[#e0e3e7] space-y-1">
-                    <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Attendance Rate</p>
-                    <p className="text-xl font-bold text-[#1f1f1f]">{attendanceScore}</p>
+                <div className="grid grid-cols-2 gap-3 text-[13px]">
+                  <div className="p-3.5 rounded-[16px] bg-[var(--surface-alt)] space-y-1">
+                    <p className="text-[11px] font-medium text-[var(--muted)] uppercase tracking-wider">Attendance rate</p>
+                    <p className="text-[20px] font-medium text-[var(--text)]">{performance?.attendancePct !== undefined ? `${performance.attendancePct}%` : '100%'}</p>
                   </div>
 
-                  <div className="p-3.5 rounded-xl bg-[#f8fafd] border border-[#e0e3e7] space-y-1">
-                    <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Punctuality Score</p>
-                    <p className="text-xl font-bold text-[#137333]">{onTimeScore}</p>
+                  <div className="p-3.5 rounded-[16px] bg-[var(--surface-alt)] space-y-1">
+                    <p className="text-[11px] font-medium text-[var(--muted)] uppercase tracking-wider">Punctuality score</p>
+                    <p className="text-[20px] font-medium text-[var(--success-text)]">{onTimeScore}</p>
                   </div>
                 </div>
 
-                <div className="p-3 rounded-xl bg-[#f8fafd] border border-[#e0e3e7] text-xs text-[#5f6368] flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#8430ce] shrink-0" />
-                  <span>Maintain scores &gt;90% for monthly performance rewards.</span>
+                <div className="p-3 rounded-[14px] bg-[var(--brand-tint)] text-[12px] text-[var(--text-2)] flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[var(--brand-deep)] shrink-0" />
+                  <span>Maintain scores &gt;90% for monthly performance recognition.</span>
                 </div>
               </div>
 
               {/* Leave Balances Card */}
-              <div className="bg-white rounded-2xl border border-[#e0e3e7] p-5 shadow-xs space-y-4">
-                <div className="flex items-center gap-2 pb-3 border-b border-[#e0e3e7]">
-                  <div className="p-2 rounded-xl bg-[#e6f4ea] text-[#137333]">
+              <div className="bg-[var(--surface)] rounded-[24px] p-6 space-y-4">
+                <div className="flex items-center gap-2.5 pb-3 border-b border-[var(--line)]">
+                  <div className="w-8 h-8 rounded-[10px] bg-[var(--success-bg)] text-[var(--success-text)] flex items-center justify-center">
                     <CalendarDays className="w-4 h-4" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-semibold text-[#1f1f1f]">Leave Balances</h3>
-                    <p className="text-xs text-[#5f6368]">Annual quota and taken leave ledger</p>
+                    <h3 className="text-[14px] font-medium text-[var(--text)]">Leave balances</h3>
+                    <p className="text-[12px] text-[var(--muted)]">Annual quota and taken leave ledger</p>
                   </div>
                 </div>
 
-                <div className="space-y-2.5 text-xs">
-                  <div className="flex items-center justify-between p-3 rounded-xl bg-[#f8fafd] border border-[#e0e3e7]">
+                <div className="space-y-2.5 text-[13px]">
+                  <div className="flex items-center justify-between p-3.5 rounded-[16px] bg-[var(--surface-alt)]">
                     <div>
-                      <p className="font-semibold text-[#1f1f1f]">Paid Leaves (Annual)</p>
-                      <p className="text-[10px] text-[#5f6368]">Available balance</p>
+                      <p className="font-medium text-[var(--text)]">Paid leaves (Annual)</p>
+                      <p className="text-[11px] text-[var(--muted)]">Available balance</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-lg font-bold text-[#1f1f1f]">{availablePaidLeaves}</p>
-                      <p className="text-[10px] text-[#5f6368]">of {leaves?.balance?.paidTotal || 12} Total</p>
+                      <p className="text-[18px] font-medium text-[var(--text)]">{availablePaidLeaves}</p>
+                      <p className="text-[11px] text-[var(--muted)]">of {leaves?.balance?.paidTotal || 12} total</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between p-3 rounded-xl bg-[#f8fafd] border border-[#e0e3e7]">
+                  <div className="flex items-center justify-between p-3.5 rounded-[16px] bg-[var(--surface-alt)]">
                     <div>
-                      <p className="font-semibold text-[#1f1f1f]">Unpaid Leaves</p>
-                      <p className="text-[10px] text-[#5f6368]">Logged this calendar year</p>
+                      <p className="font-medium text-[var(--text)]">Unpaid leaves</p>
+                      <p className="text-[11px] text-[var(--muted)]">Logged this year</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-lg font-bold text-[#5f6368]">{leaves?.balance?.unpaidUsed || 0}</p>
-                      <p className="text-[10px] text-[#5f6368]">Days</p>
+                      <p className="text-[18px] font-medium text-[var(--muted)]">{leaves?.balance?.unpaidUsed || 0}</p>
+                      <p className="text-[11px] text-[var(--muted)]">Days</p>
                     </div>
                   </div>
                 </div>
@@ -552,12 +494,12 @@ const EmployeeDashboard = () => {
           </div>
 
           {/* Right Column: Employee Profile Summary & Quick Actions */}
-          <div className="lg:col-span-4 space-y-6">
+          <div className="lg:col-span-4 space-y-[14px]">
             
             {/* Profile Identity Card */}
-            <div className="bg-white rounded-2xl border border-[#e0e3e7] p-6 shadow-xs space-y-5">
+            <div className="bg-[var(--surface)] rounded-[24px] p-6 space-y-5">
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center font-bold text-2xl overflow-hidden border border-[#d2e3fc] shrink-0 shadow-xs">
+                <div className="w-14 h-14 rounded-[14px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center font-semibold text-[20px] overflow-hidden shrink-0">
                   {profile?.avatar ? (
                     <img src={profile.avatar} alt="Profile" className="w-full h-full object-cover" />
                   ) : (
@@ -565,85 +507,83 @@ const EmployeeDashboard = () => {
                   )}
                 </div>
                 <div className="truncate">
-                  <h3 className="text-base font-semibold text-[#1f1f1f] truncate">
+                  <h3 className="text-[16px] font-medium text-[var(--text)] truncate">
                     {profile?.firstName} {profile?.lastName}
                   </h3>
-                  <p className="text-xs text-[#5f6368] font-medium capitalize mt-0.5">
-                    {profile?.designation || profile?.role || 'Staff Member'}
+                  <p className="text-[13px] text-[var(--muted)] capitalize mt-0.5">
+                    {profile?.designation || profile?.role || 'Staff member'}
                   </p>
-                  <span className="inline-block mt-1 text-[10px] font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2 py-0.2 rounded-full">
-                    {profile?.department || 'General Staff'}
+                  <span className="inline-block mt-1 text-[11px] font-medium text-[var(--brand-deep)] bg-[var(--brand-tint)] px-2.5 py-0.5 rounded-[6px]">
+                    {profile?.department || 'General staff'}
                   </span>
                 </div>
               </div>
 
-              <div className="space-y-3 pt-3 border-t border-[#e0e3e7] text-xs">
-                <div className="flex justify-between py-1 border-b border-[#f1f3f4]">
-                  <span className="text-[#5f6368]">Email</span>
-                  <span className="font-semibold text-[#1f1f1f] truncate max-w-[170px]" title={profile?.email}>
+              <div className="space-y-2.5 pt-3 border-t border-[var(--line)] text-[13px]">
+                <div className="flex justify-between py-1 border-b border-[var(--line)]/50">
+                  <span className="text-[var(--muted)]">Email</span>
+                  <span className="font-medium text-[var(--text)] truncate max-w-[170px]" title={profile?.email}>
                     {profile?.email}
                   </span>
                 </div>
-                <div className="flex justify-between py-1 border-b border-[#f1f3f4]">
-                  <span className="text-[#5f6368]">Employee ID</span>
-                  <span className="font-semibold text-[#1f1f1f]">
+                <div className="flex justify-between py-1 border-b border-[var(--line)]/50">
+                  <span className="text-[var(--muted)]">Employee ID</span>
+                  <span className="font-medium text-[var(--text)]">
                     {fullProfile?.employeeId || profile?.employeeId || fullProfile?.employee_code || (fullProfile?.id ? `EMP-${fullProfile.id.replace(/-/g, '').slice(0, 6).toUpperCase()}` : 'EMP-001')}
                   </span>
                 </div>
-                <div className="flex justify-between py-1 border-b border-[#f1f3f4]">
-                  <span className="text-[#5f6368]">Joining Date</span>
-                  <span className="font-semibold text-[#1f1f1f]">
-                    {(fullProfile?.joinDate || fullProfile?.joiningDate) ? new Date(fullProfile.joinDate || fullProfile.joiningDate).toLocaleDateString() : 'Active Staff'}
+                <div className="flex justify-between py-1 border-b border-[var(--line)]/50">
+                  <span className="text-[var(--muted)]">Joining date</span>
+                  <span className="font-medium text-[var(--text)]">
+                    {(fullProfile?.joinDate || fullProfile?.joiningDate) ? new Date(fullProfile.joinDate || fullProfile.joiningDate).toLocaleDateString() : 'Active staff'}
                   </span>
                 </div>
                 <div className="flex justify-between py-1">
-                  <span className="text-[#5f6368]">Employment Type</span>
-                  <span className="font-semibold text-[#137333] capitalize">
-                    {fullProfile?.employmentType || 'Full-Time Regular'}
+                  <span className="text-[var(--muted)]">Employment type</span>
+                  <span className="font-medium text-[var(--success-text)] capitalize">
+                    {fullProfile?.employmentType || 'Full-time regular'}
                   </span>
                 </div>
               </div>
 
-              <div className="pt-2">
-                <Link
-                  to="/employee/profile"
-                  className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-full text-xs font-semibold bg-[#e8f0fe] hover:bg-[#d2e3fc] text-[#1a73e8] transition-colors"
-                >
-                  <User className="w-3.5 h-3.5" />
-                  <span>View Full Profile</span>
+              <div className="pt-1">
+                <Link to="/employee/profile">
+                  <Button variant="secondary" className="w-full">
+                    <User className="w-3.5 h-3.5 mr-1" />
+                    <span>View full profile</span>
+                  </Button>
                 </Link>
               </div>
             </div>
 
-
             {/* Latest Payslip Quick Banner */}
             {latestPayslip && (
-              <div className="bg-white rounded-2xl border border-[#e0e3e7] p-5 shadow-xs space-y-3">
+              <div className="bg-[var(--surface)] rounded-[24px] p-5 space-y-3">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="p-2 rounded-xl bg-[#e6f4ea] text-[#137333]">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-[10px] bg-[var(--success-bg)] text-[var(--success-text)] flex items-center justify-center">
                       <Wallet className="w-4 h-4" />
                     </div>
                     <div>
-                      <h4 className="text-xs font-bold uppercase tracking-wider text-[#1f1f1f]">Latest Payslip</h4>
-                      <p className="text-[11px] text-[#5f6368]">
+                      <h4 className="text-[13px] font-medium text-[var(--text)]">Latest payslip</h4>
+                      <p className="text-[11px] text-[var(--muted)]">
                         {latestPayslip.month && latestPayslip.year
                           ? new Date(latestPayslip.year, latestPayslip.month - 1, 1).toLocaleString('en-US', { month: 'long', year: 'numeric' })
-                          : latestPayslip.month_year || 'Recent Cycle'}
+                          : latestPayslip.month_year || 'Recent cycle'}
                       </p>
                     </div>
                   </div>
-                  <span className="text-xs font-bold text-[#137333] bg-[#e6f4ea] px-2.5 py-0.5 rounded-full border border-[#ceead6]">
+                  <StatusBadge variant="success">
                     ₹{Number(latestPayslip.netSalary ?? latestPayslip.net_salary ?? 0).toLocaleString('en-IN')}
-                  </span>
+                  </StatusBadge>
                 </div>
 
                 <Link
                   to="/employee/payroll"
-                  className="w-full flex items-center justify-center gap-1 py-2 text-xs font-semibold text-[#1a73e8] hover:underline"
+                  className="w-full flex items-center justify-center gap-1 py-1 text-[12px] font-medium text-[var(--brand-deep)] hover:underline"
                 >
-                  <span>View Payslip Breakdown</span>
-                  <ExternalLink className="w-3 h-3" />
+                  <span>View payslip breakdown</span>
+                  <ExternalLink className="w-3 h-3 ml-0.5" />
                 </Link>
               </div>
             )}

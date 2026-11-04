@@ -17,85 +17,85 @@ const EmployeeAssessmentCard = React.memo(({ assessment, onStart, todayStr }) =>
   const isBlockedByDate = assessment.assessment_date && !isScheduledToday;
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col overflow-hidden">
-      <div className="p-5 border-b border-slate-100 flex-1 space-y-4">
+    <div className="bg-[var(--surface)] rounded-[24px] border border-[var(--line)] transition-all flex flex-col overflow-hidden hover:border-[var(--brand)]/40">
+      <div className="p-5 border-b border-[var(--line)] flex-1 space-y-4">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="font-bold text-slate-800 text-base leading-tight">
+          <h3 className="font-semibold text-[var(--text)] text-base leading-tight">
             {assessment.title}
           </h3>
           {assessment.has_passed && (
-            <span className="shrink-0 bg-emerald-100 text-emerald-700 p-1 rounded-md">
+            <span className="shrink-0 bg-[#E6F6EC] text-[#1F9D55] p-1.5 rounded-[10px]">
               <CheckCircle2 size={16} />
             </span>
           )}
         </div>
         
         <div className="space-y-2.5">
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-600">
-            <Building2 size={14} className="text-slate-400" />
+          <div className="flex items-center gap-2 text-xs font-semibold text-[var(--text-2)]">
+            <Building2 size={14} className="text-[var(--muted)]" />
             <span>{assessment.department || 'General'}</span>
           </div>
           {assessment.assessment_date ? (
-            <div className={`flex items-center gap-2 text-xs font-bold ${isScheduledToday ? 'text-indigo-600' : 'text-amber-600'}`}>
+            <div className={`flex items-center gap-2 text-xs font-semibold ${isScheduledToday ? 'text-[var(--brand-deep)]' : 'text-[#B7791F]'}`}>
               <Calendar size={14} />
               <span>Scheduled: {assessment.assessment_date}</span>
             </div>
           ) : (
-            <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-              <Calendar size={14} className="text-slate-400" />
+            <div className="flex items-center gap-2 text-xs font-semibold text-[var(--muted)]">
+              <Calendar size={14} className="text-[var(--muted)]" />
               <span>Anytime Access</span>
             </div>
           )}
         </div>
 
-        <div className="grid grid-cols-3 gap-2 bg-slate-50 rounded-xl p-3 border border-slate-100">
+        <div className="grid grid-cols-3 gap-2 bg-[var(--surface-alt)] rounded-[18px] p-3 border border-[var(--line)]">
           <div className="text-center">
-            <p className="text-[10px] uppercase font-bold text-slate-400">Duration</p>
-            <p className="text-xs font-bold text-slate-800 mt-0.5 flex items-center justify-center gap-1">
-              <Clock size={12} className="text-slate-400" />
+            <p className="text-[10px] uppercase font-bold text-[var(--muted)]">Duration</p>
+            <p className="text-xs font-bold text-[var(--text)] mt-0.5 flex items-center justify-center gap-1">
+              <Clock size={12} className="text-[var(--muted)]" />
               {assessment.duration_minutes}m
             </p>
           </div>
-          <div className="text-center border-x border-slate-200">
-            <p className="text-[10px] uppercase font-bold text-slate-400">Questions</p>
-            <p className="text-xs font-bold text-slate-800 mt-0.5">{assessment.questions_count}</p>
+          <div className="text-center border-x border-[var(--line)]">
+            <p className="text-[10px] uppercase font-bold text-[var(--muted)]">Questions</p>
+            <p className="text-xs font-bold text-[var(--text)] mt-0.5">{assessment.questions_count}</p>
           </div>
           <div className="text-center">
-            <p className="text-[10px] uppercase font-bold text-slate-400">Marks</p>
-            <p className="text-xs font-bold text-blue-600 mt-0.5">{assessment.total_marks}</p>
+            <p className="text-[10px] uppercase font-bold text-[var(--muted)]">Marks</p>
+            <p className="text-xs font-bold text-[var(--brand-deep)] mt-0.5">{assessment.total_marks}</p>
           </div>
         </div>
 
         {/* Score & Attempts Info */}
         {assessment.attempts_used > 0 && (
-          <div className="flex items-center justify-between text-xs font-semibold p-2 bg-blue-50/50 rounded-lg">
-            <span className="text-blue-800 flex items-center gap-1.5">
+          <div className="flex items-center justify-between text-xs font-semibold p-2.5 bg-[var(--brand-tint)]/60 rounded-[14px]">
+            <span className="text-[var(--brand-deep)] flex items-center gap-1.5">
               <BarChart2 size={14} /> 
               Highest Score: {assessment.highest_score !== null ? `${assessment.highest_score}%` : 'N/A'}
             </span>
-            <span className="text-slate-500">
+            <span className="text-[var(--muted)]">
               {assessment.attempts_used} / {assessment.max_attempts} attempts
             </span>
           </div>
         )}
       </div>
 
-      <div className="p-4 bg-slate-50 border-t border-slate-100">
+      <div className="p-4 bg-[var(--surface-alt)] border-t border-[var(--line)]">
         {assessment.attempts_used >= assessment.max_attempts && !inProgressId ? (
-          <button disabled className="w-full py-2.5 rounded-full bg-slate-200 text-slate-500 font-bold text-xs cursor-not-allowed">
+          <button disabled className="w-full py-2.5 rounded-[14px] bg-[var(--surface-alt)] border border-[var(--line)] text-[var(--muted)] font-semibold text-xs cursor-not-allowed">
             Max Attempts Reached
           </button>
         ) : isBlockedByDate ? (
-          <button disabled className="w-full py-2.5 rounded-full bg-amber-100 text-amber-700 font-bold text-xs cursor-not-allowed flex items-center justify-center gap-2">
+          <button disabled className="w-full py-2.5 rounded-[14px] bg-[#FDF3DC] text-[#B7791F] font-semibold text-xs cursor-not-allowed flex items-center justify-center gap-2">
             <Calendar size={15} /> Scheduled for {assessment.assessment_date}
           </button>
         ) : (
           <button
             onClick={() => onStart(assessment.id, inProgressId)}
-            className={`w-full py-2.5 rounded-full font-bold text-xs transition flex items-center justify-center gap-2 cursor-pointer shadow-xs active:scale-[0.98] ${
+            className={`w-full py-2.5 rounded-[14px] font-semibold text-xs transition flex items-center justify-center gap-2 cursor-pointer ${
               inProgressId 
-                ? 'bg-amber-500 hover:bg-amber-600 text-white'
-                : 'bg-[#1a73e8] hover:bg-[#1557b0] text-white'
+                ? 'bg-[#B7791F] hover:bg-[#9c6414] text-white'
+                : 'bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white'
             }`}
           >
             <PlayCircle size={15} />
@@ -251,42 +251,39 @@ const EmployeeAssessments = () => {
   }
 
   return (
-    <div className="w-full space-y-6 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+    <div className="w-full space-y-6 antialiased">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-1.5 mb-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-            <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Learning &amp; Evaluations</span>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="w-2 h-2 rounded-full bg-[var(--brand)]" />
+            <span className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">Learning &amp; Evaluations</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight flex items-center gap-2" style={{ fontWeight: 500 }}>
-            <span>Scheduled <span className="font-medium italic text-[#1a73e8]">Assessments</span></span>
+          <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight">
+            Scheduled Assessments
           </h1>
-          <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">Your scheduled employee assessments and evaluations for today.</p>
+          <p className="text-xs sm:text-sm text-[var(--text-2)] mt-0.5">Your scheduled employee assessments and evaluations for today.</p>
         </div>
-        <div className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-3 py-1.5 rounded-full shadow-2xs">
+        <div className="text-xs font-medium text-[var(--brand-deep)] bg-[var(--brand-tint)] px-3 py-1.5 rounded-full">
           {todayAssessments.length} Scheduled Today
         </div>
       </div>
 
       {todayAssessments.length === 0 ? (
-        <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center shadow-sm w-full max-w-xl mx-auto space-y-4 my-8">
-          <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto text-amber-500 mb-2">
-            <Calendar size={40} />
+        <div className="bg-[var(--surface)] rounded-[24px] border border-[var(--line)] p-12 text-center w-full max-w-xl mx-auto space-y-4 my-8">
+          <div className="w-16 h-16 bg-[#FDF3DC] rounded-[18px] flex items-center justify-center mx-auto text-[#B7791F] mb-2">
+            <Calendar size={32} />
           </div>
-          <h3 className="text-2xl font-medium text-slate-800 tracking-tight" style={{ fontWeight: 500 }}>No Assessment Scheduled for Today</h3>
-          <p className="text-slate-500 text-sm leading-relaxed max-w-md mx-auto">
+          <h3 className="text-xl font-semibold text-[var(--text)] tracking-tight">No Assessment Scheduled for Today</h3>
+          <p className="text-[var(--muted)] text-sm leading-relaxed max-w-md mx-auto">
             You can access the Assessment Portal only on the specific day an assessment is scheduled for you.
           </p>
-          <div className="inline-block px-3.5 py-1.5 bg-amber-50 border border-amber-200/80 rounded-full text-xs font-bold text-amber-700">
+          <div className="inline-block px-3.5 py-1.5 bg-[var(--surface-alt)] border border-[var(--line)] rounded-full text-xs font-semibold text-[var(--text)]">
             Today's Date: {todayStr}
           </div>
           <div className="pt-2">
             <button 
               onClick={() => navigate('/employee')}
-              className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-sm rounded-xl transition-all cursor-pointer shadow-sm"
+              className="px-6 py-2.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white font-semibold text-xs rounded-[14px] transition-all cursor-pointer"
             >
               Return to Dashboard
             </button>

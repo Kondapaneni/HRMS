@@ -213,44 +213,44 @@ const EmployeeMobileDashboard = () => {
   };
 
   const getAttendanceBadge = (status) => {
-    if (!status) return { label: 'Not Yet!', className: 'bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]' };
+    if (!status) return { label: 'Not Yet!', className: 'bg-[var(--status-neutral-bg)] text-[var(--status-neutral-text)] border border-[var(--line)]' };
     const s = String(status).toLowerCase().trim();
     const capitalize = (str) => String(str).replace(/\b\w/g, c => c.toUpperCase());
 
     if (s === 'present') {
-      return { label: 'Present', className: 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6]' };
+      return { label: 'Present', className: 'bg-[var(--status-success-bg)] text-[var(--status-success-text)] border border-[var(--status-success-text)]/20' };
     }
     if (s.includes('late') || s.includes('checkout missing')) {
       return { 
         label: s.includes('checkout missing') ? 'Checkout Missing' : 'Present (Late)', 
-        className: 'bg-[#fef7e0] text-[#b06000] border border-[#feefc3]' 
+        className: 'bg-[var(--status-warning-bg)] text-[var(--status-warning-text)] border border-[var(--status-warning-text)]/20' 
       };
     }
     if (s.includes('early')) {
-      return { label: 'Present (Early)', className: 'bg-[#fef7e0] text-[#b06000] border border-[#feefc3]' };
+      return { label: 'Present (Early)', className: 'bg-[var(--status-warning-bg)] text-[var(--status-warning-text)] border border-[var(--status-warning-text)]/20' };
     }
     if (s.includes('leave') || s === 'on leave') {
-      return { label: capitalize(status), className: 'bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]' };
+      return { label: capitalize(status), className: 'bg-[var(--status-info-bg)] text-[var(--status-info-text)] border border-[var(--status-info-text)]/20' };
     }
     if (s.includes('half')) {
-      return { label: 'Half Day', className: 'bg-[#f3e8fd] text-[#8430ce] border border-[#e9d5ff]' };
+      return { label: 'Half Day', className: 'bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)] border border-[var(--accent-pink-deep)]/20' };
     }
     if (s === 'missed') {
-      return { label: 'Missed', className: 'bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]' };
+      return { label: 'Missed', className: 'bg-[var(--status-neutral-bg)] text-[var(--status-neutral-text)] border border-[var(--line)]' };
     }
     if (s === 'absent' || s === 'missing') {
-      return { label: 'Absent', className: 'bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf]' };
+      return { label: 'Absent', className: 'bg-[var(--status-danger-bg)] text-[var(--status-danger-text)] border border-[var(--status-danger-text)]/20' };
     }
     if (s === 'regularized') {
-      return { label: 'Regularized', className: 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6]' };
+      return { label: 'Regularized', className: 'bg-[var(--status-success-bg)] text-[var(--status-success-text)] border border-[var(--status-success-text)]/20' };
     }
     if (s === 'holiday') {
-      return { label: 'Holiday', className: 'bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]' };
+      return { label: 'Holiday', className: 'bg-[var(--status-info-bg)] text-[var(--status-info-text)] border border-[var(--status-info-text)]/20' };
     }
     if (s.includes('weekend') || s.includes('week off')) {
-      return { label: capitalize(status), className: 'bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]' };
+      return { label: capitalize(status), className: 'bg-[var(--status-neutral-bg)] text-[var(--status-neutral-text)] border border-[var(--line)]' };
     }
-    return { label: capitalize(status), className: 'bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]' };
+    return { label: capitalize(status), className: 'bg-[var(--status-neutral-bg)] text-[var(--status-neutral-text)] border border-[var(--line)]' };
   };
 
   const isActiveSession = checkedIn && !checkOutTime;
@@ -260,56 +260,53 @@ const EmployeeMobileDashboard = () => {
   if (loading) return <PageLoader message="Loading Dashboard..." />;
 
   return (
-    <div className="space-y-6 pb-4 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+    <div className="space-y-6 pb-6 font-sans antialiased text-[var(--text)]">
 
-      {/* Clean White Header & Personal Quick Page Search (Direct Page Layout, Non-Card) */}
+      {/* Clean White Header & Personal Quick Page Search */}
       <section className="relative z-30 pt-1 pb-1 space-y-4">
-        {/* Page / Feature Navigation Search Bar (Employee Pages & Data Only) */}
         <EmployeeMobileSearchBar />
 
         {/* Header Greeting */}
         <div className="pt-0.5">
-          <p className="text-[10.5px] font-bold text-[#5f6368] uppercase tracking-wider mb-1">
+          <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-1">
             Employee Portal
           </p>
-          <h2 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight leading-tight" style={{ fontWeight: 500 }}>
-            Hello, <span className="font-medium italic text-[#1a73e8]">{profile?.firstName || 'Employee'}</span>
+          <h2 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight leading-tight">
+            Hello, <span className="font-semibold text-[var(--brand-deep)]">{profile?.firstName || 'Employee'}</span>
           </h2>
-          <p className="text-xs sm:text-sm font-medium text-[#5f6368] mt-0.5">
+          <p className="text-xs sm:text-sm font-medium text-[var(--text-2)] mt-0.5">
             {heroSubtitle}
           </p>
         </div>
       </section>
 
       {/* Attendance Tracker */}
-      <section className="bg-white rounded-[24px] shadow-sm border border-slate-200/80 overflow-hidden relative z-20">
-        <div className="px-6 pt-6 pb-4 border-b border-slate-100 flex justify-between items-start">
+      <section className="bg-[var(--surface)] rounded-[24px] shadow-xs border border-[var(--line)] overflow-hidden relative z-20">
+        <div className="px-6 pt-6 pb-4 border-b border-[var(--line)] flex justify-between items-start">
           <div>
-            <h2 className="text-lg font-medium text-slate-900 tracking-tight leading-tight" style={{ fontWeight: 500 }}>
-              Attendance <span className="font-medium italic text-[#1a73e8]">Tracker</span>
+            <h2 className="text-base font-semibold text-[var(--text)] tracking-tight leading-tight">
+              Attendance <span className="text-[var(--brand-deep)]">Tracker</span>
             </h2>
-            <p className="text-[11px] font-medium text-slate-500 mt-1 uppercase tracking-wider">Today's Check-In Status</p>
+            <p className="text-[11px] font-medium text-[var(--muted)] mt-1 uppercase tracking-wider">Today's Check-In Status</p>
           </div>
-          <span className={`inline-flex items-center px-3.5 py-1.5 rounded-full text-[12.5px] font-bold shrink-0 shadow-2xs ${attendanceBadge.className}`}>
+          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold shrink-0 shadow-2xs ${attendanceBadge.className}`}>
             {attendanceBadge.label}
           </span>
         </div>
 
         <div className="p-6 flex flex-col items-center">
           {/* Circular Counter */}
-          <div className="w-40 h-40 rounded-full relative mb-8 overflow-hidden bg-slate-50 flex items-center justify-center shadow-inner">
+          <div className="w-40 h-40 rounded-full relative mb-8 overflow-hidden bg-[var(--surface-alt)] flex items-center justify-center border border-[var(--line)]">
 
-            {/* The Outer Ring */}
-            <div className="absolute inset-0 rounded-full border-[6px] border-slate-100 z-20 pointer-events-none"></div>
+            {/* Outer Ring */}
+            <div className="absolute inset-0 rounded-full border-[6px] border-[var(--line)] z-20 pointer-events-none"></div>
 
             {isActiveSession && (
               <div className="absolute inset-0 z-0">
                 {/* Liquid body */}
-                <div className="absolute inset-0 bg-[#ff686b]"></div>
-
-                {/* Wave cutouts - they rotate to create the liquid effect */}
-                <div className="absolute top-[-145%] left-[-50%] w-[200%] h-[200%] bg-slate-50/60 rounded-[43%] animate-[spin_5s_linear_infinite]"></div>
-                <div className="absolute top-[-135%] left-[-50%] w-[200%] h-[200%] bg-slate-50 rounded-[40%] animate-[spin_7s_linear_infinite]"></div>
+                <div className="absolute inset-0 bg-[var(--brand)] opacity-25"></div>
+                <div className="absolute top-[-145%] left-[-50%] w-[200%] h-[200%] bg-[var(--surface-alt)]/60 rounded-[43%] animate-[spin_5s_linear_infinite]"></div>
+                <div className="absolute top-[-135%] left-[-50%] w-[200%] h-[200%] bg-[var(--surface-alt)] rounded-[40%] animate-[spin_7s_linear_infinite]"></div>
               </div>
             )}
 
@@ -317,7 +314,7 @@ const EmployeeMobileDashboard = () => {
               {isActiveSession && (
                 <div className="absolute inset-[-8px] bg-white/40 backdrop-blur-[2px] rounded-full -z-10 blur-sm"></div>
               )}
-              <span className={`text-2xl font-black tracking-tighter ${isActiveSession ? 'text-[#ff686b] drop-shadow-md' : 'text-slate-800'}`}>
+              <span className={`text-2xl font-bold tracking-tight ${isActiveSession ? 'text-[var(--brand-deep)]' : 'text-[var(--text)]'}`}>
                 {formatTime(liveSeconds)}
               </span>
             </div>
@@ -325,16 +322,16 @@ const EmployeeMobileDashboard = () => {
 
           <div className="w-full flex justify-between px-2 mb-8">
             <div className="flex flex-col items-start">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Check In</span>
-              <span className="text-base font-bold text-slate-800 flex items-center gap-1.5">
-                <LogIn className="w-4 h-4 text-emerald-500" />
+              <span className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-wider mb-1">Check In</span>
+              <span className="text-base font-bold text-[var(--text)] flex items-center gap-1.5">
+                <LogIn className="w-4 h-4 text-[var(--status-success-text)]" />
                 {todayRecord?.checkIn ? new Date(todayRecord.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
               </span>
             </div>
             <div className="flex flex-col items-end">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Check Out</span>
-              <span className="text-base font-bold text-slate-800 flex items-center gap-1.5">
-                <LogOut className="w-4 h-4 text-rose-500" />
+              <span className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-wider mb-1">Check Out</span>
+              <span className="text-base font-bold text-[var(--text)] flex items-center gap-1.5">
+                <LogOut className="w-4 h-4 text-[var(--status-danger-text)]" />
                 {todayRecord?.checkOut ? new Date(todayRecord.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
               </span>
             </div>
@@ -342,19 +339,19 @@ const EmployeeMobileDashboard = () => {
 
           <div className="w-full flex flex-col gap-3">
             {isOnLeaveToday ? (
-              <div className="w-full rounded-xl bg-blue-50 text-blue-800 font-semibold py-3 text-center text-sm border border-blue-100 flex flex-col items-center gap-1.5 shadow-sm">
+              <div className="w-full rounded-[14px] bg-[var(--status-info-bg)] text-[var(--status-info-text)] font-semibold py-3 text-center text-sm border border-[var(--status-info-text)]/20 flex flex-col items-center gap-1.5">
                 <Calendar className="w-5 h-5" />
                 <span>You Are On An Approved Leave Today.</span>
               </div>
             ) : todayRecord?.status === 'Leave' ? (
-              <div className="w-full rounded-xl bg-slate-100 text-slate-500 font-semibold py-2.5 text-center text-sm">
+              <div className="w-full rounded-[14px] bg-[var(--surface-alt)] text-[var(--muted)] font-semibold py-2.5 text-center text-sm">
                 Attendance Blocked - Approved Leave Today
               </div>
             ) : !checkedIn && !checkOutTime ? (
               <button
                 onClick={() => handlePunch('check-in')}
                 disabled={isLocked}
-                className="w-full flex items-center justify-center gap-2 bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white rounded-full py-3.5 text-sm font-semibold tracking-wide shadow-xs hover:shadow transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-2 bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-[0.99] text-white rounded-[14px] py-3.5 text-sm font-semibold tracking-wide shadow-xs transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <LogIn className="w-4 h-4" />
                 <span>{isLocked ? formatLockoutTimer(lockoutSeconds) : 'Check In'}</span>
@@ -364,22 +361,22 @@ const EmployeeMobileDashboard = () => {
                 <button
                   onClick={() => handlePunch('punch')}
                   disabled={isLocked}
-                  className="w-full flex items-center justify-center gap-2 bg-white border border-[#dadce0] hover:bg-[#f1f3f4] text-[#1f1f1f] rounded-full py-3 text-sm font-semibold transition-all shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full flex items-center justify-center gap-2 bg-[var(--surface)] border border-[var(--line)] hover:bg-[var(--surface-alt)] text-[var(--text)] rounded-[14px] py-3 text-sm font-semibold transition-all shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Clock className="w-4 h-4 text-[#5f6368]" />
+                  <Clock className="w-4 h-4 text-[var(--muted)]" />
                   <span>{isLocked ? formatLockoutTimer(lockoutSeconds) : 'Punch'}</span>
                 </button>
                 <button
                   onClick={() => handlePunch('check-out')}
                   disabled={isLocked}
-                  className="w-full flex items-center justify-center gap-2 bg-[#d93025] hover:bg-[#b3261e] active:bg-[#a51d14] text-white rounded-full py-3 text-sm font-semibold transition-all shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full flex items-center justify-center gap-2 bg-[var(--status-danger-text)] hover:opacity-90 text-white rounded-[14px] py-3 text-sm font-semibold transition-all shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <LogOut className="w-4 h-4" />
                   <span>{isLocked ? formatLockoutTimer(lockoutSeconds) : 'Check Out'}</span>
                 </button>
               </div>
             ) : (
-              <div className="w-full rounded-full bg-[#e6f4ea] text-[#137333] border border-[#ceead6] font-semibold py-3 text-sm flex items-center justify-center gap-2 shadow-2xs">
+              <div className="w-full rounded-[14px] bg-[var(--status-success-bg)] text-[var(--status-success-text)] border border-[var(--status-success-text)]/20 font-semibold py-3 text-sm flex items-center justify-center gap-2">
                 <Shield className="w-4 h-4" />
                 <span>Attendance Completed</span>
               </div>
@@ -388,18 +385,17 @@ const EmployeeMobileDashboard = () => {
         </div>
       </section>
 
-
-      {/* Business Apps Entry (Round Circle Apps in a Row) */}
+      {/* Business Apps Entry */}
       {(profile?.featureAccess?.canLoanOrigination || profile?.featureAccess?.canSalesOrigination || profile?.featureAccess?.canBranchOperations || hasTrainingVideos) && (
-        <section className="bg-white rounded-[24px] shadow-sm border border-slate-200/80 overflow-hidden p-5">
-          <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
+        <section className="bg-[var(--surface)] rounded-[24px] shadow-xs border border-[var(--line)] overflow-hidden p-5">
+          <div className="flex items-center justify-between pb-3 mb-3 border-b border-[var(--line)]">
             <div>
-              <h2 className="text-base font-medium text-slate-900 tracking-tight leading-tight" style={{ fontWeight: 500 }}>
-                Business <span className="font-medium italic text-[#1a73e8]">Apps</span>
+              <h2 className="text-base font-semibold text-[var(--text)] tracking-tight leading-tight">
+                Business <span className="text-[var(--brand-deep)]">Apps</span>
               </h2>
-              <p className="text-[11px] font-medium text-slate-500 mt-0.5">Tap to open application</p>
+              <p className="text-[11px] font-medium text-[var(--muted)] mt-0.5">Tap to open application</p>
             </div>
-            <span className="inline-flex items-center px-3.5 py-1.5 rounded-full text-[12.5px] font-bold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] shrink-0 shadow-2xs">
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold text-[var(--brand-deep)] bg-[var(--brand-tint)] shrink-0">
               Apps
             </span>
           </div>
@@ -407,37 +403,37 @@ const EmployeeMobileDashboard = () => {
           <div className="grid grid-cols-4 gap-2 pt-1">
             {profile?.featureAccess?.canLoanOrigination && (
               <Link to="/employee/loans/origination" className="flex flex-col items-center gap-1.5 group">
-                <div className="w-14 h-14 rounded-full bg-[#e8f0fe] border border-[#d2e3fc] flex items-center justify-center shadow-xs group-active:scale-90 transition-transform duration-150">
-                  <Briefcase className="w-6 h-6 text-[#1a73e8]" />
+                <div className="w-13 h-13 rounded-[14px] bg-[var(--brand-tint)] border border-[var(--brand)]/20 flex items-center justify-center shadow-xs group-active:scale-95 transition-transform duration-150">
+                  <Briefcase className="w-5 h-5 text-[var(--brand-deep)]" />
                 </div>
-                <span className="text-xs font-semibold text-slate-800 text-center leading-tight">Loans</span>
+                <span className="text-xs font-semibold text-[var(--text)] text-center leading-tight">Loans</span>
               </Link>
             )}
 
             {profile?.featureAccess?.canSalesOrigination && (
               <Link to="/employee/sales/origination" className="flex flex-col items-center gap-1.5 group">
-                <div className="w-14 h-14 rounded-full bg-[#e6f4ea] border border-[#ceead6] flex items-center justify-center shadow-xs group-active:scale-90 transition-transform duration-150">
-                  <ShoppingBag className="w-6 h-6 text-[#137333]" />
+                <div className="w-13 h-13 rounded-[14px] bg-[var(--status-success-bg)] border border-[var(--status-success-text)]/20 flex items-center justify-center shadow-xs group-active:scale-95 transition-transform duration-150">
+                  <ShoppingBag className="w-5 h-5 text-[var(--status-success-text)]" />
                 </div>
-                <span className="text-xs font-semibold text-slate-800 text-center leading-tight">Sales</span>
+                <span className="text-xs font-semibold text-[var(--text)] text-center leading-tight">Sales</span>
               </Link>
             )}
 
             {profile?.featureAccess?.canBranchOperations && (
               <Link to="/employee/branch-operations" className="flex flex-col items-center gap-1.5 group">
-                <div className="w-14 h-14 rounded-full bg-[#f3e8fd] border border-[#e9d5ff] flex items-center justify-center shadow-xs group-active:scale-90 transition-transform duration-150">
-                  <Building2 className="w-6 h-6 text-[#7C4DFF]" />
+                <div className="w-13 h-13 rounded-[14px] bg-[var(--accent-pink-tint)] border border-[var(--accent-pink-deep)]/20 flex items-center justify-center shadow-xs group-active:scale-95 transition-transform duration-150">
+                  <Building2 className="w-5 h-5 text-[var(--accent-pink-deep)]" />
                 </div>
-                <span className="text-xs font-semibold text-slate-800 text-center leading-tight">Branch Ops</span>
+                <span className="text-xs font-semibold text-[var(--text)] text-center leading-tight">Branch Ops</span>
               </Link>
             )}
 
             {hasTrainingVideos && (
               <Link to="/employee/training" className="flex flex-col items-center gap-1.5 group">
-                <div className="w-14 h-14 rounded-full bg-[#fce8e6] border border-[#fad2cf] flex items-center justify-center shadow-xs group-active:scale-90 transition-transform duration-150">
-                  <Play className="w-6 h-6 text-[#d93025]" />
+                <div className="w-13 h-13 rounded-[14px] bg-[var(--status-danger-bg)] border border-[var(--status-danger-text)]/20 flex items-center justify-center shadow-xs group-active:scale-95 transition-transform duration-150">
+                  <Play className="w-5 h-5 text-[var(--status-danger-text)]" />
                 </div>
-                <span className="text-xs font-semibold text-slate-800 text-center leading-tight">Training</span>
+                <span className="text-xs font-semibold text-[var(--text)] text-center leading-tight">Training</span>
               </Link>
             )}
           </div>
@@ -445,34 +441,34 @@ const EmployeeMobileDashboard = () => {
       )}
 
       {/* Expenses Overview */}
-      <section className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
-        <Link to="/employee/expenses" className="px-6 pt-6 pb-4 border-b border-slate-100 flex justify-between items-center active:bg-slate-50 transition-colors">
+      <section className="bg-[var(--surface)] rounded-[24px] shadow-xs border border-[var(--line)] overflow-hidden">
+        <Link to="/employee/expenses" className="px-6 pt-5 pb-4 border-b border-[var(--line)] flex justify-between items-center active:bg-[var(--surface-alt)] transition-colors">
           <div className="flex items-center gap-3">
-            <div className="bg-orange-50 p-2 rounded-lg">
-              <Receipt className="w-5 h-5 text-orange-500" />
+            <div className="bg-[var(--accent-pink-tint)] p-2.5 rounded-[12px]">
+              <Receipt className="w-5 h-5 text-[var(--accent-pink-deep)]" />
             </div>
             <div>
-              <h2 className="text-lg font-medium text-slate-900 tracking-tight leading-tight" style={{ fontWeight: 500 }}>
-                My <span className="font-medium italic text-[#1a73e8]">Expenses</span>
+              <h2 className="text-base font-semibold text-[var(--text)] tracking-tight leading-tight">
+                My <span className="text-[var(--brand-deep)]">Expenses</span>
               </h2>
-              <p className="text-[11px] font-medium text-slate-500 mt-1 uppercase tracking-wider">Track your claims</p>
+              <p className="text-[11px] font-medium text-[var(--muted)] uppercase tracking-wider">Track your claims</p>
             </div>
           </div>
-          <ChevronRight className="w-5 h-5 text-slate-400" />
+          <ChevronRight className="w-5 h-5 text-[var(--muted)]" />
         </Link>
-        <div className="p-4 space-y-3">
+        <div className="p-4 space-y-2.5">
           {upcomingExpenses.length > 0 ? (
             upcomingExpenses.map(expense => (
-              <div key={expense.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
+              <div key={expense.id} className="flex items-center justify-between p-3 rounded-[14px] bg-[var(--surface-alt)] border border-[var(--line)]">
                 <div>
-                  <h3 className="font-semibold text-slate-800 text-sm">{expense.title}</h3>
-                  <p className="text-xs text-slate-500">{new Date(expense.created_at || expense.date).toLocaleDateString()}</p>
+                  <h3 className="font-semibold text-[var(--text)] text-sm">{expense.title}</h3>
+                  <p className="text-xs text-[var(--muted)]">{new Date(expense.created_at || expense.date).toLocaleDateString()}</p>
                 </div>
                 <div className="text-right">
-                  <div className="font-bold text-slate-900">{formatCurrency(expense.amount)}</div>
-                  <div className={`text-[10px] font-bold uppercase tracking-wider ${
-                    expense.status === 'Approved' ? 'text-emerald-600' :
-                    expense.status === 'Rejected' ? 'text-rose-600' : 'text-amber-600'
+                  <div className="font-semibold text-[var(--text)] text-sm">{formatCurrency(expense.amount)}</div>
+                  <div className={`text-[10px] font-semibold uppercase tracking-wider ${
+                    expense.status === 'Approved' ? 'text-[var(--status-success-text)]' :
+                    expense.status === 'Rejected' ? 'text-[var(--status-danger-text)]' : 'text-[var(--status-warning-text)]'
                   }`}>
                     {expense.status}
                   </div>
@@ -480,7 +476,7 @@ const EmployeeMobileDashboard = () => {
               </div>
             ))
           ) : (
-            <div className="text-center text-slate-500 text-sm py-4 font-medium">
+            <div className="text-center text-[var(--muted)] text-sm py-4 font-medium">
               No recent expenses to show.
             </div>
           )}
@@ -488,46 +484,46 @@ const EmployeeMobileDashboard = () => {
       </section>
 
       {/* Upcoming Holidays */}
-      <section className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
-        <Link to="/employee/holidays" className="px-6 pt-6 pb-4 border-b border-slate-100 flex justify-between items-center active:bg-slate-50 transition-colors">
+      <section className="bg-[var(--surface)] rounded-[24px] shadow-xs border border-[var(--line)] overflow-hidden">
+        <Link to="/employee/holidays" className="px-6 pt-5 pb-4 border-b border-[var(--line)] flex justify-between items-center active:bg-[var(--surface-alt)] transition-colors">
           <div className="flex items-center gap-3">
-            <div className="bg-emerald-50 p-2 rounded-lg">
-              <Calendar className="w-5 h-5 text-emerald-500" />
+            <div className="bg-[var(--brand-tint)] p-2.5 rounded-[12px]">
+              <Calendar className="w-5 h-5 text-[var(--brand-deep)]" />
             </div>
             <div>
-              <h2 className="text-lg font-medium text-slate-900 tracking-tight leading-tight" style={{ fontWeight: 500 }}>
-                Upcoming <span className="font-medium italic text-[#1a73e8]">Holidays</span>
+              <h2 className="text-base font-semibold text-[var(--text)] tracking-tight leading-tight">
+                Upcoming <span className="text-[var(--brand-deep)]">Holidays</span>
               </h2>
-              <p className="text-[11px] font-medium text-slate-500 mt-1 uppercase tracking-wider">Company calendar</p>
+              <p className="text-[11px] font-medium text-[var(--muted)] uppercase tracking-wider">Company calendar</p>
             </div>
           </div>
-          <ChevronRight className="w-5 h-5 text-slate-400" />
+          <ChevronRight className="w-5 h-5 text-[var(--muted)]" />
         </Link>
-        <div className="p-4 space-y-3">
+        <div className="p-4 space-y-2.5">
           {upcomingHolidays.length > 0 ? (
             upcomingHolidays.map(holiday => (
-              <div key={holiday.id} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
+              <div key={holiday.id} className="flex items-center justify-between p-3 rounded-[14px] bg-[var(--surface-alt)] border border-[var(--line)]">
                 <div className="flex items-center gap-3">
-                  <div className="flex flex-col items-center justify-center min-w-[3rem] px-2 py-1.5 rounded-xl bg-emerald-100 text-emerald-600 border border-emerald-200/50 shadow-sm">
+                  <div className="flex flex-col items-center justify-center min-w-[3rem] px-2 py-1.5 rounded-[10px] bg-[var(--brand-tint)] text-[var(--brand-deep)] border border-[var(--brand)]/20 shadow-2xs">
                     <span className="text-[10px] font-bold uppercase tracking-wider leading-none mb-1">
                       {new Date(holiday.holidayDate).toLocaleDateString(undefined, { month: 'short' })}
                     </span>
-                    <span className="text-lg font-black leading-none">
+                    <span className="text-base font-bold leading-none">
                       {new Date(holiday.holidayDate).getDate()}
                     </span>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-slate-800 text-sm">{holiday.holidayName}</h3>
-                    <p className="text-xs text-slate-500">{new Date(holiday.holidayDate).toLocaleDateString(undefined, { weekday: 'long' })}</p>
+                    <h3 className="font-semibold text-[var(--text)] text-sm">{holiday.holidayName}</h3>
+                    <p className="text-xs text-[var(--muted)]">{new Date(holiday.holidayDate).toLocaleDateString(undefined, { weekday: 'long' })}</p>
                   </div>
                 </div>
                 {holiday.holidayImage && (
-                  <img src={holiday.holidayImage} alt={holiday.holidayName} className="w-10 h-10 rounded-lg object-cover" />
+                  <img src={holiday.holidayImage} alt={holiday.holidayName} className="w-10 h-10 rounded-[10px] object-cover" />
                 )}
               </div>
             ))
           ) : (
-            <div className="text-center text-slate-500 text-sm py-4 font-medium">
+            <div className="text-center text-[var(--muted)] text-sm py-4 font-medium">
               No upcoming holidays.
             </div>
           )}
@@ -535,48 +531,48 @@ const EmployeeMobileDashboard = () => {
       </section>
 
       {/* Upcoming Birthdays */}
-      <section className="bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden">
-        <Link to="/employee/birthdays" className="px-6 pt-6 pb-4 border-b border-slate-100 flex justify-between items-center active:bg-slate-50 transition-colors">
+      <section className="bg-[var(--surface)] rounded-[24px] shadow-xs border border-[var(--line)] overflow-hidden">
+        <Link to="/employee/birthdays" className="px-6 pt-5 pb-4 border-b border-[var(--line)] flex justify-between items-center active:bg-[var(--surface-alt)] transition-colors">
           <div className="flex items-center gap-3">
-            <div className="bg-purple-50 p-2 rounded-lg">
-              <Cake className="w-5 h-5 text-purple-500" />
+            <div className="bg-[var(--accent-pink-tint)] p-2.5 rounded-[12px]">
+              <Cake className="w-5 h-5 text-[var(--accent-pink-deep)]" />
             </div>
             <div>
-              <h2 className="text-lg font-medium text-slate-900 tracking-tight leading-tight" style={{ fontWeight: 500 }}>
-                Upcoming <span className="font-medium italic text-[#1a73e8]">Birthdays</span>
+              <h2 className="text-base font-semibold text-[var(--text)] tracking-tight leading-tight">
+                Upcoming <span className="text-[var(--brand-deep)]">Birthdays</span>
               </h2>
-              <p className="text-[11px] font-medium text-slate-500 mt-1 uppercase tracking-wider">Celebrate with team</p>
+              <p className="text-[11px] font-medium text-[var(--muted)] uppercase tracking-wider">Celebrate with team</p>
             </div>
           </div>
-          <ChevronRight className="w-5 h-5 text-slate-400" />
+          <ChevronRight className="w-5 h-5 text-[var(--muted)]" />
         </Link>
-        <div className="p-4 space-y-3">
+        <div className="p-4 space-y-2.5">
           {upcomingBirthdays.length > 0 ? (
             upcomingBirthdays.map((birthday, idx) => {
               const bdayDate = birthday.date || birthday.dateOfBirth || birthday.dob || birthday.birthday;
               const bdayName = birthday.name || `${birthday.firstName || ''} ${birthday.lastName || ''}`.trim() || 'Team Member';
               return (
-                <div key={birthday.id || idx} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
+                <div key={birthday.id || idx} className="flex items-center justify-between p-3 rounded-[14px] bg-[var(--surface-alt)] border border-[var(--line)]">
                   <div className="flex items-center gap-3">
                     {bdayDate && (
-                      <div className="flex flex-col items-center justify-center min-w-[3rem] px-2 py-1.5 rounded-xl bg-purple-100 text-purple-600 border border-purple-200/50 shadow-sm">
+                      <div className="flex flex-col items-center justify-center min-w-[3rem] px-2 py-1.5 rounded-[10px] bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)] border border-[var(--accent-pink-deep)]/20 shadow-2xs">
                         <span className="text-[10px] font-bold uppercase tracking-wider leading-none mb-1">
                           {new Date(bdayDate).toLocaleDateString(undefined, { month: 'short' })}
                         </span>
-                        <span className="text-lg font-black leading-none">
+                        <span className="text-base font-bold leading-none">
                           {new Date(bdayDate).getDate()}
                         </span>
                       </div>
                     )}
                     <div>
-                      <h3 className="font-semibold text-slate-800 text-sm">{bdayName}</h3>
-                      <p className="text-xs text-slate-500">{birthday.department || 'Employee'}</p>
+                      <h3 className="font-semibold text-[var(--text)] text-sm">{bdayName}</h3>
+                      <p className="text-xs text-[var(--muted)]">{birthday.department || 'Employee'}</p>
                     </div>
                   </div>
                   {birthday.avatar ? (
-                    <img src={birthday.avatar} alt={bdayName} className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" />
+                    <img src={birthday.avatar} alt={bdayName} className="w-10 h-10 rounded-[14px] object-cover border border-[var(--line)]" />
                   ) : (
-                    <div className="w-10 h-10 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center font-bold border-2 border-white shadow-sm text-sm">
+                    <div className="w-10 h-10 rounded-[14px] bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)] flex items-center justify-center font-semibold border border-[var(--accent-pink-deep)]/20 text-sm">
                       {bdayName.charAt(0)}
                     </div>
                   )}
@@ -584,7 +580,7 @@ const EmployeeMobileDashboard = () => {
               );
             })
           ) : (
-            <div className="text-center text-slate-500 text-sm py-4 font-medium">
+            <div className="text-center text-[var(--muted)] text-sm py-4 font-medium">
               No upcoming birthdays.
             </div>
           )}

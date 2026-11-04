@@ -123,20 +123,20 @@ const ApplyMobileLeave = () => {
       const isSelectedEnd = endDate === dateStr;
       const isInRange = startDate && endDate && dateStr > startDate && dateStr < endDate;
 
-      let btnClass = "w-full max-w-[38px] aspect-square mx-auto flex items-center justify-center rounded-full text-xs font-semibold transition-all ";
+      let btnClass = "w-full max-w-[38px] aspect-square mx-auto flex items-center justify-center rounded-[10px] text-xs font-semibold transition-all ";
 
       if (isSelectedStart || isSelectedEnd) {
-        btnClass += "bg-[#1a73e8] text-white font-bold shadow-xs ";
+        btnClass += "bg-[var(--ink)] text-white font-bold shadow-xs ";
       } else if (isInRange) {
-        btnClass += "bg-[#e8f0fe] text-[#1a73e8] font-bold ";
+        btnClass += "bg-[var(--brand-tint)] text-[var(--brand-deep)] font-semibold ";
       } else if (isDisabled) {
-        btnClass += "bg-[#f8fafd] text-[#bdc1c6] cursor-not-allowed opacity-50 ";
+        btnClass += "bg-[var(--surface-alt)] text-[var(--muted)] cursor-not-allowed opacity-40 ";
       } else {
-        btnClass += "bg-white border border-[#dadce0] text-[#1f1f1f] hover:bg-[#f1f3f4] active:scale-95 ";
+        btnClass += "bg-[var(--surface)] border border-[var(--line)] text-[var(--text)] hover:bg-[var(--surface-alt)] active:scale-95 ";
       }
 
       if (isApproved) {
-        btnClass += "line-through opacity-70 bg-[#e6f4ea] text-[#137333] border-[#ceead6]";
+        btnClass += "line-through opacity-70 bg-[var(--status-success-bg)] text-[var(--status-success-text)] border border-[var(--status-success-text)]/20 ";
       }
 
       days.push(
@@ -169,12 +169,12 @@ const ApplyMobileLeave = () => {
   if (loading) return <PageLoader message="Loading Leave Form..." />;
 
   return (
-    <div className="relative pb-6 font-editorial antialiased space-y-6" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+    <div className="relative pb-6 font-sans antialiased text-[var(--text)] space-y-6">
       
-      {/* Clean White Header & Action */}
+      {/* Header */}
       <section className="relative z-30 pt-1 pb-1">
         <div className="pt-0.5">
-          <p className="text-[10.5px] font-bold text-[#5f6368] uppercase tracking-wider mb-1 pl-[50px]">
+          <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-1 pl-[48px]">
             My Leaves
           </p>
 
@@ -183,43 +183,42 @@ const ApplyMobileLeave = () => {
               <button 
                 type="button"
                 onClick={() => navigate('/employee/leaves')} 
-                className="w-10 h-10 rounded-full bg-white border border-[#e0e3e7] hover:bg-[#f1f3f4] active:scale-95 text-[#5f6368] flex items-center justify-center shrink-0 shadow-2xs transition-all cursor-pointer"
+                className="w-9 h-9 rounded-[12px] bg-[var(--surface)] border border-[var(--line)] hover:bg-[var(--surface-alt)] active:scale-95 text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center shrink-0 shadow-2xs transition-all cursor-pointer"
                 aria-label="Back to Leaves"
               >
-                <ChevronLeft className="w-5 h-5" />
+                <ChevronLeft className="w-4 h-4" />
               </button>
-              <h2 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight leading-tight min-w-0" style={{ fontWeight: 500 }}>
-                Apply <span className="font-medium italic text-[#1a73e8]">Leave</span>
+              <h2 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight leading-tight min-w-0">
+                Apply <span className="text-[var(--brand-deep)]">Leave</span>
               </h2>
             </div>
 
-            {/* Unified Action Button Aligned Straight to Main Heading */}
             <button 
               type="button"
               onClick={handleApplyLeave} 
               disabled={submitting || loading} 
-              className="shrink-0 h-10 px-4 inline-flex items-center justify-center gap-1.5 bg-[#1a73e8] hover:bg-[#1557b0] active:scale-95 text-white rounded-full text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap disabled:opacity-50"
+              className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-95 text-white rounded-[14px] text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap disabled:opacity-50"
             >
               {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin text-white" /> : <Send className="w-3.5 h-3.5 text-white" />}
               <span>{submitting ? 'Submitting...' : 'Submit'}</span>
             </button>
           </div>
 
-          <p className="text-xs sm:text-sm font-medium text-[#5f6368] mt-1 pl-[50px]">
+          <p className="text-xs sm:text-sm font-medium text-[var(--text-2)] mt-1 pl-[48px]">
             Submit a new leave request for manager approval
           </p>
         </div>
       </section>
 
       <div className="relative z-20 mx-0.5 space-y-6">
-        <form onSubmit={handleApplyLeave} className="bg-white p-5 rounded-[24px] shadow-xs border border-[#e0e3e7] space-y-5">
+        <form onSubmit={handleApplyLeave} className="bg-[var(--surface)] p-5 rounded-[24px] shadow-xs border border-[var(--line)] space-y-5">
           
           {/* Leave Type */}
           <div className="space-y-2">
-            <label className="text-[11px] font-bold text-[#5f6368] uppercase tracking-wider">Leave Type *</label>
+            <label className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">Leave Type *</label>
             {paidRemaining === 0 ? (
               <div className="space-y-2">
-                <div className="rounded-2xl border border-[#fad2cf] bg-[#fce8e6] p-3 text-xs text-[#c5221f] font-medium flex items-center gap-2">
+                <div className="rounded-[14px] border border-[var(--status-danger-text)]/20 bg-[var(--status-danger-bg)] p-3 text-xs text-[var(--status-danger-text)] font-medium flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   <span>Paid leave quota is fully exhausted. This request will be submitted as Unpaid (LOP).</span>
                 </div>
@@ -229,16 +228,16 @@ const ApplyMobileLeave = () => {
                     value={leaveType} 
                     onChange={e => setLeaveType(e.target.value)} 
                     required 
-                    className="w-full bg-[#f8fafd] border border-[#e0e3e7] rounded-full px-5 py-3 text-xs font-semibold text-[#1f1f1f] focus:bg-white focus:ring-1 focus:ring-[#1a73e8] focus:border-[#1a73e8] outline-none appearance-none cursor-pointer shadow-2xs pr-10"
+                    className="w-full bg-[var(--surface-alt)] border border-[var(--line)] rounded-[14px] px-4 py-2.5 text-xs font-semibold text-[var(--text)] focus:bg-[var(--surface)] focus:ring-2 focus:ring-[var(--brand)]/20 focus:border-[var(--brand)] outline-none appearance-none cursor-pointer shadow-2xs pr-10"
                   >
                     <option value="unpaid">Unpaid Leave (Loss of Pay)</option>
                   </select>
-                  <ChevronRight className="w-4 h-4 text-[#5f6368] absolute right-4 top-1/2 -translate-y-1/2 rotate-90 pointer-events-none" />
+                  <ChevronRight className="w-4 h-4 text-[var(--muted)] absolute right-4 top-1/2 -translate-y-1/2 rotate-90 pointer-events-none" />
                 </div>
               </div>
             ) : hasPaidLeaveThisMonth() ? (
               <div className="space-y-2">
-                <div className="rounded-2xl border border-[#feefc3] bg-[#fef7e0] p-3 text-xs text-[#b06000] font-medium flex items-center gap-2">
+                <div className="rounded-[14px] border border-[var(--status-warning-text)]/20 bg-[var(--status-warning-bg)] p-3 text-xs text-[var(--status-warning-text)] font-medium flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0" />
                   <span>You already have a Paid Leave in this calendar month. Additional days are Unpaid.</span>
                 </div>
@@ -248,11 +247,11 @@ const ApplyMobileLeave = () => {
                     value={leaveType} 
                     onChange={e => setLeaveType(e.target.value)} 
                     required 
-                    className="w-full bg-[#f8fafd] border border-[#e0e3e7] rounded-full px-5 py-3 text-xs font-semibold text-[#1f1f1f] focus:bg-white focus:ring-1 focus:ring-[#1a73e8] focus:border-[#1a73e8] outline-none appearance-none cursor-pointer shadow-2xs pr-10"
+                    className="w-full bg-[var(--surface-alt)] border border-[var(--line)] rounded-[14px] px-4 py-2.5 text-xs font-semibold text-[var(--text)] focus:bg-[var(--surface)] focus:ring-2 focus:ring-[var(--brand)]/20 focus:border-[var(--brand)] outline-none appearance-none cursor-pointer shadow-2xs pr-10"
                   >
                     <option value="unpaid">Unpaid Leave (Loss of Pay)</option>
                   </select>
-                  <ChevronRight className="w-4 h-4 text-[#5f6368] absolute right-4 top-1/2 -translate-y-1/2 rotate-90 pointer-events-none" />
+                  <ChevronRight className="w-4 h-4 text-[var(--muted)] absolute right-4 top-1/2 -translate-y-1/2 rotate-90 pointer-events-none" />
                 </div>
               </div>
             ) : (
@@ -262,20 +261,20 @@ const ApplyMobileLeave = () => {
                   value={leaveType} 
                   onChange={e => setLeaveType(e.target.value)} 
                   required 
-                  className="w-full bg-[#f8fafd] border border-[#e0e3e7] rounded-full px-5 py-3 text-xs font-semibold text-[#1f1f1f] focus:bg-white focus:ring-1 focus:ring-[#1a73e8] focus:border-[#1a73e8] outline-none appearance-none cursor-pointer shadow-2xs pr-10"
+                  className="w-full bg-[var(--surface-alt)] border border-[var(--line)] rounded-[14px] px-4 py-2.5 text-xs font-semibold text-[var(--text)] focus:bg-[var(--surface)] focus:ring-2 focus:ring-[var(--brand)]/20 focus:border-[var(--brand)] outline-none appearance-none cursor-pointer shadow-2xs pr-10"
                 >
                   <option value="paid">Paid Leave ({paidRemaining} Days Remaining)</option>
                   <option value="unpaid">Unpaid Leave (Loss of Pay)</option>
                 </select>
-                <ChevronRight className="w-4 h-4 text-[#5f6368] absolute right-4 top-1/2 -translate-y-1/2 rotate-90 pointer-events-none" />
+                <ChevronRight className="w-4 h-4 text-[var(--muted)] absolute right-4 top-1/2 -translate-y-1/2 rotate-90 pointer-events-none" />
               </div>
             )}
           </div>
 
           {/* Interactive Calendar Date Picker */}
           <div className="space-y-2.5">
-            <label className="text-[11px] font-bold text-[#5f6368] uppercase tracking-wider">Select Dates on Calendar *</label>
-            <div className="rounded-2xl border border-[#e0e3e7] bg-white p-4 space-y-3">
+            <label className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">Select Dates on Calendar *</label>
+            <div className="rounded-[20px] border border-[var(--line)] bg-[var(--surface)] p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <button
                   type="button"
@@ -284,12 +283,12 @@ const ApplyMobileLeave = () => {
                     newDate.setMonth(newDate.getMonth() - 1);
                     setCalendarDate(newDate);
                   }}
-                  className="w-8 h-8 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#5f6368] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
+                  className="w-8 h-8 rounded-[10px] border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--surface)] text-[var(--muted)] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
                   title="Previous Month"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
-                <span className="text-sm font-bold text-[#1f1f1f] select-none">
+                <span className="text-sm font-semibold text-[var(--text)] select-none">
                   {calendarDate.toLocaleString(undefined, { month: 'long', year: 'numeric' })}
                 </span>
                 <button
@@ -299,14 +298,14 @@ const ApplyMobileLeave = () => {
                     newDate.setMonth(newDate.getMonth() + 1);
                     setCalendarDate(newDate);
                   }}
-                  className="w-8 h-8 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#5f6368] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
+                  className="w-8 h-8 rounded-[10px] border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--surface)] text-[var(--muted)] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
                   title="Next Month"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
 
-              <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-[#5f6368] uppercase pb-1 border-b border-[#e0e3e7]">
+              <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-semibold text-[var(--muted)] uppercase pb-1 border-b border-[var(--line)]">
                 <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
               </div>
               <div className="grid grid-cols-7 gap-1 items-center justify-items-center">
@@ -316,20 +315,20 @@ const ApplyMobileLeave = () => {
 
             {/* Start / End Date summary chips */}
             <div className="grid grid-cols-2 gap-2.5 mt-3">
-              <div className="rounded-2xl border border-[#e0e3e7] bg-white p-3 shadow-2xs">
-                <p className="text-[10px] uppercase font-bold text-[#5f6368] tracking-wider">Start Date</p>
-                <p className="font-bold text-[#1f1f1f] text-xs mt-0.5">{startDate || 'Tap calendar date'}</p>
+              <div className="rounded-[14px] border border-[var(--line)] bg-[var(--surface-alt)] p-3 shadow-2xs">
+                <p className="text-[10px] uppercase font-semibold text-[var(--muted)] tracking-wider">Start Date</p>
+                <p className="font-semibold text-[var(--text)] text-xs mt-0.5">{startDate || 'Tap calendar date'}</p>
               </div>
-              <div className="rounded-2xl border border-[#e0e3e7] bg-white p-3 shadow-2xs">
-                <p className="text-[10px] uppercase font-bold text-[#5f6368] tracking-wider">End Date</p>
-                <p className="font-bold text-[#1f1f1f] text-xs mt-0.5">{endDate || startDate || 'Tap calendar date'}</p>
+              <div className="rounded-[14px] border border-[var(--line)] bg-[var(--surface-alt)] p-3 shadow-2xs">
+                <p className="text-[10px] uppercase font-semibold text-[var(--muted)] tracking-wider">End Date</p>
+                <p className="font-semibold text-[var(--text)] text-xs mt-0.5">{endDate || startDate || 'Tap calendar date'}</p>
               </div>
             </div>
           </div>
 
           {/* Reason Textarea */}
           <div className="space-y-2">
-            <label className="text-[11px] font-bold text-[#5f6368] uppercase tracking-wider">Reason for Leave *</label>
+            <label className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">Reason for Leave *</label>
             <textarea
               name="reason"
               rows="3"
@@ -338,16 +337,16 @@ const ApplyMobileLeave = () => {
               value={reason}
               onChange={e => setReason(e.target.value)}
               placeholder="Describe the reason for your leave... (minimum 10 characters)"
-              className="w-full bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl p-3.5 text-xs text-[#1f1f1f] focus:bg-white focus:ring-1 focus:ring-[#1a73e8] focus:border-[#1a73e8] outline-none transition-all resize-none min-h-[90px] shadow-2xs"
+              className="w-full bg-[var(--surface-alt)] border border-[var(--line)] rounded-[14px] p-3.5 text-xs text-[var(--text)] focus:bg-[var(--surface)] focus:ring-2 focus:ring-[var(--brand)]/20 focus:border-[var(--brand)] outline-none transition-all resize-none min-h-[90px] shadow-2xs"
             />
           </div>
 
-          {/* Google Style Submit Button */}
+          {/* Submit Button */}
           <div className="pt-2">
             <button
               type="submit"
               disabled={submitting || loading}
-              className="w-full h-12 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-xs hover:shadow transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="w-full h-11 rounded-[14px] bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {submitting ? (
                 <>

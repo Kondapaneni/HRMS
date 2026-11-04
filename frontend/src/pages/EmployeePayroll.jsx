@@ -26,38 +26,38 @@ import PayslipPDF from '../components/PayslipPDF';
 const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme }) => {
   const themes = {
     blue: {
-      iconBg: 'bg-[#e8f0fe]',
-      iconColor: 'text-[#1a73e8]',
+      iconBg: 'bg-[var(--brand-tint)]',
+      iconColor: 'text-[var(--brand-deep)]',
     },
     green: {
-      iconBg: 'bg-[#e6f4ea]',
-      iconColor: 'text-[#137333]',
+      iconBg: 'bg-[#E6F6EC]',
+      iconColor: 'text-[#1F9D55]',
     },
     purple: {
-      iconBg: 'bg-[#f3e8fd]',
-      iconColor: 'text-[#8430ce]',
+      iconBg: 'bg-[var(--accent-pink-tint)]',
+      iconColor: 'text-[var(--accent-pink-deep)]',
     },
     red: {
-      iconBg: 'bg-[#fce8e6]',
-      iconColor: 'text-[#c5221f]',
+      iconBg: 'bg-[#FDE8EA]',
+      iconColor: 'text-[#D64550]',
     },
     amber: {
-      iconBg: 'bg-[#fef7e0]',
-      iconColor: 'text-[#b06000]',
+      iconBg: 'bg-[#FDF3DC]',
+      iconColor: 'text-[#B7791F]',
     }
   };
 
   const theme = themes[colorTheme] || themes.blue;
 
   return (
-    <div className="bg-white rounded-2xl border border-[#e0e3e7] p-5 shadow-xs transition-all duration-200 hover:shadow-md hover:border-[#dadce0]">
+    <div className="bg-[var(--surface)] rounded-[24px] border border-[var(--line)] p-5 transition-all duration-200 hover:border-[var(--brand)]/40">
       <div className="flex items-start justify-between">
         <div className="space-y-1">
-          <p className="text-xs font-semibold text-[#5f6368] uppercase tracking-wider">{title}</p>
-          <p className="text-2xl font-bold text-[#1f1f1f] tracking-tight">{value}</p>
-          {subtitle && <p className="text-xs text-[#5f6368] font-normal pt-0.5">{subtitle}</p>}
+          <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">{title}</p>
+          <p className="text-2xl font-bold text-[var(--text)] tracking-tight">{value}</p>
+          {subtitle && <p className="text-xs text-[var(--muted)] font-normal pt-0.5">{subtitle}</p>}
         </div>
-        <div className={`p-3 rounded-2xl ${theme.iconBg} ${theme.iconColor} shrink-0`}>
+        <div className={`p-3 rounded-[14px] ${theme.iconBg} ${theme.iconColor} shrink-0`}>
           <Icon className="w-5 h-5" />
         </div>
       </div>
@@ -140,23 +140,21 @@ const EmployeePayroll = () => {
         <EmployeeMobilePayroll profile={profile} />
       </div>
 
-      {/* Web Desktop Experience (Google Material 3 Workspace UI) */}
-      <div className="hidden md:block space-y-6 pb-12 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+      {/* Web Desktop Experience */}
+      <div className="hidden md:block space-y-6 pb-12 antialiased">
         
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-1.5 mb-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-              <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Compensation &amp; Statements</span>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="w-2 h-2 rounded-full bg-[var(--brand)]" />
+              <span className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">Compensation &amp; Statements</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight flex items-center gap-2" style={{ fontWeight: 500 }}>
-              <span>Payroll &amp; Salary <span className="font-medium italic text-[#1a73e8]">Records</span></span> <span className="text-xs font-semibold text-[#137333] bg-[#e6f4ea] border border-[#ceead6] px-2.5 py-0.5 rounded-full">{payslips.length} Statements</span>
+            <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight flex items-center gap-2.5">
+              <span>Payroll &amp; Salary Records</span>
+              <span className="text-xs font-medium text-[#1F9D55] bg-[#E6F6EC] px-2.5 py-0.5 rounded-full">{payslips.length} Statements</span>
             </h1>
-            <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
+            <p className="text-xs sm:text-sm text-[var(--text-2)] mt-0.5">
               Monthly compensation ledger, gross breakdown, statutory deductions, and downloadable payslip PDFs.
             </p>
           </div>
@@ -195,22 +193,22 @@ const EmployeePayroll = () => {
         </div>
 
         {/* Payslip History Table Card */}
-        <div className="bg-white rounded-2xl border border-[#e0e3e7] shadow-xs overflow-hidden">
-          <div className="p-6 border-b border-[#e0e3e7] flex items-center justify-between">
+        <div className="bg-[var(--surface)] rounded-[24px] border border-[var(--line)] overflow-hidden">
+          <div className="p-6 border-b border-[var(--line)] flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-xl bg-[#e8f0fe] text-[#1a73e8]">
+              <div className="p-2.5 rounded-[14px] bg-[var(--brand-tint)] text-[var(--brand-deep)]">
                 <FileText className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-semibold text-[#1f1f1f]">Payslip Archive &amp; Statements</h3>
-                <p className="text-xs text-[#5f6368]">Download official signed compensation statements for your records</p>
+                <h3 className="text-base font-semibold text-[var(--text)]">Payslip Archive &amp; Statements</h3>
+                <p className="text-xs text-[var(--muted)]">Download official signed compensation statements for your records</p>
               </div>
             </div>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-left">
-              <thead className="bg-[#f8fafd] border-b border-[#e0e3e7] text-[#5f6368] font-semibold uppercase tracking-wider text-[10px]">
+              <thead className="bg-[var(--surface-alt)] border-b border-[var(--line)] text-[var(--muted)] font-semibold uppercase tracking-wider text-[10px]">
                 <tr>
                   <th className="p-4">Pay Period</th>
                   <th className="p-4">Basic Salary</th>
@@ -221,16 +219,16 @@ const EmployeePayroll = () => {
                   <th className="p-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#f1f3f4]">
+              <tbody className="divide-y divide-[var(--line)]">
                 {loading ? (
                   <tr>
-                    <td colSpan="7" className="text-center py-12 text-[#5f6368]">
+                    <td colSpan="7" className="text-center py-12 text-[var(--muted)]">
                       Loading payslip archive...
                     </td>
                   </tr>
                 ) : payslips.length === 0 ? (
                   <tr>
-                    <td colSpan="7" className="text-center py-12 text-[#5f6368]">
+                    <td colSpan="7" className="text-center py-12 text-[var(--muted)]">
                       No payslip records available yet.
                     </td>
                   </tr>
@@ -242,27 +240,27 @@ const EmployeePayroll = () => {
                     const isPaid = (ps.status || '').toLowerCase() === 'paid';
                     
                     return (
-                      <tr key={ps.id} className="hover:bg-[#f8fafd] transition-colors">
-                        <td className="p-4 font-semibold text-[#1f1f1f]">
+                      <tr key={ps.id} className="hover:bg-[var(--brand-tint)]/15 transition-colors">
+                        <td className="p-4 font-semibold text-[var(--text)]">
                           {getMonthYearString(ps.month, ps.year)}
                         </td>
-                        <td className="p-4 text-[#1f1f1f] font-semibold">
+                        <td className="p-4 text-[var(--text)] font-semibold">
                           {formatCurrency(basic)}
                         </td>
-                        <td className="p-4 text-[#137333] font-semibold">
+                        <td className="p-4 text-[#1F9D55] font-semibold">
                           +{formatCurrency(allowances)}
                         </td>
-                        <td className="p-4 text-[#c5221f] font-semibold">
+                        <td className="p-4 text-[#D64550] font-semibold">
                           -{formatCurrency(deductions)}
                         </td>
-                        <td className="p-4 text-[#1f1f1f] font-bold">
+                        <td className="p-4 text-[var(--text)] font-bold">
                           {formatCurrency(ps.netSalary)}
                         </td>
                         <td className="p-4">
-                          <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+                          <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium ${
                             isPaid 
-                              ? 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6]' 
-                              : 'bg-[#fef7e0] text-[#b06000] border border-[#feefc3]'
+                              ? 'bg-[#E6F6EC] text-[#1F9D55]' 
+                              : 'bg-[#FDF3DC] text-[#B7791F]'
                           }`}>
                             {isPaid && <CheckCircle2 className="w-3 h-3" />}
                             {ps.status ? ps.status.charAt(0).toUpperCase() + ps.status.slice(1) : 'Processed'}
@@ -273,15 +271,15 @@ const EmployeePayroll = () => {
                             <button 
                               type="button"
                               onClick={() => setSelectedPayslip(ps)}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-[#f8fafd] border border-[#dadce0] hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer shadow-2xs"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[14px] text-xs font-semibold bg-[var(--surface-alt)] border border-[var(--line)] hover:bg-[var(--line)] text-[var(--text)] transition-all cursor-pointer"
                             >
-                              <Eye className="w-3.5 h-3.5 text-[#5f6368]" />
+                              <Eye className="w-3.5 h-3.5 text-[var(--muted)]" />
                               <span>View</span>
                             </button>
                             <button 
                               type="button"
                               onClick={() => handleDownload(ps)}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-[#e8f0fe] border border-[#d2e3fc] hover:bg-[#d2e3fc] text-[#1a73e8] transition-all cursor-pointer shadow-2xs"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[14px] text-xs font-semibold bg-[var(--brand-tint)] hover:bg-[var(--brand-tint)]/80 text-[var(--brand-deep)] transition-all cursor-pointer"
                             >
                               <Download className="w-3.5 h-3.5" />
                               <span>Download PDF</span>
@@ -303,31 +301,28 @@ const EmployeePayroll = () => {
       {selectedPayslip && createPortal(
         <div 
           onClick={(e) => { if (e.target === e.currentTarget) setSelectedPayslip(null); }}
-          className="fixed inset-0 z-[10000] flex justify-end bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-[10000] flex justify-end bg-black/40 backdrop-blur-xs animate-in fade-in duration-200"
         >
-          <div className="bg-white shadow-2xl w-full max-w-xl h-full flex flex-col overflow-hidden animate-in slide-in-from-right duration-300 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+          <div className="bg-[var(--surface)] text-[var(--text)] shadow-2xl w-full max-w-xl h-full flex flex-col overflow-hidden animate-in slide-in-from-right duration-300 antialiased">
             
-            {/* 4-Color Gradient Top Line */}
-            <div className="h-1 bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853]" />
-
             {/* Drawer Header */}
-            <div className="px-6 py-4 border-b border-[#e0e3e7] flex items-center justify-between bg-[#f8fafd] shrink-0">
+            <div className="px-6 py-4 border-b border-[var(--line)] flex items-center justify-between bg-[var(--surface-alt)] shrink-0">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-[#e8f0fe] text-[#1a73e8]">
+                <div className="p-2.5 rounded-[14px] bg-[var(--brand-tint)] text-[var(--brand-deep)]">
                   <FileText className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-medium text-[#1f1f1f]" style={{ fontWeight: 500 }}>
-                    Payslip <span className="font-medium italic text-[#1a73e8]">Breakdown</span>
+                  <h3 className="text-base font-semibold text-[var(--text)]">
+                    Payslip Breakdown
                   </h3>
-                  <p className="text-xs text-[#5f6368] mt-0.5">
+                  <p className="text-xs text-[var(--muted)] mt-0.5">
                     {(selectedPayslip.employeeName || `${profile?.firstName || ''} ${profile?.lastName || ''}`.trim() || 'Employee')} &bull; {getMonthYearString(selectedPayslip.month, selectedPayslip.year)}
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setSelectedPayslip(null)}
-                className="p-1.5 rounded-full hover:bg-[#e0e3e7]/60 text-[#5f6368] transition-colors cursor-pointer"
+                className="p-1.5 rounded-full hover:bg-[var(--line)] text-[var(--muted)] transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -337,28 +332,28 @@ const EmployeePayroll = () => {
             <div className="p-6 space-y-5 overflow-y-auto flex-1">
               
               {/* Employee Summary Chip Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs bg-[#f8fafd] p-4 rounded-2xl border border-[#e0e3e7]">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs bg-[var(--surface-alt)] p-4 rounded-[18px] border border-[var(--line)]">
                 <div>
-                  <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Employee ID</p>
-                  <p className="font-semibold text-[#1f1f1f] mt-0.5">
+                  <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Employee ID</p>
+                  <p className="font-semibold text-[var(--text)] mt-0.5">
                     {selectedPayslip.employeeCode || selectedPayslip.details?.employeeNumber || profile?.employeeId || 'N/A'}
                   </p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Designation</p>
-                  <p className="font-semibold text-[#1f1f1f] mt-0.5 truncate">
+                  <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Designation</p>
+                  <p className="font-semibold text-[var(--text)] mt-0.5 truncate">
                     {selectedPayslip.details?.designation || profile?.position || 'Staff'}
                   </p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Payable Days</p>
-                  <p className="font-semibold text-[#1f1f1f] mt-0.5">
+                  <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Payable Days</p>
+                  <p className="font-semibold text-[var(--text)] mt-0.5">
                     {selectedPayslip.details?.daysPayable ?? 0} / {selectedPayslip.details?.totalWorkingDays ?? 0}
                   </p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">LOP Days</p>
-                  <p className="font-semibold text-[#c5221f] mt-0.5">
+                  <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">LOP Days</p>
+                  <p className="font-semibold text-[#D64550] mt-0.5">
                     {selectedPayslip.details?.lossOfPayDays ?? 0} Days
                   </p>
                 </div>
@@ -368,20 +363,20 @@ const EmployeePayroll = () => {
               <div className="grid md:grid-cols-2 gap-4">
                 
                 {/* Earnings Box */}
-                <div className="border border-[#e0e3e7] rounded-2xl overflow-hidden bg-white">
-                  <div className="bg-[#e6f4ea]/50 px-4 py-2.5 border-b border-[#e0e3e7]">
-                    <h4 className="text-xs font-semibold text-[#137333]">Earnings &amp; Allowances</h4>
+                <div className="border border-[var(--line)] rounded-[18px] overflow-hidden bg-[var(--surface)]">
+                  <div className="bg-[#E6F6EC]/60 px-4 py-2.5 border-b border-[var(--line)]">
+                    <h4 className="text-xs font-semibold text-[#1F9D55]">Earnings &amp; Allowances</h4>
                   </div>
                   <div className="p-4 space-y-2 text-xs">
                     {selectedPayslip.earnings?.map((item, idx) => (
-                      <div key={idx} className="flex justify-between py-1 border-b border-[#f1f3f4] last:border-0">
-                        <span className="text-[#5f6368]">{item.label}</span>
-                        <span className="font-semibold text-[#1f1f1f]">{formatCurrency(item.value)}</span>
+                      <div key={idx} className="flex justify-between py-1 border-b border-[var(--line)] last:border-0">
+                        <span className="text-[var(--text-2)]">{item.label}</span>
+                        <span className="font-semibold text-[var(--text)]">{formatCurrency(item.value)}</span>
                       </div>
                     ))}
-                    <div className="pt-2 mt-2 border-t border-[#e0e3e7] flex justify-between font-bold">
-                      <span className="text-[#1f1f1f]">Gross Earnings</span>
-                      <span className="text-[#137333]">
+                    <div className="pt-2 mt-2 border-t border-[var(--line)] flex justify-between font-bold">
+                      <span className="text-[var(--text)]">Gross Earnings</span>
+                      <span className="text-[#1F9D55]">
                         {formatCurrency(selectedPayslip.earnings?.reduce((sum, item) => sum + parseFloat(item.value), 0) || 0)}
                       </span>
                     </div>
@@ -389,20 +384,20 @@ const EmployeePayroll = () => {
                 </div>
 
                 {/* Deductions Box */}
-                <div className="border border-[#e0e3e7] rounded-2xl overflow-hidden bg-white">
-                  <div className="bg-[#fce8e6]/50 px-4 py-2.5 border-b border-[#e0e3e7]">
-                    <h4 className="text-xs font-semibold text-[#c5221f]">Statutory Deductions</h4>
+                <div className="border border-[var(--line)] rounded-[18px] overflow-hidden bg-[var(--surface)]">
+                  <div className="bg-[#FDE8EA]/60 px-4 py-2.5 border-b border-[var(--line)]">
+                    <h4 className="text-xs font-semibold text-[#D64550]">Statutory Deductions</h4>
                   </div>
                   <div className="p-4 space-y-2 text-xs">
                     {selectedPayslip.deductions?.map((item, idx) => (
-                      <div key={idx} className="flex justify-between py-1 border-b border-[#f1f3f4] last:border-0">
-                        <span className="text-[#5f6368]">{item.label}</span>
-                        <span className="font-semibold text-[#1f1f1f]">{formatCurrency(item.value)}</span>
+                      <div key={idx} className="flex justify-between py-1 border-b border-[var(--line)] last:border-0">
+                        <span className="text-[var(--text-2)]">{item.label}</span>
+                        <span className="font-semibold text-[var(--text)]">{formatCurrency(item.value)}</span>
                       </div>
                     ))}
-                    <div className="pt-2 mt-2 border-t border-[#e0e3e7] flex justify-between font-bold">
-                      <span className="text-[#1f1f1f]">Total Deductions</span>
-                      <span className="text-[#c5221f]">
+                    <div className="pt-2 mt-2 border-t border-[var(--line)] flex justify-between font-bold">
+                      <span className="text-[var(--text)]">Total Deductions</span>
+                      <span className="text-[#D64550]">
                         {formatCurrency(selectedPayslip.deductions?.reduce((sum, item) => sum + parseFloat(item.value), 0) || 0)}
                       </span>
                     </div>
@@ -412,29 +407,29 @@ const EmployeePayroll = () => {
               </div>
 
               {/* Net Disbursed Salary Banner */}
-              <div className="bg-[#e8f0fe] border border-[#d2e3fc] rounded-2xl p-4 flex items-center justify-between">
+              <div className="bg-[var(--brand-tint)] border border-[var(--brand)]/30 rounded-[18px] p-4 flex items-center justify-between">
                 <div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#1a73e8]">Net Take-Home Salary</span>
-                  <p className="text-[11px] text-[#5f6368]">Disbursed to registered bank account</p>
+                  <span className="text-xs font-bold uppercase tracking-wider text-[var(--brand-deep)]">Net Take-Home Salary</span>
+                  <p className="text-[11px] text-[var(--muted)]">Disbursed to registered bank account</p>
                 </div>
-                <span className="text-2xl font-bold text-[#1a73e8]">{formatCurrency(selectedPayslip.netSalary)}</span>
+                <span className="text-2xl font-bold text-[var(--brand-deep)]">{formatCurrency(selectedPayslip.netSalary)}</span>
               </div>
 
             </div>
 
             {/* Drawer Footer Actions */}
-            <div className="px-6 py-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex items-center justify-between shrink-0">
+            <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface-alt)] flex items-center justify-between shrink-0">
               <button
                 type="button"
                 onClick={() => setSelectedPayslip(null)}
-                className="px-5 py-2 rounded-full text-xs font-semibold text-[#1f1f1f] bg-white border border-[#dadce0] hover:bg-[#f1f3f4] transition-all cursor-pointer shadow-2xs"
+                className="px-5 py-2 rounded-[14px] text-xs font-semibold text-[var(--text)] bg-[var(--surface)] border border-[var(--line)] hover:bg-[var(--line)] transition-all cursor-pointer"
               >
                 Close
               </button>
               <button
                 type="button"
                 onClick={() => handleDownload(selectedPayslip)}
-                className="inline-flex items-center gap-2 px-6 py-2 rounded-full text-xs font-semibold text-white bg-[#1a73e8] hover:bg-[#1557b0] transition-all cursor-pointer shadow-xs"
+                className="inline-flex items-center gap-2 px-6 py-2 rounded-[14px] text-xs font-semibold text-white bg-[var(--ink)] hover:bg-[var(--ink-2)] transition-all cursor-pointer shadow-none"
               >
                 <Download className="w-3.5 h-3.5" />
                 <span>Download Official PDF</span>

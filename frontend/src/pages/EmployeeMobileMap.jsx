@@ -183,7 +183,7 @@ const EmployeeMobileMap = () => {
         icon: {
           path: window.google.maps.SymbolPath.CIRCLE,
           scale: 8,
-          fillColor: '#1a73e8',
+          fillColor: '#5B86C2',
           fillOpacity: 1,
           strokeColor: '#ffffff',
           strokeWeight: 3,
@@ -204,10 +204,10 @@ const EmployeeMobileMap = () => {
 
         // Draw circle
         const circle = new window.google.maps.Circle({
-          strokeColor: '#1a73e8',
+          strokeColor: '#5B86C2',
           strokeOpacity: 0.8,
           strokeWeight: 2,
-          fillColor: '#1a73e8',
+          fillColor: '#8AADDB',
           fillOpacity: 0.15,
           map,
           center: gfCenter,
@@ -228,8 +228,8 @@ const EmployeeMobileMap = () => {
           if (distance <= radius) {
             isInsideAny = true;
             circle.setOptions({
-              strokeColor: '#137333',
-              fillColor: '#137333',
+              strokeColor: '#1F9D55',
+              fillColor: '#1F9D55',
             });
           }
         }
@@ -288,19 +288,19 @@ const EmployeeMobileMap = () => {
   };
 
   return (
-    <div className="flex h-[100dvh] flex-col bg-slate-50 overflow-hidden relative font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+    <div className="flex h-[100dvh] flex-col bg-[var(--bg)] overflow-hidden relative font-sans antialiased text-[var(--text)]">
       
       {/* Header */}
-      <div className="flex items-center px-4 py-4 bg-white border-b border-slate-200 z-10 shadow-sm relative">
+      <div className="flex items-center px-4 py-3.5 bg-[var(--surface)] border-b border-[var(--line)] z-10 relative">
         <button
           onClick={() => navigate('/employee', { replace: true })}
-          className="p-2 -ml-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
+          className="p-2 -ml-2 text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)] rounded-[10px] transition-colors cursor-pointer"
           title="Back to Dashboard"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <h1 className="ml-2 text-lg font-medium text-slate-900" style={{ fontWeight: 500 }}>
-          Verify <span className="font-medium italic text-[#1a73e8]">Location</span>
+        <h1 className="ml-2 text-base font-semibold text-[var(--text)]">
+          Verify Location
         </h1>
       </div>
 
@@ -308,57 +308,57 @@ const EmployeeMobileMap = () => {
       <div className="flex-1 relative flex flex-col min-h-0">
         
         {/* Map Container */}
-        <div className="flex-1 relative bg-slate-100">
+        <div className="flex-1 relative bg-[var(--surface-alt)]">
           {mapLockoutSeconds !== null && mapLockoutSeconds > 0 ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-white space-y-4 z-20">
-              <div className="w-16 h-16 rounded-3xl bg-[#fef7e0] text-[#b06000] flex items-center justify-center border border-[#feefc3] shadow-xs">
-                <Clock className="w-8 h-8 animate-pulse" />
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-[var(--surface)] space-y-4 z-20">
+              <div className="w-14 h-14 rounded-[18px] bg-[var(--badge-warning-bg)] text-[var(--badge-warning-text)] flex items-center justify-center border border-[var(--badge-warning-text)]/20 shadow-xs">
+                <Clock className="w-7 h-7 animate-pulse" />
               </div>
               <div className="space-y-1 max-w-xs">
-                <h3 className="text-base font-bold text-slate-900">Punch Rate Limit Active</h3>
-                <p className="text-xs text-slate-500">
+                <h3 className="text-base font-semibold text-[var(--text)]">Rate Limit Active</h3>
+                <p className="text-xs text-[var(--muted)]">
                   Too many punch requests were received in a short time. Location verification is temporarily locked.
                 </p>
               </div>
-              <div className="bg-slate-50 border border-slate-200 rounded-2xl px-6 py-3 text-center space-y-0.5">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Unlocks Automatically In</span>
-                <p className="text-2xl font-black font-mono text-[#b06000]">
+              <div className="bg-[var(--surface-alt)] border border-[var(--line)] rounded-[16px] px-6 py-3 text-center space-y-0.5">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">Unlocks In</span>
+                <p className="text-2xl font-bold font-mono text-[var(--badge-warning-text)]">
                   {Math.floor(mapLockoutSeconds / 60)}m {String(mapLockoutSeconds % 60).padStart(2, '0')}s
                 </p>
               </div>
               <button 
                 type="button"
                 onClick={() => navigate('/employee', { replace: true })}
-                className="px-6 py-2.5 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-full text-xs font-semibold shadow-xs active:scale-95 transition-all cursor-pointer"
+                className="px-6 py-2.5 bg-[var(--ink)] hover:bg-[var(--ink)]/90 text-white rounded-[12px] text-xs font-semibold shadow-xs active:scale-95 transition-all cursor-pointer"
               >
                 Back to Dashboard
               </button>
             </div>
           ) : locationError ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-white space-y-3 z-10">
-              <div className="w-12 h-12 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center border border-red-100">
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-[var(--surface)] space-y-3 z-10">
+              <div className="w-12 h-12 rounded-[16px] bg-[var(--badge-danger-bg)] text-[var(--badge-danger-text)] flex items-center justify-center border border-[var(--badge-danger-text)]/20">
                 <MapPinOff className="w-6 h-6" />
               </div>
-              <h3 className="text-base font-bold text-slate-900">Location Access Denied</h3>
-              <p className="text-xs text-slate-500 max-w-xs">{locationError}</p>
+              <h3 className="text-base font-semibold text-[var(--text)]">Location Access Denied</h3>
+              <p className="text-xs text-[var(--muted)] max-w-xs">{locationError}</p>
               <button 
                 type="button"
                 onClick={() => window.location.reload()}
-                className="px-5 py-2 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-full text-xs font-semibold shadow-xs active:scale-95 transition-all cursor-pointer"
+                className="px-5 py-2.5 bg-[var(--ink)] hover:bg-[var(--ink)]/90 text-white rounded-[12px] text-xs font-semibold shadow-xs active:scale-95 transition-all cursor-pointer"
               >
                 Try Again
               </button>
             </div>
           ) : !currentLocation || loadingGeofences ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-white/50 backdrop-blur-sm z-10">
-              <Loader2 className="w-10 h-10 text-[#1a73e8] animate-spin mb-4" />
-              <p className="text-slate-600 font-medium animate-pulse text-xs">Acquiring GPS Signal...</p>
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-[var(--surface)]/70 backdrop-blur-sm z-10">
+              <Loader2 className="w-8 h-8 text-[var(--brand-deep)] animate-spin mb-3" />
+              <p className="text-[var(--text-2)] font-medium text-xs">Acquiring GPS Signal...</p>
             </div>
           ) : !data?.googleMapsApiKey ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-slate-100 z-10">
-              <MapPin className="w-12 h-12 text-slate-300 mb-4" />
-              <p className="text-slate-500 font-medium">Map unavailable</p>
-              <p className="text-xs text-slate-400 mt-1 max-w-xs">Waiting for admin to configure Google Maps API key.</p>
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-[var(--surface-alt)] z-10">
+              <MapPin className="w-10 h-10 text-[var(--muted)] mb-3" />
+              <p className="text-sm font-semibold text-[var(--text)]">Map unavailable</p>
+              <p className="text-xs text-[var(--muted)] mt-1 max-w-xs">Waiting for admin to configure Google Maps API key.</p>
             </div>
           ) : (
             <div ref={mapRef} className="w-full h-full" />
@@ -366,35 +366,39 @@ const EmployeeMobileMap = () => {
         </div>
 
         {/* Bottom Drawer */}
-        <div className="bg-white rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.08)] z-20 relative pt-2 px-6 pb-8 border-t border-slate-100">
+        <div className="bg-[var(--surface)] rounded-t-[28px] shadow-xl z-20 relative pt-3 px-6 pb-8 border-t border-[var(--line)]">
           {/* Handle */}
-          <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-5" />
+          <div className="w-10 h-1 bg-[var(--line)] rounded-full mx-auto mb-4" />
 
           {/* Location Info */}
-          <div className="flex items-start gap-4 mb-5">
-            <div className="w-10 h-10 rounded-full bg-[#e8f0fe] flex items-center justify-center shrink-0 border border-[#d2e3fc]">
-              <Navigation className="w-5 h-5 text-[#1a73e8]" />
+          <div className="flex items-start gap-3.5 mb-4">
+            <div className="w-10 h-10 rounded-[12px] bg-[var(--brand-tint)] flex items-center justify-center shrink-0 border border-[var(--brand)]/20">
+              <Navigation className="w-5 h-5 text-[var(--brand-deep)]" />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-sm font-bold tracking-tight text-slate-900 mb-0.5">Current Location</h3>
-              <p className="text-xs text-slate-500 leading-snug line-clamp-2">{address}</p>
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--muted)] mb-0.5">Current Location</h3>
+              <p className="text-xs font-medium text-[var(--text)] leading-snug line-clamp-2">{address}</p>
             </div>
           </div>
 
           {/* Geofence Status */}
           {currentLocation && isGeoFenceEnabled && action !== 'punch' && isInsideGeofence !== null && (
-            <div className={`p-4 rounded-2xl mb-5 border ${isInsideGeofence ? 'bg-emerald-50 border-emerald-100' : 'bg-red-50 border-red-100'}`}>
+            <div className={`p-3.5 rounded-[16px] mb-4 border ${
+              isInsideGeofence 
+                ? 'bg-[var(--badge-success-bg)] border-[var(--badge-success-text)]/20 text-[var(--badge-success-text)]' 
+                : 'bg-[var(--badge-danger-bg)] border-[var(--badge-danger-text)]/20 text-[var(--badge-danger-text)]'
+            }`}>
               <div className="flex items-start gap-3">
                 {isInsideGeofence ? (
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                  <CheckCircle2 className="w-5 h-5 text-[var(--badge-success-text)] shrink-0 mt-0.5" />
                 ) : (
-                  <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+                  <AlertCircle className="w-5 h-5 text-[var(--badge-danger-text)] shrink-0 mt-0.5" />
                 )}
                 <div>
-                  <h4 className={`text-sm font-bold ${isInsideGeofence ? 'text-emerald-900' : 'text-red-900'}`}>
+                  <h4 className="text-xs font-semibold">
                     {isInsideGeofence ? 'Inside Geofence' : 'Outside Geofence'}
                   </h4>
-                  <p className={`text-xs mt-1 ${isInsideGeofence ? 'text-emerald-700' : 'text-red-700'}`}>
+                  <p className="text-[11px] mt-0.5 opacity-90 leading-relaxed">
                     {isInsideGeofence 
                       ? "You are within the approved area to punch." 
                       : distanceToNearest 
@@ -408,25 +412,25 @@ const EmployeeMobileMap = () => {
 
           {/* Warning for disabled geofence or punch action */}
           {currentLocation && (!isGeoFenceEnabled || action === 'punch') && (
-            <div className="p-4 rounded-2xl mb-5 bg-slate-50 border border-slate-100">
+            <div className="p-3.5 rounded-[16px] mb-4 bg-[var(--surface-alt)] border border-[var(--line)]">
               <div className="flex items-start gap-3">
-                <MapPin className="w-5 h-5 text-slate-500 shrink-0 mt-0.5" />
+                <MapPin className="w-5 h-5 text-[var(--muted)] shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="text-sm font-bold text-slate-700">Remote {getActionLabel()} Allowed</h4>
-                  <p className="text-xs mt-1 text-slate-500">Your location will be recorded with this {getActionLabel().toLowerCase()}.</p>
+                  <h4 className="text-xs font-semibold text-[var(--text)]">Remote {getActionLabel()} Allowed</h4>
+                  <p className="text-[11px] mt-0.5 text-[var(--muted)]">Your location will be recorded with this {getActionLabel().toLowerCase()}.</p>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Google Button */}
+          {/* Action Button */}
           <button
             type="button"
             onClick={handleProceed}
             disabled={!canProceed || !currentLocation}
-            className="w-full flex items-center justify-center gap-2.5 py-4 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] text-white text-sm font-bold shadow-sm transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98]"
+            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-[12px] bg-[var(--ink)] hover:bg-[var(--ink)]/90 text-white text-sm font-semibold shadow-sm transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98]"
           >
-            <Camera className="w-5 h-5" />
+            <Camera className="w-4 h-4" />
             <span>Proceed to Camera</span>
           </button>
         </div>

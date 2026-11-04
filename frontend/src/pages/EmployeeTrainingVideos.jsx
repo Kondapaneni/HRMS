@@ -142,34 +142,32 @@ const EmployeeTrainingVideos = () => {
       </div>
 
       {/* Desktop Experience */}
-      <div className="hidden md:block space-y-6 pb-12 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+      <div className="hidden md:block space-y-6 pb-12 antialiased">
         
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-1.5 mb-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-              <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Learning &amp; Development</span>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="w-2 h-2 rounded-full bg-[var(--brand)]" />
+              <span className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">Learning &amp; Development</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight flex items-center gap-2" style={{ fontWeight: 500 }}>
-              <span>Training Videos &amp; <span className="font-medium italic text-[#1a73e8]">Modules</span></span> <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">{videos.length} Modules</span>
+            <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight flex items-center gap-2.5">
+              <span>Training Videos &amp; Modules</span>
+              <span className="text-xs font-medium text-[var(--brand-deep)] bg-[var(--brand-tint)] px-2.5 py-0.5 rounded-full">{videos.length} Modules</span>
             </h1>
-            <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
+            <p className="text-xs sm:text-sm text-[var(--text-2)] mt-0.5">
               Watch assigned training modules, orientation courses, and company learning materials.
             </p>
           </div>
 
           {/* View Mode Toggle */}
-          <div className="flex items-center gap-2 bg-white border border-[#e0e3e7] p-1.5 rounded-full shadow-2xs self-start sm:self-auto">
+          <div className="flex items-center gap-1.5 bg-[var(--surface)] border border-[var(--line)] p-1.5 rounded-[14px] self-start sm:self-auto">
             <button
               onClick={() => setViewMode('theater')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-xs font-semibold transition-all cursor-pointer ${
                 viewMode === 'theater'
-                  ? 'bg-[#c2e7ff]/70 text-[#001d35] shadow-xs'
-                  : 'text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4]'
+                  ? 'bg-[var(--ink)] text-white shadow-none'
+                  : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
               }`}
               title="Theater View"
             >
@@ -178,10 +176,10 @@ const EmployeeTrainingVideos = () => {
             </button>
             <button
               onClick={() => setViewMode('grid')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-xs font-semibold transition-all cursor-pointer ${
                 viewMode === 'grid'
-                  ? 'bg-[#c2e7ff]/70 text-[#001d35] shadow-xs'
-                  : 'text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4]'
+                  ? 'bg-[var(--ink)] text-white shadow-none'
+                  : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
               }`}
               title="Grid View"
             >
@@ -195,37 +193,37 @@ const EmployeeTrainingVideos = () => {
         {videos.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {/* Total Assigned */}
-            <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs flex items-center justify-between">
+            <div className="bg-[var(--surface)] rounded-[24px] border border-[var(--line)] p-5 flex items-center justify-between">
               <div>
-                <p className="text-xs font-semibold text-[#5f6368]">Total Assigned</p>
-                <h3 className="text-2xl font-bold text-[#1f1f1f] mt-0.5">{videos.length} Modules</h3>
-                <p className="text-[11px] text-[#80868b] mt-1">Full curriculum required</p>
+                <p className="text-xs font-semibold text-[var(--muted)]">Total Assigned</p>
+                <h3 className="text-2xl font-bold text-[var(--text)] mt-0.5">{videos.length} Modules</h3>
+                <p className="text-[11px] text-[var(--muted)] mt-1">Full curriculum required</p>
               </div>
-              <div className="p-3.5 rounded-2xl bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
+              <div className="p-3.5 rounded-[14px] bg-[var(--brand-tint)] text-[var(--brand-deep)]">
                 <BookOpen className="w-6 h-6" />
               </div>
             </div>
 
             {/* Completed Modules */}
-            <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs flex items-center justify-between">
+            <div className="bg-[var(--surface)] rounded-[24px] border border-[var(--line)] p-5 flex items-center justify-between">
               <div>
-                <p className="text-xs font-semibold text-[#5f6368]">Completed</p>
-                <h3 className="text-2xl font-bold text-[#137333] mt-0.5">{completedCount} Modules</h3>
-                <p className="text-[11px] text-[#80868b] mt-1">{progressPercent}% completion rate</p>
+                <p className="text-xs font-semibold text-[var(--muted)]">Completed</p>
+                <h3 className="text-2xl font-bold text-[#1F9D55] mt-0.5">{completedCount} Modules</h3>
+                <p className="text-[11px] text-[var(--muted)] mt-1">{progressPercent}% completion rate</p>
               </div>
-              <div className="p-3.5 rounded-2xl bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">
+              <div className="p-3.5 rounded-[14px] bg-[#E6F6EC] text-[#1F9D55]">
                 <CheckCircle2 className="w-6 h-6" />
               </div>
             </div>
 
             {/* Pending to Watch */}
-            <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs flex items-center justify-between">
+            <div className="bg-[var(--surface)] rounded-[24px] border border-[var(--line)] p-5 flex items-center justify-between">
               <div>
-                <p className="text-xs font-semibold text-[#5f6368]">Pending Modules</p>
-                <h3 className="text-2xl font-bold text-[#b06000] mt-0.5">{videos.length - completedCount} Modules</h3>
-                <p className="text-[11px] text-[#80868b] mt-1">Remaining to watch</p>
+                <p className="text-xs font-semibold text-[var(--muted)]">Pending Modules</p>
+                <h3 className="text-2xl font-bold text-[#B7791F] mt-0.5">{videos.length - completedCount} Modules</h3>
+                <p className="text-[11px] text-[var(--muted)] mt-1">Remaining to watch</p>
               </div>
-              <div className="p-3.5 rounded-2xl bg-[#fef7e0] text-[#b06000] border border-[#feefc3]">
+              <div className="p-3.5 rounded-[14px] bg-[#FDF3DC] text-[#B7791F]">
                 <Clock className="w-6 h-6" />
               </div>
             </div>
@@ -234,13 +232,13 @@ const EmployeeTrainingVideos = () => {
 
         {videos.length === 0 ? (
           /* Empty State */
-          <div className="bg-white rounded-3xl border border-[#e0e3e7] p-16 text-center shadow-xs space-y-4">
-            <div className="w-20 h-20 bg-[#fce8e6] border border-[#fad2cf] rounded-3xl flex items-center justify-center mx-auto text-[#d93025]">
+          <div className="bg-[var(--surface)] rounded-[24px] border border-[var(--line)] p-16 text-center space-y-4">
+            <div className="w-20 h-20 bg-[#FDE8EA] rounded-[24px] flex items-center justify-center mx-auto text-[#D64550]">
               <Film className="w-10 h-10" />
             </div>
             <div className="space-y-1">
-              <h3 className="text-lg font-bold text-[#1f1f1f]">No Training Videos Assigned</h3>
-              <p className="text-sm text-[#5f6368] max-w-md mx-auto">
+              <h3 className="text-lg font-bold text-[var(--text)]">No Training Videos Assigned</h3>
+              <p className="text-sm text-[var(--muted)] max-w-md mx-auto">
                 You currently have no training videos assigned to your profile. Check back later or reach out to your HR administrator.
               </p>
             </div>
@@ -251,7 +249,7 @@ const EmployeeTrainingVideos = () => {
             {/* Left Main Player (7 Cols) */}
             <div className="lg:col-span-7 space-y-4">
               {activeVideo ? (
-                <div className="bg-white rounded-3xl border border-[#e0e3e7] overflow-hidden shadow-xs space-y-4">
+                <div className="bg-[var(--surface)] rounded-[24px] border border-[var(--line)] overflow-hidden space-y-4">
                   {/* Video Player Container */}
                   <div className="aspect-video bg-black relative">
                     <video
@@ -270,35 +268,35 @@ const EmployeeTrainingVideos = () => {
                     <div className="flex items-start justify-between gap-4">
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
+                          <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[var(--brand-tint)] text-[var(--brand-deep)]">
                             Module {activeIndex + 1} of {videos.length}
                           </span>
                           {activeVideo.is_completed && (
-                            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#e6f4ea] text-[#137333] border border-[#ceead6] flex items-center gap-1">
+                            <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#E6F6EC] text-[#1F9D55] flex items-center gap-1">
                               <Check className="w-3.5 h-3.5" /> Completed
                             </span>
                           )}
                         </div>
-                        <h2 className="text-xl font-bold text-[#1f1f1f]">
+                        <h2 className="text-xl font-bold text-[var(--text)]">
                           {activeVideo.title}
                         </h2>
-                        <p className="text-xs text-[#5f6368] flex items-center gap-1.5 pt-0.5">
-                          <Clock className="w-3.5 h-3.5 text-[#80868b]" />
+                        <p className="text-xs text-[var(--muted)] flex items-center gap-1.5 pt-0.5">
+                          <Clock className="w-3.5 h-3.5 text-[var(--muted)]" />
                           Uploaded on {new Date(activeVideo.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
                         </p>
                       </div>
                     </div>
 
                     {/* Interactive Bottom Bar */}
-                    <div className="flex items-center justify-between pt-4 border-t border-[#e0e3e7]">
+                    <div className="flex items-center justify-between pt-4 border-t border-[var(--line)]">
                       {/* Prev Module */}
                       <button
                         onClick={handlePrevVideo}
                         disabled={activeIndex === 0}
-                        className={`flex items-center gap-1.5 py-2 px-3.5 rounded-2xl text-xs font-semibold transition-all ${
+                        className={`flex items-center gap-1.5 py-2 px-3.5 rounded-[14px] text-xs font-semibold transition-all ${
                           activeIndex === 0
-                            ? 'opacity-40 cursor-not-allowed text-[#80868b]'
-                            : 'bg-[#f1f3f4] text-[#1f1f1f] hover:bg-[#e3e3e3] active:scale-95'
+                            ? 'opacity-40 cursor-not-allowed text-[var(--muted)]'
+                            : 'bg-[var(--surface-alt)] text-[var(--text)] hover:bg-[var(--line)] active:scale-95'
                         }`}
                       >
                         <ChevronLeft className="w-4 h-4" />
@@ -309,10 +307,10 @@ const EmployeeTrainingVideos = () => {
                       <button
                         onClick={(e) => triggerToggleComplete(activeVideo, e)}
                         disabled={toggleProgressMutation.isPending}
-                        className={`flex items-center gap-2 py-2 px-5 rounded-2xl text-xs font-semibold transition-all active:scale-95 cursor-pointer ${
+                        className={`flex items-center gap-2 py-2 px-5 rounded-[14px] text-xs font-semibold transition-all active:scale-95 cursor-pointer ${
                           activeVideo.is_completed
-                            ? 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6] hover:bg-[#d5eedc]'
-                            : 'bg-[#1a73e8] text-white hover:bg-[#1557b0] shadow-xs'
+                            ? 'bg-[#E6F6EC] text-[#1F9D55] hover:bg-[#d5eedc]'
+                            : 'bg-[var(--ink)] text-white hover:bg-[var(--ink-2)]'
                         }`}
                       >
                         {activeVideo.is_completed ? (
@@ -332,10 +330,10 @@ const EmployeeTrainingVideos = () => {
                       <button
                         onClick={handleNextVideo}
                         disabled={activeIndex === videos.length - 1}
-                        className={`flex items-center gap-1.5 py-2 px-3.5 rounded-2xl text-xs font-semibold transition-all ${
+                        className={`flex items-center gap-1.5 py-2 px-3.5 rounded-[14px] text-xs font-semibold transition-all ${
                           activeIndex === videos.length - 1
-                            ? 'opacity-40 cursor-not-allowed text-[#80868b]'
-                            : 'bg-[#f1f3f4] text-[#1f1f1f] hover:bg-[#e3e3e3] active:scale-95'
+                            ? 'opacity-40 cursor-not-allowed text-[var(--muted)]'
+                            : 'bg-[var(--surface-alt)] text-[var(--text)] hover:bg-[var(--line)] active:scale-95'
                         }`}
                       >
                         <span>Next</span>
@@ -349,19 +347,19 @@ const EmployeeTrainingVideos = () => {
 
             {/* Right Playlist Sidebar (5 Cols) */}
             <div className="lg:col-span-5 space-y-4">
-              <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs space-y-3.5">
+              <div className="bg-[var(--surface)] rounded-[24px] border border-[var(--line)] p-5 space-y-3.5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-sm font-bold text-[#1f1f1f] uppercase tracking-wider">
+                    <h3 className="text-xs font-bold text-[var(--text)] uppercase tracking-wider">
                       Curriculum Playlist
                     </h3>
-                    <p className="text-xs text-[#5f6368]">
+                    <p className="text-xs text-[var(--muted)]">
                       {completedCount} of {videos.length} Completed
                     </p>
                   </div>
-                  <div className="w-24 h-2 rounded-full bg-[#f1f3f4] overflow-hidden">
+                  <div className="w-24 h-2 rounded-full bg-[var(--surface-alt)] overflow-hidden">
                     <div
-                      className="h-full rounded-full bg-[#1a73e8]"
+                      className="h-full rounded-full bg-[var(--brand)]"
                       style={{ width: `${progressPercent}%` }}
                     />
                   </div>
@@ -369,18 +367,18 @@ const EmployeeTrainingVideos = () => {
 
                 {/* Search Bar */}
                 <div className="relative">
-                  <Search className="w-4 h-4 text-[#5f6368] absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Search className="w-4 h-4 text-[var(--muted)] absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
                     placeholder="Search video modules..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-9 pr-4 py-2 bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl text-xs text-[#1f1f1f] placeholder-[#80868b] focus:outline-none focus:border-[#1a73e8] focus:bg-white transition-all"
+                    className="w-full pl-9 pr-4 py-2 bg-[var(--surface-alt)] border border-[var(--line)] rounded-[14px] text-xs text-[var(--text)] placeholder-[var(--muted)] focus:outline-none focus:border-[var(--brand)] transition-all"
                   />
                   {searchQuery && (
                     <button
                       onClick={() => setSearchQuery('')}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#5f6368] hover:text-[#1f1f1f]"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[var(--muted)] hover:text-[var(--text)]"
                     >
                       ✕
                     </button>
@@ -393,8 +391,8 @@ const EmployeeTrainingVideos = () => {
                     onClick={() => setActiveFilter('all')}
                     className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                       activeFilter === 'all'
-                        ? 'bg-[#1a73e8] text-white'
-                        : 'bg-[#f1f3f4] text-[#5f6368] hover:bg-[#e3e3e3]'
+                        ? 'bg-[var(--ink)] text-white'
+                        : 'bg-[var(--surface-alt)] text-[var(--muted)] hover:bg-[var(--line)]'
                     }`}
                   >
                     All ({videos.length})
@@ -403,8 +401,8 @@ const EmployeeTrainingVideos = () => {
                     onClick={() => setActiveFilter('pending')}
                     className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                       activeFilter === 'pending'
-                        ? 'bg-[#b06000] text-white'
-                        : 'bg-[#fef7e0] text-[#b06000] border border-[#feefc3] hover:bg-[#feeec3]'
+                        ? 'bg-[#B7791F] text-white'
+                        : 'bg-[#FDF3DC] text-[#B7791F] hover:bg-[#feeec3]'
                     }`}
                   >
                     To Watch ({videos.length - completedCount})
@@ -413,8 +411,8 @@ const EmployeeTrainingVideos = () => {
                     onClick={() => setActiveFilter('completed')}
                     className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                       activeFilter === 'completed'
-                        ? 'bg-[#137333] text-white'
-                        : 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6] hover:bg-[#d5eedc]'
+                        ? 'bg-[#1F9D55] text-white'
+                        : 'bg-[#E6F6EC] text-[#1F9D55] hover:bg-[#d5eedc]'
                     }`}
                   >
                     Completed ({completedCount})
@@ -424,7 +422,7 @@ const EmployeeTrainingVideos = () => {
                 {/* Playlist Items */}
                 <div className="space-y-2 max-h-[520px] overflow-y-auto pr-1">
                   {filteredVideos.length === 0 ? (
-                    <div className="p-6 text-center text-xs text-[#5f6368]">
+                    <div className="p-6 text-center text-xs text-[var(--muted)]">
                       No modules matched your search.
                     </div>
                   ) : (
@@ -436,20 +434,20 @@ const EmployeeTrainingVideos = () => {
                         <div
                           key={video.id}
                           onClick={() => handleSelectVideo(video)}
-                          className={`rounded-2xl border p-3 transition-all flex items-center justify-between gap-3 cursor-pointer ${
+                          className={`rounded-[18px] border p-3 transition-all flex items-center justify-between gap-3 cursor-pointer ${
                             isSelected
-                              ? 'border-[#1a73e8] bg-[#e8f0fe]/60 shadow-xs'
-                              : 'border-[#e0e3e7] bg-white hover:border-[#c4c7c5] hover:bg-[#f8fafd]'
+                              ? 'border-[var(--brand)] bg-[var(--brand-tint)]/50'
+                              : 'border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-alt)]'
                           }`}
                         >
                           <div className="flex items-center gap-3 min-w-0">
                             <div
-                              className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 font-bold text-xs ${
+                              className={`w-9 h-9 rounded-[12px] flex items-center justify-center shrink-0 font-bold text-xs ${
                                 isSelected
-                                  ? 'bg-[#1a73e8] text-white shadow-xs'
+                                  ? 'bg-[var(--ink)] text-white'
                                   : video.is_completed
-                                  ? 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6]'
-                                  : 'bg-[#f1f3f4] text-[#5f6368]'
+                                  ? 'bg-[#E6F6EC] text-[#1F9D55]'
+                                  : 'bg-[var(--surface-alt)] text-[var(--muted)]'
                               }`}
                             >
                               {isSelected ? (
@@ -463,16 +461,16 @@ const EmployeeTrainingVideos = () => {
 
                             <div className="min-w-0">
                               <div className="flex items-center gap-1.5">
-                                <span className="text-[10px] font-bold text-[#5f6368] uppercase">
+                                <span className="text-[10px] font-bold text-[var(--muted)] uppercase">
                                   Module {originalIndex + 1}
                                 </span>
                                 {video.is_completed && (
-                                  <span className="text-[9px] font-bold text-[#137333] bg-[#e6f4ea] px-1.5 rounded">
+                                  <span className="text-[9px] font-bold text-[#1F9D55] bg-[#E6F6EC] px-1.5 rounded">
                                     Done
                                   </span>
                                 )}
                               </div>
-                              <h4 className={`text-xs font-semibold truncate ${isSelected ? 'text-[#1a73e8]' : 'text-[#1f1f1f]'}`}>
+                              <h4 className={`text-xs font-semibold truncate ${isSelected ? 'text-[var(--brand-deep)]' : 'text-[var(--text)]'}`}>
                                 {video.title}
                               </h4>
                             </div>
@@ -483,8 +481,8 @@ const EmployeeTrainingVideos = () => {
                             disabled={toggleProgressMutation.isPending}
                             className={`p-1.5 rounded-lg shrink-0 transition-all cursor-pointer ${
                               video.is_completed
-                                ? 'text-[#137333] hover:bg-[#e6f4ea]'
-                                : 'text-[#80868b] hover:text-[#1a73e8] hover:bg-[#f1f3f4]'
+                                ? 'text-[#1F9D55] hover:bg-[#E6F6EC]'
+                                : 'text-[var(--muted)] hover:text-[var(--brand-deep)] hover:bg-[var(--surface-alt)]'
                             }`}
                             title={video.is_completed ? 'Mark uncompleted' : 'Mark completed'}
                           >
@@ -506,15 +504,15 @@ const EmployeeTrainingVideos = () => {
           /* Grid View */
           <div className="space-y-4">
             {/* Search & Filter Bar for Grid */}
-            <div className="bg-white rounded-3xl border border-[#e0e3e7] p-4 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="bg-[var(--surface)] rounded-[24px] border border-[var(--line)] p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
               <div className="relative w-full sm:w-80">
-                <Search className="w-4 h-4 text-[#5f6368] absolute left-3 top-1/2 -translate-y-1/2" />
+                <Search className="w-4 h-4 text-[var(--muted)] absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   placeholder="Search training modules..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl text-xs text-[#1f1f1f] placeholder-[#80868b] focus:outline-none focus:border-[#1a73e8] focus:bg-white transition-all"
+                  className="w-full pl-9 pr-4 py-2 bg-[var(--surface-alt)] border border-[var(--line)] rounded-[14px] text-xs text-[var(--text)] placeholder-[var(--muted)] focus:outline-none focus:border-[var(--brand)] transition-all"
                 />
               </div>
 
@@ -523,8 +521,8 @@ const EmployeeTrainingVideos = () => {
                   onClick={() => setActiveFilter('all')}
                   className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
                     activeFilter === 'all'
-                      ? 'bg-[#1a73e8] text-white'
-                      : 'bg-[#f1f3f4] text-[#5f6368] hover:bg-[#e3e3e3]'
+                      ? 'bg-[var(--ink)] text-white'
+                      : 'bg-[var(--surface-alt)] text-[var(--muted)] hover:bg-[var(--line)]'
                   }`}
                 >
                   All ({videos.length})
@@ -533,8 +531,8 @@ const EmployeeTrainingVideos = () => {
                   onClick={() => setActiveFilter('pending')}
                   className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
                     activeFilter === 'pending'
-                      ? 'bg-[#b06000] text-white'
-                      : 'bg-[#fef7e0] text-[#b06000] border border-[#feefc3] hover:bg-[#feeec3]'
+                      ? 'bg-[#B7791F] text-white'
+                      : 'bg-[#FDF3DC] text-[#B7791F] hover:bg-[#feeec3]'
                   }`}
                 >
                   To Watch ({videos.length - completedCount})
@@ -543,8 +541,8 @@ const EmployeeTrainingVideos = () => {
                   onClick={() => setActiveFilter('completed')}
                   className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
                     activeFilter === 'completed'
-                      ? 'bg-[#137333] text-white'
-                      : 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6] hover:bg-[#d5eedc]'
+                      ? 'bg-[#1F9D55] text-white'
+                      : 'bg-[#E6F6EC] text-[#1F9D55] hover:bg-[#d5eedc]'
                   }`}
                 >
                   Completed ({completedCount})
@@ -560,7 +558,7 @@ const EmployeeTrainingVideos = () => {
                 return (
                   <div
                     key={video.id}
-                    className="bg-white rounded-3xl border border-[#e0e3e7] overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col group"
+                    className="bg-[var(--surface)] rounded-[24px] border border-[var(--line)] overflow-hidden transition-all flex flex-col group"
                   >
                     <div className="w-full h-48 sm:h-52 bg-slate-950 relative overflow-hidden flex items-center justify-center">
                       <video
@@ -575,27 +573,27 @@ const EmployeeTrainingVideos = () => {
                     <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
                       <div>
                         <div className="flex items-center justify-between mb-1.5">
-                          <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
+                          <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[var(--brand-tint)] text-[var(--brand-deep)]">
                             Module {originalIndex + 1}
                           </span>
                           {video.is_completed && (
-                            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#e6f4ea] text-[#137333] border border-[#ceead6] flex items-center gap-1">
+                            <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#E6F6EC] text-[#1F9D55] flex items-center gap-1">
                               <Check className="w-3 h-3" /> Completed
                             </span>
                           )}
                         </div>
-                        <h3 className="font-bold text-sm text-[#1f1f1f] line-clamp-2" title={video.title}>
+                        <h3 className="font-bold text-sm text-[var(--text)] line-clamp-2" title={video.title}>
                           {video.title}
                         </h3>
-                        <p className="text-xs text-[#5f6368] mt-1">
+                        <p className="text-xs text-[var(--muted)] mt-1">
                           Added {new Date(video.created_at).toLocaleDateString()}
                         </p>
                       </div>
 
-                      <div className="flex items-center gap-2 pt-3 border-t border-[#e0e3e7]">
+                      <div className="flex items-center gap-2 pt-3 border-t border-[var(--line)]">
                         <button
                           onClick={() => handleSelectVideo(video)}
-                          className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-2xl bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold transition-all"
+                          className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-[14px] bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white text-xs font-semibold transition-all"
                         >
                           <Tv className="w-3.5 h-3.5" />
                           <span>Open in Player</span>
@@ -603,10 +601,10 @@ const EmployeeTrainingVideos = () => {
                         <button
                           onClick={(e) => triggerToggleComplete(video, e)}
                           disabled={toggleProgressMutation.isPending}
-                          className={`p-2 rounded-2xl border transition-all cursor-pointer ${
+                          className={`p-2 rounded-[14px] border transition-all cursor-pointer ${
                             video.is_completed
-                              ? 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]'
-                              : 'bg-[#f1f3f4] text-[#5f6368] border-[#dadce0] hover:bg-[#e3e3e3]'
+                              ? 'bg-[#E6F6EC] text-[#1F9D55] border-[#E6F6EC]'
+                              : 'bg-[var(--surface-alt)] text-[var(--muted)] border-[var(--line)] hover:bg-[var(--line)]'
                           }`}
                           title={video.is_completed ? 'Mark uncompleted' : 'Mark completed'}
                         >
@@ -630,20 +628,20 @@ const EmployeeTrainingVideos = () => {
       {confirmingVideo && createPortal(
         <div 
           onClick={() => setConfirmingVideo(null)}
-          className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200"
+          className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200"
         >
           <motion.div
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-sm overflow-hidden p-6 space-y-4 text-center"
+            className="bg-[var(--surface)] text-[var(--text)] rounded-[24px] border border-[var(--line)] shadow-2xl w-full max-w-sm overflow-hidden p-6 space-y-4 text-center antialiased"
           >
             {/* Top Icon Badge */}
             <div className={`w-14 h-14 rounded-full flex items-center justify-center mx-auto ${
               confirmingVideo.is_completed
-                ? 'bg-[#fef7e0] text-[#b06000] border border-[#feefc3]'
-                : 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6]'
+                ? 'bg-[#FDF3DC] text-[#B7791F]'
+                : 'bg-[#E6F6EC] text-[#1F9D55]'
             }`}>
               {confirmingVideo.is_completed ? (
                 <RotateCcw className="w-7 h-7" />
@@ -654,13 +652,13 @@ const EmployeeTrainingVideos = () => {
 
             {/* Content */}
             <div className="space-y-1.5">
-              <h3 className="text-base font-bold text-slate-900">
+              <h3 className="text-base font-bold text-[var(--text)]">
                 {confirmingVideo.is_completed ? 'Mark as Incomplete?' : 'Mark Module as Completed?'}
               </h3>
-              <p className="text-xs text-slate-500 line-clamp-2 px-2 font-medium">
+              <p className="text-xs text-[var(--muted)] line-clamp-2 px-2 font-medium">
                 "{confirmingVideo.title}"
               </p>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-[11px] text-[var(--muted)]">
                 {confirmingVideo.is_completed
                   ? 'This will reset your completion status for this training module.'
                   : 'Are you sure you want to mark this training module as completed?'}
@@ -672,7 +670,7 @@ const EmployeeTrainingVideos = () => {
               <button
                 type="button"
                 onClick={() => setConfirmingVideo(null)}
-                className="w-full py-3 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all cursor-pointer"
+                className="w-full py-2.5 rounded-[14px] border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--text)] text-xs font-semibold transition-all cursor-pointer"
               >
                 Cancel
               </button>
@@ -680,10 +678,10 @@ const EmployeeTrainingVideos = () => {
                 type="button"
                 onClick={handleConfirmToggle}
                 disabled={toggleProgressMutation.isPending}
-                className={`w-full py-3 rounded-full text-white text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95 ${
+                className={`w-full py-2.5 rounded-[14px] text-white text-xs font-semibold transition-all cursor-pointer ${
                   confirmingVideo.is_completed
-                    ? 'bg-[#d93025] hover:bg-[#b31412]'
-                    : 'bg-[#1a73e8] hover:bg-[#1557b0]'
+                    ? 'bg-[#D64550] hover:bg-[#c03c46]'
+                    : 'bg-[var(--ink)] hover:bg-[var(--ink-2)]'
                 }`}
               >
                 {confirmingVideo.is_completed ? 'Mark Incomplete' : 'Yes, Complete'}

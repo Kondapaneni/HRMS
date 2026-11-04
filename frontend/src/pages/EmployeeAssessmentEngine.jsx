@@ -527,7 +527,7 @@ const EmployeeAssessmentEngine = () => {
                 <button
                   type="button"
                   onClick={() => setShowSubmitModal(false)}
-                  className="flex-1 py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl transition cursor-pointer"
+                  className="flex-1 py-3 px-4 bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--text)] font-semibold text-xs rounded-[14px] transition cursor-pointer"
                 >
                   Continue Reviewing
                 </button>
@@ -537,7 +537,7 @@ const EmployeeAssessmentEngine = () => {
                     setShowSubmitModal(false);
                     submitExam('manual');
                   }}
-                  className="flex-1 py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl transition cursor-pointer shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2"
+                  className="flex-1 py-3 px-4 bg-[#1F9D55] hover:bg-[#198447] text-white font-semibold text-xs rounded-[14px] transition cursor-pointer flex items-center justify-center gap-2"
                 >
                   <Send size={16} /> Yes, Submit Now
                 </button>
@@ -554,26 +554,26 @@ const EmployeeAssessmentEngine = () => {
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }} 
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100]"
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center z-[100]"
           >
             <motion.div 
               initial={{ scale: 0.95, y: 20 }} 
               animate={{ scale: 1, y: 0 }} 
               exit={{ scale: 0.95, y: 20 }}
-              className="bg-white rounded-2xl shadow-2xl p-8 max-w-md mx-4 text-center border border-slate-200"
+              className="bg-[var(--surface)] text-[var(--text)] rounded-[24px] shadow-2xl p-8 max-w-md mx-4 text-center border border-[var(--line)]"
             >
-              <div className="w-16 h-16 rounded-full bg-rose-100 flex items-center justify-center mx-auto mb-4">
-                <AlertTriangle size={32} className="text-rose-600" />
+              <div className="w-16 h-16 rounded-[18px] bg-[#FDF3DC] flex items-center justify-center mx-auto mb-4 text-[#B7791F]">
+                <AlertTriangle size={32} />
               </div>
-              <h3 className="text-xl font-black text-slate-900 mb-2">⚠️ Tab Switch Detected!</h3>
-              <p className="text-sm text-slate-600 mb-6">
-                You left the exam tab. This is your <strong className="text-rose-600">first and only warning</strong>. 
-                If you switch tabs again, your exam will be <strong className="text-rose-600">automatically submitted</strong>.
+              <h3 className="text-xl font-bold text-[var(--text)] mb-2">⚠️ Tab Switch Detected!</h3>
+              <p className="text-xs text-[var(--muted)] mb-6">
+                You left the exam tab. This is your <strong className="text-[#D64550]">first and only warning</strong>. 
+                If you switch tabs again, your exam will be <strong className="text-[#D64550]">automatically submitted</strong>.
               </p>
               <button
                 type="button"
                 onClick={() => setShowTabWarning(false)}
-                className="px-8 py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl transition cursor-pointer"
+                className="px-8 py-3 bg-[#D64550] hover:bg-[#c03c46] text-white font-semibold text-xs rounded-[14px] transition cursor-pointer"
               >
                 I Understand, Continue Exam
               </button>
@@ -589,19 +589,19 @@ const EmployeeAssessmentEngine = () => {
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }} 
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-[110] p-4"
+            className="fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center z-[110] p-4"
           >
             <motion.div 
               initial={{ scale: 0.95, y: 20 }} 
               animate={{ scale: 1, y: 0 }} 
               exit={{ scale: 0.95, y: 20 }}
-              className="bg-white rounded-2xl shadow-2xl p-8 max-w-md mx-4 text-center border border-slate-200"
+              className="bg-[var(--surface)] text-[var(--text)] rounded-[24px] shadow-2xl p-8 max-w-md mx-4 text-center border border-[var(--line)]"
             >
-              <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center mx-auto mb-4 shadow-sm">
-                <ShieldAlert size={32} className="text-blue-600" />
+              <div className="w-16 h-16 rounded-[18px] bg-[var(--brand-tint)] flex items-center justify-center mx-auto mb-4">
+                <ShieldAlert size={32} className="text-[var(--brand-deep)]" />
               </div>
-              <h3 className="text-xl font-extrabold text-slate-900 mb-2">Full Screen Required</h3>
-              <p className="text-sm text-slate-600 mb-6 leading-relaxed">
+              <h3 className="text-xl font-bold text-[var(--text)] mb-2">Full Screen Required</h3>
+              <p className="text-xs text-[var(--muted)] mb-6 leading-relaxed">
                 To maintain assessment security and proctoring integrity, this exam must be completed in full screen mode.
               </p>
               <button
@@ -618,7 +618,7 @@ const EmployeeAssessmentEngine = () => {
                     setShowFullscreenModal(false);
                   }
                 }}
-                className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-lg shadow-blue-500/25 cursor-pointer"
+                className="w-full py-3 bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white font-semibold text-xs rounded-[14px] transition cursor-pointer"
               >
                 Enter Full Screen Mode
               </button>
@@ -628,31 +628,31 @@ const EmployeeAssessmentEngine = () => {
       </AnimatePresence>
 
       {/* ===== TOP BAR ===== */}
-      <div className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0 shadow-sm">
+      <div className="h-16 bg-[var(--surface)] border-b border-[var(--line)] flex items-center justify-between px-6 shrink-0">
         {/* Left - Title */}
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center shadow-sm shadow-blue-500/20">
+          <div className="w-9 h-9 rounded-[12px] bg-[var(--ink)] flex items-center justify-center">
             <Lock size={16} className="text-white" />
           </div>
           <div>
-            <h1 className="text-base font-bold text-slate-900 leading-tight truncate max-w-sm">
+            <h1 className="text-sm font-bold text-[var(--text)] leading-tight truncate max-w-sm">
               {examData?.assessment?.title || 'Assessment'}
             </h1>
-            <p className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider mt-0.5">Secure Exam Mode</p>
+            <p className="text-[10px] text-[var(--muted)] font-semibold uppercase tracking-wider mt-0.5">Secure Exam Mode</p>
           </div>
         </div>
 
         {/* Center - Timer */}
-        <div className={`flex items-center gap-3 px-6 py-2 rounded-xl border shadow-sm ${
+        <div className={`flex items-center gap-3 px-6 py-2 rounded-[14px] border ${
           isCritical
-            ? 'bg-rose-50 border-rose-300'
+            ? 'bg-[#FDE8EA] border-[#FDE8EA]'
             : isUrgent
-              ? 'bg-amber-50 border-amber-300'
-              : 'bg-slate-50 border-slate-200'
+              ? 'bg-[#FDF3DC] border-[#FDF3DC]'
+              : 'bg-[var(--surface-alt)] border-[var(--line)]'
         }`}>
-          <Clock size={18} className={isCritical ? 'text-rose-500 animate-bounce' : isUrgent ? 'text-amber-500' : 'text-slate-500'} />
+          <Clock size={18} className={isCritical ? 'text-[#D64550] animate-bounce' : isUrgent ? 'text-[#B7791F]' : 'text-[var(--muted)]'} />
           <span className={`text-xl font-mono font-black tracking-wider ${
-            isCritical ? 'text-rose-600 animate-pulse' : isUrgent ? 'text-amber-600' : 'text-slate-900'
+            isCritical ? 'text-[#D64550] animate-pulse' : isUrgent ? 'text-[#B7791F]' : 'text-[var(--text)]'
           }`}>
             {formatTime(timeLeft)}
           </span>
@@ -661,20 +661,20 @@ const EmployeeAssessmentEngine = () => {
         {/* Right - Auto-save indicator & Progress */}
         <div className="flex items-center gap-4">
           {autoSaving ? (
-            <span className="flex items-center gap-1.5 text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100">
+            <span className="flex items-center gap-1.5 text-xs font-semibold text-[var(--brand-deep)] bg-[var(--brand-tint)] px-3 py-1.5 rounded-full border border-[var(--brand)]/20">
               <Save size={14} className="animate-pulse" /> Saving...
             </span>
           ) : (
-            <span className="text-xs font-semibold text-slate-400 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200/60">
+            <span className="text-xs font-semibold text-[var(--muted)] bg-[var(--surface-alt)] px-3 py-1.5 rounded-full border border-[var(--line)]">
               Auto-saved
             </span>
           )}
 
-          <div className="h-4 w-px bg-slate-200" />
+          <div className="h-4 w-px bg-[var(--line)]" />
 
           <div className="text-right">
-            <span className="text-xs font-bold text-slate-900">{answeredCount}</span>
-            <span className="text-xs text-slate-400 font-medium"> / {questions.length} Answered</span>
+            <span className="text-xs font-bold text-[var(--text)]">{answeredCount}</span>
+            <span className="text-xs text-[var(--muted)] font-medium"> / {questions.length} Answered</span>
           </div>
         </div>
       </div>
@@ -682,16 +682,16 @@ const EmployeeAssessmentEngine = () => {
       {/* ===== MAIN CONTENT ===== */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Sidebar - Question Navigator */}
-        <div className="w-64 bg-white border-r border-slate-200 flex flex-col shrink-0">
+        <div className="w-64 bg-[var(--surface)] border-r border-[var(--line)] flex flex-col shrink-0">
           {/* Progress Summary */}
-          <div className="p-5 border-b border-slate-100">
+          <div className="p-5 border-b border-[var(--line)]">
             <div className="flex items-center justify-between mb-2.5">
-              <span className="text-xs font-bold uppercase text-slate-500 tracking-wider">Progress</span>
-              <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">{Math.round(questions.length > 0 ? (answeredCount / questions.length) * 100 : 0)}%</span>
+              <span className="text-xs font-bold uppercase text-[var(--muted)] tracking-wider">Progress</span>
+              <span className="text-xs font-bold text-[var(--brand-deep)] bg-[var(--brand-tint)] px-2 py-0.5 rounded-full">{Math.round(questions.length > 0 ? (answeredCount / questions.length) * 100 : 0)}%</span>
             </div>
-            <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+            <div className="w-full h-2 bg-[var(--surface-alt)] rounded-full overflow-hidden">
               <motion.div
-                className="h-full bg-blue-600 rounded-full"
+                className="h-full bg-[var(--brand)] rounded-full"
                 initial={{ width: 0 }}
                 animate={{ width: `${questions.length > 0 ? (answeredCount / questions.length) * 100 : 0}%` }}
                 transition={{ duration: 0.4 }}
@@ -701,7 +701,7 @@ const EmployeeAssessmentEngine = () => {
 
           {/* Question Grid */}
           <div className="flex-1 overflow-y-auto p-4">
-            <p className="text-xs font-bold uppercase text-slate-400 mb-3 tracking-wider">Questions</p>
+            <p className="text-xs font-bold uppercase text-[var(--muted)] mb-3 tracking-wider">Questions</p>
             <div className="grid grid-cols-5 gap-2">
               {questions.map((q, idx) => {
                 const isAnswered = answers[q.id]?.answer?.length > 0;
@@ -717,12 +717,12 @@ const EmployeeAssessmentEngine = () => {
                       e.stopPropagation();
                       setCurrentQuestion(idx);
                     }}
-                    className={`w-full aspect-square rounded-xl text-xs font-bold transition cursor-pointer flex items-center justify-center ${
+                    className={`w-full aspect-square rounded-[12px] text-xs font-bold transition cursor-pointer flex items-center justify-center ${
                       isCurrent
-                        ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30 ring-2 ring-blue-300'
+                        ? 'bg-[var(--ink)] text-white shadow-sm ring-2 ring-[var(--brand)]'
                         : isAnswered
-                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-300 font-extrabold'
-                          : 'bg-slate-50 text-slate-600 border border-slate-200 hover:bg-slate-100 hover:border-slate-300'
+                          ? 'bg-[#E6F6EC] text-[#1F9D55] border border-[#ceead6] font-extrabold'
+                          : 'bg-[var(--surface-alt)] text-[var(--muted)] border border-[var(--line)] hover:bg-[var(--line)]'
                     }`}
                   >
                     {idx + 1}
@@ -732,38 +732,38 @@ const EmployeeAssessmentEngine = () => {
             </div>
 
             {/* Legend */}
-            <div className="mt-6 space-y-3 pt-4 border-t border-slate-200">
-              <div className="flex items-center gap-3 text-xs font-semibold text-slate-700">
-                <div className="w-4 h-4 rounded-md bg-blue-600 shadow-sm shrink-0"></div>
+            <div className="mt-6 space-y-3 pt-4 border-t border-[var(--line)]">
+              <div className="flex items-center gap-3 text-xs font-semibold text-[var(--text)]">
+                <div className="w-4 h-4 rounded-[6px] bg-[var(--ink)] shrink-0"></div>
                 <span>Current</span>
               </div>
-              <div className="flex items-center gap-3 text-xs font-semibold text-slate-700">
-                <div className="w-4 h-4 rounded-md bg-emerald-50 border border-emerald-300 shrink-0"></div>
+              <div className="flex items-center gap-3 text-xs font-semibold text-[var(--text)]">
+                <div className="w-4 h-4 rounded-[6px] bg-[#E6F6EC] border border-[#ceead6] shrink-0"></div>
                 <span>Answered</span>
               </div>
-              <div className="flex items-center gap-3 text-xs font-semibold text-slate-700">
-                <div className="w-4 h-4 rounded-md bg-slate-50 border border-slate-200 shrink-0"></div>
+              <div className="flex items-center gap-3 text-xs font-semibold text-[var(--text)]">
+                <div className="w-4 h-4 rounded-[6px] bg-[var(--surface-alt)] border border-[var(--line)] shrink-0"></div>
                 <span>Unanswered</span>
               </div>
             </div>
           </div>
 
           {/* Bottom Security Info */}
-          <div className="p-4 border-t border-slate-100 bg-slate-50/50 flex items-center gap-2 text-xs font-medium text-slate-500">
-            <ShieldCheck size={16} className="text-emerald-500 shrink-0" />
+          <div className="p-4 border-t border-[var(--line)] bg-[var(--surface-alt)] flex items-center gap-2 text-xs font-medium text-[var(--muted)]">
+            <ShieldCheck size={16} className="text-[#1F9D55] shrink-0" />
             <span>Browser Locked</span>
           </div>
         </div>
 
         {/* Center - Question Content Area */}
-        <div className="flex-1 flex flex-col overflow-hidden bg-slate-50">
+        <div className="flex-1 flex flex-col overflow-hidden bg-[var(--bg)]">
           {/* Question Header */}
-          <div className="bg-white border-b border-slate-200 px-8 py-4 flex items-center justify-between shrink-0 shadow-sm">
+          <div className="bg-[var(--surface)] border-b border-[var(--line)] px-8 py-4 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-3">
-              <span className="text-sm font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-lg border border-blue-100">
+              <span className="text-xs font-bold text-[var(--brand-deep)] bg-[var(--brand-tint)] px-3 py-1 rounded-[10px] border border-[var(--brand)]/20">
                 Question {currentQuestion + 1} of {questions.length}
               </span>
-              <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md">
+              <span className="text-xs font-semibold text-[var(--muted)] bg-[var(--surface-alt)] px-2.5 py-1 rounded-[10px]">
                 {currentQ?.marks || 1} mark{(currentQ?.marks || 1) > 1 ? 's' : ''}
               </span>
             </div>
@@ -771,9 +771,9 @@ const EmployeeAssessmentEngine = () => {
               <motion.span 
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-200 shadow-sm"
+                className="flex items-center gap-1.5 text-xs font-bold text-[#1F9D55] bg-[#E6F6EC] px-3 py-1 rounded-[10px] border border-[#ceead6]"
               >
-                <CheckCircle2 size={14} className="text-emerald-600" /> Answered
+                <CheckCircle2 size={14} className="text-[#1F9D55]" /> Answered
               </motion.span>
             )}
           </div>
@@ -790,7 +790,7 @@ const EmployeeAssessmentEngine = () => {
                   transition={{ duration: 0.2 }}
                   className="max-w-3xl"
                 >
-                  <h2 className="text-xl font-bold text-slate-900 mb-8 leading-relaxed">
+                  <h2 className="text-lg sm:text-xl font-bold text-[var(--text)] mb-8 leading-relaxed">
                     {currentQ.title}
                   </h2>
 
@@ -811,26 +811,26 @@ const EmployeeAssessmentEngine = () => {
                             e.stopPropagation();
                             handleAnswer(currentQ.id, optionValue, currentQ.question_type);
                           }}
-                          className={`w-full text-left p-4.5 rounded-2xl border-2 transition flex items-center gap-4 cursor-pointer group shadow-sm ${
+                          className={`w-full text-left p-4.5 rounded-[18px] border transition flex items-center gap-4 cursor-pointer group ${
                             isSelected
-                              ? 'border-blue-600 bg-blue-50/80 ring-1 ring-blue-600 shadow-blue-500/5'
-                              : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/20'
+                              ? 'border-[var(--brand)] bg-[var(--brand-tint)]/40 ring-1 ring-[var(--brand)]'
+                              : 'border-[var(--line)] bg-[var(--surface)] hover:border-[var(--brand)]/50 hover:bg-[var(--brand-tint)]/15'
                           }`}
                         >
-                          <div className={`w-9 h-9 shrink-0 ${isMCQMulti ? 'rounded-lg' : 'rounded-full'} border-2 flex items-center justify-center transition shadow-sm ${
+                          <div className={`w-9 h-9 shrink-0 ${isMCQMulti ? 'rounded-[10px]' : 'rounded-full'} border flex items-center justify-center transition ${
                             isSelected
-                              ? 'border-blue-600 bg-blue-600 text-white'
-                              : 'border-slate-300 bg-slate-50 group-hover:border-blue-400 group-hover:bg-white'
+                              ? 'border-[var(--ink)] bg-[var(--ink)] text-white'
+                              : 'border-[var(--line)] bg-[var(--surface-alt)] group-hover:border-[var(--brand)] group-hover:bg-[var(--surface)]'
                           }`}>
                             {isSelected ? (
                               <CheckCircle2 size={18} />
                             ) : (
-                              <span className="text-xs font-bold text-slate-500 group-hover:text-blue-600">
+                              <span className="text-xs font-bold text-[var(--muted)] group-hover:text-[var(--brand-deep)]">
                                 {String.fromCharCode(65 + optIdx)}
                               </span>
                             )}
                           </div>
-                          <span className={`text-sm font-medium leading-relaxed ${isSelected ? 'text-blue-900 font-semibold' : 'text-slate-700'}`}>
+                          <span className={`text-sm font-medium leading-relaxed ${isSelected ? 'text-[var(--brand-deep)] font-semibold' : 'text-[var(--text)]'}`}>
                             {optionText}
                           </span>
                         </motion.button>
@@ -843,7 +843,7 @@ const EmployeeAssessmentEngine = () => {
           </div>
 
           {/* Navigation Footer */}
-          <div className="bg-white border-t border-slate-200 px-8 py-4 flex items-center justify-between shrink-0 shadow-sm">
+          <div className="bg-[var(--surface)] border-t border-[var(--line)] px-8 py-4 flex items-center justify-between shrink-0">
             <motion.button
               type="button"
               whileHover={currentQuestion !== 0 ? { scale: 1.02 } : {}}
@@ -853,10 +853,10 @@ const EmployeeAssessmentEngine = () => {
                 setCurrentQuestion(prev => Math.max(0, prev - 1));
               }}
               disabled={currentQuestion === 0}
-              className={`px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition ${
+              className={`px-5 py-2.5 rounded-[14px] font-semibold text-xs flex items-center gap-2 transition ${
                 currentQuestion === 0
-                  ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                  : 'bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 cursor-pointer shadow-sm'
+                  ? 'bg-[var(--surface-alt)] text-[var(--muted)] cursor-not-allowed'
+                  : 'bg-[var(--surface-alt)] border border-[var(--line)] hover:bg-[var(--line)] text-[var(--text)] cursor-pointer'
               }`}
             >
               <ChevronLeft size={16} />
@@ -873,7 +873,7 @@ const EmployeeAssessmentEngine = () => {
                     e.preventDefault();
                     setCurrentQuestion(prev => Math.min(questions.length - 1, prev + 1));
                   }}
-                  className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm flex items-center gap-2 transition cursor-pointer shadow-md shadow-blue-500/20"
+                  className="px-6 py-2.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white rounded-[14px] font-semibold text-xs flex items-center gap-2 transition cursor-pointer"
                 >
                   Next
                   <ChevronRight size={16} />
@@ -887,7 +887,7 @@ const EmployeeAssessmentEngine = () => {
                     e.preventDefault();
                     setShowSubmitModal(true);
                   }}
-                  className="px-7 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm flex items-center gap-2 transition cursor-pointer shadow-lg shadow-emerald-500/20"
+                  className="px-7 py-2.5 bg-[#1F9D55] hover:bg-[#198447] text-white rounded-[14px] font-semibold text-xs flex items-center gap-2 transition cursor-pointer"
                 >
                   <Send size={16} />
                   Submit Exam
@@ -898,17 +898,17 @@ const EmployeeAssessmentEngine = () => {
         </div>
 
         {/* Right Sidebar - Exam Security beside questions */}
-        <div className="w-72 bg-white border-l border-slate-200 flex flex-col shrink-0 p-5">
+        <div className="w-72 bg-[var(--surface)] border-l border-[var(--line)] flex flex-col shrink-0 p-5">
           <div className="space-y-3.5 pt-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">Exam Security</span>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--muted)] block mb-2">Exam Security</span>
             
-            <div className="flex items-center gap-3 text-xs font-semibold text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
-              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm shrink-0"></div>
+            <div className="flex items-center gap-3 text-xs font-semibold text-[var(--text)] bg-[var(--surface-alt)] p-3 rounded-[14px] border border-[var(--line)]">
+              <div className="w-2.5 h-2.5 rounded-full bg-[#1F9D55] shrink-0"></div>
               <span>Tab Protection Enabled</span>
             </div>
             
-            <div className="flex items-center gap-3 text-xs font-semibold text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
-              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm shrink-0"></div>
+            <div className="flex items-center gap-3 text-xs font-semibold text-[var(--text)] bg-[var(--surface-alt)] p-3 rounded-[14px] border border-[var(--line)]">
+              <div className="w-2.5 h-2.5 rounded-full bg-[#1F9D55] shrink-0"></div>
               <span>Fullscreen Lock Active</span>
             </div>
           </div>

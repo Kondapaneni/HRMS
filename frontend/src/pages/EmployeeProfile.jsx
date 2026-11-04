@@ -165,20 +165,20 @@ const EmployeeProfile = () => {
     history.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     return (
-      <div className="relative border-l border-[#e0e3e7] ml-3 space-y-6">
+      <div className="relative border-l border-[var(--line)] ml-3 space-y-6">
         {history.map((event, idx) => (
           <div key={idx} className="relative pl-6">
             <div className="absolute -left-1.5 mt-1.5 flex h-3 w-3 items-center justify-center">
-              {idx === 0 && <span className="absolute h-5 w-5 animate-ping rounded-full bg-[#4285F4]/40"></span>}
-              <span className="relative h-3 w-3 rounded-full bg-[#1a73e8] border-2 border-white ring-4 ring-[#f8fafd]"></span>
+              {idx === 0 && <span className="absolute h-5 w-5 animate-ping rounded-full bg-[var(--brand)]/40"></span>}
+              <span className="relative h-3 w-3 rounded-full bg-[var(--brand)] border-2 border-[var(--surface)] ring-4 ring-[var(--surface-alt)]"></span>
             </div>
             <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between mb-1">
-              <h4 className="text-sm font-semibold text-[#1f1f1f]">{event.title}</h4>
-              <time className="text-xs text-[#5f6368] font-normal">
+              <h4 className="text-sm font-semibold text-[var(--text)]">{event.title}</h4>
+              <time className="text-xs text-[var(--muted)] font-normal">
                 {formatDate(event.date)}
               </time>
             </div>
-            <p className="text-xs text-[#5f6368]">{event.description}</p>
+            <p className="text-xs text-[var(--muted)]">{event.description}</p>
           </div>
         ))}
       </div>
@@ -192,10 +192,10 @@ const EmployeeProfile = () => {
   const OrgNode = ({ employee, isSelf, isExpanded, toggleExpand, hasChildren }) => {
     if (!employee) return null;
     return (
-      <div className={`relative mt-6 mb-2 flex flex-col items-center rounded-2xl border ${isSelf ? 'border-[#1a73e8] bg-[#e8f0fe]/60 ring-2 ring-[#d2e3fc]' : 'border-[#e0e3e7] bg-white'} shadow-xs min-w-[200px] max-w-[240px] transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 z-10 mx-auto group pb-4`}>
+      <div className={`relative mt-6 mb-2 flex flex-col items-center rounded-[20px] border ${isSelf ? 'border-[var(--brand)] bg-[var(--brand-tint)]/60 ring-2 ring-[var(--brand)]/30' : 'border-[var(--line)] bg-[var(--surface)]'} shadow-xs min-w-[200px] max-w-[240px] transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 z-10 mx-auto group pb-4`}>
         {/* Floating Avatar */}
-        <div className="absolute -top-6 w-12 h-12 rounded-full bg-white flex items-center justify-center p-0.5 border border-[#e0e3e7] shadow-xs z-20 transition-transform group-hover:scale-105">
-          <div className="w-full h-full rounded-full bg-[#e8f0fe] flex items-center justify-center text-[#1a73e8] font-bold text-sm overflow-hidden">
+        <div className="absolute -top-6 w-12 h-12 rounded-[14px] bg-[var(--surface)] flex items-center justify-center p-0.5 border border-[var(--line)] shadow-xs z-20 transition-transform group-hover:scale-105">
+          <div className="w-full h-full rounded-[12px] bg-[var(--brand-tint)] flex items-center justify-center text-[var(--brand-deep)] font-bold text-sm overflow-hidden">
             {employee.avatar ? (
               <img src={employee.avatar} alt="Avatar" className="w-full h-full object-cover" />
             ) : (
@@ -206,10 +206,10 @@ const EmployeeProfile = () => {
         
         {/* Card Content */}
         <div className="pt-8 px-4 w-full text-center">
-          <div className="text-sm font-semibold text-[#1f1f1f] truncate group-hover:text-[#1a73e8] transition-colors">
+          <div className="text-sm font-semibold text-[var(--text)] truncate group-hover:text-[var(--brand-deep)] transition-colors">
             {employee.firstName} {employee.lastName}
           </div>
-          <div className="text-[11px] font-medium text-[#5f6368] truncate mt-0.5">
+          <div className="text-[11px] font-medium text-[var(--muted)] truncate mt-0.5">
             {employee.position || 'Employee'}
           </div>
         </div>
@@ -219,7 +219,7 @@ const EmployeeProfile = () => {
           <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 z-30">
             <button 
               onClick={toggleExpand}
-              className="flex items-center justify-center gap-1 bg-white border border-[#dadce0] text-[10px] font-semibold text-[#5f6368] px-3 py-1 rounded-full shadow-2xs hover:bg-[#f1f3f4] hover:text-[#1f1f1f] transition-colors cursor-pointer w-max"
+              className="flex items-center justify-center gap-1 bg-[var(--surface)] border border-[var(--line)] text-[10px] font-semibold text-[var(--muted)] px-3 py-1 rounded-full shadow-2xs hover:bg-[var(--surface-alt)] hover:text-[var(--text)] transition-colors cursor-pointer w-max"
             >
               {isExpanded ? (
                 <>Collapse <ChevronUp className="w-3 h-3" /></>
@@ -353,23 +353,21 @@ const EmployeeProfile = () => {
         <EmployeeMobileProfile />
       </div>
 
-      {/* Web Desktop Profile Render (Google Material 3 Workspace UI) */}
-      <div className="hidden md:block space-y-6 pb-12 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+      {/* Web Desktop Profile Render */}
+      <div className="hidden md:block space-y-6 pb-12 antialiased">
         
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-1.5 mb-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-              <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Staff Identity &amp; Records</span>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="w-2 h-2 rounded-full bg-[var(--brand)]" />
+              <span className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">Staff Identity &amp; Records</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight flex items-center gap-2" style={{ fontWeight: 500 }}>
-              <span>My Employee <span className="font-medium italic text-[#1a73e8]">Profile</span></span> <span className="text-xs font-semibold text-[#137333] bg-[#e6f4ea] border border-[#ceead6] px-2.5 py-0.5 rounded-full">Active Record</span>
+            <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight flex items-center gap-2.5">
+              <span>My Employee Profile</span>
+              <span className="text-xs font-medium text-[#1F9D55] bg-[#E6F6EC] px-2.5 py-0.5 rounded-full">Active Record</span>
             </h1>
-            <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
+            <p className="text-xs sm:text-sm text-[var(--text-2)] mt-0.5">
               Personal credentials, work assignments, organizational hierarchy, and assigned company assets.
             </p>
           </div>
@@ -378,7 +376,7 @@ const EmployeeProfile = () => {
             <button 
               type="button"
               onClick={() => navigate('/employee/profile/edit')}
-              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white transition-all shadow-xs cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-[14px] text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white transition-all cursor-pointer shadow-none"
             >
               <Edit3 className="w-3.5 h-3.5" />
               <span>Edit Profile</span>
@@ -387,16 +385,16 @@ const EmployeeProfile = () => {
         </div>
 
         {/* Hero Identity Profile Card */}
-        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-6 shadow-xs">
+        <div className="bg-[var(--surface)] rounded-[24px] border border-[var(--line)] p-6">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
             <div className="relative group cursor-pointer shrink-0">
-              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#e8f0fe] border border-[#d2e3fc] overflow-hidden text-2xl font-bold text-[#1a73e8] relative shadow-xs">
+              <div className="flex h-24 w-24 items-center justify-center rounded-[18px] bg-[var(--brand-tint)] border border-[var(--line)] overflow-hidden text-2xl font-bold text-[var(--brand-deep)] relative">
                 {avatar ? (
                   <img src={avatar} alt="Profile" className="h-full w-full object-cover" />
                 ) : (
                   <span>{initials}</span>
                 )}
-                <label className="absolute inset-0 bg-black/50 hidden group-hover:flex flex-col items-center justify-center text-white cursor-pointer transition-all">
+                <label className="absolute inset-0 bg-black/50 hidden group-hover:flex flex-col items-center justify-center text-white cursor-pointer transition-all rounded-[18px]">
                   {isUploading ? (
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                   ) : (
@@ -417,24 +415,24 @@ const EmployeeProfile = () => {
             </div>
 
             <div className="text-center sm:text-left flex-1 mt-2 sm:mt-0">
-              <h2 className="text-xl sm:text-2xl font-bold text-[#1f1f1f]">{fullName}</h2>
-              <p className="text-xs sm:text-sm text-[#5f6368] font-medium mt-0.5">{position || 'Staff Member'}</p>
+              <h2 className="text-xl sm:text-2xl font-bold text-[var(--text)]">{fullName}</h2>
+              <p className="text-xs sm:text-sm text-[var(--muted)] font-medium mt-0.5">{position || 'Staff Member'}</p>
               
               <div className="flex flex-wrap items-center gap-2 mt-3 justify-center sm:justify-start">
                 {department && (
-                  <span className="inline-flex items-center rounded-full bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] px-3 py-0.5 text-xs font-semibold">
+                  <span className="inline-flex items-center rounded-full bg-[var(--brand-tint)] text-[var(--brand-deep)] px-3 py-0.5 text-xs font-semibold">
                     {department}
                   </span>
                 )}
                 {employeeId && (
-                  <span className="inline-flex items-center rounded-full bg-[#f8fafd] border border-[#e0e3e7] px-3 py-0.5 text-xs font-semibold text-[#1f1f1f]">
+                  <span className="inline-flex items-center rounded-full bg-[var(--surface-alt)] border border-[var(--line)] px-3 py-0.5 text-xs font-semibold text-[var(--text)]">
                     ID: {employeeId}
                   </span>
                 )}
-                <span className="inline-flex items-center rounded-full bg-[#e6f4ea] text-[#137333] border border-[#ceead6] px-3 py-0.5 text-xs font-semibold">
+                <span className="inline-flex items-center rounded-full bg-[#E6F6EC] text-[#1F9D55] px-3 py-0.5 text-xs font-semibold">
                   {branch_name || branch || 'Main Branch'}
                 </span>
-                <span className="inline-flex items-center rounded-full bg-[#fef7e0] text-[#b06000] border border-[#feefc3] px-3 py-0.5 text-xs font-semibold capitalize">
+                <span className="inline-flex items-center rounded-full bg-[#FDF3DC] text-[#B7791F] px-3 py-0.5 text-xs font-semibold capitalize">
                   {formatEnum(employmentType) || 'Full Time'}
                 </span>
               </div>
@@ -442,8 +440,8 @@ const EmployeeProfile = () => {
           </div>
         </div>
 
-        {/* Material 3 Tabs Navigation Bar */}
-        <div className="flex items-center gap-1.5 p-1.5 bg-[#f8fafd] border border-[#e0e3e7] rounded-full overflow-x-auto hide-scrollbar">
+        {/* Tabs Navigation Bar */}
+        <div className="flex items-center gap-1.5 p-1.5 bg-[var(--surface)] border border-[var(--line)] rounded-[18px] overflow-x-auto hide-scrollbar">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -451,13 +449,13 @@ const EmployeeProfile = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-[14px] text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
                   isActive
-                    ? 'bg-[#c2e7ff]/70 text-[#001d35] shadow-xs'
-                    : 'text-[#5f6368] hover:bg-[#f1f3f4] hover:text-[#1f1f1f]'
+                    ? 'bg-[var(--ink)] text-white shadow-none'
+                    : 'text-[var(--muted)] hover:bg-[var(--surface-alt)] hover:text-[var(--text)]'
                 }`}
               >
-                <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-[#001d35]' : 'text-[#5f6368]'}`} />
+                <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-white' : 'text-[var(--muted)]'}`} />
                 <span>{tab.label}</span>
               </button>
             );
@@ -469,87 +467,87 @@ const EmployeeProfile = () => {
           
           {/* PERSONAL INFO */}
           {activeTab === 'personal' && (
-            <div className="bg-white rounded-2xl border border-[#e0e3e7] p-6 shadow-xs space-y-6">
-              <div className="flex items-center gap-2 pb-4 border-b border-[#e0e3e7]">
-                <div className="p-2 rounded-xl bg-[#e8f0fe] text-[#1a73e8]">
+            <div className="bg-[var(--surface)] rounded-[24px] border border-[var(--line)] p-6 space-y-6">
+              <div className="flex items-center gap-2 pb-4 border-b border-[var(--line)]">
+                <div className="p-2.5 rounded-[14px] bg-[var(--brand-tint)] text-[var(--brand-deep)]">
                   <User className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-semibold text-[#1f1f1f]">Personal Identity &amp; Information</h3>
-                  <p className="text-xs text-[#5f6368]">Contact particulars and verified identity papers</p>
+                  <h3 className="text-base font-semibold text-[var(--text)]">Personal Identity &amp; Information</h3>
+                  <p className="text-xs text-[var(--muted)]">Contact particulars and verified identity papers</p>
                 </div>
               </div>
 
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7]">
-                  <Mail className="w-4 h-4 text-[#1a73e8] shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 p-3.5 rounded-[18px] bg-[var(--surface-alt)] border border-[var(--line)]">
+                  <Mail className="w-4 h-4 text-[var(--brand-deep)] shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Personal Email</p>
-                    <p className="text-xs font-semibold text-[#1f1f1f] mt-0.5">{email || 'Not set'}</p>
+                    <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Personal Email</p>
+                    <p className="text-xs font-semibold text-[var(--text)] mt-0.5">{email || 'Not set'}</p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7]">
-                  <Phone className="w-4 h-4 text-[#137333] shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 p-3.5 rounded-[18px] bg-[var(--surface-alt)] border border-[var(--line)]">
+                  <Phone className="w-4 h-4 text-[#1F9D55] shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Phone Number</p>
-                    <p className="text-xs font-semibold text-[#1f1f1f] mt-0.5">{phone || 'Not set'}</p>
+                    <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Phone Number</p>
+                    <p className="text-xs font-semibold text-[var(--text)] mt-0.5">{phone || 'Not set'}</p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7]">
-                  <User className="w-4 h-4 text-[#8430ce] shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 p-3.5 rounded-[18px] bg-[var(--surface-alt)] border border-[var(--line)]">
+                  <User className="w-4 h-4 text-[var(--accent-pink-deep)] shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Gender</p>
-                    <p className="text-xs font-semibold text-[#1f1f1f] capitalize mt-0.5">{gender || 'Not set'}</p>
+                    <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Gender</p>
+                    <p className="text-xs font-semibold text-[var(--text)] capitalize mt-0.5">{gender || 'Not set'}</p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7]">
-                  <HeartHandshake className="w-4 h-4 text-[#d93025] shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 p-3.5 rounded-[18px] bg-[var(--surface-alt)] border border-[var(--line)]">
+                  <HeartHandshake className="w-4 h-4 text-[#D64550] shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Marital Status</p>
-                    <p className="text-xs font-semibold text-[#1f1f1f] capitalize mt-0.5">{maritalStatus || 'Not set'}</p>
+                    <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Marital Status</p>
+                    <p className="text-xs font-semibold text-[var(--text)] capitalize mt-0.5">{maritalStatus || 'Not set'}</p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7]">
-                  <Globe className="w-4 h-4 text-[#1a73e8] shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 p-3.5 rounded-[18px] bg-[var(--surface-alt)] border border-[var(--line)]">
+                  <Globe className="w-4 h-4 text-[var(--brand-deep)] shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Nationality</p>
-                    <p className="text-xs font-semibold text-[#1f1f1f] mt-0.5">{nationality || 'Indian'}</p>
+                    <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Nationality</p>
+                    <p className="text-xs font-semibold text-[var(--text)] mt-0.5">{nationality || 'Indian'}</p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7]">
-                  <CreditCard className="w-4 h-4 text-[#b06000] shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 p-3.5 rounded-[18px] bg-[var(--surface-alt)] border border-[var(--line)]">
+                  <CreditCard className="w-4 h-4 text-[#B7791F] shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">PAN Number</p>
-                    <p className="text-xs font-semibold text-[#1f1f1f] uppercase mt-0.5">{panNumber || 'Not set'}</p>
+                    <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">PAN Number</p>
+                    <p className="text-xs font-semibold text-[var(--text)] uppercase mt-0.5">{panNumber || 'Not set'}</p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7]">
-                  <CalendarDays className="w-4 h-4 text-[#1a73e8] shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 p-3.5 rounded-[18px] bg-[var(--surface-alt)] border border-[var(--line)]">
+                  <CalendarDays className="w-4 h-4 text-[var(--brand-deep)] shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Date of Birth</p>
-                    <p className="text-xs font-semibold text-[#1f1f1f] mt-0.5">{formatDate(dateOfBirth)}</p>
+                    <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Date of Birth</p>
+                    <p className="text-xs font-semibold text-[var(--text)] mt-0.5">{formatDate(dateOfBirth)}</p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7]">
-                  <Heart className="w-4 h-4 text-[#d93025] shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 p-3.5 rounded-[18px] bg-[var(--surface-alt)] border border-[var(--line)]">
+                  <Heart className="w-4 h-4 text-[#D64550] shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Blood Group</p>
-                    <p className="text-xs font-semibold text-[#1f1f1f] mt-0.5">{bloodGroup || 'Not set'}</p>
+                    <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Blood Group</p>
+                    <p className="text-xs font-semibold text-[var(--text)] mt-0.5">{bloodGroup || 'Not set'}</p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7] sm:col-span-2 lg:col-span-3">
-                  <MapPin className="w-4 h-4 text-[#5f6368] shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 p-3.5 rounded-[18px] bg-[var(--surface-alt)] border border-[var(--line)] sm:col-span-2 lg:col-span-3">
+                  <MapPin className="w-4 h-4 text-[var(--muted)] shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Permanent Address</p>
-                    <p className="text-xs font-semibold text-[#1f1f1f] mt-0.5">{address || 'Not set'}</p>
+                    <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Permanent Address</p>
+                    <p className="text-xs font-semibold text-[var(--text)] mt-0.5">{address || 'Not set'}</p>
                   </div>
                 </div>
               </div>
@@ -558,89 +556,89 @@ const EmployeeProfile = () => {
 
           {/* WORK INFO */}
           {activeTab === 'work' && (
-            <div className="bg-white rounded-2xl border border-[#e0e3e7] p-6 shadow-xs space-y-6">
-              <div className="flex items-center gap-2 pb-4 border-b border-[#e0e3e7]">
-                <div className="p-2 rounded-xl bg-[#e8f0fe] text-[#1a73e8]">
+            <div className="bg-[var(--surface)] rounded-[24px] border border-[var(--line)] p-6 space-y-6">
+              <div className="flex items-center gap-2 pb-4 border-b border-[var(--line)]">
+                <div className="p-2.5 rounded-[14px] bg-[var(--brand-tint)] text-[var(--brand-deep)]">
                   <Briefcase className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-semibold text-[#1f1f1f]">Employment &amp; Work Records</h3>
-                  <p className="text-xs text-[#5f6368]">Official role, reporting line, and branch assignment</p>
+                  <h3 className="text-base font-semibold text-[var(--text)]">Employment &amp; Work Records</h3>
+                  <p className="text-xs text-[var(--muted)]">Official role, reporting line, and branch assignment</p>
                 </div>
               </div>
 
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7]">
-                  <Shield className="w-4 h-4 text-[#1a73e8] shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 p-3.5 rounded-[18px] bg-[var(--surface-alt)] border border-[var(--line)]">
+                  <Shield className="w-4 h-4 text-[var(--brand-deep)] shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Employee ID</p>
-                    <p className="text-xs font-semibold text-[#1f1f1f] mt-0.5">{employeeId || 'Not set'}</p>
+                    <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Employee ID</p>
+                    <p className="text-xs font-semibold text-[var(--text)] mt-0.5">{employeeId || 'Not set'}</p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7]">
-                  <Mail className="w-4 h-4 text-[#137333] shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 p-3.5 rounded-[18px] bg-[var(--surface-alt)] border border-[var(--line)]">
+                  <Mail className="w-4 h-4 text-[#1F9D55] shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Official Work Email</p>
-                    <p className="text-xs font-semibold text-[#1f1f1f] mt-0.5">{workEmail || email || 'Not set'}</p>
+                    <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Official Work Email</p>
+                    <p className="text-xs font-semibold text-[var(--text)] mt-0.5">{workEmail || email || 'Not set'}</p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7]">
-                  <CalendarDays className="w-4 h-4 text-[#8430ce] shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 p-3.5 rounded-[18px] bg-[var(--surface-alt)] border border-[var(--line)]">
+                  <CalendarDays className="w-4 h-4 text-[var(--accent-pink-deep)] shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Joining Date</p>
-                    <p className="text-xs font-semibold text-[#1f1f1f] mt-0.5">{formatDate(joinDate)}</p>
+                    <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Joining Date</p>
+                    <p className="text-xs font-semibold text-[var(--text)] mt-0.5">{formatDate(joinDate)}</p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7]">
-                  <Briefcase className="w-4 h-4 text-[#b06000] shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 p-3.5 rounded-[18px] bg-[var(--surface-alt)] border border-[var(--line)]">
+                  <Briefcase className="w-4 h-4 text-[#B7791F] shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Job Designation</p>
-                    <p className="text-xs font-semibold text-[#1f1f1f] mt-0.5">{position || 'Employee'}</p>
+                    <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Job Designation</p>
+                    <p className="text-xs font-semibold text-[var(--text)] mt-0.5">{position || 'Employee'}</p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7]">
-                  <Building2 className="w-4 h-4 text-[#1a73e8] shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 p-3.5 rounded-[18px] bg-[var(--surface-alt)] border border-[var(--line)]">
+                  <Building2 className="w-4 h-4 text-[var(--brand-deep)] shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Department</p>
-                    <p className="text-xs font-semibold text-[#1f1f1f] mt-0.5">{department || 'Not set'}</p>
+                    <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Department</p>
+                    <p className="text-xs font-semibold text-[var(--text)] mt-0.5">{department || 'Not set'}</p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7]">
-                  <Building2 className="w-4 h-4 text-[#137333] shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 p-3.5 rounded-[18px] bg-[var(--surface-alt)] border border-[var(--line)]">
+                  <Building2 className="w-4 h-4 text-[#1F9D55] shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Assigned Branch</p>
-                    <p className="text-xs font-semibold text-[#1f1f1f] mt-0.5">{branch_name || branch || 'Main Branch'}</p>
+                    <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Assigned Branch</p>
+                    <p className="text-xs font-semibold text-[var(--text)] mt-0.5">{branch_name || branch || 'Main Branch'}</p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7]">
-                  <UserCheck className="w-4 h-4 text-[#8430ce] shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 p-3.5 rounded-[18px] bg-[var(--surface-alt)] border border-[var(--line)]">
+                  <UserCheck className="w-4 h-4 text-[var(--accent-pink-deep)] shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Reporting Manager</p>
-                    <p className="text-xs font-semibold text-[#1f1f1f] mt-0.5">
+                    <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Reporting Manager</p>
+                    <p className="text-xs font-semibold text-[var(--text)] mt-0.5">
                       {teamData?.manager ? `${teamData.manager.firstName} ${teamData.manager.lastName}` : 'Direct Administration'}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7]">
-                  <Shield className="w-4 h-4 text-[#1a73e8] shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 p-3.5 rounded-[18px] bg-[var(--surface-alt)] border border-[var(--line)]">
+                  <Shield className="w-4 h-4 text-[var(--brand-deep)] shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Employment Type</p>
-                    <p className="text-xs font-semibold text-[#1f1f1f] capitalize mt-0.5">{formatEnum(employmentType)}</p>
+                    <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Employment Type</p>
+                    <p className="text-xs font-semibold text-[var(--text)] capitalize mt-0.5">{formatEnum(employmentType)}</p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3.5 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7]">
-                  <Clock className="w-4 h-4 text-[#d93025] shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 p-3.5 rounded-[18px] bg-[var(--surface-alt)] border border-[var(--line)]">
+                  <Clock className="w-4 h-4 text-[#D64550] shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Notice Period</p>
-                    <p className="text-xs font-semibold text-[#1f1f1f] mt-0.5">{noticePeriod ? `${noticePeriod} Days` : '30 Days'}</p>
+                    <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Notice Period</p>
+                    <p className="text-xs font-semibold text-[var(--text)] mt-0.5">{noticePeriod ? `${noticePeriod} Days` : '30 Days'}</p>
                   </div>
                 </div>
               </div>
@@ -649,46 +647,46 @@ const EmployeeProfile = () => {
 
           {/* WORK SHIFT */}
           {activeTab === 'work-shift' && (
-            <div className="bg-white rounded-2xl border border-[#e0e3e7] p-6 shadow-xs space-y-6">
-              <div className="flex items-center gap-2 pb-4 border-b border-[#e0e3e7]">
-                <div className="p-2 rounded-xl bg-[#fef7e0] text-[#b06000]">
+            <div className="bg-[var(--surface)] rounded-[24px] border border-[var(--line)] p-6 space-y-6">
+              <div className="flex items-center gap-2 pb-4 border-b border-[var(--line)]">
+                <div className="p-2.5 rounded-[14px] bg-[#FDF3DC] text-[#B7791F]">
                   <Clock3 className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-semibold text-[#1f1f1f]">Work Shift &amp; Working Hours</h3>
-                  <p className="text-xs text-[#5f6368]">Timings, weekly off schedule, and workplace mode</p>
+                  <h3 className="text-base font-semibold text-[var(--text)]">Work Shift &amp; Working Hours</h3>
+                  <p className="text-xs text-[var(--muted)]">Timings, weekly off schedule, and workplace mode</p>
                 </div>
               </div>
 
               <div className="grid sm:grid-cols-3 gap-6">
-                <div className="flex items-start gap-3 p-4 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7]">
-                  <Clock3 className="w-5 h-5 text-[#1a73e8] shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 p-4 rounded-[18px] bg-[var(--surface-alt)] border border-[var(--line)]">
+                  <Clock3 className="w-5 h-5 text-[var(--brand-deep)] shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Shift Timings</p>
-                    <p className="text-sm font-semibold text-[#1f1f1f] mt-1">{shiftTime || '09:00 AM - 06:00 PM'}</p>
-                    <span className="inline-block mt-2 text-[10px] font-semibold text-[#1a73e8] bg-[#e8f0fe] px-2 py-0.5 rounded-full">
+                    <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Shift Timings</p>
+                    <p className="text-sm font-semibold text-[var(--text)] mt-1">{shiftTime || '09:00 AM - 06:00 PM'}</p>
+                    <span className="inline-block mt-2 text-[10px] font-semibold text-[var(--brand-deep)] bg-[var(--brand-tint)] px-2.5 py-0.5 rounded-full">
                       Standard Business Hours
                     </span>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-4 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7]">
-                  <Laptop className="w-5 h-5 text-[#137333] shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 p-4 rounded-[18px] bg-[var(--surface-alt)] border border-[var(--line)]">
+                  <Laptop className="w-5 h-5 text-[#1F9D55] shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Work Mode</p>
-                    <p className="text-sm font-semibold text-[#1f1f1f] mt-1 capitalize">{formatEnum(workMode) || 'On-Site'}</p>
-                    <span className="inline-block mt-2 text-[10px] font-semibold text-[#137333] bg-[#e6f4ea] px-2 py-0.5 rounded-full">
+                    <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Work Mode</p>
+                    <p className="text-sm font-semibold text-[var(--text)] mt-1 capitalize">{formatEnum(workMode) || 'On-Site'}</p>
+                    <span className="inline-block mt-2 text-[10px] font-semibold text-[#1F9D55] bg-[#E6F6EC] px-2.5 py-0.5 rounded-full">
                       Branch Office
                     </span>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-4 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7]">
-                  <Calendar className="w-5 h-5 text-[#8430ce] shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 p-4 rounded-[18px] bg-[var(--surface-alt)] border border-[var(--line)]">
+                  <Calendar className="w-5 h-5 text-[var(--accent-pink-deep)] shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Weekly Off</p>
-                    <p className="text-sm font-semibold text-[#1f1f1f] mt-1">{weekOff || 'Sunday'}</p>
-                    <span className="inline-block mt-2 text-[10px] font-semibold text-[#8430ce] bg-[#f3e8fd] px-2 py-0.5 rounded-full">
+                    <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Weekly Off</p>
+                    <p className="text-sm font-semibold text-[var(--text)] mt-1">{weekOff || 'Sunday'}</p>
+                    <span className="inline-block mt-2 text-[10px] font-semibold text-[var(--accent-pink-deep)] bg-[var(--accent-pink-tint)] px-2.5 py-0.5 rounded-full">
                       Recurring Rest Day
                     </span>
                   </div>
@@ -699,31 +697,31 @@ const EmployeeProfile = () => {
 
           {/* EMERGENCY */}
           {activeTab === 'emergency' && (
-            <div className="bg-white rounded-2xl border border-[#e0e3e7] p-6 shadow-xs space-y-6">
-              <div className="flex items-center gap-2 pb-4 border-b border-[#e0e3e7]">
-                <div className="p-2 rounded-xl bg-[#fce8e6] text-[#c5221f]">
+            <div className="bg-[var(--surface)] rounded-[24px] border border-[var(--line)] p-6 space-y-6">
+              <div className="flex items-center gap-2 pb-4 border-b border-[var(--line)]">
+                <div className="p-2.5 rounded-[14px] bg-[#FDE8EA] text-[#D64550]">
                   <Shield className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-semibold text-[#1f1f1f]">Emergency Contacts</h3>
-                  <p className="text-xs text-[#5f6368]">Designated point of contact in case of workplace emergency</p>
+                  <h3 className="text-base font-semibold text-[var(--text)]">Emergency Contacts</h3>
+                  <p className="text-xs text-[var(--muted)]">Designated point of contact in case of workplace emergency</p>
                 </div>
               </div>
 
               <div className="grid sm:grid-cols-2 gap-6">
-                <div className="flex items-start gap-3 p-4 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7]">
-                  <User className="w-5 h-5 text-[#1a73e8] shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 p-4 rounded-[18px] bg-[var(--surface-alt)] border border-[var(--line)]">
+                  <User className="w-5 h-5 text-[var(--brand-deep)] shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Contact Person</p>
-                    <p className="text-sm font-semibold text-[#1f1f1f] mt-1">{emergencyContact || 'Not recorded'}</p>
+                    <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Contact Person</p>
+                    <p className="text-sm font-semibold text-[var(--text)] mt-1">{emergencyContact || 'Not recorded'}</p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-4 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7]">
-                  <Phone className="w-5 h-5 text-[#137333] shrink-0 mt-0.5" />
+                <div className="flex items-start gap-3 p-4 rounded-[18px] bg-[var(--surface-alt)] border border-[var(--line)]">
+                  <Phone className="w-5 h-5 text-[#1F9D55] shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Emergency Phone</p>
-                    <p className="text-sm font-semibold text-[#1f1f1f] mt-1">{emergencyPhone || 'Not recorded'}</p>
+                    <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Emergency Phone</p>
+                    <p className="text-sm font-semibold text-[var(--text)] mt-1">{emergencyPhone || 'Not recorded'}</p>
                   </div>
                 </div>
               </div>
@@ -732,7 +730,7 @@ const EmployeeProfile = () => {
 
           {/* MY TEAM */}
           {activeTab === 'my-team' && (
-            <div className="h-[600px] bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl overflow-hidden relative shadow-inner cursor-grab active:cursor-grabbing">
+            <div className="h-[600px] bg-[var(--surface-alt)] border border-[var(--line)] rounded-[24px] overflow-hidden relative shadow-inner cursor-grab active:cursor-grabbing">
               {teamData ? (
                 <TransformWrapper
                   initialScale={1}
@@ -768,8 +766,8 @@ const EmployeeProfile = () => {
                   }}
                 </TransformWrapper>
               ) : (
-                <div className="flex flex-col items-center justify-center h-full text-[#5f6368] space-y-2">
-                  <Users className="w-10 h-10 text-[#dadce0]" />
+                <div className="flex flex-col items-center justify-center h-full text-[var(--muted)] space-y-2">
+                  <Users className="w-10 h-10 text-[var(--line)]" />
                   <p className="text-xs font-semibold">No team reporting hierarchy mapped yet.</p>
                 </div>
               )}
@@ -778,26 +776,26 @@ const EmployeeProfile = () => {
 
           {/* MY ASSETS */}
           {activeTab === 'my-assets' && (
-            <div className="bg-white rounded-2xl border border-[#e0e3e7] p-6 shadow-xs space-y-6">
-              <div className="flex items-center gap-2 pb-4 border-b border-[#e0e3e7]">
-                <div className="p-2 rounded-xl bg-[#e8f0fe] text-[#1a73e8]">
+            <div className="bg-[var(--surface)] rounded-[24px] border border-[var(--line)] p-6 space-y-6">
+              <div className="flex items-center gap-2 pb-4 border-b border-[var(--line)]">
+                <div className="p-2.5 rounded-[14px] bg-[var(--brand-tint)] text-[var(--brand-deep)]">
                   <Laptop className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-semibold text-[#1f1f1f]">Assigned Company Assets</h3>
-                  <p className="text-xs text-[#5f6368]">Hardware equipment, serial identifiers, and custody records</p>
+                  <h3 className="text-base font-semibold text-[var(--text)]">Assigned Company Assets</h3>
+                  <p className="text-xs text-[var(--muted)]">Hardware equipment, serial identifiers, and custody records</p>
                 </div>
               </div>
 
               {assetsData.length === 0 ? (
                 <div className="text-center py-12">
-                  <Laptop className="h-10 w-10 text-[#dadce0] mx-auto mb-2" />
-                  <p className="text-xs font-semibold text-[#5f6368]">No assets currently assigned to your account.</p>
+                  <Laptop className="h-10 w-10 text-[var(--line)] mx-auto mb-2" />
+                  <p className="text-xs font-semibold text-[var(--muted)]">No assets currently assigned to your account.</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto rounded-xl border border-[#e0e3e7]">
+                <div className="overflow-x-auto rounded-[18px] border border-[var(--line)]">
                   <table className="w-full text-xs text-left">
-                    <thead className="bg-[#f8fafd] border-b border-[#e0e3e7] text-[#5f6368] font-semibold uppercase tracking-wider text-[10px]">
+                    <thead className="bg-[var(--surface-alt)] border-b border-[var(--line)] text-[var(--muted)] font-semibold uppercase tracking-wider text-[10px]">
                       <tr>
                         <th className="p-3.5">Product Name</th>
                         <th className="p-3.5">Serial Number</th>
@@ -805,17 +803,17 @@ const EmployeeProfile = () => {
                         <th className="p-3.5">Status</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#f1f3f4]">
+                    <tbody className="divide-y divide-[var(--line)]">
                       {assetsData.map((asset, i) => (
-                        <tr key={asset.id || i} className="hover:bg-[#f8fafd] transition-colors">
-                          <td className="p-3.5 font-semibold text-[#1f1f1f]">
+                        <tr key={asset.id || i} className="hover:bg-[var(--brand-tint)]/15 transition-colors">
+                          <td className="p-3.5 font-semibold text-[var(--text)]">
                             {asset.name}
-                            <div className="text-[11px] text-[#5f6368] font-normal">{asset.category}</div>
+                            <div className="text-[11px] text-[var(--muted)] font-normal">{asset.category}</div>
                           </td>
-                          <td className="p-3.5 text-[#1f1f1f] font-semibold">{asset.serial_number || '-'}</td>
-                          <td className="p-3.5 text-[#5f6368]">{formatDate(asset.created_at)}</td>
+                          <td className="p-3.5 text-[var(--text)] font-semibold">{asset.serial_number || '-'}</td>
+                          <td className="p-3.5 text-[var(--muted)]">{formatDate(asset.created_at)}</td>
                           <td className="p-3.5">
-                            <span className="inline-flex items-center rounded-full bg-[#e6f4ea] text-[#137333] border border-[#ceead6] px-2.5 py-0.5 text-[11px] font-semibold capitalize">
+                            <span className="inline-flex items-center rounded-full bg-[#E6F6EC] text-[#1F9D55] px-2.5 py-0.5 text-[11px] font-semibold capitalize">
                               {asset.status || 'Active'}
                             </span>
                           </td>
@@ -830,14 +828,14 @@ const EmployeeProfile = () => {
 
           {/* TIMELINE */}
           {activeTab === 'timeline' && (
-            <div className="bg-white rounded-2xl border border-[#e0e3e7] p-6 shadow-xs space-y-6">
-              <div className="flex items-center gap-2 pb-4 border-b border-[#e0e3e7]">
-                <div className="p-2 rounded-xl bg-[#f3e8fd] text-[#8430ce]">
+            <div className="bg-[var(--surface)] rounded-[24px] border border-[var(--line)] p-6 space-y-6">
+              <div className="flex items-center gap-2 pb-4 border-b border-[var(--line)]">
+                <div className="p-2.5 rounded-[14px] bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)]">
                   <History className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-semibold text-[#1f1f1f]">Career Timeline &amp; Anniversaries</h3>
-                  <p className="text-xs text-[#5f6368]">Milestones, promotion log, and organization tenure</p>
+                  <h3 className="text-base font-semibold text-[var(--text)]">Career Timeline &amp; Anniversaries</h3>
+                  <p className="text-xs text-[var(--muted)]">Milestones, promotion log, and organization tenure</p>
                 </div>
               </div>
 

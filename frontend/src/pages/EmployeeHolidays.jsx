@@ -22,34 +22,34 @@ import EmployeeMobileHolidays from './EmployeeMobileHolidays';
 const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme }) => {
   const themes = {
     blue: {
-      iconBg: 'bg-[#e8f0fe]',
-      iconColor: 'text-[#1a73e8]',
+      iconBg: 'bg-[var(--brand-tint)]',
+      iconColor: 'text-[var(--brand-deep)]',
     },
     green: {
-      iconBg: 'bg-[#e6f4ea]',
-      iconColor: 'text-[#137333]',
+      iconBg: 'bg-[#E6F6EC]',
+      iconColor: 'text-[#1F9D55]',
     },
     purple: {
-      iconBg: 'bg-[#f3e8fd]',
-      iconColor: 'text-[#8430ce]',
+      iconBg: 'bg-[var(--accent-pink-tint)]',
+      iconColor: 'text-[var(--accent-pink-deep)]',
     },
     amber: {
-      iconBg: 'bg-[#fef7e0]',
-      iconColor: 'text-[#b06000]',
+      iconBg: 'bg-[#FDF3DC]',
+      iconColor: 'text-[#B7791F]',
     }
   };
 
   const theme = themes[colorTheme] || themes.blue;
 
   return (
-    <div className="bg-white rounded-2xl border border-[#e0e3e7] p-5 shadow-xs transition-all duration-200 hover:shadow-md hover:border-[#dadce0]">
+    <div className="bg-[var(--surface)] rounded-[24px] border border-[var(--line)] p-5 transition-all duration-200 hover:border-[var(--brand)]/40">
       <div className="flex items-start justify-between">
         <div className="space-y-1">
-          <p className="text-xs font-semibold text-[#5f6368] uppercase tracking-wider">{title}</p>
-          <p className="text-2xl font-bold text-[#1f1f1f] tracking-tight">{value}</p>
-          {subtitle && <p className="text-xs text-[#5f6368] font-normal pt-0.5">{subtitle}</p>}
+          <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">{title}</p>
+          <p className="text-2xl font-bold text-[var(--text)] tracking-tight">{value}</p>
+          {subtitle && <p className="text-xs text-[var(--muted)] font-normal pt-0.5">{subtitle}</p>}
         </div>
-        <div className={`p-3 rounded-2xl ${theme.iconBg} ${theme.iconColor} shrink-0`}>
+        <div className={`p-3 rounded-[14px] ${theme.iconBg} ${theme.iconColor} shrink-0`}>
           <Icon className="w-5 h-5" />
         </div>
       </div>
@@ -107,32 +107,30 @@ const EmployeeHolidays = () => {
         <EmployeeMobileHolidays />
       </div>
 
-      {/* Web Desktop Experience (Google Material 3 Workspace UI) */}
-      <div className="hidden md:block space-y-6 pb-12 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+      {/* Web Desktop Experience */}
+      <div className="hidden md:block space-y-6 pb-12 antialiased">
         
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-1.5 mb-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-              <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Workplace Calendar</span>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="w-2 h-2 rounded-full bg-[var(--brand)]" />
+              <span className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">Workplace Calendar</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight flex items-center gap-2" style={{ fontWeight: 500 }}>
-              <span>Company <span className="font-medium italic text-[#1a73e8]">Holidays</span></span> <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">Official Calendar</span>
+            <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight flex items-center gap-2.5">
+              <span>Company Holidays</span>
+              <span className="text-xs font-medium text-[var(--brand-deep)] bg-[var(--brand-tint)] px-2.5 py-0.5 rounded-full">Official Calendar</span>
             </h1>
-            <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
+            <p className="text-xs sm:text-sm text-[var(--text-2)] mt-0.5">
               Official corporate paid holidays, cultural observances, and seasonal facility closures.
             </p>
           </div>
 
-          <div className="flex items-center gap-2 bg-white border border-[#e0e3e7] p-1.5 rounded-full shadow-2xs">
+          <div className="flex items-center gap-2 bg-[var(--surface)] border border-[var(--line)] p-1.5 rounded-[14px]">
             <button
               type="button"
               onClick={handlePrevMonth}
-              className="p-1.5 rounded-full hover:bg-[#f1f3f4] text-[#5f6368] transition-colors cursor-pointer"
+              className="p-1.5 rounded-[10px] hover:bg-[var(--surface-alt)] text-[var(--muted)] transition-colors cursor-pointer"
               title="Previous Month"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -143,17 +141,17 @@ const EmployeeHolidays = () => {
                 type="month"
                 value={format(currentMonth, 'yyyy-MM')}
                 onChange={handleMonthChange}
-                className="h-8 rounded-full border-0 bg-[#f8fafd] px-3 text-xs font-semibold text-[#1f1f1f] focus:outline-none cursor-pointer"
+                className="h-8 rounded-[10px] border-0 bg-[var(--surface-alt)] px-3 text-xs font-semibold text-[var(--text)] focus:outline-none cursor-pointer"
               />
               {isFetching && (
-                <Loader2 className="w-3.5 h-3.5 text-[#1a73e8] animate-spin ml-1 mr-1" />
+                <Loader2 className="w-3.5 h-3.5 text-[var(--brand-deep)] animate-spin ml-1 mr-1" />
               )}
             </div>
 
             <button
               type="button"
               onClick={handleNextMonth}
-              className="p-1.5 rounded-full hover:bg-[#f1f3f4] text-[#5f6368] transition-colors cursor-pointer"
+              className="p-1.5 rounded-[10px] hover:bg-[var(--surface-alt)] text-[var(--muted)] transition-colors cursor-pointer"
               title="Next Month"
             >
               <ChevronRight className="w-4 h-4" />
@@ -194,27 +192,27 @@ const EmployeeHolidays = () => {
         </div>
 
         {/* Calendar Card Container */}
-        <div className={`bg-white rounded-2xl border border-[#e0e3e7] shadow-xs overflow-hidden transition-opacity duration-150 ${isFetching ? 'opacity-75' : 'opacity-100'}`}>
-          <div className="p-6 border-b border-[#e0e3e7] flex items-center justify-between">
+        <div className={`bg-[var(--surface)] rounded-[24px] border border-[var(--line)] overflow-hidden transition-opacity duration-150 ${isFetching ? 'opacity-75' : 'opacity-100'}`}>
+          <div className="p-6 border-b border-[var(--line)] flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-xl bg-[#e8f0fe] text-[#1a73e8]">
+              <div className="p-2.5 rounded-[14px] bg-[var(--brand-tint)] text-[var(--brand-deep)]">
                 <Palmtree className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-base font-semibold text-[#1f1f1f]">Monthly Calendar View</h2>
-                <p className="text-xs text-[#5f6368]">{format(currentMonth, 'MMMM yyyy')} schedule and declared observances</p>
+                <h2 className="text-base font-semibold text-[var(--text)]">Monthly Calendar View</h2>
+                <p className="text-xs text-[var(--muted)]">{format(currentMonth, 'MMMM yyyy')} schedule and declared observances</p>
               </div>
             </div>
 
-            <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] px-3 py-1 rounded-full border border-[#d2e3fc] flex items-center gap-1.5">
+            <span className="text-xs font-semibold text-[var(--brand-deep)] bg-[var(--brand-tint)] px-3 py-1 rounded-full border border-[var(--brand)]/30 flex items-center gap-1.5">
               {format(currentMonth, 'MMMM yyyy')}
-              {isFetching && <Loader2 className="w-3 h-3 text-[#1a73e8] animate-spin" />}
+              {isFetching && <Loader2 className="w-3 h-3 text-[var(--brand-deep)] animate-spin" />}
             </span>
           </div>
 
           <div className="p-6">
             {/* Weekdays Header */}
-            <div className="grid grid-cols-7 gap-2 text-center text-[10px] font-semibold uppercase tracking-wider text-[#5f6368] mb-3">
+            <div className="grid grid-cols-7 gap-2 text-center text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)] mb-3">
               {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
                 <div key={day} className="py-1">{day}</div>
               ))}
@@ -224,7 +222,7 @@ const EmployeeHolidays = () => {
             <div className="grid grid-cols-7 gap-2.5">
               {/* Empty padding slots */}
               {Array.from({ length: startDate }).map((_, i) => (
-                <div key={`empty-${i}`} className="min-h-[110px] rounded-2xl border border-[#f1f3f4] bg-[#f8fafd]/50"></div>
+                <div key={`empty-${i}`} className="min-h-[110px] rounded-[18px] border border-[var(--line)] bg-[var(--surface-alt)]/50"></div>
               ))}
 
               {/* Month Days */}
@@ -237,20 +235,20 @@ const EmployeeHolidays = () => {
                 return (
                   <div
                     key={day}
-                    className={`min-h-[120px] flex flex-col rounded-2xl border p-3 text-left transition-all overflow-hidden ${
+                    className={`min-h-[120px] flex flex-col rounded-[18px] border p-3 text-left transition-all overflow-hidden ${
                       holiday
-                        ? 'border-[#ceead6] bg-[#e6f4ea]/40 hover:bg-[#e6f4ea]/60'
+                        ? 'border-[#E6F6EC] bg-[#E6F6EC]/40 hover:bg-[#E6F6EC]/60'
                         : isToday
-                        ? 'border-[#1a73e8] bg-[#e8f0fe]/30 ring-1 ring-[#d2e3fc]'
-                        : 'border-[#e0e3e7] bg-white hover:bg-[#f8fafd]'
+                        ? 'border-[var(--brand)] bg-[var(--brand-tint)]/30 ring-1 ring-[var(--brand)]/40'
+                        : 'border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-alt)]'
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className={`text-xs font-bold ${isToday ? 'h-6 w-6 rounded-full bg-[#1a73e8] text-white flex items-center justify-center' : 'text-[#1f1f1f]'}`}>
+                      <span className={`text-xs font-bold ${isToday ? 'h-6 w-6 rounded-full bg-[var(--ink)] text-white flex items-center justify-center' : 'text-[var(--text)]'}`}>
                         {day}
                       </span>
                       {holiday && (
-                        <span className="text-[9px] font-semibold text-[#137333] bg-[#e6f4ea] border border-[#ceead6] px-1.5 py-0.2 rounded-full">
+                        <span className="text-[9px] font-semibold text-[#1F9D55] bg-[#E6F6EC] border border-[#E6F6EC] px-1.5 py-0.5 rounded-full">
                           Holiday
                         </span>
                       )}
@@ -258,11 +256,11 @@ const EmployeeHolidays = () => {
 
                     {holiday && (
                       <div className="flex-1 flex flex-col justify-between mt-2">
-                        <p className="text-[11px] font-semibold text-[#137333] line-clamp-2 leading-tight" title={holiday.holidayName}>
+                        <p className="text-[11px] font-semibold text-[#1F9D55] line-clamp-2 leading-tight" title={holiday.holidayName}>
                           {holiday.holidayName}
                         </p>
                         {holiday.holidayImage && (
-                          <div className="mt-1.5 w-full h-8 rounded-lg overflow-hidden border border-[#ceead6]">
+                          <div className="mt-1.5 w-full h-8 rounded-[10px] overflow-hidden border border-[#E6F6EC]">
                             <img src={holiday.holidayImage} alt={holiday.holidayName} className="w-full h-full object-cover" />
                           </div>
                         )}
@@ -276,16 +274,16 @@ const EmployeeHolidays = () => {
         </div>
 
         {/* Upcoming Holidays List Card */}
-        <div className="bg-white rounded-2xl border border-[#e0e3e7] shadow-xs overflow-hidden">
-          <div className="p-6 border-b border-[#e0e3e7]">
-            <h2 className="text-base font-semibold text-[#1f1f1f]">Upcoming Holidays in {currentYear}</h2>
-            <p className="text-xs text-[#5f6368]">Declared corporate paid days off applied to attendance and timesheets</p>
+        <div className="bg-[var(--surface)] rounded-[24px] border border-[var(--line)] overflow-hidden">
+          <div className="p-6 border-b border-[var(--line)]">
+            <h2 className="text-base font-semibold text-[var(--text)]">Upcoming Holidays in {currentYear}</h2>
+            <p className="text-xs text-[var(--muted)]">Declared corporate paid days off applied to attendance and timesheets</p>
           </div>
 
           <div className="p-6">
             {upcomingHolidays.length === 0 ? (
-              <div className="text-center py-12 text-[#5f6368] bg-[#f8fafd] rounded-2xl border border-[#e0e3e7]">
-                <CalendarIcon className="w-8 h-8 text-[#dadce0] mx-auto mb-2" />
+              <div className="text-center py-12 text-[var(--muted)] bg-[var(--surface-alt)] rounded-[18px] border border-[var(--line)]">
+                <CalendarIcon className="w-8 h-8 text-[var(--line)] mx-auto mb-2" />
                 <p className="text-xs font-semibold">No remaining upcoming holidays scheduled for this period.</p>
               </div>
             ) : (
@@ -293,21 +291,21 @@ const EmployeeHolidays = () => {
                 {upcomingHolidays.map((h, i) => (
                   <div 
                     key={i} 
-                    className="flex items-center gap-4 rounded-2xl border border-[#e0e3e7] bg-white p-4 shadow-xs hover:border-[#1a73e8] transition-all"
+                    className="flex items-center gap-4 rounded-[18px] border border-[var(--line)] bg-[var(--surface-alt)] p-4 hover:border-[var(--brand)] transition-all"
                   >
                     {h.holidayImage ? (
-                      <img src={h.holidayImage} alt={h.holidayName} className="h-14 w-14 rounded-xl border border-[#e0e3e7] object-cover shrink-0" />
+                      <img src={h.holidayImage} alt={h.holidayName} className="h-14 w-14 rounded-[14px] border border-[var(--line)] object-cover shrink-0" />
                     ) : (
-                      <div className="h-14 w-14 rounded-xl border border-[#d2e3fc] bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center shrink-0">
+                      <div className="h-14 w-14 rounded-[14px] border border-[var(--brand)]/20 bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center shrink-0">
                         <Palmtree className="w-6 h-6" />
                       </div>
                     )}
                     <div className="truncate">
-                      <p className="text-xs font-bold text-[#1f1f1f] truncate">{h.holidayName}</p>
-                      <p className="text-xs font-semibold text-[#1a73e8] mt-0.5">
+                      <p className="text-xs font-bold text-[var(--text)] truncate">{h.holidayName}</p>
+                      <p className="text-xs font-semibold text-[var(--brand-deep)] mt-0.5">
                         {format(new Date(h.holidayDate), 'EEEE, dd MMMM yyyy')}
                       </p>
-                      <span className="inline-block mt-1 text-[10px] font-semibold text-[#137333] bg-[#e6f4ea] border border-[#ceead6] px-2 py-0.2 rounded-full">
+                      <span className="inline-block mt-1 text-[10px] font-semibold text-[#1F9D55] bg-[#E6F6EC] px-2 py-0.5 rounded-full">
                         Official Holiday
                       </span>
                     </div>

@@ -113,29 +113,29 @@ const EmployeeMobileProfile = () => {
   };
 
   const sections = [
-    { id: 'personal', label: 'Personal Details', icon: User, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { id: 'work', label: 'Work Information', icon: Briefcase, color: 'text-purple-600', bg: 'bg-purple-50' },
-    { id: 'shift', label: 'Shift & Working Hours', icon: Clock3, color: 'text-amber-600', bg: 'bg-amber-50' },
-    { id: 'emergency', label: 'Emergency Contact', icon: Shield, color: 'text-rose-600', bg: 'bg-rose-50' },
-    { id: 'my-team', label: 'My Team & Manager', icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    { id: 'assets', label: 'Assigned Assets', icon: Laptop, color: 'text-cyan-600', bg: 'bg-cyan-50' },
-    { id: 'timeline', label: 'Career Timeline', icon: Clock, color: 'text-indigo-600', bg: 'bg-indigo-50' }
+    { id: 'personal', label: 'Personal Details', icon: User, color: 'text-[var(--brand-deep)]', bg: 'bg-[var(--brand-tint)]' },
+    { id: 'work', label: 'Work Information', icon: Briefcase, color: 'text-[var(--accent-pink-deep)]', bg: 'bg-[var(--accent-pink-tint)]' },
+    { id: 'shift', label: 'Shift & Working Hours', icon: Clock3, color: 'text-[var(--status-warning-text)]', bg: 'bg-[var(--status-warning-bg)]' },
+    { id: 'emergency', label: 'Emergency Contact', icon: Shield, color: 'text-[var(--status-danger-text)]', bg: 'bg-[var(--status-danger-bg)]' },
+    { id: 'my-team', label: 'My Team & Manager', icon: Users, color: 'text-[var(--status-success-text)]', bg: 'bg-[var(--status-success-bg)]' },
+    { id: 'assets', label: 'Assigned Assets', icon: Laptop, color: 'text-[var(--brand-deep)]', bg: 'bg-[var(--brand-tint)]' },
+    { id: 'timeline', label: 'Career Timeline', icon: Clock, color: 'text-[var(--text-2)]', bg: 'bg-[var(--surface-alt)]' }
   ];
 
   const DetailItem = ({ icon: Icon, label, value }) => {
     const currentSection = sections.find(s => s.id === activeSection);
-    const iconColor = currentSection?.color || 'text-blue-600';
-    const iconBg = currentSection?.bg || 'bg-blue-50';
+    const iconColor = currentSection?.color || 'text-[var(--brand-deep)]';
+    const iconBg = currentSection?.bg || 'bg-[var(--brand-tint)]';
 
     return (
-      <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-100">
-        <div className={`w-9 h-9 rounded-xl ${iconBg} ${iconColor} flex items-center justify-center shrink-0 shadow-2xs`}>
+      <div className="flex items-center gap-3 p-3 bg-[var(--surface-alt)] rounded-[14px] border border-[var(--line)]">
+        <div className={`w-9 h-9 rounded-[10px] ${iconBg} ${iconColor} flex items-center justify-center shrink-0 shadow-2xs`}>
           <Icon className="w-4 h-4" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{label}</p>
-          <p className="text-xs font-bold text-slate-800 break-words mt-0.5">
-            {value || <span className="text-slate-400 font-normal italic">Not provided</span>}
+          <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">{label}</p>
+          <p className="text-xs font-semibold text-[var(--text)] break-words mt-0.5">
+            {value || <span className="text-[var(--muted)] font-normal italic">Not provided</span>}
           </p>
         </div>
       </div>
@@ -146,8 +146,8 @@ const EmployeeMobileProfile = () => {
     if (!employee) return null;
     const initial = `${(employee.firstName || '').charAt(0)}${(employee.lastName || '').charAt(0)}`.toUpperCase() || 'U';
     return (
-      <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-100">
-        <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0 overflow-hidden font-bold text-blue-600 border border-blue-100 shadow-2xs">
+      <div className="flex items-center gap-3 p-3 bg-[var(--surface-alt)] rounded-[14px] border border-[var(--line)]">
+        <div className="w-10 h-10 rounded-[12px] bg-[var(--brand-tint)] flex items-center justify-center shrink-0 overflow-hidden font-semibold text-[var(--brand-deep)] border border-[var(--brand)]/20 shadow-2xs">
           {employee.avatar ? (
             <img src={employee.avatar} alt="Avatar" className="w-full h-full object-cover" />
           ) : (
@@ -155,8 +155,8 @@ const EmployeeMobileProfile = () => {
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-bold text-slate-800 truncate">{employee.firstName} {employee.lastName}</p>
-          <p className="text-[10px] font-medium text-slate-400 truncate">{employee.position || 'Employee'}</p>
+          <p className="text-xs font-semibold text-[var(--text)] truncate">{employee.firstName} {employee.lastName}</p>
+          <p className="text-[10px] font-medium text-[var(--muted)] truncate">{employee.position || 'Employee'}</p>
         </div>
       </div>
     );
@@ -198,15 +198,15 @@ const EmployeeMobileProfile = () => {
     history.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     return (
-      <div className="relative border-l-2 border-slate-200 ml-3 space-y-4">
+      <div className="relative border-l-2 border-[var(--line)] ml-3 space-y-4">
         {history.map((event, idx) => (
           <div key={idx} className="relative pl-5">
-            <div className="absolute -left-[7px] top-1.5 w-3 h-3 rounded-full bg-blue-600 border-2 border-white ring-2 ring-blue-100" />
+            <div className="absolute -left-[7px] top-1.5 w-3 h-3 rounded-full bg-[var(--brand)] border-2 border-white ring-2 ring-[var(--brand-tint)]" />
             <div className="flex items-center justify-between mb-0.5">
-              <h4 className="text-xs font-bold text-slate-800">{event.title}</h4>
-              <time className="text-[10px] text-slate-400 font-medium">{formatDate(event.date)}</time>
+              <h4 className="text-xs font-semibold text-[var(--text)]">{event.title}</h4>
+              <time className="text-[10px] text-[var(--muted)] font-medium">{formatDate(event.date)}</time>
             </div>
-            <p className="text-[11px] text-slate-500">{event.description}</p>
+            <p className="text-[11px] text-[var(--muted)]">{event.description}</p>
           </div>
         ))}
       </div>
@@ -263,19 +263,19 @@ const EmployeeMobileProfile = () => {
           <div className="space-y-3">
             {teamData?.manager && (
               <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Reporting Manager</p>
+                <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-2">Reporting Manager</p>
                 <TeamMemberCard employee={teamData.manager} />
               </div>
             )}
             <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Department Colleagues ({teamData?.peers?.length || 0})</p>
+              <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-2">Department Colleagues ({teamData?.peers?.length || 0})</p>
               <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
                 {teamData?.peers?.length ? (
                   teamData.peers.map((peer) => (
                     <TeamMemberCard key={peer.id} employee={peer} />
                   ))
                 ) : (
-                  <p className="text-xs text-slate-400 py-3 text-center">No colleagues found.</p>
+                  <p className="text-xs text-[var(--muted)] py-3 text-center">No colleagues found.</p>
                 )}
               </div>
             </div>
@@ -285,23 +285,23 @@ const EmployeeMobileProfile = () => {
         return (
           <div className="space-y-2.5">
             {!assetsData || assetsData.length === 0 ? (
-              <div className="p-6 text-center bg-slate-50 rounded-2xl border border-slate-100">
-                <Laptop className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                <p className="text-xs text-slate-500 font-medium">No company assets assigned.</p>
+              <div className="p-6 text-center bg-[var(--surface-alt)] rounded-[14px] border border-[var(--line)]">
+                <Laptop className="w-8 h-8 text-[var(--muted)] mx-auto mb-2 opacity-50" />
+                <p className="text-xs text-[var(--muted)] font-medium">No company assets assigned.</p>
               </div>
             ) : (
               assetsData.map((asset, i) => (
-                <div key={i} className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 space-y-2">
+                <div key={i} className="p-3.5 bg-[var(--surface-alt)] rounded-[14px] border border-[var(--line)] space-y-2">
                   <div className="flex justify-between items-start">
                     <div>
-                      <h4 className="font-bold text-xs text-slate-800">{asset.name}</h4>
-                      <p className="text-[10px] text-slate-400">{asset.category}</p>
+                      <h4 className="font-semibold text-xs text-[var(--text)]">{asset.name}</h4>
+                      <p className="text-[10px] text-[var(--muted)]">{asset.category}</p>
                     </div>
-                    <span className="text-[10px] font-bold px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full border border-blue-100">
+                    <span className="text-[10px] font-semibold px-2 py-0.5 bg-[var(--brand-tint)] text-[var(--brand-deep)] rounded-full border border-[var(--brand)]/20">
                       {asset.status}
                     </span>
                   </div>
-                  <div className="text-[11px] font-mono text-slate-500 bg-white p-2 rounded-xl border border-slate-200">
+                  <div className="text-[11px] font-mono text-[var(--text-2)] bg-[var(--surface)] p-2 rounded-[10px] border border-[var(--line)]">
                     S/N: {asset.serial_number || 'N/A'}
                   </div>
                 </div>
@@ -311,7 +311,7 @@ const EmployeeMobileProfile = () => {
         );
       case 'timeline':
         return (
-          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+          <div className="p-4 bg-[var(--surface-alt)] rounded-[14px] border border-[var(--line)]">
             {renderTimeline()}
           </div>
         );
@@ -322,43 +322,41 @@ const EmployeeMobileProfile = () => {
   if (loading) return <PageLoader message="Loading Profile Data..." />;
 
   return (
-    <div className="space-y-6 pb-4 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+    <div className="space-y-6 pb-6 font-sans antialiased text-[var(--text)]">
 
-      {/* Clean White Header (Direct Page Layout, Non-Card) */}
+      {/* Header */}
       <section className="relative z-30 pt-1 pb-1">
-        {/* Header Title & Action */}
         <div className="pt-0.5">
-          <p className="text-[10.5px] font-bold text-[#5f6368] uppercase tracking-wider mb-1">
+          <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-1">
             My Profile
           </p>
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight leading-tight min-w-0" style={{ fontWeight: 500 }}>
-              Account & <span className="font-medium italic text-[#1a73e8]">Profile</span>
+            <h2 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight leading-tight min-w-0">
+              Account & <span className="text-[var(--brand-deep)]">Profile</span>
             </h2>
 
-            {/* Unified Action Button Aligned Straight to Main Heading */}
             <button
               type="button"
               onClick={handleEditClick}
-              className="shrink-0 h-10 px-4 inline-flex items-center justify-center gap-1.5 bg-[#1a73e8] hover:bg-[#1557b0] active:scale-95 text-white rounded-full text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
+              className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-95 text-white rounded-[14px] text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
             >
               <Edit2 className="w-3.5 h-3.5 text-white" />
               <span>Edit Profile</span>
             </button>
           </div>
-          <p className="text-xs sm:text-sm font-medium text-[#5f6368] mt-1">
+          <p className="text-xs sm:text-sm font-medium text-[var(--text-2)] mt-1">
             Personal credentials, settings & assets
           </p>
         </div>
       </section>
 
-      {/* Profile Identity Card (Elevated Floating Card) */}
-      <section className="bg-white rounded-[1.5rem] border border-[#e0e3e7] shadow-xs p-5 relative z-20 mx-0.5 space-y-4">
+      {/* Profile Identity Card */}
+      <section className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] shadow-xs p-5 relative z-20 mx-0.5 space-y-4">
         <div className="flex flex-col items-center text-center space-y-3">
           
           {/* Avatar Container with Upload Badge */}
           <div className="relative">
-            <div className="w-20 h-20 rounded-full border-2 border-slate-100 shadow-sm bg-slate-50 overflow-hidden flex items-center justify-center text-xl font-black text-slate-700">
+            <div className="w-20 h-20 rounded-[18px] border-2 border-[var(--line)] shadow-xs bg-[var(--surface-alt)] overflow-hidden flex items-center justify-center text-xl font-bold text-[var(--text)]">
               {avatar ? (
                 <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
@@ -371,7 +369,7 @@ const EmployeeMobileProfile = () => {
               )}
             </div>
 
-            <label className="absolute bottom-0 right-0 w-7 h-7 bg-blue-600 hover:bg-blue-700 border-2 border-white rounded-full flex items-center justify-center text-white cursor-pointer shadow-xs active:scale-95 transition-all">
+            <label className="absolute -bottom-1 -right-1 w-7 h-7 bg-[var(--ink)] hover:bg-[var(--ink-2)] border-2 border-white rounded-[10px] flex items-center justify-center text-white cursor-pointer shadow-xs active:scale-95 transition-all">
               <Camera className="w-3.5 h-3.5" />
               <input
                 type="file"
@@ -384,31 +382,28 @@ const EmployeeMobileProfile = () => {
           </div>
 
           <div>
-            <h2 className="text-lg font-black text-slate-900 tracking-tight">{fullName}</h2>
-            <p className="text-xs font-semibold text-slate-400 mt-0.5">{position || 'Employee'}</p>
+            <h2 className="text-lg font-bold text-[var(--text)] tracking-tight">{fullName}</h2>
+            <p className="text-xs font-semibold text-[var(--muted)] mt-0.5">{position || 'Employee'}</p>
           </div>
 
-          {/* Compact 2-column details with vibrant themed colors */}
-          <div className="grid grid-cols-2 gap-2.5 w-full pt-2 border-t border-slate-100">
-            <div className="bg-[#e8f0fe] rounded-2xl p-2.5 text-center border border-[#d2e3fc]">
-              <p className="text-[9px] uppercase font-bold text-[#1a73e8] tracking-wider">Employee ID</p>
-              <p className="font-black text-xs text-[#1a73e8] mt-0.5">{employeeId || '-'}</p>
+          <div className="grid grid-cols-2 gap-2.5 w-full pt-2 border-t border-[var(--line)]">
+            <div className="bg-[var(--brand-tint)] rounded-[14px] p-2.5 text-center border border-[var(--brand)]/20">
+              <p className="text-[9px] uppercase font-semibold text-[var(--brand-deep)] tracking-wider">Employee ID</p>
+              <p className="font-bold text-xs text-[var(--brand-deep)] mt-0.5">{employeeId || '-'}</p>
             </div>
-            <div className="bg-[#f3e8fd] rounded-2xl p-2.5 text-center border border-[#e9d2fd]">
-              <p className="text-[9px] uppercase font-bold text-[#8430ce] tracking-wider">Department</p>
-              <p className="font-black text-xs text-[#8430ce] mt-0.5 truncate">{department || '-'}</p>
+            <div className="bg-[var(--accent-pink-tint)] rounded-[14px] p-2.5 text-center border border-[var(--accent-pink-deep)]/20">
+              <p className="text-[9px] uppercase font-semibold text-[var(--accent-pink-deep)] tracking-wider">Department</p>
+              <p className="font-bold text-xs text-[var(--accent-pink-deep)] mt-0.5 truncate">{department || '-'}</p>
             </div>
           </div>
 
         </div>
       </section>
 
-
-
       {/* Profile Section Navigation Cards */}
       <section className="space-y-3">
         <div className="px-1">
-          <h3 className="text-base font-bold text-slate-900 tracking-tight">Profile Categories</h3>
+          <h3 className="text-sm font-semibold text-[var(--text)] tracking-tight">Profile Categories</h3>
         </div>
 
         <div className="space-y-2.5">
@@ -419,17 +414,17 @@ const EmployeeMobileProfile = () => {
                 key={section.id}
                 type="button"
                 onClick={() => setActiveSection(section.id)}
-                className="w-full bg-white p-4 rounded-[1.5rem] border border-slate-200 shadow-sm flex items-center justify-between hover:bg-slate-50 active:scale-[0.98] transition-all cursor-pointer text-left"
+                className="w-full bg-[var(--surface)] p-4 rounded-[20px] border border-[var(--line)] shadow-xs flex items-center justify-between hover:bg-[var(--surface-alt)] active:scale-[0.98] transition-all cursor-pointer text-left"
               >
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-full ${section.bg} ${section.color} flex items-center justify-center shrink-0`}>
+                  <div className={`w-10 h-10 rounded-[12px] ${section.bg} ${section.color} flex items-center justify-center shrink-0`}>
                     <Icon className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-sm font-bold text-slate-800">{section.label}</span>
+                    <span className="text-sm font-semibold text-[var(--text)]">{section.label}</span>
                   </div>
                 </div>
-                <ChevronRight className="w-4 h-4 text-slate-400" />
+                <ChevronRight className="w-4 h-4 text-[var(--muted)]" />
               </button>
             );
           })}
@@ -439,25 +434,23 @@ const EmployeeMobileProfile = () => {
       {/* Mobile Profile Version Footer */}
       <div className="pt-3 pb-8 text-center select-none space-y-1.5">
         <div className="flex items-center justify-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-          <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-          <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-          <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-          <span className="text-[11px] font-bold text-slate-500 tracking-wide">
+          <span className="w-2 h-2 rounded-full bg-[var(--brand)]" />
+          <span className="w-2 h-2 rounded-full bg-[var(--accent-pink)]" />
+          <span className="w-2 h-2 rounded-full bg-[var(--ink)]" />
+          <span className="text-[11px] font-semibold text-[var(--muted)] tracking-wide">
             Acme HRMS {import.meta.env.VITE_APP_SEMVER || 'v2.4.0'}
           </span>
         </div>
-        <p className="text-[10px] text-slate-400 font-medium">
+        <p className="text-[10px] text-[var(--muted)] font-medium">
           Build {import.meta.env.VITE_APP_VERSION || '2026.08.28'}
         </p>
 
-        {/* Text link: In Web Mobile show Download App APK (Android / Desktop only; hidden on iOS devices) */}
         {!isNativeApp && !isIOS && (
           <div className="pt-1">
             <a
               href={getAssetUrl('/downloads/Acme%20HRMS.apk')}
               download="Acme HRMS.apk"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1a73e8] hover:text-[#1557b0] hover:underline cursor-pointer active:scale-95 transition-all"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--brand-deep)] hover:underline cursor-pointer active:scale-95 transition-all"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Download Mobile App (APK)</span>
@@ -466,12 +459,11 @@ const EmployeeMobileProfile = () => {
         )}
       </div>
 
-      {/* Slide-Up Bottom Sheet Drawer (Mounted via createPortal with Framer Motion) */}
+      {/* Slide-Up Bottom Sheet Drawer */}
       {createPortal(
         <AnimatePresence>
           {activeSection && (
             <div className="fixed inset-0 z-[10000] flex flex-col justify-end">
-              {/* Smooth Backdrop */}
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -481,7 +473,6 @@ const EmployeeMobileProfile = () => {
                 className="fixed inset-0 bg-black/50 backdrop-blur-xs cursor-pointer"
               />
 
-              {/* Smooth Slide-Up Sheet with Drag Down To Close */}
               <motion.div
                 initial={{ y: '100%' }}
                 animate={{ y: 0 }}
@@ -497,8 +488,7 @@ const EmployeeMobileProfile = () => {
                     setActiveSection(null);
                   }
                 }}
-                className="bg-white rounded-t-[2rem] shadow-2xl border-t border-slate-200 w-full max-w-md mx-auto max-h-[85vh] flex flex-col overflow-hidden relative z-10 font-editorial antialiased"
-                style={{ fontFamily: "'Newsreader', Georgia, serif" }}
+                className="bg-[var(--surface)] rounded-t-[28px] shadow-2xl border-t border-[var(--line)] w-full max-w-md mx-auto max-h-[85vh] flex flex-col overflow-hidden relative z-10 font-sans antialiased text-[var(--text)]"
               >
                 {/* Top Drag Indicator Area */}
                 <div 
@@ -506,23 +496,23 @@ const EmployeeMobileProfile = () => {
                   onPointerDown={(e) => controls.start(e)}
                   style={{ touchAction: 'none' }}
                 >
-                  <div className="w-12 h-1.5 bg-slate-300 rounded-full pointer-events-none" />
+                  <div className="w-12 h-1.5 bg-[var(--line)] rounded-full pointer-events-none" />
                 </div>
 
                 {/* Bottom Sheet Header */}
-                <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
+                <div className="px-5 py-3.5 border-b border-[var(--line)] flex items-center justify-between bg-[var(--surface)] shrink-0">
                   <div className="flex items-center gap-2.5">
                     {(() => {
                       const current = sections.find(s => s.id === activeSection);
                       const Icon = current?.icon || User;
                       return (
-                        <div className={`w-8 h-8 rounded-full ${current?.bg || 'bg-blue-50'} ${current?.color || 'text-blue-600'} flex items-center justify-center shrink-0`}>
+                        <div className={`w-8 h-8 rounded-[10px] ${current?.bg || 'bg-[var(--brand-tint)]'} ${current?.color || 'text-[var(--brand-deep)]'} flex items-center justify-center shrink-0`}>
                           <Icon className="w-4 h-4" />
                         </div>
                       );
                     })()}
                     <div>
-                      <h3 className="text-sm font-medium text-slate-900" style={{ fontWeight: 500 }}>
+                      <h3 className="text-sm font-semibold text-[var(--text)]">
                         {sections.find(s => s.id === activeSection)?.label}
                       </h3>
                     </div>
@@ -530,7 +520,7 @@ const EmployeeMobileProfile = () => {
                   <button
                     type="button"
                     onClick={() => setActiveSection(null)}
-                    className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
+                    className="w-8 h-8 rounded-full bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--muted)] flex items-center justify-center transition-colors cursor-pointer"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -542,11 +532,11 @@ const EmployeeMobileProfile = () => {
                 </div>
 
                 {/* Bottom Close Button */}
-                <div className="p-4 border-t border-slate-100 bg-white shrink-0">
+                <div className="p-4 border-t border-[var(--line)] bg-[var(--surface)] shrink-0">
                   <button
                     type="button"
                     onClick={() => setActiveSection(null)}
-                    className="w-full py-3 px-4 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] text-sm font-semibold transition-all cursor-pointer text-center active:scale-[0.98]"
+                    className="w-full py-2.5 px-4 rounded-[14px] border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--text)] text-xs font-semibold transition-all cursor-pointer text-center active:scale-[0.98]"
                   >
                     Close
                   </button>

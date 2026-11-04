@@ -100,86 +100,84 @@ const EmployeeAssessmentInstructions = () => {
   const totalMarks = questionsCount * (assessment?.marks_per_question || 1);
 
   return (
-    <div className="w-full space-y-6 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+    <div className="w-full space-y-6 antialiased">
       {/* Side-by-Side Grid: Header & Rules */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-stretch">
-      {/* Header */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm flex flex-col justify-between">
-        <div className="flex items-center gap-4 mb-6">
-          <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700">
-            <BookOpen size={24} />
+        {/* Header */}
+        <div className="bg-[var(--surface)] rounded-[24px] border border-[var(--line)] p-8 flex flex-col justify-between">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="w-12 h-12 rounded-[14px] bg-[var(--brand-tint)] flex items-center justify-center text-[var(--brand-deep)]">
+              <BookOpen size={24} />
+            </div>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[var(--text)]">{assessment.title}</h1>
+              <p className="text-[var(--muted)] text-sm font-medium mt-1">
+                {assessment.department || 'General'} Department Assessment
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-medium tracking-tight text-[#1f1f1f]" style={{ fontWeight: 500 }}>{assessment.title}</h1>
-            <p className="text-slate-500 text-sm font-medium mt-1">
-              {assessment.department || 'General'} Department Assessment
-            </p>
+
+          <div className="grid grid-cols-2 gap-4 pt-6 border-t border-[var(--line)] mt-6">
+            <div className="bg-[var(--surface-alt)] border border-[var(--line)] rounded-[18px] p-4 text-center">
+              <Clock size={20} className="mx-auto mb-1 text-[var(--muted)]" />
+              <p className="text-2xl font-bold text-[var(--text)]">{assessment.duration_minutes}</p>
+              <p className="text-[11px] font-bold text-[var(--muted)] uppercase">Minutes</p>
+            </div>
+            <div className="bg-[var(--surface-alt)] border border-[var(--line)] rounded-[18px] p-4 text-center">
+              <BookOpen size={20} className="mx-auto mb-1 text-[var(--muted)]" />
+              <p className="text-2xl font-bold text-[var(--text)]">{questionsCount}</p>
+              <p className="text-[11px] font-bold text-[var(--muted)] uppercase">Questions</p>
+            </div>
+            <div className="bg-[var(--surface-alt)] border border-[var(--line)] rounded-[18px] p-4 text-center">
+              <Target size={20} className="mx-auto mb-1 text-[var(--brand-deep)]" />
+              <p className="text-2xl font-bold text-[var(--brand-deep)]">{totalMarks}</p>
+              <p className="text-[11px] font-bold text-[var(--muted)] uppercase">Total Marks</p>
+            </div>
+            <div className="bg-[var(--surface-alt)] border border-[var(--line)] rounded-[18px] p-4 text-center">
+              <Award size={20} className="mx-auto mb-1 text-[#1F9D55]" />
+              <p className="text-2xl font-bold text-[#1F9D55]">{assessment.passing_percentage}%</p>
+              <p className="text-[11px] font-bold text-[var(--muted)] uppercase">Pass %</p>
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 pt-6 border-t border-slate-100 mt-6">
-          <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 text-center">
-            <Clock size={20} className="mx-auto mb-1 text-slate-500" />
-            <p className="text-2xl font-bold text-slate-900">{assessment.duration_minutes}</p>
-            <p className="text-[11px] font-bold text-slate-500 uppercase">Minutes</p>
-          </div>
-          <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 text-center">
-            <BookOpen size={20} className="mx-auto mb-1 text-slate-500" />
-            <p className="text-2xl font-bold text-slate-900">{questionsCount}</p>
-            <p className="text-[11px] font-bold text-slate-500 uppercase">Questions</p>
-          </div>
-          <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 text-center">
-            <Target size={20} className="mx-auto mb-1 text-slate-500" />
-            <p className="text-2xl font-bold text-slate-900">{totalMarks}</p>
-            <p className="text-[11px] font-bold text-slate-500 uppercase">Total Marks</p>
-          </div>
-          <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 text-center">
-            <Award size={20} className="mx-auto mb-1 text-slate-500" />
-            <p className="text-2xl font-bold text-slate-900">{assessment.passing_percentage}%</p>
-            <p className="text-[11px] font-bold text-slate-500 uppercase">Pass %</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Rules */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-          <div className="p-5 border-b border-slate-100 bg-amber-50">
+        {/* Rules */}
+        <div className="bg-[var(--surface)] rounded-[24px] border border-[var(--line)] overflow-hidden flex flex-col">
+          <div className="p-5 border-b border-[var(--line)] bg-[var(--surface-alt)]">
             <div className="flex items-center gap-2">
-              <AlertTriangle size={20} className="text-amber-600" />
-              <h2 className="text-lg font-bold text-slate-900">Exam Rules & Security</h2>
+              <AlertTriangle size={20} className="text-[#B7791F]" />
+              <h2 className="text-base font-semibold text-[var(--text)]">Exam Rules &amp; Security</h2>
             </div>
           </div>
 
           <div className="p-6 space-y-4 flex-1">
-            <div className="flex items-start gap-3 p-4 bg-rose-50 border border-rose-200 rounded-xl">
-              <Monitor size={18} className="text-rose-600 mt-0.5 shrink-0" />
+            <div className="flex items-start gap-3 p-4 bg-[#FDE8EA]/50 border border-[#FDE8EA] rounded-[18px]">
+              <Monitor size={18} className="text-[#D64550] mt-0.5 shrink-0" />
               <div>
-                <p className="font-bold text-sm text-rose-800">Tab Switching is Strictly Monitored</p>
-                <p className="text-xs text-rose-600 mt-0.5">
+                <p className="font-semibold text-sm text-[#D64550]">Tab Switching is Strictly Monitored</p>
+                <p className="text-xs text-[var(--muted)] mt-0.5">
                   Switching to another tab or window during the exam will trigger a warning. 
                   On the <strong>second offense</strong>, the exam will be <strong>automatically submitted</strong>.
                 </p>
               </div>
             </div>
 
-            <div className="flex items-start gap-3 p-4 bg-rose-50 border border-rose-200 rounded-xl">
-              <ShieldAlert size={18} className="text-rose-600 mt-0.5 shrink-0" />
+            <div className="flex items-start gap-3 p-4 bg-[#FDE8EA]/50 border border-[#FDE8EA] rounded-[18px]">
+              <ShieldAlert size={18} className="text-[#D64550] mt-0.5 shrink-0" />
               <div>
-                <p className="font-bold text-sm text-rose-800">No Page Refresh Allowed</p>
-                <p className="text-xs text-rose-600 mt-0.5">
+                <p className="font-semibold text-sm text-[#D64550]">No Page Refresh Allowed</p>
+                <p className="text-xs text-[var(--muted)] mt-0.5">
                   Refreshing the page or closing the tab will <strong>automatically submit your exam</strong>. 
                   Make sure your internet connection is stable.
                 </p>
               </div>
             </div>
 
-
-
-            <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-              <Clock size={18} className="text-blue-600 mt-0.5 shrink-0" />
+            <div className="flex items-start gap-3 p-4 bg-[var(--brand-tint)]/40 border border-[var(--line)] rounded-[18px]">
+              <Clock size={18} className="text-[var(--brand-deep)] mt-0.5 shrink-0" />
               <div>
-                <p className="font-bold text-sm text-blue-800">Timer is Strictly Enforced</p>
-                <p className="text-xs text-blue-600 mt-0.5">
+                <p className="font-semibold text-sm text-[var(--brand-deep)]">Timer is Strictly Enforced</p>
+                <p className="text-xs text-[var(--muted)] mt-0.5">
                   Once you begin, the countdown timer starts. When the time expires, the exam is 
                   <strong> automatically submitted</strong> with whatever answers you have completed.
                 </p>
@@ -189,16 +187,16 @@ const EmployeeAssessmentInstructions = () => {
         </div>
       </div>
 
-        {/* Agreement & Start */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+      {/* Agreement & Start */}
+      <div className="bg-[var(--surface)] rounded-[24px] border border-[var(--line)] p-6">
         <label className="flex items-start gap-3 cursor-pointer group">
           <input
             type="checkbox"
             checked={agreed}
             onChange={e => setAgreed(e.target.checked)}
-            className="w-5 h-5 rounded text-blue-600 focus:ring-blue-500 mt-0.5 cursor-pointer"
+            className="w-5 h-5 rounded-[6px] text-[var(--brand-deep)] focus:ring-[var(--brand)] mt-0.5 cursor-pointer"
           />
-          <span className="text-sm text-slate-700 group-hover:text-slate-900 transition">
+          <span className="text-xs sm:text-sm text-[var(--text-2)] group-hover:text-[var(--text)] transition">
             I have read and understood all the rules. I agree that tab switching is monitored, 
             and any violation may result in automatic exam submission. 
             I am ready to begin.
@@ -208,7 +206,7 @@ const EmployeeAssessmentInstructions = () => {
         <div className="mt-6 flex items-center justify-between">
           <button
             onClick={() => navigate('/employee/assessments')}
-            className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl transition cursor-pointer inline-flex items-center gap-2"
+            className="px-5 py-2.5 bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--text)] font-semibold text-xs rounded-[14px] transition cursor-pointer inline-flex items-center gap-2"
           >
             <ArrowLeft size={16} />
             Back to Assessments
@@ -216,16 +214,16 @@ const EmployeeAssessmentInstructions = () => {
           <button
             onClick={handleBeginExam}
             disabled={!agreed}
-            className={`px-8 py-3 font-bold text-sm rounded-xl transition inline-flex items-center gap-2 shadow-lg cursor-pointer ${
+            className={`px-8 py-2.5 font-semibold text-xs rounded-[14px] transition inline-flex items-center gap-2 cursor-pointer ${
               !agreed
-                ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
-                : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/30 active:scale-95'
+                ? 'bg-[var(--surface-alt)] text-[var(--muted)] cursor-not-allowed'
+                : 'bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white'
             }`}
           >
             Begin Exam
             <ChevronRight size={16} />
           </button>
-          </div>
+        </div>
       </div>
     </div>
   );

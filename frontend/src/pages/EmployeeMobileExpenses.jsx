@@ -159,21 +159,21 @@ const EmployeeMobileExpenses = () => {
     const s = (status || '').toLowerCase();
     if (s === 'approved') {
       return {
-        bg: 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]',
-        icon: <CheckCircle2 className="w-3.5 h-3.5 text-[#137333]" />,
+        bg: 'bg-[var(--status-success-bg)] text-[var(--status-success-text)] border border-[var(--status-success-text)]/20',
+        icon: <CheckCircle2 className="w-3.5 h-3.5 text-[var(--status-success-text)]" />,
         label: 'Approved'
       };
     }
     if (s === 'rejected') {
       return {
-        bg: 'bg-[#fce8e6] text-[#c5221f] border-[#fad2cf]',
-        icon: <XCircle className="w-3.5 h-3.5 text-[#c5221f]" />,
+        bg: 'bg-[var(--status-danger-bg)] text-[var(--status-danger-text)] border border-[var(--status-danger-text)]/20',
+        icon: <XCircle className="w-3.5 h-3.5 text-[var(--status-danger-text)]" />,
         label: 'Rejected'
       };
     }
     return {
-      bg: 'bg-[#fef7e0] text-[#b06000] border-[#feefc3]',
-      icon: <Clock className="w-3.5 h-3.5 text-[#b06000]" />,
+      bg: 'bg-[var(--status-warning-bg)] text-[var(--status-warning-text)] border border-[var(--status-warning-text)]/20',
+      icon: <Clock className="w-3.5 h-3.5 text-[var(--status-warning-text)]" />,
       label: 'Pending'
     };
   };
@@ -182,18 +182,17 @@ const EmployeeMobileExpenses = () => {
 
   // ==========================================
   // VIEW 1: FULL-PAGE NEW EXPENSE CLAIM FORM
-  // (Styled exactly like EditMobileProfile.jsx)
   // ==========================================
   if (isFormOpen) {
     const isSubmitting = submitExpenseMutation.isPending;
 
     return (
-      <div className="space-y-6 pb-6 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+      <div className="space-y-6 pb-6 font-sans antialiased text-[var(--text)]">
 
-        {/* Clean White Header & Action */}
+        {/* Header & Action */}
         <section className="relative z-30 pt-1 pb-1">
           <div className="pt-0.5">
-            <p className="text-[10.5px] font-bold text-[#5f6368] uppercase tracking-wider mb-1 pl-[50px]">
+            <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-1 pl-[48px]">
               My Expenses
             </p>
 
@@ -202,29 +201,28 @@ const EmployeeMobileExpenses = () => {
                 <button 
                   type="button"
                   onClick={handleCloseForm} 
-                  className="w-10 h-10 rounded-full bg-white border border-[#e0e3e7] hover:bg-[#f1f3f4] active:scale-95 text-[#5f6368] flex items-center justify-center shrink-0 shadow-2xs transition-all cursor-pointer"
+                  className="w-9 h-9 rounded-[12px] bg-[var(--surface)] border border-[var(--line)] hover:bg-[var(--surface-alt)] active:scale-95 text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center shrink-0 shadow-2xs transition-all cursor-pointer"
                   aria-label="Back to Claims"
                 >
-                  <ChevronLeft className="w-5 h-5" />
+                  <ChevronLeft className="w-4 h-4" />
                 </button>
-                <h2 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight leading-tight min-w-0" style={{ fontWeight: 500 }}>
-                  New <span className="font-medium italic text-[#1a73e8]">Claim</span>
+                <h2 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight leading-tight min-w-0">
+                  New <span className="text-[var(--brand-deep)]">Claim</span>
                 </h2>
               </div>
 
-              {/* Unified Action Button Aligned Straight to Main Heading */}
               <button 
                 type="button"
                 onClick={handleSubmit} 
                 disabled={isSubmitting} 
-                className="shrink-0 h-10 px-4 inline-flex items-center justify-center gap-1.5 bg-[#1a73e8] hover:bg-[#1557b0] active:scale-95 text-white rounded-full text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap disabled:opacity-50"
+                className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-95 text-white rounded-[14px] text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap disabled:opacity-50"
               >
                 {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin text-white" /> : <Save className="w-3.5 h-3.5 text-white" />}
                 <span>{isSubmitting ? 'Saving...' : 'Save Claim'}</span>
               </button>
             </div>
 
-            <p className="text-xs sm:text-sm font-medium text-[#5f6368] mt-1 pl-[50px]">
+            <p className="text-xs sm:text-sm font-medium text-[var(--text-2)] mt-1 pl-[48px]">
               Submit receipts and expense information for manager review
             </p>
           </div>
@@ -234,26 +232,26 @@ const EmployeeMobileExpenses = () => {
         <form onSubmit={handleSubmit} className="space-y-4 relative z-20 mx-0.5">
           
           {/* Expense Information Card */}
-          <div className="bg-white p-4 sm:p-5 rounded-[1.5rem] border border-[#e0e3e7] shadow-xs space-y-4">
-            <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">
+          <div className="bg-[var(--surface)] p-5 rounded-[24px] border border-[var(--line)] shadow-xs space-y-4">
+            <h3 className="text-xs font-semibold text-[var(--text)] uppercase tracking-wider">
               Expense Details
             </h3>
 
             <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-slate-500 uppercase">Expense Title *</label>
+              <label className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">Expense Title *</label>
               <input 
                 type="text" 
                 required
                 value={title} 
                 onChange={(e) => setTitle(e.target.value)} 
                 placeholder="e.g. Travel Taxi to Client Office"
-                className="w-full bg-slate-50 border border-slate-200 rounded-full px-4 py-2.5 text-xs font-semibold text-slate-800 focus:bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                className="w-full bg-[var(--surface-alt)] border border-[var(--line)] rounded-[14px] px-4 py-2.5 text-xs font-medium text-[var(--text)] focus:bg-[var(--surface)] focus:ring-2 focus:ring-[var(--brand)]/20 focus:border-[var(--brand)] outline-none transition-all"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-slate-500 uppercase">Amount (₹) *</label>
+                <label className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">Amount (₹) *</label>
                 <input 
                   type="number" 
                   step="0.01" 
@@ -262,40 +260,40 @@ const EmployeeMobileExpenses = () => {
                   value={amount} 
                   onChange={(e) => setAmount(e.target.value)} 
                   placeholder="0.00"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-full px-4 py-2.5 text-xs font-semibold text-slate-800 focus:bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                  className="w-full bg-[var(--surface-alt)] border border-[var(--line)] rounded-[14px] px-4 py-2.5 text-xs font-medium text-[var(--text)] focus:bg-[var(--surface)] focus:ring-2 focus:ring-[var(--brand)]/20 focus:border-[var(--brand)] outline-none transition-all"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-slate-500 uppercase">Category *</label>
+                <label className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">Category *</label>
                 <div className="relative">
                   <select 
                     value={category} 
                     onChange={(e) => setCategory(e.target.value)} 
-                    className="w-full bg-slate-50 border border-slate-200 rounded-full px-4 py-2.5 pr-9 text-xs font-semibold text-slate-800 focus:bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all appearance-none cursor-pointer"
+                    className="w-full bg-[var(--surface-alt)] border border-[var(--line)] rounded-[14px] px-4 py-2.5 pr-9 text-xs font-medium text-[var(--text)] focus:bg-[var(--surface)] focus:ring-2 focus:ring-[var(--brand)]/20 focus:border-[var(--brand)] outline-none transition-all appearance-none cursor-pointer"
                   >
                     {CATEGORY_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                   </select>
-                  <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <ChevronDown className="w-3.5 h-3.5 text-[var(--muted)] absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-slate-500 uppercase">Description &amp; Purpose</label>
+              <label className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">Description &amp; Purpose</label>
               <textarea 
                 rows="3"
                 value={description} 
                 onChange={(e) => setDescription(e.target.value)} 
                 placeholder="Provide additional details regarding this expenditure..."
-                className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-xs font-semibold text-slate-800 focus:bg-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all resize-none"
+                className="w-full bg-[var(--surface-alt)] border border-[var(--line)] rounded-[14px] p-3 text-xs font-medium text-[var(--text)] focus:bg-[var(--surface)] focus:ring-2 focus:ring-[var(--brand)]/20 focus:border-[var(--brand)] outline-none transition-all resize-none"
               />
             </div>
           </div>
 
           {/* Receipt & Bill Document Card */}
-          <div className="bg-white p-5 rounded-[1.5rem] border border-slate-100 shadow-md space-y-4">
-            <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">
+          <div className="bg-[var(--surface)] p-5 rounded-[24px] border border-[var(--line)] shadow-xs space-y-4">
+            <h3 className="text-xs font-semibold text-[var(--text)] uppercase tracking-wider">
               Bill / Receipt Attachment
             </h3>
 
@@ -308,20 +306,20 @@ const EmployeeMobileExpenses = () => {
             />
 
             {billFile ? (
-              <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between">
+              <div className="p-3.5 bg-[var(--surface-alt)] border border-[var(--line)] rounded-[14px] flex items-center justify-between">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                    <FileText className="w-5 h-5" />
+                  <div className="w-9 h-9 rounded-[10px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center shrink-0">
+                    <FileText className="w-4 h-4" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-bold text-slate-900 truncate">{billFile.name}</p>
-                    <p className="text-[10px] text-slate-500">{(billFile.size / 1024).toFixed(1)} KB</p>
+                    <p className="text-xs font-semibold text-[var(--text)] truncate">{billFile.name}</p>
+                    <p className="text-[10px] text-[var(--muted)]">{(billFile.size / 1024).toFixed(1)} KB</p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => setBillFile(null)}
-                  className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                  className="p-1.5 text-[var(--status-danger-text)] hover:bg-[var(--status-danger-bg)] rounded-[8px] transition-colors cursor-pointer"
                   title="Remove File"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -330,13 +328,13 @@ const EmployeeMobileExpenses = () => {
             ) : (
               <div 
                 onClick={() => fileInputRef.current?.click()} 
-                className="w-full p-6 border-2 border-dashed border-slate-200 hover:border-blue-500 bg-slate-50 rounded-2xl text-center cursor-pointer active:scale-98 transition-all"
+                className="w-full p-6 border-2 border-dashed border-[var(--line)] hover:border-[var(--brand)] bg-[var(--surface-alt)] rounded-[16px] text-center cursor-pointer active:scale-98 transition-all"
               >
-                <Upload className="w-6 h-6 text-[#1a73e8] mx-auto mb-2" />
-                <span className="text-xs font-bold text-[#1a73e8] block">
+                <Upload className="w-6 h-6 text-[var(--brand-deep)] mx-auto mb-2" />
+                <span className="text-xs font-semibold text-[var(--brand-deep)] block">
                   Tap to Upload Bill / Invoice (Image or PDF)
                 </span>
-                <span className="text-[10px] text-slate-500 block mt-1">Supports PNG, JPG, JPEG, and PDF receipts</span>
+                <span className="text-[10px] text-[var(--muted)] block mt-1">Supports PNG, JPG, JPEG, and PDF receipts</span>
               </div>
             )}
           </div>
@@ -346,7 +344,7 @@ const EmployeeMobileExpenses = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full h-12 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] active:scale-[0.98] text-white text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer disabled:opacity-50"
+              className="w-full h-11 rounded-[14px] bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-[0.98] text-white text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer disabled:opacity-50"
             >
               {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : <Save className="w-4 h-4 text-white" />}
               <span>{isSubmitting ? 'Saving Claim...' : 'Save & Submit Claim'}</span>
@@ -363,108 +361,106 @@ const EmployeeMobileExpenses = () => {
   // VIEW 2: EXPENSES DASHBOARD & CLAIM HISTORY
   // ==========================================
   return (
-    <div className="space-y-6 pb-4 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+    <div className="space-y-6 pb-6 font-sans antialiased text-[var(--text)]">
 
-      {/* Clean White Header (Direct Page Layout, Non-Card) */}
+      {/* Header */}
       <section className="relative z-30 pt-1 pb-1">
-        {/* Header Title & Action */}
         <div className="pt-0.5">
-          <p className="text-[10.5px] font-bold text-[#5f6368] uppercase tracking-wider mb-1">
+          <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-1">
             My Expenses
           </p>
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight leading-tight min-w-0" style={{ fontWeight: 500 }}>
-              Expense <span className="font-medium italic text-[#1a73e8]">Claims</span>
+            <h2 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight leading-tight min-w-0">
+              Expense <span className="text-[var(--brand-deep)]">Claims</span>
             </h2>
 
-            {/* Unified Action Button Aligned Straight to Main Heading */}
             <button
               type="button"
               onClick={() => setIsFormOpen(true)}
-              className="shrink-0 h-10 px-4 inline-flex items-center justify-center gap-1.5 bg-[#1a73e8] hover:bg-[#1557b0] active:scale-95 text-white rounded-full text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
+              className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-95 text-white rounded-[14px] text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
             >
               <Plus className="w-3.5 h-3.5 text-white" />
               <span>Claim Expense</span>
             </button>
           </div>
-          <p className="text-xs sm:text-sm font-medium text-[#5f6368] mt-1">
+          <p className="text-xs sm:text-sm font-medium text-[var(--text-2)] mt-1">
             Track your corporate expenses and claim payouts
           </p>
         </div>
       </section>
 
-      {/* KPI Stats Grid (2x2 Grid) */}
+      {/* KPI Stats Grid */}
       <section className="grid grid-cols-2 gap-3 relative z-20 mx-0.5">
         {/* Approved */}
         <div 
           onClick={() => setFilterStatus(filterStatus === 'approved' ? 'all' : 'approved')}
-          className={`bg-white rounded-2xl border p-3.5 shadow-xs space-y-1 cursor-pointer transition-all ${
-            filterStatus === 'approved' ? 'border-[#137333] ring-2 ring-[#ceead6]' : 'border-[#e0e3e7]'
+          className={`bg-[var(--surface)] rounded-[20px] border p-4 shadow-xs space-y-1 cursor-pointer transition-all ${
+            filterStatus === 'approved' ? 'border-[var(--status-success-text)] ring-2 ring-[var(--status-success-bg)]' : 'border-[var(--line)]'
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Approved</span>
-            <div className="p-1.5 rounded-lg bg-[#e6f4ea] text-[#137333]">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">Approved</span>
+            <div className="p-1.5 rounded-[8px] bg-[var(--status-success-bg)] text-[var(--status-success-text)]">
               <CheckCircle2 className="w-3.5 h-3.5" />
             </div>
           </div>
-          <p className="text-base font-bold text-[#137333] truncate">{formatCurrency(totalApproved)}</p>
-          <p className="text-[10px] text-[#5f6368]">{approvedExpenses.length} Approved claims</p>
+          <p className="text-base font-bold text-[var(--status-success-text)] truncate">{formatCurrency(totalApproved)}</p>
+          <p className="text-[10px] text-[var(--muted)]">{approvedExpenses.length} Approved claims</p>
         </div>
 
         {/* Pending */}
         <div 
           onClick={() => setFilterStatus(filterStatus === 'pending' ? 'all' : 'pending')}
-          className={`bg-white rounded-2xl border p-3.5 shadow-xs space-y-1 cursor-pointer transition-all ${
-            filterStatus === 'pending' ? 'border-[#b06000] ring-2 ring-[#feefc3]' : 'border-[#e0e3e7]'
+          className={`bg-[var(--surface)] rounded-[20px] border p-4 shadow-xs space-y-1 cursor-pointer transition-all ${
+            filterStatus === 'pending' ? 'border-[var(--status-warning-text)] ring-2 ring-[var(--status-warning-bg)]' : 'border-[var(--line)]'
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Pending</span>
-            <div className="p-1.5 rounded-lg bg-[#fef7e0] text-[#b06000]">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">Pending</span>
+            <div className="p-1.5 rounded-[8px] bg-[var(--status-warning-bg)] text-[var(--status-warning-text)]">
               <Clock className="w-3.5 h-3.5" />
             </div>
           </div>
-          <p className="text-base font-bold text-[#b06000] truncate">{formatCurrency(totalPending)}</p>
-          <p className="text-[10px] text-[#5f6368]">{pendingExpenses.length} Awaiting review</p>
+          <p className="text-base font-bold text-[var(--status-warning-text)] truncate">{formatCurrency(totalPending)}</p>
+          <p className="text-[10px] text-[var(--muted)]">{pendingExpenses.length} Awaiting review</p>
         </div>
 
         {/* Rejected */}
         <div 
           onClick={() => setFilterStatus(filterStatus === 'rejected' ? 'all' : 'rejected')}
-          className={`bg-white rounded-2xl border p-3.5 shadow-xs space-y-1 cursor-pointer transition-all ${
-            filterStatus === 'rejected' ? 'border-[#c5221f] ring-2 ring-[#fad2cf]' : 'border-[#e0e3e7]'
+          className={`bg-[var(--surface)] rounded-[20px] border p-4 shadow-xs space-y-1 cursor-pointer transition-all ${
+            filterStatus === 'rejected' ? 'border-[var(--status-danger-text)] ring-2 ring-[var(--status-danger-bg)]' : 'border-[var(--line)]'
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Rejected</span>
-            <div className="p-1.5 rounded-lg bg-[#fce8e6] text-[#c5221f]">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">Rejected</span>
+            <div className="p-1.5 rounded-[8px] bg-[var(--status-danger-bg)] text-[var(--status-danger-text)]">
               <XCircle className="w-3.5 h-3.5" />
             </div>
           </div>
-          <p className="text-base font-bold text-[#c5221f] truncate">{formatCurrency(totalRejected)}</p>
-          <p className="text-[10px] text-[#5f6368]">{rejectedExpenses.length} Rejected claims</p>
+          <p className="text-base font-bold text-[var(--status-danger-text)] truncate">{formatCurrency(totalRejected)}</p>
+          <p className="text-[10px] text-[var(--muted)]">{rejectedExpenses.length} Rejected claims</p>
         </div>
 
         {/* Total Claimed */}
         <div 
           onClick={() => setFilterStatus('all')}
-          className={`bg-white rounded-2xl border p-3.5 shadow-xs space-y-1 cursor-pointer transition-all ${
-            filterStatus === 'all' ? 'border-[#1a73e8] ring-2 ring-[#d2e3fc]' : 'border-[#e0e3e7]'
+          className={`bg-[var(--surface)] rounded-[20px] border p-4 shadow-xs space-y-1 cursor-pointer transition-all ${
+            filterStatus === 'all' ? 'border-[var(--brand)] ring-2 ring-[var(--brand-tint)]' : 'border-[var(--line)]'
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Total Claimed</span>
-            <div className="p-1.5 rounded-lg bg-[#e8f0fe] text-[#1a73e8]">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">Total Claimed</span>
+            <div className="p-1.5 rounded-[8px] bg-[var(--brand-tint)] text-[var(--brand-deep)]">
               <Receipt className="w-3.5 h-3.5" />
             </div>
           </div>
-          <p className="text-base font-bold text-[#1a73e8] truncate">{formatCurrency(totalClaimed)}</p>
-          <p className="text-[10px] text-[#5f6368]">{expensesData.length} Total submissions</p>
+          <p className="text-base font-bold text-[var(--brand-deep)] truncate">{formatCurrency(totalClaimed)}</p>
+          <p className="text-[10px] text-[var(--muted)]">{expensesData.length} Total submissions</p>
         </div>
       </section>
 
-      {/* Horizontal Scrollable Status Filter Chips */}
+      {/* Status Filter Chips */}
       <div className="flex overflow-x-auto gap-2 py-0.5 hide-scrollbar [scrollbar-width:none] [&::-webkit-scrollbar]:hidden mx-0.5">
         {[
           { key: 'all', label: 'All', count: expensesData.length },
@@ -478,15 +474,15 @@ const EmployeeMobileExpenses = () => {
             onClick={() => setFilterStatus(tab.key)}
             className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
               filterStatus === tab.key
-                ? 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc] shadow-2xs font-bold'
-                : 'bg-white text-[#5f6368] border-[#e0e3e7] hover:bg-[#f8fafd]'
+                ? 'bg-[var(--brand-tint)] text-[var(--brand-deep)] border-[var(--brand)]/20 shadow-2xs'
+                : 'bg-[var(--surface)] text-[var(--text-2)] border-[var(--line)] hover:bg-[var(--surface-alt)]'
             }`}
           >
             <span>{tab.label}</span>
             <span className={`inline-flex items-center justify-center h-[18px] min-w-[18px] px-1.5 rounded-full text-[11px] font-bold leading-none tabular-nums ${
               filterStatus === tab.key
-                ? 'bg-[#1a73e8] text-white'
-                : 'bg-[#f1f3f4] text-[#5f6368]'
+                ? 'bg-[var(--brand-deep)] text-white'
+                : 'bg-[var(--surface-alt)] text-[var(--muted)]'
             }`}>
               {tab.count}
             </span>
@@ -497,15 +493,15 @@ const EmployeeMobileExpenses = () => {
       {/* Expense Records Feed */}
       <div className="space-y-3 mx-0.5">
         <div className="flex items-center justify-between px-1">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-[#1f1f1f]">Claim History</h3>
-          <span className="text-[10px] text-[#5f6368]">{filteredExpenses.length} Claims Displayed</span>
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--text)]">Claim History</h3>
+          <span className="text-[10px] text-[var(--muted)]">{filteredExpenses.length} Claims Displayed</span>
         </div>
 
         {filteredExpenses.length === 0 ? (
-          <div className="bg-white p-8 rounded-3xl text-center border border-[#e0e3e7] shadow-xs space-y-2">
-            <AlertCircle className="w-8 h-8 text-[#5f6368] mx-auto opacity-50" />
-            <p className="text-xs font-semibold text-[#1f1f1f]">No expense claims found</p>
-            <p className="text-[11px] text-[#5f6368]">
+          <div className="bg-[var(--surface)] p-8 rounded-[20px] text-center border border-[var(--line)] shadow-xs space-y-2">
+            <AlertCircle className="w-8 h-8 text-[var(--muted)] mx-auto opacity-50" />
+            <p className="text-xs font-semibold text-[var(--text)]">No expense claims found</p>
+            <p className="text-[11px] text-[var(--muted)]">
               {filterStatus === 'all' 
                 ? 'You have not submitted any reimbursement requests yet.' 
                 : `No expense claims under ${filterStatus} status.`}
@@ -519,27 +515,27 @@ const EmployeeMobileExpenses = () => {
               const formattedDate = new Date(exp.created_at || exp.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 
               return (
-                <div key={exp.id} className="bg-white p-4 rounded-2xl border border-[#e0e3e7] shadow-xs space-y-3">
+                <div key={exp.id} className="bg-[var(--surface)] p-4 rounded-[20px] border border-[var(--line)] shadow-xs space-y-3">
                   <div className="flex items-start justify-between gap-2.5">
                     <div className="flex items-start gap-3 min-w-0">
-                      <div className="w-9 h-9 rounded-xl bg-[#f8fafd] border border-[#dadce0] flex items-center justify-center text-[#1a73e8] shrink-0 mt-0.5">
+                      <div className="w-9 h-9 rounded-[10px] bg-[var(--brand-tint)] border border-[var(--brand)]/20 flex items-center justify-center text-[var(--brand-deep)] shrink-0 mt-0.5">
                         <CategoryIcon className="w-4 h-4" />
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]">
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-semibold uppercase tracking-wider bg-[var(--surface-alt)] text-[var(--text-2)] border border-[var(--line)]">
                             {exp.category}
                           </span>
-                          <span className="text-[10px] font-semibold text-[#5f6368]">{formattedDate}</span>
+                          <span className="text-[10px] font-medium text-[var(--muted)]">{formattedDate}</span>
                         </div>
-                        <h4 className="text-xs font-bold text-[#1f1f1f] mt-1 break-words">{exp.title}</h4>
+                        <h4 className="text-xs font-semibold text-[var(--text)] mt-1 break-words">{exp.title}</h4>
                       </div>
                     </div>
 
                     <div className="text-right shrink-0">
-                      <span className="text-sm font-bold text-[#1f1f1f] block">{formatCurrency(exp.amount)}</span>
+                      <span className="text-sm font-semibold text-[var(--text)] block">{formatCurrency(exp.amount)}</span>
                       <div className="mt-1">
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${badge.bg}`}>
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${badge.bg}`}>
                           {badge.icon}
                           <span>{badge.label}</span>
                         </span>
@@ -548,23 +544,23 @@ const EmployeeMobileExpenses = () => {
                   </div>
 
                   {exp.description && (
-                    <p className="text-xs text-[#5f6368] line-clamp-2 leading-relaxed bg-[#f8fafd] p-2.5 rounded-xl border border-[#e0e3e7]">
+                    <p className="text-xs text-[var(--text-2)] line-clamp-2 leading-relaxed bg-[var(--surface-alt)] p-2.5 rounded-[12px] border border-[var(--line)]">
                       {exp.description}
                     </p>
                   )}
 
                   {exp.remarks && (
-                    <div className="p-2.5 rounded-xl bg-[#fce8e6]/60 border border-[#fad2cf] text-[11px] text-[#c5221f]">
-                      <span className="font-bold uppercase tracking-wider mr-1">Admin Remark:</span> {exp.remarks}
+                    <div className="p-2.5 rounded-[12px] bg-[var(--status-danger-bg)] border border-[var(--status-danger-text)]/20 text-[11px] text-[var(--status-danger-text)]">
+                      <span className="font-semibold uppercase tracking-wider mr-1">Admin Remark:</span> {exp.remarks}
                     </div>
                   )}
 
                   {exp.bill_url && (
-                    <div className="pt-2 border-t border-[#f1f3f4] flex justify-end">
+                    <div className="pt-2 border-t border-[var(--line)] flex justify-end">
                       <button
                         type="button"
                         onClick={() => setSelectedBillUrl(exp.bill_url)}
-                        className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[11px] font-semibold text-[#1a73e8] bg-[#e8f0fe] hover:bg-[#d2e3fc] transition-all cursor-pointer active:scale-95"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold text-[var(--brand-deep)] bg-[var(--brand-tint)] hover:opacity-90 transition-all cursor-pointer active:scale-95"
                       >
                         <FileText className="w-3.5 h-3.5" />
                         <span>View Bill Receipt</span>
@@ -578,12 +574,11 @@ const EmployeeMobileExpenses = () => {
         )}
       </div>
 
-      {/* Slide-Up Bottom Sheet Drawer (Mounted via createPortal with Framer Motion) */}
+      {/* Slide-Up Bottom Sheet Drawer */}
       {createPortal(
         <AnimatePresence>
           {selectedBillUrl && (
             <div className="fixed inset-0 z-[10000] flex flex-col justify-end">
-              {/* Smooth Backdrop */}
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -593,7 +588,6 @@ const EmployeeMobileExpenses = () => {
                 className="fixed inset-0 bg-black/50 backdrop-blur-xs cursor-pointer"
               />
 
-              {/* Smooth Slide-Up Sheet with Drag Down To Close */}
               <motion.div
                 initial={{ y: '100%' }}
                 animate={{ y: 0 }}
@@ -609,8 +603,7 @@ const EmployeeMobileExpenses = () => {
                     setSelectedBillUrl(null);
                   }
                 }}
-                className="bg-white rounded-t-[2rem] shadow-2xl border-t border-slate-200 w-full max-w-md mx-auto max-h-[85vh] h-[80vh] flex flex-col overflow-hidden relative z-10 font-editorial antialiased"
-                style={{ fontFamily: "'Newsreader', Georgia, serif" }}
+                className="bg-[var(--surface)] rounded-t-[28px] shadow-2xl border-t border-[var(--line)] w-full max-w-md mx-auto max-h-[85vh] h-[80vh] flex flex-col overflow-hidden relative z-10 font-sans antialiased text-[var(--text)]"
               >
                 {/* Top Drag Indicator Area */}
                 <div 
@@ -618,17 +611,17 @@ const EmployeeMobileExpenses = () => {
                   onPointerDown={(e) => controls.start(e)}
                   style={{ touchAction: 'none' }}
                 >
-                  <div className="w-12 h-1.5 bg-slate-300 rounded-full pointer-events-none" />
+                  <div className="w-12 h-1.5 bg-[var(--line)] rounded-full pointer-events-none" />
                 </div>
 
                 {/* Bottom Sheet Header */}
-                <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
+                <div className="px-5 py-3.5 border-b border-[var(--line)] flex items-center justify-between bg-[var(--surface)] shrink-0">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                    <div className="w-8 h-8 rounded-[10px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center shrink-0">
                       <FileText className="w-4 h-4" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-bold text-slate-900">
+                      <h3 className="text-sm font-semibold text-[var(--text)]">
                         Attached Receipt Document
                       </h3>
                     </div>
@@ -636,28 +629,28 @@ const EmployeeMobileExpenses = () => {
                   <button
                     type="button"
                     onClick={() => setSelectedBillUrl(null)}
-                    className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
+                    className="w-8 h-8 rounded-full bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--muted)] flex items-center justify-center transition-colors cursor-pointer"
                   >
                     <X className="w-4 h-4" />
                   </button>
                 </div>
 
                 {/* Scrollable Content */}
-                <div className="p-4 sm:p-5 overflow-y-auto flex-1 bg-slate-50 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden flex flex-col items-center justify-center">
+                <div className="p-4 sm:p-5 overflow-y-auto flex-1 bg-[var(--surface-alt)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden flex flex-col items-center justify-center">
                   {selectedBillUrl.toLowerCase().endsWith('.pdf') ? (
                     <div className="w-full h-full flex flex-col items-center justify-center space-y-4">
-                      <div className="w-16 h-16 rounded-2xl bg-blue-100/60 text-blue-600 flex items-center justify-center">
+                      <div className="w-16 h-16 rounded-[14px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center">
                         <FileText className="w-8 h-8" />
                       </div>
                       <div className="text-center space-y-1">
-                        <p className="text-sm font-bold text-slate-900">PDF Document Receipt</p>
-                        <p className="text-xs text-slate-500">Tap below to view or download full document</p>
+                        <p className="text-sm font-semibold text-[var(--text)]">PDF Document Receipt</p>
+                        <p className="text-xs text-[var(--muted)]">Tap below to view or download full document</p>
                       </div>
                       <a 
                         href={selectedBillUrl} 
                         target="_blank" 
                         rel="noopener noreferrer" 
-                        className="flex items-center gap-2 px-6 py-3 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-full text-xs font-bold shadow-md active:scale-95 transition-all"
+                        className="flex items-center gap-2 px-6 py-2.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white rounded-[14px] text-xs font-semibold shadow-xs active:scale-95 transition-all"
                       >
                         <ExternalLink className="w-4 h-4" />
                         <span>Open PDF in New Window</span>
@@ -668,18 +661,18 @@ const EmployeeMobileExpenses = () => {
                       <img 
                         src={selectedBillUrl} 
                         alt="Receipt Document" 
-                        className="max-h-full max-w-full object-contain rounded-2xl shadow-sm border border-slate-200" 
+                        className="max-h-full max-w-full object-contain rounded-[14px] shadow-xs border border-[var(--line)]" 
                       />
                     </div>
                   )}
                 </div>
 
                 {/* Bottom Close Button */}
-                <div className="p-4 border-t border-slate-100 bg-white shrink-0">
+                <div className="p-4 border-t border-[var(--line)] bg-[var(--surface)] shrink-0">
                   <button
                     type="button"
                     onClick={() => setSelectedBillUrl(null)}
-                    className="w-full py-2.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold transition-all cursor-pointer text-center"
+                    className="w-full py-2.5 rounded-[14px] bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--text)] text-xs font-semibold transition-all cursor-pointer text-center"
                   >
                     Close
                   </button>

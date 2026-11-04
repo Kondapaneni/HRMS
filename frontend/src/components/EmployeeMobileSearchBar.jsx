@@ -51,7 +51,7 @@ const EmployeeMobileSearchBar = ({ placeholder = "Search your pages, leaves, pay
         category: 'Attendance',
         path: '/employee',
         icon: Fingerprint,
-        color: 'bg-[#e8f0fe] text-[#1a73e8]',
+        color: 'bg-[var(--brand-tint)] text-[var(--brand-deep)]',
         keywords: ['punch', 'check in', 'check out', 'attendance', 'mark attendance', 'clock in', 'clock out']
       },
       {
@@ -61,7 +61,7 @@ const EmployeeMobileSearchBar = ({ placeholder = "Search your pages, leaves, pay
         category: 'Attendance',
         path: '/employee/attendance',
         icon: Clock,
-        color: 'bg-[#e8f0fe] text-[#1a73e8]',
+        color: 'bg-[var(--brand-tint)] text-[var(--brand-deep)]',
         keywords: ['attendance', 'history', 'logs', 'hours', 'calendar', 'present', 'absent', 'late', 'records']
       },
       {
@@ -71,7 +71,7 @@ const EmployeeMobileSearchBar = ({ placeholder = "Search your pages, leaves, pay
         category: 'Leaves',
         path: '/employee/leaves/apply',
         icon: Calendar,
-        color: 'bg-[#e6f4ea] text-[#137333]',
+        color: 'bg-[var(--status-success-bg)] text-[var(--status-success-text)]',
         keywords: ['apply leave', 'take off', 'sick leave', 'casual leave', 'vacation', 'time off', 'request leave']
       },
       {
@@ -81,7 +81,7 @@ const EmployeeMobileSearchBar = ({ placeholder = "Search your pages, leaves, pay
         category: 'Leaves',
         path: '/employee/leaves',
         icon: Calendar,
-        color: 'bg-[#e6f4ea] text-[#137333]',
+        color: 'bg-[var(--status-success-bg)] text-[var(--status-success-text)]',
         keywords: ['leaves', 'leave balance', 'leave history', 'quota', 'paid leave', 'casual leave', 'status']
       },
       {
@@ -91,7 +91,7 @@ const EmployeeMobileSearchBar = ({ placeholder = "Search your pages, leaves, pay
         category: 'Payroll',
         path: '/employee/payroll',
         icon: Wallet,
-        color: 'bg-[#fef7e0] text-[#b06000]',
+        color: 'bg-[var(--status-warning-bg)] text-[var(--status-warning-text)]',
         keywords: ['payslip', 'salary', 'salary slip', 'compensation', 'earnings', 'deductions', 'payroll', 'wages']
       },
       {
@@ -101,7 +101,7 @@ const EmployeeMobileSearchBar = ({ placeholder = "Search your pages, leaves, pay
         category: 'Expenses',
         path: '/employee/expenses',
         icon: Receipt,
-        color: 'bg-orange-50 text-orange-600',
+        color: 'bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)]',
         keywords: ['expenses', 'claims', 'reimbursement', 'travel', 'food', 'fuel', 'bills', 'receipts']
       },
       {
@@ -111,7 +111,7 @@ const EmployeeMobileSearchBar = ({ placeholder = "Search your pages, leaves, pay
         category: 'Holidays',
         path: '/employee/holidays',
         icon: Sparkles,
-        color: 'bg-[#f3e8fd] text-[#8430ce]',
+        color: 'bg-[var(--brand-tint)] text-[var(--brand-deep)]',
         keywords: ['holidays', 'calendar', 'festival', 'public holiday', 'off days', 'company holidays']
       },
       {
@@ -121,7 +121,7 @@ const EmployeeMobileSearchBar = ({ placeholder = "Search your pages, leaves, pay
         category: 'Profile',
         path: '/employee/profile',
         icon: User,
-        color: 'bg-slate-100 text-slate-700',
+        color: 'bg-[var(--surface-alt)] text-[var(--text-2)]',
         keywords: ['profile', 'my profile', 'account', 'personal', 'work info', 'manager', 'team', 'shift', 'assets', 'emergency contact']
       },
       {
@@ -131,7 +131,7 @@ const EmployeeMobileSearchBar = ({ placeholder = "Search your pages, leaves, pay
         category: 'Team',
         path: '/employee/birthdays',
         icon: Cake,
-        color: 'bg-rose-50 text-rose-600',
+        color: 'bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)]',
         keywords: ['birthdays', 'colleagues', 'team', 'celebrations', 'events']
       }
     ];
@@ -144,7 +144,7 @@ const EmployeeMobileSearchBar = ({ placeholder = "Search your pages, leaves, pay
         category: 'Origination',
         path: '/employee/loans/origination',
         icon: Briefcase,
-        color: 'bg-[#e8f0fe] text-[#1a73e8]',
+        color: 'bg-[var(--brand-tint)] text-[var(--brand-deep)]',
         keywords: ['loans', 'origination', 'loan leads', 'loan applications', 'credit', 'borrowers']
       });
       items.push({
@@ -154,7 +154,7 @@ const EmployeeMobileSearchBar = ({ placeholder = "Search your pages, leaves, pay
         category: 'Origination',
         path: '/employee/loans/origination/activities',
         icon: Clock,
-        color: 'bg-[#e8f0fe] text-[#1a73e8]',
+        color: 'bg-[var(--brand-tint)] text-[var(--brand-deep)]',
         keywords: ['loan activities', 'schedule', 'tasks', 'visit', 'kyc visit', 'followup']
       });
     }
@@ -167,7 +167,7 @@ const EmployeeMobileSearchBar = ({ placeholder = "Search your pages, leaves, pay
         category: 'Origination',
         path: '/employee/sales/origination',
         icon: ShoppingBag,
-        color: 'bg-[#e6f4ea] text-[#137333]',
+        color: 'bg-[var(--status-success-bg)] text-[var(--status-success-text)]',
         keywords: ['sales', 'leads', 'origination', 'pipeline', 'prospects', 'clients']
       });
       items.push({
@@ -177,7 +177,7 @@ const EmployeeMobileSearchBar = ({ placeholder = "Search your pages, leaves, pay
         category: 'Origination',
         path: '/employee/sales/origination/activities',
         icon: Clock,
-        color: 'bg-[#e6f4ea] text-[#137333]',
+        color: 'bg-[var(--status-success-bg)] text-[var(--status-success-text)]',
         keywords: ['sales activities', 'schedule', 'meetings', 'client visit', 'tasks']
       });
     }
@@ -190,7 +190,7 @@ const EmployeeMobileSearchBar = ({ placeholder = "Search your pages, leaves, pay
         category: 'Operations',
         path: '/employee/branch-operations',
         icon: Building2,
-        color: 'bg-[#f3e8fd] text-[#7C4DFF]',
+        color: 'bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)]',
         keywords: ['branch', 'branch operations', 'team', 'approvals', 'office']
       });
     }
@@ -202,7 +202,7 @@ const EmployeeMobileSearchBar = ({ placeholder = "Search your pages, leaves, pay
       category: 'Learning',
       path: '/employee/training',
       icon: Play,
-      color: 'bg-[#fce8e6] text-[#d93025]',
+      color: 'bg-[var(--status-danger-bg)] text-[var(--status-danger-text)]',
       keywords: ['training', 'videos', 'learning', 'courses', 'onboarding', 'skills']
     });
 
@@ -224,7 +224,7 @@ const EmployeeMobileSearchBar = ({ placeholder = "Search your pages, leaves, pay
   return (
     <div ref={searchRef} className="relative z-40">
       <div className="relative flex items-center">
-        <Search className="w-4.5 h-4.5 text-[#80868b] absolute left-4 pointer-events-none" />
+        <Search className="w-4.5 h-4.5 text-[var(--muted)] absolute left-4 pointer-events-none" />
         <input
           type="text"
           value={searchQuery}
@@ -238,7 +238,7 @@ const EmployeeMobileSearchBar = ({ placeholder = "Search your pages, leaves, pay
             }
           }}
           placeholder={placeholder}
-          className="w-full h-12 bg-white border border-[#dadce0] focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 rounded-full pl-11.5 pr-10 text-sm font-medium text-[#1f1f1f] placeholder:text-[#80868b] outline-none transition-all shadow-xs"
+          className="w-full h-12 bg-[var(--surface)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-full pl-11.5 pr-10 text-sm font-medium text-[var(--text)] placeholder:text-[var(--muted)] outline-none transition-all shadow-xs"
         />
         {searchQuery && (
           <button
@@ -247,7 +247,7 @@ const EmployeeMobileSearchBar = ({ placeholder = "Search your pages, leaves, pay
               setSearchQuery('');
               setIsSearchOpen(false);
             }}
-            className="absolute right-3.5 p-1 text-[#80868b] hover:text-[#1f1f1f] rounded-full transition-colors cursor-pointer"
+            className="absolute right-3.5 p-1 text-[var(--muted)] hover:text-[var(--text)] rounded-full transition-colors cursor-pointer"
           >
             <X size={15} />
           </button>
@@ -256,7 +256,7 @@ const EmployeeMobileSearchBar = ({ placeholder = "Search your pages, leaves, pay
 
       {/* Dropdown Results - Only shows when actively searching */}
       {isSearchOpen && searchQuery.trim().length > 0 && (
-        <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl border border-[#dadce0] shadow-xl overflow-hidden z-50 max-h-80 overflow-y-auto divide-y divide-[#f1f3f4] [scrollbar-width:thin]">
+        <div className="absolute left-0 right-0 top-full mt-2 bg-[var(--surface)] rounded-2xl border border-[var(--line)] shadow-xl overflow-hidden z-50 max-h-80 overflow-y-auto divide-y divide-[var(--line)] [scrollbar-width:thin]">
 
           {filteredPages.length > 0 ? (
             filteredPages.map((page) => {
@@ -269,34 +269,34 @@ const EmployeeMobileSearchBar = ({ placeholder = "Search your pages, leaves, pay
                     setIsSearchOpen(false);
                     setSearchQuery('');
                   }}
-                  className="px-3.5 py-2.5 flex items-center justify-between hover:bg-[#f8fafd] active:bg-slate-100 transition-colors cursor-pointer group"
+                  className="px-3.5 py-2.5 flex items-center justify-between hover:bg-[var(--brand-tint)]/40 active:bg-[var(--surface-alt)] transition-colors cursor-pointer group"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${page.color}`}>
+                    <div className={`w-8 h-8 rounded-[10px] flex items-center justify-center shrink-0 ${page.color}`}>
                       <Icon size={16} />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-xs font-bold text-[#1f1f1f] group-hover:text-[#1a73e8] transition-colors truncate">
+                      <p className="text-xs font-semibold text-[var(--text)] group-hover:text-[var(--brand-deep)] transition-colors truncate">
                         {page.title}
                       </p>
-                      <p className="text-[10.5px] text-[#5f6368] truncate">
+                      <p className="text-[10.5px] text-[var(--muted)] truncate">
                         {page.subtitle}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-[#5f6368] border border-slate-200">
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[var(--surface-alt)] text-[var(--text-2)] border border-[var(--line)]">
                       {page.category}
                     </span>
-                    <ChevronRight size={14} className="text-[#80868b] group-hover:translate-x-0.5 transition-transform" />
+                    <ChevronRight size={14} className="text-[var(--muted)] group-hover:translate-x-0.5 transition-transform" />
                   </div>
                 </div>
               );
             })
           ) : (
-            <div className="p-5 text-center text-[#5f6368] space-y-1">
+            <div className="p-5 text-center text-[var(--muted)] space-y-1">
               <p className="text-xs font-semibold">No pages found matching "{searchQuery}"</p>
-              <p className="text-[11px] text-[#80868b]">Try searching for attendance, leaves, payroll, claims, or origination</p>
+              <p className="text-[11px] text-[var(--muted)]">Try searching for attendance, leaves, payroll, claims, or origination</p>
             </div>
           )}
         </div>

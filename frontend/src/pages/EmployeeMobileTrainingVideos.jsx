@@ -136,30 +136,29 @@ const EmployeeMobileTrainingVideos = () => {
   }
 
   return (
-    <div className="space-y-4 pb-14 select-none font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+    <div className="space-y-4 pb-14 select-none font-sans antialiased text-[var(--text)]">
 
-      {/* Clean White Header matching all Mobile Pages */}
+      {/* Header */}
       <section className="relative z-30 pt-1 pb-1">
         <div className="pt-0.5">
-          <p className="text-[10.5px] font-bold text-[#5f6368] uppercase tracking-wider mb-1">
+          <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-1">
             Learning &amp; Development
           </p>
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight leading-tight min-w-0" style={{ fontWeight: 500 }}>
-              Training <span className="font-medium italic text-[#1a73e8]">Videos</span>
+            <h2 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight leading-tight min-w-0">
+              Training <span className="text-[var(--brand-deep)]">Videos</span>
             </h2>
 
-            {/* Standardized Header Back Button matching all other mobile pages */}
             <button
               type="button"
               onClick={() => navigate('/employee')}
-              className="shrink-0 h-10 px-4 inline-flex items-center justify-center gap-1.5 rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] shadow-xs active:scale-95 transition-all cursor-pointer whitespace-nowrap"
+              className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 rounded-[14px] text-xs font-semibold bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-alt)] border border-[var(--line)] shadow-xs active:scale-95 transition-all cursor-pointer whitespace-nowrap"
             >
-              <ArrowLeft size={14} className="text-[#5f6368]" />
+              <ArrowLeft size={14} className="text-[var(--muted)]" />
               <span>Back</span>
             </button>
           </div>
-          <p className="text-xs sm:text-sm font-medium text-[#5f6368] mt-1">
+          <p className="text-xs sm:text-sm font-medium text-[var(--text-2)] mt-1">
             {completedCount} of {videos.length} Modules Completed ({progressPercent}%)
           </p>
         </div>
@@ -167,24 +166,24 @@ const EmployeeMobileTrainingVideos = () => {
 
       {/* Curriculum Progress Bar Card */}
       {videos.length > 0 && (
-        <section className="bg-white rounded-3xl border border-[#e0e3e7] p-4.5 shadow-xs space-y-2.5 mx-0.5">
+        <section className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4 shadow-xs space-y-2.5 mx-0.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center shrink-0">
+              <div className="w-8 h-8 rounded-[10px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center shrink-0">
                 <GraduationCap className="w-4.5 h-4.5" />
               </div>
               <div>
-                <p className="text-xs font-bold text-[#1f1f1f]">Curriculum Progress</p>
-                <p className="text-[10.5px] text-[#5f6368]">{completedCount} of {videos.length} completed</p>
+                <p className="text-xs font-semibold text-[var(--text)]">Curriculum Progress</p>
+                <p className="text-[10.5px] text-[var(--muted)]">{completedCount} of {videos.length} completed</p>
               </div>
             </div>
-            <span className="text-xs font-bold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full shadow-2xs">
+            <span className="text-xs font-semibold text-[var(--brand-deep)] bg-[var(--brand-tint)] border border-[var(--brand)]/20 px-2.5 py-0.5 rounded-full shadow-2xs">
               {progressPercent}%
             </span>
           </div>
-          <div className="w-full h-2 rounded-full bg-[#f1f3f4] overflow-hidden">
+          <div className="w-full h-2 rounded-full bg-[var(--brand-tint)] overflow-hidden">
             <motion.div
-              className="h-full rounded-full bg-[#1a73e8]"
+              className="h-full rounded-full bg-[var(--brand)]"
               initial={{ width: 0 }}
               animate={{ width: `${progressPercent}%` }}
               transition={{ duration: 0.6, ease: 'easeOut' }}
@@ -193,72 +192,72 @@ const EmployeeMobileTrainingVideos = () => {
         </section>
       )}
 
-      {/* KPI Stats Grid (4 Cards in Compact Google aesthetic) */}
+      {/* KPI Stats Grid */}
       <section className="grid grid-cols-2 gap-3 relative z-20 mx-0.5">
         {/* Total Modules */}
-        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3.5 shadow-xs space-y-1">
+        <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4 shadow-xs space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Total Modules</span>
-            <div className="p-1.5 rounded-lg bg-[#e8f0fe] text-[#1a73e8]">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">Total Modules</span>
+            <div className="p-1.5 rounded-[8px] bg-[var(--brand-tint)] text-[var(--brand-deep)]">
               <Film className="w-3.5 h-3.5" />
             </div>
           </div>
-          <p className="text-base font-bold text-[#1f1f1f]">{videos.length}</p>
+          <p className="text-base font-bold text-[var(--text)]">{videos.length}</p>
         </div>
 
         {/* Completed */}
-        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3.5 shadow-xs space-y-1">
+        <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4 shadow-xs space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Completed</span>
-            <div className="p-1.5 rounded-lg bg-[#e6f4ea] text-[#137333]">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">Completed</span>
+            <div className="p-1.5 rounded-[8px] bg-[var(--status-success-bg)] text-[var(--status-success-text)]">
               <CheckCircle2 className="w-3.5 h-3.5" />
             </div>
           </div>
-          <p className="text-base font-bold text-[#1f1f1f]">{completedCount}</p>
+          <p className="text-base font-bold text-[var(--status-success-text)]">{completedCount}</p>
         </div>
 
         {/* To Watch */}
-        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3.5 shadow-xs space-y-1">
+        <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4 shadow-xs space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">To Watch</span>
-            <div className="p-1.5 rounded-lg bg-[#fef7e0] text-[#b06000]">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">To Watch</span>
+            <div className="p-1.5 rounded-[8px] bg-[var(--status-warning-bg)] text-[var(--status-warning-text)]">
               <Clock className="w-3.5 h-3.5" />
             </div>
           </div>
-          <p className="text-base font-bold text-[#1f1f1f]">{videos.length - completedCount}</p>
+          <p className="text-base font-bold text-[var(--status-warning-text)]">{videos.length - completedCount}</p>
         </div>
 
         {/* Course Progress */}
-        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3.5 shadow-xs space-y-1">
+        <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4 shadow-xs space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Progress</span>
-            <div className="p-1.5 rounded-lg bg-[#f3e8fd] text-[#8430ce]">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">Progress</span>
+            <div className="p-1.5 rounded-[8px] bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)]">
               <Award className="w-3.5 h-3.5" />
             </div>
           </div>
-          <p className="text-base font-bold text-[#1f1f1f]">{progressPercent}%</p>
+          <p className="text-base font-bold text-[var(--accent-pink-deep)]">{progressPercent}%</p>
         </div>
       </section>
 
       {videos.length === 0 ? (
         /* Empty State */
-        <div className="bg-white rounded-3xl border border-[#e0e3e7] p-8 text-center shadow-xs space-y-3 mx-0.5">
-          <div className="w-16 h-16 bg-[#fce8e6] border border-[#fad2cf] rounded-full flex items-center justify-center mx-auto text-[#d93025]">
+        <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-8 text-center shadow-xs space-y-3 mx-0.5">
+          <div className="w-16 h-16 bg-[var(--status-danger-bg)] border border-[var(--status-danger-text)]/20 rounded-[18px] flex items-center justify-center mx-auto text-[var(--status-danger-text)]">
             <Film className="w-8 h-8" />
           </div>
-          <h3 className="text-base font-bold text-[#1f1f1f]">No Training Videos Assigned</h3>
-          <p className="text-xs text-[#5f6368] max-w-xs mx-auto">
+          <h3 className="text-base font-semibold text-[var(--text)]">No Training Videos Assigned</h3>
+          <p className="text-xs text-[var(--muted)] max-w-xs mx-auto">
             You currently have no training videos assigned. Check back later or contact your HR administrator.
           </p>
         </div>
       ) : (
         <>
-          {/* Active Featured Video Player (Featured Above Playlist for Quick Viewing) */}
+          {/* Active Featured Video Player */}
           {activeVideo && (
-            <div className="bg-white rounded-3xl border border-[#e0e3e7] overflow-hidden shadow-xs space-y-3 mx-0.5 pt-1">
+            <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] overflow-hidden shadow-xs space-y-3 mx-0.5 pt-1">
               <div className="px-4 pt-3 flex items-center justify-between">
-                <span className="text-xs font-bold text-[#1f1f1f] uppercase tracking-wider">Currently Playing</span>
-                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
+                <span className="text-xs font-semibold text-[var(--text)] uppercase tracking-wider">Currently Playing</span>
+                <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-[var(--brand-tint)] text-[var(--brand-deep)] border border-[var(--brand)]/20">
                   Module {activeIndex + 1} of {videos.length}
                 </span>
               </div>
@@ -281,29 +280,29 @@ const EmployeeMobileTrainingVideos = () => {
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     {activeVideo.is_completed && (
-                      <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#e6f4ea] text-[#137333] border border-[#ceead6] inline-flex items-center gap-1 mb-1.5">
+                      <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-[var(--status-success-bg)] text-[var(--status-success-text)] border border-[var(--status-success-text)]/20 inline-flex items-center gap-1 mb-1.5">
                         <Check className="w-3 h-3" /> Completed
                       </span>
                     )}
-                    <h2 className="text-base font-bold text-[#1f1f1f] leading-snug">
+                    <h2 className="text-base font-semibold text-[var(--text)] leading-snug">
                       {activeVideo.title}
                     </h2>
-                    <p className="text-[11px] text-[#5f6368] mt-1 flex items-center gap-1">
-                      <Clock className="w-3 h-3 text-[#5f6368]" />
+                    <p className="text-[11px] text-[var(--muted)] mt-1 flex items-center gap-1">
+                      <Clock className="w-3 h-3 text-[var(--muted)]" />
                       Added {new Date(activeVideo.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                     </p>
                   </div>
                 </div>
 
-                {/* Video Action Pill Buttons with Standardized h-10 Height */}
-                <div className="flex items-center gap-2 pt-2 border-t border-[#f1f3f4]">
+                {/* Video Action Pill Buttons */}
+                <div className="flex items-center gap-2 pt-2 border-t border-[var(--line)]">
                   {activeIndex > 0 && (
                     <button
                       type="button"
                       onClick={handlePrevVideo}
-                      className="h-10 px-3.5 inline-flex items-center justify-center gap-1 rounded-full bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] text-xs font-semibold border border-[#dadce0] transition-all active:scale-95 shadow-2xs cursor-pointer shrink-0"
+                      className="h-9 px-3.5 inline-flex items-center justify-center gap-1 rounded-[14px] bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--text)] text-xs font-semibold border border-[var(--line)] transition-all active:scale-95 shadow-2xs cursor-pointer shrink-0"
                     >
-                      <ChevronLeft className="w-4 h-4 text-[#5f6368]" />
+                      <ChevronLeft className="w-4 h-4 text-[var(--muted)]" />
                       <span>Prev</span>
                     </button>
                   )}
@@ -312,10 +311,10 @@ const EmployeeMobileTrainingVideos = () => {
                     type="button"
                     onClick={(e) => triggerToggleComplete(activeVideo, e)}
                     disabled={toggleProgressMutation.isPending}
-                    className={`h-10 px-4 flex-1 inline-flex items-center justify-center gap-1.5 rounded-full text-xs font-semibold tracking-wide transition-all active:scale-95 cursor-pointer shadow-xs ${
+                    className={`h-9 px-4 flex-1 inline-flex items-center justify-center gap-1.5 rounded-[14px] text-xs font-semibold tracking-wide transition-all active:scale-95 cursor-pointer shadow-xs ${
                       activeVideo.is_completed
-                        ? 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6] hover:bg-[#d5eedc]'
-                        : 'bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white'
+                        ? 'bg-[var(--status-success-bg)] text-[var(--status-success-text)] border border-[var(--status-success-text)]/20'
+                        : 'bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white'
                     }`}
                   >
                     {activeVideo.is_completed ? (
@@ -335,10 +334,10 @@ const EmployeeMobileTrainingVideos = () => {
                     <button
                       type="button"
                       onClick={handleNextVideo}
-                      className="h-10 px-3.5 inline-flex items-center justify-center gap-1 rounded-full bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] text-xs font-semibold border border-[#dadce0] transition-all active:scale-95 shadow-2xs cursor-pointer shrink-0"
+                      className="h-9 px-3.5 inline-flex items-center justify-center gap-1 rounded-[14px] bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--text)] text-xs font-semibold border border-[var(--line)] transition-all active:scale-95 shadow-2xs cursor-pointer shrink-0"
                     >
                       <span>Next</span>
-                      <ChevronRight className="w-4 h-4 text-[#5f6368]" />
+                      <ChevronRight className="w-4 h-4 text-[var(--muted)]" />
                     </button>
                   )}
                 </div>
@@ -347,21 +346,21 @@ const EmployeeMobileTrainingVideos = () => {
           )}
 
           {/* Search & Filter Bar */}
-          <div className="bg-white rounded-3xl border border-[#e0e3e7] p-4 shadow-xs space-y-3 mx-0.5">
+          <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4 shadow-xs space-y-3 mx-0.5">
             <div className="relative flex items-center">
-              <Search className="w-4 h-4 text-[#80868b] absolute left-4 pointer-events-none" />
+              <Search className="w-4 h-4 text-[var(--muted)] absolute left-4 pointer-events-none" />
               <input
                 type="text"
                 placeholder="Search training modules..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full h-11 pl-10 pr-9 bg-[#f8fafd] border border-[#dadce0] focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 focus:bg-white rounded-full text-xs font-semibold text-[#1f1f1f] placeholder-[#80868b] outline-none transition-all shadow-2xs"
+                className="w-full h-10 pl-10 pr-9 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 focus:bg-[var(--surface)] rounded-[14px] text-xs font-medium text-[var(--text)] placeholder:[var(--muted)] outline-none transition-all shadow-2xs"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-3.5 p-1 text-[#80868b] hover:text-[#1f1f1f] rounded-full transition-colors cursor-pointer"
+                  className="absolute right-3.5 p-1 text-[var(--muted)] hover:text-[var(--text)] rounded-full transition-colors cursor-pointer"
                 >
                   <X size={14} />
                 </button>
@@ -373,10 +372,10 @@ const EmployeeMobileTrainingVideos = () => {
               <button
                 type="button"
                 onClick={() => setActiveFilter('all')}
-                className={`h-8 px-3.5 rounded-full text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                className={`h-7 px-3 rounded-full text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
                   activeFilter === 'all'
-                    ? 'bg-[#1a73e8] text-white shadow-xs'
-                    : 'bg-[#f1f3f4] text-[#5f6368] hover:bg-[#e3e3e3]'
+                    ? 'bg-[var(--ink)] text-white shadow-xs'
+                    : 'bg-[var(--surface-alt)] text-[var(--text-2)] hover:bg-[var(--line)]'
                 }`}
               >
                 All ({videos.length})
@@ -384,10 +383,10 @@ const EmployeeMobileTrainingVideos = () => {
               <button
                 type="button"
                 onClick={() => setActiveFilter('pending')}
-                className={`h-8 px-3.5 rounded-full text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                className={`h-7 px-3 rounded-full text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
                   activeFilter === 'pending'
-                    ? 'bg-[#b06000] text-white shadow-xs'
-                    : 'bg-[#fef7e0] text-[#b06000] border border-[#feefc3] hover:bg-[#feeec3]'
+                    ? 'bg-[var(--status-warning-bg)] text-[var(--status-warning-text)] border border-[var(--status-warning-text)]/30 font-bold'
+                    : 'bg-[var(--surface-alt)] text-[var(--muted)] hover:bg-[var(--line)]'
                 }`}
               >
                 To Watch ({videos.length - completedCount})
@@ -395,10 +394,10 @@ const EmployeeMobileTrainingVideos = () => {
               <button
                 type="button"
                 onClick={() => setActiveFilter('completed')}
-                className={`h-8 px-3.5 rounded-full text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                className={`h-7 px-3 rounded-full text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
                   activeFilter === 'completed'
-                    ? 'bg-[#137333] text-white shadow-xs'
-                    : 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6] hover:bg-[#d5eedc]'
+                    ? 'bg-[var(--status-success-bg)] text-[var(--status-success-text)] border border-[var(--status-success-text)]/30 font-bold'
+                    : 'bg-[var(--surface-alt)] text-[var(--muted)] hover:bg-[var(--line)]'
                 }`}
               >
                 Completed ({completedCount})
@@ -409,15 +408,15 @@ const EmployeeMobileTrainingVideos = () => {
           {/* Video Modules Playlist */}
           <div className="space-y-2.5 mx-0.5">
             <div className="flex items-center justify-between px-1">
-              <h3 className="text-base font-medium text-slate-900 tracking-tight" style={{ fontWeight: 500 }}>
-                Module <span className="font-medium italic text-[#1a73e8]">Playlist</span> ({filteredVideos.length})
+              <h3 className="text-sm font-semibold text-[var(--text)] tracking-tight">
+                Module <span className="text-[var(--brand-deep)]">Playlist</span> ({filteredVideos.length})
               </h3>
-              <span className="text-[10px] font-semibold text-slate-500">Tap module to play</span>
+              <span className="text-[10px] font-medium text-[var(--muted)]">Tap module to play</span>
             </div>
 
             {filteredVideos.length === 0 ? (
-              <div className="bg-white rounded-2xl border border-[#e0e3e7] p-6 text-center shadow-xs">
-                <p className="text-xs text-[#5f6368]">No training modules matched your search or filter.</p>
+              <div className="bg-[var(--surface)] rounded-[16px] border border-[var(--line)] p-6 text-center shadow-xs">
+                <p className="text-xs text-[var(--muted)]">No training modules matched your search or filter.</p>
               </div>
             ) : (
               filteredVideos.map((video) => {
@@ -428,27 +427,27 @@ const EmployeeMobileTrainingVideos = () => {
                   <div
                     key={video.id}
                     onClick={() => handleSelectVideo(video)}
-                    className={`bg-white rounded-2xl border p-3.5 shadow-xs transition-all flex items-center justify-between gap-3 cursor-pointer active:scale-98 ${
+                    className={`bg-[var(--surface)] rounded-[16px] border p-3.5 shadow-xs transition-all flex items-center justify-between gap-3 cursor-pointer active:scale-98 ${
                       isSelected
-                        ? 'border-[#1a73e8] ring-1 ring-[#1a73e8] bg-[#f8fafd]'
-                        : 'border-[#e0e3e7] hover:border-slate-300'
+                        ? 'border-[var(--brand)] ring-1 ring-[var(--brand)] bg-[var(--brand-tint)]/25'
+                        : 'border-[var(--line)] hover:border-[var(--brand)]/30'
                     }`}
                   >
                     {/* Left Icon / Thumbnail Indicator */}
                     <div className="flex items-center gap-3 min-w-0">
                       <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 font-bold text-xs transition-all ${
+                        className={`w-9 h-9 rounded-[10px] flex items-center justify-center shrink-0 font-semibold text-xs transition-all ${
                           isSelected
-                            ? 'bg-[#1a73e8] text-white shadow-xs'
+                            ? 'bg-[var(--brand-deep)] text-white shadow-xs'
                             : video.is_completed
-                            ? 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6]'
-                            : 'bg-slate-100 text-slate-600'
+                            ? 'bg-[var(--status-success-bg)] text-[var(--status-success-text)] border border-[var(--status-success-text)]/20'
+                            : 'bg-[var(--surface-alt)] text-[var(--muted)]'
                         }`}
                       >
                         {isSelected ? (
-                          <Play className="w-4 h-4 fill-white text-white" />
+                          <Play className="w-3.5 h-3.5 fill-white text-white" />
                         ) : video.is_completed ? (
-                          <CheckCircle2 className="w-4 h-4" />
+                          <CheckCircle2 className="w-3.5 h-3.5" />
                         ) : (
                           <span>#{originalIndex + 1}</span>
                         )}
@@ -457,19 +456,19 @@ const EmployeeMobileTrainingVideos = () => {
                       {/* Info */}
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5 mb-0.5">
-                          <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">
+                          <span className="text-[9px] font-semibold text-[var(--muted)] uppercase tracking-wider">
                             Module {originalIndex + 1}
                           </span>
                           {video.is_completed && (
-                            <span className="text-[9px] font-bold text-[#137333] bg-[#e6f4ea] px-1.5 py-0.5 rounded-full border border-[#ceead6]">
+                            <span className="text-[9px] font-semibold text-[var(--status-success-text)] bg-[var(--status-success-bg)] px-1.5 py-0.5 rounded-full border border-[var(--status-success-text)]/20">
                               Done
                             </span>
                           )}
                         </div>
-                        <h4 className={`text-xs font-bold truncate ${isSelected ? 'text-[#1a73e8]' : 'text-slate-900'}`}>
+                        <h4 className={`text-xs font-semibold truncate ${isSelected ? 'text-[var(--brand-deep)]' : 'text-[var(--text)]'}`}>
                           {video.title}
                         </h4>
-                        <p className="text-[10px] text-slate-400 mt-0.5">
+                        <p className="text-[10px] text-[var(--muted)] mt-0.5">
                           Added {new Date(video.created_at).toLocaleDateString()}
                         </p>
                       </div>
@@ -482,15 +481,15 @@ const EmployeeMobileTrainingVideos = () => {
                       disabled={toggleProgressMutation.isPending}
                       className={`p-2 rounded-full shrink-0 transition-all cursor-pointer ${
                         video.is_completed
-                          ? 'text-[#137333] hover:bg-[#e6f4ea]'
-                          : 'text-slate-400 hover:text-[#1a73e8] hover:bg-slate-100'
+                          ? 'text-[var(--status-success-text)] hover:bg-[var(--status-success-bg)]'
+                          : 'text-[var(--muted)] hover:text-[var(--brand-deep)] hover:bg-[var(--surface-alt)]'
                       }`}
                       title={video.is_completed ? 'Mark uncompleted' : 'Mark completed'}
                     >
                       {video.is_completed ? (
-                        <CheckCircle2 className="w-5 h-5" />
+                        <CheckCircle2 className="w-4.5 h-4.5" />
                       ) : (
-                        <Circle className="w-5 h-5" />
+                        <Circle className="w-4.5 h-4.5" />
                       )}
                     </button>
                   </div>
@@ -512,42 +511,39 @@ const EmployeeMobileTrainingVideos = () => {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-sm overflow-hidden p-6 space-y-4 text-center"
+            className="bg-[var(--surface)] rounded-[24px] shadow-2xl border border-[var(--line)] w-full max-w-sm overflow-hidden p-6 space-y-4 text-center font-sans antialiased text-[var(--text)]"
           >
-            {/* Top Icon Badge */}
-            <div className={`w-14 h-14 rounded-full flex items-center justify-center mx-auto ${
+            <div className={`w-12 h-12 rounded-[14px] flex items-center justify-center mx-auto ${
               confirmingVideo.is_completed
-                ? 'bg-[#fef7e0] text-[#b06000] border border-[#feefc3]'
-                : 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6]'
+                ? 'bg-[var(--status-warning-bg)] text-[var(--status-warning-text)] border border-[var(--status-warning-text)]/20'
+                : 'bg-[var(--status-success-bg)] text-[var(--status-success-text)] border border-[var(--status-success-text)]/20'
             }`}>
               {confirmingVideo.is_completed ? (
-                <RotateCcw className="w-7 h-7" />
+                <RotateCcw className="w-6 h-6" />
               ) : (
-                <CheckCircle2 className="w-7 h-7" />
+                <CheckCircle2 className="w-6 h-6" />
               )}
             </div>
 
-            {/* Content */}
             <div className="space-y-1.5">
-              <h3 className="text-base font-bold text-slate-900">
+              <h3 className="text-base font-semibold text-[var(--text)]">
                 {confirmingVideo.is_completed ? 'Mark as Incomplete?' : 'Mark Module as Completed?'}
               </h3>
-              <p className="text-xs text-slate-500 line-clamp-2 px-2 font-medium">
+              <p className="text-xs text-[var(--text-2)] line-clamp-2 px-2 font-medium">
                 "{confirmingVideo.title}"
               </p>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-[11px] text-[var(--muted)]">
                 {confirmingVideo.is_completed
                   ? 'This will reset your completion status for this training module.'
                   : 'Are you sure you want to mark this training module as completed?'}
               </p>
             </div>
 
-            {/* Actions */}
             <div className="grid grid-cols-2 gap-2.5 pt-2">
               <button
                 type="button"
                 onClick={() => setConfirmingVideo(null)}
-                className="w-full h-11 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] text-xs font-semibold transition-all cursor-pointer shadow-2xs active:scale-95"
+                className="w-full h-10 rounded-[14px] border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--text)] text-xs font-semibold transition-all cursor-pointer shadow-2xs active:scale-95"
               >
                 Cancel
               </button>
@@ -555,10 +551,10 @@ const EmployeeMobileTrainingVideos = () => {
                 type="button"
                 onClick={handleConfirmToggle}
                 disabled={toggleProgressMutation.isPending}
-                className={`w-full h-11 rounded-full text-white text-xs font-semibold transition-all cursor-pointer shadow-xs active:scale-95 ${
+                className={`w-full h-10 rounded-[14px] text-white text-xs font-semibold transition-all cursor-pointer shadow-xs active:scale-95 ${
                   confirmingVideo.is_completed
-                    ? 'bg-[#d93025] hover:bg-[#b31412]'
-                    : 'bg-[#1a73e8] hover:bg-[#1557b0]'
+                    ? 'bg-[var(--status-danger-text)] hover:opacity-90'
+                    : 'bg-[var(--ink)] hover:bg-[var(--ink-2)]'
                 }`}
               >
                 {confirmingVideo.is_completed ? 'Mark Incomplete' : 'Yes, Complete'}

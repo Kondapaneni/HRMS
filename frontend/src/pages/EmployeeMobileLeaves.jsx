@@ -52,28 +52,28 @@ const EmployeeMobileLeaves = () => {
     const s = (status || '').toLowerCase().trim();
     if (s === 'approved') {
       return {
-        bg: 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6]',
-        icon: <CheckCircle2 className="w-4 h-4 text-[#137333]" />,
+        bg: 'bg-[var(--status-success-bg)] text-[var(--status-success-text)] border border-[var(--status-success-text)]/20',
+        icon: <CheckCircle2 className="w-4 h-4 text-[var(--status-success-text)]" />,
         label: 'Approved'
       };
     }
     if (s === 'rejected') {
       return {
-        bg: 'bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf]',
-        icon: <XCircle className="w-4 h-4 text-[#c5221f]" />,
+        bg: 'bg-[var(--status-danger-bg)] text-[var(--status-danger-text)] border border-[var(--status-danger-text)]/20',
+        icon: <XCircle className="w-4 h-4 text-[var(--status-danger-text)]" />,
         label: 'Rejected'
       };
     }
     if (s === 'cancelled') {
       return {
-        bg: 'bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]',
-        icon: <XCircle className="w-4 h-4 text-[#5f6368]" />,
+        bg: 'bg-[var(--status-neutral-bg)] text-[var(--status-neutral-text)] border border-[var(--line)]',
+        icon: <XCircle className="w-4 h-4 text-[var(--status-neutral-text)]" />,
         label: 'Cancelled'
       };
     }
     return {
-      bg: 'bg-[#fef7e0] text-[#b06000] border border-[#feefc3]',
-      icon: <Clock className="w-4 h-4 text-[#b06000]" />,
+      bg: 'bg-[var(--status-warning-bg)] text-[var(--status-warning-text)] border border-[var(--status-warning-text)]/20',
+      icon: <Clock className="w-4 h-4 text-[var(--status-warning-text)]" />,
       label: 'Pending'
     };
   };
@@ -81,130 +81,128 @@ const EmployeeMobileLeaves = () => {
   if (loading) return <PageLoader message="Loading Leaves Data..." />;
 
   return (
-    <div className="space-y-6 pb-4 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+    <div className="space-y-6 pb-6 font-sans antialiased text-[var(--text)]">
 
-      {/* Clean White Header (Direct Page Layout, Non-Card) */}
+      {/* Header */}
       <section className="relative z-30 pt-1 pb-1">
-        {/* Header Title & Action */}
         <div className="pt-0.5">
-          <p className="text-[10.5px] font-bold text-[#5f6368] uppercase tracking-wider mb-1">
+          <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-1">
             My Leaves
           </p>
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight leading-tight min-w-0" style={{ fontWeight: 500 }}>
-              Leave <span className="font-medium italic text-[#1a73e8]">Applications</span>
+            <h2 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight leading-tight min-w-0">
+              Leave <span className="text-[var(--brand-deep)]">Applications</span>
             </h2>
 
-            {/* Unified Action Button Aligned Straight to Main Heading */}
             <Link
               to="/employee/leaves/apply"
-              className="shrink-0 h-10 px-4 inline-flex items-center justify-center gap-1.5 bg-[#1a73e8] hover:bg-[#1557b0] active:scale-95 text-white rounded-full text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
+              className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-95 text-white rounded-[14px] text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
             >
               <Plus className="w-3.5 h-3.5 text-white" />
               <span>Apply Leave</span>
             </Link>
           </div>
-          <p className="text-xs sm:text-sm font-medium text-[#5f6368] mt-1">
+          <p className="text-xs sm:text-sm font-medium text-[var(--text-2)] mt-1">
             Manage your annual time off & leave records
           </p>
         </div>
       </section>
 
-      {/* KPI Stats Grid (4 Cards in Compact Google aesthetic) */}
+      {/* KPI Stats Grid */}
       <section className="grid grid-cols-2 gap-3 relative z-20 mx-0.5">
         {/* Paid Left */}
-        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3.5 shadow-xs space-y-1">
+        <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4 shadow-xs space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Paid Left</span>
-            <div className="p-1.5 rounded-lg bg-[#e6f4ea] text-[#137333]">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">Paid Left</span>
+            <div className="p-1.5 rounded-[8px] bg-[var(--status-success-bg)] text-[var(--status-success-text)]">
               <CheckCircle2 className="w-3.5 h-3.5" />
             </div>
           </div>
-          <p className="text-base font-bold text-[#137333]">{paidRemaining} Days</p>
-          <p className="text-[10px] text-[#5f6368]">Available to book</p>
+          <p className="text-base font-bold text-[var(--status-success-text)]">{paidRemaining} Days</p>
+          <p className="text-[10px] text-[var(--muted)]">Available to book</p>
         </div>
 
         {/* Paid Used */}
-        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3.5 shadow-xs space-y-1">
+        <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4 shadow-xs space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Paid Used</span>
-            <div className="p-1.5 rounded-lg bg-[#e8f0fe] text-[#1a73e8]">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">Paid Used</span>
+            <div className="p-1.5 rounded-[8px] bg-[var(--brand-tint)] text-[var(--brand-deep)]">
               <Clock className="w-3.5 h-3.5" />
             </div>
           </div>
-          <p className="text-base font-bold text-[#1a73e8]">{balance.paidUsed || 0} Days</p>
-          <p className="text-[10px] text-[#5f6368]">Quota deducted</p>
+          <p className="text-base font-bold text-[var(--brand-deep)]">{balance.paidUsed || 0} Days</p>
+          <p className="text-[10px] text-[var(--muted)]">Quota deducted</p>
         </div>
 
         {/* Unpaid (LOP) */}
-        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3.5 shadow-xs space-y-1">
+        <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4 shadow-xs space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Unpaid (LOP)</span>
-            <div className="p-1.5 rounded-lg bg-[#fce8e6] text-[#c5221f]">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">Unpaid (LOP)</span>
+            <div className="p-1.5 rounded-[8px] bg-[var(--status-danger-bg)] text-[var(--status-danger-text)]">
               <AlertCircle className="w-3.5 h-3.5" />
             </div>
           </div>
-          <p className="text-base font-bold text-[#c5221f]">{balance.unpaidUsed || 0} Days</p>
-          <p className="text-[10px] text-[#5f6368]">Loss of pay</p>
+          <p className="text-base font-bold text-[var(--status-danger-text)]">{balance.unpaidUsed || 0} Days</p>
+          <p className="text-[10px] text-[var(--muted)]">Loss of pay</p>
         </div>
 
         {/* Total Approved */}
-        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3.5 shadow-xs space-y-1">
+        <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4 shadow-xs space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Approved</span>
-            <div className="p-1.5 rounded-lg bg-[#f3e8fd] text-[#8430ce]">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">Approved</span>
+            <div className="p-1.5 rounded-[8px] bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)]">
               <CalendarDays className="w-3.5 h-3.5" />
             </div>
           </div>
-          <p className="text-base font-bold text-[#8430ce]">{balance.totalApproved || 0} Days</p>
-          <p className="text-[10px] text-[#5f6368]">Lifetime approved</p>
+          <p className="text-base font-bold text-[var(--accent-pink-deep)]">{balance.totalApproved || 0} Days</p>
+          <p className="text-[10px] text-[var(--muted)]">Lifetime approved</p>
         </div>
       </section>
 
       {/* Paid Leave Quota Progress Card */}
-      <section className="bg-white rounded-[1.5rem] border border-slate-200 shadow-sm p-4 mx-0.5 space-y-2.5">
+      <section className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] shadow-xs p-4 mx-0.5 space-y-2.5">
         <div className="flex items-center justify-between text-xs">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-slate-800">Annual Paid Leave Quota</span>
-            <span className="text-[11px] text-slate-400">({balance.paidTotal || 12} Days Total)</span>
+            <span className="font-semibold text-[var(--text)]">Annual Paid Leave Quota</span>
+            <span className="text-[11px] text-[var(--muted)]">({balance.paidTotal || 12} Days Total)</span>
           </div>
-          <span className="font-bold text-[#1a73e8]">{percentUsed}% Used</span>
+          <span className="font-semibold text-[var(--brand-deep)]">{percentUsed}% Used</span>
         </div>
 
-        <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+        <div className="w-full bg-[var(--brand-tint)] h-2.5 rounded-full overflow-hidden">
           <div 
-            className="bg-[#1a73e8] h-full rounded-full transition-all duration-500"
+            className="bg-[var(--brand)] h-full rounded-full transition-all duration-500"
             style={{ width: `${percentUsed}%` }}
           />
         </div>
 
-        <div className="flex items-center justify-between text-[11px] text-slate-500 pt-0.5">
+        <div className="flex items-center justify-between text-[11px] text-[var(--muted)] pt-0.5">
           <span>{balance.paidUsed || 0} Days Consumed</span>
-          <span className="font-bold text-emerald-600">{paidRemaining} Days Remaining</span>
+          <span className="font-semibold text-[var(--status-success-text)]">{paidRemaining} Days Remaining</span>
         </div>
       </section>
 
       {/* Leave Application History Feed */}
       <section className="space-y-3">
         <div className="flex items-center justify-between px-1">
-          <h3 className="text-base font-bold text-slate-900 tracking-tight">Recent Applications</h3>
-          <span className="text-xs font-semibold text-slate-400">{history.length} Total Requests</span>
+          <h3 className="text-sm font-semibold text-[var(--text)] tracking-tight">Recent Applications</h3>
+          <span className="text-xs font-medium text-[var(--muted)]">{history.length} Total Requests</span>
         </div>
 
         {error ? (
-          <div className="bg-red-50 p-4 rounded-2xl text-red-600 text-xs font-medium text-center border border-red-100">
+          <div className="bg-[var(--status-danger-bg)] p-4 rounded-[16px] text-[var(--status-danger-text)] text-xs font-semibold text-center border border-[var(--status-danger-text)]/20">
             {error}
           </div>
         ) : history.length === 0 ? (
-          <div className="bg-white p-8 rounded-[1.5rem] text-center border border-slate-200 shadow-sm space-y-3">
-            <AlertCircle className="w-8 h-8 text-slate-400 mx-auto opacity-60" />
+          <div className="bg-[var(--surface)] p-8 rounded-[20px] text-center border border-[var(--line)] shadow-xs space-y-3">
+            <AlertCircle className="w-8 h-8 text-[var(--muted)] mx-auto opacity-60" />
             <div>
-              <p className="text-sm font-bold text-slate-800">No leave history found</p>
-              <p className="text-xs text-slate-500 mt-0.5">You have not submitted any leave requests yet.</p>
+              <p className="text-sm font-semibold text-[var(--text)]">No leave history found</p>
+              <p className="text-xs text-[var(--muted)] mt-0.5">You have not submitted any leave requests yet.</p>
             </div>
             <Link
               to="/employee/leaves/apply"
-              className="inline-flex items-center gap-1.5 bg-[#1a73e8] hover:bg-[#1557b0] active:scale-95 text-white rounded-full px-4 py-2 text-xs font-semibold shadow-xs transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-95 text-white rounded-[14px] px-4 py-2 text-xs font-semibold shadow-xs transition-all cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5 text-white" />
               <span>Apply for Leave</span>
@@ -219,30 +217,30 @@ const EmployeeMobileLeaves = () => {
               const isPending = (record.status || '').toLowerCase() === 'pending';
 
               return (
-                <div key={record.id || index} className="bg-white p-4 rounded-[1.5rem] border border-slate-200 shadow-sm flex flex-col gap-3">
+                <div key={record.id || index} className="bg-[var(--surface)] p-4 rounded-[20px] border border-[var(--line)] shadow-xs flex flex-col gap-3">
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center shrink-0">
+                      <div className="w-10 h-10 rounded-[12px] bg-[var(--surface-alt)] border border-[var(--line)] flex items-center justify-center shrink-0">
                         {badge.icon}
                       </div>
                       <div>
-                        <h4 className="text-sm font-black text-slate-900 uppercase tracking-wider">
+                        <h4 className="text-xs font-bold text-[var(--text)] uppercase tracking-wider">
                           {record.leaveType} Leave
                         </h4>
-                        <p className="text-[11px] font-bold text-slate-400 mt-0.5">
+                        <p className="text-[11px] font-medium text-[var(--muted)] mt-0.5">
                           {start.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
                           {record.startDate !== record.endDate && ` - ${end.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`}
                         </p>
                       </div>
                     </div>
-                    <span className={`inline-flex items-center px-3.5 py-1.5 rounded-full text-[12.5px] font-bold shrink-0 shadow-2xs ${badge.bg}`}>
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold shrink-0 shadow-2xs ${badge.bg}`}>
                       {badge.label}
                     </span>
                   </div>
 
                   {record.reason && (
-                    <div className="bg-slate-50 rounded-2xl px-4 py-2.5 border border-slate-100">
-                      <p className="text-xs text-slate-600 italic line-clamp-2">
+                    <div className="bg-[var(--surface-alt)] rounded-[14px] px-3.5 py-2.5 border border-[var(--line)]">
+                      <p className="text-xs text-[var(--text-2)] italic line-clamp-2">
                         &ldquo;{record.reason}&rdquo;
                       </p>
                     </div>
@@ -253,7 +251,7 @@ const EmployeeMobileLeaves = () => {
                       type="button"
                       onClick={() => cancelLeaveMutation.mutate(record.id)}
                       disabled={cancelLeaveMutation.isPending}
-                      className="w-full flex items-center justify-center gap-2 bg-[#d93025] hover:bg-[#b3261e] active:bg-[#a51d14] text-white rounded-full py-3 text-sm font-semibold shadow-xs transition-all cursor-pointer disabled:opacity-50 active:scale-[0.98]"
+                      className="w-full flex items-center justify-center gap-2 bg-[var(--status-danger-bg)] text-[var(--status-danger-text)] border border-[var(--status-danger-text)]/20 hover:bg-[var(--status-danger-text)] hover:text-white rounded-[14px] py-2.5 text-xs font-semibold shadow-xs transition-all cursor-pointer disabled:opacity-50 active:scale-[0.98]"
                     >
                       <span>{cancelLeaveMutation.isPending ? 'Cancelling...' : 'Cancel Leave'}</span>
                     </button>

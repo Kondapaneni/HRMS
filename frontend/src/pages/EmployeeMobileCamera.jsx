@@ -255,20 +255,20 @@ const EmployeeMobileCamera = () => {
   };
 
   return (
-    <div className="flex h-[100dvh] flex-col bg-slate-900 overflow-hidden relative font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+    <div className="flex h-[100dvh] flex-col bg-slate-900 overflow-hidden relative font-sans antialiased text-white">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-4 bg-transparent z-10 absolute top-0 left-0 right-0">
         <button
           onClick={handleCancel}
           disabled={isSubmitting}
-          className="p-2 bg-black/40 text-white hover:bg-black/60 rounded-full transition-colors cursor-pointer backdrop-blur-md"
+          className="p-2 bg-black/40 text-white hover:bg-black/60 rounded-[12px] transition-colors cursor-pointer backdrop-blur-md"
         >
-          <X className="w-6 h-6" />
+          <X className="w-5 h-5" />
         </button>
-        <div className="px-3 py-1 bg-black/40 text-white rounded-full text-sm font-semibold tracking-wider uppercase backdrop-blur-md">
+        <div className="px-3 py-1 bg-black/40 text-white rounded-full text-xs font-semibold tracking-wider uppercase backdrop-blur-md">
           {action ? action.replace('-', ' ') : 'Camera'}
         </div>
-        <div className="w-10"></div> {/* Spacer to center the title */}
+        <div className="w-9"></div>
       </div>
 
       {/* Main Content */}
@@ -281,7 +281,7 @@ const EmployeeMobileCamera = () => {
             <p className="text-slate-400 text-sm">{cameraError}</p>
             <button
               onClick={startCamera}
-              className="mt-6 px-6 py-2.5 bg-blue-600 text-white rounded-xl font-semibold shadow-sm active:scale-95 transition-transform"
+              className="mt-6 px-6 py-2.5 bg-[var(--brand)] text-[var(--ink)] rounded-[14px] font-semibold shadow-xs active:scale-95 transition-transform"
             >
               Try Again
             </button>
@@ -318,7 +318,7 @@ const EmployeeMobileCamera = () => {
         {/* Loading state while camera initializes */}
         {!isReady && !cameraError && !photoDataUrl && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black z-10 pointer-events-none">
-            <div className="w-10 h-10 rounded-full border-3 border-white/20 border-t-[#4285F4] animate-spin mb-3" />
+            <div className="w-10 h-10 rounded-full border-3 border-white/20 border-t-[var(--brand)] animate-spin mb-3" />
             <span className="text-white/80 text-xs font-medium tracking-wide">Starting camera...</span>
           </div>
         )}
@@ -328,10 +328,8 @@ const EmployeeMobileCamera = () => {
           <div className="absolute inset-0 pointer-events-none">
             {/* Face guide oval container */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[60%] w-80 h-96">
-              {/* Oval shape with shadow */}
               <div className="w-full h-full border-2 border-dashed border-white/50 rounded-[100%] shadow-[0_0_0_9999px_rgba(0,0,0,0.4)]"></div>
-              {/* Text placed right below the oval */}
-              <p className="absolute -bottom-12 left-0 right-0 text-center text-white font-medium drop-shadow-md">
+              <p className="absolute -bottom-12 left-0 right-0 text-center text-white text-xs font-medium drop-shadow-md">
                 Position your face in the frame
               </p>
             </div>
@@ -347,7 +345,7 @@ const EmployeeMobileCamera = () => {
               type="button"
               onClick={retakePhoto}
               disabled={isSubmitting}
-              className="flex-1 py-3.5 px-4 bg-white/15 hover:bg-white/25 border border-white/20 backdrop-blur-md text-white rounded-full text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-50 cursor-pointer shadow-xs"
+              className="flex-1 py-3 px-4 bg-white/15 hover:bg-white/25 border border-white/20 backdrop-blur-md text-white rounded-[14px] text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-50 cursor-pointer shadow-xs"
             >
               <RefreshCw className="w-4 h-4 text-white/90" />
               <span>Retake</span>
@@ -356,11 +354,11 @@ const EmployeeMobileCamera = () => {
               type="button"
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className="flex-1 py-3.5 px-4 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-full text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-75 cursor-pointer shadow-md relative overflow-hidden"
+              className="flex-1 py-3 px-4 bg-[var(--brand)] hover:opacity-90 text-[var(--ink)] rounded-[14px] text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-75 cursor-pointer shadow-md relative overflow-hidden"
             >
               {isSubmitting ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <div className="w-4 h-4 border-2 border-[var(--ink)] border-t-transparent rounded-full animate-spin" />
                   <span>Submitting...</span>
                 </>
               ) : (
@@ -377,10 +375,10 @@ const EmployeeMobileCamera = () => {
             <button
               onClick={capturePhoto}
               disabled={!!cameraError || !isReady}
-              className="w-20 h-20 rounded-full border-4 border-slate-300 flex items-center justify-center active:scale-95 transition-transform disabled:opacity-50 cursor-pointer"
+              className="w-20 h-20 rounded-full border-4 border-slate-400 flex items-center justify-center active:scale-95 transition-transform disabled:opacity-50 cursor-pointer"
             >
               <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center">
-                <Camera className="w-8 h-8 text-slate-800" />
+                <Camera className="w-8 h-8 text-[var(--ink)]" />
               </div>
             </button>
 
@@ -389,7 +387,7 @@ const EmployeeMobileCamera = () => {
               type="button"
               onClick={toggleCamera}
               disabled={!!cameraError || !isReady}
-              className="absolute right-4 w-12 h-12 rounded-full bg-white/15 hover:bg-white/25 border border-white/20 backdrop-blur-md flex items-center justify-center text-white active:scale-95 transition-all cursor-pointer shadow-xs disabled:opacity-50"
+              className="absolute right-4 w-11 h-11 rounded-[14px] bg-white/15 hover:bg-white/25 border border-white/20 backdrop-blur-md flex items-center justify-center text-white active:scale-95 transition-all cursor-pointer shadow-xs disabled:opacity-50"
               title="Switch Camera"
             >
               <RefreshCw className="w-5 h-5" />

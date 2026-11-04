@@ -59,19 +59,18 @@ const EmployeeMobileBirthdays = () => {
   if (loading) return <PageLoader message="Loading Birthday Celebrations..." />;
 
   return (
-    <div className="space-y-6 pb-4 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+    <div className="space-y-6 pb-6 font-sans antialiased text-[var(--text)]">
 
-      {/* Clean White Header (Direct Page Layout, Non-Card) */}
+      {/* Header */}
       <section className="relative z-30 pt-1 pb-1">
-        {/* Header Title */}
         <div className="pt-0.5">
-          <p className="text-[10.5px] font-bold text-[#5f6368] uppercase tracking-wider mb-1">
+          <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-1">
             Team Celebrations
           </p>
-          <h2 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight leading-tight" style={{ fontWeight: 500 }}>
-            Upcoming <span className="font-medium italic text-[#1a73e8]">Birthdays</span>
+          <h2 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight leading-tight">
+            Upcoming <span className="text-[var(--brand-deep)]">Birthdays</span>
           </h2>
-          <p className="text-xs sm:text-sm font-medium text-[#5f6368] mt-0.5">
+          <p className="text-xs sm:text-sm font-medium text-[var(--text-2)] mt-0.5">
             Celebrate your colleagues and share joy on their special days
           </p>
         </div>
@@ -82,66 +81,66 @@ const EmployeeMobileBirthdays = () => {
         {/* Today's Birthdays */}
         <div 
           onClick={() => setFilterMode(filterMode === 'today' ? 'all' : 'today')}
-          className={`bg-white rounded-2xl border p-3.5 shadow-xs space-y-1 cursor-pointer transition-all ${
-            filterMode === 'today' ? 'border-[#137333] ring-2 ring-[#ceead6]' : 'border-[#e0e3e7]'
+          className={`bg-[var(--surface)] rounded-[20px] border p-4 shadow-xs space-y-1 cursor-pointer transition-all ${
+            filterMode === 'today' ? 'border-[var(--status-success-text)] ring-2 ring-[var(--status-success-bg)]' : 'border-[var(--line)]'
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Today</span>
-            <div className="p-1.5 rounded-lg bg-[#e6f4ea] text-[#137333]">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">Today</span>
+            <div className="p-1.5 rounded-[8px] bg-[var(--status-success-bg)] text-[var(--status-success-text)]">
               <PartyPopper className="w-3.5 h-3.5" />
             </div>
           </div>
-          <p className="text-base font-bold text-[#137333]">{todayBirthdays.length} Today</p>
-          <p className="text-[10px] text-[#5f6368]">Birthday stars</p>
+          <p className="text-base font-bold text-[var(--status-success-text)]">{todayBirthdays.length} Today</p>
+          <p className="text-[10px] text-[var(--muted)]">Birthday stars</p>
         </div>
 
         {/* This Week */}
         <div 
           onClick={() => setFilterMode(filterMode === 'week' ? 'all' : 'week')}
-          className={`bg-white rounded-2xl border p-3.5 shadow-xs space-y-1 cursor-pointer transition-all ${
-            filterMode === 'week' ? 'border-[#1a73e8] ring-2 ring-[#d2e3fc]' : 'border-[#e0e3e7]'
+          className={`bg-[var(--surface)] rounded-[20px] border p-4 shadow-xs space-y-1 cursor-pointer transition-all ${
+            filterMode === 'week' ? 'border-[var(--brand)] ring-2 ring-[var(--brand-tint)]' : 'border-[var(--line)]'
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">This Week</span>
-            <div className="p-1.5 rounded-lg bg-[#e8f0fe] text-[#1a73e8]">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">This Week</span>
+            <div className="p-1.5 rounded-[8px] bg-[var(--brand-tint)] text-[var(--brand-deep)]">
               <Sparkles className="w-3.5 h-3.5" />
             </div>
           </div>
-          <p className="text-base font-bold text-[#1a73e8]">{thisWeekBirthdays.length} Members</p>
-          <p className="text-[10px] text-[#5f6368]">Next 7 days</p>
+          <p className="text-base font-bold text-[var(--brand-deep)]">{thisWeekBirthdays.length} Members</p>
+          <p className="text-[10px] text-[var(--muted)]">Next 7 days</p>
         </div>
 
         {/* This Month Total */}
         <div 
           onClick={() => setFilterMode('all')}
-          className={`bg-white rounded-2xl border p-3.5 shadow-xs space-y-1 cursor-pointer transition-all ${
-            filterMode === 'all' ? 'border-[#8430ce] ring-2 ring-[#e9d5ff]' : 'border-[#e0e3e7]'
+          className={`bg-[var(--surface)] rounded-[20px] border p-4 shadow-xs space-y-1 cursor-pointer transition-all ${
+            filterMode === 'all' ? 'border-[var(--accent-pink-deep)] ring-2 ring-[var(--accent-pink-tint)]' : 'border-[var(--line)]'
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Next 30 Days</span>
-            <div className="p-1.5 rounded-lg bg-[#f3e8fd] text-[#8430ce]">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">Next 30 Days</span>
+            <div className="p-1.5 rounded-[8px] bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)]">
               <Calendar className="w-3.5 h-3.5" />
             </div>
           </div>
-          <p className="text-base font-bold text-[#8430ce]">{birthdays.length} Members</p>
-          <p className="text-[10px] text-[#5f6368]">Upcoming timeline</p>
+          <p className="text-base font-bold text-[var(--accent-pink-deep)]">{birthdays.length} Members</p>
+          <p className="text-[10px] text-[var(--muted)]">Upcoming timeline</p>
         </div>
 
         {/* Next Celebration */}
-        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3.5 shadow-xs space-y-1">
+        <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4 shadow-xs space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Next Up</span>
-            <div className="p-1.5 rounded-lg bg-[#fef7e0] text-[#b06000]">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">Next Up</span>
+            <div className="p-1.5 rounded-[8px] bg-[var(--status-warning-bg)] text-[var(--status-warning-text)]">
               <Cake className="w-3.5 h-3.5" />
             </div>
           </div>
-          <p className="text-base font-bold text-[#b06000] truncate">
+          <p className="text-base font-bold text-[var(--status-warning-text)] truncate">
             {nextBirthday ? getDaysText(nextBirthday.daysUntil) : 'None'}
           </p>
-          <p className="text-[10px] text-[#5f6368] truncate">
+          <p className="text-[10px] text-[var(--muted)] truncate">
             {nextBirthday ? nextBirthday.name : 'No upcoming dates'}
           </p>
         </div>
@@ -149,16 +148,16 @@ const EmployeeMobileBirthdays = () => {
 
       {/* Next Upcoming Birthday Spotlight Card */}
       {nextBirthday && (
-        <section className="bg-white rounded-[1.5rem] border border-slate-200 shadow-sm p-4 mx-0.5 space-y-3 relative overflow-hidden">
+        <section className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] shadow-xs p-4 mx-0.5 space-y-3 relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#1a73e8] flex items-center gap-1.5">
-              <PartyPopper className="w-3.5 h-3.5 text-[#1a73e8]" />
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--brand-deep)] flex items-center gap-1.5">
+              <PartyPopper className="w-3.5 h-3.5 text-[var(--brand-deep)]" />
               <span>Next Upcoming Celebration</span>
             </span>
-            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider border ${
               nextBirthday.daysUntil === 0
-                ? 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]'
-                : 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc]'
+                ? 'bg-[var(--status-success-bg)] text-[var(--status-success-text)] border-[var(--status-success-text)]/20'
+                : 'bg-[var(--brand-tint)] text-[var(--brand-deep)] border-[var(--brand)]/20'
             }`}>
               {getDaysText(nextBirthday.daysUntil)}
             </span>
@@ -170,21 +169,21 @@ const EmployeeMobileBirthdays = () => {
                 <img 
                   src={nextBirthday.avatar} 
                   alt={nextBirthday.name} 
-                  className="w-12 h-12 rounded-full object-cover border-2 border-[#1a73e8] shadow-sm shrink-0" 
+                  className="w-12 h-12 rounded-[14px] object-cover border border-[var(--line)] shadow-xs shrink-0" 
                 />
               ) : (
-                <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#1a73e8] to-[#7bdff2] text-white font-black text-sm flex items-center justify-center border-2 border-white shadow-sm shrink-0">
+                <div className="w-12 h-12 rounded-[14px] bg-[var(--brand-tint)] text-[var(--brand-deep)] font-bold text-sm flex items-center justify-center border border-[var(--brand)]/20 shadow-xs shrink-0">
                   {nextBirthday.name?.charAt(0) || 'U'}
                 </div>
               )}
               <div className="space-y-0.5 min-w-0">
-                <h3 className="text-base font-bold text-[#1f1f1f] truncate">
+                <h3 className="text-sm font-semibold text-[var(--text)] truncate">
                   {nextBirthday.name}
                 </h3>
-                <p className="text-xs text-[#5f6368] truncate">
+                <p className="text-xs text-[var(--muted)] truncate">
                   {nextBirthday.department || 'Team Member'}
                 </p>
-                <p className="text-[11px] font-semibold text-[#1a73e8]">
+                <p className="text-[11px] font-semibold text-[var(--brand-deep)]">
                   {new Date(nextBirthday.date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'long' })}
                 </p>
               </div>
@@ -193,7 +192,7 @@ const EmployeeMobileBirthdays = () => {
             <button
               type="button"
               onClick={() => handleSendWish(nextBirthday.name)}
-              className="px-3.5 py-2 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] active:scale-95 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer shrink-0"
+              className="px-3.5 py-2 rounded-[14px] bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-95 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-all cursor-pointer shrink-0"
             >
               <Smile className="w-3.5 h-3.5" />
               <span>Wish</span>
@@ -215,15 +214,15 @@ const EmployeeMobileBirthdays = () => {
             onClick={() => setFilterMode(tab.key)}
             className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
               filterMode === tab.key
-                ? 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc] shadow-2xs font-bold'
-                : 'bg-white text-[#5f6368] border-[#e0e3e7] hover:bg-[#f8fafd]'
+                ? 'bg-[var(--brand-tint)] text-[var(--brand-deep)] border-[var(--brand)]/20 shadow-2xs font-semibold'
+                : 'bg-[var(--surface)] text-[var(--text-2)] border-[var(--line)] hover:bg-[var(--surface-alt)]'
             }`}
           >
             <span>{tab.label}</span>
             <span className={`inline-flex items-center justify-center h-[18px] min-w-[18px] px-1.5 rounded-full text-[11px] font-bold leading-none tabular-nums ${
               filterMode === tab.key
-                ? 'bg-[#1a73e8] text-white'
-                : 'bg-[#f1f3f4] text-[#5f6368]'
+                ? 'bg-[var(--brand-deep)] text-white'
+                : 'bg-[var(--surface-alt)] text-[var(--muted)]'
             }`}>
               {tab.count}
             </span>
@@ -234,21 +233,21 @@ const EmployeeMobileBirthdays = () => {
       {/* Birthdays List */}
       <div className="space-y-3 mx-0.5">
         <div className="flex items-center justify-between px-1">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-[#1f1f1f]">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--text)]">
             {filterMode === 'today'
               ? 'Today’s Celebrations'
               : filterMode === 'week'
                 ? 'This Week’s Schedule'
                 : 'Upcoming 30-Day Schedule'}
           </h3>
-          <span className="text-[10px] text-[#5f6368]">{displayedBirthdays.length} Colleagues</span>
+          <span className="text-[10px] text-[var(--muted)]">{displayedBirthdays.length} Colleagues</span>
         </div>
 
         {displayedBirthdays.length === 0 ? (
-          <div className="bg-white p-8 rounded-3xl text-center border border-[#e0e3e7] shadow-xs space-y-2">
-            <AlertCircle className="w-8 h-8 text-[#5f6368] mx-auto opacity-50" />
-            <p className="text-xs font-semibold text-[#1f1f1f]">No upcoming birthdays found</p>
-            <p className="text-[11px] text-[#5f6368]">
+          <div className="bg-[var(--surface)] p-8 rounded-[20px] text-center border border-[var(--line)] shadow-xs space-y-2">
+            <AlertCircle className="w-8 h-8 text-[var(--muted)] mx-auto opacity-50" />
+            <p className="text-xs font-semibold text-[var(--text)]">No upcoming birthdays found</p>
+            <p className="text-[11px] text-[var(--muted)]">
               {filterMode === 'today'
                 ? 'No team birthdays scheduled for today.'
                 : 'No birthdays in this selected timeframe.'}
@@ -263,10 +262,10 @@ const EmployeeMobileBirthdays = () => {
               return (
                 <div 
                   key={bday.id || bday.name} 
-                  className={`bg-white p-4 rounded-2xl border shadow-xs flex items-center justify-between gap-3 transition-all ${
+                  className={`bg-[var(--surface)] p-4 rounded-[16px] border shadow-xs flex items-center justify-between gap-3 transition-all ${
                     isToday 
-                      ? 'border-[#137333] ring-2 ring-[#ceead6]' 
-                      : 'border-[#e0e3e7]'
+                      ? 'border-[var(--status-success-text)] ring-2 ring-[var(--status-success-bg)]' 
+                      : 'border-[var(--line)]'
                   }`}
                 >
                   <div className="flex items-center gap-3.5 min-w-0 flex-1">
@@ -275,15 +274,15 @@ const EmployeeMobileBirthdays = () => {
                       <img 
                         src={bday.avatar} 
                         alt={bday.name} 
-                        className={`w-11 h-11 rounded-full object-cover shrink-0 ${
-                          isToday ? 'border-2 border-[#137333] ring-2 ring-[#ceead6]' : 'border border-[#dadce0]'
+                        className={`w-11 h-11 rounded-[14px] object-cover shrink-0 ${
+                          isToday ? 'border-2 border-[var(--status-success-text)]' : 'border border-[var(--line)]'
                         }`} 
                       />
                     ) : (
-                      <div className={`w-11 h-11 rounded-full text-white font-bold text-xs flex items-center justify-center shrink-0 ${
+                      <div className={`w-11 h-11 rounded-[14px] text-white font-bold text-xs flex items-center justify-center shrink-0 ${
                         isToday 
-                          ? 'bg-[#137333] shadow-xs' 
-                          : 'bg-gradient-to-tr from-[#1a73e8] to-[#7bdff2]'
+                          ? 'bg-[var(--status-success-text)] shadow-xs' 
+                          : 'bg-[var(--brand-tint)] text-[var(--brand-deep)]'
                       }`}>
                         {bday.name?.charAt(0) || 'U'}
                       </div>
@@ -292,16 +291,16 @@ const EmployeeMobileBirthdays = () => {
                     {/* Member Details */}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
-                        <h4 className="text-xs font-bold text-[#1f1f1f] truncate">
+                        <h4 className="text-xs font-semibold text-[var(--text)] truncate">
                           {bday.name}
                         </h4>
                         {isToday && (
-                          <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold uppercase tracking-wider bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">
+                          <span className="px-1.5 py-0.2 rounded-full text-[9px] font-semibold uppercase tracking-wider bg-[var(--status-success-bg)] text-[var(--status-success-text)] border border-[var(--status-success-text)]/20">
                             Today
                           </span>
                         )}
                       </div>
-                      <p className="text-[10px] text-[#5f6368] font-medium truncate mt-0.5">
+                      <p className="text-[10px] text-[var(--muted)] font-medium truncate mt-0.5">
                         {bday.department || 'Employee'} • {bdayDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
                       </p>
                     </div>
@@ -309,17 +308,17 @@ const EmployeeMobileBirthdays = () => {
 
                   {/* Actions & Countdown Badge */}
                   <div className="flex items-center gap-2 shrink-0">
-                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider border ${
                       isToday 
-                        ? 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]' 
-                        : 'bg-[#f8fafd] text-[#5f6368] border-[#dadce0]'
+                        ? 'bg-[var(--status-success-bg)] text-[var(--status-success-text)] border-[var(--status-success-text)]/20' 
+                        : 'bg-[var(--surface-alt)] text-[var(--muted)] border-[var(--line)]'
                     }`}>
                       {getDaysText(bday.daysUntil)}
                     </span>
                     <button
                       type="button"
                       onClick={() => handleSendWish(bday.name)}
-                      className="p-1.5 rounded-full bg-[#f8fafd] hover:bg-[#e8f0fe] text-[#1a73e8] border border-[#dadce0] hover:border-[#d2e3fc] active:scale-95 transition-all cursor-pointer"
+                      className="p-1.5 rounded-[10px] bg-[var(--surface-alt)] hover:bg-[var(--brand-tint)] text-[var(--brand-deep)] border border-[var(--line)] active:scale-95 transition-all cursor-pointer"
                       title="Send Wishes"
                     >
                       <Sparkles className="w-3.5 h-3.5" />

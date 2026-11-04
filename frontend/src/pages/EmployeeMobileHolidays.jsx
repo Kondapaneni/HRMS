@@ -75,19 +75,18 @@ const EmployeeMobileHolidays = () => {
   }
 
   return (
-    <div className="space-y-6 pb-4 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+    <div className="space-y-6 pb-6 font-sans antialiased text-[var(--text)]">
 
-      {/* Clean White Header (Direct Page Layout, Non-Card) */}
+      {/* Header */}
       <section className="relative z-30 pt-1 pb-1">
-        {/* Header Title */}
         <div className="pt-0.5">
-          <p className="text-[10.5px] font-bold text-[#5f6368] uppercase tracking-wider mb-1">
+          <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-1">
             Company Holidays
           </p>
-          <h2 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight leading-tight" style={{ fontWeight: 500 }}>
-            Upcoming <span className="font-medium italic text-[#1a73e8]">Holidays</span>
+          <h2 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight leading-tight">
+            Upcoming <span className="text-[var(--brand-deep)]">Holidays</span>
           </h2>
-          <p className="text-xs sm:text-sm font-medium text-[#5f6368] mt-0.5">
+          <p className="text-xs sm:text-sm font-medium text-[var(--text-2)] mt-0.5">
             Corporate observances and paid holidays in {currentYear}
           </p>
         </div>
@@ -98,66 +97,66 @@ const EmployeeMobileHolidays = () => {
         {/* Upcoming */}
         <div 
           onClick={() => setFilterMode(filterMode === 'upcoming' ? 'all' : 'upcoming')}
-          className={`bg-white rounded-2xl border p-3.5 shadow-xs space-y-1 cursor-pointer transition-all ${
-            filterMode === 'upcoming' ? 'border-[#137333] ring-2 ring-[#ceead6]' : 'border-[#e0e3e7]'
+          className={`bg-[var(--surface)] rounded-[20px] border p-4 shadow-xs space-y-1 cursor-pointer transition-all ${
+            filterMode === 'upcoming' ? 'border-[var(--status-success-text)] ring-2 ring-[var(--status-success-bg)]' : 'border-[var(--line)]'
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Upcoming</span>
-            <div className="p-1.5 rounded-lg bg-[#e6f4ea] text-[#137333]">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">Upcoming</span>
+            <div className="p-1.5 rounded-[8px] bg-[var(--status-success-bg)] text-[var(--status-success-text)]">
               <Sparkles className="w-3.5 h-3.5" />
             </div>
           </div>
-          <p className="text-base font-bold text-[#137333]">{upcomingHolidays.length} Days</p>
-          <p className="text-[10px] text-[#5f6368]">Remaining in year</p>
+          <p className="text-base font-bold text-[var(--status-success-text)]">{upcomingHolidays.length} Days</p>
+          <p className="text-[10px] text-[var(--muted)]">Remaining in year</p>
         </div>
 
         {/* Observed / Past */}
         <div 
           onClick={() => setFilterMode(filterMode === 'past' ? 'all' : 'past')}
-          className={`bg-white rounded-2xl border p-3.5 shadow-xs space-y-1 cursor-pointer transition-all ${
-            filterMode === 'past' ? 'border-[#5f6368] ring-2 ring-[#dadce0]' : 'border-[#e0e3e7]'
+          className={`bg-[var(--surface)] rounded-[20px] border p-4 shadow-xs space-y-1 cursor-pointer transition-all ${
+            filterMode === 'past' ? 'border-[var(--text-2)] ring-2 ring-[var(--line)]' : 'border-[var(--line)]'
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Observed</span>
-            <div className="p-1.5 rounded-lg bg-[#f1f3f4] text-[#5f6368]">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">Observed</span>
+            <div className="p-1.5 rounded-[8px] bg-[var(--surface-alt)] text-[var(--muted)]">
               <CheckCircle2 className="w-3.5 h-3.5" />
             </div>
           </div>
-          <p className="text-base font-bold text-[#5f6368]">{pastHolidays.length} Days</p>
-          <p className="text-[10px] text-[#5f6368]">Past holidays</p>
+          <p className="text-base font-bold text-[var(--text-2)]">{pastHolidays.length} Days</p>
+          <p className="text-[10px] text-[var(--muted)]">Past holidays</p>
         </div>
 
         {/* Total In Year */}
         <div 
           onClick={() => setFilterMode('all')}
-          className={`bg-white rounded-2xl border p-3.5 shadow-xs space-y-1 cursor-pointer transition-all ${
-            filterMode === 'all' ? 'border-[#1a73e8] ring-2 ring-[#d2e3fc]' : 'border-[#e0e3e7]'
+          className={`bg-[var(--surface)] rounded-[20px] border p-4 shadow-xs space-y-1 cursor-pointer transition-all ${
+            filterMode === 'all' ? 'border-[var(--brand)] ring-2 ring-[var(--brand-tint)]' : 'border-[var(--line)]'
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Total Calendar</span>
-            <div className="p-1.5 rounded-lg bg-[#e8f0fe] text-[#1a73e8]">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">Total Calendar</span>
+            <div className="p-1.5 rounded-[8px] bg-[var(--brand-tint)] text-[var(--brand-deep)]">
               <CalendarIcon className="w-3.5 h-3.5" />
             </div>
           </div>
-          <p className="text-base font-bold text-[#1a73e8]">{thisYearHolidays.length} Days</p>
-          <p className="text-[10px] text-[#5f6368]">Official in {currentYear}</p>
+          <p className="text-base font-bold text-[var(--brand-deep)]">{thisYearHolidays.length} Days</p>
+          <p className="text-[10px] text-[var(--muted)]">Official in {currentYear}</p>
         </div>
 
         {/* Next Holiday Countdown */}
-        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3.5 shadow-xs space-y-1">
+        <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4 shadow-xs space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Next Holiday</span>
-            <div className="p-1.5 rounded-lg bg-[#f3e8fd] text-[#8430ce]">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">Next Holiday</span>
+            <div className="p-1.5 rounded-[8px] bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)]">
               <PartyPopper className="w-3.5 h-3.5" />
             </div>
           </div>
-          <p className="text-base font-bold text-[#8430ce] truncate">
+          <p className="text-base font-bold text-[var(--accent-pink-deep)] truncate">
             {nextHoliday ? getDaysRemainingText(nextHoliday.holidayDate) : 'All Observed'}
           </p>
-          <p className="text-[10px] text-[#5f6368] truncate">
+          <p className="text-[10px] text-[var(--muted)] truncate">
             {nextHoliday ? nextHoliday.holidayName : 'No pending dates'}
           </p>
         </div>
@@ -165,32 +164,32 @@ const EmployeeMobileHolidays = () => {
 
       {/* Next Upcoming Holiday Highlight Card */}
       {nextHoliday && (
-        <section className="bg-white rounded-[1.5rem] border border-slate-200 shadow-sm p-4 mx-0.5 space-y-3 relative overflow-hidden">
+        <section className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] shadow-xs p-4 mx-0.5 space-y-3 relative overflow-hidden">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#1a73e8] flex items-center gap-1.5">
-              <PartyPopper className="w-3.5 h-3.5 text-[#1a73e8]" />
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--brand-deep)] flex items-center gap-1.5">
+              <PartyPopper className="w-3.5 h-3.5 text-[var(--brand-deep)]" />
               <span>Next Upcoming Holiday</span>
             </span>
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider bg-[var(--status-success-bg)] text-[var(--status-success-text)] border border-[var(--status-success-text)]/20">
               {getDaysRemainingText(nextHoliday.holidayDate)}
             </span>
           </div>
 
           <div className="flex items-center justify-between pt-1">
             <div className="space-y-0.5 min-w-0 flex-1 pr-3">
-              <h3 className="text-base font-bold text-[#1f1f1f] truncate">
+              <h3 className="text-sm font-semibold text-[var(--text)] truncate">
                 {nextHoliday.holidayName}
               </h3>
-              <p className="text-xs text-[#5f6368]">
+              <p className="text-xs text-[var(--muted)]">
                 {new Date(nextHoliday.holidayDate).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
               </p>
             </div>
 
-            <div className="flex flex-col items-center justify-center min-w-[3.5rem] px-3 py-1.5 rounded-2xl bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] shadow-2xs shrink-0">
+            <div className="flex flex-col items-center justify-center min-w-[3.25rem] px-2.5 py-1.5 rounded-[12px] bg-[var(--brand-tint)] text-[var(--brand-deep)] border border-[var(--brand)]/20 shadow-2xs shrink-0">
               <span className="text-[10px] font-bold uppercase tracking-wider leading-tight">
                 {new Date(nextHoliday.holidayDate).toLocaleDateString('en-GB', { month: 'short' })}
               </span>
-              <span className="text-xl font-black leading-tight mt-0.5">
+              <span className="text-lg font-bold leading-tight mt-0.5">
                 {new Date(nextHoliday.holidayDate).getDate()}
               </span>
             </div>
@@ -211,15 +210,15 @@ const EmployeeMobileHolidays = () => {
             onClick={() => setFilterMode(tab.key)}
             className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
               filterMode === tab.key
-                ? 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc] shadow-2xs font-bold'
-                : 'bg-white text-[#5f6368] border-[#e0e3e7] hover:bg-[#f8fafd]'
+                ? 'bg-[var(--brand-tint)] text-[var(--brand-deep)] border-[var(--brand)]/20 shadow-2xs'
+                : 'bg-[var(--surface)] text-[var(--text-2)] border-[var(--line)] hover:bg-[var(--surface-alt)]'
             }`}
           >
             <span>{tab.label}</span>
             <span className={`inline-flex items-center justify-center h-[18px] min-w-[18px] px-1.5 rounded-full text-[11px] font-bold leading-none tabular-nums ${
               filterMode === tab.key
-                ? 'bg-[#1a73e8] text-white'
-                : 'bg-[#f1f3f4] text-[#5f6368]'
+                ? 'bg-[var(--brand-deep)] text-white'
+                : 'bg-[var(--surface-alt)] text-[var(--muted)]'
             }`}>
               {tab.count}
             </span>
@@ -230,21 +229,21 @@ const EmployeeMobileHolidays = () => {
       {/* Holidays List */}
       <div className="space-y-3 mx-0.5">
         <div className="flex items-center justify-between px-1">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-[#1f1f1f]">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--text)]">
             {filterMode === 'upcoming' 
               ? 'Upcoming Schedule' 
               : filterMode === 'past' 
                 ? 'Observed Holidays' 
                 : `Full ${currentYear} Calendar`}
           </h3>
-          <span className="text-[10px] text-[#5f6368]">{displayedHolidays.length} Holidays Displayed</span>
+          <span className="text-[10px] text-[var(--muted)]">{displayedHolidays.length} Holidays Displayed</span>
         </div>
 
         {displayedHolidays.length === 0 ? (
-          <div className="bg-white p-8 rounded-3xl text-center border border-[#e0e3e7] shadow-xs space-y-2">
-            <AlertCircle className="w-8 h-8 text-[#5f6368] mx-auto opacity-50" />
-            <p className="text-xs font-semibold text-[#1f1f1f]">No holidays found</p>
-            <p className="text-[11px] text-[#5f6368]">
+          <div className="bg-[var(--surface)] p-8 rounded-[20px] text-center border border-[var(--line)] shadow-xs space-y-2">
+            <AlertCircle className="w-8 h-8 text-[var(--muted)] mx-auto opacity-50" />
+            <p className="text-xs font-semibold text-[var(--text)]">No holidays found</p>
+            <p className="text-[11px] text-[var(--muted)]">
               {filterMode === 'upcoming' 
                 ? 'All company holidays for this year have already been observed.' 
                 : 'No holidays listed for this filter.'}
@@ -260,27 +259,27 @@ const EmployeeMobileHolidays = () => {
               return (
                 <div 
                   key={holiday.id} 
-                  className={`bg-white p-4 rounded-2xl border shadow-xs flex items-center justify-between gap-3 transition-all ${
+                  className={`bg-[var(--surface)] p-4 rounded-[16px] border shadow-xs flex items-center justify-between gap-3 transition-all ${
                     isToday 
-                      ? 'border-[#137333] ring-2 ring-[#ceead6]' 
+                      ? 'border-[var(--status-success-text)] ring-2 ring-[var(--status-success-bg)]' 
                       : isPast 
-                        ? 'border-[#e0e3e7] opacity-65' 
-                        : 'border-[#e0e3e7]'
+                        ? 'border-[var(--line)] opacity-60' 
+                        : 'border-[var(--line)]'
                   }`}
                 >
                   <div className="flex items-center gap-3.5 min-w-0">
                     {/* Date Block */}
-                    <div className={`flex flex-col items-center justify-center min-w-[3.25rem] px-2.5 py-1.5 rounded-2xl border shadow-2xs shrink-0 ${
+                    <div className={`flex flex-col items-center justify-center min-w-[3.25rem] px-2.5 py-1.5 rounded-[12px] border shadow-2xs shrink-0 ${
                       isToday
-                        ? 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]'
+                        ? 'bg-[var(--status-success-bg)] text-[var(--status-success-text)] border-[var(--status-success-text)]/20'
                         : isPast 
-                          ? 'bg-[#f1f3f4] text-[#5f6368] border-[#dadce0]' 
-                          : 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc]'
+                          ? 'bg-[var(--surface-alt)] text-[var(--muted)] border-[var(--line)]' 
+                          : 'bg-[var(--brand-tint)] text-[var(--brand-deep)] border-[var(--brand)]/20'
                     }`}>
                       <span className="text-[10px] font-bold uppercase tracking-wider leading-tight">
                         {holidayDate.toLocaleDateString('en-GB', { month: 'short' })}
                       </span>
-                      <span className="text-lg font-black leading-tight mt-0.5">
+                      <span className="text-lg font-bold leading-tight mt-0.5">
                         {holidayDate.getDate()}
                       </span>
                     </div>
@@ -288,16 +287,16 @@ const EmployeeMobileHolidays = () => {
                     {/* Holiday Info */}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
-                        <h4 className="text-xs font-bold text-[#1f1f1f] truncate">
+                        <h4 className="text-xs font-semibold text-[var(--text)] truncate">
                           {holiday.holidayName}
                         </h4>
                         {isToday && (
-                          <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold uppercase tracking-wider bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">
+                          <span className="px-1.5 py-0.2 rounded-full text-[9px] font-semibold uppercase tracking-wider bg-[var(--status-success-bg)] text-[var(--status-success-text)] border border-[var(--status-success-text)]/20">
                             Today
                           </span>
                         )}
                       </div>
-                      <p className="text-[10px] text-[#5f6368] font-medium mt-0.5">
+                      <p className="text-[10px] text-[var(--muted)] font-medium mt-0.5">
                         {holidayDate.toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric' })}
                       </p>
                     </div>
@@ -308,13 +307,13 @@ const EmployeeMobileHolidays = () => {
                       <img 
                         src={holiday.holidayImage} 
                         alt={holiday.holidayName} 
-                        className="w-10 h-10 rounded-xl object-cover border border-[#e0e3e7] shadow-2xs" 
+                        className="w-10 h-10 rounded-[10px] object-cover border border-[var(--line)] shadow-2xs" 
                       />
                     ) : (
-                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border ${
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider border ${
                         isPast 
-                          ? 'bg-[#f1f3f4] text-[#5f6368] border-[#dadce0]' 
-                          : 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]'
+                          ? 'bg-[var(--surface-alt)] text-[var(--muted)] border-[var(--line)]' 
+                          : 'bg-[var(--status-success-bg)] text-[var(--status-success-text)] border-[var(--status-success-text)]/20'
                       }`}>
                         {isPast ? 'Observed' : 'Upcoming'}
                       </span>

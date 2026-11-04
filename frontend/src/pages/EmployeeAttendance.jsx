@@ -5,64 +5,22 @@ import {
   Clock, 
   LogIn, 
   LogOut, 
-  Search, 
   AlertCircle,
   CheckCircle2,
   CalendarDays,
-  Filter,
-  TrendingUp,
-  MapPin,
-  Sparkles,
   Loader2
 } from 'lucide-react';
 import api from '../api/axios';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import EmployeeMobileAttendance from './EmployeeMobileAttendance';
-
-const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme }) => {
-  const themes = {
-    blue: {
-      iconBg: 'bg-[#e8f0fe]',
-      iconColor: 'text-[#1a73e8]',
-    },
-    green: {
-      iconBg: 'bg-[#e6f4ea]',
-      iconColor: 'text-[#137333]',
-    },
-    purple: {
-      iconBg: 'bg-[#f3e8fd]',
-      iconColor: 'text-[#8430ce]',
-    },
-    amber: {
-      iconBg: 'bg-[#fef7e0]',
-      iconColor: 'text-[#b06000]',
-    }
-  };
-
-  const theme = themes[colorTheme] || themes.blue;
-
-  return (
-    <div className="bg-white rounded-2xl border border-[#e0e3e7] p-5 shadow-xs transition-all duration-200 hover:shadow-md hover:border-[#dadce0]">
-      <div className="flex items-start justify-between">
-        <div className="space-y-1">
-          <p className="text-xs font-semibold text-[#5f6368] uppercase tracking-wider">{title}</p>
-          <p className="text-2xl font-bold text-[#1f1f1f] tracking-tight">{value}</p>
-          {subtitle && <p className="text-xs text-[#5f6368] font-normal pt-0.5">{subtitle}</p>}
-        </div>
-        <div className={`p-3 rounded-2xl ${theme.iconBg} ${theme.iconColor} shrink-0`}>
-          <Icon className="w-5 h-5" />
-        </div>
-      </div>
-    </div>
-  );
-};
+import StatCard from '../components/ui/StatCard';
+import StatusBadge from '../components/ui/StatusBadge';
+import Button from '../components/ui/Button';
 
 const EmployeeAttendance = () => {
   const { profile } = useAuth();
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [error, setError] = useState(null);
   const [punchingAction, setPunchingAction] = useState(null);
@@ -238,27 +196,22 @@ const EmployeeAttendance = () => {
   const paidLeaveCount = history.filter(r => resolveStatusKey(r) === 'paid leave').length;
   const unpaidLeaveCount = history.filter(r => resolveStatusKey(r) === 'unpaid leave').length;
 
-  const statusPalette = {
-    'present': { label: 'Present', classes: 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]' },
-    'present (late)': { label: 'Present (Late)', classes: 'bg-[#fef7e0] text-[#b06000] border-[#feefc3]' },
-    'present (early)': { label: 'Present (Early)', classes: 'bg-[#fef7e0] text-[#b06000] border-[#feefc3]' },
-    'present (early+late)': { label: 'Present (Early+Late)', classes: 'bg-[#fef7e0] text-[#b06000] border-[#feefc3]' },
-    'present (checkout missing)': { label: 'Checkout Missing', classes: 'bg-[#fef7e0] text-[#b06000] border-[#feefc3]' },
-    'present (late+checkout missing)': { label: 'Late + Checkout Missing', classes: 'bg-[#fef7e0] text-[#b06000] border-[#feefc3]' },
-    'paid leave': { label: 'Paid Leave', classes: 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc]' },
-    'unpaid leave': { label: 'Unpaid Leave', classes: 'bg-[#f3e8fd] text-[#8430ce] border-[#e9d2fd]' },
-    'sandwich leave': { label: 'Sandwich Leave', classes: 'bg-[#f3e8fd] text-[#8430ce] border-[#e9d2fd]' },
-    'holiday': { label: 'Company Holiday', classes: 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc]' },
-    'week-off': { label: 'Week Off', classes: 'bg-[#f1f3f4] text-[#5f6368] border-[#dadce0]' },
-    'missing': { label: 'Missing', classes: 'bg-[#fce8e6] text-[#c5221f] border-[#fad2cf]' },
-    'regularized': { label: 'Regularized', classes: 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]' },
-    'not-marked': { label: 'Not Marked', classes: 'bg-[#f1f3f4] text-[#5f6368] border-[#dadce0]' },
+  const renderAttendanceStatusBadge = (record) => {
+    const statusKey = resolveStatusKey(record);
+    if (statusKey === 'present') return <StatusBadge variant="success">Present</StatusBadge>;
+    if (statusKey.includes('present')) return <StatusBadge variant="warning">{record.status || 'Present'}</StatusBadge>;
+    if (statusKey === 'paid leave') return <StatusBadge variant="info">Paid leave</StatusBadge>;
+    if (statusKey === 'unpaid leave' || statusKey === 'sandwich leave') return <StatusBadge variant="warning">{statusKey === 'sandwich leave' ? 'Sandwich leave' : 'Unpaid leave'}</StatusBadge>;
+    if (statusKey === 'holiday') return <StatusBadge variant="info">Holiday</StatusBadge>;
+    if (statusKey === 'week-off') return <StatusBadge variant="neutral">Week off</StatusBadge>;
+    if (statusKey === 'regularized') return <StatusBadge variant="success">Regularized</StatusBadge>;
+    return <StatusBadge variant="danger">{record.status || 'Missing'}</StatusBadge>;
   };
 
   const displayError = error || (queryError ? 'Failed to load attendance history.' : null);
 
   if (!hasLoadedOnce.current && loading && !history.length) {
-    return <PageLoader message="Loading Attendance History..." />;
+    return <PageLoader message="Loading attendance history..." />;
   }
 
   return (
@@ -268,34 +221,33 @@ const EmployeeAttendance = () => {
         <EmployeeMobileAttendance />
       </div>
 
-      {/* Web Desktop Experience (Google Material 3 Workspace UI) */}
-      <div className="hidden md:block space-y-6 pb-12 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+      {/* Web Desktop Experience */}
+      <div className="hidden md:block space-y-6 pb-12 antialiased">
         
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-1.5 mb-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-              <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Attendance &amp; Work Hours</span>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-[12px] font-medium text-[var(--muted)]">Attendance & work hours</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight flex items-center gap-2" style={{ fontWeight: 500 }}>
-              <span>Daily <span className="font-medium italic text-[#1a73e8]">Attendance</span></span> <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">{filteredHistory.length} Days Logged</span>
+            <h1 className="text-[24px] font-medium text-[var(--text)] tracking-[-0.01em] flex items-center gap-2">
+              <span>Daily attendance</span>
+              <span className="text-[12px] font-medium text-[var(--brand-deep)] bg-[var(--brand-tint)] px-2.5 py-0.5 rounded-[9px]">
+                {filteredHistory.length} Days logged
+              </span>
             </h1>
-            <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
+            <p className="text-[13px] text-[var(--muted)] mt-1">
               Daily biometric punch verification, monthly timesheets, and work hour compliance ledger.
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5 self-start sm:self-auto bg-white border border-[#e0e3e7] px-3.5 py-1.5 rounded-full shadow-xs">
-            <Clock className="w-4 h-4 text-[#1a73e8]" />
+          <div className="flex items-center gap-2.5 self-start sm:self-auto bg-[var(--surface)] px-4 py-2 rounded-full">
+            <Clock className="w-4 h-4 text-[var(--brand-deep)]" />
             <div className="text-right">
-              <p className="text-xs font-semibold text-[#1f1f1f] leading-tight">
+              <p className="text-[13px] font-medium text-[var(--text)] leading-tight">
                 {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
               </p>
-              <p className="text-[10px] text-[#5f6368] leading-tight">
+              <p className="text-[11px] text-[var(--muted)] leading-tight">
                 {currentTime.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
               </p>
             </div>
@@ -303,103 +255,103 @@ const EmployeeAttendance = () => {
         </div>
 
         {displayError && (
-          <div className="rounded-2xl border border-[#fad2cf] bg-[#fce8e6] p-4 text-xs font-medium text-[#c5221f] flex items-center gap-2.5 shadow-2xs">
+          <div className="rounded-[16px] bg-[var(--danger-bg)] p-4 text-[13px] font-medium text-[var(--danger-text)] flex items-center gap-2.5">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{displayError}</span>
           </div>
         )}
 
         {isOnLeaveToday && (
-          <div className="rounded-2xl border border-[#d2e3fc] bg-[#e8f0fe] p-4 text-xs font-semibold text-[#1a73e8] flex items-center gap-2.5 shadow-2xs">
+          <div className="rounded-[16px] bg-[var(--brand-tint)] p-4 text-[13px] font-medium text-[var(--brand-deep)] flex items-center gap-2.5">
             <Calendar className="w-4 h-4 shrink-0" />
             <span>You have an approved leave scheduled for today. Automated attendance recording is paused.</span>
           </div>
         )}
 
         {/* Check-in / Check-out Terminal Card */}
-        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-6 shadow-xs space-y-6">
-          <div className="flex items-center justify-between pb-4 border-b border-[#e0e3e7]">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-xl bg-[#e8f0fe] text-[#1a73e8]">
+        <div className="bg-[var(--surface)] rounded-[24px] p-6 space-y-5">
+          <div className="flex items-center justify-between pb-3 border-b border-[var(--line)]">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-[14px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center">
                 <Clock className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="text-base font-semibold text-[#1f1f1f]">Today's Biometric Punch Terminal</h2>
-                <p className="text-xs text-[#5f6368]">{currentTime.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                <h2 className="text-[15px] font-medium text-[var(--text)]">Today's biometric punch terminal</h2>
+                <p className="text-[12px] text-[var(--muted)]">{currentTime.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
               </div>
             </div>
 
             {todayRecord?.checkIn && (
-              <span className="text-[11px] font-semibold text-[#137333] bg-[#e6f4ea] border border-[#ceead6] px-3 py-1 rounded-full flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5" /> Checked In Today
-              </span>
+              <StatusBadge variant="success">
+                <CheckCircle2 className="w-3.5 h-3.5 mr-1 inline" /> Checked in today
+              </StatusBadge>
             )}
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-6 p-5 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7]">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 rounded-[20px] bg-[var(--surface-alt)]">
             <div className="space-y-1.5 text-center sm:text-left shrink-0">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368] whitespace-nowrap block">Today's Timestamp Record</span>
+              <span className="text-[11px] font-medium uppercase tracking-wider text-[var(--muted)] whitespace-nowrap block">Today's timestamp record</span>
               {todayRecord?.checkIn ? (
-                <div className="space-y-1.5 text-xs">
-                  <div className="flex items-center gap-2 text-[#1f1f1f] whitespace-nowrap">
-                    <span className="text-[#5f6368] whitespace-nowrap">Check-in Time:</span>
-                    <span className="font-semibold text-[#1f1f1f] bg-white px-3 py-0.5 rounded-full border border-[#e0e3e7] whitespace-nowrap shrink-0 shadow-2xs">
+                <div className="space-y-1.5 text-[12px]">
+                  <div className="flex items-center gap-2 text-[var(--text)] whitespace-nowrap">
+                    <span className="text-[var(--muted)] whitespace-nowrap">Check-in time:</span>
+                    <span className="font-medium text-[var(--text)] bg-[var(--surface)] px-2.5 py-0.5 rounded-full">
                       {new Date(todayRecord.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                     </span>
                   </div>
                   {todayRecord?.checkOut && (
-                    <div className="flex items-center gap-2 text-[#1f1f1f] whitespace-nowrap">
-                      <span className="text-[#5f6368] whitespace-nowrap">Check-out Time:</span>
-                      <span className="font-semibold text-[#1f1f1f] bg-white px-3 py-0.5 rounded-full border border-[#e0e3e7] whitespace-nowrap shrink-0 shadow-2xs">
+                    <div className="flex items-center gap-2 text-[var(--text)] whitespace-nowrap">
+                      <span className="text-[var(--muted)] whitespace-nowrap">Check-out time:</span>
+                      <span className="font-medium text-[var(--text)] bg-[var(--surface)] px-2.5 py-0.5 rounded-full">
                         {new Date(todayRecord.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                       </span>
                     </div>
                   )}
                 </div>
               ) : (
-                <p className="text-xs font-semibold text-[#b06000] bg-[#fef7e0] border border-[#feefc3] px-3 py-1 rounded-full inline-block whitespace-nowrap">
+                <StatusBadge variant="warning">
                   No punch recorded today
-                </p>
+                </StatusBadge>
               )}
             </div>
 
-            <div className="flex flex-wrap justify-center gap-2.5">
+            <div className="flex flex-wrap justify-center gap-2">
               {!isWebAttendanceEnabled ? (
-                <div className="flex items-center gap-2 p-3 bg-[#fce8e6] text-[#c5221f] rounded-2xl border border-[#fad2cf] text-xs font-semibold">
+                <div className="flex items-center gap-2 p-3 bg-[var(--danger-bg)] text-[var(--danger-text)] rounded-[14px] text-[12px] font-medium">
                   <AlertCircle className="w-4 h-4 shrink-0" />
-                  <span>Web Attendance is disabled for your account. Please use the mobile app.</span>
+                  <span>Web attendance is disabled for your account. Please use the mobile app.</span>
                 </div>
               ) : (
                 <>
-                  <button
+                  <Button
                     type="button"
+                    variant="primary"
                     onClick={() => handlePunch('check-in')}
                     disabled={!isViewingCurrentMonth || punchingAction || checkedIn || checkOutTime || isOnLeaveToday}
-                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white disabled:opacity-40 transition-all cursor-pointer shadow-xs"
                   >
-                    <LogIn className="w-4 h-4" />
-                    <span>{punchingAction === 'check-in' ? 'Checking In...' : 'Check In'}</span>
-                  </button>
+                    <LogIn className="w-4 h-4 mr-1.5" />
+                    <span>{punchingAction === 'check-in' ? 'Checking in...' : 'Check in'}</span>
+                  </Button>
 
-                  <button
+                  <Button
                     type="button"
+                    variant="secondary"
                     onClick={() => handlePunch('punch')}
                     disabled={!isViewingCurrentMonth || punchingAction || !checkedIn || checkOutTime || isOnLeaveToday}
-                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold bg-white border border-[#dadce0] hover:bg-[#f1f3f4] text-[#1f1f1f] disabled:opacity-40 transition-all cursor-pointer shadow-2xs"
                   >
-                    <Clock className="w-4 h-4 text-[#5f6368]" />
-                    <span>{punchingAction === 'punch' ? 'Punching...' : 'Interval Punch'}</span>
-                  </button>
+                    <Clock className="w-4 h-4 mr-1.5 text-[var(--muted)]" />
+                    <span>{punchingAction === 'punch' ? 'Punching...' : 'Interval punch'}</span>
+                  </Button>
 
-                  <button
+                  <Button
                     type="button"
+                    variant="danger"
                     onClick={() => handlePunch('check-out')}
                     disabled={!isViewingCurrentMonth || punchingAction || !checkedIn || checkOutTime || isOnLeaveToday}
-                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-xs font-semibold bg-white border border-[#dadce0] hover:bg-[#f1f3f4] text-[#d93025] hover:border-[#fad2cf] hover:bg-[#fce8e6] disabled:opacity-40 transition-all cursor-pointer shadow-2xs"
                   >
-                    <LogOut className="w-4 h-4" />
-                    <span>{punchingAction === 'check-out' ? 'Checking Out...' : 'Check Out'}</span>
-                  </button>
+                    <LogOut className="w-4 h-4 mr-1.5" />
+                    <span>{punchingAction === 'check-out' ? 'Checking out...' : 'Check out'}</span>
+                  </Button>
                 </>
               )}
             </div>
@@ -407,43 +359,39 @@ const EmployeeAttendance = () => {
         </div>
 
         {/* Attendance Summary KPI Cards */}
-        <div className={`grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 transition-opacity duration-150 ${isFetching ? 'opacity-75' : 'opacity-100'}`}>
+        <div className={`grid gap-[14px] grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 transition-opacity duration-150 ${isFetching ? 'opacity-75' : 'opacity-100'}`}>
           <StatCard 
-            title="Present Days" 
-            value={`${presentCount} Days`} 
+            title="Present days" 
+            value={`${presentCount}d`} 
             subtitle="Marked present this month" 
             icon={CheckCircle2} 
-            colorTheme="green" 
           />
           <StatCard 
-            title="On Leave" 
-            value={`${leaveCount} Days`} 
+            title="On leave" 
+            value={`${leaveCount}d`} 
             subtitle="Total leave requests taken" 
             icon={Calendar} 
-            colorTheme="purple" 
           />
           <StatCard 
-            title="Paid Leave Days" 
-            value={`${paidLeaveCount} Days`} 
+            title="Paid leave days" 
+            value={`${paidLeaveCount}d`} 
             subtitle="Approved paid time off" 
             icon={CalendarDays} 
-            colorTheme="blue" 
           />
           <StatCard 
-            title="Unpaid Leaves" 
-            value={`${unpaidLeaveCount} Days`} 
-            subtitle="Unpaid loss of pay days" 
+            title="Unpaid leaves" 
+            value={`${unpaidLeaveCount}d`} 
+            subtitle="Loss of pay days" 
             icon={Clock} 
-            colorTheme="amber" 
           />
         </div>
 
         {/* Attendance History Table Card */}
-        <div className="bg-white rounded-2xl border border-[#e0e3e7] shadow-xs overflow-hidden">
-          <div className="p-6 border-b border-[#e0e3e7] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="bg-[var(--surface)] rounded-[24px] p-4 sm:p-5 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[var(--line)]">
             <div>
-              <h3 className="text-base font-semibold text-[#1f1f1f]">Monthly Attendance Ledger</h3>
-              <p className="text-xs text-[#5f6368]">Review daily work hours, check-in timestamps, and punch exceptions</p>
+              <h3 className="text-[15px] font-medium text-[var(--text)]">Monthly attendance ledger</h3>
+              <p className="text-[12px] text-[var(--muted)]">Review daily work hours, check-in timestamps, and punch exceptions</p>
             </div>
             
             <div className="flex flex-wrap items-center gap-3">
@@ -452,77 +400,73 @@ const EmployeeAttendance = () => {
                   type="month"
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="h-9 rounded-full border border-[#dadce0] px-3.5 text-xs text-[#1f1f1f] bg-white focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] focus:outline-none transition-all cursor-pointer shadow-2xs"
+                  className="h-10 rounded-[12px] border border-[var(--line)] px-3 text-[13px] text-[var(--text)] bg-[var(--surface-alt)] focus:border-[var(--brand)] focus:outline-none transition-all cursor-pointer"
                 />
                 {isFetching && (
-                  <Loader2 className="w-3.5 h-3.5 text-[#1a73e8] animate-spin ml-2" />
+                  <Loader2 className="w-3.5 h-3.5 text-[var(--brand-deep)] animate-spin ml-2" />
                 )}
               </div>
 
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="h-9 rounded-full border border-[#dadce0] px-3.5 text-xs text-[#1f1f1f] bg-white focus:border-[#1a73e8] focus:ring-1 focus:ring-[#1a73e8] focus:outline-none transition-all cursor-pointer shadow-2xs"
+                className="h-10 rounded-[12px] border border-[var(--line)] px-3 text-[13px] text-[var(--text)] bg-[var(--surface-alt)] focus:border-[var(--brand)] focus:outline-none transition-all cursor-pointer"
               >
-                <option value="all">All Statuses</option>
+                <option value="all">All statuses</option>
                 <option value="present">Present</option>
-                <option value="paid leave">Paid Leave</option>
-                <option value="unpaid leave">Unpaid Leave</option>
-                <option value="sandwich leave">Sandwich Leave</option>
+                <option value="paid leave">Paid leave</option>
+                <option value="unpaid leave">Unpaid leave</option>
+                <option value="sandwich leave">Sandwich leave</option>
                 <option value="missed">Missing</option>
               </select>
             </div>
           </div>
 
           <div className={`overflow-x-auto transition-opacity duration-150 ${isFetching ? 'opacity-70' : 'opacity-100'}`}>
-            <table className="w-full text-xs text-left">
-              <thead className="bg-[#f8fafd] border-b border-[#e0e3e7] text-[#5f6368] font-semibold uppercase tracking-wider text-[10px]">
+            <table className="w-full text-[13px] text-left">
+              <thead className="bg-[var(--surface-alt)] text-[var(--muted)] font-medium text-[12px]">
                 <tr>
-                  <th className="p-4">Calendar Date</th>
-                  <th className="p-4">Check-In Time</th>
-                  <th className="p-4">Check-Out Time</th>
-                  <th className="p-4">Total Work Hours</th>
-                  <th className="p-4">Attendance Status</th>
+                  <th className="p-3.5">Calendar date</th>
+                  <th className="p-3.5">Check-in time</th>
+                  <th className="p-3.5">Check-out time</th>
+                  <th className="p-3.5">Total work hours</th>
+                  <th className="p-3.5">Attendance status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#f1f3f4]">
+              <tbody className="divide-y divide-[var(--line)]">
                 {loading && !history.length ? (
                   <tr>
-                    <td colSpan="5" className="text-center py-12 text-[#5f6368]">
+                    <td colSpan="5" className="text-center py-12 text-[var(--muted)]">
                       <div className="flex items-center justify-center gap-2">
-                        <Loader2 className="w-4 h-4 animate-spin text-[#1a73e8]" />
+                        <Loader2 className="w-4 h-4 animate-spin text-[var(--brand-deep)]" />
                         <span>Loading attendance records...</span>
                       </div>
                     </td>
                   </tr>
                 ) : filteredHistory.length === 0 ? (
                   <tr>
-                    <td colSpan="5" className="text-center py-12 text-[#5f6368]">
+                    <td colSpan="5" className="text-center py-12 text-[var(--muted)]">
                       No attendance records found for this period.
                     </td>
                   </tr>
                 ) : (
                   filteredHistory.map((record, i) => {
-                    const statusKey = resolveStatusKey(record);
-                    const config = statusPalette[statusKey] || statusPalette['missing'];
                     return (
-                      <tr key={i} className="hover:bg-[#f8fafd] transition-colors">
-                        <td className="p-4 font-semibold text-[#1f1f1f]">
+                      <tr key={i} className="hover:bg-[var(--surface-alt)] transition-colors">
+                        <td className="p-3.5 font-medium text-[var(--text)]">
                           {formatDateStr(record.date)}
                         </td>
-                        <td className="p-4 text-[#1f1f1f] font-semibold">
+                        <td className="p-3.5 text-[var(--text)] font-medium">
                           {record.checkIn ? new Date(record.checkIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
                         </td>
-                        <td className="p-4 text-[#1f1f1f] font-semibold">
+                        <td className="p-3.5 text-[var(--text)] font-medium">
                           {record.checkOut ? new Date(record.checkOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
                         </td>
-                        <td className="p-4 text-[#5f6368]">
+                        <td className="p-3.5 text-[var(--muted)]">
                           {record.hours ? `${record.hours} hrs` : '—'}
                         </td>
-                        <td className="p-4">
-                          <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${config.classes}`}>
-                            {config.label}
-                          </span>
+                        <td className="p-3.5">
+                          {renderAttendanceStatusBadge(record)}
                         </td>
                       </tr>
                     );

@@ -122,24 +122,24 @@ const EmployeeAssessmentResult = () => {
         <div className="flex items-center gap-3.5">
           <button
             onClick={() => navigate('/employee/assessments', { replace: true })}
-            className="p-2.5 text-slate-500 hover:text-slate-800 rounded-xl hover:bg-slate-100 border border-slate-200 transition cursor-pointer bg-white shadow-sm"
+            className="p-2.5 text-[var(--muted)] hover:text-[var(--text)] rounded-[14px] hover:bg-[var(--surface-alt)] border border-[var(--line)] transition cursor-pointer bg-[var(--surface)]"
             title="Back to Assessments"
           >
             <ArrowLeft size={18} />
           </button>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-[var(--text)]">
               {assessmentTitle || 'Assessment Result'}
             </h1>
-            <p className="text-sm text-slate-500 mt-0.5">
+            <p className="text-sm text-[var(--muted)] mt-0.5">
               Assessment submission report and performance evaluation
             </p>
           </div>
         </div>
 
         {visibility === 'immediate' && (
-          <div className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl font-bold text-xs uppercase tracking-wider border shadow-sm ${
-            passed ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'
+          <div className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full font-semibold text-xs uppercase tracking-wider border ${
+            passed ? 'bg-[#E6F6EC] text-[#1F9D55] border-[#E6F6EC]' : 'bg-[#FDE8EA] text-[#D64550] border-[#FDE8EA]'
           }`}>
             {passed ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
             {passed ? 'Passed Evaluation' : 'Did Not Pass'}
@@ -153,23 +153,23 @@ const EmployeeAssessmentResult = () => {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="bg-white rounded-2xl border border-slate-200 shadow-sm p-12 text-center max-w-2xl mx-auto"
+          className="bg-[var(--surface)] rounded-[24px] border border-[var(--line)] p-12 text-center max-w-2xl mx-auto"
         >
-          <div className="w-16 h-16 rounded-2xl bg-slate-50 text-slate-500 flex items-center justify-center mx-auto mb-5 border border-slate-200">
+          <div className="w-16 h-16 rounded-[18px] bg-[var(--surface-alt)] text-[var(--muted)] flex items-center justify-center mx-auto mb-5 border border-[var(--line)]">
             <EyeOff size={32} />
           </div>
-          <h2 className="text-xl font-bold text-slate-900 mb-2">Exam Submitted Successfully</h2>
-          <p className="text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
+          <h2 className="text-xl font-bold text-[var(--text)] mb-2">Exam Submitted Successfully</h2>
+          <p className="text-sm text-[var(--muted)] max-w-md mx-auto leading-relaxed">
             Your responses have been securely recorded. The detailed results and scores for this assessment are currently hidden by the administrator.
           </p>
-          <div className="mt-6 inline-flex items-center gap-2 bg-slate-100 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 border border-slate-200/60">
+          <div className="mt-6 inline-flex items-center gap-2 bg-[var(--surface-alt)] px-3.5 py-2 rounded-full text-xs font-semibold text-[var(--muted)] border border-[var(--line)]">
             <Lock size={14} />
             Results Hidden by Administrator
           </div>
           <div className="mt-8">
             <button
               onClick={() => navigate('/employee/assessments', { replace: true })}
-              className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-sm transition cursor-pointer shadow-sm"
+              className="px-6 py-2.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white rounded-[14px] font-semibold text-xs transition cursor-pointer"
             >
               Return to Assessments
             </button>
@@ -183,24 +183,24 @@ const EmployeeAssessmentResult = () => {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="bg-white rounded-2xl border border-slate-200 shadow-sm p-12 text-center max-w-2xl mx-auto"
+          className="bg-[var(--surface)] rounded-[24px] border border-[var(--line)] p-12 text-center max-w-2xl mx-auto"
         >
-          <div className="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-5 border border-amber-200">
+          <div className="w-16 h-16 rounded-[18px] bg-[#FDF3DC] text-[#B7791F] flex items-center justify-center mx-auto mb-5 border border-[#FDF3DC]">
             <Clock size={32} />
           </div>
-          <h2 className="text-xl font-bold text-slate-900 mb-2">Exam Submitted Successfully</h2>
-          <p className="text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
-            Your responses have been recorded and submitted for <strong className="text-slate-700">admin review</strong>. 
+          <h2 className="text-xl font-bold text-[var(--text)] mb-2">Exam Submitted Successfully</h2>
+          <p className="text-sm text-[var(--muted)] max-w-md mx-auto leading-relaxed">
+            Your responses have been recorded and submitted for <strong className="text-[var(--text)]">admin review</strong>. 
             Your scores and detailed feedback will become available once the administrator has evaluated your submission.
           </p>
-          <div className="mt-6 inline-flex items-center gap-2 bg-amber-100 px-3.5 py-2 rounded-xl text-xs font-bold text-amber-800 border border-amber-200/60">
+          <div className="mt-6 inline-flex items-center gap-2 bg-[#FDF3DC] px-3.5 py-2 rounded-full text-xs font-semibold text-[#B7791F]">
             <Clock size={14} />
             Pending Administrator Review
           </div>
           <div className="mt-8">
             <button
               onClick={() => navigate('/employee/assessments', { replace: true })}
-              className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-sm transition cursor-pointer shadow-sm"
+              className="px-6 py-2.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white rounded-[14px] font-semibold text-xs transition cursor-pointer"
             >
               Return to Assessments
             </button>
@@ -216,26 +216,26 @@ const EmployeeAssessmentResult = () => {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6 lg:col-span-1"
+            className="bg-[var(--surface)] rounded-[24px] border border-[var(--line)] p-6 space-y-6 lg:col-span-1"
           >
             {/* Submit Reason Banner */}
             {reasonLabel && (
-              <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-3 text-xs font-semibold flex items-center gap-2">
+              <div className="bg-[#FDF3DC] border border-[#FDF3DC] text-[#B7791F] rounded-[18px] p-3 text-xs font-semibold flex items-center gap-2">
                 <span>{reasonLabel}</span>
               </div>
             )}
 
             {/* Hero Badge */}
-            <div className="text-center pb-6 border-b border-slate-100">
-              <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 border shadow-sm ${
-                passed ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-rose-50 text-rose-600 border-rose-200'
+            <div className="text-center pb-6 border-b border-[var(--line)]">
+              <div className={`w-16 h-16 rounded-[18px] flex items-center justify-center mx-auto mb-4 border ${
+                passed ? 'bg-[#E6F6EC] text-[#1F9D55] border-[#E6F6EC]' : 'bg-[#FDE8EA] text-[#D64550] border-[#FDE8EA]'
               }`}>
                 {passed ? <Trophy size={32} /> : <XCircle size={32} />}
               </div>
-              <h2 className="text-xl font-bold text-slate-900">
+              <h2 className="text-xl font-bold text-[var(--text)]">
                 {passed ? 'Congratulations!' : 'Threshold Not Met'}
               </h2>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-[var(--muted)] mt-1">
                 {passed 
                   ? 'You have passed this evaluation.' 
                   : 'You did not achieve the required pass mark.'}
@@ -244,29 +244,29 @@ const EmployeeAssessmentResult = () => {
 
             {/* Score Metrics */}
             <div className="space-y-3.5">
-              <div className="flex items-center justify-between p-3.5 bg-slate-50 rounded-xl border border-slate-200/80">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                  <BarChart2 size={16} className="text-slate-400" /> Score Earned
+              <div className="flex items-center justify-between p-3.5 bg-[var(--surface-alt)] rounded-[18px] border border-[var(--line)]">
+                <span className="text-xs font-bold text-[var(--muted)] uppercase tracking-wider flex items-center gap-2">
+                  <BarChart2 size={16} className="text-[var(--muted)]" /> Score Earned
                 </span>
-                <span className="text-base font-bold text-slate-900">
-                  {score !== undefined ? score : '0'} <span className="text-xs font-normal text-slate-500">/ {total_marks || 0}</span>
+                <span className="text-base font-bold text-[var(--text)]">
+                  {score !== undefined ? score : '0'} <span className="text-xs font-normal text-[var(--muted)]">/ {total_marks || 0}</span>
                 </span>
               </div>
 
-              <div className="flex items-center justify-between p-3.5 bg-slate-50 rounded-xl border border-slate-200/80">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                  <CheckCircle2 size={16} className="text-slate-400" /> Percentage
+              <div className="flex items-center justify-between p-3.5 bg-[var(--surface-alt)] rounded-[18px] border border-[var(--line)]">
+                <span className="text-xs font-bold text-[var(--muted)] uppercase tracking-wider flex items-center gap-2">
+                  <CheckCircle2 size={16} className="text-[var(--muted)]" /> Percentage
                 </span>
-                <span className={`text-base font-bold ${passed ? 'text-emerald-600' : 'text-rose-600'}`}>
+                <span className={`text-base font-bold ${passed ? 'text-[#1F9D55]' : 'text-[#D64550]'}`}>
                   {percentage !== null && percentage !== undefined ? `${parseFloat(percentage).toFixed(1)}%` : '0%'}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between p-3.5 bg-slate-50 rounded-xl border border-slate-200/80">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                  <Award size={16} className="text-slate-400" /> Passing Threshold
+              <div className="flex items-center justify-between p-3.5 bg-[var(--surface-alt)] rounded-[18px] border border-[var(--line)]">
+                <span className="text-xs font-bold text-[var(--muted)] uppercase tracking-wider flex items-center gap-2">
+                  <Award size={16} className="text-[var(--muted)]" /> Passing Threshold
                 </span>
-                <span className="text-sm font-bold text-slate-700">
+                <span className="text-sm font-bold text-[var(--text)]">
                   {result.passing_percentage || 70}%
                 </span>
               </div>
@@ -275,7 +275,7 @@ const EmployeeAssessmentResult = () => {
             {/* Action Button */}
             <button
               onClick={() => navigate('/employee/assessments', { replace: true })}
-              className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-sm transition flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+              className="w-full py-3 bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white rounded-[14px] font-semibold text-xs transition flex items-center justify-center gap-2 cursor-pointer"
             >
               <ArrowLeft size={16} />
               Return to Dashboard
@@ -287,38 +287,38 @@ const EmployeeAssessmentResult = () => {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.1 }}
-            className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col lg:col-span-2 min-h-[540px]"
+            className="bg-[var(--surface)] rounded-[24px] border border-[var(--line)] overflow-hidden flex flex-col lg:col-span-2 min-h-[540px]"
           >
-            <div className="p-6 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+            <div className="p-6 border-b border-[var(--line)] bg-[var(--surface-alt)] flex items-center justify-between">
               <div>
-                <h3 className="font-bold text-slate-900 text-base">Detailed Response Analysis</h3>
-                <p className="text-xs text-slate-500 mt-0.5">Review your individual answer correctness and points awarded</p>
+                <h3 className="font-semibold text-[var(--text)] text-base">Detailed Response Analysis</h3>
+                <p className="text-xs text-[var(--muted)] mt-0.5">Review your individual answer correctness and points awarded</p>
               </div>
-              <span className="text-xs font-bold text-slate-600 bg-white border border-slate-200 px-3 py-1.5 rounded-lg shadow-sm">
+              <span className="text-xs font-semibold text-[var(--text)] bg-[var(--surface)] border border-[var(--line)] px-3 py-1.5 rounded-[12px]">
                 {result.breakdown ? result.breakdown.length : 0} Questions
               </span>
             </div>
 
             {result.breakdown && result.breakdown.length > 0 ? (
-              <div className="divide-y divide-slate-100 overflow-y-auto flex-1 min-h-0" style={{ maxHeight: 'calc(100vh - 300px)' }}>
+              <div className="divide-y divide-[var(--line)] overflow-y-auto flex-1 min-h-0" style={{ maxHeight: 'calc(100vh - 300px)' }}>
                 {result.breakdown.map((item, idx) => (
-                  <div key={idx} className="p-5 flex items-start sm:items-center justify-between gap-4 hover:bg-slate-50/50 transition">
+                  <div key={idx} className="p-5 flex items-start sm:items-center justify-between gap-4 hover:bg-[var(--brand-tint)]/15 transition">
                     <div className="flex items-start sm:items-center gap-3.5 min-w-0">
-                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5 sm:mt-0 text-sm font-bold border ${
+                      <div className={`w-8 h-8 rounded-[10px] flex items-center justify-center shrink-0 mt-0.5 sm:mt-0 text-sm font-bold border ${
                         item.correct 
-                          ? 'bg-emerald-50 text-emerald-600 border-emerald-200' 
-                          : 'bg-rose-50 text-rose-600 border-rose-200'
+                          ? 'bg-[#E6F6EC] text-[#1F9D55] border-[#E6F6EC]' 
+                          : 'bg-[#FDE8EA] text-[#D64550] border-[#FDE8EA]'
                       }`}>
                         {item.correct ? <CheckCircle2 size={16} /> : <XCircle size={16} />}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-bold text-slate-900 leading-snug">{item.title}</p>
+                        <p className="text-sm font-semibold text-[var(--text)] leading-snug">{item.title}</p>
                         <div className="flex items-center gap-2 mt-1">
-                          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                          <span className="text-[11px] font-bold text-[var(--muted)] uppercase tracking-wider">
                             Q{idx + 1}
                           </span>
-                          <span className="text-slate-300">•</span>
-                          <span className={`text-xs font-semibold ${item.correct ? 'text-emerald-600' : 'text-rose-600'}`}>
+                          <span className="text-[var(--line)]">•</span>
+                          <span className={`text-xs font-semibold ${item.correct ? 'text-[#1F9D55]' : 'text-[#D64550]'}`}>
                             {item.correct ? 'Correct Answer' : 'Incorrect Response'}
                           </span>
                         </div>
@@ -326,10 +326,10 @@ const EmployeeAssessmentResult = () => {
                     </div>
 
                     <div className="shrink-0">
-                      <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold border shadow-2xs ${
+                      <span className={`inline-flex items-center px-3 py-1.5 rounded-[10px] text-xs font-semibold border ${
                         item.correct 
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
-                          : 'bg-slate-100 text-slate-600 border-slate-200'
+                          ? 'bg-[#E6F6EC] text-[#1F9D55] border-[#E6F6EC]' 
+                          : 'bg-[var(--surface-alt)] text-[var(--muted)] border-[var(--line)]'
                       }`}>
                         +{item.marks_earned} / {item.marks_possible} pts
                       </span>
@@ -338,7 +338,7 @@ const EmployeeAssessmentResult = () => {
                 ))}
               </div>
             ) : (
-              <div className="p-12 text-center text-slate-400 text-sm font-medium">
+              <div className="p-12 text-center text-[var(--muted)] text-sm font-medium">
                 No question breakdown available for this assessment.
               </div>
             )}

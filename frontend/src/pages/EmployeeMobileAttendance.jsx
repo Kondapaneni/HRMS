@@ -82,44 +82,44 @@ const EmployeeMobileAttendance = () => {
   });
 
   const getAttendanceBadge = (status) => {
-    if (!status) return { label: 'Not Yet!', className: 'bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]' };
+    if (!status) return { label: 'Not Yet!', className: 'bg-[var(--status-neutral-bg)] text-[var(--status-neutral-text)] border border-[var(--line)]' };
     const s = String(status).toLowerCase().trim();
     const capitalize = (str) => String(str).replace(/\b\w/g, c => c.toUpperCase());
 
     if (s === 'present') {
-      return { label: 'Present', className: 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6]' };
+      return { label: 'Present', className: 'bg-[var(--status-success-bg)] text-[var(--status-success-text)] border border-[var(--status-success-text)]/20' };
     }
     if (s.includes('late') || s.includes('checkout missing')) {
       return { 
         label: s.includes('checkout missing') ? 'Checkout Missing' : 'Present (Late)', 
-        className: 'bg-[#fef7e0] text-[#b06000] border border-[#feefc3]' 
+        className: 'bg-[var(--status-warning-bg)] text-[var(--status-warning-text)] border border-[var(--status-warning-text)]/20' 
       };
     }
     if (s.includes('early')) {
-      return { label: 'Present (Early)', className: 'bg-[#fef7e0] text-[#b06000] border border-[#feefc3]' };
+      return { label: 'Present (Early)', className: 'bg-[var(--status-warning-bg)] text-[var(--status-warning-text)] border border-[var(--status-warning-text)]/20' };
     }
     if (s.includes('leave') || s === 'on leave') {
-      return { label: capitalize(status), className: 'bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]' };
+      return { label: capitalize(status), className: 'bg-[var(--status-info-bg)] text-[var(--status-info-text)] border border-[var(--status-info-text)]/20' };
     }
     if (s.includes('half')) {
-      return { label: 'Half Day', className: 'bg-[#f3e8fd] text-[#8430ce] border border-[#e9d5ff]' };
+      return { label: 'Half Day', className: 'bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)] border border-[var(--accent-pink-deep)]/20' };
     }
     if (s === 'missed') {
-      return { label: 'Missed', className: 'bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]' };
+      return { label: 'Missed', className: 'bg-[var(--status-neutral-bg)] text-[var(--status-neutral-text)] border border-[var(--line)]' };
     }
     if (s === 'absent' || s === 'missing') {
-      return { label: 'Absent', className: 'bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf]' };
+      return { label: 'Absent', className: 'bg-[var(--status-danger-bg)] text-[var(--status-danger-text)] border border-[var(--status-danger-text)]/20' };
     }
     if (s === 'regularized') {
-      return { label: 'Regularized', className: 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6]' };
+      return { label: 'Regularized', className: 'bg-[var(--status-success-bg)] text-[var(--status-success-text)] border border-[var(--status-success-text)]/20' };
     }
     if (s === 'holiday') {
-      return { label: 'Holiday', className: 'bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]' };
+      return { label: 'Holiday', className: 'bg-[var(--status-info-bg)] text-[var(--status-info-text)] border border-[var(--status-info-text)]/20' };
     }
     if (s.includes('weekend') || s.includes('week off')) {
-      return { label: capitalize(status), className: 'bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]' };
+      return { label: capitalize(status), className: 'bg-[var(--status-neutral-bg)] text-[var(--status-neutral-text)] border border-[var(--line)]' };
     }
-    return { label: capitalize(status), className: 'bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]' };
+    return { label: capitalize(status), className: 'bg-[var(--status-neutral-bg)] text-[var(--status-neutral-text)] border border-[var(--line)]' };
   };
 
   const formatClockTime = (isoString) => {
@@ -137,19 +137,18 @@ const EmployeeMobileAttendance = () => {
   }
 
   return (
-    <div className="space-y-6 pb-4 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+    <div className="space-y-6 pb-6 font-sans antialiased text-[var(--text)]">
 
-      {/* Clean White Header (Direct Page Layout, Non-Card) */}
+      {/* Header */}
       <section className="relative z-30 pt-1 pb-1">
-        {/* Header Title */}
         <div className="pt-0.5">
-          <p className="text-[10.5px] font-bold text-[#5f6368] uppercase tracking-wider mb-1">
+          <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-1">
             My Attendance
           </p>
-          <h2 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight leading-tight" style={{ fontWeight: 500 }}>
-            Daily <span className="font-medium italic text-[#1a73e8]">Attendance</span>
+          <h2 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight leading-tight">
+            Daily <span className="text-[var(--brand-deep)]">Attendance</span>
           </h2>
-          <p className="text-xs sm:text-sm font-medium text-[#5f6368] mt-0.5">
+          <p className="text-xs sm:text-sm font-medium text-[var(--text-2)] mt-0.5">
             Track your daily punches and approved leaves
           </p>
         </div>
@@ -158,57 +157,57 @@ const EmployeeMobileAttendance = () => {
       {/* KPI Stats Cards (2x2 Grid) */}
       <section className={`grid grid-cols-2 gap-3 relative z-20 mx-0.5 transition-opacity duration-150 ${isFetching ? 'opacity-75' : 'opacity-100'}`}>
         {/* Present */}
-        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3.5 shadow-xs space-y-1">
+        <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4 shadow-xs space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Present</span>
-            <div className="p-1.5 rounded-lg bg-[#e6f4ea] text-[#137333]">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">Present</span>
+            <div className="p-1.5 rounded-[8px] bg-[var(--status-success-bg)] text-[var(--status-success-text)]">
               <CheckCircle2 className="w-3.5 h-3.5" />
             </div>
           </div>
-          <p className="text-base font-bold text-[#137333]">{presentCount} Days</p>
-          <p className="text-[10px] text-[#5f6368]">Logged present</p>
+          <p className="text-base font-bold text-[var(--status-success-text)]">{presentCount} Days</p>
+          <p className="text-[10px] text-[var(--muted)]">Logged present</p>
         </div>
 
         {/* On Leave */}
-        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3.5 shadow-xs space-y-1">
+        <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4 shadow-xs space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">On Leave</span>
-            <div className="p-1.5 rounded-lg bg-[#f3e8fd] text-[#8430ce]">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">On Leave</span>
+            <div className="p-1.5 rounded-[8px] bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)]">
               <CalendarDays className="w-3.5 h-3.5" />
             </div>
           </div>
-          <p className="text-base font-bold text-[#8430ce]">{leaveCount} Days</p>
-          <p className="text-[10px] text-[#5f6368]">Approved leaves</p>
+          <p className="text-base font-bold text-[var(--accent-pink-deep)]">{leaveCount} Days</p>
+          <p className="text-[10px] text-[var(--muted)]">Approved leaves</p>
         </div>
 
         {/* Paid Leaves */}
-        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3.5 shadow-xs space-y-1">
+        <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4 shadow-xs space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Paid Leaves</span>
-            <div className="p-1.5 rounded-lg bg-[#e8f0fe] text-[#1a73e8]">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">Paid Leaves</span>
+            <div className="p-1.5 rounded-[8px] bg-[var(--brand-tint)] text-[var(--brand-deep)]">
               <Clock className="w-3.5 h-3.5" />
             </div>
           </div>
-          <p className="text-base font-bold text-[#1a73e8]">{paidLeaveCount} Days</p>
-          <p className="text-[10px] text-[#5f6368]">Quota deducted</p>
+          <p className="text-base font-bold text-[var(--brand-deep)]">{paidLeaveCount} Days</p>
+          <p className="text-[10px] text-[var(--muted)]">Quota deducted</p>
         </div>
 
         {/* Unpaid / LOP */}
-        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-3.5 shadow-xs space-y-1">
+        <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4 shadow-xs space-y-1">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#5f6368]">Unpaid (LOP)</span>
-            <div className="p-1.5 rounded-lg bg-[#fce8e6] text-[#c5221f]">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--muted)]">Unpaid (LOP)</span>
+            <div className="p-1.5 rounded-[8px] bg-[var(--status-danger-bg)] text-[var(--status-danger-text)]">
               <AlertCircle className="w-3.5 h-3.5" />
             </div>
           </div>
-          <p className="text-base font-bold text-[#c5221f]">{unpaidLeaveCount} Days</p>
-          <p className="text-[10px] text-[#5f6368]">Loss of pay</p>
+          <p className="text-base font-bold text-[var(--status-danger-text)]">{unpaidLeaveCount} Days</p>
+          <p className="text-[10px] text-[var(--muted)]">Loss of pay</p>
         </div>
       </section>
 
-      {/* Filter Controls Bar (Stacked: Up and Down) */}
-      <section className="bg-white rounded-[1.5rem] border border-slate-200 shadow-sm p-3.5 mx-0.5 space-y-3">
-        {/* Row 1 (Up): Month Switcher Controls */}
+      {/* Filter Controls Bar */}
+      <section className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] shadow-xs p-3.5 mx-0.5 space-y-3">
+        {/* Row 1: Month Switcher Controls */}
         <div className="flex items-center justify-between">
           <button
             type="button"
@@ -217,15 +216,15 @@ const EmployeeMobileAttendance = () => {
               const prev = new Date(y, m - 2, 1);
               setSelectedMonth(`${prev.getFullYear()}-${String(prev.getMonth() + 1).padStart(2, '0')}`);
             }}
-            className="w-9 h-9 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 flex items-center justify-center transition-all cursor-pointer shadow-xs active:scale-95"
+            className="w-9 h-9 rounded-[12px] border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--surface)] text-[var(--text-2)] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
             title="Previous Month"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
 
-          <span className="text-sm font-bold text-slate-800 select-none flex items-center gap-1.5">
+          <span className="text-sm font-semibold text-[var(--text)] select-none flex items-center gap-1.5">
             {format(new Date(selectedMonth + '-01'), 'MMMM yyyy')}
-            {isFetching && <Loader2 className="w-3.5 h-3.5 text-[#1a73e8] animate-spin inline-block" />}
+            {isFetching && <Loader2 className="w-3.5 h-3.5 text-[var(--brand)] animate-spin inline-block" />}
           </span>
 
           <button
@@ -235,19 +234,19 @@ const EmployeeMobileAttendance = () => {
               const next = new Date(y, m, 1);
               setSelectedMonth(`${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}`);
             }}
-            className="w-9 h-9 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 flex items-center justify-center transition-all cursor-pointer shadow-xs active:scale-95"
+            className="w-9 h-9 rounded-[12px] border border-[var(--line)] bg-[var(--surface-alt)] hover:bg-[var(--surface)] text-[var(--text-2)] flex items-center justify-center transition-all cursor-pointer shadow-2xs active:scale-95"
             title="Next Month"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Row 2 (Down): Status Filter Selector */}
+        {/* Row 2: Status Filter Selector */}
         <div className="relative">
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200 rounded-full px-5 py-3 pr-10 text-[13.5px] font-semibold text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 appearance-none cursor-pointer shadow-xs transition-all"
+            className="w-full bg-[var(--surface-alt)] border border-[var(--line)] rounded-[14px] px-4 py-2.5 pr-10 text-xs font-semibold text-[var(--text)] focus:bg-[var(--surface)] focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/20 focus:border-[var(--brand)] appearance-none cursor-pointer shadow-2xs transition-all"
           >
             <option value="all">All Records</option>
             <option value="present">Present Only</option>
@@ -257,7 +256,7 @@ const EmployeeMobileAttendance = () => {
             <option value="week-off">Week Off</option>
             <option value="missed">Missed / Absent</option>
           </select>
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+          <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--muted)]">
             <Filter className="w-4 h-4" />
           </div>
         </div>
@@ -266,21 +265,21 @@ const EmployeeMobileAttendance = () => {
       {/* Attendance Records List */}
       <section className={`space-y-3 transition-opacity duration-150 ${isFetching ? 'opacity-70' : 'opacity-100'}`}>
         <div className="flex items-center justify-between px-1">
-          <h3 className="text-base font-medium text-slate-900 tracking-tight" style={{ fontWeight: 500 }}>
-            Recent <span className="font-medium italic text-[#1a73e8]">Records</span>
+          <h3 className="text-sm font-semibold text-[var(--text)] tracking-tight">
+            Recent <span className="text-[var(--brand-deep)]">Records</span>
           </h3>
-          <span className="text-xs font-semibold text-slate-400">{filteredHistory.length} Days</span>
+          <span className="text-xs font-medium text-[var(--muted)]">{filteredHistory.length} Days</span>
         </div>
 
         {error ? (
-          <div className="bg-red-50 p-4 rounded-2xl text-red-600 text-xs font-medium text-center border border-red-100">
+          <div className="bg-[var(--status-danger-bg)] p-4 rounded-[16px] text-[var(--status-danger-text)] text-xs font-semibold text-center border border-[var(--status-danger-text)]/20">
             {error}
           </div>
         ) : filteredHistory.length === 0 ? (
-          <div className="bg-white p-8 rounded-[1.5rem] text-center border border-slate-200 shadow-sm space-y-2">
-            <AlertCircle className="w-8 h-8 text-slate-400 mx-auto opacity-60" />
-            <p className="text-sm font-bold text-slate-800">No attendance records found</p>
-            <p className="text-xs text-slate-500">There are no attendance punches logged for this period.</p>
+          <div className="bg-[var(--surface)] p-8 rounded-[20px] text-center border border-[var(--line)] shadow-xs space-y-2">
+            <AlertCircle className="w-8 h-8 text-[var(--muted)] mx-auto opacity-60" />
+            <p className="text-sm font-semibold text-[var(--text)]">No attendance records found</p>
+            <p className="text-xs text-[var(--muted)]">There are no attendance punches logged for this period.</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -289,55 +288,55 @@ const EmployeeMobileAttendance = () => {
               const badge = getAttendanceBadge(record.status);
 
               return (
-                <div key={record.id || index} className="bg-white p-4 rounded-[1.5rem] border border-slate-200 shadow-sm flex flex-col gap-3">
+                <div key={record.id || index} className="bg-[var(--surface)] p-4 rounded-[20px] border border-[var(--line)] shadow-xs flex flex-col gap-3">
                   
                   {/* Top Row: Date Chip + Day Name + Status Badge */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="flex flex-col items-center justify-center min-w-[3.2rem] px-2 py-1.5 rounded-xl bg-slate-50 border border-slate-100 text-center shadow-2xs">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 leading-none mb-0.5">
+                      <div className="flex flex-col items-center justify-center min-w-[3.2rem] px-2 py-1.5 rounded-[12px] bg-[var(--surface-alt)] border border-[var(--line)] text-center shadow-2xs">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--muted)] leading-none mb-0.5">
                           {format(dateObj, 'MMM')}
                         </span>
-                        <span className="text-base font-black text-slate-800 leading-none">
+                        <span className="text-base font-bold text-[var(--text)] leading-none">
                           {format(dateObj, 'dd')}
                         </span>
                       </div>
                       <div>
-                        <h4 className="text-sm font-bold text-slate-800">
+                        <h4 className="text-sm font-semibold text-[var(--text)]">
                           {format(dateObj, 'EEEE')}
                         </h4>
-                        <p className="text-[11px] font-medium text-slate-400 mt-0.5">
+                        <p className="text-[11px] font-medium text-[var(--muted)] mt-0.5">
                           {format(dateObj, 'dd MMM yyyy')}
                         </p>
                       </div>
                     </div>
 
-                    <span className={`inline-flex items-center px-3.5 py-1.5 rounded-full text-[12.5px] font-bold shrink-0 shadow-2xs ${badge.className}`}>
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold shrink-0 shadow-2xs ${badge.className}`}>
                       {badge.label}
                     </span>
                   </div>
 
                   {/* Bottom Row: Check In and Check Out Times */}
-                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
-                    <div className="flex items-center gap-2 p-2 rounded-xl bg-slate-50 border border-slate-100">
-                      <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[var(--line)]">
+                    <div className="flex items-center gap-2 p-2 rounded-[12px] bg-[var(--surface-alt)] border border-[var(--line)]">
+                      <div className="w-7 h-7 rounded-[8px] bg-[var(--status-success-bg)] text-[var(--status-success-text)] flex items-center justify-center shrink-0">
                         <LogIn className="w-3.5 h-3.5" />
                       </div>
                       <div className="min-w-0">
-                        <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 block leading-none">In Time</span>
-                        <span className="text-xs font-bold text-slate-700 truncate block mt-0.5">
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted)] block leading-none">In Time</span>
+                        <span className="text-xs font-semibold text-[var(--text)] truncate block mt-0.5">
                           {formatClockTime(record.checkIn)}
                         </span>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 p-2 rounded-xl bg-slate-50 border border-slate-100">
-                      <div className="w-7 h-7 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                    <div className="flex items-center gap-2 p-2 rounded-[12px] bg-[var(--surface-alt)] border border-[var(--line)]">
+                      <div className="w-7 h-7 rounded-[8px] bg-[var(--status-danger-bg)] text-[var(--status-danger-text)] flex items-center justify-center shrink-0">
                         <LogOut className="w-3.5 h-3.5" />
                       </div>
                       <div className="min-w-0">
-                        <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 block leading-none">Out Time</span>
-                        <span className="text-xs font-bold text-slate-700 truncate block mt-0.5">
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-[var(--muted)] block leading-none">Out Time</span>
+                        <span className="text-xs font-semibold text-[var(--text)] truncate block mt-0.5">
                           {formatClockTime(record.checkOut)}
                         </span>
                       </div>
