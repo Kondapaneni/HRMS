@@ -80,8 +80,9 @@ const AdminLayout = () => {
       label: 'Time',
       path: '/admin/attendance',
       chips: [
-        { label: 'Attendance', path: '/admin/attendance' },
+        { label: 'Attendance', path: '/admin/attendance', exact: true },
         { label: 'Leave', path: '/admin/leaves' },
+        { label: 'Locations & shifts', path: '/admin/attendance/config' },
         { label: 'Holidays', path: '/admin/holidays' },
       ],
       activeMatch: (pathname) =>

@@ -8,9 +8,7 @@ import {
   MapPin,
   Loader2,
   Clock,
-  Globe,
-  CalendarCheck,
-  CalendarDays
+  CalendarCheck
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -158,22 +156,6 @@ const AdminAttendance = () => {
             >
               <CalendarCheck size={14} />
               <span>Regularize</span>
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => navigate('/admin/attendance/config')}
-              className="h-9 px-3.5 rounded-[12px] text-xs font-medium"
-            >
-              <Globe size={14} />
-              <span>Locations &amp; shifts</span>
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => navigate('/admin/holidays')}
-              className="h-9 px-3.5 rounded-[12px] text-xs font-medium"
-            >
-              <CalendarDays size={14} />
-              <span>Company holidays</span>
             </Button>
           </div>
         )}
