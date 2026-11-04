@@ -99,26 +99,20 @@ const AddLeadSidebar = ({ isOpen, onClose, type = 'loan' }) => {
         animate={{ x: 0 }}
         exit={{ x: '100%' }}
         transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
-        className="bg-white shadow-2xl w-full max-w-md h-[100dvh] flex flex-col overflow-hidden relative z-10 border-l border-[#e0e3e7]"
+        className="bg-[var(--surface)] text-[var(--text)] shadow-2xl w-full max-w-md h-[100dvh] flex flex-col overflow-hidden relative z-10 border-l border-[var(--line)]"
       >
-        {/* Top 4-Color Google Accent Line */}
-        <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
-
         {/* Modal Header */}
-        <div className="px-6 py-4 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd] mt-1 shrink-0">
+        <div className="px-6 py-4.5 border-b border-[var(--line)] flex justify-between items-center bg-[var(--surface-alt)] shrink-0">
           <div>
-            <div className="flex items-center gap-1 mb-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-              <span className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">New Prospect</span>
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand-deep)]" />
+              <span className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider">New Prospect</span>
             </div>
-            <h2 className="text-lg font-semibold text-[#1f1f1f]">Add New Lead</h2>
+            <h2 className="text-lg font-bold text-[var(--text)] tracking-tight">Add New Lead</h2>
           </div>
           <button 
             onClick={onClose} 
-            className="text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4] p-1.5 rounded-full transition-colors cursor-pointer"
+            className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface)] p-2 rounded-[10px] transition-colors cursor-pointer"
           >
             <X size={18} />
           </button>
@@ -135,7 +129,7 @@ const AddLeadSidebar = ({ isOpen, onClose, type = 'loan' }) => {
               required
               placeholder="e.g. Rahul Sharma"
               error={errors.name}
-              prefix={<User size={15} className="text-[#5f6368]" />}
+              prefix={<User size={15} className="text-[var(--muted)]" />}
             />
 
             <PhoneField
@@ -146,7 +140,7 @@ const AddLeadSidebar = ({ isOpen, onClose, type = 'loan' }) => {
               required
               placeholder="10-digit mobile number"
               error={errors.phone}
-              prefix={<Phone size={15} className="text-[#5f6368]" />}
+              prefix={<Phone size={15} className="text-[var(--muted)]" />}
             />
 
             <TextareaField
@@ -163,11 +157,11 @@ const AddLeadSidebar = ({ isOpen, onClose, type = 'loan' }) => {
         </div>
 
         {/* Footer Buttons */}
-        <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex items-center justify-end gap-2.5 shrink-0">
+        <div className="p-4 border-t border-[var(--line)] bg-[var(--surface-alt)] flex items-center justify-end gap-2.5 shrink-0">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-xs font-semibold text-[#1f1f1f] transition-all cursor-pointer"
+            className="px-4 py-2 rounded-full border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] text-xs font-semibold text-[var(--text)] transition-all cursor-pointer"
           >
             Cancel
           </button>
@@ -175,11 +169,7 @@ const AddLeadSidebar = ({ isOpen, onClose, type = 'loan' }) => {
             type="submit"
             form="add-lead-form"
             disabled={isSubmitting}
-            className={`px-5 py-2 rounded-full text-xs font-semibold text-white shadow-xs transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer active:scale-95 ${
-              isSale
-                ? 'bg-[#137333] hover:bg-[#0d5926]'
-                : 'bg-[#1a73e8] hover:bg-[#1557b0]'
-            }`}
+            className="px-5 py-2 rounded-full text-xs font-semibold text-white bg-[var(--ink)] hover:bg-[var(--ink-2)] shadow-xs transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer active:scale-95"
           >
             {isSubmitting ? (
               <>

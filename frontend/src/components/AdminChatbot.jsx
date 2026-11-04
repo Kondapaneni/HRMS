@@ -165,8 +165,8 @@ const AdminChatbot = () => {
       if (line.trim().startsWith('* ') || line.trim().startsWith('- ')) {
         const itemText = line.trim().replace(/^[\*\-]\s+/, '');
         return (
-          <div key={idx} className="flex items-start gap-1.5 ml-1 my-1 text-xs text-[#3c4043] leading-relaxed">
-            <span className="text-[#1a73e8] font-bold select-none">•</span>
+          <div key={idx} className="flex items-start gap-1.5 ml-1 my-1 text-xs text-[var(--text-2)] leading-relaxed">
+            <span className="text-[var(--brand-deep)] font-bold select-none">•</span>
             <span>{parseInlineMarkdown(itemText)}</span>
           </div>
         );
@@ -193,7 +193,7 @@ const AdminChatbot = () => {
       }
       if (part.startsWith('`') && part.endsWith('`')) {
         return (
-          <code key={i} className="bg-[#f1f3f4] border border-[#e0e3e7] px-1.5 py-0.5 rounded text-[11px] font-mono text-[#1a73e8]">
+          <code key={i} className="bg-[var(--surface-alt)] border border-[var(--line)] px-1.5 py-0.5 rounded text-[11px] font-mono text-[var(--brand-deep)]">
             {part.slice(1, -1)}
           </code>
         );
@@ -204,14 +204,14 @@ const AdminChatbot = () => {
 
   return (
     <>
-      {/* 1. Floating Circular Action Button (FAB) styled in Acme HRMS Google Blue */}
+      {/* 1. Floating Circular Action Button (FAB) */}
       <div className="fixed bottom-24 md:bottom-6 right-5 md:right-6 z-40 select-none">
         <motion.button
           onClick={() => setIsOpen(prev => !prev)}
           whileHover={{ scale: 1.06 }}
           whileTap={{ scale: 0.94 }}
           aria-label={isOpen ? 'Close chat' : 'Open Admin HR Assistant'}
-          className="relative flex items-center justify-center w-14 h-14 rounded-full bg-[#EA4335] hover:bg-[#d93025] text-white shadow-lg shadow-[#EA4335]/30 border border-[#EA4335]/20 focus:outline-none transition-all cursor-pointer"
+          className="relative flex items-center justify-center w-14 h-14 rounded-full bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white shadow-lg shadow-black/15 border border-[var(--line)] focus:outline-none transition-all cursor-pointer"
         >
           <AnimatePresence mode="wait">
             {isOpen ? (
@@ -235,7 +235,7 @@ const AdminChatbot = () => {
               >
                 <MessageSquare className="w-6 h-6 text-white" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#FBBC05] text-[10px] font-bold text-white ring-2 ring-white">
+                  <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--brand-deep)] text-[10px] font-bold text-white ring-2 ring-[var(--surface)]">
                     {unreadCount}
                   </span>
                 )}
@@ -245,7 +245,7 @@ const AdminChatbot = () => {
         </motion.button>
       </div>
 
-      {/* 2. Floating Chat Modal Window styled with Acme HRMS Google Workspace theme */}
+      {/* 2. Floating Chat Modal Window */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -253,33 +253,30 @@ const AdminChatbot = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ type: 'spring', damping: 25, stiffness: 320 }}
-            className="fixed bottom-40 md:bottom-24 right-4 sm:right-6 z-50 w-[calc(100vw-32px)] sm:w-[410px] h-[580px] max-h-[78vh] flex flex-col bg-white border border-[#e0e3e7] rounded-2xl shadow-2xl overflow-hidden font-editorial antialiased"
+            className="fixed bottom-40 md:bottom-24 right-4 sm:right-6 z-50 w-[calc(100vw-32px)] sm:w-[410px] h-[580px] max-h-[78vh] flex flex-col bg-[var(--surface)] border border-[var(--line)] rounded-[24px] shadow-2xl overflow-hidden antialiased font-sans"
           >
-            {/* Top Google 4-Color Accent Line */}
-            <div className="h-1 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] shrink-0" />
-
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-[#f1f3f4] bg-white">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--line)] bg-[var(--surface)]">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-[#fce8e6] border border-[#f8d8d6] flex items-center justify-center text-[#d93025] shrink-0 shadow-2xs">
-                  <Sparkles className="w-4 h-4 text-[#d93025]" />
+                <div className="w-8 h-8 rounded-[10px] bg-[var(--brand-tint)] border border-[var(--line)] flex items-center justify-center text-[var(--brand-deep)] shrink-0 shadow-2xs">
+                  <Sparkles className="w-4 h-4 text-[var(--brand-deep)]" />
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <h3 className="text-sm font-semibold text-[#1f1f1f] leading-tight">Admin Assistant</h3>
-                    <span className="inline-block w-2 h-2 rounded-full bg-[#34A853] ring-2 ring-[#34A853]/20" title="Online" />
+                    <h3 className="text-sm font-semibold text-[var(--text)] leading-tight">Admin Assistant</h3>
+                    <span className="inline-block w-2 h-2 rounded-full bg-[#1F9D55] ring-2 ring-[#1F9D55]/20" title="Online" />
                   </div>
-                  <p className="text-[11px] text-[#5f6368] leading-none mt-0.5">Answers questions on all employees</p>
+                  <p className="text-[11px] text-[var(--muted)] leading-none mt-0.5">Answers questions on all employees</p>
                 </div>
               </div>
 
               {/* Header Action Buttons */}
-              <div className="flex items-center gap-1 text-[#5f6368]">
+              <div className="flex items-center gap-1 text-[var(--muted)]">
                 <button
                   type="button"
                   onClick={handleResetChat}
                   title="Start New Conversation"
-                  className="p-1.5 rounded-lg hover:bg-[#f1f3f4] text-[#5f6368] hover:text-[#1f1f1f] transition-colors cursor-pointer"
+                  className="p-1.5 rounded-[8px] hover:bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)] transition-colors cursor-pointer"
                 >
                   <RotateCcw className="w-4 h-4" />
                 </button>
@@ -287,15 +284,15 @@ const AdminChatbot = () => {
                   type="button"
                   onClick={() => setIsOpen(false)}
                   title="Close Assistant"
-                  className="p-1.5 rounded-lg hover:bg-[#f1f3f4] text-[#5f6368] hover:text-[#1f1f1f] transition-colors cursor-pointer"
+                  className="p-1.5 rounded-[8px] hover:bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)] transition-colors cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
             </div>
 
-            {/* Conversation Messages Area (Light Google Background) */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-[#f8fafd] scrollbar-thin scrollbar-thumb-[#e0e3e7]">
+            {/* Conversation Messages Area */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-[var(--bg)] scrollbar-thin">
               {messages.map((msg, index) => {
                 const isUser = msg.role === 'user';
                 return (
@@ -307,10 +304,10 @@ const AdminChatbot = () => {
                     className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}
                   >
                     <div
-                      className={`relative max-w-[86%] rounded-2xl px-3.5 py-2.5 shadow-2xs text-xs ${
+                      className={`relative max-w-[86%] rounded-[18px] px-3.5 py-2.5 shadow-2xs text-xs ${
                         isUser
-                          ? 'bg-[#1a73e8] text-white rounded-br-xs'
-                          : 'bg-white text-[#1f1f1f] border border-[#e0e3e7] rounded-bl-xs'
+                          ? 'bg-[var(--ink)] text-white rounded-br-[4px]'
+                          : 'bg-[var(--surface)] text-[var(--text)] border border-[var(--line)] rounded-bl-[4px]'
                       }`}
                     >
                       {isUser ? (
@@ -324,15 +321,15 @@ const AdminChatbot = () => {
 
                     {/* Copy action for assistant responses */}
                     {!isUser && (
-                      <div className="flex items-center gap-1.5 mt-1 ml-1 text-[#5f6368]">
+                      <div className="flex items-center gap-1.5 mt-1 ml-1 text-[var(--muted)]">
                         <button
                           type="button"
                           onClick={() => copyToClipboard(msg.content, index)}
                           title="Copy response"
-                          className="p-1 rounded text-[#5f6368] hover:text-[#1a73e8] hover:bg-[#e8f0fe] transition-colors cursor-pointer"
+                          className="p-1 rounded text-[var(--muted)] hover:text-[var(--brand-deep)] hover:bg-[var(--brand-tint)] transition-colors cursor-pointer"
                         >
                           {copiedIndex === index ? (
-                            <Check className="w-3.5 h-3.5 text-[#137333]" />
+                            <Check className="w-3.5 h-3.5 text-[#1F9D55]" />
                           ) : (
                             <Copy className="w-3.5 h-3.5" />
                           )}
@@ -348,11 +345,11 @@ const AdminChatbot = () => {
                 <motion.div
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="flex items-center gap-1.5 bg-white px-3.5 py-2.5 rounded-2xl rounded-bl-xs w-fit border border-[#e0e3e7] shadow-2xs"
+                  className="flex items-center gap-1.5 bg-[var(--surface)] px-3.5 py-2.5 rounded-[16px] rounded-bl-[4px] w-fit border border-[var(--line)] shadow-2xs"
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#1a73e8] animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#1a73e8] animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#1a73e8] animate-bounce" style={{ animationDelay: '300ms' }} />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand-deep)] animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand-deep)] animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand-deep)] animate-bounce" style={{ animationDelay: '300ms' }} />
                 </motion.div>
               )}
 
@@ -360,7 +357,7 @@ const AdminChatbot = () => {
             </div>
 
             {/* Quick Suggestion Chips Carousel */}
-            <div className="px-3 py-2 border-t border-[#f1f3f4] bg-white">
+            <div className="px-3 py-2 border-t border-[var(--line)] bg-[var(--surface)]">
               <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
                 {activeSuggestions.map((sug, idx) => (
                   <button
@@ -368,7 +365,7 @@ const AdminChatbot = () => {
                     type="button"
                     disabled={loading}
                     onClick={() => handleSendMessage(sug.query)}
-                    className="shrink-0 text-xs font-medium bg-[#f8fafd] hover:bg-[#e8f0fe] text-[#444746] hover:text-[#1a73e8] border border-[#dadce0] hover:border-[#aecbfa] px-3 py-1 rounded-full shadow-2xs transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+                    className="shrink-0 text-xs font-medium bg-[var(--surface)] hover:bg-[var(--brand-tint)] text-[var(--text-2)] hover:text-[var(--brand-deep)] border border-[var(--line)] hover:border-[var(--brand)] px-3 py-1 rounded-full shadow-2xs transition-all active:scale-95 cursor-pointer disabled:opacity-50"
                   >
                     {sug.label}
                   </button>
@@ -377,17 +374,17 @@ const AdminChatbot = () => {
             </div>
 
             {/* Input Bar */}
-            <div className="p-3 border-t border-[#e0e3e7] bg-white">
-              <div className="relative flex items-center bg-[#f1f3f4] hover:bg-[#f8fafd] focus-within:bg-white border border-[#dadce0] focus-within:border-[#1a73e8] focus-within:ring-2 focus-within:ring-[#1a73e8]/20 rounded-full px-2 py-1.5 transition-all">
+            <div className="p-3 border-t border-[var(--line)] bg-[var(--surface)]">
+              <div className="relative flex items-center bg-[var(--surface-alt)] focus-within:bg-[var(--surface)] border border-[var(--line)] focus-within:border-[var(--brand-deep)] focus-within:ring-2 focus-within:ring-[var(--brand)]/20 rounded-full px-2 py-1.5 transition-all">
                 
                 {/* Plus (+) Button for quick prompt menu */}
                 <button
                   type="button"
                   onClick={() => setShowSuggestionsMenu(prev => !prev)}
                   title="Suggested questions"
-                  className="p-1.5 text-[#5f6368] hover:text-[#1a73e8] rounded-full hover:bg-[#e8f0fe] transition-colors cursor-pointer"
+                  className="p-1.5 text-[var(--muted)] hover:text-[var(--brand-deep)] rounded-full hover:bg-[var(--brand-tint)] transition-colors cursor-pointer"
                 >
-                  <Plus className={`w-4 h-4 transition-transform duration-200 ${showSuggestionsMenu ? 'rotate-45 text-[#1a73e8]' : ''}`} />
+                  <Plus className={`w-4 h-4 transition-transform duration-200 ${showSuggestionsMenu ? 'rotate-45 text-[var(--brand-deep)]' : ''}`} />
                 </button>
 
                 {/* Text input */}
@@ -399,8 +396,9 @@ const AdminChatbot = () => {
                   onKeyDown={handleKeyDown}
                   placeholder="Ask about employees, departments, branches..."
                   disabled={loading}
-                  className="flex-1 bg-transparent px-2.5 text-xs text-[#1f1f1f] placeholder-[#80868b] focus:outline-none disabled:opacity-60"
-                />
+                  className="flex-1 bg-transparent px-2.5 text-xs text-[var(--text)] placeholder-[var(--muted)] focus:outline-none disabled:opacity-60"
+                >
+                </input>
 
                 {/* Send Button */}
                 <button
@@ -408,7 +406,7 @@ const AdminChatbot = () => {
                   onClick={() => handleSendMessage()}
                   disabled={!inputMessage.trim() || loading}
                   title="Send message"
-                  className="w-8 h-8 rounded-full bg-[#1a73e8] text-white flex items-center justify-center hover:bg-[#1557b0] disabled:bg-[#dadce0] disabled:text-[#80868b] transition-all shrink-0 active:scale-95 shadow-xs cursor-pointer disabled:cursor-not-allowed"
+                  className="w-8 h-8 rounded-full bg-[var(--ink)] text-white flex items-center justify-center hover:bg-[var(--ink-2)] disabled:bg-[var(--surface-alt)] disabled:text-[var(--muted)] transition-all shrink-0 active:scale-95 shadow-xs cursor-pointer disabled:cursor-not-allowed"
                 >
                   <ArrowUp className="w-4 h-4 stroke-[2.5]" />
                 </button>
@@ -421,14 +419,14 @@ const AdminChatbot = () => {
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 8 }}
-                    className="absolute bottom-16 left-4 right-4 bg-white border border-[#e0e3e7] rounded-2xl p-2.5 shadow-xl z-20"
+                    className="absolute bottom-16 left-4 right-4 bg-[var(--surface)] border border-[var(--line)] rounded-[20px] p-2.5 shadow-xl z-20"
                   >
-                    <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-[#f1f3f4] px-2">
-                      <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider">Suggested Topics</span>
+                    <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-[var(--line)] px-2">
+                      <span className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">Suggested Topics</span>
                       <button 
                         type="button"
                         onClick={() => setShowSuggestionsMenu(false)} 
-                        className="text-[#5f6368] hover:text-[#1f1f1f] p-0.5 rounded cursor-pointer"
+                        className="text-[var(--muted)] hover:text-[var(--text)] p-0.5 rounded-[6px] cursor-pointer"
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
@@ -439,10 +437,10 @@ const AdminChatbot = () => {
                           key={i}
                           type="button"
                           onClick={() => handleSendMessage(sug.query)}
-                          className="w-full text-left px-3 py-1.5 text-xs font-medium text-[#3c4043] hover:text-[#1a73e8] hover:bg-[#e8f0fe] rounded-lg transition-colors cursor-pointer flex items-center justify-between group"
+                          className="w-full text-left px-3 py-1.5 text-xs font-medium text-[var(--text-2)] hover:text-[var(--brand-deep)] hover:bg-[var(--brand-tint)] rounded-[10px] transition-colors cursor-pointer flex items-center justify-between group"
                         >
                           <span>{sug.label}</span>
-                          <span className="text-[10px] text-[#1a73e8] opacity-0 group-hover:opacity-100 transition-opacity">Ask</span>
+                          <span className="text-[10px] text-[var(--brand-deep)] opacity-0 group-hover:opacity-100 transition-opacity">Ask</span>
                         </button>
                       ))}
                     </div>

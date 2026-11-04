@@ -58,7 +58,7 @@ export function LoanDocumentsSidebar({
     personName: formData.applicant_name || 'Primary Applicant',
     relation: 'Applicant',
     icon: User,
-    badgeBg: 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc]'
+    badgeBg: 'bg-[#E8F0FB] text-[#3B6FB6] border-[#3B6FB6]/20'
   });
 
   // 2. Co-Applicant Photo (Only if Co-Applicant exists)
@@ -250,30 +250,24 @@ export function LoanDocumentsSidebar({
         animate={{ x: 0 }}
         exit={{ x: '100%' }}
         transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
-        className="bg-white shadow-2xl w-full max-w-md sm:max-w-lg h-[100dvh] flex flex-col overflow-hidden relative z-10 border-l border-[#e0e3e7]"
+        className="bg-[var(--surface)] text-[var(--text)] shadow-2xl w-full max-w-md sm:max-w-lg h-[100dvh] flex flex-col overflow-hidden relative z-10 border-l border-[var(--line)] antialiased font-sans"
       >
-        {/* Top 4-Color Google Accent Line */}
-        <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
-
-        {/* Modal Header Matching MemberDetailsSidebar / AddLeadSidebar */}
-        <div className="px-6 py-4 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd] mt-1 shrink-0">
+        {/* Modal Header */}
+        <div className="px-6 py-4.5 border-b border-[var(--line)] flex justify-between items-center bg-[var(--surface-alt)] shrink-0">
           <div>
-            <div className="flex items-center gap-1 mb-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-              <span className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand-deep)]" />
+              <span className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider">
                 Member Profile
               </span>
             </div>
-            <h2 className="text-lg font-semibold text-[#1f1f1f]">
+            <h2 className="text-lg font-bold text-[var(--text)] tracking-tight">
               Member Details
             </h2>
           </div>
           <button 
             onClick={onClose} 
-            className="text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4] p-1.5 rounded-full transition-colors cursor-pointer"
+            className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface)] p-2 rounded-[10px] transition-colors cursor-pointer"
           >
             <X size={18} />
           </button>
@@ -283,20 +277,20 @@ export function LoanDocumentsSidebar({
         <div className="p-6 overflow-y-auto flex-1 space-y-4">
           
           {/* Summary / Progress Overview Card */}
-          <div className="bg-[#f8fafd] p-4 rounded-2xl border border-[#e0e3e7] flex items-center justify-between">
+          <div className="bg-[var(--surface-alt)] p-4 rounded-[20px] border border-[var(--line)] flex items-center justify-between">
             <div>
-              <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider block">
+              <span className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider block">
                 Application ID
               </span>
-              <p className="text-sm font-bold text-[#1f1f1f] font-sans">
+              <p className="text-sm font-bold text-[var(--text)] font-sans">
                 {appId}
               </p>
             </div>
             <div className="text-right">
-              <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider block">
+              <span className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider block">
                 Upload Status
               </span>
-              <p className="text-xs font-bold text-[#1a73e8]">
+              <p className="text-xs font-bold text-[var(--brand-deep)]">
                 {uploadedCount} of {photoSlots.length} uploaded
               </p>
             </div>
@@ -311,24 +305,24 @@ export function LoanDocumentsSidebar({
             return (
               <div 
                 key={slot.key}
-                className="bg-white border border-[#e0e3e7] rounded-2xl p-4 shadow-xs hover:border-[#dadce0] transition-all space-y-3"
+                className="bg-[var(--surface)] border border-[var(--line)] rounded-[20px] p-4 shadow-xs hover:border-[var(--brand)] transition-all space-y-3"
               >
                 {/* Person Info Row */}
                 <div className="flex items-center justify-between gap-3 min-w-0">
                   <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div className={`w-10 h-10 rounded-xl ${
+                    <div className={`w-10 h-10 rounded-[12px] ${
                       uploadedDoc 
-                        ? 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc]' 
-                        : 'bg-[#f8fafd] text-[#80868b] border-[#e0e3e7]'
+                        ? 'bg-[var(--brand-tint)] text-[var(--brand-deep)] border border-[var(--line)]' 
+                        : 'bg-[var(--surface-alt)] text-[var(--muted)] border border-[var(--line)]'
                     } border flex items-center justify-center shrink-0 shadow-2xs`}>
                       <Icon className="w-5 h-5" />
                     </div>
 
                     <div className="min-w-0 flex-1">
-                      <h4 className="text-sm font-bold text-[#1f1f1f] truncate">
+                      <h4 className="text-sm font-bold text-[var(--text)] truncate">
                         {slot.personName}
                       </h4>
-                      <span className={`inline-block px-2 py-0.2 rounded-full text-[10px] font-semibold border ${slot.badgeBg} mt-0.5`}>
+                      <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold border ${slot.badgeBg} mt-0.5`}>
                         {slot.relation}
                       </span>
                     </div>
@@ -337,11 +331,11 @@ export function LoanDocumentsSidebar({
                   {/* Status Badge */}
                   <div className="shrink-0">
                     {uploadedDoc ? (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#137333] bg-[#e6f4ea] px-2.5 py-0.5 rounded-full border border-[#ceead6]">
-                        <CheckCircle2 size={12} className="text-[#137333]" /> Uploaded
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#1F9D55] bg-[#E6F6EC] px-2.5 py-0.5 rounded-full border border-[#1F9D55]/20">
+                        <CheckCircle2 size={12} className="text-[#1F9D55]" /> Uploaded
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 text-[11px] text-[#b06000] bg-[#fef7e0] px-2.5 py-0.5 rounded-full border border-[#feefc3] font-semibold">
+                      <span className="inline-flex items-center gap-1 text-[11px] text-[#B7791F] bg-[#FDF3DC] px-2.5 py-0.5 rounded-full border border-[#B7791F]/20 font-semibold">
                         <Clock size={11} /> Pending
                       </span>
                     )}
@@ -350,8 +344,8 @@ export function LoanDocumentsSidebar({
 
                 {/* Uploaded Photo Preview */}
                 {uploadedDoc && (
-                  <div className="flex items-center gap-3 bg-[#f8fafd] p-2.5 rounded-xl border border-[#e0e3e7]">
-                    <div className="w-14 h-16 rounded-lg overflow-hidden border border-[#dadce0] shrink-0 bg-white shadow-2xs">
+                  <div className="flex items-center gap-3 bg-[var(--surface-alt)] p-2.5 rounded-[14px] border border-[var(--line)]">
+                    <div className="w-14 h-16 rounded-[10px] overflow-hidden border border-[var(--line)] shrink-0 bg-[var(--surface)] shadow-2xs">
                       <img
                         src={uploadedDoc.url}
                         alt={slot.title}
@@ -359,8 +353,8 @@ export function LoanDocumentsSidebar({
                       />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-[#1f1f1f] truncate">{slot.title}</p>
-                      <p className="text-[11px] text-[#5f6368] truncate">Verified and linked to profile</p>
+                      <p className="text-xs font-semibold text-[var(--text)] truncate">{slot.title}</p>
+                      <p className="text-[11px] text-[var(--muted)] truncate">Verified and linked to profile</p>
                     </div>
                   </div>
                 )}
@@ -394,9 +388,9 @@ export function LoanDocumentsSidebar({
                 />
 
                   {/* Action Buttons */}
-                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#f1f3f4]">
+                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-[var(--line)]">
                     {isSlotBusy ? (
-                      <div className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] rounded-full border border-[#d2e3fc]">
+                      <div className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-[var(--brand-deep)] bg-[var(--brand-tint)] rounded-full border border-[var(--line)]">
                         <Loader2 size={13} className="animate-spin" /> Uploading...
                       </div>
                     ) : uploadedDoc ? (
@@ -405,21 +399,21 @@ export function LoanDocumentsSidebar({
                         <button
                           type="button"
                           onClick={() => cameraInputRefs.current[slot.key]?.click()}
-                          className="inline-flex md:hidden items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] px-3 py-1.5 transition-all shadow-2xs cursor-pointer gap-1"
+                          className="inline-flex md:hidden items-center justify-center rounded-full text-xs font-semibold bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-alt)] border border-[var(--line)] px-3 py-1.5 transition-all shadow-2xs cursor-pointer gap-1"
                         >
-                          <Camera size={13} className="text-[#5f6368]" /> Retake
+                          <Camera size={13} className="text-[var(--muted)]" /> Retake
                         </button>
                         <button
                           type="button"
                           onClick={() => fileInputRefs.current[slot.key]?.click()}
-                          className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] px-3 py-1.5 transition-all shadow-2xs cursor-pointer gap-1"
+                          className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-alt)] border border-[var(--line)] px-3 py-1.5 transition-all shadow-2xs cursor-pointer gap-1"
                         >
-                          <UploadCloud size={13} className="text-[#5f6368]" /> Replace Photo
+                          <UploadCloud size={13} className="text-[var(--muted)]" /> Replace Photo
                         </button>
                         <button
                           type="button"
                           onClick={() => handleDeletePhoto(slot.key)}
-                          className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#c5221f] hover:bg-[#fce8e6] border border-[#fad2cf] p-1.5 transition-all shadow-2xs cursor-pointer"
+                          className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[var(--surface)] text-[var(--status-danger)] hover:bg-[var(--status-danger-bg)] border border-[var(--status-danger)]/20 p-1.5 transition-all shadow-2xs cursor-pointer"
                           title="Delete Photo"
                         >
                           <Trash2 size={14} />
@@ -431,14 +425,14 @@ export function LoanDocumentsSidebar({
                         <button
                           type="button"
                           onClick={() => cameraInputRefs.current[slot.key]?.click()}
-                          className="inline-flex md:hidden items-center justify-center rounded-full text-xs font-semibold bg-[#1a73e8] text-white hover:bg-[#1557b0] px-3.5 py-1.5 transition-all gap-1.5 shadow-xs cursor-pointer"
+                          className="inline-flex md:hidden items-center justify-center rounded-full text-xs font-semibold bg-[var(--ink)] text-white hover:bg-[var(--ink-2)] px-3.5 py-1.5 transition-all gap-1.5 shadow-xs cursor-pointer"
                         >
                           <Camera size={13} /> Take Photo
                         </button>
                         <button
                           type="button"
                           onClick={() => fileInputRefs.current[slot.key]?.click()}
-                          className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[#1a73e8] text-white hover:bg-[#1557b0] md:bg-[#1a73e8] md:text-white px-3.5 py-1.5 transition-all shadow-xs cursor-pointer gap-1.5"
+                          className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[var(--ink)] text-white hover:bg-[var(--ink-2)] px-3.5 py-1.5 transition-all shadow-xs cursor-pointer gap-1.5"
                           title="Upload Image from Files"
                         >
                           <UploadCloud size={13} /> Upload Photo

@@ -1741,7 +1741,7 @@ export function BusinessLoanForm({ isEditMode: propEditMode, application: propAp
             <p className="text-xs text-slate-500 mt-1">Business loan requires details for exactly 3 guarantors.</p>
           </div>
           <div 
-            className="flex items-center gap-1.5 bg-[#f8fafd] border border-[#dadce0] p-1.5 rounded-full w-full sm:w-auto shadow-2xs overflow-x-auto no-scrollbar hide-scrollbar scrollbar-none"
+            className="flex items-center gap-1.5 bg-[var(--surface-alt)] border border-[var(--line)] p-1.5 rounded-full w-full sm:w-auto shadow-2xs overflow-x-auto no-scrollbar hide-scrollbar scrollbar-none"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
             {[1, 2, 3].map((gIdx) => {
@@ -1753,8 +1753,8 @@ export function BusinessLoanForm({ isEditMode: propEditMode, application: propAp
                   onClick={() => setActiveGuarantorTab(gIdx)}
                   className={`flex-1 sm:flex-none inline-flex items-center justify-center rounded-full text-xs font-bold px-5 py-2.5 transition-all gap-1.5 cursor-pointer leading-none whitespace-nowrap shrink-0 ${
                     isActive
-                      ? 'bg-[#1a73e8] text-white shadow-2xs'
-                      : 'text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4]'
+                      ? 'bg-[var(--ink)] text-white shadow-2xs'
+                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface)]'
                   }`}
                 >
                   Guarantor {gIdx}
@@ -1767,21 +1767,21 @@ export function BusinessLoanForm({ isEditMode: propEditMode, application: propAp
         {renderGuarantorForm(activeGuarantorTab)}
       </div>
 
-      <div className="pt-6 border-t border-[#e0e3e7] flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3">
+      <div className="pt-6 border-t border-[var(--line)] flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3">
         {isEditMode ? (
           <>
             <button
               type="button"
               onClick={() => navigate(location.state?.from || '/employee/branch-operations/loans-view-applications', { state: location.state })}
               disabled={isSubmitting}
-              className="w-full sm:w-auto inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] h-10 px-5 py-2 transition-all cursor-pointer shadow-2xs gap-2 disabled:opacity-50"
+              className="w-full sm:w-auto inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-alt)] border border-[var(--line)] h-10 px-5 py-2 transition-all cursor-pointer shadow-2xs gap-2 disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full sm:w-auto inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[#1a73e8] text-white hover:bg-[#1557b0] h-10 px-6 py-2 transition-all cursor-pointer shadow-xs disabled:opacity-50 gap-2"
+              className="w-full sm:w-auto inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[var(--ink)] text-white hover:bg-[var(--ink-2)] h-10 px-6 py-2 transition-all cursor-pointer shadow-xs disabled:opacity-50 gap-2"
             >
               {isSubmitting ? (
                 <>
@@ -1801,7 +1801,7 @@ export function BusinessLoanForm({ isEditMode: propEditMode, application: propAp
                 type="button"
                 onClick={handleDeleteDraft}
                 disabled={isDeleting || isDrafting || isSubmitting}
-                className="w-full sm:w-auto inline-flex items-center justify-center rounded-full text-xs font-semibold bg-red-50 text-red-600 hover:bg-red-100 h-10 px-4 py-2 transition-all cursor-pointer border border-red-200 gap-2 disabled:opacity-50 shadow-2xs mr-auto"
+                className="w-full sm:w-auto inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[var(--status-danger-bg)] text-[var(--status-danger)] hover:opacity-90 h-10 px-4 py-2 transition-all cursor-pointer border border-[var(--status-danger)]/20 gap-2 disabled:opacity-50 shadow-2xs mr-auto"
               >
                 {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />} Delete Draft
               </button>
@@ -1810,14 +1810,14 @@ export function BusinessLoanForm({ isEditMode: propEditMode, application: propAp
               type="button"
               onClick={handleSaveDraft}
               disabled={isDrafting || isSubmitting || isLoadingData || isAlreadySubmitted}
-              className="w-full sm:w-auto inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] h-10 px-5 py-2 transition-all cursor-pointer border border-[#dadce0] gap-2 disabled:opacity-50 shadow-2xs"
+              className="w-full sm:w-auto inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-alt)] h-10 px-5 py-2 transition-all cursor-pointer border border-[var(--line)] gap-2 disabled:opacity-50 shadow-2xs"
             >
-              {isDrafting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 text-[#5f6368]" />} Save Draft
+              {isDrafting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4 text-[var(--muted)]" />} Save Draft
             </button>
             <button
               type="submit"
               disabled={isSubmitting || isDrafting || isLoadingData || isAlreadySubmitted}
-              className="w-full sm:w-auto inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[#1a73e8] text-white hover:bg-[#1557b0] h-10 px-6 py-2 transition-all cursor-pointer shadow-xs disabled:opacity-50 gap-2"
+              className="w-full sm:w-auto inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[var(--ink)] text-white hover:bg-[var(--ink-2)] h-10 px-6 py-2 transition-all cursor-pointer shadow-xs disabled:opacity-50 gap-2"
             >
               {isSubmitting ? (
                 <>

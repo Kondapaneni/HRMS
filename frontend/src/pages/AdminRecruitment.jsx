@@ -242,7 +242,7 @@ const AdminRecruitment = () => {
           
           emailBody = `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #1a73e8;">Application Update</h2>
+              <h2 style="color: #5B86C2;">Application Update</h2>
               <p>Hi ${userInfo?.firstName},</p>
               ${bodyContent}
               <p>Best regards,<br>The Acme HR Team</p>

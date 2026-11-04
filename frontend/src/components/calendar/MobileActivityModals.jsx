@@ -134,56 +134,56 @@ export const MobileActivityCreatePage = ({
   };
 
   return (
-    <div className="space-y-4 pb-14 select-none font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
-      {/* Clean White Header & Back Action */}
+    <div className="space-y-4 pb-14 select-none antialiased font-sans">
+      {/* Header & Back Action */}
       <section className="relative z-30 pt-1 pb-1">
         <div className="pt-0.5">
-          <p className="text-[10.5px] font-bold text-[#5f6368] uppercase tracking-wider mb-1">
+          <p className="text-[10.5px] font-bold text-[var(--muted)] uppercase tracking-wider mb-1">
             {theme?.tagText || (isSales ? 'ORIGINATION • SALES ACTIVITIES' : 'ORIGINATION • LOAN ACTIVITIES')}
           </p>
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight leading-tight min-w-0" style={{ fontWeight: 500 }}>
-              Schedule <span className={`font-medium italic ${isSales ? 'text-[#137333]' : isBranchOperations ? 'text-[#7C4DFF]' : 'text-[#1a73e8]'}`}>Activity</span>
+            <h2 className="text-2xl sm:text-3xl font-bold text-[var(--text)] tracking-tight leading-tight min-w-0">
+              Schedule Activity
             </h2>
 
             <button
               type="button"
               onClick={onClose}
-              className="shrink-0 h-10 px-4 inline-flex items-center justify-center gap-1.5 rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] shadow-xs active:scale-95 transition-all cursor-pointer whitespace-nowrap"
+              className="shrink-0 h-10 px-4 inline-flex items-center justify-center gap-1.5 rounded-full text-xs font-semibold bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-alt)] border border-[var(--line)] shadow-xs active:scale-95 transition-all cursor-pointer whitespace-nowrap"
             >
-              <ArrowLeft size={14} className="text-[#5f6368]" />
+              <ArrowLeft size={14} className="text-[var(--muted)]" />
               <span>Back</span>
             </button>
           </div>
-          <p className="text-xs sm:text-sm font-medium text-[#5f6368] mt-1">
+          <p className="text-xs sm:text-sm font-medium text-[var(--muted)] mt-1">
             Register New Activity / Task
           </p>
         </div>
       </section>
 
-      {/* 2. Form Container Card matching AddLead */}
+      {/* 2. Form Container Card */}
       <div className="relative z-20 mx-0.5 space-y-4">
-        <form onSubmit={handleSubmit} className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs space-y-4.5">
+        <form onSubmit={handleSubmit} className="bg-[var(--surface)] rounded-[24px] border border-[var(--line)] p-5 shadow-xs space-y-4.5">
           
           {/* Card Header */}
-          <div className="flex items-center gap-2 pb-3 border-b border-[#e0e3e7]">
-            <div className={`p-1.5 rounded-xl ${isSales ? 'bg-[#e6f4ea] text-[#137333]' : isBranchOperations ? 'bg-[#f3e8fd] text-[#7C4DFF]' : 'bg-[#e8f0fe] text-[#1a73e8]'}`}>
+          <div className="flex items-center gap-2 pb-3 border-b border-[var(--line)]">
+            <div className="p-2 rounded-[10px] bg-[var(--brand-tint)] text-[var(--brand-deep)]">
               <CalendarDays className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-xs font-bold text-[#1f1f1f] uppercase tracking-wider">Activity Profile</h2>
-              <p className="text-[10px] text-[#5f6368]">Enter Activity Details For Schedule</p>
+              <h2 className="text-xs font-bold text-[var(--text)] uppercase tracking-wider">Activity Profile</h2>
+              <p className="text-[10px] text-[var(--muted)]">Enter Activity Details For Schedule</p>
             </div>
           </div>
 
           <div className="space-y-4">
             {/* Activity Title */}
             <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-[#5f6368] uppercase tracking-wider block">
-                Activity Title <span className="text-[#d93025]">*</span>
+              <label className="text-[11px] font-bold text-[var(--muted)] uppercase tracking-wider block">
+                Activity Title <span className="text-[var(--status-danger)]">*</span>
               </label>
               <div className="relative flex items-center">
-                <FileText size={16} className="text-[#80868b] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none z-10" />
+                <FileText size={16} className="text-[var(--muted)] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none z-10" />
                 <input
                   type="text"
                   value={formData.title}
@@ -193,29 +193,27 @@ export const MobileActivityCreatePage = ({
                   }}
                   placeholder="e.g. Client KYC Verification, Follow-up Call"
                   required
-                  className={`w-full bg-[#f8fafd] border ${
+                  className={`w-full bg-[var(--surface-alt)] border ${
                     formErrors.title 
-                      ? 'border-[#d93025] focus:border-[#d93025] focus:ring-[#d93025]/20' 
-                      : isSales 
-                        ? 'border-[#dadce0] focus:border-[#137333] focus:ring-[#137333]/20' 
-                        : 'border-[#dadce0] focus:border-[#1a73e8] focus:ring-[#1a73e8]/20'
-                  } rounded-full pl-10 pr-4 py-3 text-xs font-semibold text-[#1f1f1f] placeholder:text-[#80868b] focus:bg-white focus:ring-2 outline-none transition-all`}
+                      ? 'border-[var(--status-danger)] focus:border-[var(--status-danger)] focus:ring-[var(--status-danger)]/20' 
+                      : 'border-[var(--line)] focus:border-[var(--brand-deep)] focus:ring-[var(--brand)]/20'
+                  } rounded-full pl-10 pr-4 py-3 text-xs font-semibold text-[var(--text)] placeholder:text-[var(--muted)] focus:bg-[var(--surface)] focus:ring-2 outline-none transition-all`}
                 />
               </div>
-              {formErrors.title && <p className="text-[10px] text-[#d93025] font-medium pl-3">{formErrors.title}</p>}
+              {formErrors.title && <p className="text-[10px] text-[var(--status-danger)] font-medium pl-3">{formErrors.title}</p>}
             </div>
 
             {/* Priority Selector Pills */}
             <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-[#5f6368] uppercase tracking-wider block">
+              <label className="text-[11px] font-bold text-[var(--muted)] uppercase tracking-wider block">
                 Priority Level
               </label>
               <div className="grid grid-cols-4 gap-2">
                 {[
-                  { id: 'Urgent', label: 'Urgent', color: 'bg-rose-50 border-rose-200 text-rose-700 font-bold' },
-                  { id: 'High', label: 'High', color: 'bg-amber-50 border-amber-200 text-amber-800 font-bold' },
-                  { id: 'Medium', label: 'Medium', color: 'bg-blue-50 border-blue-200 text-blue-700 font-bold' },
-                  { id: 'Low', label: 'Low', color: 'bg-slate-100 border-slate-200 text-slate-700 font-medium' }
+                  { id: 'Urgent', label: 'Urgent', color: 'bg-[#FDE8EA] border-[#D64550]/20 text-[#D64550] font-bold' },
+                  { id: 'High', label: 'High', color: 'bg-[#FDF3DC] border-[#B7791F]/20 text-[#B7791F] font-bold' },
+                  { id: 'Medium', label: 'Medium', color: 'bg-[#E8F0FB] border-[#3B6FB6]/20 text-[#3B6FB6] font-bold' },
+                  { id: 'Low', label: 'Low', color: 'bg-[#EFEFF1] border-[var(--line)] text-[#4A4A52] font-medium' }
                 ].map((p) => {
                   const isSelected = formData.priority === p.id;
                   return (
@@ -225,8 +223,8 @@ export const MobileActivityCreatePage = ({
                       onClick={() => setFormData({ ...formData, priority: p.id })}
                       className={`py-2 px-1 rounded-full text-xs font-semibold text-center border transition-all cursor-pointer ${
                         isSelected
-                          ? `${p.color} ring-2 ring-offset-1 ring-slate-400 shadow-2xs`
-                          : 'bg-white border-[#e0e3e7] text-[#5f6368] hover:bg-[#f8fafd]'
+                          ? `${p.color} ring-2 ring-offset-1 ring-[var(--brand)] shadow-2xs`
+                          : 'bg-[var(--surface)] border-[var(--line)] text-[var(--muted)] hover:bg-[var(--surface-alt)]'
                       }`}
                     >
                       {p.label}
@@ -237,18 +235,18 @@ export const MobileActivityCreatePage = ({
             </div>
 
             {/* Date & Time Schedule Section */}
-            <div className="pt-2 border-t border-[#f1f3f4] space-y-3">
+            <div className="pt-2 border-t border-[var(--line)] space-y-3">
               <div className="flex items-center justify-between">
-                <label className="text-[11px] font-bold text-[#5f6368] uppercase tracking-wider block">
+                <label className="text-[11px] font-bold text-[var(--muted)] uppercase tracking-wider block">
                   Schedule &amp; Timing
                 </label>
                 <label className="flex items-center gap-1.5 cursor-pointer">
-                  <span className="text-xs font-semibold text-[#5f6368]">All Day</span>
+                  <span className="text-xs font-semibold text-[var(--muted)]">All Day</span>
                   <input
                     type="checkbox"
                     checked={formData.allDay}
                     onChange={(e) => setFormData({ ...formData, allDay: e.target.checked })}
-                    className={`w-4 h-4 rounded ${isSales ? 'text-[#137333] focus:ring-[#137333]' : 'text-[#1a73e8] focus:ring-[#1a73e8]'} cursor-pointer`}
+                    className="w-4 h-4 rounded text-[var(--brand-deep)] focus:ring-[var(--brand)] cursor-pointer"
                   />
                 </label>
               </div>
@@ -256,9 +254,9 @@ export const MobileActivityCreatePage = ({
               {/* Start Date & Time */}
               <div className="space-y-3">
                 <div className="space-y-1.5">
-                  <label className="text-[10.5px] font-bold text-[#5f6368] uppercase flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5 text-[#80868b]" />
-                    <span>Start Date</span> <span className="text-[#d93025]">*</span>
+                  <label className="text-[10.5px] font-bold text-[var(--muted)] uppercase flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-[var(--muted)]" />
+                    <span>Start Date</span> <span className="text-[var(--status-danger)]">*</span>
                   </label>
                   <input
                     type="date"
@@ -273,14 +271,14 @@ export const MobileActivityCreatePage = ({
                       if (formErrors.startDate) setFormErrors({ ...formErrors, startDate: null });
                       if (formErrors.endDate) setFormErrors({ ...formErrors, endDate: null });
                     }}
-                    className={`w-full bg-[#f8fafd] border border-[#dadce0] rounded-full px-4 py-2.5 text-xs font-semibold text-[#1f1f1f] outline-none min-h-[42px] focus:bg-white focus:ring-2 ${isSales ? 'focus:ring-[#137333]/20 focus:border-[#137333]' : 'focus:ring-[#1a73e8]/20 focus:border-[#1a73e8]'} transition-all`}
+                    className="w-full bg-[var(--surface-alt)] border border-[var(--line)] rounded-full px-4 py-2.5 text-xs font-semibold text-[var(--text)] outline-none min-h-[42px] focus:bg-[var(--surface)] focus:ring-2 focus:ring-[var(--brand)]/20 focus:border-[var(--brand-deep)] transition-all"
                   />
                 </div>
 
                 {!formData.allDay && (
                   <div className="space-y-1.5">
-                    <label className="text-[10.5px] font-bold text-[#5f6368] uppercase flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5 text-[#80868b]" />
+                    <label className="text-[10.5px] font-bold text-[var(--muted)] uppercase flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-[var(--muted)]" />
                       <span>Start Time</span>
                     </label>
                     <input
@@ -297,7 +295,7 @@ export const MobileActivityCreatePage = ({
                         }));
                         if (formErrors.endTime) setFormErrors({ ...formErrors, endTime: null });
                       }}
-                      className={`w-full bg-[#f8fafd] border border-[#dadce0] rounded-full px-4 py-2.5 text-xs font-semibold text-[#1f1f1f] outline-none min-h-[42px] focus:bg-white focus:ring-2 ${isSales ? 'focus:ring-[#137333]/20 focus:border-[#137333]' : 'focus:ring-[#1a73e8]/20 focus:border-[#1a73e8]'} transition-all`}
+                      className="w-full bg-[var(--surface-alt)] border border-[var(--line)] rounded-full px-4 py-2.5 text-xs font-semibold text-[var(--text)] outline-none min-h-[42px] focus:bg-[var(--surface)] focus:ring-2 focus:ring-[var(--brand)]/20 focus:border-[var(--brand-deep)] transition-all"
                     />
                   </div>
                 )}
@@ -305,10 +303,10 @@ export const MobileActivityCreatePage = ({
 
               {/* End Date & Time */}
               {!formData.allDay && (
-                <div className="pt-2 border-t border-[#f1f3f4] space-y-3">
+                <div className="pt-2 border-t border-[var(--line)] space-y-3">
                   <div className="space-y-1.5">
-                    <label className="text-[10.5px] font-bold text-[#5f6368] uppercase flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5 text-[#80868b]" />
+                    <label className="text-[10.5px] font-bold text-[var(--muted)] uppercase flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-[var(--muted)]" />
                       <span>End Date</span>
                     </label>
                     <input
@@ -325,13 +323,13 @@ export const MobileActivityCreatePage = ({
                         setFormData((prev) => ({ ...prev, endDate: newEnd }));
                         if (formErrors.endDate) setFormErrors({ ...formErrors, endDate: null });
                       }}
-                      className={`w-full bg-[#f8fafd] border border-[#dadce0] rounded-full px-4 py-2.5 text-xs font-semibold text-[#1f1f1f] outline-none min-h-[42px] focus:bg-white focus:ring-2 ${isSales ? 'focus:ring-[#137333]/20 focus:border-[#137333]' : 'focus:ring-[#1a73e8]/20 focus:border-[#1a73e8]'} transition-all`}
+                      className="w-full bg-[var(--surface-alt)] border border-[var(--line)] rounded-full px-4 py-2.5 text-xs font-semibold text-[var(--text)] outline-none min-h-[42px] focus:bg-[var(--surface)] focus:ring-2 focus:ring-[var(--brand)]/20 focus:border-[var(--brand-deep)] transition-all"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[10.5px] font-bold text-[#5f6368] uppercase flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5 text-[#80868b]" />
+                    <label className="text-[10.5px] font-bold text-[var(--muted)] uppercase flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-[var(--muted)]" />
                       <span>End Time</span>
                     </label>
                     <input
@@ -347,7 +345,7 @@ export const MobileActivityCreatePage = ({
                         setFormData((prev) => ({ ...prev, endTime: newEndTime }));
                         if (formErrors.endTime) setFormErrors({ ...formErrors, endTime: null });
                       }}
-                      className={`w-full bg-[#f8fafd] border border-[#dadce0] rounded-full px-4 py-2.5 text-xs font-semibold text-[#1f1f1f] outline-none min-h-[42px] focus:bg-white focus:ring-2 ${isSales ? 'focus:ring-[#137333]/20 focus:border-[#137333]' : 'focus:ring-[#1a73e8]/20 focus:border-[#1a73e8]'} transition-all`}
+                      className="w-full bg-[var(--surface-alt)] border border-[var(--line)] rounded-full px-4 py-2.5 text-xs font-semibold text-[var(--text)] outline-none min-h-[42px] focus:bg-[var(--surface)] focus:ring-2 focus:ring-[var(--brand)]/20 focus:border-[var(--brand-deep)] transition-all"
                     />
                   </div>
                 </div>
@@ -355,47 +353,47 @@ export const MobileActivityCreatePage = ({
             </div>
 
             {/* Location / Client Address */}
-            <div className="space-y-1.5 pt-2 border-t border-[#f1f3f4]">
-              <label className="text-[11px] font-bold text-[#5f6368] uppercase tracking-wider block">
+            <div className="space-y-1.5 pt-2 border-t border-[var(--line)]">
+              <label className="text-[11px] font-bold text-[var(--muted)] uppercase tracking-wider block">
                 Location / Client Address
               </label>
               <div className="relative flex items-center">
-                <MapPin size={16} className="text-[#80868b] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none z-10" />
+                <MapPin size={16} className="text-[var(--muted)] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none z-10" />
                 <input
                   type="text"
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                   placeholder="e.g. Gurunanak Colony, Vijayawada"
-                  className={`w-full bg-[#f8fafd] border border-[#dadce0] rounded-full pl-10 pr-4 py-3 text-xs font-semibold text-[#1f1f1f] placeholder:text-[#80868b] focus:bg-white focus:ring-2 ${isSales ? 'focus:ring-[#137333]/20 focus:border-[#137333]' : 'focus:ring-[#1a73e8]/20 focus:border-[#1a73e8]'} outline-none transition-all`}
+                  className="w-full bg-[var(--surface-alt)] border border-[var(--line)] rounded-full pl-10 pr-4 py-3 text-xs font-semibold text-[var(--text)] placeholder:text-[var(--muted)] focus:bg-[var(--surface)] focus:ring-2 focus:ring-[var(--brand)]/20 focus:border-[var(--brand-deep)] outline-none transition-all"
                 />
               </div>
             </div>
 
             {/* Remarks / Notes */}
-            <div className="space-y-1.5 pt-2 border-t border-[#f1f3f4]">
-              <label className="text-[11px] font-bold text-[#5f6368] uppercase tracking-wider block">
+            <div className="space-y-1.5 pt-2 border-t border-[var(--line)]">
+              <label className="text-[11px] font-bold text-[var(--muted)] uppercase tracking-wider block">
                 Remarks / Instructions
               </label>
               <div className="relative">
-                <FileText size={16} className="text-[#80868b] absolute left-3.5 top-3.5 pointer-events-none z-10" />
+                <FileText size={16} className="text-[var(--muted)] absolute left-3.5 top-3.5 pointer-events-none z-10" />
                 <textarea
                   rows={3}
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                   placeholder="Add special instructions, document checklist, or notes..."
-                  className={`w-full bg-[#f8fafd] border border-[#dadce0] rounded-2xl pl-10 pr-4 py-3 text-xs font-semibold text-[#1f1f1f] placeholder:text-[#80868b] focus:bg-white focus:ring-2 ${isSales ? 'focus:ring-[#137333]/20 focus:border-[#137333]' : 'focus:ring-[#1a73e8]/20 focus:border-[#1a73e8]'} outline-none transition-all resize-none`}
+                  className="w-full bg-[var(--surface-alt)] border border-[var(--line)] rounded-[18px] pl-10 pr-4 py-3 text-xs font-semibold text-[var(--text)] placeholder:text-[var(--muted)] focus:bg-[var(--surface)] focus:ring-2 focus:ring-[var(--brand)]/20 focus:border-[var(--brand-deep)] outline-none transition-all resize-none"
                 />
               </div>
             </div>
 
             {/* Branch Staff Assignment (Only in Branch Operations) */}
             {isBranchOperations && assignableEmployees.length > 0 && (
-              <div className="space-y-2 pt-2 border-t border-[#f1f3f4]">
+              <div className="space-y-2 pt-2 border-t border-[var(--line)]">
                 <div className="flex items-center justify-between">
-                  <label className="text-[11px] font-bold text-[#5f6368] uppercase tracking-wider block">
+                  <label className="text-[11px] font-bold text-[var(--muted)] uppercase tracking-wider block">
                     Assign Team Member
                   </label>
-                  <span className="text-[11px] font-semibold text-[#5f6368]">
+                  <span className="text-[11px] font-semibold text-[var(--muted)]">
                     {selectedAssignees.length} selected
                   </span>
                 </div>
@@ -411,30 +409,26 @@ export const MobileActivityCreatePage = ({
                             prev.includes(emp.id) ? prev.filter(id => id !== emp.id) : [...prev, emp.id]
                           );
                         }}
-                        className={`p-2.5 rounded-2xl border flex items-center justify-between cursor-pointer transition-all ${
+                        className={`p-2.5 rounded-[14px] border flex items-center justify-between cursor-pointer transition-all ${
                           isChecked 
-                            ? isBranchOperations
-                              ? 'bg-[#f3e8fd] border-[#e9d5ff] text-[#7C4DFF]'
-                              : 'bg-[#e8f0fe] border-[#d2e3fc] text-[#1a73e8]' 
-                            : 'bg-[#f8fafd] border-[#e0e3e7] text-[#1f1f1f] hover:bg-slate-100'
+                            ? 'bg-[var(--brand-tint)] border-[var(--brand-deep)] text-[var(--brand-deep)]' 
+                            : 'bg-[var(--surface-alt)] border-[var(--line)] text-[var(--text)] hover:bg-[var(--surface)]'
                         }`}
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <div className={`w-7 h-7 rounded-full bg-white ${isBranchOperations ? 'text-[#7C4DFF] border-[#e9d5ff]' : 'text-[#1a73e8] border-[#d2e3fc]'} border flex items-center justify-center font-bold text-xs shrink-0`}>
+                          <div className="w-7 h-7 rounded-[8px] bg-[var(--surface)] text-[var(--brand-deep)] border border-[var(--line)] flex items-center justify-center font-bold text-xs shrink-0">
                             {(emp.name || 'E').charAt(0).toUpperCase()}
                           </div>
                           <div className="truncate">
                             <p className="text-xs font-bold truncate">{emp.name} {emp.isCurrentUser ? '(You)' : ''}</p>
-                            <p className="text-[10px] text-[#5f6368] truncate">{emp.role || 'Staff'}</p>
+                            <p className="text-[10px] text-[var(--muted)] truncate">{emp.role || 'Staff'}</p>
                           </div>
                         </div>
 
                         <div className={`w-5 h-5 rounded-full flex items-center justify-center border shrink-0 ${
                           isChecked 
-                            ? isBranchOperations
-                              ? 'bg-[#7C4DFF] text-white border-[#7C4DFF]'
-                              : 'bg-[#1a73e8] text-white border-[#1a73e8]' 
-                            : 'border-[#dadce0] bg-white'
+                            ? 'bg-[var(--brand-deep)] text-white border-[var(--brand-deep)]' 
+                            : 'border-[var(--line)] bg-[var(--surface)]'
                         }`}>
                           {isChecked && <Check size={12} strokeWidth={3} />}
                         </div>
@@ -447,11 +441,11 @@ export const MobileActivityCreatePage = ({
           </div>
 
           {/* Action Buttons matching Add New Lead */}
-          <div className="pt-3 border-t border-[#e0e3e7] flex items-center justify-end gap-2.5">
+          <div className="pt-3 border-t border-[var(--line)] flex items-center justify-end gap-2.5">
             <button
               type="button"
               onClick={onClose}
-              className="h-11 px-5 inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] active:scale-95 border border-[#dadce0] transition-all shadow-2xs cursor-pointer"
+              className="h-11 px-5 inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-alt)] active:scale-95 border border-[var(--line)] transition-all shadow-2xs cursor-pointer"
             >
               Cancel
             </button>
@@ -459,13 +453,7 @@ export const MobileActivityCreatePage = ({
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`h-11 px-6 inline-flex items-center justify-center gap-1.5 rounded-full text-xs font-semibold ${
-                isSales 
-                  ? 'bg-[#137333] hover:bg-[#0b5324]' 
-                  : isBranchOperations
-                  ? 'bg-[#7C4DFF] hover:bg-[#651fff]'
-                  : 'bg-[#1a73e8] hover:bg-[#1557b0]'
-              } text-white active:scale-95 transition-all shadow-xs cursor-pointer disabled:opacity-50`}
+              className="h-11 px-6 inline-flex items-center justify-center gap-1.5 rounded-full text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white active:scale-95 transition-all shadow-xs cursor-pointer disabled:opacity-50"
             >
               {isSubmitting ? (
                 <>
@@ -548,22 +536,22 @@ export const MobileActivityDetailsModal = ({
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.94, opacity: 0, y: 15 }}
           transition={{ duration: 0.2 }}
-          className="relative w-full max-w-sm sm:max-w-md bg-white rounded-3xl shadow-2xl border border-[#e0e3e7] overflow-hidden z-10 p-5 space-y-4"
+          className="relative w-full max-w-sm sm:max-w-md bg-[var(--surface)] text-[var(--text)] rounded-[24px] shadow-2xl border border-[var(--line)] overflow-hidden z-10 p-5 space-y-4 antialiased font-sans"
         >
           {/* Header: Priority & Close Button */}
-          <div className="flex items-center justify-between pb-2 border-b border-[#f1f3f4]">
+          <div className="flex items-center justify-between pb-2.5 border-b border-[var(--line)]">
             <div className="flex items-center gap-2">
               {getPriorityBadge ? getPriorityBadge(event.priority) : (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#E8F0FB] text-[#3B6FB6] border border-[#3B6FB6]/20">
                   {event.priority || 'Medium'}
                 </span>
               )}
               {event.status === 'Completed' ? (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#E6F6EC] text-[#1F9D55] border border-[#1F9D55]/20">
                   <CheckCircle2 size={12} /> Done
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#fef7e0] text-[#b06000] border border-[#feefc3]">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#FDF3DC] text-[#B7791F] border border-[#B7791F]/20">
                   <Clock size={12} /> Scheduled
                 </span>
               )}
@@ -572,7 +560,7 @@ export const MobileActivityDetailsModal = ({
             <button
               type="button"
               onClick={onClose}
-              className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-colors cursor-pointer"
+              className="w-8 h-8 rounded-full bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center transition-colors cursor-pointer"
             >
               <X size={15} />
             </button>
@@ -580,51 +568,51 @@ export const MobileActivityDetailsModal = ({
 
           {/* Title */}
           <div>
-            <h3 className={`text-base sm:text-lg font-black text-[#1f1f1f] leading-snug ${
-              event.status === 'Completed' ? 'line-through text-[#80868b]' : ''
+            <h3 className={`text-base sm:text-lg font-bold text-[var(--text)] leading-snug ${
+              event.status === 'Completed' ? 'line-through text-[var(--muted)]' : ''
             }`}>
               {event.title}
             </h3>
           </div>
 
           {/* Details List */}
-          <div className="space-y-2.5 bg-[#f8fafd] rounded-2xl p-4 border border-[#e0e3e7]/80 text-xs">
+          <div className="space-y-2.5 bg-[var(--surface-alt)] rounded-[20px] p-4 border border-[var(--line)] text-xs">
             {/* Date & Time */}
-            <div className="flex items-start gap-2.5 text-[#1f1f1f]">
-              <Clock className={`w-4 h-4 ${isBranchOperations ? 'text-[#7C4DFF]' : 'text-[#1a73e8]'} mt-0.5 shrink-0`} />
+            <div className="flex items-start gap-2.5 text-[var(--text)]">
+              <Clock className="w-4 h-4 text-[var(--brand-deep)] mt-0.5 shrink-0" />
               <div>
                 <p className="font-bold">{formatEventDate(event)}</p>
-                <p className="text-[11px] text-[#5f6368]">{formatEventTime(event)}</p>
+                <p className="text-[11px] text-[var(--muted)]">{formatEventTime(event)}</p>
               </div>
             </div>
 
             {/* Location */}
             {event.address && (
-              <div className="flex items-start gap-2.5 text-[#1f1f1f] pt-2 border-t border-[#e0e3e7]/60">
-                <MapPin className="w-4 h-4 text-rose-500 mt-0.5 shrink-0" />
+              <div className="flex items-start gap-2.5 text-[var(--text)] pt-2 border-t border-[var(--line)]">
+                <MapPin className="w-4 h-4 text-[var(--status-danger)] mt-0.5 shrink-0" />
                 <div>
                   <p className="font-bold">Location</p>
-                  <p className="text-[11px] text-[#5f6368]">{event.address}</p>
+                  <p className="text-[11px] text-[var(--muted)]">{event.address}</p>
                 </div>
               </div>
             )}
 
             {/* Assignee */}
             {event.assignedToName && (
-              <div className="flex items-start gap-2.5 text-[#1f1f1f] pt-2 border-t border-[#e0e3e7]/60">
-                <User className={`w-4 h-4 ${isBranchOperations ? 'text-[#7C4DFF]' : 'text-[#1a73e8]'} mt-0.5 shrink-0`} />
+              <div className="flex items-start gap-2.5 text-[var(--text)] pt-2 border-t border-[var(--line)]">
+                <User className="w-4 h-4 text-[var(--brand-deep)] mt-0.5 shrink-0" />
                 <div>
                   <p className="font-bold">Assigned To</p>
-                  <p className="text-[11px] text-[#5f6368]">{event.assignedToName}</p>
+                  <p className="text-[11px] text-[var(--muted)]">{event.assignedToName}</p>
                 </div>
               </div>
             )}
 
             {/* Remarks / Notes */}
             {event.notes && (
-              <div className="pt-2 border-t border-[#e0e3e7]/60">
-                <p className="font-bold text-[#5f6368] mb-1">Remarks &amp; Notes</p>
-                <p className="text-xs text-[#1f1f1f] italic bg-white p-2.5 rounded-xl border border-[#dadce0]">
+              <div className="pt-2 border-t border-[var(--line)]">
+                <p className="font-bold text-[var(--muted)] mb-1">Remarks &amp; Notes</p>
+                <p className="text-xs text-[var(--text)] italic bg-[var(--surface)] p-2.5 rounded-[12px] border border-[var(--line)]">
                   "{event.notes}"
                 </p>
               </div>
@@ -637,13 +625,13 @@ export const MobileActivityDetailsModal = ({
               <button
                 type="button"
                 onClick={() => onToggleStatus && onToggleStatus(event)}
-                className="w-full py-3 px-4 rounded-full text-xs font-bold flex items-center justify-center gap-2 bg-[#137333] hover:bg-[#0d5926] text-white shadow-xs transition-all cursor-pointer active:scale-[0.98]"
+                className="w-full py-3 px-4 rounded-full text-xs font-semibold flex items-center justify-center gap-2 bg-[#E6F6EC] hover:bg-[#E6F6EC]/80 text-[#1F9D55] border border-[#1F9D55]/20 shadow-xs transition-all cursor-pointer active:scale-[0.98]"
               >
                 <CheckCircle2 size={14} />
                 <span>Mark as Completed</span>
               </button>
             ) : (
-              <div className="w-full py-2.5 px-4 rounded-full text-xs font-semibold flex items-center justify-center gap-1.5 bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">
+              <div className="w-full py-2.5 px-4 rounded-full text-xs font-semibold flex items-center justify-center gap-1.5 bg-[#E6F6EC] text-[#1F9D55] border border-[#1F9D55]/20">
                 <CheckCircle2 size={14} />
                 <span>Activity Completed</span>
               </div>
@@ -652,7 +640,7 @@ export const MobileActivityDetailsModal = ({
             <button
               type="button"
               onClick={onClose}
-              className="w-full py-2.5 px-4 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-xs font-semibold text-[#1f1f1f] transition-all cursor-pointer text-center active:scale-[0.98]"
+              className="w-full py-2.5 px-4 rounded-full border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] text-xs font-semibold text-[var(--text)] transition-all cursor-pointer text-center active:scale-[0.98]"
             >
               Close
             </button>

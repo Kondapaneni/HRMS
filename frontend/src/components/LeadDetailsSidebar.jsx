@@ -116,23 +116,23 @@ const LeadDetailsSidebar = ({ isOpen, onClose, lead, type = 'loan' }) => {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'New':
-        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]"><Clock size={11} /> New</span>;
+        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#E8F0FB] text-[#3B6FB6] border border-[#3B6FB6]/20"><Clock size={11} /> New</span>;
       case 'Contacted':
       case 'Follow Up':
-        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#f3e8fd] text-[#8430ce] border border-[#e9d5ff]"><TrendingUp size={11} /> Follow Up</span>;
+        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#FDF3DC] text-[#B7791F] border border-[#B7791F]/20"><TrendingUp size={11} /> Follow Up</span>;
       case 'Proposal Sent':
       case 'Negotiation':
       case 'Active':
       case 'In Progress':
-        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#fef7e0] text-[#b06000] border border-[#feefc3]"><Clock size={11} /> {status}</span>;
+        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#FDF3DC] text-[#B7791F] border border-[#B7791F]/20"><Clock size={11} /> {status}</span>;
       case 'Won':
       case 'Converted':
-        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#e6f4ea] text-[#137333] border border-[#ceead6]"><CheckCircle2 size={11} /> Converted</span>;
+        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#E6F6EC] text-[#1F9D55] border border-[#1F9D55]/20"><CheckCircle2 size={11} /> Converted</span>;
       case 'Lost':
       case 'Not Interested':
-        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf]"><XCircle size={11} /> Not Interested</span>;
+        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#FDE8EA] text-[#D64550] border border-[#D64550]/20"><XCircle size={11} /> Not Interested</span>;
       default:
-        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]">{status || '—'}</span>;
+        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#EFEFF1] text-[#4A4A52] border border-[var(--line)]">{status || '—'}</span>;
     }
   };
 
@@ -150,26 +150,23 @@ const LeadDetailsSidebar = ({ isOpen, onClose, lead, type = 'loan' }) => {
         animate={{ x: 0 }}
         exit={{ x: '100%' }}
         transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
-        className="bg-white shadow-2xl w-full max-w-md h-[100dvh] flex flex-col overflow-hidden relative z-10 border-l border-[#e0e3e7]"
+        className="bg-[var(--surface)] text-[var(--text)] shadow-2xl w-full max-w-md h-[100dvh] flex flex-col overflow-hidden relative z-10 border-l border-[var(--line)]"
       >
-        {/* Top 4-Color Google Accent Line */}
-        <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
-
         {viewMode === 'convert' ? (
           /* Convert View */
           <>
             {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd] mt-1 shrink-0">
+            <div className="px-6 py-4.5 border-b border-[var(--line)] flex justify-between items-center bg-[var(--surface-alt)] shrink-0">
               <div>
-                <div className="flex items-center gap-1 mb-0.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-                  <span className="text-[10.5px] font-semibold text-[#137333] uppercase tracking-wider ml-1">Member Conversion</span>
+                <div className="flex items-center gap-1.5 mb-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#1F9D55]" />
+                  <span className="text-[10.5px] font-semibold text-[#1F9D55] uppercase tracking-wider">Member Conversion</span>
                 </div>
-                <h2 className="text-lg font-semibold text-[#1f1f1f]">Convert to Member</h2>
+                <h2 className="text-lg font-bold text-[var(--text)] tracking-tight">Convert to Member</h2>
               </div>
               <button 
                 onClick={() => setViewMode('details')} 
-                className="text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4] p-1.5 rounded-full transition-colors cursor-pointer"
+                className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface)] p-2 rounded-[10px] transition-colors cursor-pointer"
               >
                 <X size={18} />
               </button>
@@ -177,8 +174,8 @@ const LeadDetailsSidebar = ({ isOpen, onClose, lead, type = 'loan' }) => {
 
             {/* Content */}
             <div className="p-6 overflow-y-auto flex-1 space-y-4">
-              <p className="text-xs text-[#5f6368] leading-relaxed">
-                Select the {isSale ? 'product type' : 'loan product'} for <span className="font-semibold text-[#1f1f1f]">{lead.name}</span> to finalize membership:
+              <p className="text-xs text-[var(--muted)] leading-relaxed">
+                Select the {isSale ? 'product type' : 'loan product'} for <span className="font-semibold text-[var(--text)]">{lead.name}</span> to finalize membership:
               </p>
 
               <div className="space-y-2.5">
@@ -188,23 +185,23 @@ const LeadDetailsSidebar = ({ isOpen, onClose, lead, type = 'loan' }) => {
                     <div
                       key={opt.value}
                       onClick={() => setSelectedType(opt.value)}
-                      className={`p-3.5 rounded-2xl border flex items-center justify-between cursor-pointer transition-all ${
+                      className={`p-3.5 rounded-[16px] border flex items-center justify-between cursor-pointer transition-all ${
                         isSelected
-                          ? 'border-[#1a73e8] bg-[#e8f0fe]/60 shadow-2xs'
-                          : 'border-[#e0e3e7] hover:border-[#dadce0] hover:bg-[#f8fafd] bg-white'
+                          ? 'border-[var(--brand-deep)] bg-[var(--brand-tint)] shadow-xs'
+                          : 'border-[var(--line)] hover:border-[var(--brand)] hover:bg-[var(--surface-alt)] bg-[var(--surface)]'
                       }`}
                     >
                       <div>
-                        <p className={`text-xs font-semibold ${isSelected ? 'text-[#1a73e8]' : 'text-[#1f1f1f]'}`}>
+                        <p className={`text-xs font-semibold ${isSelected ? 'text-[var(--brand-deep)]' : 'text-[var(--text)]'}`}>
                           {opt.label}
                         </p>
-                        <p className="text-[11px] text-[#5f6368] mt-0.5">{opt.desc}</p>
+                        <p className="text-[11px] text-[var(--muted)] mt-0.5">{opt.desc}</p>
                       </div>
                       <div
                         className={`w-5 h-5 rounded-full flex items-center justify-center border shrink-0 transition-colors ${
                           isSelected
-                            ? 'bg-[#1a73e8] border-[#1a73e8] text-white'
-                            : 'border-[#dadce0] bg-white'
+                            ? 'bg-[var(--brand-deep)] border-[var(--brand-deep)] text-white'
+                            : 'border-[var(--line)] bg-[var(--surface)]'
                         }`}
                       >
                         {isSelected && <Check size={12} strokeWidth={3} />}
@@ -216,11 +213,11 @@ const LeadDetailsSidebar = ({ isOpen, onClose, lead, type = 'loan' }) => {
             </div>
 
             {/* Footer */}
-            <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex items-center justify-end gap-2.5 shrink-0">
+            <div className="p-4 border-t border-[var(--line)] bg-[var(--surface-alt)] flex items-center justify-end gap-2.5 shrink-0">
               <button
                 type="button"
                 onClick={() => setViewMode('details')}
-                className="px-4 py-2 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-xs font-semibold text-[#1f1f1f] transition-all cursor-pointer"
+                className="px-4 py-2 rounded-full border border-[var(--line)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] text-xs font-semibold text-[var(--text)] transition-all cursor-pointer"
               >
                 Cancel
               </button>
@@ -228,7 +225,7 @@ const LeadDetailsSidebar = ({ isOpen, onClose, lead, type = 'loan' }) => {
                 type="button"
                 onClick={handleConfirmConvert}
                 disabled={isPending}
-                className="px-5 py-2 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer active:scale-95"
+                className="px-5 py-2 rounded-full text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white shadow-xs transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer active:scale-95"
               >
                 {isPending ? (
                   <Loader2 size={14} className="animate-spin" />
@@ -243,20 +240,17 @@ const LeadDetailsSidebar = ({ isOpen, onClose, lead, type = 'loan' }) => {
           /* Lead Details View */
           <>
             {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd] mt-1 shrink-0">
+            <div className="px-6 py-4.5 border-b border-[var(--line)] flex justify-between items-center bg-[var(--surface-alt)] shrink-0">
               <div>
-                <div className="flex items-center gap-1 mb-0.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-                  <span className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Prospect Profile</span>
+                <div className="flex items-center gap-1.5 mb-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--brand-deep)]" />
+                  <span className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider">Prospect Profile</span>
                 </div>
-                <h2 className="text-lg font-semibold text-[#1f1f1f]">Lead Details</h2>
+                <h2 className="text-lg font-bold text-[var(--text)] tracking-tight">Lead Details</h2>
               </div>
               <button 
                 onClick={onClose} 
-                className="text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4] p-1.5 rounded-full transition-colors cursor-pointer"
+                className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface)] p-2 rounded-[10px] transition-colors cursor-pointer"
               >
                 <X size={18} />
               </button>
@@ -266,47 +260,47 @@ const LeadDetailsSidebar = ({ isOpen, onClose, lead, type = 'loan' }) => {
             <div className="p-6 overflow-y-auto flex-1 space-y-5">
               {/* Profile Info */}
               <div className="flex items-center gap-3.5">
-                <div className="w-13 h-13 rounded-full bg-[#e8f0fe] border border-[#d2e3fc] text-[#1a73e8] font-bold text-lg flex items-center justify-center uppercase shrink-0 shadow-2xs">
+                <div className="w-13 h-13 rounded-[14px] bg-[var(--brand-tint)] border border-[var(--line)] text-[var(--brand-deep)] font-bold text-lg flex items-center justify-center uppercase shrink-0 shadow-2xs">
                   {lead.name ? lead.name.charAt(0) : 'L'}
                 </div>
                 <div className="space-y-1">
-                  <h3 className="text-base font-bold text-[#1f1f1f] leading-snug">{lead.name}</h3>
+                  <h3 className="text-base font-bold text-[var(--text)] leading-snug">{lead.name}</h3>
                   <div>{getStatusBadge(lead.status)}</div>
                 </div>
               </div>
 
               {/* Details List Card */}
-              <div className="space-y-3 bg-[#f8fafd] p-4.5 rounded-2xl border border-[#e0e3e7] text-xs">
+              <div className="space-y-3 bg-[var(--surface-alt)] p-4.5 rounded-[20px] border border-[var(--line)] text-xs">
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Contact</span>
-                  <div className="flex items-center gap-2 text-[#1f1f1f] font-medium pt-0.5">
-                    <Phone size={14} className="text-[#1a73e8]" />
+                  <span className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Contact</span>
+                  <div className="flex items-center gap-2 text-[var(--text)] font-medium pt-0.5">
+                    <Phone size={14} className="text-[var(--brand-deep)]" />
                     <span>{maskPhoneNumber(lead.phone)}</span>
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-0.5 pt-2.5 border-t border-[#e0e3e7]/70">
-                  <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">
+                <div className="flex flex-col gap-0.5 pt-2.5 border-t border-[var(--line)]">
+                  <span className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">
                     {isSale ? 'Product Type' : 'Loan Type'}
                   </span>
-                  <div className="flex items-center gap-2 text-[#1f1f1f] font-medium pt-0.5">
-                    <Briefcase size={14} className="text-[#1a73e8]" />
+                  <div className="flex items-center gap-2 text-[var(--text)] font-medium pt-0.5">
+                    <Briefcase size={14} className="text-[var(--brand-deep)]" />
                     <span>{isSale ? (lead.product_type || '—') : (lead.loan_type || '—')}</span>
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-0.5 pt-2.5 border-t border-[#e0e3e7]/70">
-                  <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Location</span>
-                  <div className="flex items-start gap-2 text-[#1f1f1f] font-medium pt-0.5">
-                    <MapPin size={14} className="text-[#1a73e8] mt-0.5 shrink-0" />
+                <div className="flex flex-col gap-0.5 pt-2.5 border-t border-[var(--line)]">
+                  <span className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Location</span>
+                  <div className="flex items-start gap-2 text-[var(--text)] font-medium pt-0.5">
+                    <MapPin size={14} className="text-[var(--brand-deep)] mt-0.5 shrink-0" />
                     <span className="leading-relaxed">{lead.address || '—'}</span>
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-0.5 pt-2.5 border-t border-[#e0e3e7]/70">
-                  <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider">Created Date</span>
-                  <div className="flex items-center gap-2 text-[#1f1f1f] font-medium pt-0.5">
-                    <Calendar size={14} className="text-[#1a73e8]" />
+                <div className="flex flex-col gap-0.5 pt-2.5 border-t border-[var(--line)]">
+                  <span className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Created Date</span>
+                  <div className="flex items-center gap-2 text-[var(--text)] font-medium pt-0.5">
+                    <Calendar size={14} className="text-[var(--brand-deep)]" />
                     <span>{lead.created_at ? format(new Date(lead.created_at), 'MMM d, yyyy h:mm a') : '—'}</span>
                   </div>
                 </div>
@@ -314,12 +308,12 @@ const LeadDetailsSidebar = ({ isOpen, onClose, lead, type = 'loan' }) => {
             </div>
 
             {/* Actions Footer */}
-            <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] grid grid-cols-1 gap-2.5 shrink-0">
+            <div className="p-4 border-t border-[var(--line)] bg-[var(--surface-alt)] grid grid-cols-1 gap-2.5 shrink-0">
               <button
                 type="button"
                 onClick={() => handleUpdateStatus('Follow Up')}
                 disabled={isPending || isConverted}
-                className="w-full flex items-center justify-center gap-1.5 bg-[#f3e8fd] hover:bg-[#ebd4fc] text-[#8430ce] border border-[#e9d5ff] px-4 py-2.5 rounded-full text-xs font-semibold transition-all shadow-2xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer active:scale-98"
+                className="w-full flex items-center justify-center gap-1.5 bg-[var(--surface)] hover:bg-[var(--brand-tint)] text-[var(--text-2)] border border-[var(--line)] px-4 py-2.5 rounded-full text-xs font-semibold transition-all shadow-2xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer active:scale-98"
               >
                 {isPending ? (
                   <Loader2 size={15} className="animate-spin" />
@@ -333,7 +327,7 @@ const LeadDetailsSidebar = ({ isOpen, onClose, lead, type = 'loan' }) => {
                 type="button"
                 onClick={() => handleUpdateStatus('Converted')}
                 disabled={isPending || isConverted}
-                className="w-full flex items-center justify-center gap-1.5 bg-[#1a73e8] hover:bg-[#1557b0] text-white px-4 py-2.5 rounded-full text-xs font-semibold transition-all shadow-xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer active:scale-98"
+                className="w-full flex items-center justify-center gap-1.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white px-4 py-2.5 rounded-full text-xs font-semibold transition-all shadow-xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer active:scale-98"
               >
                 {isPending ? (
                   <Loader2 size={15} className="animate-spin" />
@@ -347,7 +341,7 @@ const LeadDetailsSidebar = ({ isOpen, onClose, lead, type = 'loan' }) => {
                 type="button"
                 onClick={() => handleUpdateStatus('Not Interested')}
                 disabled={isPending || isConverted}
-                className="w-full flex items-center justify-center gap-1.5 bg-white hover:bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf] px-4 py-2.5 rounded-full text-xs font-semibold transition-all shadow-2xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer active:scale-98"
+                className="w-full flex items-center justify-center gap-1.5 bg-[var(--status-danger-bg)] hover:opacity-90 text-[var(--status-danger)] border border-[var(--status-danger)]/20 px-4 py-2.5 rounded-full text-xs font-semibold transition-all shadow-2xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer active:scale-98"
               >
                 {isPending ? (
                   <Loader2 size={15} className="animate-spin" />

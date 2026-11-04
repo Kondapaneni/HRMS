@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Camera, IndianRupee, KeyRound, Sparkles, User, Mail, Phone, Building, Briefcase, Calendar, ShieldCheck } from 'lucide-react';
+import { X, Camera } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
@@ -127,7 +127,6 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
       toast.success('Employee created successfully!');
       onSuccess();
       
-      // Navigate to the edit page for the newly created employee
       if (res.data && res.data.id) {
         navigate(`/admin/employees/${res.data.id}/edit`);
       }
@@ -145,87 +144,79 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
   return createPortal(
     <div 
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-      className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm font-editorial antialiased"
-      style={{ fontFamily: "'Newsreader', Georgia, serif" }}
+      className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-xs antialiased font-sans"
     >
       <motion.div 
         initial={{ x: '100%' }}
         animate={{ x: 0 }}
         exit={{ x: '100%' }}
         transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
-        className="bg-white shadow-2xl w-full max-w-lg h-[100dvh] flex flex-col overflow-hidden relative z-10"
+        className="bg-[var(--surface)] shadow-2xl w-full max-w-lg h-[100dvh] flex flex-col overflow-hidden relative z-10 border-l border-[var(--line)]"
       >
-        {/* Top 4-Color Google Accent Line */}
-        <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
-
         {/* Modal Header */}
-        <div className="px-6 py-4 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd] mt-1 shrink-0">
+        <div className="px-6 py-4.5 border-b border-[var(--line)] flex justify-between items-center bg-[var(--surface)] shrink-0">
           <div>
-            <div className="flex items-center gap-1 mb-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-              <span className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Staff Onboarding</span>
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider">Staff Onboarding</span>
             </div>
-            <h2 className="text-lg font-medium text-[#1f1f1f] tracking-tight font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
-              Add <span className="font-medium italic text-[#1a73e8]">New Employee</span>
+            <h2 className="text-lg font-semibold text-[var(--text)] tracking-tight">
+              Add New Employee
             </h2>
           </div>
           <button 
             onClick={onClose} 
-            className="text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4] p-1.5 rounded-full transition-colors cursor-pointer"
+            className="text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)] p-1.5 rounded-full transition-colors cursor-pointer"
           >
             <X size={18} />
           </button>
         </div>
 
         {/* Form Body */}
-        <div className="p-6 overflow-y-auto flex-1 space-y-4">
+        <div className="p-6 overflow-y-auto flex-1 space-y-4 bg-[var(--surface)]">
           <form id="add-employee-form" onSubmit={handleSubmit} className="space-y-4">
             
-            {/* Avatar Upload */}
+            {/* Avatar Upload (Rounded Square per Ronas IT Guidelines) */}
             <div className="flex flex-col items-center mb-5">
-              <div className="relative w-22 h-22 rounded-full border-2 border-dashed border-[#dadce0] flex items-center justify-center bg-[#f8fafd] overflow-hidden group shadow-xs">
+              <div className="relative w-20 h-20 rounded-[18px] border-2 border-dashed border-[var(--line)] flex items-center justify-center bg-[var(--surface-alt)] overflow-hidden group shadow-xs">
                 {avatarPreview ? (
                   <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center text-[#5f6368]">
-                    <Camera size={24} className="text-[#1a73e8] mb-1" />
-                    <span className="text-[10px] text-[#5f6368]">Add Photo</span>
+                  <div className="w-full h-full flex flex-col items-center justify-center text-[var(--muted)]">
+                    <Camera size={22} className="text-[var(--brand-deep)] mb-1" />
+                    <span className="text-[10px] text-[var(--muted)] font-medium">Add Photo</span>
                   </div>
                 )}
-                <label className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                <label className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer rounded-[18px]">
                   <span className="text-white text-xs font-semibold">Change</span>
                   <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
                 </label>
               </div>
-              <p className="text-[11px] text-[#5f6368] mt-1.5">Profile Photo (Optional)</p>
+              <p className="text-[11px] text-[var(--muted)] mt-1.5">Profile Photo (Optional)</p>
             </div>
 
             {/* First & Last Name */}
             <div className="grid grid-cols-2 gap-3.5">
               <div>
-                <label className="block text-xs font-semibold text-[#1f1f1f] mb-1">First Name *</label>
+                <label className="block text-xs font-semibold text-[var(--text)] mb-1">First Name *</label>
                 <input 
                   required 
                   type="text" 
                   name="firstName" 
                   value={formData.firstName} 
                   onChange={handleChange} 
-                  className="w-full px-3.5 py-2 border border-[#dadce0] rounded-xl text-xs text-[#1f1f1f] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 outline-none transition-all" 
-                  placeholder="e.g. Gowtham Chowdary"
+                  className="w-full px-3.5 py-2 border border-[var(--line)] rounded-[12px] bg-[var(--surface-alt)] text-xs text-[var(--text)] focus:bg-[var(--surface)] focus:border-[var(--brand)] outline-none transition-all placeholder:text-[var(--muted)]" 
+                  placeholder="e.g. Gowtham"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-[#1f1f1f] mb-1">Last Name *</label>
+                <label className="block text-xs font-semibold text-[var(--text)] mb-1">Last Name *</label>
                 <input 
                   required 
                   type="text" 
                   name="lastName" 
                   value={formData.lastName} 
                   onChange={handleChange} 
-                  className="w-full px-3.5 py-2 border border-[#dadce0] rounded-xl text-xs text-[#1f1f1f] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 outline-none transition-all" 
+                  className="w-full px-3.5 py-2 border border-[var(--line)] rounded-[12px] bg-[var(--surface-alt)] text-xs text-[var(--text)] focus:bg-[var(--surface)] focus:border-[var(--brand)] outline-none transition-all placeholder:text-[var(--muted)]" 
                   placeholder="e.g. Kondapaneni"
                 />
               </div>
@@ -234,26 +225,26 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
             {/* Email & Phone */}
             <div className="grid grid-cols-2 gap-3.5">
               <div>
-                <label className="block text-xs font-semibold text-[#1f1f1f] mb-1">Email Address *</label>
+                <label className="block text-xs font-semibold text-[var(--text)] mb-1">Email Address *</label>
                 <input 
                   required 
                   type="email" 
                   name="email" 
                   value={formData.email} 
                   onChange={handleChange} 
-                  className="w-full px-3.5 py-2 border border-[#dadce0] rounded-xl text-xs text-[#1f1f1f] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 outline-none transition-all" 
-                  placeholder="name@gmail.com"
+                  className="w-full px-3.5 py-2 border border-[var(--line)] rounded-[12px] bg-[var(--surface-alt)] text-xs text-[var(--text)] focus:bg-[var(--surface)] focus:border-[var(--brand)] outline-none transition-all placeholder:text-[var(--muted)]" 
+                  placeholder="name@company.com"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-[#1f1f1f] mb-1">Phone Number *</label>
+                <label className="block text-xs font-semibold text-[var(--text)] mb-1">Phone Number *</label>
                 <input 
                   required 
                   type="tel" 
                   name="phone" 
                   value={formData.phone} 
                   onChange={handleChange} 
-                  className="w-full px-3.5 py-2 border border-[#dadce0] rounded-xl text-xs text-[#1f1f1f] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 outline-none transition-all" 
+                  className="w-full px-3.5 py-2 border border-[var(--line)] rounded-[12px] bg-[var(--surface-alt)] text-xs text-[var(--text)] focus:bg-[var(--surface)] focus:border-[var(--brand)] outline-none transition-all placeholder:text-[var(--muted)]" 
                   placeholder="+91 9876543210"
                 />
               </div>
@@ -262,26 +253,26 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
             {/* Department & Position */}
             <div className="grid grid-cols-2 gap-3.5">
               <div>
-                <label className="block text-xs font-semibold text-[#1f1f1f] mb-1">Department *</label>
+                <label className="block text-xs font-semibold text-[var(--text)] mb-1">Department *</label>
                 <input 
                   required 
                   type="text" 
                   name="department" 
                   value={formData.department} 
                   onChange={handleChange} 
-                  className="w-full px-3.5 py-2 border border-[#dadce0] rounded-xl text-xs text-[#1f1f1f] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 outline-none transition-all" 
+                  className="w-full px-3.5 py-2 border border-[var(--line)] rounded-[12px] bg-[var(--surface-alt)] text-xs text-[var(--text)] focus:bg-[var(--surface)] focus:border-[var(--brand)] outline-none transition-all placeholder:text-[var(--muted)]" 
                   placeholder="Engineering"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-[#1f1f1f] mb-1">Position / Role *</label>
+                <label className="block text-xs font-semibold text-[var(--text)] mb-1">Position / Role *</label>
                 <input 
                   required 
                   type="text" 
                   name="position" 
                   value={formData.position} 
                   onChange={handleChange} 
-                  className="w-full px-3.5 py-2 border border-[#dadce0] rounded-xl text-xs text-[#1f1f1f] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 outline-none transition-all" 
+                  className="w-full px-3.5 py-2 border border-[var(--line)] rounded-[12px] bg-[var(--surface-alt)] text-xs text-[var(--text)] focus:bg-[var(--surface)] focus:border-[var(--brand)] outline-none transition-all placeholder:text-[var(--muted)]" 
                   placeholder="Software Engineer"
                 />
               </div>
@@ -290,13 +281,13 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
             {/* Branch & Join Date */}
             <div className="grid grid-cols-2 gap-3.5">
               <div>
-                <label className="block text-xs font-semibold text-[#1f1f1f] mb-1">Assigned Branch *</label>
+                <label className="block text-xs font-semibold text-[var(--text)] mb-1">Assigned Branch *</label>
                 <select 
                   required 
                   name="branch_id" 
                   value={formData.branch_id} 
                   onChange={handleChange} 
-                  className="w-full px-3.5 py-2 border border-[#dadce0] rounded-xl text-xs text-[#1f1f1f] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 outline-none transition-all bg-white cursor-pointer"
+                  className="w-full px-3.5 py-2 border border-[var(--line)] rounded-[12px] bg-[var(--surface-alt)] text-xs text-[var(--text)] focus:bg-[var(--surface)] focus:border-[var(--brand)] outline-none transition-all cursor-pointer"
                 >
                   {branches.map(b => (
                     <option key={b.id} value={b.id}>{b.name}</option>
@@ -304,14 +295,14 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-[#1f1f1f] mb-1">Joining Date *</label>
+                <label className="block text-xs font-semibold text-[var(--text)] mb-1">Joining Date *</label>
                 <input 
                   required 
                   type="date" 
                   name="joinDate" 
                   value={formData.joinDate} 
                   onChange={handleChange} 
-                  className="w-full px-3.5 py-2 border border-[#dadce0] rounded-xl text-xs text-[#1f1f1f] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 outline-none transition-all bg-white cursor-pointer" 
+                  className="w-full px-3.5 py-2 border border-[var(--line)] rounded-[12px] bg-[var(--surface-alt)] text-xs text-[var(--text)] focus:bg-[var(--surface)] focus:border-[var(--brand)] outline-none transition-all cursor-pointer" 
                 />
               </div>
             </div>
@@ -319,9 +310,9 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
             {/* Salary & Auto Password */}
             <div className="grid grid-cols-2 gap-3.5">
               <div>
-                <label className="block text-xs font-semibold text-[#1f1f1f] mb-1">Monthly Salary (₹) *</label>
+                <label className="block text-xs font-semibold text-[var(--text)] mb-1">Monthly Salary (₹) *</label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#5f6368] text-xs font-bold pointer-events-none">₹</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)] text-xs font-semibold pointer-events-none">₹</span>
                   <input 
                     required 
                     type="number" 
@@ -329,20 +320,20 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
                     name="salary" 
                     value={formData.salary} 
                     onChange={handleChange} 
-                    className="w-full pl-7 pr-3.5 py-2 border border-[#dadce0] rounded-xl text-xs text-[#1f1f1f] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 outline-none transition-all" 
+                    className="w-full pl-7 pr-3.5 py-2 border border-[var(--line)] rounded-[12px] bg-[var(--surface-alt)] text-xs text-[var(--text)] focus:bg-[var(--surface)] focus:border-[var(--brand)] outline-none transition-all placeholder:text-[var(--muted)]" 
                     placeholder="50000"
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-[#1f1f1f] mb-1">Initial Password *</label>
+                <label className="block text-xs font-semibold text-[var(--text)] mb-1">Initial Password *</label>
                 <input 
                   required 
                   type="text" 
                   readOnly 
                   name="password" 
                   value={formData.password} 
-                  className="w-full px-3.5 py-2 border border-[#e0e3e7] rounded-xl text-xs bg-[#f8fafd] text-[#5f6368] cursor-not-allowed outline-none transition-all font-mono" 
+                  className="w-full px-3.5 py-2 border border-[var(--line)] rounded-[12px] text-xs bg-[var(--surface-alt)] text-[var(--muted)] cursor-not-allowed outline-none transition-all font-mono" 
                 />
               </div>
             </div>
@@ -351,11 +342,11 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
         </div>
 
         {/* Modal Footer Actions */}
-        <div className="px-6 py-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex justify-end gap-3 shrink-0">
+        <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface)] flex justify-end gap-3 shrink-0">
           <button 
             type="button" 
             onClick={onClose} 
-            className="px-5 py-2 text-xs font-semibold text-[#444746] bg-white border border-[#dadce0] rounded-full hover:bg-[#f1f3f4] transition-colors cursor-pointer"
+            className="px-5 py-2 text-xs font-semibold text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-alt)] border border-[var(--line)] rounded-full hover:bg-[var(--line)]/50 transition-colors cursor-pointer"
           >
             Cancel
           </button>
@@ -363,7 +354,7 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
             type="submit" 
             form="add-employee-form" 
             disabled={loading} 
-            className="px-6 py-2 text-xs font-semibold text-white bg-[#1a73e8] hover:bg-[#1557b0] rounded-full shadow-md shadow-[#4285F4]/25 transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+            className="px-6 py-2 text-xs font-semibold text-white bg-[var(--ink)] hover:bg-[var(--ink-2)] rounded-full shadow-xs transition-all disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
           >
             {loading ? 'Creating...' : 'Add Employee'}
           </button>

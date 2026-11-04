@@ -178,8 +178,8 @@ export default function BranchOperationsLoansViewApplication() {
 
   if (!application && isLoading) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-[#5f6368]">
-        <Loader2 className="animate-spin h-8 w-8 text-[#7C4DFF] mb-3" />
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-[var(--muted)]">
+        <Loader2 className="animate-spin h-8 w-8 text-[var(--brand-deep)] mb-3" />
         <p className="text-xs font-semibold">Loading application details...</p>
       </div>
     );
@@ -187,11 +187,11 @@ export default function BranchOperationsLoansViewApplication() {
 
   if (!application && !isLoading) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-[#5f6368]">
-        <p className="text-sm font-semibold mb-4 text-[#1f1f1f]">No application details found.</p>
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-[var(--muted)]">
+        <p className="text-sm font-semibold mb-4 text-[var(--text)]">No application details found.</p>
         <button
           onClick={() => navigate(fromPath)}
-          className="px-5 py-2.5 bg-[#7C4DFF] text-white rounded-full text-xs font-semibold hover:bg-[#673AB7] transition-colors cursor-pointer shadow-xs"
+          className="px-5 py-2.5 bg-[var(--ink)] text-white rounded-[10px] text-xs font-semibold hover:bg-[var(--ink)]/90 transition-colors cursor-pointer shadow-xs"
         >
           Back to Applications List
         </button>

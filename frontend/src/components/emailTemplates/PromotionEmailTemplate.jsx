@@ -7,7 +7,7 @@ const PromotionEmailTemplate = () => {
 
   let badge = '★ Official Promotion & Salary Revision';
   let heading = 'Congratulations, Gowtham!';
-  let subheading = 'We are proud to announce your promotion to <strong style="color: #1a73e8;">Senior Software Engineer</strong> and revision of your monthly compensation.';
+  let subheading = 'We are proud to announce your promotion to <strong style="color: #5B86C2;">Senior Software Engineer</strong> and revision of your monthly compensation.';
   let opening = 'In recognition of your exceptional dedication, sustained performance, and impactful contributions to <strong>Acme Corp</strong>, the management and leadership team are pleased to officially promote you to the designation of <strong>Senior Software Engineer</strong> along with a revised compensation structure.';
   let closing = 'Your revised compensation and elevated role responsibilities will take effect as of the specified effective date. All other terms and conditions of your employment contract remain in full force and effect.';
   let termsHtml = '';
@@ -15,7 +15,7 @@ const PromotionEmailTemplate = () => {
   if (variant === 'full') {
     badge = '★ Official Promotion & Salary Revision';
     heading = 'Congratulations, Gowtham!';
-    subheading = 'We are proud to announce your promotion to <strong style="color: #1a73e8;">Senior Software Engineer</strong> and revision of your monthly compensation.';
+    subheading = 'We are proud to announce your promotion to <strong style="color: #5B86C2;">Senior Software Engineer</strong> and revision of your monthly compensation.';
     opening = 'In recognition of your exceptional dedication, sustained performance, and impactful contributions to <strong>Acme Corp</strong>, the management and leadership team are pleased to officially promote you to the designation of <strong>Senior Software Engineer</strong> along with a revised compensation structure.';
     closing = 'Your revised compensation and elevated role responsibilities will take effect as of the specified effective date. All other terms and conditions of your employment contract remain in full force and effect.';
     termsHtml = `
@@ -25,7 +25,7 @@ const PromotionEmailTemplate = () => {
       </tr>
       <tr>
         <td style="padding: 14px 18px; border-bottom: 1px solid #eef0f2; font-size: 13px; color: #137333; font-weight: 600;">Promoted Designation:</td>
-        <td style="padding: 14px 18px; border-bottom: 1px solid #eef0f2; font-size: 14px; font-weight: 700; color: #1a73e8; text-align: right;">Senior Software Engineer</td>
+        <td style="padding: 14px 18px; border-bottom: 1px solid #eef0f2; font-size: 14px; font-weight: 700; color: #5B86C2; text-align: right;">Senior Software Engineer</td>
       </tr>
       <tr>
         <td style="padding: 14px 18px; border-bottom: 1px solid #eef0f2; font-size: 13px; color: #5f6368;">Previous Monthly Salary:</td>
@@ -39,7 +39,7 @@ const PromotionEmailTemplate = () => {
   } else if (variant === 'role_only') {
     badge = '★ Official Role Advancement';
     heading = 'Congratulations, Gowtham!';
-    subheading = 'We are proud to announce your career advancement to <strong style="color: #1a73e8;">Staff Architect</strong>.';
+    subheading = 'We are proud to announce your career advancement to <strong style="color: #5B86C2;">Staff Architect</strong>.';
     opening = 'In recognition of your demonstrated leadership, technical expertise, and outstanding commitments to <strong>Acme Corp</strong>, the management team is proud to officially promote you to the designation of <strong>Staff Architect</strong>.';
     closing = 'Your new role responsibilities will take effect as of the specified effective date. Your current compensation remains in effect. All other terms and conditions remain in full force.';
     termsHtml = `
@@ -49,7 +49,7 @@ const PromotionEmailTemplate = () => {
       </tr>
       <tr>
         <td style="padding: 14px 18px; border-bottom: 1px solid #eef0f2; font-size: 13px; color: #137333; font-weight: 600;">Promoted Designation:</td>
-        <td style="padding: 14px 18px; border-bottom: 1px solid #eef0f2; font-size: 14px; font-weight: 700; color: #1a73e8; text-align: right;">Staff Architect</td>
+        <td style="padding: 14px 18px; border-bottom: 1px solid #eef0f2; font-size: 14px; font-weight: 700; color: #5B86C2; text-align: right;">Staff Architect</td>
       </tr>
       <tr>
         <td style="padding: 14px 18px; border-bottom: 1px solid #eef0f2; font-size: 13px; color: #5f6368;">Base Monthly Salary:</td>
@@ -59,7 +59,7 @@ const PromotionEmailTemplate = () => {
   } else if (variant === 'salary_only') {
     badge = '★ Official Compensation Revision';
     heading = 'Salary Revision Notification, Gowtham';
-    subheading = 'We are pleased to communicate the revision of your monthly compensation as <strong style="color: #1a73e8;">Senior Software Engineer</strong>.';
+    subheading = 'We are pleased to communicate the revision of your monthly compensation as <strong style="color: #5B86C2;">Senior Software Engineer</strong>.';
     opening = 'In appreciation of your valued contributions, commitment, and performance during this cycle, the leadership team at <strong>Acme Corp</strong> is pleased to approve a revision in your monthly compensation.';
     closing = 'Your revised monthly compensation will take effect as of the specified effective date. All other terms and conditions of your employment contract remain unchanged.';
     termsHtml = `
@@ -95,14 +95,14 @@ const PromotionEmailTemplate = () => {
   return (
     <div className="space-y-4">
       {/* Variant Selector Tabs */}
-      <div className="flex items-center justify-center p-1.5 bg-[#f1f3f4] border border-[#dadce0] rounded-full max-w-md mx-auto">
+      <div className="flex items-center justify-center p-1.5 bg-[var(--surface-alt)] border border-[var(--line)] rounded-full max-w-md mx-auto">
         <button
           type="button"
           onClick={() => setVariant('full')}
           className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-full text-xs font-semibold transition-all cursor-pointer ${
             variant === 'full'
-              ? 'bg-white text-[#1a73e8] shadow-xs'
-              : 'text-[#5f6368] hover:text-[#1f1f1f]'
+              ? 'bg-[var(--surface)] text-[var(--brand-deep)] shadow-xs'
+              : 'text-[var(--muted)] hover:text-[var(--text)]'
           }`}
         >
           <Award size={13} />
@@ -113,8 +113,8 @@ const PromotionEmailTemplate = () => {
           onClick={() => setVariant('role_only')}
           className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-full text-xs font-semibold transition-all cursor-pointer ${
             variant === 'role_only'
-              ? 'bg-white text-[#1a73e8] shadow-xs'
-              : 'text-[#5f6368] hover:text-[#1f1f1f]'
+              ? 'bg-[var(--surface)] text-[var(--brand-deep)] shadow-xs'
+              : 'text-[var(--muted)] hover:text-[var(--text)]'
           }`}
         >
           <TrendingUp size={13} />
@@ -125,8 +125,8 @@ const PromotionEmailTemplate = () => {
           onClick={() => setVariant('salary_only')}
           className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-full text-xs font-semibold transition-all cursor-pointer ${
             variant === 'salary_only'
-              ? 'bg-white text-[#1a73e8] shadow-xs'
-              : 'text-[#5f6368] hover:text-[#1f1f1f]'
+              ? 'bg-[var(--surface)] text-[var(--brand-deep)] shadow-xs'
+              : 'text-[var(--muted)] hover:text-[var(--text)]'
           }`}
         >
           <IndianRupee size={13} />

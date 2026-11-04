@@ -161,7 +161,7 @@ export const AppShell = ({
 
                     {/* Unread badge dot */}
                     {group.badge && (
-                      <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#EA4335] ring-2 ring-[#131315]" />
+                      <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#D64550] ring-2 ring-[#131315]" />
                     )}
                   </Link>
                 );
