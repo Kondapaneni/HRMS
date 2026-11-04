@@ -147,13 +147,13 @@ const BranchOperationsMobileLeads = () => {
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
-            <span className="inline-flex items-center justify-center px-3 py-1 rounded-[8px] text-xs font-semibold bg-[var(--brand-tint)] text-[var(--brand-deep)]">
+            <span className="inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-semibold bg-[var(--branch-tint)] text-[var(--branch-deep)]">
               {counts.All} Leads
             </span>
           </div>
         </div>
         <p className="text-xs text-[var(--muted)] mt-1 flex items-center gap-1 truncate">
-          <Building2 size={12} className="text-[var(--brand-deep)] shrink-0" />
+          <Building2 size={12} className="text-[var(--branch-deep)] shrink-0" />
           <span className="truncate">{branch.name}</span>
           <span>&bull;</span>
           <span>Read-only overview</span>
@@ -166,13 +166,13 @@ const BranchOperationsMobileLeads = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
           {/* Pipeline Dropdown */}
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[var(--brand-deep)]">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[var(--branch-deep)]">
               <Layers size={14} />
             </div>
             <select
               value={selectedPipeline}
               onChange={(e) => setSelectedPipeline(e.target.value)}
-              className="w-full pl-8.5 pr-8 py-2 text-xs bg-[var(--surface)] border border-[var(--line)] rounded-[12px] text-[var(--text)] focus:outline-none focus:border-[var(--brand)] transition-all font-medium appearance-none shadow-xs cursor-pointer"
+              className="w-full pl-8.5 pr-8 py-2 text-xs bg-[var(--surface)] border border-[var(--line)] rounded-[12px] text-[var(--text)] focus:outline-none focus:border-[var(--branch)] transition-all font-medium appearance-none shadow-xs cursor-pointer"
             >
               <option value="all">All Pipelines ({counts.All})</option>
               <option value="loans">Loans Pipeline ({counts.loans})</option>
@@ -185,7 +185,7 @@ const BranchOperationsMobileLeads = () => {
 
           {/* Officer Dropdown */}
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[var(--brand-deep)]">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[var(--branch-deep)]">
               <UserCheck size={14} />
             </div>
             <select
@@ -209,7 +209,7 @@ const BranchOperationsMobileLeads = () => {
         {/* Search Box */}
         <div className="relative">
           {isFetching ? (
-            <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--brand-deep)] animate-spin pointer-events-none" />
+            <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--branch-deep)] animate-spin pointer-events-none" />
           ) : (
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--muted)] pointer-events-none" />
           )}
@@ -278,7 +278,7 @@ const BranchOperationsMobileLeads = () => {
                   setSelectedPipeline('all');
                   setSelectedEmployee('all');
                 }}
-                className="mt-2 inline-flex items-center text-xs font-medium text-[var(--brand-deep)] hover:underline cursor-pointer"
+                className="mt-2 inline-flex items-center text-xs font-medium text-[var(--branch-deep)] hover:underline cursor-pointer"
               >
                 Reset all filters
               </button>
@@ -301,7 +301,7 @@ const BranchOperationsMobileLeads = () => {
             return (
               <div
                 key={lead.id}
-                className="bg-[var(--surface)] rounded-[18px] border border-[var(--line)] p-4 shadow-xs space-y-3"
+                className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4 shadow-xs space-y-3"
               >
                 {/* Top Row: Name, Pipeline Badge, Status */}
                 <div className="flex items-start justify-between gap-2">
@@ -351,7 +351,7 @@ const BranchOperationsMobileLeads = () => {
                 {/* Middle Row: Officer & Date */}
                 <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[var(--line)] text-[11px] text-[var(--muted)]">
                   <div className="flex items-center gap-1.5 min-w-0">
-                    <UserCheck size={11} className="text-[var(--brand-deep)] shrink-0" />
+                    <UserCheck size={11} className="text-[var(--branch-deep)] shrink-0" />
                     <span className="truncate font-medium text-[var(--text)]">
                       {lead.creator_name || 'Branch Officer'}
                     </span>

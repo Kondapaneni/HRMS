@@ -192,7 +192,7 @@ const BranchOperationsMobileDashboard = () => {
           </p>
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-2xl font-semibold text-[var(--text)] tracking-tight leading-tight min-w-0">
-              {profile?.firstName || 'Operations'} <span className="font-semibold text-[var(--brand-deep)]">{profile?.lastName || 'Manager'}</span>
+              {profile?.firstName || 'Operations'} <span className="font-semibold text-[var(--branch-deep)]">{profile?.lastName || 'Manager'}</span>
             </h2>
 
             <button
@@ -206,8 +206,8 @@ const BranchOperationsMobileDashboard = () => {
           <p className="text-xs font-medium text-[var(--muted)] mt-1 flex items-center gap-1.5">
             <span>{currentTime.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}</span>
             <span>&bull;</span>
-            <span className="inline-flex items-center gap-1 font-semibold text-[var(--brand-deep)]">
-              <Building2 size={13} className="text-[var(--brand-deep)]" /> {branch.name}
+            <span className="inline-flex items-center gap-1 font-semibold text-[var(--branch-deep)]">
+              <Building2 size={13} className="text-[var(--branch-deep)]" /> {branch.name}
             </span>
           </p>
         </div>
@@ -220,7 +220,7 @@ const BranchOperationsMobileDashboard = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           {/* Dropdown 1: Pipeline Selector (All / Loans / Sales) */}
           <div className="bg-[var(--surface)] rounded-[14px] border border-[var(--line)] px-3.5 py-2.5 shadow-xs flex items-center gap-2.5">
-            <div className="text-[var(--brand-deep)] shrink-0">
+            <div className="text-[var(--branch-deep)] shrink-0">
               <Layers size={16} />
             </div>
             <div className="relative flex-1">
@@ -239,7 +239,7 @@ const BranchOperationsMobileDashboard = () => {
 
           {/* Dropdown 2: Employee Selector (Filtered dynamically) */}
           <div className="bg-[var(--surface)] rounded-[14px] border border-[var(--line)] px-3.5 py-2.5 shadow-xs flex items-center gap-2.5">
-            <div className="text-[var(--brand-deep)] shrink-0">
+            <div className="text-[var(--branch-deep)] shrink-0">
               <UserCheck size={16} />
             </div>
             <div className="relative flex-1">
@@ -266,111 +266,102 @@ const BranchOperationsMobileDashboard = () => {
           </div>
         </div>
 
-        {/* 3. 4 KPI Metric Cards Grid */}
-        <div className="grid grid-cols-2 gap-3">
+                {/* 3. 4 KPI Metric Cards Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           {/* Card 1: Total Leads */}
-          <div className="bg-[var(--surface)] rounded-[18px] border border-[var(--line)] p-3.5 shadow-xs flex flex-col justify-between">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider truncate">
-                Total Leads
+          <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4.5 shadow-xs flex items-center justify-between">
+            <div className="space-y-1">
+              <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">
+                Total Leads (This Month)
               </p>
-              <div className="p-1.5 rounded-[8px] bg-[var(--brand-tint)] text-[var(--brand-deep)] shrink-0">
-                <Users className="w-3.5 h-3.5" />
-              </div>
-            </div>
-            <div>
-              <p className="text-xl font-bold text-[var(--text)] tracking-tight">
-                {stats.total_leads_month}
-              </p>
-              <div className="flex items-center gap-1 mt-0.5">
-                <span className={`inline-flex items-center text-[10px] font-semibold ${stats.percent_change_total >= 0 ? 'text-[var(--badge-success-text)]' : 'text-[var(--badge-danger-text)]'}`}>
+              <div className="flex items-baseline gap-2">
+                <p className="text-2xl font-semibold text-[var(--text)] tracking-tight">
+                  {stats.total_leads_month}
+                </p>
+                <span className={`inline-flex items-center text-xs font-semibold ${stats.percent_change_total >= 0 ? 'text-[var(--badge-success-text)]' : 'text-[var(--badge-danger-text)]'}`}>
                   {stats.percent_change_total >= 0 ? (
-                    <ArrowUpRight className="w-3 h-3" />
+                    <ArrowUpRight className="w-3.5 h-3.5" />
                   ) : (
-                    <ArrowDownRight className="w-3 h-3" />
+                    <ArrowDownRight className="w-3.5 h-3.5" />
                   )}
                   {Math.abs(stats.percent_change_total)}%
                 </span>
-                <span className="text-[9.5px] text-[var(--muted)]">vs last mo</span>
               </div>
+              <p className="text-xs text-[var(--muted)] font-normal pt-0.5">Vs previous month</p>
+            </div>
+            <div className="p-3 rounded-[12px] bg-[var(--branch-tint)] text-[var(--branch-deep)] shrink-0">
+              <Users className="w-5 h-5" />
             </div>
           </div>
 
           {/* Card 2: Active Opportunities */}
-          <div className="bg-[var(--surface)] rounded-[18px] border border-[var(--line)] p-3.5 shadow-xs flex flex-col justify-between">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider truncate">
-                Active Opps
+          <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4.5 shadow-xs flex items-center justify-between">
+            <div className="space-y-1">
+              <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">
+                Active Opportunities
               </p>
-              <div className="p-1.5 rounded-[8px] bg-[var(--badge-warning-bg)] text-[var(--badge-warning-text)] shrink-0">
-                <TrendingUp className="w-3.5 h-3.5" />
-              </div>
-            </div>
-            <div>
-              <p className="text-xl font-bold text-[var(--text)] tracking-tight">
-                {stats.active_opportunities}
-              </p>
-              <div className="flex items-center gap-1 mt-0.5">
-                <span className={`inline-flex items-center text-[10px] font-semibold ${stats.percent_change_active >= 0 ? 'text-[var(--badge-success-text)]' : 'text-[var(--badge-danger-text)]'}`}>
+              <div className="flex items-baseline gap-2">
+                <p className="text-2xl font-semibold text-[var(--text)] tracking-tight">
+                  {stats.active_opportunities}
+                </p>
+                <span className={`inline-flex items-center text-xs font-semibold ${stats.percent_change_active >= 0 ? 'text-[var(--badge-success-text)]' : 'text-[var(--badge-danger-text)]'}`}>
                   {stats.percent_change_active >= 0 ? (
-                    <ArrowUpRight className="w-3 h-3" />
+                    <ArrowUpRight className="w-3.5 h-3.5" />
                   ) : (
-                    <ArrowDownRight className="w-3 h-3" />
+                    <ArrowDownRight className="w-3.5 h-3.5" />
                   )}
                   {Math.abs(stats.percent_change_active)}%
                 </span>
-                <span className="text-[9.5px] text-[var(--muted)]">pipeline</span>
               </div>
+              <p className="text-xs text-[var(--muted)] font-normal pt-0.5">Under pipeline review</p>
+            </div>
+            <div className="p-3 rounded-[12px] bg-[var(--badge-warning-bg)] text-[var(--badge-warning-text)] shrink-0">
+              <TrendingUp className="w-5 h-5" />
             </div>
           </div>
 
           {/* Card 3: Converted Leads */}
-          <div className="bg-[var(--surface)] rounded-[18px] border border-[var(--line)] p-3.5 shadow-xs flex flex-col justify-between">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider truncate">
-                Converted
+          <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4.5 shadow-xs flex items-center justify-between">
+            <div className="space-y-1">
+              <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">
+                Converted Leads
               </p>
-              <div className="p-1.5 rounded-[8px] bg-[var(--badge-success-bg)] text-[var(--badge-success-text)] shrink-0">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-              </div>
-            </div>
-            <div>
-              <p className="text-xl font-bold text-[var(--text)] tracking-tight">
-                {stats.converted_leads}
-              </p>
-              <div className="flex items-center gap-1 mt-0.5">
-                <span className={`inline-flex items-center text-[10px] font-semibold ${stats.percent_change_converted >= 0 ? 'text-[var(--badge-success-text)]' : 'text-[var(--badge-danger-text)]'}`}>
+              <div className="flex items-baseline gap-2">
+                <p className="text-2xl font-semibold text-[var(--text)] tracking-tight">
+                  {stats.converted_leads}
+                </p>
+                <span className={`inline-flex items-center text-xs font-semibold ${stats.percent_change_converted >= 0 ? 'text-[var(--badge-success-text)]' : 'text-[var(--badge-danger-text)]'}`}>
                   {stats.percent_change_converted >= 0 ? (
-                    <ArrowUpRight className="w-3 h-3" />
+                    <ArrowUpRight className="w-3.5 h-3.5" />
                   ) : (
-                    <ArrowDownRight className="w-3 h-3" />
+                    <ArrowDownRight className="w-3.5 h-3.5" />
                   )}
                   {Math.abs(stats.percent_change_converted)}%
                 </span>
-                <span className="text-[9.5px] text-[var(--muted)]">closed</span>
               </div>
+              <p className="text-xs text-[var(--muted)] font-normal pt-0.5">Successfully closed</p>
+            </div>
+            <div className="p-3 rounded-[12px] bg-[var(--badge-success-bg)] text-[var(--badge-success-text)] shrink-0">
+              <CheckCircle2 className="w-5 h-5" />
             </div>
           </div>
 
-          {/* Card 4: Branch Conversion Rate */}
-          <div className="bg-[var(--surface)] rounded-[18px] border border-[var(--line)] p-3.5 shadow-xs flex flex-col justify-between">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider truncate">
-                Conv Rate
+          {/* Card 4: Conversion Rate */}
+          <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4.5 shadow-xs flex items-center justify-between">
+            <div className="space-y-1">
+              <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">
+                Conversion Rate
               </p>
-              <div className="p-1.5 rounded-[8px] bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)] shrink-0">
-                <Award className="w-3.5 h-3.5" />
+              <div className="flex items-baseline gap-2">
+                <p className="text-2xl font-semibold text-[var(--branch-deep)] tracking-tight">
+                  {conversionRate}%
+                </p>
+                <span className="text-xs font-semibold text-[var(--badge-success-text)]">Active</span>
               </div>
+              <p className="text-xs text-[var(--muted)] font-normal pt-0.5">{recentApplications.length} applications total</p>
             </div>
-            <div>
-              <p className="text-xl font-bold text-[var(--accent-pink-deep)] tracking-tight">
-                {conversionRate}%
-              </p>
-              <div className="flex items-center gap-1 mt-0.5">
-                <span className="text-[10px] font-medium text-[var(--muted)] truncate">
-                  {recentApplications.length} apps total
-                </span>
-              </div>
+            <div className="p-3 rounded-[12px] bg-[var(--branch-tint)] text-[var(--branch-deep)] shrink-0">
+              <Award className="w-5 h-5" />
             </div>
           </div>
         </div>
@@ -419,8 +410,8 @@ const BranchOperationsMobileDashboard = () => {
                 <AreaChart data={dailyData} margin={{ top: 10, right: 10, bottom: 5, left: -20 }}>
                   <defs>
                     <linearGradient id="branchLeadsGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#8AADDB" stopOpacity={0.4}/>
-                      <stop offset="95%" stopColor="#8AADDB" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#14B8A6" stopOpacity={0.4}/>
+                      <stop offset="95%" stopColor="#14B8A6" stopOpacity={0}/>
                     </linearGradient>
                     <linearGradient id="branchConvGradient" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#1F9D55" stopOpacity={0.3}/>
@@ -441,7 +432,7 @@ const BranchOperationsMobileDashboard = () => {
                     }}
                   />
                   <Legend iconType="circle" wrapperStyle={{ paddingTop: '10px', fontSize: '11px' }} />
-                  <Area type="monotone" dataKey="leads" name="Total Leads" stroke="#8AADDB" strokeWidth={2} fillOpacity={1} fill="url(#branchLeadsGradient)" />
+                  <Area type="monotone" dataKey="leads" name="Total Leads" stroke="#14B8A6" strokeWidth={2} fillOpacity={1} fill="url(#branchLeadsGradient)" />
                   <Area type="monotone" dataKey="converted" name="Converted" stroke="#1F9D55" strokeWidth={2} fillOpacity={1} fill="url(#branchConvGradient)" />
                 </AreaChart>
               ) : (
@@ -461,7 +452,7 @@ const BranchOperationsMobileDashboard = () => {
                     cursor={{ fill: 'var(--brand-tint)', opacity: 0.5 }}
                   />
                   <Legend iconType="circle" wrapperStyle={{ paddingTop: '10px', fontSize: '11px' }} />
-                  <Bar dataKey="leads" name="Leads" fill="#8AADDB" radius={[4, 4, 0, 0]} barSize={12} />
+                  <Bar dataKey="leads" name="Leads" fill="#14B8A6" radius={[4, 4, 0, 0]} barSize={12} />
                   <Bar dataKey="converted" name="Converted" fill="#1F9D55" radius={[4, 4, 0, 0]} barSize={12} />
                 </BarChart>
               )}
@@ -473,7 +464,7 @@ const BranchOperationsMobileDashboard = () => {
         <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4 shadow-xs space-y-3">
           <div className="flex items-center justify-between border-b border-[var(--line)] pb-3">
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-[8px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center">
+              <div className="w-7 h-7 rounded-[8px] bg-[var(--branch-tint)] text-[var(--branch-deep)] flex items-center justify-center">
                 <TrendingUp size={14} />
               </div>
               <div>
@@ -530,7 +521,7 @@ const BranchOperationsMobileDashboard = () => {
                       className="py-3 flex items-center justify-between gap-2 cursor-pointer hover:bg-[var(--surface-alt)]/60 transition-colors rounded-[12px] px-2 -mx-1"
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-9 h-9 rounded-[10px] bg-[var(--brand-tint)] text-[var(--brand-deep)] font-semibold text-xs flex items-center justify-center shrink-0 border border-[var(--brand)]/20">
+                        <div className="w-9 h-9 rounded-[10px] bg-[var(--branch-tint)] text-[var(--branch-deep)] font-semibold text-xs flex items-center justify-center shrink-0 border border-[var(--branch)]/20">
                           {initials}
                         </div>
                         <div className="min-w-0 space-y-0.5">
@@ -545,7 +536,7 @@ const BranchOperationsMobileDashboard = () => {
                             {lead.loan_type && lead.loan_type.trim().toLowerCase() !== 'opportunity' && (
                               <>
                                 <span>&bull;</span>
-                                <span className="truncate text-[var(--brand-deep)] font-medium">{lead.loan_type}</span>
+                                <span className="truncate text-[var(--branch-deep)] font-medium">{lead.loan_type}</span>
                               </>
                             )}
                           </div>
@@ -577,7 +568,7 @@ const BranchOperationsMobileDashboard = () => {
                       className="py-3 flex items-center justify-between gap-2 cursor-pointer hover:bg-[var(--surface-alt)]/60 transition-colors rounded-[12px] px-2 -mx-1"
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-9 h-9 rounded-[10px] bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)] font-semibold text-xs flex items-center justify-center shrink-0 border border-[var(--accent-pink)]/20">
+                        <div className="w-9 h-9 rounded-[10px] bg-[var(--branch-tint)] text-[var(--branch-deep)] font-semibold text-xs flex items-center justify-center shrink-0 border border-[var(--branch)]/20">
                           {initials}
                         </div>
                         <div className="min-w-0 space-y-0.5">
@@ -585,7 +576,7 @@ const BranchOperationsMobileDashboard = () => {
                             {applicantName}
                           </h4>
                           <div className="flex items-center gap-1.5 text-[10.5px] text-[var(--muted)]">
-                            <span className="font-mono font-medium text-[var(--brand-deep)]">
+                            <span className="font-mono font-medium text-[var(--branch-deep)]">
                               {app.application_id || 'LA-PENDING'}
                             </span>
                             <span>&bull;</span>
@@ -615,7 +606,7 @@ const BranchOperationsMobileDashboard = () => {
               <button
                 type="button"
                 onClick={() => navigate('/employee/branch-operations/leads')}
-                className="w-full py-2 flex items-center justify-center gap-1.5 text-xs font-medium text-[var(--brand-deep)] hover:bg-[var(--brand-tint)]/40 rounded-[10px] transition-colors cursor-pointer"
+                className="w-full py-2 flex items-center justify-center gap-1.5 text-xs font-medium text-[var(--branch-deep)] hover:bg-[var(--branch-tint)]/40 rounded-[10px] transition-colors cursor-pointer"
               >
                 <span>View All Branch Leads</span>
                 <ChevronRight size={14} />
@@ -624,7 +615,7 @@ const BranchOperationsMobileDashboard = () => {
               <button
                 type="button"
                 onClick={() => navigate('/employee/branch-operations/loans-applications')}
-                className="w-full py-2 flex items-center justify-center gap-1.5 text-xs font-medium text-[var(--brand-deep)] hover:bg-[var(--brand-tint)]/40 rounded-[10px] transition-colors cursor-pointer"
+                className="w-full py-2 flex items-center justify-center gap-1.5 text-xs font-medium text-[var(--branch-deep)] hover:bg-[var(--branch-tint)]/40 rounded-[10px] transition-colors cursor-pointer"
               >
                 <span>View All Loan Applications</span>
                 <ChevronRight size={14} />

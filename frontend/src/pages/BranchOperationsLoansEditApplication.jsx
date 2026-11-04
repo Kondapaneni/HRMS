@@ -73,10 +73,10 @@ export default function BranchOperationsLoansEditApplication() {
               <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight">
                 {loanType} Application
               </h1>
-              <span className="text-xs font-semibold text-[var(--brand-deep)] bg-[var(--brand-tint)] px-2.5 py-0.5 rounded-[6px]">
+              <span className="text-xs font-semibold text-[var(--branch-deep)] bg-[var(--branch-tint)] px-2.5 py-0.5 rounded-full">
                 Edit Mode
               </span>
-              <span className="text-xs font-mono font-medium text-[var(--muted)] bg-[var(--surface-alt)] border border-[var(--line)] px-2.5 py-0.5 rounded-[6px]">
+              <span className="text-xs font-mono font-medium text-[var(--muted)] bg-[var(--surface-alt)] border border-[var(--line)] px-2.5 py-0.5 rounded-full">
                 {appId}
               </span>
             </div>
@@ -88,7 +88,7 @@ export default function BranchOperationsLoansEditApplication() {
           <button
             type="button"
             onClick={handleBack}
-            className="inline-flex items-center justify-center rounded-[10px] text-xs font-medium bg-[var(--surface-alt)] text-[var(--text)] hover:bg-[var(--line)] border border-[var(--line)] px-3.5 py-2 transition-all gap-1.5 cursor-pointer shrink-0"
+            className="inline-flex items-center justify-center rounded-[12px] text-xs font-semibold bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--line)] border border-[var(--line)] px-3.5 py-2 transition-all gap-1.5 cursor-pointer shrink-0"
           >
             <ArrowLeft className="w-4 h-4 text-[var(--muted)]" />
             <span>Back to Application</span>

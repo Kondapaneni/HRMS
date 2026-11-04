@@ -47,11 +47,15 @@ const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme = 'blue' }) =
   const themeClasses = {
     purple: {
       bg: 'bg-[var(--brand-tint)]',
-      text: 'text-[var(--brand-deep)]',
+      text: 'text-[var(--branch-deep)]',
+    },
+    teal: {
+      bg: 'bg-[var(--branch-tint)]',
+      text: 'text-[var(--branch-deep)]',
     },
     blue: {
       bg: 'bg-[var(--brand-tint)]',
-      text: 'text-[var(--brand-deep)]',
+      text: 'text-[var(--branch-deep)]',
     },
     green: {
       bg: 'bg-[var(--badge-success-bg)]',
@@ -67,7 +71,7 @@ const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme = 'blue' }) =
     }
   }[colorTheme] || {
     bg: 'bg-[var(--brand-tint)]',
-    text: 'text-[var(--brand-deep)]',
+    text: 'text-[var(--branch-deep)]',
   };
 
   return (
@@ -255,7 +259,7 @@ const BranchOperationsLoansApplicationsList = () => {
     }
     if (s === 'created') {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[var(--brand-tint)] text-[var(--brand-deep)] border border-[var(--brand)]/20 whitespace-nowrap">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[var(--brand-tint)] text-[var(--branch-deep)] border border-[var(--brand)]/20 whitespace-nowrap">
           <CheckCircle2 className="w-3 h-3" /> Created
         </span>
       );
@@ -278,9 +282,9 @@ const BranchOperationsLoansApplicationsList = () => {
     const isBusiness = String(loanType).toLowerCase().includes('business');
     return (
       <span className={`inline-flex items-center justify-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium whitespace-nowrap text-center ${
-        isBusiness ? 'bg-[var(--brand-tint)] text-[var(--brand-deep)] border border-[var(--brand)]/20' : 'bg-[var(--surface-alt)] text-[var(--text-2)] border border-[var(--line)]'
+        isBusiness ? 'bg-[var(--branch-tint)] text-[var(--branch-deep)] border border-[var(--branch)]/20' : 'bg-[var(--surface-alt)] text-[var(--text-2)] border border-[var(--line)]'
       }`}>
-        {isBusiness ? <Building2 className="w-3 h-3 text-[var(--brand-deep)]" /> : <User className="w-3 h-3 text-[var(--muted)]" />}
+        {isBusiness ? <Building2 className="w-3 h-3 text-[var(--branch-deep)]" /> : <User className="w-3 h-3 text-[var(--muted)]" />}
         <span className="text-center">{loanType || 'Personal Loan'}</span>
       </span>
     );
@@ -313,7 +317,7 @@ const BranchOperationsLoansApplicationsList = () => {
             </div>
             <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight flex items-center gap-2.5">
               <span>Loan Applications</span>
-              <span className="text-xs font-semibold text-[var(--brand-deep)] bg-[var(--brand-tint)] px-2.5 py-0.5 rounded-[8px]">
+              <span className="text-xs font-semibold text-[var(--branch-deep)] bg-[var(--branch-tint)] px-2.5 py-0.5 rounded-full">
                 {branch.name} &bull; {applications.length} Total Applications
               </span>
             </h1>
@@ -330,7 +334,7 @@ const BranchOperationsLoansApplicationsList = () => {
             value={stats.totalCount} 
             subtitle="All submitted & drafts" 
             icon={Briefcase} 
-            colorTheme="blue" 
+            colorTheme="teal" 
           />
           <StatCard 
             title="Approved Loans" 
@@ -351,7 +355,7 @@ const BranchOperationsLoansApplicationsList = () => {
             value={stats.draftCount} 
             subtitle="Incomplete drafts" 
             icon={FileText} 
-            colorTheme="blue" 
+            colorTheme="teal" 
           />
         </div>
 
@@ -388,7 +392,7 @@ const BranchOperationsLoansApplicationsList = () => {
           {/* Search Box */}
           <div className="relative w-full md:w-80">
             {isFetching ? (
-              <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--brand-deep)] animate-spin pointer-events-none" />
+              <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--branch-deep)] animate-spin pointer-events-none" />
             ) : (
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)] pointer-events-none" />
             )}
@@ -397,7 +401,7 @@ const BranchOperationsLoansApplicationsList = () => {
               placeholder="Search by name, phone, App ID..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-3.5 py-1.5 text-xs bg-[var(--surface-alt)] border border-[var(--line)] rounded-[10px] text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--brand)] transition-all font-medium"
+              className="w-full pl-9 pr-3.5 py-1.5 text-xs bg-[var(--surface-alt)] border border-[var(--line)] rounded-[10px] text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--branch)] transition-all font-medium"
             />
           </div>
 
@@ -461,7 +465,7 @@ const BranchOperationsLoansApplicationsList = () => {
                     <tr>
                       <td colSpan="6" className="p-14 text-center">
                         <div className="flex flex-col items-center justify-center">
-                          <RefreshCw className="animate-spin h-6 w-6 text-[var(--brand-deep)] mb-2" />
+                          <RefreshCw className="animate-spin h-6 w-6 text-[var(--branch-deep)] mb-2" />
                           <p className="text-xs text-[var(--muted)]">Loading branch loan applications directory...</p>
                         </div>
                       </td>
@@ -492,7 +496,7 @@ const BranchOperationsLoansApplicationsList = () => {
                         >
                           {/* Application ID */}
                           <td className="py-3 px-4 whitespace-nowrap">
-                            <span className="font-mono text-xs font-medium text-[var(--brand-deep)] bg-[var(--brand-tint)] px-2 py-0.5 rounded-[6px]">
+                            <span className="font-mono text-xs font-medium text-[var(--branch-deep)] bg-[var(--branch-tint)] px-2.5 py-0.5 rounded-full">
                               {appId}
                             </span>
                           </td>
@@ -500,7 +504,7 @@ const BranchOperationsLoansApplicationsList = () => {
                           {/* Applicant */}
                           <td className="py-3 px-4 whitespace-nowrap">
                             <div className="flex items-center gap-2.5">
-                              <div className="w-8 h-8 rounded-[8px] bg-[var(--brand-tint)] text-[var(--brand-deep)] font-semibold flex items-center justify-center text-xs shrink-0 border border-[var(--brand)]/20">
+                              <div className="w-8 h-8 rounded-[10px] bg-[var(--branch-tint)] text-[var(--branch-deep)] font-semibold flex items-center justify-center text-xs shrink-0 border border-[var(--branch)]/20">
                                 {name.charAt(0).toUpperCase()}
                               </div>
                               <div>
@@ -547,7 +551,7 @@ const BranchOperationsLoansApplicationsList = () => {
                               <button
                                 type="button"
                                 onClick={() => handleOpenStudio(app)}
-                                className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-[var(--brand-deep)] bg-[var(--brand-tint)] hover:opacity-90 rounded-[8px] transition-all cursor-pointer"
+                                className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-[var(--branch-deep)] bg-[var(--branch-tint)] hover:opacity-90 rounded-[10px] transition-all cursor-pointer"
                                 title="Open Full Loan Application Studio"
                               >
                                 <span>Studio</span>
@@ -623,7 +627,7 @@ const BranchOperationsLoansApplicationsList = () => {
                 <span className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider block mb-0.5">Branch Operations Hub</span>
                 <h2 className="text-base font-semibold text-[var(--text)] flex items-center gap-2">
                   <span>Application Details</span>
-                  <span className="text-xs font-mono font-medium text-[var(--brand-deep)] bg-[var(--brand-tint)] px-2 py-0.5 rounded-[6px]">
+                  <span className="text-xs font-mono font-medium text-[var(--branch-deep)] bg-[var(--brand-tint)] px-2 py-0.5 rounded-[6px]">
                     {selectedApp.application_id || 'LA-DRAFT'}
                   </span>
                 </h2>
@@ -641,7 +645,7 @@ const BranchOperationsLoansApplicationsList = () => {
               {/* Applicant Overview Card */}
               <div className="bg-[var(--surface-alt)] p-4 rounded-[16px] border border-[var(--line)] space-y-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-[10px] bg-[var(--brand-tint)] text-[var(--brand-deep)] font-semibold flex items-center justify-center text-sm border border-[var(--brand)]/20 shrink-0">
+                  <div className="w-10 h-10 rounded-[10px] bg-[var(--brand-tint)] text-[var(--branch-deep)] font-semibold flex items-center justify-center text-sm border border-[var(--brand)]/20 shrink-0">
                     {(selectedApp.applicant_name || selectedApp.form_data?.applicant_name || 'A').charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -690,7 +694,7 @@ const BranchOperationsLoansApplicationsList = () => {
               <div className="bg-[var(--surface-alt)] border border-[var(--line)] rounded-[16px] p-4 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] font-semibold text-[var(--brand-deep)] uppercase tracking-wider block">Product Category</span>
+                    <span className="text-[10px] font-semibold text-[var(--branch-deep)] uppercase tracking-wider block">Product Category</span>
                     <span className="text-sm font-semibold text-[var(--text)] mt-0.5 block">
                       {selectedApp.loan_type || selectedApp.form_data?.loan_type || 'Personal Loan'}
                     </span>
@@ -706,7 +710,7 @@ const BranchOperationsLoansApplicationsList = () => {
                 <div className="pt-2.5 border-t border-[var(--line)] grid grid-cols-2 gap-2 text-xs">
                   <div>
                     <span className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider block">Application ID</span>
-                    <p className="font-mono font-medium text-[var(--brand-deep)] mt-0.5">
+                    <p className="font-mono font-medium text-[var(--branch-deep)] mt-0.5">
                       {selectedApp.application_id || 'LA-DRAFT'}
                     </p>
                   </div>
@@ -723,7 +727,7 @@ const BranchOperationsLoansApplicationsList = () => {
               {(selectedApp.form_data?.business_name || selectedApp.loan_type === 'Business Loan') && (
                 <div className="bg-[var(--surface-alt)] p-4 rounded-[16px] border border-[var(--line)] space-y-2.5">
                   <span className="font-semibold text-[var(--text)] text-xs flex items-center gap-1.5">
-                    <Building2 className="w-3.5 h-3.5 text-[var(--brand-deep)]" /> Business Information
+                    <Building2 className="w-3.5 h-3.5 text-[var(--branch-deep)]" /> Business Information
                   </span>
                   <div className="grid grid-cols-2 gap-3 text-xs pt-1">
                     <div>
@@ -767,7 +771,7 @@ const BranchOperationsLoansApplicationsList = () => {
                             href={val}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-[var(--brand-deep)] hover:underline font-semibold text-[11px]"
+                            className="inline-flex items-center gap-1 text-[var(--branch-deep)] hover:underline font-semibold text-[11px]"
                           >
                             <ExternalLink size={12} /> View File
                           </a>

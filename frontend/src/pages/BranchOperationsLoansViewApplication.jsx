@@ -179,7 +179,7 @@ export default function BranchOperationsLoansViewApplication() {
   if (!application && isLoading) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-[var(--muted)]">
-        <Loader2 className="animate-spin h-8 w-8 text-[var(--brand-deep)] mb-3" />
+        <Loader2 className="animate-spin h-8 w-8 text-[var(--branch-deep)] mb-3" />
         <p className="text-xs font-semibold">Loading application details...</p>
       </div>
     );
@@ -191,7 +191,7 @@ export default function BranchOperationsLoansViewApplication() {
         <p className="text-sm font-semibold mb-4 text-[var(--text)]">No application details found.</p>
         <button
           onClick={() => navigate(fromPath)}
-          className="px-5 py-2.5 bg-[var(--ink)] text-white rounded-[10px] text-xs font-semibold hover:bg-[var(--ink)]/90 transition-colors cursor-pointer shadow-xs"
+          className="px-5 py-2.5 bg-[var(--ink)] text-white rounded-[12px] text-xs font-semibold hover:bg-[var(--ink)]/90 transition-colors cursor-pointer shadow-xs"
         >
           Back to Applications List
         </button>
@@ -238,12 +238,12 @@ export default function BranchOperationsLoansViewApplication() {
                 {loanType} Application
               </h1>
 
-              <span className="text-xs font-mono font-medium text-[var(--brand-deep)] bg-[var(--brand-tint)] px-2.5 py-0.5 rounded-[6px]">
+              <span className="text-xs font-mono font-medium text-[var(--branch-deep)] bg-[var(--branch-tint)] px-2.5 py-0.5 rounded-full">
                 {appId}
               </span>
 
               {/* Read Only Indicator */}
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[6px] text-xs font-medium bg-[var(--surface-alt)] text-[var(--muted)] border border-[var(--line)] whitespace-nowrap">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--surface-alt)] text-[var(--muted)] border border-[var(--line)] whitespace-nowrap">
                 <Lock size={12} className="text-[var(--muted)]" /> Read-Only
               </span>
             </div>
@@ -259,7 +259,7 @@ export default function BranchOperationsLoansViewApplication() {
             <button
               type="button"
               onClick={() => navigate(fromPath)}
-              className="inline-flex items-center justify-center rounded-[10px] text-xs font-medium bg-[var(--surface-alt)] text-[var(--text)] hover:bg-[var(--line)] border border-[var(--line)] px-3.5 py-2 transition-all gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
+              className="inline-flex items-center justify-center rounded-[12px] text-xs font-semibold bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-alt)] border border-[var(--line)] px-4 py-2 transition-all gap-1.5 shadow-2xs cursor-pointer whitespace-nowrap shrink-0"
             >
               <ArrowLeft className="w-4 h-4 text-[var(--muted)]" />
               <span>Back to Applications</span>
@@ -276,7 +276,7 @@ export default function BranchOperationsLoansViewApplication() {
                   from: '/employee/branch-operations/loans-view-applications'
                 }
               })}
-              className="inline-flex items-center justify-center rounded-[10px] text-xs font-medium bg-[var(--brand-tint)] text-[var(--brand-deep)] hover:opacity-90 px-3.5 py-2 transition-all gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
+              className="inline-flex items-center justify-center rounded-[12px] text-xs font-semibold bg-[var(--branch-tint)] text-[var(--branch-deep)] hover:opacity-90 border border-[var(--branch)]/20 px-4 py-2 transition-all gap-1.5 shadow-2xs cursor-pointer whitespace-nowrap shrink-0"
             >
               <FileEdit className="w-4 h-4" />
               <span>Edit Application</span>
@@ -287,7 +287,7 @@ export default function BranchOperationsLoansViewApplication() {
               type="button"
               onClick={handlePrint}
               disabled={isPrinting}
-              className="inline-flex items-center justify-center rounded-[10px] text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink)]/90 text-white px-4 py-2 transition-all gap-1.5 shadow-xs cursor-pointer disabled:opacity-75 whitespace-nowrap shrink-0"
+              className="inline-flex items-center justify-center rounded-[12px] text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white px-4 py-2 transition-all gap-1.5 shadow-xs cursor-pointer disabled:opacity-75 whitespace-nowrap shrink-0"
             >
               {isPrinting ? (
                 <>

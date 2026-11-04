@@ -121,7 +121,7 @@ export default function BranchOperationsMobileLoansViewApplication({
     switch (status) {
       case 'Created':
         return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold shrink-0 bg-[var(--brand-tint)] text-[var(--brand-deep)] border border-[var(--brand)]/20">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold shrink-0 bg-[var(--branch-tint)] text-[var(--branch-deep)] border border-[var(--branch)]/20">
             <CheckCircle2 size={13} /> Created
           </span>
         );
@@ -161,7 +161,7 @@ export default function BranchOperationsMobileLoansViewApplication({
   if (!application && isLoading) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-[var(--muted)]">
-        <Loader2 className="animate-spin h-8 w-8 text-[var(--brand-deep)] mb-3" />
+        <Loader2 className="animate-spin h-8 w-8 text-[var(--branch-deep)] mb-3" />
         <p className="text-sm font-medium">Loading application details...</p>
       </div>
     );
@@ -173,7 +173,7 @@ export default function BranchOperationsMobileLoansViewApplication({
         <p className="text-sm font-medium mb-4 text-[var(--text)]">No application details found.</p>
         <button
           onClick={() => navigate(fromPath)}
-          className="px-5 py-2 bg-[var(--ink)] text-white rounded-[10px] text-xs font-semibold hover:bg-[var(--ink)]/90 transition-colors shadow-xs cursor-pointer"
+          className="px-5 py-2 bg-[var(--ink)] text-white rounded-[12px] text-xs font-semibold hover:bg-[var(--ink)]/90 transition-colors shadow-xs cursor-pointer"
         >
           Back to Applications
         </button>
@@ -197,7 +197,7 @@ export default function BranchOperationsMobileLoansViewApplication({
             <button
               type="button"
               onClick={() => navigate(fromPath)}
-              className="shrink-0 h-9 px-3.5 inline-flex items-center justify-center gap-1.5 rounded-[10px] text-xs font-medium bg-[var(--surface-alt)] text-[var(--text)] hover:bg-[var(--line)] border border-[var(--line)] shadow-xs active:scale-95 transition-all cursor-pointer whitespace-nowrap"
+              className="shrink-0 h-9 px-3.5 inline-flex items-center justify-center gap-1.5 rounded-[12px] text-xs font-semibold bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-alt)] border border-[var(--line)] shadow-xs active:scale-95 transition-all cursor-pointer whitespace-nowrap"
             >
               <ArrowLeft size={14} className="text-[var(--muted)]" />
               <span>Back</span>
@@ -230,7 +230,7 @@ export default function BranchOperationsMobileLoansViewApplication({
                   </button>
                 )}
               </div>
-              <p className="text-xs font-medium text-[var(--brand-deep)] truncate">{loanType}</p>
+              <p className="text-xs font-medium text-[var(--branch-deep)] truncate">{loanType}</p>
             </div>
 
             {getStatusBadge(appStatus)}

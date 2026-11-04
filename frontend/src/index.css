@@ -19,6 +19,9 @@
   --accent-pink: #E3B9DF;
   --accent-pink-deep: #A25C9B;
   --accent-pink-tint: #F8ECF7;
+  --branch: #14B8A6;
+  --branch-deep: #0D9488;
+  --branch-tint: #F0FDFA;
 
   /* Neutrals */
   --bg: #ECECEE;
@@ -100,6 +103,12 @@
 
   --brand-tint: #23262E;
   --accent-pink-tint: #2A1F29;
+    --branch: #2DD4BF;
+    --branch-deep: #2DD4BF;
+    --branch-tint: #132D29;
+  --branch: #2DD4BF;
+  --branch-deep: #2DD4BF;
+  --branch-tint: #132D29;
 
   --scrollbar-thumb: #3A3A40;
   --scrollbar-thumb-hover: #52525A;
@@ -168,6 +177,9 @@
   --color-accent-pink: var(--accent-pink);
   --color-accent-pink-deep: var(--accent-pink-deep);
   --color-accent-pink-tint: var(--accent-pink-tint);
+  --color-branch: var(--branch);
+  --color-branch-deep: var(--branch-deep);
+  --color-branch-tint: var(--branch-tint);
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-surface-alt: var(--surface-alt);

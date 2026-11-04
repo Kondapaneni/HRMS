@@ -68,7 +68,7 @@ const BranchOperationsMobileLoansEditApplication = () => {
             <button
               type="button"
               onClick={handleBack}
-              className="shrink-0 h-9 px-3.5 inline-flex items-center justify-center gap-1.5 rounded-[10px] text-xs font-medium bg-[var(--surface-alt)] text-[var(--text)] hover:bg-[var(--line)] border border-[var(--line)] shadow-xs active:scale-95 transition-all cursor-pointer whitespace-nowrap"
+              className="shrink-0 h-9 px-3.5 inline-flex items-center justify-center gap-1.5 rounded-[12px] text-xs font-semibold bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-alt)] border border-[var(--line)] shadow-xs active:scale-95 transition-all cursor-pointer whitespace-nowrap"
             >
               <ArrowLeft size={14} className="text-[var(--muted)]" />
               <span>Back</span>

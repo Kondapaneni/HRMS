@@ -142,7 +142,7 @@ const BranchOperationsDashboard = () => {
             </div>
             <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight flex items-center gap-2.5">
               <span>Branch Operations Dashboard</span>
-              <span className="text-xs font-semibold text-[var(--brand-deep)] bg-[var(--brand-tint)] px-2.5 py-0.5 rounded-[8px]">
+              <span className="text-xs font-semibold text-[var(--branch-deep)] bg-[var(--branch-tint)] px-2.5 py-0.5 rounded-full">
                 {branch.name}
               </span>
             </h1>
@@ -213,7 +213,7 @@ const BranchOperationsDashboard = () => {
               </div>
               <p className="text-xs text-[var(--muted)] pt-0.5">Vs previous month</p>
             </div>
-            <div className="w-10 h-10 rounded-[12px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-[12px] bg-[var(--branch-tint)] text-[var(--branch-deep)] flex items-center justify-center shrink-0">
               <Users className="w-5 h-5" />
             </div>
           </div>
@@ -274,13 +274,13 @@ const BranchOperationsDashboard = () => {
                 <p className="text-2xl font-bold text-[var(--text)] tracking-tight">
                   {recentApplications.length}
                 </p>
-                <span className="text-xs font-semibold text-[var(--accent-pink-deep)] bg-[var(--accent-pink-tint)] px-2 py-0.5 rounded-[6px]">
+                <span className="text-xs font-semibold text-[var(--branch-deep)] bg-[var(--branch-tint)] px-2.5 py-0.5 rounded-full">
                   {conversionRate}% Conv.
                 </span>
               </div>
               <p className="text-xs text-[var(--muted)] pt-0.5">Recorded this cycle</p>
             </div>
-            <div className="w-10 h-10 rounded-[12px] bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)] flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-[12px] bg-[var(--branch-tint)] text-[var(--branch-deep)] flex items-center justify-center shrink-0">
               <Briefcase className="w-5 h-5" />
             </div>
           </div>
@@ -313,7 +313,7 @@ const BranchOperationsDashboard = () => {
                     }}
                   />
                   <Legend wrapperStyle={{ paddingTop: '16px', fontSize: '12px' }} />
-                  <Line type="monotone" dataKey="leads" name="Total Leads" stroke="#8AADDB" strokeWidth={2.5} dot={{ r: 3, fill: '#8AADDB' }} activeDot={{ r: 5 }} />
+                  <Line type="monotone" dataKey="leads" name="Total Leads" stroke="#14B8A6" strokeWidth={2.5} dot={{ r: 3, fill: '#14B8A6' }} activeDot={{ r: 5 }} />
                   <Line type="monotone" dataKey="converted" name="Converted" stroke="#1F9D55" strokeWidth={2.5} dot={{ r: 3, fill: '#1F9D55' }} activeDot={{ r: 5 }} />
                 </LineChart>
               </ResponsiveContainer>
@@ -346,7 +346,7 @@ const BranchOperationsDashboard = () => {
                     cursor={{ fill: 'var(--brand-tint)', opacity: 0.5 }}
                   />
                   <Legend wrapperStyle={{ paddingTop: '16px', fontSize: '12px' }} />
-                  <Bar dataKey="leads" name="Total Leads" fill="#8AADDB" radius={[6, 6, 0, 0]} barSize={16} />
+                  <Bar dataKey="leads" name="Total Leads" fill="#14B8A6" radius={[6, 6, 0, 0]} barSize={16} />
                   <Bar dataKey="converted" name="Converted" fill="#1F9D55" radius={[6, 6, 0, 0]} barSize={16} />
                 </BarChart>
               </ResponsiveContainer>
@@ -359,7 +359,7 @@ const BranchOperationsDashboard = () => {
           <div className="p-5 border-b border-[var(--line)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-[10px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center">
+                <div className="w-8 h-8 rounded-[10px] bg-[var(--branch-tint)] text-[var(--branch-deep)] flex items-center justify-center">
                   <Building2 size={16} />
                 </div>
                 <div>
@@ -400,7 +400,7 @@ const BranchOperationsDashboard = () => {
                 <button
                   type="button"
                   onClick={() => navigate('/employee/branch-operations/leads')}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-[10px] text-xs font-medium text-[var(--brand-deep)] bg-[var(--brand-tint)] hover:opacity-90 transition-opacity cursor-pointer"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-[10px] text-xs font-medium text-[var(--branch-deep)] bg-[var(--branch-tint)] hover:opacity-90 transition-opacity cursor-pointer"
                 >
                   <span>View All Leads</span>
                   <ArrowUpRight size={13} />
@@ -409,7 +409,7 @@ const BranchOperationsDashboard = () => {
                 <button
                   type="button"
                   onClick={() => navigate('/employee/branch-operations/loans-applications')}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-[10px] text-xs font-medium text-[var(--brand-deep)] bg-[var(--brand-tint)] hover:opacity-90 transition-opacity cursor-pointer"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-[10px] text-xs font-medium text-[var(--branch-deep)] bg-[var(--branch-tint)] hover:opacity-90 transition-opacity cursor-pointer"
                 >
                   <span>View All Applications</span>
                   <ArrowUpRight size={13} />
@@ -453,7 +453,7 @@ const BranchOperationsDashboard = () => {
                         </td>
                         <td className="px-4 py-3.5 text-center whitespace-nowrap">
                           {lead.loan_type && lead.loan_type.trim().toLowerCase() !== 'opportunity' ? (
-                            <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-[6px] text-[11px] font-medium bg-[var(--surface-alt)] text-[var(--text-2)] border border-[var(--line)] whitespace-nowrap">
+                            <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[var(--surface-alt)] text-[var(--text-2)] border border-[var(--line)] whitespace-nowrap">
                               {lead.loan_type}
                             </span>
                           ) : (
@@ -499,7 +499,7 @@ const BranchOperationsDashboard = () => {
                       return (
                         <tr key={app.id} className="hover:bg-[var(--surface-alt)]/60 transition-colors">
                           <td className="px-5 py-3.5">
-                            <span className="font-mono font-medium text-[var(--brand-deep)] bg-[var(--brand-tint)] px-2 py-0.5 rounded-[6px] text-[11px]">
+                            <span className="font-mono font-medium text-[var(--branch-deep)] bg-[var(--branch-tint)] px-2.5 py-0.5 rounded-full text-[11px]">
                               {app.application_id || 'LA-PENDING'}
                             </span>
                           </td>
@@ -507,7 +507,7 @@ const BranchOperationsDashboard = () => {
                             {applicantName}
                           </td>
                           <td className="px-4 py-3.5 text-center whitespace-nowrap">
-                            <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-[6px] text-[11px] font-medium bg-[var(--surface-alt)] text-[var(--text-2)] border border-[var(--line)] whitespace-nowrap">
+                            <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[var(--surface-alt)] text-[var(--text-2)] border border-[var(--line)] whitespace-nowrap">
                               {app.loan_type || app.form_data?.loan_type || 'Personal Loan'}
                             </span>
                           </td>

@@ -80,7 +80,7 @@ const BranchOperationsMobileLoansApplicationsList = () => {
     switch (status) {
       case 'Created':
         return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold shrink-0 bg-[var(--brand-tint)] text-[var(--brand-deep)] border border-[var(--brand)]/20">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold shrink-0 bg-[var(--brand-tint)] text-[var(--branch-deep)] border border-[var(--brand)]/20">
             <CheckCircle2 size={13} /> Created
           </span>
         );
@@ -155,8 +155,8 @@ const BranchOperationsMobileLoansApplicationsList = () => {
           <p className="text-xs font-medium text-[var(--muted)] mt-1 flex items-center gap-1.5 flex-wrap">
             <span>{applications.length} Total Applications</span>
             <span>&bull;</span>
-            <span className="inline-flex items-center gap-1 font-semibold text-[var(--brand-deep)]">
-              <Building2 size={13} className="text-[var(--brand-deep)]" /> {branch.name}
+            <span className="inline-flex items-center gap-1 font-semibold text-[var(--branch-deep)]">
+              <Building2 size={13} className="text-[var(--branch-deep)]" /> {branch.name}
             </span>
           </p>
         </div>
@@ -190,7 +190,7 @@ const BranchOperationsMobileLoansApplicationsList = () => {
 
           {/* Loan Type Pill Select */}
           <div className="bg-[var(--surface)] rounded-[12px] border border-[var(--line)] px-3.5 py-2 shadow-xs flex items-center gap-2.5 relative">
-            <div className="text-[var(--brand-deep)] shrink-0">
+            <div className="text-[var(--branch-deep)] shrink-0">
               <Briefcase size={15} />
             </div>
             <div className="relative flex-1">
@@ -240,7 +240,7 @@ const BranchOperationsMobileLoansApplicationsList = () => {
             </div>
           ) : isLoading ? (
             <div className="flex justify-center items-center py-16">
-              <Loader2 className="animate-spin h-7 w-7 text-[var(--brand-deep)]" />
+              <Loader2 className="animate-spin h-7 w-7 text-[var(--branch-deep)]" />
             </div>
           ) : filteredApps.length === 0 ? (
             <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-8 text-center space-y-2 shadow-xs">
@@ -254,7 +254,7 @@ const BranchOperationsMobileLoansApplicationsList = () => {
               {searchTerm && (
                 <button
                   onClick={() => setSearchTerm('')}
-                  className="mt-2 inline-flex items-center text-xs font-medium text-[var(--brand-deep)] hover:underline cursor-pointer"
+                  className="mt-2 inline-flex items-center text-xs font-medium text-[var(--branch-deep)] hover:underline cursor-pointer"
                 >
                   Clear search query
                 </button>
@@ -273,16 +273,16 @@ const BranchOperationsMobileLoansApplicationsList = () => {
                 <div 
                   key={app.id || app.application_id} 
                   onClick={() => handleViewDetails(app)}
-                  className="bg-[var(--surface)] rounded-[18px] border border-[var(--line)] hover:border-[var(--brand)]/40 p-4 shadow-xs transition-all active:scale-[0.99] cursor-pointer space-y-2.5 group"
+                  className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] hover:border-[var(--branch)]/40 p-4 shadow-xs transition-all active:scale-[0.99] cursor-pointer space-y-2.5 group"
                 >
                   {/* Top Row: Avatar, Name, Phone & Status */}
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-3 min-w-0 flex-1">
-                      <div className="w-10 h-10 rounded-[12px] bg-[var(--brand-tint)] text-[var(--brand-deep)] font-semibold text-xs flex items-center justify-center shrink-0 border border-[var(--brand)]/20 shadow-xs">
+                      <div className="w-10 h-10 rounded-[12px] bg-[var(--branch-tint)] text-[var(--branch-deep)] font-semibold text-xs flex items-center justify-center shrink-0 border border-[var(--branch)]/20 shadow-xs">
                         {initials}
                       </div>
                       <div className="min-w-0 flex-1 space-y-0.5">
-                        <h3 className="font-semibold text-[var(--text)] text-sm truncate group-hover:text-[var(--brand-deep)] transition-colors">
+                        <h3 className="font-semibold text-[var(--text)] text-sm truncate group-hover:text-[var(--branch-deep)] transition-colors">
                           {name}
                         </h3>
                         <div className="flex items-center gap-1 font-medium text-[11px] text-[var(--muted)]">
@@ -300,8 +300,8 @@ const BranchOperationsMobileLoansApplicationsList = () => {
                   {/* Middle Row: Loan Type & Creation Date */}
                   <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[var(--line)] text-[11px] text-[var(--muted)]">
                     <div className="flex items-center gap-1.5 min-w-0">
-                      <Briefcase size={12} className="text-[var(--brand-deep)] shrink-0" />
-                      <span className="font-semibold text-[var(--brand-deep)] text-xs truncate">{loanType}</span>
+                      <Briefcase size={12} className="text-[var(--branch-deep)] shrink-0" />
+                      <span className="font-semibold text-[var(--branch-deep)] text-xs truncate">{loanType}</span>
                     </div>
                     <div className="flex items-center justify-end gap-1.5 text-right min-w-0 text-[var(--muted)]">
                       <Calendar size={11} className="text-[var(--muted)] shrink-0" />
@@ -312,7 +312,7 @@ const BranchOperationsMobileLoansApplicationsList = () => {
                   {/* Bottom Row: App ID, Requested Amount & Arrow */}
                   <div className="pt-2 border-t border-[var(--line)] flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="font-mono font-medium text-[var(--brand-deep)] bg-[var(--brand-tint)] px-2 py-0.5 rounded-[6px] text-[10.5px] shrink-0">
+                      <span className="font-mono font-medium text-[var(--branch-deep)] bg-[var(--brand-tint)] px-2 py-0.5 rounded-[6px] text-[10.5px] shrink-0">
                         {appId}
                       </span>
                       {loanAmount && (
@@ -322,7 +322,7 @@ const BranchOperationsMobileLoansApplicationsList = () => {
                       )}
                     </div>
 
-                    <div className="w-6 h-6 rounded-[8px] bg-[var(--surface-alt)] border border-[var(--line)] flex items-center justify-center text-[var(--muted)] group-hover:bg-[var(--brand-tint)] group-hover:text-[var(--brand-deep)] transition-colors shrink-0">
+                    <div className="w-6 h-6 rounded-[8px] bg-[var(--surface-alt)] border border-[var(--line)] flex items-center justify-center text-[var(--muted)] group-hover:bg-[var(--brand-tint)] group-hover:text-[var(--branch-deep)] transition-colors shrink-0">
                       <ChevronRight size={13} />
                     </div>
                   </div>

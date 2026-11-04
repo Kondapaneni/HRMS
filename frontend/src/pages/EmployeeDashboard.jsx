@@ -621,10 +621,10 @@ const EmployeeDashboard = () => {
                   {profile?.featureAccess?.canBranchOperations && (
                     <Link
                       to="/employee/branch-operations"
-                      className="flex items-center justify-between p-3 rounded-[14px] bg-[var(--surface-alt)] hover:bg-[var(--brand-tint)] transition-colors group"
+                      className="flex items-center justify-between p-3 rounded-[14px] bg-[var(--surface-alt)] hover:bg-[var(--branch-tint)] transition-colors group"
                     >
                       <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-[10px] bg-[var(--surface)] text-[var(--accent-pink-deep,#c026d3)] flex items-center justify-center border border-[var(--line)]">
+                        <div className="w-8 h-8 rounded-[10px] bg-[var(--surface)] text-[var(--branch-deep,#0D9488)] flex items-center justify-center border border-[var(--line)]">
                           <Building2 className="w-4 h-4" />
                         </div>
                         <div>

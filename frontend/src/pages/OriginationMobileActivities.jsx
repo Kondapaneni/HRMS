@@ -95,18 +95,18 @@ const OriginationMobileActivities = () => {
       return {
         moduleName: 'Branch',
         tagText: branchInfo?.name ? `${branchInfo.name.toUpperCase()} BRANCH` : 'BRANCH ACTIVITIES',
-        titleAccent: 'text-[var(--brand-deep)]',
+        titleAccent: 'text-[var(--branch-deep)]',
         activeChip: 'bg-[var(--ink)] text-white border-[var(--ink)] shadow-2xs font-semibold',
         activeBadgeText: 'bg-[var(--surface)] text-[var(--ink)]',
-        todayDotColor: '#5B86C2',
-        todayBadgeStyle: 'bg-[var(--brand-tint)] text-[var(--brand-deep)] border-[var(--brand)]/20',
-        titleHover: 'group-hover:text-[var(--brand-deep)]',
-        clockColor: 'text-[var(--brand-deep)]',
+        todayDotColor: '#14B8A6',
+        todayBadgeStyle: 'bg-[var(--branch-tint)] text-[var(--branch-deep)] border-[var(--branch)]/20',
+        titleHover: 'group-hover:text-[var(--branch-deep)]',
+        clockColor: 'text-[var(--branch-deep)]',
         scheduleBtnHover: 'hover:bg-[var(--ink-2)]',
         scheduleBtnBg: 'bg-[var(--ink)]',
         primaryBtn: 'bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white',
-        borderHighlight: 'hover:border-[var(--brand)]',
-        ringHighlight: 'focus:ring-[var(--brand)] focus:border-[var(--brand)]'
+        borderHighlight: 'hover:border-[var(--branch)]',
+        ringHighlight: 'focus:ring-[var(--branch)] focus:border-[var(--branch)]'
       };
     }
 

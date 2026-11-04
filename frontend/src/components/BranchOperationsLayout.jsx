@@ -65,7 +65,7 @@ const BranchOperationsLayout = () => {
       portalSubtitle="Operations Hub"
       railGroups={railGroups}
       bottomNavItems={bottomNavItems}
-      accentColor="#8AADDB"
+      accentColor="#2DD4BF"
       headerAction={
         <Link
           to="/employee"
