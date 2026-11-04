@@ -152,7 +152,7 @@ const ForgotPassword = () => {
 
               <Button
                 type="button"
-                variant="outline"
+                variant="secondary"
                 onClick={() => setIsSubmitted(false)}
                 className="w-full h-11 rounded-[12px] font-medium text-xs justify-center"
               >

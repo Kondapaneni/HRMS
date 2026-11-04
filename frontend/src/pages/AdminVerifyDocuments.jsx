@@ -345,7 +345,7 @@ const AdminVerifyDocuments = () => {
           )}
 
           <Button
-            variant="outline"
+            variant="secondary"
             onClick={() => navigate('/admin/recruitment')}
             className="h-9 px-3.5 rounded-[12px] text-xs font-medium"
           >

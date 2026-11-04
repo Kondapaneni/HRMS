@@ -76,7 +76,7 @@ const AdminEmployeeView = () => {
         <AlertCircle className="w-10 h-10 text-[#D64550] mx-auto mb-2 opacity-80" />
         <p className="text-sm font-medium text-[var(--text)]">Employee record not found</p>
         <Button
-          variant="outline"
+          variant="secondary"
           onClick={() => navigate('/admin/employees')}
           className="mt-3 h-9 px-4 rounded-[12px] text-xs font-medium"
         >
@@ -302,7 +302,7 @@ const AdminEmployeeView = () => {
         {/* Action Buttons */}
         <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
           <Button
-            variant="outline"
+            variant="secondary"
             onClick={openPromoteModal}
             className="h-9 px-4 rounded-[12px] font-medium text-xs justify-center"
           >
@@ -318,7 +318,7 @@ const AdminEmployeeView = () => {
             <span>Edit profile</span>
           </Button>
           <Button
-            variant="outline"
+            variant="secondary"
             onClick={() => navigate(`/admin/employees/${id}/settings`)}
             className="h-9 px-3.5 rounded-[12px] font-medium text-xs justify-center"
           >
@@ -326,7 +326,7 @@ const AdminEmployeeView = () => {
             <span>Security</span>
           </Button>
           <Button
-            variant="outline"
+            variant="secondary"
             onClick={() => navigate('/admin/employees')}
             className="h-9 px-3.5 rounded-[12px] font-medium text-xs justify-center"
           >
@@ -957,7 +957,7 @@ const AdminEmployeeView = () => {
               <div className="p-4 border-t border-[var(--line)] bg-[var(--surface-alt)] flex justify-end gap-2.5 shrink-0">
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="secondary"
                   disabled={isPromoting}
                   onClick={() => setIsPromoteModalOpen(false)}
                   className="h-10 px-5 rounded-[12px] text-xs font-medium"

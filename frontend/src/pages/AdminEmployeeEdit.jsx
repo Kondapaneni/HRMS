@@ -140,7 +140,7 @@ const AdminEmployeeEdit = () => {
         </div>
 
         <Button
-          variant="outline"
+          variant="secondary"
           onClick={() => navigate(`/admin/employees/${id}`)}
           className="h-9 px-4 rounded-[12px] font-medium text-xs justify-center shrink-0 self-start sm:self-auto"
         >
@@ -586,7 +586,7 @@ const AdminEmployeeEdit = () => {
         <div className="flex items-center justify-end gap-2.5 pt-2">
           <Button
             type="button"
-            variant="outline"
+            variant="secondary"
             onClick={() => navigate(`/admin/employees/${id}`)}
             className="h-10 px-5 rounded-[12px] text-xs font-medium"
           >

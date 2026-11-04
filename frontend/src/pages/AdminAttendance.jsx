@@ -150,7 +150,7 @@ const AdminAttendance = () => {
         {isHumanResourcesOrAdmin && (
           <div className="flex flex-wrap gap-2">
             <Button
-              variant="outline"
+              variant="secondary"
               onClick={() => navigate('/admin/attendance/regularize')}
               className="h-9 px-3.5 rounded-[12px] text-xs font-medium"
             >

@@ -603,7 +603,7 @@ const AdminAuditLogs = () => {
                 <div className="p-4 border-t border-[var(--line)] bg-[var(--surface-alt)] flex justify-end items-center shrink-0">
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="secondary"
                     onClick={() => setSelectedLog(null)}
                     className="h-9 px-5 rounded-[12px] text-xs font-medium"
                   >

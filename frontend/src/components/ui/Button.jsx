@@ -9,7 +9,7 @@ import { Loader2 } from 'lucide-react';
  *  - accent: #8AADDB with #131315 text
  *  - danger: #FDE8EA with #D64550 text (dark: #3A1519 / #F0707A)
  *  - ghost: transparent with surface-alt hover
- *  - outline: transparent with 1px line border
+ *  - outline: surface background with 1px line border
  *
  * Radius: 12px, Height: 40px default (36px for sm/dense, 44px for lg/mobile)
  */
@@ -49,7 +49,7 @@ export const Button = React.forwardRef(({
     ghost:
       'bg-transparent text-[var(--text)] hover:bg-[var(--surface-alt)] active:scale-[0.99]',
     outline:
-      'bg-transparent text-[var(--text)] border border-[var(--line)] hover:bg-[var(--surface-alt)] active:scale-[0.99]',
+      'bg-[var(--surface)] text-[var(--text)] border border-[var(--line)] hover:bg-[var(--surface-alt)] active:scale-[0.99]',
     link:
       'bg-transparent text-[var(--brand-deep)] hover:underline p-0 h-auto',
   };
@@ -81,4 +81,3 @@ export const Button = React.forwardRef(({
 
 Button.displayName = 'Button';
 export default Button;
-

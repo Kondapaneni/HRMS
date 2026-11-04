@@ -193,7 +193,7 @@ const AdminReports = () => {
             <p className="text-xs text-[var(--muted)]">Breakdown of registered staff by department and position</p>
           </div>
           <Button
-            variant="outline"
+            variant="secondary"
             onClick={() =>
               handleDownload(
                 '/admin/reports/employees',
@@ -285,7 +285,7 @@ const AdminReports = () => {
               />
             </div>
             <Button
-              variant="outline"
+              variant="secondary"
               onClick={() =>
                 handleDownload(
                   `/admin/reports/attendance?month=${attendanceMonth}`,
@@ -360,7 +360,7 @@ const AdminReports = () => {
               />
             </div>
             <Button
-              variant="outline"
+              variant="secondary"
               onClick={() =>
                 handleDownload(
                   `/admin/reports/payroll?month=${payrollMonth}`,

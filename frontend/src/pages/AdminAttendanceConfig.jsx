@@ -132,7 +132,7 @@ const AdminAttendanceConfig = () => {
             <span>Add location</span>
           </Button>
           <Button
-            variant="outline"
+            variant="secondary"
             onClick={() => {
               setEditingShift(null);
               setShowShiftModal(true);
@@ -161,7 +161,7 @@ const AdminAttendanceConfig = () => {
               </div>
             </div>
             <Button
-              variant="outline"
+              variant="secondary"
               size="sm"
               onClick={() => {
                 setEditingGeo(null);
@@ -253,7 +253,7 @@ const AdminAttendanceConfig = () => {
               </div>
             </div>
             <Button
-              variant="outline"
+              variant="secondary"
               size="sm"
               onClick={() => {
                 setEditingShift(null);
@@ -443,7 +443,7 @@ const AdminAttendanceConfig = () => {
               <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface-alt)] flex justify-end gap-2.5 shrink-0">
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="secondary"
                   onClick={() => {
                     setShowGeoModal(false);
                     setEditingGeo(null);
@@ -548,7 +548,7 @@ const AdminAttendanceConfig = () => {
               <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--surface-alt)] flex justify-end gap-2.5 shrink-0">
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="secondary"
                   onClick={() => {
                     setShowShiftModal(false);
                     setEditingShift(null);
@@ -596,7 +596,7 @@ const AdminAttendanceConfig = () => {
               <div className="px-6 py-4 bg-[var(--surface-alt)] flex justify-end gap-2.5 border-t border-[var(--line)]">
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="secondary"
                   onClick={() => setItemToDelete(null)}
                   className="h-9 px-4 rounded-[12px] text-xs font-medium"
                 >
