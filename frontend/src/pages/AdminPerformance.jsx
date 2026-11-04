@@ -210,7 +210,7 @@ const AdminPerformance = () => {
                   onClick={() => setSelectedEmpId(emp.id)}
                   className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium shrink-0 transition-all cursor-pointer ${
                     isSelected
-                      ? 'bg-[var(--ink)] text-white dark:bg-[var(--text)] dark:text-[var(--surface)] shadow-xs'
+                      ? 'bg-[var(--ink)] text-white dark:bg-white dark:text-[#131315] shadow-xs'
                       : 'bg-[var(--surface-alt)] text-[var(--text-2)] hover:bg-[var(--brand-tint)]'
                   }`}
                 >

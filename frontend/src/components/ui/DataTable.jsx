@@ -163,7 +163,7 @@ export const DataTable = ({
                 onClick={chip.onClick}
                 className={`h-[36px] px-3.5 rounded-full text-[12px] font-medium transition-all cursor-pointer flex items-center gap-1.5 ${
                   chip.active
-                    ? 'bg-[var(--ink)] text-white dark:bg-[var(--text)] dark:text-[var(--ink)]'
+                    ? 'bg-[var(--ink)] text-white dark:bg-white dark:text-[#131315]'
                     : 'bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)] border border-[var(--line)]'
                 }`}
               >
@@ -172,7 +172,7 @@ export const DataTable = ({
                   <span
                     className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
                       chip.active
-                        ? 'bg-white/20 text-white dark:bg-black/20 dark:text-[var(--ink)]'
+                        ? 'bg-white/20 text-white dark:bg-black/10 dark:text-[#131315]'
                         : 'bg-[var(--line)] text-[var(--muted)]'
                     }`}
                   >

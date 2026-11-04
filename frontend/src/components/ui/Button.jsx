@@ -39,7 +39,7 @@ export const Button = React.forwardRef(({
 
   const variantClasses = {
     primary:
-      'bg-[var(--ink)] text-white hover:opacity-90 active:scale-[0.99] dark:bg-[var(--text)] dark:text-[var(--ink)]',
+      'bg-[var(--ink)] text-white hover:opacity-90 active:scale-[0.99] dark:bg-white dark:text-[#131315]',
     secondary:
       'bg-[var(--surface)] text-[var(--text)] border border-[var(--line)] hover:bg-[var(--surface-alt)] active:scale-[0.99]',
     accent:

@@ -461,7 +461,7 @@ const AdminVerifyDocuments = () => {
               onClick={() => setFilterTab(tab)}
               className={`px-4 py-1.5 text-xs font-medium rounded-full transition-all cursor-pointer ${
                 isActive
-                  ? 'bg-[var(--ink)] text-white dark:bg-[var(--text)] dark:text-[var(--surface)] shadow-xs'
+                  ? 'bg-[var(--ink)] text-white dark:bg-white dark:text-[#131315] shadow-xs'
                   : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
               }`}
             >

@@ -462,7 +462,7 @@ const AdminEmployeeView = () => {
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium transition-all whitespace-nowrap cursor-pointer ${
                     isActive
-                      ? 'bg-[var(--ink)] text-white dark:bg-[var(--text)] dark:text-[var(--surface)] shadow-xs'
+                      ? 'bg-[var(--ink)] text-white dark:bg-white dark:text-[#131315] shadow-xs'
                       : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
                   }`}
                 >

@@ -38,14 +38,14 @@ export const Tabs = ({
             onClick={() => onChange?.(tabId)}
             className={`relative ${sizeClasses[size] || sizeClasses.md} rounded-full font-medium transition-colors cursor-pointer select-none flex items-center gap-1.5 z-10 ${
               isActive
-                ? 'text-white dark:text-[var(--ink)]'
+                ? 'text-white dark:text-[#131315]'
                 : 'text-[var(--muted)] hover:text-[var(--text)]'
             }`}
           >
             {isActive && (
               <motion.div
                 layoutId={layoutId}
-                className="absolute inset-0 rounded-full bg-[var(--ink)] dark:bg-[var(--text)] z-[-1]"
+                className="absolute inset-0 rounded-full bg-[var(--ink)] dark:bg-white z-[-1]"
                 transition={{ type: 'spring', bounce: 0.15, duration: 0.3 }}
               />
             )}
@@ -55,7 +55,7 @@ export const Tabs = ({
               <span
                 className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
                   isActive
-                    ? 'bg-white/20 text-white dark:bg-black/20 dark:text-[var(--ink)]'
+                    ? 'bg-white/20 text-white dark:bg-black/10 dark:text-[#131315]'
                     : 'bg-[var(--line)] text-[var(--muted)]'
                 }`}
               >

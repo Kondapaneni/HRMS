@@ -241,7 +241,7 @@ const CandidateLogin = () => {
                     onClick={() => toggleMode(true)}
                     className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-5 py-2 rounded-full text-xs font-medium transition-all ${
                       isLogin
-                        ? 'bg-[var(--ink)] text-white shadow-xs dark:bg-[var(--text)] dark:text-[var(--surface)]'
+                        ? 'bg-[var(--ink)] text-white shadow-xs dark:bg-white dark:text-[#131315]'
                         : 'text-[var(--muted)] hover:text-[var(--text)]'
                     }`}
                   >
@@ -253,7 +253,7 @@ const CandidateLogin = () => {
                     onClick={() => toggleMode(false)}
                     className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-5 py-2 rounded-full text-xs font-medium transition-all ${
                       !isLogin
-                        ? 'bg-[var(--ink)] text-white shadow-xs dark:bg-[var(--text)] dark:text-[var(--surface)]'
+                        ? 'bg-[var(--ink)] text-white shadow-xs dark:bg-white dark:text-[#131315]'
                         : 'text-[var(--muted)] hover:text-[var(--text)]'
                     }`}
                   >
