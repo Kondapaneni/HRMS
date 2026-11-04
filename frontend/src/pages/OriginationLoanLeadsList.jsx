@@ -127,7 +127,7 @@ const OriginationLoanLeadsList = () => {
       </div>
 
       {/* Web Desktop Experience */}
-      <div className="hidden md:block space-y-6 pb-12">
+      <div className="hidden md:block space-y-6 pb-12 font-sans text-[var(--text)]">
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -135,7 +135,7 @@ const OriginationLoanLeadsList = () => {
               Loan Pipeline Directory
             </p>
             <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight flex items-center gap-2">
-              <span>All Leads</span> 
+              <span>Loan Leads Directory</span> 
               <span className="text-xs font-semibold text-[var(--brand-deep)] bg-[var(--brand-tint)] px-2.5 py-0.5 rounded-full">
                 {rawLeads.length} Total
               </span>

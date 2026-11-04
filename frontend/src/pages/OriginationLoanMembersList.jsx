@@ -75,7 +75,7 @@ const OriginationLoanMembersList = () => {
               Converted Members Directory
             </p>
             <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight flex items-center gap-2">
-              <span>Converted Members</span> 
+              <span>Converted Loan Members</span> 
               <span className="text-xs font-semibold text-[var(--badge-success-text)] bg-[var(--badge-success-bg)] px-2.5 py-0.5 rounded-full">
                 {members.length} Converted
               </span>

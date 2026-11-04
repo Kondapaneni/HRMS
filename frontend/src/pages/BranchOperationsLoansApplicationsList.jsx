@@ -46,8 +46,8 @@ const formatDateSafe = (dateStr, formatPattern = 'MMM d, yyyy') => {
 const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme = 'blue' }) => {
   const themeClasses = {
     purple: {
-      bg: 'bg-[var(--accent-pink-tint)]',
-      text: 'text-[var(--accent-pink-deep)]',
+      bg: 'bg-[var(--brand-tint)]',
+      text: 'text-[var(--brand-deep)]',
     },
     blue: {
       bg: 'bg-[var(--brand-tint)]',
@@ -277,12 +277,10 @@ const BranchOperationsLoansApplicationsList = () => {
   const getLoanTypeBadge = (loanType) => {
     const isBusiness = String(loanType).toLowerCase().includes('business');
     return (
-      <span className={`inline-flex items-center justify-center gap-1.5 px-2.5 py-0.5 rounded-[6px] text-[11px] font-medium whitespace-nowrap text-center ${
-        isBusiness 
-          ? 'bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)] border border-[var(--accent-pink)]/20' 
-          : 'bg-[var(--surface-alt)] text-[var(--text-2)] border border-[var(--line)]'
+      <span className={`inline-flex items-center justify-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium whitespace-nowrap text-center ${
+        isBusiness ? 'bg-[var(--brand-tint)] text-[var(--brand-deep)] border border-[var(--brand)]/20' : 'bg-[var(--surface-alt)] text-[var(--text-2)] border border-[var(--line)]'
       }`}>
-        {isBusiness ? <Building2 className="w-3 h-3 text-[var(--accent-pink-deep)]" /> : <User className="w-3 h-3 text-[var(--muted)]" />}
+        {isBusiness ? <Building2 className="w-3 h-3 text-[var(--brand-deep)]" /> : <User className="w-3 h-3 text-[var(--muted)]" />}
         <span className="text-center">{loanType || 'Personal Loan'}</span>
       </span>
     );
@@ -332,7 +330,7 @@ const BranchOperationsLoansApplicationsList = () => {
             value={stats.totalCount} 
             subtitle="All submitted & drafts" 
             icon={Briefcase} 
-            colorTheme="purple" 
+            colorTheme="blue" 
           />
           <StatCard 
             title="Approved Loans" 

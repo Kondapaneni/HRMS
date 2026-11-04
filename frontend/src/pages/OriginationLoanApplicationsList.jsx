@@ -57,8 +57,8 @@ const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme = 'blue' }) =
       text: 'text-[var(--badge-warning-text)]',
     },
     purple: {
-      bg: 'bg-[var(--accent-pink-tint)]',
-      text: 'text-[var(--accent-pink-deep)]',
+      bg: 'bg-[var(--brand-tint)]',
+      text: 'text-[var(--brand-deep)]',
     },
     red: {
       bg: 'bg-[var(--badge-danger-bg)]',
@@ -282,7 +282,7 @@ const OriginationLoanApplicationsList = () => {
     return (
       <span className={`inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-[8px] text-[11px] font-medium whitespace-nowrap text-center ${
         isBusiness 
-          ? 'bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)]' 
+          ? 'bg-[var(--brand-tint)] text-[var(--brand-deep)]' 
           : 'bg-[var(--surface-alt)] text-[var(--text)] border border-[var(--line)]'
       }`}>
         {isBusiness ? <Building2 className="w-3 h-3" /> : <User className="w-3 h-3 text-[var(--muted)]" />}
@@ -317,9 +317,9 @@ const OriginationLoanApplicationsList = () => {
               Origination Loan Pipeline
             </p>
             <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight flex items-center gap-2.5">
-              <span>Loan Applications</span>
+              <span>Loan Applications Directory</span>
               <span className="text-xs font-semibold text-[var(--brand-deep)] bg-[var(--brand-tint)] px-2.5 py-0.5 rounded-full">
-                {applications.length} Total Applications
+                {applications.length} Total
               </span>
             </h1>
             <p className="text-xs sm:text-sm text-[var(--muted)] mt-0.5">
@@ -349,7 +349,7 @@ const OriginationLoanApplicationsList = () => {
             value={stats.inReviewCount} 
             subtitle="Active in pipeline" 
             icon={Clock} 
-            colorTheme="purple" 
+            colorTheme="cyan" 
           />
           <StatCard 
             title="Draft Submissions" 

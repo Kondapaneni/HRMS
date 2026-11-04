@@ -6,11 +6,10 @@ import {
   CheckCircle2, 
   ArrowUpRight, 
   ArrowDownRight,
-  Briefcase,
   Award,
-  Clock,
-  ChevronRight,
-  Phone,
+  Clock, 
+  Phone, 
+  ChevronRight, 
   Plus
 } from 'lucide-react';
 import {
@@ -27,7 +26,6 @@ import {
 } from 'recharts';
 import { Link, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { getDashboardData, getLeads } from '../services/loanServices';
 import PageLoader from '../components/PageLoader';
@@ -57,9 +55,8 @@ const OriginationMobileLoanDashboard = () => {
     queryFn: getDashboardData
   });
 
-  // Fetch recent leads
   const { data: leadsResponse, isLoading: leadsLoading } = useQuery({
-    queryKey: ['origination', 'leads', 'recent', ''],
+    queryKey: ['origination', 'leads', 'recent'],
     queryFn: getLeads
   });
 
@@ -85,33 +82,36 @@ const OriginationMobileLoanDashboard = () => {
     switch (status) {
       case 'New':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[var(--badge-info-bg)] text-[var(--badge-info-text)] border border-[var(--badge-info-text)]/15 shrink-0">
-            <Clock size={11} /> New
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[8px] text-[11px] font-semibold bg-[var(--badge-info-bg)] text-[var(--badge-info-text)] shrink-0">
+            <Clock size={12} /> New
           </span>
         );
       case 'Follow Up':
       case 'Contacted':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[var(--badge-warning-bg)] text-[var(--badge-warning-text)] border border-[var(--badge-warning-text)]/15 shrink-0">
-            <TrendingUp size={11} /> Follow Up
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[8px] text-[11px] font-semibold bg-[var(--badge-warning-bg)] text-[var(--badge-warning-text)] shrink-0">
+            <TrendingUp size={12} /> Follow Up
           </span>
         );
       case 'Active':
       case 'In Progress':
+      case 'Under Review':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[var(--badge-warning-bg)] text-[var(--badge-warning-text)] border border-[var(--badge-warning-text)]/15 shrink-0">
-            <Clock size={11} /> {status}
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[8px] text-[11px] font-semibold bg-[var(--badge-info-bg)] text-[var(--badge-info-text)] shrink-0">
+            <Clock size={12} /> {status}
           </span>
         );
       case 'Converted':
+      case 'Sanctioned':
+      case 'Disbursed':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[var(--badge-success-bg)] text-[var(--badge-success-text)] border border-[var(--badge-success-text)]/15 shrink-0">
-            <CheckCircle2 size={11} /> Converted
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[8px] text-[11px] font-semibold bg-[var(--badge-success-bg)] text-[var(--badge-success-text)] shrink-0">
+            <CheckCircle2 size={12} /> Converted
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[var(--badge-neutral-bg)] text-[var(--badge-neutral-text)] border border-[var(--line)] shrink-0">
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[8px] text-[11px] font-semibold bg-[var(--badge-neutral-bg)] text-[var(--badge-neutral-text)] shrink-0">
             {status || 'Pending'}
           </span>
         );
@@ -123,9 +123,8 @@ const OriginationMobileLoanDashboard = () => {
   }
 
   return (
-    <div className="space-y-4 pb-12 font-sans antialiased text-[var(--text)]">
-
-      {/* Header */}
+    <div className="space-y-4 pb-14 font-sans antialiased text-[var(--text)]">
+      {/* 1. Header greeting & Action */}
       <section className="relative z-30 pt-1 pb-1">
         <div className="pt-0.5">
           <p className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-1">
@@ -133,130 +132,121 @@ const OriginationMobileLoanDashboard = () => {
           </p>
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-2xl font-semibold text-[var(--text)] tracking-tight leading-tight min-w-0">
-              {profile?.firstName || 'Origination'} <span className="font-semibold text-[var(--brand-deep)]">{profile?.lastName || 'Officer'}</span>
+              Hello, {profile?.firstName || 'Loan Officer'}
             </h2>
 
             <button
               onClick={() => navigate('/employee/loans/origination/leads/add')}
-              className="shrink-0 h-9 px-3.5 inline-flex items-center justify-center gap-1.5 bg-[var(--ink)] hover:bg-[var(--ink)]/90 active:scale-95 text-white rounded-[12px] text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
+              className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-95 text-white rounded-[12px] text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
             >
               <Plus size={14} />
               <span>Add Lead</span>
             </button>
           </div>
           <p className="text-xs font-medium text-[var(--muted)] mt-1">
-            {currentTime.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })} &bull; Performance &amp; Leads
+            {currentTime.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })} &bull; Performance &amp; Pipeline
           </p>
         </div>
       </section>
 
-      {/* 2. 4 KPI Metric Cards */}
-      <div className="grid grid-cols-2 gap-3 relative z-20">
-        
+      {/* 2. Exactly the 4 KPI Metric Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 relative z-20">
         {/* Card 1: Total Leads */}
-        <div className="bg-[var(--surface)] rounded-[18px] border border-[var(--line)] p-3.5 shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider truncate">
-              Total Leads
+        <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4.5 shadow-xs flex items-center justify-between">
+          <div className="space-y-1">
+            <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">
+              Total Leads (This Month)
             </p>
-            <div className="p-1.5 rounded-[8px] bg-[var(--brand-tint)] text-[var(--brand-deep)] shrink-0">
-              <Users className="w-3.5 h-3.5" />
-            </div>
-          </div>
-          <div>
-            <p className="text-xl font-bold text-[var(--text)] tracking-tight">
-              {stats.total_leads_month}
-            </p>
-            <div className="flex items-center gap-1 mt-0.5">
-              <span className={`inline-flex items-center text-[10px] font-semibold ${stats.percent_change_total >= 0 ? 'text-[var(--badge-success-text)]' : 'text-[var(--badge-danger-text)]'}`}>
+            <div className="flex items-baseline gap-2">
+              <p className="text-2xl font-semibold text-[var(--text)] tracking-tight">
+                {stats.total_leads_month}
+              </p>
+              <span className={`inline-flex items-center text-xs font-semibold ${stats.percent_change_total >= 0 ? 'text-[var(--badge-success-text)]' : 'text-[var(--badge-danger-text)]'}`}>
                 {stats.percent_change_total >= 0 ? (
-                  <ArrowUpRight className="w-3 h-3" />
+                  <ArrowUpRight className="w-3.5 h-3.5" />
                 ) : (
-                  <ArrowDownRight className="w-3 h-3" />
+                  <ArrowDownRight className="w-3.5 h-3.5" />
                 )}
                 {Math.abs(stats.percent_change_total)}%
               </span>
-              <span className="text-[9.5px] text-[var(--muted)]">vs last mo</span>
             </div>
+            <p className="text-xs text-[var(--muted)] font-normal pt-0.5">Vs previous month</p>
+          </div>
+          <div className="p-3 rounded-[12px] bg-[var(--brand-tint)] text-[var(--brand-deep)] shrink-0">
+            <Users className="w-5 h-5" />
           </div>
         </div>
 
         {/* Card 2: Active Opportunities */}
-        <div className="bg-[var(--surface)] rounded-[18px] border border-[var(--line)] p-3.5 shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider truncate">
-              Active Opps
+        <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4.5 shadow-xs flex items-center justify-between">
+          <div className="space-y-1">
+            <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">
+              Active Opportunities
             </p>
-            <div className="p-1.5 rounded-[8px] bg-[var(--badge-warning-bg)] text-[var(--badge-warning-text)] shrink-0">
-              <TrendingUp className="w-3.5 h-3.5" />
-            </div>
-          </div>
-          <div>
-            <p className="text-xl font-bold text-[var(--text)] tracking-tight">
-              {stats.active_opportunities}
-            </p>
-            <div className="flex items-center gap-1 mt-0.5">
-              <span className={`inline-flex items-center text-[10px] font-semibold ${stats.percent_change_active >= 0 ? 'text-[var(--badge-success-text)]' : 'text-[var(--badge-danger-text)]'}`}>
+            <div className="flex items-baseline gap-2">
+              <p className="text-2xl font-semibold text-[var(--text)] tracking-tight">
+                {stats.active_opportunities}
+              </p>
+              <span className={`inline-flex items-center text-xs font-semibold ${stats.percent_change_active >= 0 ? 'text-[var(--badge-success-text)]' : 'text-[var(--badge-danger-text)]'}`}>
                 {stats.percent_change_active >= 0 ? (
-                  <ArrowUpRight className="w-3 h-3" />
+                  <ArrowUpRight className="w-3.5 h-3.5" />
                 ) : (
-                  <ArrowDownRight className="w-3 h-3" />
+                  <ArrowDownRight className="w-3.5 h-3.5" />
                 )}
                 {Math.abs(stats.percent_change_active)}%
               </span>
-              <span className="text-[9.5px] text-[var(--muted)]">pipeline</span>
             </div>
+            <p className="text-xs text-[var(--muted)] font-normal pt-0.5">In pipeline follow-up</p>
+          </div>
+          <div className="p-3 rounded-[12px] bg-[var(--badge-warning-bg)] text-[var(--badge-warning-text)] shrink-0">
+            <TrendingUp className="w-5 h-5" />
           </div>
         </div>
 
         {/* Card 3: Converted Leads */}
-        <div className="bg-[var(--surface)] rounded-[18px] border border-[var(--line)] p-3.5 shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider truncate">
-              Converted
+        <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4.5 shadow-xs flex items-center justify-between">
+          <div className="space-y-1">
+            <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">
+              Converted Leads
             </p>
-            <div className="p-1.5 rounded-[8px] bg-[var(--badge-success-bg)] text-[var(--badge-success-text)] shrink-0">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-            </div>
-          </div>
-          <div>
-            <p className="text-xl font-bold text-[var(--text)] tracking-tight">
-              {stats.converted_leads}
-            </p>
-            <div className="flex items-center gap-1 mt-0.5">
-              <span className={`inline-flex items-center text-[10px] font-semibold ${stats.percent_change_converted >= 0 ? 'text-[var(--badge-success-text)]' : 'text-[var(--badge-danger-text)]'}`}>
+            <div className="flex items-baseline gap-2">
+              <p className="text-2xl font-semibold text-[var(--text)] tracking-tight">
+                {stats.converted_leads}
+              </p>
+              <span className={`inline-flex items-center text-xs font-semibold ${stats.percent_change_converted >= 0 ? 'text-[var(--badge-success-text)]' : 'text-[var(--badge-danger-text)]'}`}>
                 {stats.percent_change_converted >= 0 ? (
-                  <ArrowUpRight className="w-3 h-3" />
+                  <ArrowUpRight className="w-3.5 h-3.5" />
                 ) : (
-                  <ArrowDownRight className="w-3 h-3" />
+                  <ArrowDownRight className="w-3.5 h-3.5" />
                 )}
                 {Math.abs(stats.percent_change_converted)}%
               </span>
-              <span className="text-[9.5px] text-[var(--muted)]">disbursed</span>
             </div>
+            <p className="text-xs text-[var(--muted)] font-normal pt-0.5">Successfully disbursed</p>
+          </div>
+          <div className="p-3 rounded-[12px] bg-[var(--badge-success-bg)] text-[var(--badge-success-text)] shrink-0">
+            <CheckCircle2 className="w-5 h-5" />
           </div>
         </div>
 
-        {/* Card 4: Conversion Rate */}
-        <div className="bg-[var(--surface)] rounded-[18px] border border-[var(--line)] p-3.5 shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider truncate">
-              Conv Rate
+        {/* Card 4: Conversion Rate - oceanic blue */}
+        <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4.5 shadow-xs flex items-center justify-between">
+          <div className="space-y-1">
+            <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">
+              Conversion Rate
             </p>
-            <div className="p-1.5 rounded-[8px] bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)] shrink-0">
-              <Award className="w-3.5 h-3.5" />
+            <div className="flex items-baseline gap-2">
+              <p className="text-2xl font-semibold text-[var(--brand-deep)] tracking-tight">
+                {conversionRate}%
+              </p>
+              <span className="text-xs font-semibold text-[var(--badge-success-text)]">Active</span>
             </div>
+            <p className="text-xs text-[var(--muted)] font-normal pt-0.5">Total funnel conversion</p>
           </div>
-          <div>
-            <p className="text-xl font-bold text-[var(--accent-pink-deep)] tracking-tight">
-              {conversionRate}%
-            </p>
-            <div className="flex items-center gap-1 mt-0.5">
-              <span className="text-[10px] font-medium text-[var(--badge-success-text)]">Active Funnel</span>
-            </div>
+          <div className="p-3 rounded-[12px] bg-[var(--brand-tint)] text-[var(--brand-deep)] shrink-0">
+            <Award className="w-5 h-5" />
           </div>
         </div>
-
       </div>
 
       {/* 3. Switchable Chart Card */}
@@ -271,44 +261,46 @@ const OriginationMobileLoanDashboard = () => {
             </p>
           </div>
 
-          <div className="flex items-center bg-[var(--surface-alt)] p-1 rounded-full border border-[var(--line)] shrink-0">
+          {/* Pill Toggle Tab */}
+          <div className="inline-flex p-1 bg-[var(--surface-alt)] rounded-[12px] border border-[var(--line)] shrink-0">
             <button
               type="button"
               onClick={() => setChartTab('daily')}
-              className={`whitespace-nowrap px-3 py-[6px] rounded-full text-[11.5px] font-semibold transition-all cursor-pointer ${
+              className={`px-3 py-1 rounded-[8px] text-xs font-semibold transition-all cursor-pointer ${
                 chartTab === 'daily'
                   ? 'bg-[var(--surface)] text-[var(--text)] shadow-xs'
                   : 'text-[var(--muted)] hover:text-[var(--text)]'
               }`}
             >
-              7 Days
+              Daily
             </button>
             <button
               type="button"
               onClick={() => setChartTab('monthly')}
-              className={`whitespace-nowrap px-3 py-[6px] rounded-full text-[11.5px] font-semibold transition-all cursor-pointer ${
+              className={`px-3 py-1 rounded-[8px] text-xs font-semibold transition-all cursor-pointer ${
                 chartTab === 'monthly'
                   ? 'bg-[var(--surface)] text-[var(--text)] shadow-xs'
                   : 'text-[var(--muted)] hover:text-[var(--text)]'
               }`}
             >
-              6 Months
+              Monthly
             </button>
           </div>
         </div>
 
-        <div className="h-[220px] w-full">
+        {/* Chart Canvas */}
+        <div className="h-[240px] w-full pt-1">
           <ResponsiveContainer width="100%" height="100%">
             {chartTab === 'daily' ? (
               <AreaChart data={dailyData} margin={{ top: 10, right: 10, bottom: 5, left: -20 }}>
                 <defs>
                   <linearGradient id="loanLeadsGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#8AADDB" stopOpacity={0.35}/>
-                    <stop offset="95%" stopColor="#8AADDB" stopOpacity={0}/>
+                    <stop offset="95%" stopColor="#8AADDB" stopOpacity={0.0}/>
                   </linearGradient>
                   <linearGradient id="loanConvertedGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#1F9D55" stopOpacity={0.35}/>
-                    <stop offset="95%" stopColor="#1F9D55" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#22C55E" stopOpacity={0.35}/>
+                    <stop offset="95%" stopColor="#22C55E" stopOpacity={0.0}/>
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--line)" />
@@ -327,7 +319,7 @@ const OriginationMobileLoanDashboard = () => {
                 />
                 <Legend iconType="circle" wrapperStyle={{ paddingTop: '10px', fontSize: '11px' }} />
                 <Area type="monotone" dataKey="leads" name="Total Leads" stroke="#8AADDB" strokeWidth={2} fillOpacity={1} fill="url(#loanLeadsGradient)" />
-                <Area type="monotone" dataKey="converted" name="Converted" stroke="#1F9D55" strokeWidth={2} fillOpacity={1} fill="url(#loanConvertedGradient)" />
+                <Area type="monotone" dataKey="converted" name="Converted" stroke="#22C55E" strokeWidth={2} fillOpacity={1} fill="url(#loanConvertedGradient)" />
               </AreaChart>
             ) : (
               <BarChart data={monthlyData} margin={{ top: 10, right: 10, bottom: 5, left: -20 }}>
@@ -348,7 +340,7 @@ const OriginationMobileLoanDashboard = () => {
                 />
                 <Legend iconType="circle" wrapperStyle={{ paddingTop: '10px', fontSize: '11px' }} />
                 <Bar dataKey="leads" name="Leads" fill="#8AADDB" radius={[6, 6, 0, 0]} barSize={12} />
-                <Bar dataKey="converted" name="Converted" fill="#1F9D55" radius={[6, 6, 0, 0]} barSize={12} />
+                <Bar dataKey="converted" name="Converted" fill="#22C55E" radius={[6, 6, 0, 0]} barSize={12} />
               </BarChart>
             )}
           </ResponsiveContainer>
@@ -363,16 +355,14 @@ const OriginationMobileLoanDashboard = () => {
               <TrendingUp size={14} />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-[var(--text)] tracking-tight">
-                Recent Pipeline Leads
-              </h3>
-              <p className="text-[11px] text-[var(--muted)]">Latest prospects registered</p>
+              <h3 className="text-sm font-semibold text-[var(--text)] tracking-tight">Recent Pipeline Leads</h3>
+              <p className="text-[11px] text-[var(--muted)]">Latest loan applicants registered</p>
             </div>
           </div>
 
           <Link
             to="/employee/loans/origination/leads"
-            className="inline-flex items-center gap-1 text-[13px] font-semibold text-[var(--brand-deep)] hover:underline transition-colors"
+            className="inline-flex items-center gap-1 text-[13px] font-semibold text-[var(--brand-deep)] hover:underline transition-colors shrink-0"
           >
             <span>View All</span>
             <ChevronRight size={15} />
@@ -430,7 +420,6 @@ const OriginationMobileLoanDashboard = () => {
           )}
         </div>
       </div>
-
     </div>
   );
 };

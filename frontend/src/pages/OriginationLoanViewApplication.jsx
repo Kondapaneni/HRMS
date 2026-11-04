@@ -291,7 +291,7 @@ export default function OriginationLoanViewApplication() {
               </h1>
 
               {/* Read Only Indicator */}
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[8px] text-xs font-semibold bg-[var(--surface-alt)] text-[var(--muted)] border border-[var(--line)] whitespace-nowrap">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-[var(--surface-alt)] text-[var(--muted)] border border-[var(--line)] whitespace-nowrap">
                 <Lock size={12} className="text-[var(--icon-muted)]" /> Read-Only
               </span>
             </div>
