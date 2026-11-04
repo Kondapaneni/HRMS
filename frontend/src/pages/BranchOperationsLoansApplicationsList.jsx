@@ -245,34 +245,34 @@ const BranchOperationsLoansApplicationsList = () => {
     const s = String(status || 'Draft').toLowerCase();
     if (s === 'approved') {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[var(--badge-success-bg)] text-[var(--badge-success-text)] border border-[var(--badge-success-text)]/15 whitespace-nowrap">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[8px] text-[11px] font-semibold bg-[var(--badge-success-bg)] text-[var(--badge-success-text)] whitespace-nowrap">
           <CheckCircle2 className="w-3 h-3" /> Approved
         </span>
       );
     }
     if (s === 'under review' || s === 'under_review') {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[var(--badge-info-bg)] text-[var(--badge-info-text)] border border-[var(--badge-info-text)]/15 whitespace-nowrap">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[8px] text-[11px] font-semibold bg-[var(--badge-info-bg)] text-[var(--badge-info-text)] whitespace-nowrap">
           <Clock className="w-3 h-3" /> Under Review
         </span>
       );
     }
     if (s === 'created') {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[var(--brand-tint)] text-[var(--branch-deep)] border border-[var(--brand)]/20 whitespace-nowrap">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[8px] text-[11px] font-semibold bg-[var(--badge-info-bg)] text-[var(--badge-info-text)] whitespace-nowrap">
           <CheckCircle2 className="w-3 h-3" /> Created
         </span>
       );
     }
     if (s === 'rejected') {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[var(--badge-danger-bg)] text-[var(--badge-danger-text)] border border-[var(--badge-danger-text)]/15 whitespace-nowrap">
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[8px] text-[11px] font-semibold bg-[var(--badge-danger-bg)] text-[var(--badge-danger-text)] whitespace-nowrap">
           <XCircle className="w-3 h-3" /> Rejected
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[var(--badge-warning-bg)] text-[var(--badge-warning-text)] border border-[var(--badge-warning-text)]/15 whitespace-nowrap">
+      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[8px] text-[11px] font-semibold bg-[var(--badge-warning-bg)] text-[var(--badge-warning-text)] whitespace-nowrap">
         <Clock className="w-3 h-3" /> {status || 'Draft'}
       </span>
     );
@@ -281,10 +281,12 @@ const BranchOperationsLoansApplicationsList = () => {
   const getLoanTypeBadge = (loanType) => {
     const isBusiness = String(loanType).toLowerCase().includes('business');
     return (
-      <span className={`inline-flex items-center justify-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium whitespace-nowrap text-center ${
-        isBusiness ? 'bg-[var(--branch-tint)] text-[var(--branch-deep)] border border-[var(--branch)]/20' : 'bg-[var(--surface-alt)] text-[var(--text-2)] border border-[var(--line)]'
+      <span className={`inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-[8px] text-[11px] font-medium whitespace-nowrap text-center ${
+        isBusiness 
+          ? 'bg-[var(--branch-tint)] text-[var(--branch-deep)]' 
+          : 'bg-[var(--surface-alt)] text-[var(--text)] border border-[var(--line)]'
       }`}>
-        {isBusiness ? <Building2 className="w-3 h-3 text-[var(--branch-deep)]" /> : <User className="w-3 h-3 text-[var(--muted)]" />}
+        {isBusiness ? <Building2 className="w-3 h-3" /> : <User className="w-3 h-3 text-[var(--muted)]" />}
         <span className="text-center">{loanType || 'Personal Loan'}</span>
       </span>
     );
@@ -308,21 +310,21 @@ const BranchOperationsLoansApplicationsList = () => {
       </div>
 
       {/* Web Desktop View */}
-      <div className="hidden md:block space-y-6 pb-12 font-sans antialiased text-[var(--text)]">
+      <div className="hidden md:block space-y-6 pb-12 font-sans text-[var(--text)]">
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">Branch Operations Hub</span>
-            </div>
+            <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-1">
+              Branch Operations Hub
+            </p>
             <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight flex items-center gap-2.5">
-              <span>Loan Applications</span>
+              <span>Loan Applications Directory</span>
               <span className="text-xs font-semibold text-[var(--branch-deep)] bg-[var(--branch-tint)] px-2.5 py-0.5 rounded-full">
-                {branch.name} &bull; {applications.length} Total Applications
+                {applications.length} Total
               </span>
             </h1>
             <p className="text-xs sm:text-sm text-[var(--muted)] mt-0.5">
-              Review and manage branch loan proposals, inspect applicant KYC & supporting documents, and track approval lifecycle.
+              Review and manage branch loan proposals for {branch.name}, inspect applicant KYC &amp; supporting documents, and track approval lifecycle.
             </p>
           </div>
         </div>
@@ -348,19 +350,19 @@ const BranchOperationsLoansApplicationsList = () => {
             value={stats.inReviewCount} 
             subtitle="Active in pipeline" 
             icon={Clock} 
-            colorTheme="amber" 
+            colorTheme="cyan" 
           />
           <StatCard 
             title="Draft Submissions" 
             value={stats.draftCount} 
             subtitle="Incomplete drafts" 
             icon={FileText} 
-            colorTheme="teal" 
+            colorTheme="amber" 
           />
         </div>
 
         {/* Filter Tabs Bar */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 [scrollbar-width:none]">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {statusTabs.map((tab) => {
             const isActive = statusFilter === tab.key;
             return (
@@ -370,14 +372,14 @@ const BranchOperationsLoansApplicationsList = () => {
                   setStatusFilter(tab.key);
                   setPage(1);
                 }}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-xs font-medium whitespace-nowrap transition-all cursor-pointer border ${
+                className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-[10px] text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
                   isActive
-                    ? 'bg-[var(--ink)] text-white border-transparent shadow-xs font-semibold'
-                    : 'bg-[var(--surface)] text-[var(--muted)] hover:text-[var(--text)] border-[var(--line)]'
+                    ? 'bg-[var(--ink)] text-white border-transparent shadow-xs'
+                    : 'bg-[var(--surface)] text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)] border-[var(--line)]'
                 }`}
               >
                 <span>{tab.label}</span>
-                <span className={`text-[10.5px] px-1.5 py-0.2 rounded-full font-bold ${
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
                   isActive ? 'bg-white/20 text-white' : 'bg-[var(--surface-alt)] text-[var(--muted)]'
                 }`}>
                   {tab.count}
@@ -394,14 +396,14 @@ const BranchOperationsLoansApplicationsList = () => {
             {isFetching ? (
               <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--branch-deep)] animate-spin pointer-events-none" />
             ) : (
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)] pointer-events-none" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--icon-muted)] pointer-events-none" />
             )}
             <input
               type="search"
               placeholder="Search by name, phone, App ID..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-3.5 py-1.5 text-xs bg-[var(--surface-alt)] border border-[var(--line)] rounded-[10px] text-[var(--text)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--branch)] transition-all font-medium"
+              className="w-full pl-10 pr-4 py-2 text-xs bg-[var(--surface-alt)] hover:bg-[var(--surface)] focus:bg-[var(--surface)] border border-[var(--line)] focus:border-[var(--branch)] focus:ring-2 focus:ring-[var(--branch)]/20 rounded-[12px] text-[var(--text)] placeholder:text-[var(--muted)] outline-none transition-all shadow-none"
             />
           </div>
 
@@ -409,14 +411,14 @@ const BranchOperationsLoansApplicationsList = () => {
           <div className="flex items-center gap-2.5 w-full md:w-auto justify-end flex-wrap">
             {/* Loan Type Filter */}
             <div className="flex items-center gap-1.5">
-              <span className="text-xs font-medium text-[var(--muted)]">Type:</span>
+              <span className="text-xs font-semibold text-[var(--muted)]">Type:</span>
               <select
                 value={loanTypeFilter}
                 onChange={(e) => {
                   setLoanTypeFilter(e.target.value);
                   setPage(1);
                 }}
-                className="h-8.5 px-3 rounded-[10px] border border-[var(--line)] bg-[var(--surface-alt)] text-xs font-medium text-[var(--text)] focus:outline-none focus:border-[var(--brand)] cursor-pointer"
+                className="h-8 px-3 rounded-[10px] border border-[var(--line)] bg-[var(--surface-alt)] text-xs font-semibold text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--branch)]/20 cursor-pointer"
               >
                 <option value="All">All Types ({applications.length})</option>
                 <option value="Personal Loan">Personal Loan</option>
@@ -426,11 +428,11 @@ const BranchOperationsLoansApplicationsList = () => {
 
             {/* Sort Order */}
             <div className="flex items-center gap-1.5">
-              <span className="text-xs font-medium text-[var(--muted)]">Sort:</span>
+              <span className="text-xs font-semibold text-[var(--muted)]">Sort:</span>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="h-8.5 px-3 rounded-[10px] border border-[var(--line)] bg-[var(--surface-alt)] text-xs font-medium text-[var(--text)] focus:outline-none focus:border-[var(--brand)] cursor-pointer"
+                className="h-8 px-3 rounded-[10px] border border-[var(--line)] bg-[var(--surface-alt)] text-xs font-semibold text-[var(--text)] focus:outline-none focus:ring-2 focus:ring-[var(--branch)]/20 cursor-pointer"
               >
                 <option value="newest">Newest First</option>
                 <option value="oldest">Oldest First</option>
@@ -450,7 +452,7 @@ const BranchOperationsLoansApplicationsList = () => {
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-[var(--surface-alt)] border-b border-[var(--line)] text-[11px] font-medium text-[var(--muted)] uppercase tracking-wider">
+                <thead className="bg-[var(--surface-alt)] border-b border-[var(--line)] text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">
                   <tr>
                     <th className="py-3 px-4 whitespace-nowrap">Application ID</th>
                     <th className="py-3 px-4 whitespace-nowrap">Applicant</th>
@@ -492,11 +494,11 @@ const BranchOperationsLoansApplicationsList = () => {
                         <tr
                           key={app.id || app.application_id}
                           onClick={() => setSelectedApp(app)}
-                          className="hover:bg-[var(--surface-alt)]/60 transition-colors cursor-pointer"
+                          className="hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
                         >
                           {/* Application ID */}
                           <td className="py-3 px-4 whitespace-nowrap">
-                            <span className="font-mono text-xs font-medium text-[var(--branch-deep)] bg-[var(--branch-tint)] px-2.5 py-0.5 rounded-full">
+                            <span className="font-mono text-xs font-semibold text-[var(--branch-deep)] bg-[var(--branch-tint)] px-2.5 py-1 rounded-[6px]">
                               {appId}
                             </span>
                           </td>
@@ -504,13 +506,13 @@ const BranchOperationsLoansApplicationsList = () => {
                           {/* Applicant */}
                           <td className="py-3 px-4 whitespace-nowrap">
                             <div className="flex items-center gap-2.5">
-                              <div className="w-8 h-8 rounded-[10px] bg-[var(--branch-tint)] text-[var(--branch-deep)] font-semibold flex items-center justify-center text-xs shrink-0 border border-[var(--branch)]/20">
+                              <div className="w-8 h-8 rounded-[10px] bg-[var(--branch-tint)] text-[var(--branch-deep)] font-semibold flex items-center justify-center text-xs shrink-0">
                                 {name.charAt(0).toUpperCase()}
                               </div>
                               <div>
-                                <p className="font-medium text-xs text-[var(--text)]">{name}</p>
+                                <p className="font-semibold text-xs text-[var(--text)]">{name}</p>
                                 <p className="text-[11px] text-[var(--muted)] flex items-center gap-1">
-                                  <Phone className="w-3 h-3 text-[var(--muted)]" />
+                                  <Phone className="w-3 h-3 text-[var(--icon-muted)]" />
                                   {maskPhoneNumber(phone)}
                                 </p>
                               </div>
@@ -530,7 +532,7 @@ const BranchOperationsLoansApplicationsList = () => {
                           {/* Submitted Date */}
                           <td className="py-3 px-4 whitespace-nowrap text-[var(--muted)]">
                             <span className="flex items-center gap-1.5">
-                              <Calendar className="w-3 h-3 text-[var(--muted)]" />
+                              <Calendar className="w-3 h-3 text-[var(--icon-muted)]" />
                               {formatDateSafe(createdAt, 'MMM d, yyyy')}
                             </span>
                           </td>
@@ -541,7 +543,7 @@ const BranchOperationsLoansApplicationsList = () => {
                               <button
                                 type="button"
                                 onClick={() => setSelectedApp(app)}
-                                className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-[var(--text)] bg-[var(--surface-alt)] hover:bg-[var(--line)] border border-[var(--line)] rounded-[8px] transition-colors cursor-pointer"
+                                className="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold text-[var(--text)] bg-[var(--surface)] hover:bg-[var(--surface-alt)] border border-[var(--line)] rounded-[8px] transition-colors cursor-pointer"
                                 title="Quick Overview"
                               >
                                 <Eye className="w-3.5 h-3.5 text-[var(--muted)]" />
@@ -551,7 +553,7 @@ const BranchOperationsLoansApplicationsList = () => {
                               <button
                                 type="button"
                                 onClick={() => handleOpenStudio(app)}
-                                className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-[var(--branch-deep)] bg-[var(--branch-tint)] hover:opacity-90 rounded-[10px] transition-all cursor-pointer"
+                                className="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold text-[var(--branch-deep)] bg-[var(--branch-tint)] hover:bg-[var(--branch-tint)]/80 rounded-[8px] transition-colors cursor-pointer"
                                 title="Open Full Loan Application Studio"
                               >
                                 <span>Studio</span>
@@ -561,7 +563,7 @@ const BranchOperationsLoansApplicationsList = () => {
                               <button
                                 type="button"
                                 onClick={() => handleEditApplication(app)}
-                                className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-alt)] hover:bg-[var(--line)] border border-[var(--line)] rounded-[8px] transition-colors cursor-pointer"
+                                className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-[var(--muted)] hover:text-[var(--text)] bg-[var(--surface-alt)] hover:bg-[var(--line)] border border-[var(--line)] rounded-[8px] transition-colors cursor-pointer"
                                 title="Edit Application"
                               >
                                 <FileEdit className="w-3.5 h-3.5" />

@@ -80,37 +80,37 @@ const BranchOperationsMobileLoansApplicationsList = () => {
     switch (status) {
       case 'Created':
         return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold shrink-0 bg-[var(--brand-tint)] text-[var(--branch-deep)] border border-[var(--brand)]/20">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[8px] text-[12px] font-semibold bg-[var(--badge-info-bg)] text-[var(--badge-info-text)] shrink-0">
             <CheckCircle2 size={13} /> Created
           </span>
         );
       case 'Under Review':
         return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold shrink-0 bg-[var(--badge-info-bg)] text-[var(--badge-info-text)] border border-[var(--badge-info-text)]/15">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[8px] text-[12px] font-semibold bg-[var(--badge-info-bg)] text-[var(--badge-info-text)] shrink-0">
             <Clock size={13} /> Under Review
           </span>
         );
       case 'Approved':
         return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold shrink-0 bg-[var(--badge-success-bg)] text-[var(--badge-success-text)] border border-[var(--badge-success-text)]/15">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[8px] text-[12px] font-semibold bg-[var(--badge-success-bg)] text-[var(--badge-success-text)] shrink-0">
             <CheckCircle2 size={13} /> Approved
           </span>
         );
       case 'Draft':
         return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold shrink-0 bg-[var(--badge-warning-bg)] text-[var(--badge-warning-text)] border border-[var(--badge-warning-text)]/15">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[8px] text-[12px] font-semibold bg-[var(--badge-warning-bg)] text-[var(--badge-warning-text)] shrink-0">
             <Clock size={13} /> Draft
           </span>
         );
       case 'Rejected':
         return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold shrink-0 bg-[var(--badge-danger-bg)] text-[var(--badge-danger-text)] border border-[var(--badge-danger-text)]/15">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[8px] text-[12px] font-semibold bg-[var(--badge-danger-bg)] text-[var(--badge-danger-text)] shrink-0">
             <XCircle size={13} /> Rejected
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold shrink-0 bg-[var(--badge-neutral-bg)] text-[var(--badge-neutral-text)] border border-[var(--line)]">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[8px] text-[12px] font-semibold bg-[var(--badge-neutral-bg)] text-[var(--badge-neutral-text)] shrink-0">
             {status || '—'}
           </span>
         );
@@ -214,7 +214,7 @@ const BranchOperationsMobileLoansApplicationsList = () => {
             <button
               key={tab.key}
               onClick={() => setStatusFilter(tab.key)}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-xs font-medium whitespace-nowrap transition-all cursor-pointer border ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
                 statusFilter === tab.key
                   ? 'bg-[var(--ink)] text-white border-transparent shadow-xs font-semibold'
                   : 'bg-[var(--surface)] text-[var(--muted)] border-[var(--line)] hover:text-[var(--text)]'
@@ -312,7 +312,7 @@ const BranchOperationsMobileLoansApplicationsList = () => {
                   {/* Bottom Row: App ID, Requested Amount & Arrow */}
                   <div className="pt-2 border-t border-[var(--line)] flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="font-mono font-medium text-[var(--branch-deep)] bg-[var(--brand-tint)] px-2 py-0.5 rounded-[6px] text-[10.5px] shrink-0">
+                      <span className="font-mono font-medium text-[var(--branch-deep)] bg-[var(--branch-tint)] px-2 py-0.5 rounded-[6px] text-[10.5px] shrink-0">
                         {appId}
                       </span>
                       {loanAmount && (
@@ -322,7 +322,7 @@ const BranchOperationsMobileLoansApplicationsList = () => {
                       )}
                     </div>
 
-                    <div className="w-6 h-6 rounded-[8px] bg-[var(--surface-alt)] border border-[var(--line)] flex items-center justify-center text-[var(--muted)] group-hover:bg-[var(--brand-tint)] group-hover:text-[var(--branch-deep)] transition-colors shrink-0">
+                    <div className="w-6 h-6 rounded-[8px] bg-[var(--surface-alt)] border border-[var(--line)] flex items-center justify-center text-[var(--muted)] group-hover:bg-[var(--branch-tint)] group-hover:text-[var(--branch-deep)] transition-colors shrink-0">
                       <ChevronRight size={13} />
                     </div>
                   </div>
