@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import PageLoader from '../components/PageLoader';
 import { createPortal } from 'react-dom';
-import { Globe, Clock, Edit2, Trash2, AlertTriangle, ArrowLeft, X, Plus, MapPin } from 'lucide-react';
+import { Globe, Clock, Edit2, Trash2, AlertTriangle, X, Plus, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
@@ -141,14 +141,6 @@ const AdminAttendanceConfig = () => {
           >
             <Clock size={14} />
             <span>Add shift time</span>
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => navigate('/admin/attendance')}
-            className="h-9 px-3.5 rounded-[12px] text-xs font-medium"
-          >
-            <ArrowLeft size={13} />
-            <span>Attendance</span>
           </Button>
         </div>
       </div>
