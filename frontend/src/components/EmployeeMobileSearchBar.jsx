@@ -167,7 +167,7 @@ const EmployeeMobileSearchBar = ({ placeholder = "Search your pages, leaves, pay
         category: 'Origination',
         path: '/employee/sales/origination',
         icon: ShoppingBag,
-        color: 'bg-[var(--status-success-bg)] text-[var(--status-success-text)]',
+        color: 'bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)]',
         keywords: ['sales', 'leads', 'origination', 'pipeline', 'prospects', 'clients']
       });
       items.push({
@@ -177,7 +177,7 @@ const EmployeeMobileSearchBar = ({ placeholder = "Search your pages, leaves, pay
         category: 'Origination',
         path: '/employee/sales/origination/activities',
         icon: Clock,
-        color: 'bg-[var(--status-success-bg)] text-[var(--status-success-text)]',
+        color: 'bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)]',
         keywords: ['sales activities', 'schedule', 'meetings', 'client visit', 'tasks']
       });
     }
@@ -190,7 +190,7 @@ const EmployeeMobileSearchBar = ({ placeholder = "Search your pages, leaves, pay
         category: 'Operations',
         path: '/employee/branch-operations',
         icon: Building2,
-        color: 'bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)]',
+        color: 'bg-[var(--branch-tint)] text-[var(--branch-deep)]',
         keywords: ['branch', 'branch operations', 'team', 'approvals', 'office']
       });
     }

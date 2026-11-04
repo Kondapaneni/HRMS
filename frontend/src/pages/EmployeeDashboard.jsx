@@ -601,20 +601,20 @@ const EmployeeDashboard = () => {
                   {profile?.featureAccess?.canSalesOrigination && (
                     <Link
                       to="/employee/sales/origination"
-                      className="flex items-center justify-between p-3 rounded-[14px] bg-[var(--surface-alt)] hover:bg-[var(--brand-tint)] transition-colors group"
+                      className="flex items-center justify-between p-3 rounded-[14px] bg-[var(--surface-alt)] hover:bg-[var(--accent-pink-tint)] transition-colors group"
                     >
                       <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-[10px] bg-[var(--surface)] text-[var(--success-text)] flex items-center justify-center border border-[var(--line)]">
+                        <div className="w-8 h-8 rounded-[10px] bg-[var(--surface)] text-[var(--accent-pink-deep)] flex items-center justify-center border border-[var(--line)]">
                           <ShoppingBag className="w-4 h-4" />
                         </div>
                         <div>
-                          <p className="text-xs font-medium text-[var(--text)] group-hover:text-[var(--brand-deep)] transition-colors">
+                          <p className="text-xs font-medium text-[var(--text)] group-hover:text-[var(--accent-pink-deep)] transition-colors">
                             Sales Origination
                           </p>
                           <p className="text-[10px] text-[var(--muted)]">Sales pipeline & lead records</p>
                         </div>
                       </div>
-                      <ExternalLink className="w-3.5 h-3.5 text-[var(--muted)] group-hover:text-[var(--brand-deep)] transition-colors" />
+                      <ExternalLink className="w-3.5 h-3.5 text-[var(--muted)] group-hover:text-[var(--accent-pink-deep)] transition-colors" />
                     </Link>
                   )}
 
@@ -628,13 +628,13 @@ const EmployeeDashboard = () => {
                           <Building2 className="w-4 h-4" />
                         </div>
                         <div>
-                          <p className="text-xs font-medium text-[var(--text)] group-hover:text-[var(--brand-deep)] transition-colors">
+                          <p className="text-xs font-medium text-[var(--text)] group-hover:text-[var(--branch-deep,#0D9488)] transition-colors">
                             Branch Operations
                           </p>
                           <p className="text-[10px] text-[var(--muted)]">Branch desk, leads & applications</p>
                         </div>
                       </div>
-                      <ExternalLink className="w-3.5 h-3.5 text-[var(--muted)] group-hover:text-[var(--brand-deep)] transition-colors" />
+                      <ExternalLink className="w-3.5 h-3.5 text-[var(--muted)] group-hover:text-[var(--branch-deep,#0D9488)] transition-colors" />
                     </Link>
                   )}
                 </div>

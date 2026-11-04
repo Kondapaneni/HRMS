@@ -412,8 +412,8 @@ const EmployeeMobileDashboard = () => {
 
             {profile?.featureAccess?.canSalesOrigination && (
               <Link to="/employee/sales/origination" className="flex flex-col items-center gap-1.5 group">
-                <div className="w-13 h-13 rounded-[14px] bg-[var(--status-success-bg)] border border-[var(--status-success-text)]/20 flex items-center justify-center shadow-xs group-active:scale-95 transition-transform duration-150">
-                  <ShoppingBag className="w-5 h-5 text-[var(--status-success-text)]" />
+                <div className="w-13 h-13 rounded-[14px] bg-[var(--accent-pink-tint)] border border-[var(--accent-pink)]/20 flex items-center justify-center shadow-xs group-active:scale-95 transition-transform duration-150">
+                  <ShoppingBag className="w-5 h-5 text-[var(--accent-pink-deep)]" />
                 </div>
                 <span className="text-xs font-semibold text-[var(--text)] text-center leading-tight">Sales</span>
               </Link>
@@ -421,8 +421,8 @@ const EmployeeMobileDashboard = () => {
 
             {profile?.featureAccess?.canBranchOperations && (
               <Link to="/employee/branch-operations" className="flex flex-col items-center gap-1.5 group">
-                <div className="w-13 h-13 rounded-[14px] bg-[var(--accent-pink-tint)] border border-[var(--accent-pink-deep)]/20 flex items-center justify-center shadow-xs group-active:scale-95 transition-transform duration-150">
-                  <Building2 className="w-5 h-5 text-[var(--accent-pink-deep)]" />
+                <div className="w-13 h-13 rounded-[14px] bg-[var(--branch-tint)] border border-[var(--branch)]/20 flex items-center justify-center shadow-xs group-active:scale-95 transition-transform duration-150">
+                  <Building2 className="w-5 h-5 text-[var(--branch-deep)]" />
                 </div>
                 <span className="text-xs font-semibold text-[var(--text)] text-center leading-tight">Branch Ops</span>
               </Link>
