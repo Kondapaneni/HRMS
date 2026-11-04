@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import PageLoader from '../components/PageLoader';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
@@ -16,24 +16,18 @@ import {
   XCircle, 
   Clock, 
   Calendar, 
-  Mail, 
-  FileUp, 
-  X, 
-  CalendarDays, 
   BadgeCheck, 
-  ChevronDown,
-  Search,
-  Building2,
-  MapPin,
-  IndianRupee,
-  Phone,
-  Sparkles,
-  ExternalLink,
-  ChevronRight,
-  UserCheck,
-  Award,
-  AlertCircle,
-  ArrowLeft
+  Search, 
+  Building2, 
+  MapPin, 
+  IndianRupee, 
+  Sparkles, 
+  ExternalLink, 
+  UserCheck, 
+  Award, 
+  ArrowLeft,
+  X,
+  CalendarDays
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import shortlistedEmailTemplateHtml from "../../../backend/src/Templates/candidate_shortlisted_email.html?raw";
@@ -42,44 +36,9 @@ import interviewEmailTemplateHtml from "../../../backend/src/Templates/candidate
 import offerEmailTemplateHtml from "../../../backend/src/Templates/candidate_offer_email.html?raw";
 import { pdf, PDFViewer } from '@react-pdf/renderer';
 import OfferLetterPDF from '../components/offerLetter/OfferLetterPDF';
-
-const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme }) => {
-  const themes = {
-    blue: {
-      iconBg: 'bg-[#e8f0fe]',
-      iconColor: 'text-[#1a73e8]',
-    },
-    purple: {
-      iconBg: 'bg-[#f3e8fd]',
-      iconColor: 'text-[#8430ce]',
-    },
-    green: {
-      iconBg: 'bg-[#e6f4ea]',
-      iconColor: 'text-[#137333]',
-    },
-    amber: {
-      iconBg: 'bg-[#fef7e0]',
-      iconColor: 'text-[#b06000]',
-    }
-  };
-
-  const theme = themes[colorTheme] || themes.blue;
-
-  return (
-    <div className="bg-white rounded-2xl border border-[#e0e3e7] p-5 shadow-xs transition-all duration-200 hover:shadow-md hover:border-[#dadce0]">
-      <div className="flex items-start justify-between">
-        <div className="space-y-1">
-          <p className="text-xs font-semibold text-[#5f6368] uppercase tracking-wider">{title}</p>
-          <p className="text-2xl font-bold text-[#1f1f1f] tracking-tight">{value}</p>
-          {subtitle && <p className="text-xs text-[#5f6368] font-normal pt-0.5">{subtitle}</p>}
-        </div>
-        <div className={`p-3 rounded-2xl ${theme.iconBg} ${theme.iconColor} shrink-0`}>
-          <Icon className="w-5 h-5" />
-        </div>
-      </div>
-    </div>
-  );
-};
+import StatCard from '../components/ui/StatCard';
+import StatusBadge from '../components/ui/StatusBadge';
+import Button from '../components/ui/Button';
 
 const AdminRecruitment = () => {
   const navigate = useNavigate();
@@ -148,16 +107,6 @@ const AdminRecruitment = () => {
       return res.data.branches || [];
     }
   });
-
-  const { data: employeesList = [] } = useQuery({
-    queryKey: ['admin', 'employees_list'],
-    queryFn: async () => {
-      const res = await api.get('/admin/employees');
-      return res.data.employees || [];
-    }
-  });
-
-  const isLoading = isLoadingJobs || isLoadingApps;
 
   // Job Modal State
   const [isJobModalOpen, setIsJobModalOpen] = useState(false);
@@ -494,27 +443,14 @@ const AdminRecruitment = () => {
     return 'Interview';
   };
 
-  const getStatusBadge = (status) => {
+  const renderStatusBadge = (status) => {
     const s = status?.toLowerCase() || '';
-    if (s.includes('applied')) {
-      return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]">Applied</span>;
-    }
-    if (s.includes('shortlisted')) {
-      return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">Shortlisted</span>;
-    }
-    if (s.includes('interview')) {
-      return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#fef7e0] text-[#b06000] border border-[#feefc3]">{status}</span>;
-    }
-    if (s.includes('rejected')) {
-      return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf]">Rejected</span>;
-    }
-    if (s.includes('hired') || s.includes('selected')) {
-      return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">{status}</span>;
-    }
-    if (s.includes('converted')) {
-      return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">Converted to Employee</span>;
-    }
-    return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]">{status}</span>;
+    if (s.includes('shortlisted')) return <StatusBadge variant="info">Shortlisted</StatusBadge>;
+    if (s.includes('interview')) return <StatusBadge variant="warning">{status}</StatusBadge>;
+    if (s.includes('rejected')) return <StatusBadge variant="danger">Rejected</StatusBadge>;
+    if (s.includes('hired') || s.includes('selected')) return <StatusBadge variant="success">{status}</StatusBadge>;
+    if (s.includes('converted')) return <StatusBadge variant="success">Converted to Employee</StatusBadge>;
+    return <StatusBadge variant="neutral">{status || 'Applied'}</StatusBadge>;
   };
 
   const getInitials = (firstName, lastName) => {
@@ -522,7 +458,6 @@ const AdminRecruitment = () => {
   };
 
   const filteredApplications = applications.filter(app => {
-    const userInfo = candidatesInfo.find(u => u.id === app.candidate_id);
     const matchesJob = jobFilter ? app.job_id === jobFilter : true;
     const matchesStatus = statusFilter ? app.status === statusFilter : true;
     return matchesJob && matchesStatus;
@@ -533,188 +468,183 @@ const AdminRecruitment = () => {
   const inInterview = applications.filter(a => (a.status || '').includes('Interview')).length;
   const hiredCount = applications.filter(a => ['Hired', 'Selected', 'Converted to Employee'].includes(a.status)).length;
 
-  if (isLoadingJobs) return <PageLoader message="Loading Recruitment Data..." />;
+  if (isLoadingJobs) return <PageLoader message="Loading recruitment data..." />;
 
   return (
-    <div className="space-y-6 pb-12 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+    <div className="space-y-6 pb-12 antialiased">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <div className="flex items-center gap-1.5 mb-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-            <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Talent Acquisition</span>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[12px] font-medium text-[var(--muted)]">Talent acquisition</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight flex items-center gap-2 font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
-            Recruitment &amp; <span className="font-medium italic text-[#1a73e8]">ATS</span> <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">{openPositions} Active Openings</span>
+          <h1 className="text-[24px] font-medium text-[var(--text)] tracking-[-0.01em] flex items-center gap-2">
+            Recruitment & ATS
+            <span className="text-[12px] font-medium text-[var(--brand-deep)] bg-[var(--brand-tint)] px-2.5 py-0.5 rounded-[9px]">
+              {openPositions} Active openings
+            </span>
           </h1>
-          <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
+          <p className="text-[13px] text-[var(--muted)] mt-1">
             Manage job postings, applicant pipelines, interview rounds, and candidate employee conversions.
           </p>
         </div>
 
-        <button 
+        <Button 
+          variant="primary"
           onClick={() => setIsJobModalOpen(true)}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-full text-xs font-semibold shadow-sm transition-all cursor-pointer self-start sm:self-auto"
+          className="self-start sm:self-auto"
         >
-          <Plus className="w-4 h-4" /> Post New Job
-        </button>
+          <Plus className="w-4 h-4 mr-1.5" /> Post new job
+        </Button>
       </div>
 
       {/* KPI Stats Cards */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-[14px] grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard 
-          title="Published Jobs" 
+          title="Published jobs" 
           value={openPositions} 
           subtitle="Active job postings" 
           icon={Briefcase} 
-          colorTheme="blue" 
         />
         <StatCard 
-          title="Total Applicants" 
+          title="Total applicants" 
           value={totalApplicants} 
           subtitle="Received candidate profiles" 
           icon={Users} 
-          colorTheme="purple" 
         />
         <StatCard 
-          title="Interviews Active" 
+          title="Interviews active" 
           value={inInterview} 
-          subtitle="Across all interview rounds" 
+          subtitle="Across interview rounds" 
           icon={CalendarDays} 
-          colorTheme="amber" 
         />
         <StatCard 
           title="Hired / Converted" 
           value={hiredCount} 
           subtitle="Onboarded candidates" 
           icon={BadgeCheck} 
-          colorTheme="green" 
         />
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex items-center gap-2 border-b border-[#e0e3e7] pb-1">
+      <div className="flex items-center gap-2 border-b border-[var(--line)] pb-2">
         <button
           onClick={() => setActiveTab('jobs')}
-          className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-t-xl transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2 text-[13px] font-medium rounded-full transition-colors cursor-pointer ${
             activeTab === 'jobs'
-              ? 'text-[#1a73e8] border-b-2 border-[#1a73e8] bg-[#e8f0fe]/50'
-              : 'text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4]'
+              ? 'bg-[var(--ink)] text-white'
+              : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface)]'
           }`}
         >
           <Briefcase className="w-4 h-4" />
-          Job Openings ({jobs.length})
+          Job openings ({jobs.length})
         </button>
         <button
           onClick={() => { setActiveTab('applications'); setJobFilter(''); }}
-          className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-t-xl transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2 text-[13px] font-medium rounded-full transition-colors cursor-pointer ${
             activeTab === 'applications'
-              ? 'text-[#1a73e8] border-b-2 border-[#1a73e8] bg-[#e8f0fe]/50'
-              : 'text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4]'
+              ? 'bg-[var(--ink)] text-white'
+              : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface)]'
           }`}
         >
           <Users className="w-4 h-4" />
-          Applicant Pipeline ({applications.length})
+          Applicant pipeline ({applications.length})
         </button>
       </div>
 
-      {/* Content Body */}
+      {/* Content Body: Jobs */}
       {activeTab === 'jobs' && (
-        <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+        <div className="grid gap-[14px] grid-cols-1 md:grid-cols-2">
           {jobs.length === 0 ? (
-            <div className="col-span-full rounded-2xl border border-dashed border-[#dadce0] bg-white p-12 text-center text-[#5f6368] flex flex-col items-center justify-center space-y-2">
-              <Briefcase className="w-12 h-12 text-[#dadce0] mb-1" />
-              <p className="text-sm font-semibold text-[#1f1f1f]">No job requisitions posted</p>
-              <p className="text-xs text-[#5f6368]">Click "+ Post New Job" to publish a requisition.</p>
+            <div className="col-span-full rounded-[24px] bg-[var(--surface)] p-12 text-center text-[var(--muted)] flex flex-col items-center justify-center space-y-2">
+              <Briefcase className="w-12 h-12 text-[var(--muted)]/40 mb-1" />
+              <p className="text-[15px] font-medium text-[var(--text)]">No job requisitions posted</p>
+              <p className="text-[13px] text-[var(--muted)]">Click "+ Post new job" to publish a requisition.</p>
             </div>
           ) : (
             jobs.map(job => (
-              <div key={job.id} className="rounded-2xl border border-[#e0e3e7] bg-white shadow-xs p-5 hover:shadow-md transition-all flex flex-col justify-between space-y-4">
+              <div key={job.id} className="rounded-[24px] bg-[var(--surface)] p-6 flex flex-col justify-between space-y-4">
                 <div className="space-y-3">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <h3 className="text-base font-semibold text-[#1f1f1f] leading-snug">{job.title}</h3>
-                      <div className="flex flex-wrap items-center gap-2 mt-1">
-                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#1a73e8] bg-[#e8f0fe] px-2.5 py-0.5 rounded-full border border-[#d2e3fc]">
+                      <h3 className="text-[15px] font-medium text-[var(--text)] leading-snug">{job.title}</h3>
+                      <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                        <span className="inline-flex items-center gap-1 text-[12px] font-medium text-[var(--brand-deep)] bg-[var(--brand-tint)] px-2.5 py-0.5 rounded-[9px]">
                           <Building2 className="w-3 h-3" /> {job.department}
                         </span>
-                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#5f6368] bg-[#f1f3f4] px-2 py-0.5 rounded-full border border-[#dadce0]">
+                        <span className="inline-flex items-center gap-1 text-[12px] font-medium text-[var(--muted)] bg-[var(--surface-alt)] px-2 py-0.5 rounded-[9px]">
                           <MapPin className="w-3 h-3" /> {job.location}
                         </span>
-                        <span className="text-[11px] text-[#5f6368] bg-[#f1f3f4] px-2 py-0.5 rounded-full">
+                        <span className="text-[12px] font-medium text-[var(--muted)] bg-[var(--surface-alt)] px-2 py-0.5 rounded-[9px]">
                           {job.type}
                         </span>
                       </div>
                     </div>
 
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                      job.status === 'Published' 
-                        ? 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6]' 
-                        : 'bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]'
-                    }`}>
+                    <StatusBadge variant={job.status === 'Published' ? 'success' : 'neutral'}>
                       {job.status}
-                    </span>
+                    </StatusBadge>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 text-xs bg-[#f8fafd] border border-[#e0e3e7] rounded-xl p-3 text-[#5f6368]">
+                  <div className="grid grid-cols-2 gap-2 text-[12px] bg-[var(--surface-alt)] rounded-[14px] p-3 text-[var(--muted)]">
                     <div>
-                      <span className="font-semibold text-[#1f1f1f]">Experience:</span> {job.experience || 'Not specified'}
+                      <span className="font-medium text-[var(--text)]">Experience:</span> {job.experience || 'Not specified'}
                     </div>
                     <div>
-                      <span className="font-semibold text-[#1f1f1f]">Vacancies:</span> {job.vacancy || 1}
+                      <span className="font-medium text-[var(--text)]">Vacancies:</span> {job.vacancy || 1}
                     </div>
                     <div>
-                      <span className="font-semibold text-[#1f1f1f]">Compensation:</span> {job.salary_min && job.salary_max ? `₹${Number(job.salary_min).toLocaleString('en-IN')} - ₹${Number(job.salary_max).toLocaleString('en-IN')}` : 'Disclosed upon request'}
+                      <span className="font-medium text-[var(--text)]">Compensation:</span> {job.salary_min && job.salary_max ? `₹${Number(job.salary_min).toLocaleString('en-IN')} - ₹${Number(job.salary_max).toLocaleString('en-IN')}` : 'Disclosed upon request'}
                     </div>
                     <div>
-                      <span className="font-semibold text-[#1f1f1f]">Deadline:</span> {job.deadline ? new Date(job.deadline).toLocaleDateString() : 'Open until filled'}
+                      <span className="font-medium text-[var(--text)]">Deadline:</span> {job.deadline ? new Date(job.deadline).toLocaleDateString() : 'Open until filled'}
                     </div>
                   </div>
 
-                  <p className="text-xs text-[#5f6368] line-clamp-2 leading-relaxed">
+                  <p className="text-[13px] text-[var(--muted)] line-clamp-2 leading-relaxed">
                     {job.description}
                   </p>
                 </div>
 
-                <div className="pt-3 border-t border-[#e0e3e7] flex items-center justify-between gap-2">
-                  <span className="text-xs font-semibold text-[#1a73e8]">
-                    {job.applications?.[0]?.count || 0} Candidate Applications
+                <div className="pt-3 border-t border-[var(--line)] flex items-center justify-between gap-2">
+                  <span className="text-[13px] font-medium text-[var(--brand-deep)]">
+                    {job.applications?.[0]?.count || 0} Candidate applications
                   </span>
 
                   <div className="flex items-center gap-2">
-                    <button 
+                    <Button 
+                      variant="secondary"
+                      size="sm"
                       onClick={() => { setActiveTab('applications'); setJobFilter(job.id); }}
-                      className="px-3 py-1.5 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer"
                     >
-                      View Candidates
-                    </button>
+                      View candidates
+                    </Button>
                     {job.status === 'Draft' ? (
-                      <button 
+                      <Button 
+                        variant="primary"
+                        size="sm"
                         onClick={() => updateJobStatusMutation.mutate({ jobId: job.id, status: 'Published' })}
                         disabled={updateJobStatusMutation.isPending}
-                        className="px-3 py-1.5 rounded-full text-xs font-semibold bg-[#137333] hover:bg-[#0d5926] text-white shadow-xs transition-all cursor-pointer disabled:opacity-50"
                       >
                         Publish
-                      </button>
+                      </Button>
                     ) : (
-                      <button 
+                      <Button 
+                        variant="secondary"
+                        size="sm"
                         onClick={() => updateJobStatusMutation.mutate({ jobId: job.id, status: 'Draft' })}
                         disabled={updateJobStatusMutation.isPending}
-                        className="px-3 py-1.5 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#5f6368] transition-all cursor-pointer disabled:opacity-50"
                       >
                         Unpublish
-                      </button>
+                      </Button>
                     )}
                     {job.description_pdf_url && (
                       <a 
                         href={job.description_pdf_url} 
                         target="_blank" 
                         rel="noreferrer"
-                        className="p-1.5 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#5f6368] transition-all"
-                        title="Download JD Document"
+                        className="w-8 h-8 rounded-[10px] bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--muted)] flex items-center justify-center transition-colors"
+                        title="Download JD document"
                       >
                         <ExternalLink className="w-3.5 h-3.5" />
                       </a>
@@ -727,42 +657,40 @@ const AdminRecruitment = () => {
         </div>
       )}
 
+      {/* Content Body: Applicant Pipeline */}
       {activeTab === 'applications' && (
-        <div className="space-y-4">
+        <div className="space-y-[14px]">
           {/* Search & Filter Toolbar */}
-          <div className="rounded-2xl border border-[#e0e3e7] bg-white p-4 sm:p-5 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            {/* Google Pill Search */}
+          <div className="rounded-[24px] bg-[var(--surface)] p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div className="relative w-full lg:w-96">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368] pointer-events-none" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)] pointer-events-none" />
               <input 
                 type="search" 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search candidates by name, email, or job..."
-                className="w-full pl-10 pr-4 py-2 text-xs bg-[#f1f3f4] hover:bg-[#e8eaed] focus:bg-white border border-transparent focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-full text-[#1f1f1f] placeholder:text-[#5f6368] outline-none transition-all shadow-none focus:shadow-sm"
+                className="w-full h-10 pl-10 pr-4 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] placeholder:text-[var(--muted)] outline-none transition-all"
               />
             </div>
 
             <div className="flex flex-col sm:flex-row items-center gap-3">
-              {/* Job Selector */}
               <select 
                 value={jobFilter}
                 onChange={(e) => setJobFilter(e.target.value)}
-                className="w-full sm:w-auto px-3.5 py-2 bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-full text-xs text-[#1f1f1f] outline-none cursor-pointer"
+                className="w-full sm:w-auto h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none cursor-pointer"
               >
-                <option value="">All Job Positions</option>
+                <option value="">All job positions</option>
                 {jobs.map(job => (
                   <option key={job.id} value={job.id}>{job.title}</option>
                 ))}
               </select>
 
-              {/* Status Selector */}
               <select 
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full sm:w-auto px-3.5 py-2 bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-full text-xs text-[#1f1f1f] outline-none cursor-pointer"
+                className="w-full sm:w-auto h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none cursor-pointer"
               >
-                <option value="">All Pipeline Statuses</option>
+                <option value="">All pipeline statuses</option>
                 {['Applied', 'Shortlisted', '1st Round Interview', '2nd Round Interview', '3rd Round Interview', 'Final Round Interview', 'Selected', 'Hired', 'Converted to Employee', 'Rejected'].map(st => (
                   <option key={st} value={st}>{st}</option>
                 ))}
@@ -771,14 +699,16 @@ const AdminRecruitment = () => {
           </div>
 
           {/* Applications List */}
-          <div className="grid gap-4">
+          <div className="grid gap-[14px]">
             {isLoadingApps ? (
-              <div className="flex justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1a73e8]"></div></div>
+              <div className="flex justify-center p-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-2 border-[var(--brand-deep)] border-t-transparent"></div>
+              </div>
             ) : filteredApplications.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-[#dadce0] bg-white p-12 text-center text-[#5f6368] flex flex-col items-center justify-center space-y-2">
-                <Users className="w-12 h-12 text-[#dadce0] mb-1" />
-                <p className="text-sm font-semibold text-[#1f1f1f]">No candidates found</p>
-                <p className="text-xs text-[#5f6368]">Try adjusting your search criteria or pipeline filters.</p>
+              <div className="rounded-[24px] bg-[var(--surface)] p-12 text-center text-[var(--muted)] flex flex-col items-center justify-center space-y-2">
+                <Users className="w-12 h-12 text-[var(--muted)]/40 mb-1" />
+                <p className="text-[15px] font-medium text-[var(--text)]">No candidates found</p>
+                <p className="text-[13px] text-[var(--muted)]">Try adjusting your search criteria or pipeline filters.</p>
               </div>
             ) : (
               filteredApplications.map(app => {
@@ -793,24 +723,24 @@ const AdminRecruitment = () => {
                 const pendingDocsCount = candidateDocs.filter(d => d.status === 'pending').length;
                 
                 return (
-                  <div key={app.id} className="rounded-2xl border border-[#e0e3e7] bg-white shadow-xs p-5 hover:shadow-md transition-all space-y-4">
+                  <div key={app.id} className="rounded-[24px] bg-[var(--surface)] p-5 space-y-4">
                     <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                       <div className="flex items-start gap-3.5">
-                        <div className="w-10 h-10 rounded-full bg-[#e8f0fe] border border-[#d2e3fc] flex items-center justify-center text-[#1a73e8] font-bold text-sm shrink-0">
+                        <div className="w-11 h-11 rounded-[14px] bg-[var(--brand-tint)] flex items-center justify-center text-[var(--brand-deep)] font-semibold text-[14px] shrink-0">
                           {getInitials(userInfo?.firstName, userInfo?.lastName)}
                         </div>
                         <div>
                           <div className="flex flex-wrap items-center gap-2">
-                            <h3 className="text-sm font-semibold text-[#1f1f1f]">{userInfo?.firstName || 'Candidate'} {userInfo?.lastName || ''}</h3>
-                            {getStatusBadge(status)}
+                            <h3 className="text-[15px] font-medium text-[var(--text)]">{userInfo?.firstName || 'Candidate'} {userInfo?.lastName || ''}</h3>
+                            {renderStatusBadge(status)}
                             {pendingDocsCount > 0 && (
-                              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#b06000] bg-[#fef7e0] border border-[#feefc3] px-2.5 py-0.5 rounded-full">
-                                <FileText className="w-3 h-3" /> {pendingDocsCount} Docs Pending Review
-                              </span>
+                              <StatusBadge variant="warning">
+                                <FileText className="w-3 h-3 mr-1 inline" /> {pendingDocsCount} docs pending review
+                              </StatusBadge>
                             )}
                           </div>
-                          <p className="text-xs text-[#5f6368] mt-0.5">
-                            Position: <span className="font-semibold text-[#1f1f1f]">{app.jobs?.title}</span> • {app.jobs?.department}
+                          <p className="text-[13px] text-[var(--muted)] mt-0.5">
+                            Position: <span className="font-medium text-[var(--text)]">{app.jobs?.title}</span> • {app.jobs?.department}
                           </p>
                         </div>
                       </div>
@@ -822,21 +752,21 @@ const AdminRecruitment = () => {
                             href={app.resume_url} 
                             target="_blank" 
                             rel="noreferrer" 
-                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all"
+                            className="inline-flex items-center gap-1.5 h-8 px-3 rounded-[10px] text-[12px] font-medium bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--text)] transition-colors"
                           >
-                            <FileText className="w-3.5 h-3.5 text-[#5f6368]" /> Resume
+                            <FileText className="w-3.5 h-3.5 text-[var(--muted)]" /> Resume
                           </a>
                         )}
 
                         {(isHired || isConverted) && (
                           <button 
                             onClick={() => navigate('/admin/recruitment/verify-documents/' + app.id, { state: { application: app } })}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer"
+                            className="inline-flex items-center gap-1.5 h-8 px-3 rounded-[10px] text-[12px] font-medium bg-[var(--brand-tint)] text-[var(--brand-deep)] hover:opacity-85 transition-opacity cursor-pointer"
                           >
-                            <BadgeCheck className="w-3.5 h-3.5 text-[#1a73e8]" />
-                            Verify Documents
+                            <BadgeCheck className="w-3.5 h-3.5" />
+                            Verify documents
                             {Number(app.pending_documents_count) > 0 && (
-                              <span className="ml-1 px-1.5 py-0.2 text-[10px] font-bold text-white bg-[#b06000] rounded-full">
+                              <span className="ml-1 px-1.5 py-0.2 text-[10px] font-bold text-white bg-[var(--warning-text)] rounded-full">
                                 {app.pending_documents_count}
                               </span>
                             )}
@@ -844,82 +774,86 @@ const AdminRecruitment = () => {
                         )}
 
                         {status === 'Applied' && (
-                          <button 
+                          <Button 
+                            variant="primary"
+                            size="sm"
                             disabled={updateStatusMutation.isPending} 
                             onClick={() => updateApplicationStatus(app, 'Shortlisted')} 
-                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-[#137333] hover:bg-[#0d5926] text-white shadow-xs transition-all cursor-pointer disabled:opacity-50"
                           >
-                            <CheckCircle2 className="w-3.5 h-3.5" /> Shortlist
-                          </button>
+                            <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Shortlist
+                          </Button>
                         )}
 
                         {(status === 'Shortlisted' || isInterview) && (
-                          <button 
+                          <Button 
+                            variant="primary"
+                            size="sm"
                             disabled={updateStatusMutation.isPending} 
                             onClick={() => openScheduleModal(app, nextInterviewRound)} 
-                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs transition-all cursor-pointer disabled:opacity-50"
                           >
-                            <Calendar className="w-3.5 h-3.5" /> Schedule {isInterview ? 'Next ' : ''}Interview
-                          </button>
+                            <Calendar className="w-3.5 h-3.5 mr-1" /> Schedule {isInterview ? 'next ' : ''}interview
+                          </Button>
                         )}
 
                         {isInterview && (
-                          <button 
+                          <Button 
+                            variant="primary"
+                            size="sm"
                             disabled={updateStatusMutation.isPending} 
                             onClick={() => openOfferModal(app)} 
-                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-[#137333] hover:bg-[#0d5926] text-white shadow-xs transition-all cursor-pointer disabled:opacity-50"
+                            className="bg-[var(--accent-pink-deep)] text-white hover:opacity-90"
                           >
-                            <Award className="w-3.5 h-3.5" /> Generate Offer
-                          </button>
+                            <Award className="w-3.5 h-3.5 mr-1" /> Generate offer
+                          </Button>
                         )}
 
                         {(status === 'Applied' || status === 'Shortlisted' || isInterview) && (
-                          <button 
+                          <Button 
+                            variant="danger"
+                            size="sm"
                             disabled={updateStatusMutation.isPending} 
                             onClick={() => updateApplicationStatus(app, 'Rejected')} 
-                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold border border-[#fad2cf] bg-[#fce8e6] hover:bg-[#fad2cf] text-[#c5221f] transition-all cursor-pointer disabled:opacity-50"
                           >
-                            <XCircle className="w-3.5 h-3.5" /> Reject
-                          </button>
+                            <XCircle className="w-3.5 h-3.5 mr-1" /> Reject
+                          </Button>
                         )}
 
                         {(isHired || isConverted) && (
-                          <button 
+                          <Button 
+                            variant={isConverted ? 'secondary' : 'primary'}
+                            size="sm"
                             onClick={() => openConvertModal(app)} 
                             disabled={isConverted || convertEmployeeMutation.isPending}
-                            className={`inline-flex items-center gap-1 px-3.5 py-1.5 rounded-full text-xs font-semibold shadow-xs transition-all cursor-pointer disabled:opacity-50 ${
-                              isConverted ? 'bg-[#f1f3f4] text-[#5f6368] cursor-not-allowed border border-[#dadce0]' : 'bg-[#1a73e8] hover:bg-[#1557b0] text-white'
-                            }`}
                           >
-                            <UserCheck className="w-3.5 h-3.5" />
-                            {isConverted ? 'Converted to Employee' : 'Convert to Staff'}
-                          </button>
+                            <UserCheck className="w-3.5 h-3.5 mr-1" />
+                            {isConverted ? 'Converted to employee' : 'Convert to staff'}
+                          </Button>
                         )}
                       </div>
                     </div>
 
                     {/* Candidate Details Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 bg-[#f8fafd] border border-[#e0e3e7] rounded-xl p-3 text-xs text-[#5f6368]">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 bg-[var(--surface-alt)] rounded-[16px] p-3.5 text-[12px] text-[var(--muted)]">
                       <div>
-                        <span className="font-semibold text-[#1f1f1f] block mb-0.5">Email Address</span>
+                        <span className="font-medium text-[var(--text)] block mb-0.5">Email address</span>
                         <span className="truncate block">{userInfo?.email || 'N/A'}</span>
                       </div>
                       <div>
-                        <span className="font-semibold text-[#1f1f1f] block mb-0.5">Contact Number</span>
+                        <span className="font-medium text-[var(--text)] block mb-0.5">Contact number</span>
                         <span>{appProfile?.phone || 'N/A'}</span>
                       </div>
                       <div>
-                        <span className="font-semibold text-[#1f1f1f] block mb-0.5">Experience</span>
+                        <span className="font-medium text-[var(--text)] block mb-0.5">Experience</span>
                         <span>{appProfile?.experience ? `${appProfile.experience} years` : (app.experience ? `${app.experience} years` : 'Not specified')}</span>
                       </div>
                       <div>
-                        <span className="font-semibold text-[#1f1f1f] block mb-0.5">Availability / Notice</span>
-                        <span className="font-semibold text-[#1a73e8]">{app.notice_period || 'Immediate'}</span>
+                        <span className="font-medium text-[var(--text)] block mb-0.5">Availability / Notice</span>
+                        <span className="font-medium text-[var(--brand-deep)]">{app.notice_period || 'Immediate'}</span>
                       </div>
                       {app.cover_note && (
-                        <div className="col-span-1 sm:col-span-2 md:col-span-4 bg-white p-2.5 rounded-lg border border-[#dadce0]">
-                          <span className="font-semibold text-[#1f1f1f] block mb-0.5 text-[11px]">Cover Note / Message</span>
-                          <p className="text-xs text-[#444746] italic leading-relaxed">"{app.cover_note}"</p>
+                        <div className="col-span-1 sm:col-span-2 md:col-span-4 bg-[var(--surface)] p-3 rounded-[12px]">
+                          <span className="font-medium text-[var(--text)] block mb-0.5 text-[11px]">Cover note / message</span>
+                          <p className="text-[12px] text-[var(--text-2)] italic leading-relaxed">"{app.cover_note}"</p>
                         </div>
                       )}
                     </div>
@@ -927,10 +861,10 @@ const AdminRecruitment = () => {
                     <div className="flex justify-end pt-1">
                       <button 
                         onClick={() => { setTimelineApp(app); setIsTimelineModalOpen(true); }}
-                        className="inline-flex items-center text-xs font-semibold text-[#1a73e8] hover:text-[#1557b0] transition-colors cursor-pointer"
+                        className="inline-flex items-center text-[12px] font-medium text-[var(--brand-deep)] hover:underline cursor-pointer"
                       >
                         <Clock className="w-3.5 h-3.5 mr-1" />
-                        View Application Audit Timeline
+                        View application audit timeline
                       </button>
                     </div>
                   </div>
@@ -941,39 +875,33 @@ const AdminRecruitment = () => {
         </div>
       )}
 
-      {/* Configure Job Offer Letter Full Screen Studio (Takes over entire page, hiding sidebar) */}
+      {/* Configure Job Offer Letter Full Screen Studio */}
       {isOfferModalOpen && createPortal(
-        <div 
-          className="fixed inset-0 z-[10000] w-screen h-screen bg-white flex flex-col overflow-hidden animate-in fade-in duration-200 font-editorial antialiased"
-          style={{ fontFamily: "'Newsreader', Georgia, serif" }}
-        >
-          {/* Top 4-Color Gradient Accent Line */}
-          <div className="h-1 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] shrink-0" />
-
+        <div className="fixed inset-0 z-[10000] w-screen h-screen bg-[var(--bg)] flex flex-col overflow-hidden animate-in fade-in duration-200 antialiased">
           {/* Studio Top Header Bar */}
-          <header className="h-16 px-6 bg-[#f8fafd] border-b border-[#e0e3e7] flex items-center justify-between shrink-0">
+          <header className="h-16 px-6 bg-[var(--surface)] border-b border-[var(--line)] flex items-center justify-between shrink-0">
             <div className="flex items-center gap-4">
               <button 
                 type="button" 
                 onClick={() => setIsOfferModalOpen(false)}
-                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-xs font-semibold text-[#5f6368] hover:text-[#1f1f1f] transition-all cursor-pointer shadow-2xs"
+                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-[12px] bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[13px] font-medium text-[var(--text)] transition-colors cursor-pointer"
               >
                 <ArrowLeft size={14} />
-                <span>Back to Pipeline</span>
+                <span>Back to pipeline</span>
               </button>
 
-              <div className="h-6 w-px bg-[#dadce0]" />
+              <div className="h-6 w-px bg-[var(--line)]" />
 
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-[#e6f4ea] text-[#137333] flex items-center justify-center font-bold">
+                <div className="w-8 h-8 rounded-[10px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center font-bold">
                   <Award size={18} />
                 </div>
                 <div>
-                  <h1 className="text-base font-medium text-[#1f1f1f]" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
-                    Configure <span className="font-medium italic text-[#1a73e8]">Job Offer Letter</span>
+                  <h1 className="text-[15px] font-medium text-[var(--text)]">
+                    Configure job offer letter
                   </h1>
-                  <p className="text-[11px] text-[#5f6368]">
-                    Candidate: <strong className="text-[#1f1f1f]">{offerData.firstName} {offerData.lastName}</strong> &bull; {offerData.position || 'Software Engineer'}
+                  <p className="text-[12px] text-[var(--muted)]">
+                    Candidate: <strong className="text-[var(--text)]">{offerData.firstName} {offerData.lastName}</strong> &bull; {offerData.position || 'Software Engineer'}
                   </p>
                 </div>
               </div>
@@ -981,94 +909,96 @@ const AdminRecruitment = () => {
 
             {/* Top Action Buttons */}
             <div className="flex items-center gap-3">
-              <button 
+              <Button 
                 type="button" 
+                variant="secondary"
+                size="sm"
                 onClick={() => setIsOfferModalOpen(false)} 
-                className="px-4 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#5f6368] transition-all cursor-pointer shadow-2xs"
               >
                 Cancel
-              </button>
-              <button 
+              </Button>
+              <Button 
                 form="offerForm" 
                 type="submit" 
+                variant="primary"
+                size="sm"
                 disabled={isGeneratingPdf || updateStatusMutation.isPending} 
-                className="inline-flex items-center gap-1.5 px-6 py-2 rounded-full text-xs font-semibold bg-[#137333] hover:bg-[#0d5926] text-white shadow-xs transition-all cursor-pointer disabled:opacity-50"
               >
-                <Award className="w-3.5 h-3.5" />
-                {isGeneratingPdf ? 'Generating PDF...' : updateStatusMutation.isPending ? 'Sending...' : 'Confirm & Dispatch Offer Letter'}
-              </button>
+                <Award className="w-3.5 h-3.5 mr-1" />
+                {isGeneratingPdf ? 'Generating PDF...' : updateStatusMutation.isPending ? 'Sending...' : 'Confirm & dispatch offer letter'}
+              </Button>
             </div>
           </header>
 
           {/* Full Screen Split Workspace: Form on Left, PDF on Right */}
           <div className="flex-1 flex flex-col md:flex-row overflow-hidden w-full h-full">
             {/* Left Panel: Configuration Form */}
-            <div className="w-full md:w-[480px] lg:w-[540px] xl:w-[580px] border-r border-[#e0e3e7] bg-white flex flex-col h-full overflow-hidden shrink-0">
-              <div className="p-6 overflow-y-auto flex-1 custom-scrollbar space-y-6">
+            <div className="w-full md:w-[480px] lg:w-[540px] xl:w-[580px] border-r border-[var(--line)] bg-[var(--surface)] flex flex-col h-full overflow-hidden shrink-0">
+              <div className="p-6 overflow-y-auto flex-1 space-y-6">
                 <form id="offerForm" onSubmit={handleSendOffer} className="space-y-5">
                   {/* Candidate Details Section */}
                   <div className="space-y-3">
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-[#5f6368] flex items-center gap-2">
-                      <UserCheck size={14} className="text-[#1a73e8]" />
-                      Candidate Information
+                    <h3 className="text-[12px] font-medium uppercase tracking-wider text-[var(--muted)] flex items-center gap-2">
+                      <UserCheck size={14} className="text-[var(--brand-deep)]" />
+                      Candidate information
                     </h3>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-[11px] font-semibold text-[#1f1f1f] mb-1">First Name *</label>
-                        <input type="text" required value={offerData.firstName} onChange={(e) => setOfferData({...offerData, firstName: e.target.value})} className="w-full px-3.5 py-2.5 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 rounded-full text-xs text-[#1f1f1f] outline-none transition-all" />
+                        <label className="block text-[12px] font-medium text-[var(--text)] mb-1">First name *</label>
+                        <input type="text" required value={offerData.firstName} onChange={(e) => setOfferData({...offerData, firstName: e.target.value})} className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none transition-all" />
                       </div>
                       <div>
-                        <label className="block text-[11px] font-semibold text-[#1f1f1f] mb-1">Last Name *</label>
-                        <input type="text" required value={offerData.lastName} onChange={(e) => setOfferData({...offerData, lastName: e.target.value})} className="w-full px-3.5 py-2.5 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 rounded-full text-xs text-[#1f1f1f] outline-none transition-all" />
+                        <label className="block text-[12px] font-medium text-[var(--text)] mb-1">Last name *</label>
+                        <input type="text" required value={offerData.lastName} onChange={(e) => setOfferData({...offerData, lastName: e.target.value})} className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none transition-all" />
                       </div>
                     </div>
                   </div>
 
                   {/* Position & Department */}
-                  <div className="space-y-3 pt-2 border-t border-[#f1f3f4]">
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-[#5f6368] flex items-center gap-2">
-                      <Briefcase size={14} className="text-[#1a73e8]" />
-                      Position & Department
+                  <div className="space-y-3 pt-2 border-t border-[var(--line)]">
+                    <h3 className="text-[12px] font-medium uppercase tracking-wider text-[var(--muted)] flex items-center gap-2">
+                      <Briefcase size={14} className="text-[var(--brand-deep)]" />
+                      Position & department
                     </h3>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-[11px] font-semibold text-[#1f1f1f] mb-1">Department *</label>
-                        <input type="text" required value={offerData.department} onChange={(e) => setOfferData({...offerData, department: e.target.value})} className="w-full px-3.5 py-2.5 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 rounded-full text-xs text-[#1f1f1f] outline-none transition-all" />
+                        <label className="block text-[12px] font-medium text-[var(--text)] mb-1">Department *</label>
+                        <input type="text" required value={offerData.department} onChange={(e) => setOfferData({...offerData, department: e.target.value})} className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none transition-all" />
                       </div>
                       <div>
-                        <label className="block text-[11px] font-semibold text-[#1f1f1f] mb-1">Designation / Job Title *</label>
-                        <input type="text" required value={offerData.position} onChange={(e) => setOfferData({...offerData, position: e.target.value})} className="w-full px-3.5 py-2.5 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 rounded-full text-xs text-[#1f1f1f] outline-none transition-all" />
+                        <label className="block text-[12px] font-medium text-[var(--text)] mb-1">Designation / Job title *</label>
+                        <input type="text" required value={offerData.position} onChange={(e) => setOfferData({...offerData, position: e.target.value})} className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none transition-all" />
                       </div>
                     </div>
                   </div>
 
                   {/* Dates */}
-                  <div className="space-y-3 pt-2 border-t border-[#f1f3f4]">
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-[#5f6368] flex items-center gap-2">
-                      <Calendar size={14} className="text-[#1a73e8]" />
-                      Joining & Acceptance Schedule
+                  <div className="space-y-3 pt-2 border-t border-[var(--line)]">
+                    <h3 className="text-[12px] font-medium uppercase tracking-wider text-[var(--muted)] flex items-center gap-2">
+                      <Calendar size={14} className="text-[var(--brand-deep)]" />
+                      Joining & acceptance schedule
                     </h3>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-[11px] font-semibold text-[#1f1f1f] mb-1">Expected Joining Date *</label>
-                        <input type="date" required value={offerData.joiningDate} onChange={(e) => setOfferData({...offerData, joiningDate: e.target.value})} className="w-full px-3.5 py-2.5 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 rounded-full text-xs text-[#1f1f1f] outline-none transition-all" />
+                        <label className="block text-[12px] font-medium text-[var(--text)] mb-1">Expected joining date *</label>
+                        <input type="date" required value={offerData.joiningDate} onChange={(e) => setOfferData({...offerData, joiningDate: e.target.value})} className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none transition-all" />
                       </div>
                       <div>
-                        <label className="block text-[11px] font-semibold text-[#1f1f1f] mb-1">Offer Acceptance Deadline *</label>
-                        <input type="date" required value={offerData.offerDeadline} onChange={(e) => setOfferData({...offerData, offerDeadline: e.target.value})} className="w-full px-3.5 py-2.5 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 rounded-full text-xs text-[#1f1f1f] outline-none transition-all" />
+                        <label className="block text-[12px] font-medium text-[var(--text)] mb-1">Offer acceptance deadline *</label>
+                        <input type="date" required value={offerData.offerDeadline} onChange={(e) => setOfferData({...offerData, offerDeadline: e.target.value})} className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none transition-all" />
                       </div>
                     </div>
                   </div>
 
                   {/* Compensation */}
-                  <div className="space-y-3 pt-2 border-t border-[#f1f3f4]">
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-[#5f6368] flex items-center gap-2">
-                      <IndianRupee size={14} className="text-[#137333]" />
-                      Compensation Package (INR)
+                  <div className="space-y-3 pt-2 border-t border-[var(--line)]">
+                    <h3 className="text-[12px] font-medium uppercase tracking-wider text-[var(--muted)] flex items-center gap-2">
+                      <IndianRupee size={14} className="text-[var(--success-text)]" />
+                      Compensation package (INR)
                     </h3>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-[11px] font-semibold text-[#1f1f1f] mb-1">Monthly Compensation (₹) *</label>
+                        <label className="block text-[12px] font-medium text-[var(--text)] mb-1">Monthly compensation (₹) *</label>
                         <input 
                           type="number" 
                           required 
@@ -1079,17 +1009,17 @@ const AdminRecruitment = () => {
                             const annual = monthly ? String(Number(monthly) * 12) : '';
                             setOfferData({...offerData, monthlySalary: monthly, annualSalary: annual});
                           }} 
-                          className="w-full px-3.5 py-2.5 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#1a73e8] focus:ring-2 focus:ring-[#1a73e8]/20 rounded-full text-xs text-[#1f1f1f] outline-none transition-all font-mono" 
+                          className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none font-mono transition-all" 
                         />
                       </div>
                       <div>
-                        <label className="block text-[11px] font-semibold text-[#1f1f1f] mb-1">Annual CTC (₹)</label>
+                        <label className="block text-[12px] font-medium text-[var(--text)] mb-1">Annual CTC (₹)</label>
                         <input 
                           type="text" 
                           readOnly
                           placeholder="Auto-calculated"
                           value={offerData.annualSalary ? `₹${Number(offerData.annualSalary).toLocaleString('en-IN')}` : ''} 
-                          className="w-full px-3.5 py-2.5 bg-[#f1f3f4] border border-[#dadce0] text-[#5f6368] rounded-full text-xs outline-none cursor-not-allowed font-mono" 
+                          className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] text-[var(--muted)] rounded-[12px] text-[13px] outline-none cursor-not-allowed font-mono" 
                         />
                       </div>
                     </div>
@@ -1098,19 +1028,19 @@ const AdminRecruitment = () => {
               </div>
 
               {/* Bottom Pinned Footer */}
-              <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex justify-end gap-3 shrink-0">
-                <button type="button" onClick={() => setIsOfferModalOpen(false)} className="px-5 py-2.5 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#5f6368] transition-all cursor-pointer shadow-2xs">
+              <div className="p-4 border-t border-[var(--line)] bg-[var(--surface)] flex justify-end gap-3 shrink-0">
+                <Button type="button" variant="secondary" onClick={() => setIsOfferModalOpen(false)}>
                   Cancel
-                </button>
-                <button form="offerForm" type="submit" disabled={isGeneratingPdf || updateStatusMutation.isPending} className="inline-flex items-center gap-1.5 px-6 py-2.5 rounded-full text-xs font-semibold bg-[#137333] hover:bg-[#0d5926] text-white shadow-xs transition-all cursor-pointer disabled:opacity-50">
-                  <Award className="w-3.5 h-3.5" />
-                  {isGeneratingPdf ? 'Generating PDF...' : updateStatusMutation.isPending ? 'Sending...' : 'Confirm & Dispatch Offer Letter'}
-                </button>
+                </Button>
+                <Button form="offerForm" type="submit" variant="primary" disabled={isGeneratingPdf || updateStatusMutation.isPending}>
+                  <Award className="w-3.5 h-3.5 mr-1" />
+                  {isGeneratingPdf ? 'Generating PDF...' : updateStatusMutation.isPending ? 'Sending...' : 'Confirm & dispatch offer letter'}
+                </Button>
               </div>
             </div>
             
             {/* Right Panel: Live PDF Studio Viewer */}
-            <div className="hidden md:flex flex-1 h-full bg-[#525659] flex-col overflow-hidden relative">
+            <div className="hidden md:flex flex-1 h-full bg-[#2a2a2e] flex-col overflow-hidden relative">
               <PDFViewer width="100%" height="100%" className="border-none flex-1 w-full h-full">
                 <OfferLetterPDF data={{
                   firstName: offerData.firstName || '[Candidate',
@@ -1133,90 +1063,86 @@ const AdminRecruitment = () => {
       {isConvertModalOpen && createPortal(
         <div 
           onClick={(e) => { if (e.target === e.currentTarget) setIsConvertModalOpen(false); }}
-          className="fixed inset-0 z-[10000] flex justify-end bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200 font-editorial antialiased"
-          style={{ fontFamily: "'Newsreader', Georgia, serif" }}
+          className="fixed inset-0 z-[10000] flex justify-end bg-black/40 backdrop-blur-sm animate-in fade-in duration-200 antialiased"
         >
           <motion.div 
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
-            className="bg-white shadow-2xl w-full max-w-md h-[100dvh] flex flex-col overflow-hidden relative z-10 border-l border-[#e0e3e7]"
+            className="bg-[var(--surface)] shadow-2xl w-full max-w-md h-[100dvh] flex flex-col overflow-hidden relative z-10"
           >
-            {/* Top 4-Color Google Accent Line */}
-            <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
-
-            <div className="p-5 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd] mt-1 shrink-0">
+            <div className="p-5 border-b border-[var(--line)] flex justify-between items-center shrink-0">
               <div>
-                <h3 className="text-base font-medium text-[#1f1f1f] tracking-tight font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
-                  Convert to <span className="font-medium italic text-[#1a73e8]">Employee</span>
+                <h3 className="text-[16px] font-medium text-[var(--text)] tracking-tight">
+                  Convert to employee
                 </h3>
-                <p className="text-xs text-[#5f6368]">Create staff account and official employee profile</p>
+                <p className="text-[12px] text-[var(--muted)]">Create staff account and official employee profile</p>
               </div>
-              <button onClick={() => setIsConvertModalOpen(false)} className="p-1.5 rounded-full text-[#5f6368] hover:bg-[#e8eaed] transition-colors cursor-pointer">
-                <X className="w-5 h-5" />
+              <button onClick={() => setIsConvertModalOpen(false)} className="w-8 h-8 rounded-[10px] flex items-center justify-center text-[var(--muted)] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer">
+                <X className="w-4 h-4" />
               </button>
             </div>
             
-            <div className="p-6 overflow-y-auto flex-1 custom-scrollbar text-xs">
+            <div className="p-6 overflow-y-auto flex-1 text-[13px]">
               <form id="convert-candidate-form" onSubmit={handleConvertToEmployee} className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">First Name *</label>
-                    <input type="text" required value={convertData.firstName} onChange={e => setConvertData({...convertData, firstName: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
+                    <label className="block text-[12px] font-medium text-[var(--muted)] mb-1">First name *</label>
+                    <input type="text" required value={convertData.firstName} onChange={e => setConvertData({...convertData, firstName: e.target.value})} className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none transition-all" />
                   </div>
                   <div>
-                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Last Name *</label>
-                    <input type="text" required value={convertData.lastName} onChange={e => setConvertData({...convertData, lastName: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
+                    <label className="block text-[12px] font-medium text-[var(--muted)] mb-1">Last name *</label>
+                    <input type="text" required value={convertData.lastName} onChange={e => setConvertData({...convertData, lastName: e.target.value})} className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none transition-all" />
                   </div>
                 </div>
                 <div>
-                  <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Email *</label>
-                  <input type="email" required value={convertData.email} onChange={e => setConvertData({...convertData, email: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
+                  <label className="block text-[12px] font-medium text-[var(--muted)] mb-1">Email *</label>
+                  <input type="email" required value={convertData.email} onChange={e => setConvertData({...convertData, email: e.target.value})} className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none transition-all" />
                 </div>
                 <div>
-                  <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Phone Number *</label>
-                  <input type="text" value={convertData.phone} onChange={e => setConvertData({...convertData, phone: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
+                  <label className="block text-[12px] font-medium text-[var(--muted)] mb-1">Phone number *</label>
+                  <input type="text" value={convertData.phone} onChange={e => setConvertData({...convertData, phone: e.target.value})} className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none transition-all" />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Department *</label>
-                    <input type="text" required value={convertData.department} onChange={e => setConvertData({...convertData, department: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
+                    <label className="block text-[12px] font-medium text-[var(--muted)] mb-1">Department *</label>
+                    <input type="text" required value={convertData.department} onChange={e => setConvertData({...convertData, department: e.target.value})} className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none transition-all" />
                   </div>
                   <div>
-                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Designation *</label>
-                    <input type="text" required value={convertData.position} onChange={e => setConvertData({...convertData, position: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
+                    <label className="block text-[12px] font-medium text-[var(--muted)] mb-1">Designation *</label>
+                    <input type="text" required value={convertData.position} onChange={e => setConvertData({...convertData, position: e.target.value})} className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none transition-all" />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Branch *</label>
-                    <select required value={convertData.branch} onChange={e => setConvertData({...convertData, branch: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all cursor-pointer">
+                    <label className="block text-[12px] font-medium text-[var(--muted)] mb-1">Branch *</label>
+                    <select required value={convertData.branch} onChange={e => setConvertData({...convertData, branch: e.target.value})} className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none transition-all cursor-pointer">
                       {branches.map(b => (
                         <option key={b.id} value={b.id}>{b.name}</option>
                       ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Join Date *</label>
-                    <input type="date" required value={convertData.joinDate} onChange={e => setConvertData({...convertData, joinDate: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
+                    <label className="block text-[12px] font-medium text-[var(--muted)] mb-1">Join date *</label>
+                    <input type="date" required value={convertData.joinDate} onChange={e => setConvertData({...convertData, joinDate: e.target.value})} className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none transition-all" />
                   </div>
                 </div>
                 <div>
-                  <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Monthly Salary (₹) *</label>
-                  <input type="number" required value={convertData.salary} onChange={e => setConvertData({...convertData, salary: e.target.value})} placeholder="e.g. 50000" className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none font-mono transition-all" />
+                  <label className="block text-[12px] font-medium text-[var(--muted)] mb-1">Monthly salary (₹) *</label>
+                  <input type="number" required value={convertData.salary} onChange={e => setConvertData({...convertData, salary: e.target.value})} placeholder="e.g. 50000" className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none font-mono transition-all" />
                 </div>
               </form>
             </div>
 
-            <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex justify-end gap-2.5">
-              <button type="button" onClick={() => setIsConvertModalOpen(false)} className="px-4 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer" disabled={convertEmployeeMutation.isPending}>
+            <div className="p-4 border-t border-[var(--line)] bg-[var(--surface)] flex justify-end gap-2.5">
+              <Button type="button" variant="secondary" onClick={() => setIsConvertModalOpen(false)} disabled={convertEmployeeMutation.isPending}>
                 Cancel
-              </button>
-              <button type="submit" form="convert-candidate-form" disabled={convertEmployeeMutation.isPending} className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs transition-all cursor-pointer disabled:opacity-50">
-                <UserCheck className="w-3.5 h-3.5" />
-                {convertEmployeeMutation.isPending ? 'Converting...' : 'Convert Candidate'}
-              </button>
+              </Button>
+              <Button type="submit" form="convert-candidate-form" variant="primary" disabled={convertEmployeeMutation.isPending}>
+                <UserCheck className="w-3.5 h-3.5 mr-1" />
+                {convertEmployeeMutation.isPending ? 'Converting...' : 'Convert candidate'}
+              </Button>
             </div>
           </motion.div>
         </div>,
@@ -1227,62 +1153,52 @@ const AdminRecruitment = () => {
       {isTimelineModalOpen && timelineApp && createPortal(
         <div 
           onClick={(e) => { if (e.target === e.currentTarget) setIsTimelineModalOpen(false); }}
-          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm font-editorial antialiased"
-          style={{ fontFamily: "'Newsreader', Georgia, serif" }}
+          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm antialiased"
         >
           <motion.div 
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
-            className="bg-white shadow-2xl w-full max-w-md h-[100dvh] flex flex-col overflow-hidden relative z-10 border-l border-[#e0e3e7]"
+            className="bg-[var(--surface)] shadow-2xl w-full max-w-md h-[100dvh] flex flex-col overflow-hidden relative z-10"
           >
-            {/* Top 4-Color Google Accent Line */}
-            <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
-
             {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd] mt-1 shrink-0">
+            <div className="px-6 py-4 border-b border-[var(--line)] flex justify-between items-center shrink-0">
               <div>
-                <div className="flex items-center gap-1 mb-0.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-                  <span className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Application Pipeline</span>
-                </div>
-                <h2 className="text-lg font-medium text-[#1f1f1f] tracking-tight font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
-                  Application <span className="font-medium italic text-[#1a73e8]">Timeline</span>
+                <span className="text-[11px] font-medium text-[var(--muted)] uppercase tracking-wider">Application pipeline</span>
+                <h2 className="text-[16px] font-medium text-[var(--text)] tracking-tight">
+                  Application timeline
                 </h2>
               </div>
               <button 
                 onClick={() => setIsTimelineModalOpen(false)} 
-                className="text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4] p-1.5 rounded-full transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-[10px] flex items-center justify-center text-[var(--muted)] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
               >
-                <X size={18} />
+                <X size={16} />
               </button>
             </div>
             
-            <div className="p-6 overflow-y-auto flex-1 custom-scrollbar text-xs">
+            <div className="p-6 overflow-y-auto flex-1 text-[13px]">
               {(!timelineApp.application_timeline || timelineApp.application_timeline.length === 0) ? (
-                <div className="rounded-2xl border border-dashed border-[#dadce0] bg-[#f8fafd] p-6 text-center text-xs text-[#5f6368]">
+                <div className="rounded-[16px] bg-[var(--surface-alt)] p-6 text-center text-[13px] text-[var(--muted)]">
                   No status history recorded yet.
                 </div>
               ) : (
-                <div className="relative border-l-2 border-[#e0e3e7] ml-3 pl-5 space-y-4">
+                <div className="relative border-l-2 border-[var(--line)] ml-3 pl-5 space-y-4">
                   {timelineApp.application_timeline.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).map((event, idx) => {
                     const isLatest = idx === 0;
                     return (
                       <div key={idx} className="relative">
-                        <div className={`absolute -left-[27px] top-1 h-3.5 w-3.5 rounded-full border-2 border-white shadow-xs ${isLatest ? 'bg-[#1a73e8]' : 'bg-[#dadce0]'}`} />
-                        <div className={`rounded-2xl border p-3.5 space-y-1 ${isLatest ? 'border-[#d2e3fc] bg-[#e8f0fe]/50' : 'border-[#e0e3e7] bg-[#f8fafd]'}`}>
+                        <div className={`absolute -left-[27px] top-1 h-3.5 w-3.5 rounded-full border-2 border-white shadow-xs ${isLatest ? 'bg-[var(--brand-deep)]' : 'bg-[var(--line)]'}`} />
+                        <div className={`rounded-[14px] p-3.5 space-y-1 ${isLatest ? 'bg-[var(--brand-tint)]' : 'bg-[var(--surface-alt)]'}`}>
                           <div className="flex justify-between items-center">
-                            <h4 className="font-semibold text-xs text-[#1f1f1f]">{event.status_change}</h4>
-                            <span className="text-[10px] text-[#5f6368] bg-white border border-[#dadce0] px-2 py-0.5 rounded-full">
+                            <h4 className="font-medium text-[13px] text-[var(--text)]">{event.status_change}</h4>
+                            <span className="text-[11px] text-[var(--muted)] bg-[var(--surface)] px-2 py-0.5 rounded-[6px]">
                               {new Date(event.created_at).toLocaleDateString()}
                             </span>
                           </div>
                           {event.notes && (
-                            <p className="text-xs text-[#5f6368] leading-relaxed pt-1 whitespace-pre-line">{event.notes}</p>
+                            <p className="text-[12px] text-[var(--muted)] leading-relaxed pt-1 whitespace-pre-line">{event.notes}</p>
                           )}
                         </div>
                       </div>
@@ -1292,10 +1208,10 @@ const AdminRecruitment = () => {
               )}
             </div>
             
-            <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex justify-end shrink-0">
-              <button onClick={() => setIsTimelineModalOpen(false)} className="px-4 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer">
+            <div className="p-4 border-t border-[var(--line)] bg-[var(--surface)] flex justify-end shrink-0">
+              <Button variant="secondary" onClick={() => setIsTimelineModalOpen(false)}>
                 Close
-              </button>
+              </Button>
             </div>
           </motion.div>
         </div>,
@@ -1306,70 +1222,60 @@ const AdminRecruitment = () => {
       {isScheduleModalOpen && createPortal(
         <div 
           onClick={(e) => { if (e.target === e.currentTarget) setIsScheduleModalOpen(false); }}
-          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm font-editorial antialiased"
-          style={{ fontFamily: "'Newsreader', Georgia, serif" }}
+          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm antialiased"
         >
           <motion.div 
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
-            className="bg-white shadow-2xl w-full max-w-md h-[100dvh] flex flex-col overflow-hidden relative z-10 border-l border-[#e0e3e7]"
+            className="bg-[var(--surface)] shadow-2xl w-full max-w-md h-[100dvh] flex flex-col overflow-hidden relative z-10"
           >
-            {/* Top 4-Color Google Accent Line */}
-            <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
-
             {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd] mt-1 shrink-0">
+            <div className="px-6 py-4 border-b border-[var(--line)] flex justify-between items-center shrink-0">
               <div>
-                <div className="flex items-center gap-1 mb-0.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-                  <span className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Candidate Interview</span>
-                </div>
-                <h2 className="text-lg font-medium text-[#1f1f1f] tracking-tight font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
-                  Schedule <span className="font-medium italic text-[#1a73e8]">{interviewData.status}</span>
+                <span className="text-[11px] font-medium text-[var(--muted)] uppercase tracking-wider">Candidate interview</span>
+                <h2 className="text-[16px] font-medium text-[var(--text)] tracking-tight">
+                  Schedule {interviewData.status}
                 </h2>
               </div>
               <button 
                 onClick={() => setIsScheduleModalOpen(false)} 
-                className="text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4] p-1.5 rounded-full transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-[10px] flex items-center justify-center text-[var(--muted)] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
               >
-                <X size={18} />
+                <X size={16} />
               </button>
             </div>
             
-            <div className="p-6 overflow-y-auto flex-1 custom-scrollbar text-xs">
+            <div className="p-6 overflow-y-auto flex-1 text-[13px]">
               <form id="schedule-interview-form" onSubmit={handleScheduleInterview} className="space-y-4">
                 <div>
-                  <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Interview Date *</label>
-                  <input type="date" required value={interviewData.date} onChange={e => setInterviewData({...interviewData, date: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
+                  <label className="block text-[12px] font-medium text-[var(--muted)] mb-1">Interview date *</label>
+                  <input type="date" required value={interviewData.date} onChange={e => setInterviewData({...interviewData, date: e.target.value})} className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none transition-all" />
                 </div>
                 <div>
-                  <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Interview Time *</label>
-                  <input type="time" required value={interviewData.time} onChange={e => setInterviewData({...interviewData, time: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
+                  <label className="block text-[12px] font-medium text-[var(--muted)] mb-1">Interview time *</label>
+                  <input type="time" required value={interviewData.time} onChange={e => setInterviewData({...interviewData, time: e.target.value})} className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none transition-all" />
                 </div>
                 <div>
-                  <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Meeting Link / Physical Location *</label>
-                  <input type="text" required value={interviewData.location} onChange={e => setInterviewData({...interviewData, location: e.target.value})} placeholder="Google Meet link or Office meeting room" className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
+                  <label className="block text-[12px] font-medium text-[var(--muted)] mb-1">Meeting link / Physical location *</label>
+                  <input type="text" required value={interviewData.location} onChange={e => setInterviewData({...interviewData, location: e.target.value})} placeholder="Google Meet link or Office meeting room" className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none transition-all" />
                 </div>
                 <div>
-                  <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Preparation Instructions (Optional)</label>
-                  <textarea rows="3" value={interviewData.notes} onChange={e => setInterviewData({...interviewData, notes: e.target.value})} placeholder="Instructions sent to candidate..." className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all resize-y" />
+                  <label className="block text-[12px] font-medium text-[var(--muted)] mb-1">Preparation instructions (Optional)</label>
+                  <textarea rows="3" value={interviewData.notes} onChange={e => setInterviewData({...interviewData, notes: e.target.value})} placeholder="Instructions sent to candidate..." className="w-full p-3 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none transition-all resize-y" />
                 </div>
               </form>
             </div>
 
-            <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex justify-end gap-2.5 shrink-0">
-              <button type="button" onClick={() => setIsScheduleModalOpen(false)} className="px-4 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer" disabled={updateStatusMutation.isPending}>
+            <div className="p-4 border-t border-[var(--line)] bg-[var(--surface)] flex justify-end gap-2.5 shrink-0">
+              <Button type="button" variant="secondary" onClick={() => setIsScheduleModalOpen(false)} disabled={updateStatusMutation.isPending}>
                 Cancel
-              </button>
-              <button type="submit" form="schedule-interview-form" disabled={updateStatusMutation.isPending} className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs transition-all cursor-pointer disabled:opacity-50">
-                <Calendar className="w-3.5 h-3.5" />
-                {updateStatusMutation.isPending ? 'Dispatching...' : 'Schedule & Notify'}
-              </button>
+              </Button>
+              <Button type="submit" form="schedule-interview-form" variant="primary" disabled={updateStatusMutation.isPending}>
+                <Calendar className="w-3.5 h-3.5 mr-1" />
+                {updateStatusMutation.isPending ? 'Dispatching...' : 'Schedule & notify'}
+              </Button>
             </div>
           </motion.div>
         </div>,
@@ -1380,62 +1286,52 @@ const AdminRecruitment = () => {
       {isJobModalOpen && createPortal(
         <div 
           onClick={(e) => { if (e.target === e.currentTarget) setIsJobModalOpen(false); }}
-          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm font-editorial antialiased"
-          style={{ fontFamily: "'Newsreader', Georgia, serif" }}
+          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm antialiased"
         >
           <motion.div 
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
-            className="bg-white shadow-2xl w-full max-w-lg h-[100dvh] flex flex-col overflow-hidden relative z-10 border-l border-[#e0e3e7]"
+            className="bg-[var(--surface)] shadow-2xl w-full max-w-lg h-[100dvh] flex flex-col overflow-hidden relative z-10"
           >
-            {/* Top 4-Color Google Accent Line */}
-            <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
-
             {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd] mt-1 shrink-0">
+            <div className="px-6 py-4 border-b border-[var(--line)] flex justify-between items-center shrink-0">
               <div>
-                <div className="flex items-center gap-1 mb-0.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-                  <span className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Recruitment Opening</span>
-                </div>
-                <h2 className="text-lg font-medium text-[#1f1f1f] tracking-tight font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
-                  Create <span className="font-medium italic text-[#1a73e8]">Job Requisition</span>
+                <span className="text-[11px] font-medium text-[var(--muted)] uppercase tracking-wider">Recruitment opening</span>
+                <h2 className="text-[16px] font-medium text-[var(--text)] tracking-tight">
+                  Create job requisition
                 </h2>
               </div>
               <button 
                 onClick={() => setIsJobModalOpen(false)} 
-                className="text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4] p-1.5 rounded-full transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-[10px] flex items-center justify-center text-[var(--muted)] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
               >
-                <X size={18} />
+                <X size={16} />
               </button>
             </div>
             
-            <div className="p-6 overflow-y-auto flex-1 custom-scrollbar text-xs">
+            <div className="p-6 overflow-y-auto flex-1 text-[13px]">
               <form id="post-job-form" onSubmit={handleCreateJob} className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Job Title *</label>
-                    <input type="text" required value={jobFormData.title} onChange={e => setJobFormData({...jobFormData, title: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
+                    <label className="block text-[12px] font-medium text-[var(--muted)] mb-1">Job title *</label>
+                    <input type="text" required value={jobFormData.title} onChange={e => setJobFormData({...jobFormData, title: e.target.value})} className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none transition-all" />
                   </div>
                   <div>
-                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Department *</label>
-                    <input type="text" required value={jobFormData.department} onChange={e => setJobFormData({...jobFormData, department: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
+                    <label className="block text-[12px] font-medium text-[var(--muted)] mb-1">Department *</label>
+                    <input type="text" required value={jobFormData.department} onChange={e => setJobFormData({...jobFormData, department: e.target.value})} className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none transition-all" />
                   </div>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Location *</label>
-                    <input type="text" required value={jobFormData.location} onChange={e => setJobFormData({...jobFormData, location: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
+                    <label className="block text-[12px] font-medium text-[var(--muted)] mb-1">Location *</label>
+                    <input type="text" required value={jobFormData.location} onChange={e => setJobFormData({...jobFormData, location: e.target.value})} className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none transition-all" />
                   </div>
                   <div>
-                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Employment Type *</label>
-                    <select required value={jobFormData.type} onChange={e => setJobFormData({...jobFormData, type: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all cursor-pointer">
+                    <label className="block text-[12px] font-medium text-[var(--muted)] mb-1">Employment type *</label>
+                    <select required value={jobFormData.type} onChange={e => setJobFormData({...jobFormData, type: e.target.value})} className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none transition-all cursor-pointer">
                       <option>Full Time</option>
                       <option>Part Time</option>
                       <option>Contract</option>
@@ -1446,58 +1342,58 @@ const AdminRecruitment = () => {
 
                 <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Experience *</label>
-                    <input type="text" required value={jobFormData.experience} onChange={e => setJobFormData({...jobFormData, experience: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" placeholder="e.g. 3-5 Yrs" />
+                    <label className="block text-[12px] font-medium text-[var(--muted)] mb-1">Experience *</label>
+                    <input type="text" required value={jobFormData.experience} onChange={e => setJobFormData({...jobFormData, experience: e.target.value})} className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none transition-all" placeholder="e.g. 3-5 Yrs" />
                   </div>
                   <div>
-                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Min Salary (₹)</label>
-                    <input type="text" value={jobFormData.salary_min} onChange={e => setJobFormData({...jobFormData, salary_min: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none font-mono transition-all" placeholder="500000" />
+                    <label className="block text-[12px] font-medium text-[var(--muted)] mb-1">Min salary (₹)</label>
+                    <input type="text" value={jobFormData.salary_min} onChange={e => setJobFormData({...jobFormData, salary_min: e.target.value})} className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none font-mono transition-all" placeholder="500000" />
                   </div>
                   <div>
-                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Max Salary (₹)</label>
-                    <input type="text" value={jobFormData.salary_max} onChange={e => setJobFormData({...jobFormData, salary_max: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none font-mono transition-all" placeholder="1200000" />
+                    <label className="block text-[12px] font-medium text-[var(--muted)] mb-1">Max salary (₹)</label>
+                    <input type="text" value={jobFormData.salary_max} onChange={e => setJobFormData({...jobFormData, salary_max: e.target.value})} className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none font-mono transition-all" placeholder="1200000" />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Vacancies *</label>
-                    <input type="number" required value={jobFormData.vacancy} onChange={e => setJobFormData({...jobFormData, vacancy: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
+                    <label className="block text-[12px] font-medium text-[var(--muted)] mb-1">Vacancies *</label>
+                    <input type="number" required value={jobFormData.vacancy} onChange={e => setJobFormData({...jobFormData, vacancy: e.target.value})} className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none transition-all" />
                   </div>
                   <div>
-                    <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Application Deadline</label>
-                    <input type="date" value={jobFormData.deadline} onChange={e => setJobFormData({...jobFormData, deadline: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all" />
+                    <label className="block text-[12px] font-medium text-[var(--muted)] mb-1">Application deadline</label>
+                    <input type="date" value={jobFormData.deadline} onChange={e => setJobFormData({...jobFormData, deadline: e.target.value})} className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none transition-all" />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">JD Document (PDF Attachment)</label>
-                  <input type="file" accept="application/pdf" onChange={e => setJobFile(e.target.files[0])} className="w-full text-xs text-[#5f6368] file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#e8f0fe] file:text-[#1a73e8] hover:file:bg-[#d2e3fc] transition-colors" />
+                  <label className="block text-[12px] font-medium text-[var(--muted)] mb-1">JD document (PDF attachment)</label>
+                  <input type="file" accept="application/pdf" onChange={e => setJobFile(e.target.files[0])} className="w-full text-[12px] text-[var(--muted)] file:mr-3 file:py-1.5 file:px-3 file:rounded-[10px] file:border-0 file:text-[12px] file:font-medium file:bg-[var(--brand-tint)] file:text-[var(--brand-deep)] hover:file:opacity-85 transition-opacity" />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Required Skills</label>
-                  <textarea rows={2} required value={jobFormData.skills} onChange={e => setJobFormData({...jobFormData, skills: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all resize-y" placeholder="e.g. React.js, PHP, PostgreSQL, Docker" />
+                  <label className="block text-[12px] font-medium text-[var(--muted)] mb-1">Required skills</label>
+                  <textarea rows={2} required value={jobFormData.skills} onChange={e => setJobFormData({...jobFormData, skills: e.target.value})} className="w-full p-3 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none transition-all resize-y" placeholder="e.g. React.js, PHP, PostgreSQL, Docker" />
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-[#5f6368] uppercase tracking-wider mb-1">Job Description</label>
-                  <textarea rows={3} required value={jobFormData.description} onChange={e => setJobFormData({...jobFormData, description: e.target.value})} className="w-full px-3.5 py-2 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all resize-y" placeholder="Detailed role description and expectations..." />
+                  <label className="block text-[12px] font-medium text-[var(--muted)] mb-1">Job description</label>
+                  <textarea rows={3} required value={jobFormData.description} onChange={e => setJobFormData({...jobFormData, description: e.target.value})} className="w-full p-3 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none transition-all resize-y" placeholder="Detailed role description and expectations..." />
                 </div>
               </form>
             </div>
             
-            <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex justify-end gap-2.5 shrink-0">
-              <button type="button" onClick={() => setIsJobModalOpen(false)} className="px-4 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer" disabled={createJobMutation.isPending}>
+            <div className="p-4 border-t border-[var(--line)] bg-[var(--surface)] flex justify-end gap-2.5 shrink-0">
+              <Button type="button" variant="secondary" onClick={() => setIsJobModalOpen(false)} disabled={createJobMutation.isPending}>
                 Cancel
-              </button>
-              <button type="submit" form="post-job-form" onClick={() => setSubmitStatus('Draft')} disabled={createJobMutation.isPending} className="px-4 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#5f6368] transition-all cursor-pointer disabled:opacity-50">
-                {createJobMutation.isPending && submitStatus === 'Draft' ? 'Saving...' : 'Save Draft'}
-              </button>
-              <button type="submit" form="post-job-form" onClick={() => setSubmitStatus('Published')} disabled={createJobMutation.isPending} className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs transition-all cursor-pointer disabled:opacity-50">
-                <Sparkles className="w-3.5 h-3.5" />
-                {createJobMutation.isPending && submitStatus === 'Published' ? 'Publishing...' : 'Publish Opening'}
-              </button>
+              </Button>
+              <Button type="submit" form="post-job-form" variant="secondary" onClick={() => setSubmitStatus('Draft')} disabled={createJobMutation.isPending}>
+                {createJobMutation.isPending && submitStatus === 'Draft' ? 'Saving...' : 'Save draft'}
+              </Button>
+              <Button type="submit" form="post-job-form" variant="primary" onClick={() => setSubmitStatus('Published')} disabled={createJobMutation.isPending}>
+                <Sparkles className="w-3.5 h-3.5 mr-1" />
+                {createJobMutation.isPending && submitStatus === 'Published' ? 'Publishing...' : 'Publish opening'}
+              </Button>
             </div>
           </motion.div>
         </div>,

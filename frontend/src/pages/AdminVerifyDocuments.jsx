@@ -1,210 +1,161 @@
 import React, { useState, useMemo } from 'react';
 import PageLoader from '../components/PageLoader';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '../lib/supabase';
-import { 
-  X, 
-  CheckCircle2, 
-  XCircle, 
-  Eye, 
-  Loader2, 
-  FileText, 
-  AlertCircle, 
-  Send, 
-  ArrowLeft, 
-  Clock, 
+import {
+  X,
+  CheckCircle2,
+  XCircle,
+  Eye,
+  Loader2,
+  FileText,
+  AlertCircle,
+  Send,
+  ArrowLeft,
+  Clock,
   Lock,
   Building2,
   User,
   ShieldCheck,
-  Award,
-  Sparkles,
-  ExternalLink,
-  Check,
-  Search,
-  Filter,
-  FileCheck
+  Check
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../api/axios';
-import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
-import documentVerifiedEmailTemplateHtml from "../../../backend/src/Templates/candidate_documents_verified_email.html?raw";
+import { useParams, useNavigate } from 'react-router-dom';
+import documentVerifiedEmailTemplateHtml from '../../../backend/src/Templates/candidate_documents_verified_email.html?raw';
 import { useAuth } from '../contexts/AuthContext';
+import StatCard from '../components/ui/StatCard';
+import StatusBadge from '../components/ui/StatusBadge';
+import Button from '../components/ui/Button';
+import Avatar from '../components/ui/Avatar';
 
 const documentTypes = [
-  { id: 'signed_offer_letter', label: 'Signed Offer Letter', isRequired: true, isSpecial: true, category: 'Offer & Contract' },
-  { id: 'aadhaar_pan', label: 'Aadhaar Card & PAN Card', isRequired: true, category: 'Identity & Legal' },
-  { id: 'photo', label: 'Passport Size Photo', isRequired: true, category: 'Identity & Legal' },
-  { id: 'community_certificate', label: 'Community & Nativity', isRequired: true, category: 'Identity & Legal' },
-  { id: 'academic_certificates', label: 'Academic Certificates', isRequired: true, category: 'Academic' },
-  { id: 'police_verification', label: 'Police Verification', isRequired: true, category: 'Compliance' },
+  { id: 'signed_offer_letter', label: 'Signed offer letter', isRequired: true, isSpecial: true, category: 'Offer & Contract' },
+  { id: 'aadhaar_pan', label: 'Aadhaar card & PAN card', isRequired: true, category: 'Identity & Legal' },
+  { id: 'photo', label: 'Passport size photo', isRequired: true, category: 'Identity & Legal' },
+  { id: 'community_certificate', label: 'Community & nativity', isRequired: true, category: 'Identity & Legal' },
+  { id: 'academic_certificates', label: 'Academic certificates', isRequired: true, category: 'Academic' },
+  { id: 'police_verification', label: 'Police verification', isRequired: true, category: 'Compliance' },
   { id: 'family_aadhaar_pan', label: 'Family Aadhaar & PAN', isRequired: true, category: 'Identity & Legal' },
-  { id: 'nominee_esi', label: 'Nominee Details (ESI)', isRequired: true, category: 'Compliance' },
-  { id: 'bank_cheques', label: 'Bank Cheques (Cancelled)', isRequired: true, category: 'Banking' },
-  { id: 'fitness_certificate', label: 'Physical Fitness Certificate', isRequired: true, category: 'Medical' },
-  { id: 'pf_history', label: 'PF Service History', isRequired: false, category: 'Past Employment' },
-  { id: 'previous_offer_letters', label: 'Previous Offers', isRequired: false, category: 'Past Employment' },
-  { id: 'promotion_letters', label: 'Promotion Letters', isRequired: false, category: 'Past Employment' },
-  { id: 'salary_hike_letters', label: 'Salary Hike Letters', isRequired: false, category: 'Past Employment' },
-  { id: 'pay_slips', label: 'Pay Slips (3 Months)', isRequired: false, category: 'Past Employment' },
-  { id: 'relieving_letter', label: 'Relieving Letter', isRequired: false, category: 'Past Employment' },
+  { id: 'nominee_esi', label: 'Nominee details (ESI)', isRequired: true, category: 'Compliance' },
+  { id: 'bank_cheques', label: 'Bank cheques (Cancelled)', isRequired: true, category: 'Banking' },
+  { id: 'fitness_certificate', label: 'Physical fitness certificate', isRequired: true, category: 'Medical' },
+  { id: 'pf_history', label: 'PF service history', isRequired: false, category: 'Past Employment' },
+  { id: 'previous_offer_letters', label: 'Previous offers', isRequired: false, category: 'Past Employment' },
+  { id: 'promotion_letters', label: 'Promotion letters', isRequired: false, category: 'Past Employment' },
+  { id: 'salary_hike_letters', label: 'Salary hike letters', isRequired: false, category: 'Past Employment' },
+  { id: 'pay_slips', label: 'Pay slips (3 months)', isRequired: false, category: 'Past Employment' },
+  { id: 'relieving_letter', label: 'Relieving letter', isRequired: false, category: 'Past Employment' },
 ];
 
-const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme }) => {
-  const themes = {
-    blue: {
-      iconBg: 'bg-[#e8f0fe]',
-      iconColor: 'text-[#1a73e8]',
-    },
-    green: {
-      iconBg: 'bg-[#e6f4ea]',
-      iconColor: 'text-[#137333]',
-    },
-    amber: {
-      iconBg: 'bg-[#fef7e0]',
-      iconColor: 'text-[#b06000]',
-    },
-    purple: {
-      iconBg: 'bg-[#f3e8fd]',
-      iconColor: 'text-[#8430ce]',
-    }
-  };
-
-  const theme = themes[colorTheme] || themes.blue;
-
-  return (
-    <div className="bg-white rounded-2xl border border-[#e0e3e7] p-5 shadow-xs transition-all duration-200 hover:shadow-md hover:border-[#dadce0]">
-      <div className="flex items-start justify-between">
-        <div className="space-y-1">
-          <p className="text-xs font-semibold text-[#5f6368] uppercase tracking-wider">{title}</p>
-          <p className="text-2xl font-bold text-[#1f1f1f] tracking-tight">{value}</p>
-          {subtitle && <p className="text-xs text-[#5f6368] font-normal pt-0.5">{subtitle}</p>}
-        </div>
-        <div className={`p-3 rounded-2xl ${theme.iconBg} ${theme.iconColor} shrink-0`}>
-          <Icon className="w-5 h-5" />
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const AdminDocumentCard = ({ docType, currentDoc, onUpdateStatus, isUpdating, isConverted }) => {
-  const getStatusBadge = () => {
+  const renderBadge = () => {
     if (!currentDoc) {
       if (docType.isRequired) {
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#fef7e0] text-[#b06000] border border-[#feefc3] whitespace-nowrap shrink-0">
-            <AlertCircle className="w-3 h-3 shrink-0" /> Mandatory
-          </span>
-        );
+        return <StatusBadge status="Warning">Mandatory</StatusBadge>;
       }
-      return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0] whitespace-nowrap shrink-0">
-          Optional
-        </span>
-      );
+      return <StatusBadge status="Neutral">Optional</StatusBadge>;
     }
-    
+
     switch (currentDoc.status) {
       case 'verified':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#e6f4ea] text-[#137333] border border-[#ceead6] whitespace-nowrap shrink-0">
-            <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> Verified
-          </span>
-        );
+        return <StatusBadge status="Success">Verified</StatusBadge>;
       case 'rejected':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf] whitespace-nowrap shrink-0">
-            <XCircle className="w-3.5 h-3.5 shrink-0" /> Rejected
-          </span>
-        );
+        return <StatusBadge status="Danger">Rejected</StatusBadge>;
       default:
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] whitespace-nowrap shrink-0">
-            <Clock className="w-3.5 h-3.5 shrink-0" /> Pending Review
-          </span>
-        );
+        return <StatusBadge status="Info">Pending review</StatusBadge>;
     }
   };
 
   return (
-    <div className={`bg-white rounded-2xl border transition-all duration-200 p-5 flex flex-col justify-between space-y-4 hover:shadow-md ${
-      docType.isSpecial 
-        ? 'border-[#4285F4] bg-gradient-to-br from-white to-[#f8fafd] ring-1 ring-[#4285F4]/20' 
-        : 'border-[#e0e3e7]'
-    } ${isUpdating ? 'opacity-60 pointer-events-none' : ''}`}>
-      
+    <div
+      className={`bg-[var(--surface)] rounded-[20px] border transition-all p-4 flex flex-col justify-between space-y-3.5 ${
+        docType.isSpecial
+          ? 'border-[var(--brand)] bg-gradient-to-br from-[var(--surface)] to-[var(--brand-tint)]/20'
+          : 'border-[var(--line)]'
+      } ${isUpdating ? 'opacity-60 pointer-events-none' : ''}`}
+    >
       <div className="space-y-2">
         <div className="flex items-start justify-between gap-2">
           <div>
-            <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider block mb-1">
+            <span className="text-[10px] text-[var(--muted)] block mb-0.5">
               {docType.category}
             </span>
-            <h3 className={`text-sm font-semibold ${docType.isSpecial ? 'text-[#1a73e8]' : 'text-[#1f1f1f]'}`}>
+            <h3
+              className={`text-xs font-medium ${
+                docType.isSpecial ? 'text-[var(--brand-deep)]' : 'text-[var(--text)]'
+              }`}
+            >
               {docType.label}
             </h3>
           </div>
-          {getStatusBadge()}
+          {renderBadge()}
         </div>
 
         {currentDoc ? (
-          <div className="bg-[#f8fafd] rounded-xl border border-[#e0e3e7] p-3 space-y-2">
-            <div className="flex items-center gap-3 overflow-hidden">
-              <div className="w-8 h-8 bg-[#e8f0fe] text-[#1a73e8] rounded-lg flex items-center justify-center shrink-0 border border-[#d2e3fc]">
-                <FileText className="w-4 h-4" />
+          <div className="bg-[var(--surface-alt)] rounded-[12px] p-2.5 space-y-1.5">
+            <div className="flex items-center gap-2.5 overflow-hidden">
+              <div className="w-7 h-7 bg-[var(--surface)] text-[var(--brand-deep)] rounded-[8px] flex items-center justify-center shrink-0">
+                <FileText size={14} />
               </div>
               <div className="truncate flex-1">
-                <p className="text-xs font-semibold text-[#1f1f1f] truncate">{currentDoc.file_name}</p>
-                <p className="text-[11px] text-[#5f6368]">Uploaded {new Date(currentDoc.uploaded_at).toLocaleDateString()}</p>
+                <p className="text-xs font-medium text-[var(--text)] truncate">{currentDoc.file_name}</p>
+                <p className="text-[10px] text-[var(--muted)]">
+                  Uploaded {new Date(currentDoc.uploaded_at).toLocaleDateString()}
+                </p>
               </div>
             </div>
           </div>
         ) : (
-          <div className="border border-dashed border-[#dadce0] rounded-xl p-6 flex flex-col items-center justify-center text-center bg-[#f8fafd]">
-            <FileText className="w-8 h-8 text-[#dadce0] mb-1" />
-            <p className="text-xs font-medium text-[#5f6368]">Not uploaded yet</p>
+          <div className="border border-dashed border-[var(--line)] rounded-[12px] p-5 flex flex-col items-center justify-center text-center bg-[var(--surface-alt)]">
+            <FileText size={20} className="text-[var(--muted)] opacity-40 mb-1" />
+            <p className="text-xs text-[var(--muted)]">Not uploaded yet</p>
           </div>
         )}
       </div>
 
       {currentDoc && (
-        <div className="flex items-center justify-between gap-2 pt-3 border-t border-[#e0e3e7]">
-          <a 
-            href={currentDoc.file_path} 
-            target="_blank" 
+        <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-[var(--line)]">
+          <a
+            href={currentDoc.file_path}
+            target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-[#1f1f1f] hover:bg-[#f1f3f4] bg-white border border-[#dadce0] rounded-full transition-all whitespace-nowrap shrink-0 shadow-2xs"
+            className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium text-[var(--text)] hover:bg-[var(--surface-alt)] bg-[var(--surface)] border border-[var(--line)] rounded-full transition-all whitespace-nowrap shrink-0"
           >
-            <Eye className="w-3.5 h-3.5 text-[#5f6368]" />
+            <Eye size={13} className="text-[var(--muted)]" />
             <span>View</span>
           </a>
-          
+
           <div className="flex items-center gap-1.5 shrink-0">
             {isConverted ? (
-              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#5f6368] bg-[#f1f3f4] border border-[#dadce0] px-2.5 py-1 rounded-full whitespace-nowrap" title="Candidate is converted to an employee. Document status is locked.">
-                <Lock className="w-3 h-3 text-[#5f6368]" />
+              <span
+                className="inline-flex items-center gap-1 text-[11px] font-medium text-[var(--muted)] bg-[var(--surface-alt)] px-2.5 py-1 rounded-full whitespace-nowrap"
+                title="Candidate is converted to an employee. Document status is locked."
+              >
+                <Lock size={12} />
                 <span>Locked</span>
               </span>
             ) : (
               <>
                 {currentDoc.status !== 'verified' && (
-                  <button 
+                  <button
+                    type="button"
                     onClick={() => onUpdateStatus(currentDoc.id, 'verified')}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-[#137333] hover:bg-[#0d5926] rounded-full transition-all cursor-pointer shadow-xs whitespace-nowrap"
+                    className="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium text-white bg-[#1F9D55] hover:bg-[#188038] rounded-full transition-all cursor-pointer whitespace-nowrap"
                     title="Approve Document"
                   >
-                    <Check className="w-3.5 h-3.5" />
+                    <Check size={13} />
                     <span>Approve</span>
                   </button>
                 )}
-                
+
                 {currentDoc.status !== 'rejected' && (
-                  <button 
+                  <button
+                    type="button"
                     onClick={() => onUpdateStatus(currentDoc.id, 'rejected')}
-                    className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-[#c5221f] bg-[#fce8e6] hover:bg-[#fad2cf] border border-[#fad2cf] rounded-full transition-all cursor-pointer whitespace-nowrap"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-[#D64550] bg-[#FDE8EA] hover:bg-[#fad2cf] rounded-full transition-all cursor-pointer whitespace-nowrap"
                     title="Reject Document"
                   >
-                    <X className="w-3.5 h-3.5" />
+                    <X size={13} />
                     <span>Reject</span>
                   </button>
                 )}
@@ -222,9 +173,9 @@ const AdminVerifyDocuments = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { profile } = useAuth();
-  
+
   const [updatingDocId, setUpdatingDocId] = React.useState(null);
-  const [filterTab, setFilterTab] = useState('All'); // 'All', 'Required', 'Optional', 'Pending'
+  const [filterTab, setFilterTab] = useState('All');
 
   const { data: application, isLoading: isAppLoading } = useQuery({
     queryKey: ['application', id],
@@ -278,10 +229,10 @@ const AdminVerifyDocuments = () => {
 
   const sendEmailMutation = useMutation({
     mutationFn: async () => {
-      const userInfo = candidatesInfo.find(u => u.id === application?.candidate_id);
+      const userInfo = candidatesInfo.find((u) => u.id === application?.candidate_id);
       const frontendUrl = import.meta.env.VITE_APP_URL || window.location.origin;
-      const dashboardLink = frontendUrl + "/candidate/applications";
-      
+      const dashboardLink = frontendUrl + '/candidate/applications';
+
       const emailBody = documentVerifiedEmailTemplateHtml
         .replace(/{{firstName}}/g, userInfo?.firstName || application?.users?.firstName || 'Candidate')
         .replace(/{{jobTitle}}/g, application?.jobs?.title || 'the')
@@ -294,7 +245,6 @@ const AdminVerifyDocuments = () => {
         body: emailBody
       });
 
-      // Add to timeline
       await api.post(`/admin/applications/${id}/timeline`, {
         status_change: 'Documents Verified',
         notes: 'Sent document verification confirmation email to candidate'
@@ -317,29 +267,25 @@ const AdminVerifyDocuments = () => {
     updateStatusMutation.mutate({ docId, status });
   };
 
-  const getDoc = (typeId) => documents.find(d => d.document_type === typeId);
+  const getDoc = (typeId) => documents.find((d) => d.document_type === typeId);
 
-  const getInitials = (firstName, lastName) => {
-    return `${(firstName || '').charAt(0)}${(lastName || '').charAt(0)}`.toUpperCase() || 'CA';
-  };
+  const userInfo = candidatesInfo.find((u) => u.id === application?.candidate_id);
 
-  const userInfo = candidatesInfo.find(u => u.id === application?.candidate_id);
-
-  // Statistics calculation
-  const totalRequired = documentTypes.filter(d => d.isRequired).length;
-  const verifiedCount = documents.filter(d => d.status === 'verified').length;
-  const pendingCount = documents.filter(d => d.status === 'pending' || !d.status).length;
+  const totalRequired = documentTypes.filter((d) => d.isRequired).length;
+  const verifiedCount = documents.filter((d) => d.status === 'verified').length;
+  const pendingCount = documents.filter((d) => d.status === 'pending' || !d.status).length;
   const missingCount = documentTypes.length - documents.length;
 
   const allRequiredVerified = documentTypes
-    .filter(d => d.isRequired)
-    .every(d => getDoc(d.id)?.status === 'verified');
+    .filter((d) => d.isRequired)
+    .every((d) => getDoc(d.id)?.status === 'verified');
 
-  const hasNotified = Array.isArray(application?.application_timeline) && 
-    application.application_timeline.some(t => t.status_change === 'Documents Verified');
+  const hasNotified =
+    Array.isArray(application?.application_timeline) &&
+    application.application_timeline.some((t) => t.status_change === 'Documents Verified');
 
   const filteredDocs = useMemo(() => {
-    return documentTypes.filter(doc => {
+    return documentTypes.filter((doc) => {
       const current = getDoc(doc.id);
       if (filterTab === 'Required') return doc.isRequired;
       if (filterTab === 'Optional') return !doc.isRequired;
@@ -348,182 +294,197 @@ const AdminVerifyDocuments = () => {
     });
   }, [filterTab, documents]);
 
-  if (isAppLoading || isDocsLoading) return <PageLoader message="Loading Documents..." />;
+  if (isAppLoading || isDocsLoading) return <PageLoader message="Loading documents..." />;
 
   if (!application) {
     return (
-      <div className="p-12 text-center text-[#5f6368] space-y-3">
-        <p className="text-base font-semibold text-[#1f1f1f]">Application record not found</p>
-        <button 
-          onClick={() => navigate('/admin/recruitment')} 
-          className="px-4 py-2 bg-[#1a73e8] text-white rounded-full text-xs font-semibold"
+      <div className="p-12 text-center text-[var(--muted)] space-y-3">
+        <p className="text-base font-medium text-[var(--text)]">Application record not found</p>
+        <Button
+          variant="primary"
+          onClick={() => navigate('/admin/recruitment')}
+          className="h-9 px-4 rounded-[12px] text-xs font-medium"
         >
-          Return to Recruitment
-        </button>
+          Return to recruitment
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 pb-12 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+    <div className="space-y-5 pb-12 antialiased">
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <div className="flex items-center gap-1.5 mb-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-            <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Onboarding Compliance</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight flex items-center gap-2 font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
-            Verify <span className="font-medium italic text-[#1a73e8]">Candidate Documents</span>
+          <h1 className="text-2xl font-medium tracking-tight text-[var(--text)]">
+            Verify candidate documents
           </h1>
-          <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
-            Audit compliance certificates, identity papers, bank accounts, and offer letters.
+          <p className="text-xs text-[var(--muted)] mt-0.5">
+            Audit compliance certificates, identity papers, bank accounts, and offer letters
           </p>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-2.5 self-start sm:self-auto">
+        <div className="flex items-center gap-2 self-start sm:self-auto">
           {isConverted ? (
-            <div className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]">
-              <Lock className="w-3.5 h-3.5 text-[#5f6368]" /> Onboarding Finalized
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium bg-[var(--surface-alt)] text-[var(--muted)] border border-[var(--line)]">
+              <Lock size={13} />
+              <span>Onboarding finalized</span>
             </div>
           ) : (
-            <button 
-              onClick={() => sendEmailMutation.mutate()} 
+            <Button
+              variant="primary"
+              onClick={() => sendEmailMutation.mutate()}
               disabled={!allRequiredVerified || sendEmailMutation.isPending || hasNotified}
-              className={`inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-xs font-semibold shadow-sm transition-all cursor-pointer ${
-                hasNotified 
-                  ? 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6] cursor-default' 
-                  : 'bg-[#1a73e8] hover:bg-[#1557b0] text-white disabled:opacity-50 disabled:cursor-not-allowed'
-              }`}
+              loading={sendEmailMutation.isPending}
+              className="h-9 px-4 rounded-[12px] text-xs font-medium"
             >
-              {hasNotified ? <CheckCircle2 className="w-4 h-4" /> : sendEmailMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-              {hasNotified ? 'Candidate Notified' : 'Notify Candidate Verified'}
-            </button>
+              {hasNotified ? <CheckCircle2 size={14} /> : <Send size={14} />}
+              <span>{hasNotified ? 'Candidate notified' : 'Notify candidate verified'}</span>
+            </Button>
           )}
-          
-          <button 
-            onClick={() => navigate('/admin/recruitment')} 
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer shadow-2xs"
+
+          <Button
+            variant="outline"
+            onClick={() => navigate('/admin/recruitment')}
+            className="h-9 px-3.5 rounded-[12px] text-xs font-medium"
           >
-            <ArrowLeft className="w-3.5 h-3.5 text-[#5f6368]" /> Back
-          </button>
+            <ArrowLeft size={14} />
+            <span>Back</span>
+          </Button>
         </div>
       </div>
 
-      {/* Converted Employee Locked Notice Banner */}
+      {/* Converted Employee Notice Banner */}
       {isConverted && (
-        <div className="rounded-2xl border border-[#c2e7ff] bg-[#e8f0fe] p-4 flex items-start gap-3.5 text-[#001d35] shadow-xs">
-          <div className="p-2 rounded-xl bg-[#c2e7ff] text-[#001d35] shrink-0">
-            <Lock className="w-5 h-5" />
+        <div className="rounded-[20px] bg-[var(--brand-tint)] p-4 flex items-start gap-3 text-[var(--text)]">
+          <div className="p-2 rounded-[10px] bg-[var(--surface)] text-[var(--brand-deep)] shrink-0">
+            <Lock size={16} />
           </div>
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[#1a73e8]">
-              Candidate Converted to Active Employee • Verification Locked
+            <h4 className="text-xs font-medium text-[var(--brand-deep)]">
+              Candidate converted to employee &bull; Verification locked
             </h4>
-            <p className="text-xs text-[#001d35] mt-0.5 leading-relaxed">
-              This candidate has been formally hired and converted to an active employee in Acme HRMS. To guarantee legal compliance and audit integrity, document approval statuses can no longer be modified.
+            <p className="text-xs text-[var(--text-2)] mt-0.5 leading-relaxed">
+              This candidate has been formally hired and converted to an active employee. Document approval statuses can no longer be modified.
             </p>
           </div>
         </div>
       )}
 
       {/* Candidate Overview Card */}
-      <div className="rounded-2xl border border-[#e0e3e7] bg-white p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-full bg-[#e8f0fe] border border-[#d2e3fc] flex items-center justify-center text-[#1a73e8] font-bold text-sm shrink-0">
-            {getInitials(userInfo?.firstName, userInfo?.lastName)}
-          </div>
+      <div className="rounded-[24px] bg-[var(--surface)] p-[18px] flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <Avatar
+            name={`${userInfo?.firstName || 'Candidate'} ${userInfo?.lastName || ''}`}
+            size={48}
+            shape="square"
+            radius={14}
+          />
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-base font-semibold text-[#1f1f1f]">
+              <h2 className="text-base font-medium text-[var(--text)]">
                 {userInfo?.firstName || 'Candidate'} {userInfo?.lastName || ''}
               </h2>
               {application.jobs?.title && (
-                <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">
+                <span className="text-xs font-medium text-[var(--brand-deep)] bg-[var(--brand-tint)] px-2.5 py-0.5 rounded-full">
                   {application.jobs?.title}
                 </span>
               )}
             </div>
-            <p className="text-xs text-[#5f6368] mt-0.5">
-              {userInfo?.email} • {application.jobs?.department}
+            <p className="text-xs text-[var(--muted)] mt-0.5">
+              {userInfo?.email} &bull; {application.jobs?.department}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-6 border-t md:border-t-0 md:border-l border-[#e0e3e7] pt-3 md:pt-0 md:pl-6 text-xs">
+        <div className="flex items-center gap-6 border-t md:border-t-0 md:border-l border-[var(--line)] pt-3 md:pt-0 md:pl-6 text-xs">
           <div>
-            <span className="text-[#5f6368] block">Compliance Status</span>
-            <span className={`font-semibold ${isConverted ? 'text-[#137333]' : allRequiredVerified ? 'text-[#137333]' : 'text-[#b06000]'}`}>
-              {isConverted ? 'Finalized & Locked' : allRequiredVerified ? 'All Mandatory Verified' : 'Pending Verification'}
+            <span className="text-[var(--muted)] block">Compliance status</span>
+            <span
+              className={`font-medium ${
+                isConverted
+                  ? 'text-[#1F9D55]'
+                  : allRequiredVerified
+                  ? 'text-[#1F9D55]'
+                  : 'text-[#B7791F]'
+              }`}
+            >
+              {isConverted ? 'Finalized & locked' : allRequiredVerified ? 'All mandatory verified' : 'Pending verification'}
             </span>
           </div>
           <div>
-            <span className="text-[#5f6368] block">Uploaded Documents</span>
-            <span className="font-semibold text-[#1f1f1f]">{documents.length} of {documentTypes.length}</span>
+            <span className="text-[var(--muted)] block">Uploaded documents</span>
+            <span className="font-medium text-[var(--text)]">
+              {documents.length} of {documentTypes.length}
+            </span>
           </div>
         </div>
       </div>
 
       {/* KPI Stats Cards */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard 
-          title="Mandatory Required" 
-          value={totalRequired} 
-          subtitle="Essential compliance items" 
-          icon={AlertCircle} 
-          colorTheme="amber" 
+      <div className="grid gap-3.5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          title="Mandatory required"
+          value={totalRequired}
+          caption="Essential compliance items"
+          icon={<AlertCircle size={18} />}
         />
-        <StatCard 
-          title="Verified Documents" 
-          value={verifiedCount} 
-          subtitle="Approved by HR admin" 
-          icon={CheckCircle2} 
-          colorTheme="green" 
+        <StatCard
+          title="Verified documents"
+          value={verifiedCount}
+          caption="Approved by HR admin"
+          icon={<CheckCircle2 size={18} />}
         />
-        <StatCard 
-          title="Pending Review" 
-          value={pendingCount} 
-          subtitle="Awaiting administrative check" 
-          icon={Clock} 
-          colorTheme="blue" 
+        <StatCard
+          title="Pending review"
+          value={pendingCount}
+          caption="Awaiting check"
+          icon={<Clock size={18} />}
         />
-        <StatCard 
-          title="Not Uploaded Yet" 
-          value={missingCount} 
-          subtitle="Awaiting candidate upload" 
-          icon={FileText} 
-          colorTheme="purple" 
+        <StatCard
+          title="Not uploaded yet"
+          value={missingCount}
+          caption="Awaiting candidate upload"
+          icon={<FileText size={18} />}
         />
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-2 border-b border-[#e0e3e7] pb-1">
-        {['All', 'Required', 'Optional', 'Pending'].map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setFilterTab(tab)}
-            className={`px-4 py-2 text-xs font-semibold rounded-t-xl transition-all cursor-pointer ${
-              filterTab === tab
-                ? 'text-[#1a73e8] border-b-2 border-[#1a73e8] bg-[#e8f0fe]/50'
-                : 'text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4]'
-            }`}
-          >
-            {tab} Documents {tab === 'All' ? `(${documentTypes.length})` : tab === 'Required' ? `(${totalRequired})` : tab === 'Pending' ? `(${pendingCount})` : ''}
-          </button>
-        ))}
+      <div className="flex items-center gap-1.5 p-1 bg-[var(--surface)] rounded-full overflow-x-auto hide-scrollbar">
+        {['All', 'Required', 'Optional', 'Pending'].map((tab) => {
+          const isActive = filterTab === tab;
+          return (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setFilterTab(tab)}
+              className={`px-4 py-1.5 text-xs font-medium rounded-full transition-all cursor-pointer ${
+                isActive
+                  ? 'bg-[var(--ink)] text-white dark:bg-[var(--text)] dark:text-[var(--surface)] shadow-xs'
+                  : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
+              }`}
+            >
+              {tab} documents{' '}
+              {tab === 'All'
+                ? `(${documentTypes.length})`
+                : tab === 'Required'
+                ? `(${totalRequired})`
+                : tab === 'Pending'
+                ? `(${pendingCount})`
+                : ''}
+            </button>
+          );
+        })}
       </div>
 
       {/* Documents Grid */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {filteredDocs.map(doc => (
-          <AdminDocumentCard 
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+        {filteredDocs.map((doc) => (
+          <AdminDocumentCard
             key={doc.id}
-            docType={doc} 
-            currentDoc={getDoc(doc.id)} 
+            docType={doc}
+            currentDoc={getDoc(doc.id)}
             onUpdateStatus={handleUpdateStatus}
             isUpdating={updatingDocId === getDoc(doc.id)?.id}
             isConverted={isConverted}

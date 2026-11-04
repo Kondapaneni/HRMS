@@ -13,17 +13,16 @@ import {
   X, 
   Building2, 
   CheckCircle2, 
-  Filter, 
   CheckSquare, 
   Disc,
   Search,
   Sparkles,
-  Layers,
-  Check,
-  AlertCircle,
   Loader2
 } from 'lucide-react';
 import PageLoader from '../components/PageLoader';
+import StatCard from '../components/ui/StatCard';
+import StatusBadge from '../components/ui/StatusBadge';
+import Button from '../components/ui/Button';
 
 const DEPARTMENTS = [
   'Engineering',
@@ -36,44 +35,6 @@ const DEPARTMENTS = [
   'IT',
   'General / All'
 ];
-
-const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme }) => {
-  const themes = {
-    blue: {
-      iconBg: 'bg-[#e8f0fe]',
-      iconColor: 'text-[#1a73e8]',
-    },
-    purple: {
-      iconBg: 'bg-[#f3e8fd]',
-      iconColor: 'text-[#8430ce]',
-    },
-    green: {
-      iconBg: 'bg-[#e6f4ea]',
-      iconColor: 'text-[#137333]',
-    },
-    amber: {
-      iconBg: 'bg-[#fef7e0]',
-      iconColor: 'text-[#b06000]',
-    }
-  };
-
-  const theme = themes[colorTheme] || themes.blue;
-
-  return (
-    <div className="bg-white rounded-2xl border border-[#e0e3e7] p-5 shadow-xs transition-all duration-200 hover:shadow-md hover:border-[#dadce0]">
-      <div className="flex items-start justify-between">
-        <div className="space-y-1">
-          <p className="text-xs font-semibold text-[#5f6368] uppercase tracking-wider">{title}</p>
-          <p className="text-2xl font-bold text-[#1f1f1f] tracking-tight">{value}</p>
-          {subtitle && <p className="text-xs text-[#5f6368] font-normal pt-0.5">{subtitle}</p>}
-        </div>
-        <div className={`p-3 rounded-2xl ${theme.iconBg} ${theme.iconColor} shrink-0`}>
-          <Icon className="w-5 h-5" />
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const DepartmentQuestionBank = () => {
   const queryClient = useQueryClient();
@@ -235,92 +196,88 @@ const DepartmentQuestionBank = () => {
     setForm({ ...form, question_type: newType, correct_options: nextCorrect });
   };
 
-  if (isLoading && !questions.length && !debouncedSearchQuery) return <PageLoader message="Loading Question Bank..." />;
+  if (isLoading && !questions.length && !debouncedSearchQuery) return <PageLoader message="Loading question bank..." />;
 
   return (
-    <div className="space-y-6 pb-12 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+    <div className="space-y-6 pb-12 antialiased">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <div className="flex items-center gap-1.5 mb-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-            <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Test Center</span>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[12px] font-medium text-[var(--muted)]">Test center</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight flex items-center gap-2 font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
-            Department Question <span className="font-medium italic text-[#1a73e8]">Bank</span> <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">{questions.length} Items</span>
+          <h1 className="text-[24px] font-medium text-[var(--text)] tracking-[-0.01em] flex items-center gap-2">
+            Department question bank
+            <span className="text-[12px] font-medium text-[var(--brand-deep)] bg-[var(--brand-tint)] px-2.5 py-0.5 rounded-[9px]">
+              {questions.length} Items
+            </span>
           </h1>
-          <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
+          <p className="text-[13px] text-[var(--muted)] mt-1">
             Curate objective single and multiple-choice questions for employee competency evaluations.
           </p>
         </div>
 
-        <button
+        <Button
+          variant="primary"
           onClick={handleOpenCreate}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-[#1a73e8] hover:bg-[#1557b0] text-white rounded-full text-xs font-semibold shadow-sm transition-all cursor-pointer self-start sm:self-auto"
+          className="self-start sm:self-auto"
         >
-          <Plus className="w-4 h-4" /> Add Question
-        </button>
+          <Plus className="w-4 h-4 mr-1" /> Add question
+        </Button>
       </div>
 
       {/* KPI Stats Cards */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-[14px] grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard 
-          title="Question Pool" 
+          title="Question pool" 
           value={stats.total} 
           subtitle="Total questions loaded" 
           icon={HelpCircle} 
-          colorTheme="blue" 
         />
         <StatCard 
-          title="Single Choice (MCQ)" 
+          title="Single choice (MCQ)" 
           value={stats.single} 
           subtitle="Single correct answers" 
           icon={Disc} 
-          colorTheme="purple" 
         />
         <StatCard 
-          title="Multiple Choice" 
+          title="Multiple choice" 
           value={stats.multiple} 
           subtitle="Multi-select questions" 
           icon={CheckSquare} 
-          colorTheme="green" 
         />
         <StatCard 
-          title="Active Departments" 
+          title="Active departments" 
           value={stats.depts} 
           subtitle="Covered question groups" 
           icon={Building2} 
-          colorTheme="amber" 
         />
       </div>
 
       {/* Main Content Table Card */}
-      <div className="rounded-2xl border border-[#e0e3e7] bg-white shadow-xs overflow-hidden flex flex-col">
+      <div className="rounded-[24px] bg-[var(--surface)] p-4 sm:p-5 space-y-4">
         {/* Table Toolbar */}
-        <div className="p-4 sm:p-5 border-b border-[#e0e3e7] bg-[#f8fafd] flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           {/* Department Pills */}
-          <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1 max-w-full">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full">
             <button
               onClick={() => setSelectedDeptFilter('All')}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all shrink-0 cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-full text-[12px] font-medium transition-colors shrink-0 cursor-pointer ${
                 selectedDeptFilter === 'All'
-                  ? 'bg-[#1a73e8] text-white shadow-xs'
-                  : 'bg-white border border-[#dadce0] text-[#5f6368] hover:bg-[#f1f3f4] hover:text-[#1f1f1f]'
+                  ? 'bg-[var(--ink)] text-white'
+                  : 'bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)]'
               }`}
             >
-              All Departments ({selectedDeptFilter === 'All' ? questions.length : 'All'})
+              All departments ({selectedDeptFilter === 'All' ? questions.length : 'All'})
             </button>
             {DEPARTMENTS.map((dept) => (
               <button
                 key={dept}
                 onClick={() => setSelectedDeptFilter(dept)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all shrink-0 cursor-pointer ${
+                className={`px-3.5 py-1.5 rounded-full text-[12px] font-medium transition-colors shrink-0 cursor-pointer ${
                   selectedDeptFilter === dept
-                    ? 'bg-[#1a73e8] text-white shadow-xs'
-                    : 'bg-white border border-[#dadce0] text-[#5f6368] hover:bg-[#f1f3f4] hover:text-[#1f1f1f]'
+                    ? 'bg-[var(--ink)] text-white'
+                    : 'bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)]'
                 }`}
               >
                 {dept}
@@ -328,49 +285,49 @@ const DepartmentQuestionBank = () => {
             ))}
           </div>
 
-          {/* Google Pill Search */}
+          {/* Search Bar */}
           <div className="relative w-full lg:w-72 shrink-0">
             {isFetching ? (
-              <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#1a73e8] animate-spin pointer-events-none" />
+              <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--brand-deep)] animate-spin pointer-events-none" />
             ) : (
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368] pointer-events-none" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)] pointer-events-none" />
             )}
             <input
               type="search"
               placeholder="Search question text or options..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 text-xs bg-[#f1f3f4] hover:bg-[#e8eaed] focus:bg-white border border-transparent focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-full text-[#1f1f1f] placeholder:text-[#5f6368] outline-none transition-all shadow-none focus:shadow-sm"
+              className="w-full h-10 pl-10 pr-4 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] placeholder:text-[var(--muted)] outline-none transition-all"
             />
           </div>
         </div>
 
         {/* Questions Table */}
-        <div className="overflow-x-auto custom-scrollbar relative">
+        <div className="overflow-x-auto">
           {isLoading && questions.length === 0 ? (
-            <div className="p-12 text-center text-[#5f6368] flex flex-col items-center justify-center space-y-2">
-              <Loader2 className="w-8 h-8 text-[#1a73e8] animate-spin mb-1" />
-              <p className="text-xs">Loading question bank...</p>
+            <div className="p-12 text-center text-[var(--muted)] flex flex-col items-center justify-center space-y-2">
+              <Loader2 className="w-8 h-8 text-[var(--brand-deep)] animate-spin mb-1" />
+              <p className="text-[13px]">Loading question bank...</p>
             </div>
           ) : questions.length === 0 ? (
-            <div className="p-12 text-center text-[#5f6368] flex flex-col items-center justify-center space-y-2">
-              <HelpCircle className="w-12 h-12 text-[#dadce0] mb-1" />
-              <p className="text-sm font-semibold text-[#1f1f1f]">No questions found</p>
-              <p className="text-xs text-[#5f6368]">
-                {searchQuery ? "Try adjusting your search query or department filter." : "Click \"Add Question\" to register your first objective item."}
+            <div className="p-12 text-center text-[var(--muted)] flex flex-col items-center justify-center space-y-2">
+              <HelpCircle className="w-12 h-12 text-[var(--muted)]/40 mb-1" />
+              <p className="text-[15px] font-medium text-[var(--text)]">No questions found</p>
+              <p className="text-[13px] text-[var(--muted)]">
+                {searchQuery ? "Try adjusting your search query or department filter." : "Click \"Add question\" to register your first objective item."}
               </p>
             </div>
           ) : (
-            <table className="w-full text-xs text-left">
-              <thead className="bg-[#f8fafd] border-b border-[#e0e3e7] text-[#5f6368] uppercase font-semibold tracking-wider text-[11px]">
+            <table className="w-full text-[13px] text-left">
+              <thead className="bg-[var(--surface-alt)] text-[var(--muted)] font-medium text-[12px]">
                 <tr>
-                  <th className="px-5 py-3.5 w-48">Department & Type</th>
-                  <th className="px-5 py-3.5">Question Statement</th>
-                  <th className="px-5 py-3.5">Option Choices & Answers</th>
+                  <th className="px-5 py-3.5 w-48">Department & type</th>
+                  <th className="px-5 py-3.5">Question statement</th>
+                  <th className="px-5 py-3.5">Option choices & answers</th>
                   <th className="px-5 py-3.5 text-right w-24">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#e0e3e7]">
+              <tbody className="divide-y divide-[var(--line)]">
                 {questions.map((item, idx) => {
                   let opts = item.options || [];
                   if (typeof opts === 'string') {
@@ -388,32 +345,32 @@ const DepartmentQuestionBank = () => {
                   const isMultiple = item.question_type === 'mcq_multiple';
 
                   return (
-                    <tr key={item.id} className="hover:bg-[#f8fafd] transition-colors">
+                    <tr key={item.id} className="hover:bg-[var(--surface-alt)] transition-colors">
                       <td className="px-5 py-4 align-top space-y-1.5">
                         <div>
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-[9px] text-[12px] font-medium bg-[var(--brand-tint)] text-[var(--brand-deep)]">
                             <Building2 className="w-3.5 h-3.5 shrink-0" />
                             {item.department}
                           </span>
                         </div>
                         <div>
-                          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-[8px] text-[11px] font-medium ${
                             isMultiple 
-                              ? 'bg-[#f3e8fd] text-[#8430ce] border border-[#e9d5ff]' 
-                              : 'bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]'
+                              ? 'bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)]' 
+                              : 'bg-[var(--surface-alt)] text-[var(--muted)]'
                           }`}>
                             {isMultiple ? <CheckSquare className="w-3 h-3" /> : <Disc className="w-3 h-3" />}
-                            {isMultiple ? 'Multi-Select' : 'Single MCQ'}
+                            {isMultiple ? 'Multi-select' : 'Single MCQ'}
                           </span>
                         </div>
                       </td>
 
                       <td className="px-5 py-4 align-top max-w-md">
                         <div className="flex items-start gap-2">
-                          <span className="font-mono text-xs font-bold text-[#5f6368] bg-[#f1f3f4] px-1.5 py-0.5 rounded shrink-0">
+                          <span className="font-mono text-[11px] font-medium text-[var(--muted)] bg-[var(--surface-alt)] px-1.5 py-0.5 rounded-[6px] shrink-0">
                             Q{idx + 1}
                           </span>
-                          <span className="font-semibold text-xs text-[#1f1f1f] leading-relaxed whitespace-pre-wrap">
+                          <span className="font-medium text-[13px] text-[var(--text)] leading-relaxed whitespace-pre-wrap">
                             {item.question_text}
                           </span>
                         </div>
@@ -426,23 +383,23 @@ const DepartmentQuestionBank = () => {
                             return (
                               <div
                                 key={oIdx}
-                                className={`px-2.5 py-1.5 rounded-xl text-xs font-medium border flex items-center justify-between gap-2 transition-all ${
+                                className={`px-2.5 py-1.5 rounded-[12px] text-[12px] font-medium flex items-center justify-between gap-2 transition-all ${
                                   isCorrect
-                                    ? 'bg-[#e6f4ea] border-[#ceead6] text-[#137333] font-bold shadow-2xs'
-                                    : 'bg-[#f8fafd] border-[#e0e3e7] text-[#5f6368]'
+                                    ? 'bg-[var(--success-bg)] text-[var(--success-text)] font-semibold'
+                                    : 'bg-[var(--surface-alt)] text-[var(--muted)]'
                                 }`}
                               >
                                 <div className="flex items-center gap-2 truncate">
                                   <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
-                                    isCorrect ? 'bg-[#137333] text-white' : 'bg-[#e0e3e7] text-[#5f6368]'
+                                    isCorrect ? 'bg-[var(--success-text)] text-white' : 'bg-[var(--line)] text-[var(--muted)]'
                                   }`}>
                                     {String.fromCharCode(65 + oIdx)}
                                   </span>
                                   <span className="truncate" title={optText}>
-                                    {optText || <span className="italic text-[#80868b]">Empty option</span>}
+                                    {optText || <span className="italic opacity-60">Empty option</span>}
                                   </span>
                                 </div>
-                                {isCorrect && <CheckCircle2 className="w-3.5 h-3.5 text-[#137333] shrink-0" />}
+                                {isCorrect && <CheckCircle2 className="w-3.5 h-3.5 text-[var(--success-text)] shrink-0" />}
                               </div>
                             );
                           })}
@@ -453,8 +410,8 @@ const DepartmentQuestionBank = () => {
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             onClick={() => handleOpenEdit(item)}
-                            className="p-1.5 rounded-full border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#5f6368] hover:text-[#1a73e8] transition-all cursor-pointer"
-                            title="Edit Question"
+                            className="w-8 h-8 rounded-[10px] bg-[var(--surface-alt)] hover:bg-[var(--line)] text-[var(--muted)] hover:text-[var(--text)] flex items-center justify-center transition-colors cursor-pointer"
+                            title="Edit question"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
                           </button>
@@ -464,8 +421,8 @@ const DepartmentQuestionBank = () => {
                                 deleteMutation.mutate(item.id);
                               }
                             }}
-                            className="p-1.5 rounded-full border border-[#fce8e6] bg-[#fce8e6] hover:bg-[#fad2cf] text-[#c5221f] transition-all cursor-pointer"
-                            title="Delete Question"
+                            className="w-8 h-8 rounded-[10px] bg-[var(--danger-bg)] text-[var(--danger-text)] hover:opacity-80 flex items-center justify-center transition-opacity cursor-pointer"
+                            title="Delete question"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -480,276 +437,262 @@ const DepartmentQuestionBank = () => {
         </div>
       </div>
 
-      {/* Slideover Right Drawer (createPortal) */}
+      {/* Slideover Right Drawer */}
       {showModal && createPortal(
         <div 
           onClick={(e) => { if (e.target === e.currentTarget) setShowModal(false); }}
-          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm font-editorial antialiased"
-          style={{ fontFamily: "'Newsreader', Georgia, serif" }}
+          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm antialiased"
         >
           <motion.div 
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
-            className="bg-white shadow-2xl w-full max-w-2xl h-[100dvh] flex flex-col overflow-hidden relative z-10 border-l border-[#e0e3e7]"
+            className="bg-[var(--surface)] shadow-2xl w-full max-w-2xl h-[100dvh] flex flex-col overflow-hidden relative z-10"
           >
-            {/* Top 4-Color Google Accent Line */}
-            <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
-
             {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd] mt-1 shrink-0">
+            <div className="px-6 py-4 border-b border-[var(--line)] flex justify-between items-center shrink-0">
               <div>
-                <div className="flex items-center gap-1 mb-0.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-                  <span className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Question Bank</span>
-                </div>
-                <h2 className="text-xl font-medium text-[#1f1f1f]" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
-                  {editingId ? (
-                    <>Edit <span className="font-medium italic text-[#1a73e8]">Department Question</span></>
-                  ) : (
-                    <>Add Question to <span className="font-medium italic text-[#1a73e8]">Bank</span></>
-                  )}
+                <span className="text-[11px] font-medium text-[var(--muted)] uppercase tracking-wider">Question bank</span>
+                <h2 className="text-[16px] font-medium text-[var(--text)]">
+                  {editingId ? 'Edit department question' : 'Add question to bank'}
                 </h2>
               </div>
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
-                className="text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4] p-1.5 rounded-full transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-[10px] flex items-center justify-center text-[var(--muted)] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
               >
-                <X size={18} />
+                <X size={16} />
               </button>
             </div>
 
             {/* Drawer Body */}
-            <div className="p-6 overflow-y-auto flex-1 custom-scrollbar space-y-5 text-xs">
-                
-                {/* Department & Type */}
-                <div className="bg-[#f8fafd] rounded-2xl border border-[#e0e3e7] p-4 space-y-4">
-                  <div className="flex items-center gap-2 pb-2 border-b border-[#e0e3e7] text-xs font-semibold text-[#1f1f1f]">
-                    <Building2 className="w-4 h-4 text-[#1a73e8]" />
-                    <span>Department & Classification</span>
-                  </div>
+            <div className="p-6 overflow-y-auto flex-1 space-y-4 text-[13px]">
+              
+              {/* Department & Type */}
+              <div className="bg-[var(--surface-alt)] rounded-[20px] p-4 space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-[var(--line)] text-[13px] font-medium text-[var(--text)]">
+                  <Building2 className="w-4 h-4 text-[var(--brand-deep)]" />
+                  <span>Department & classification</span>
+                </div>
 
-                  <div>
-                    <label className="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5">
-                      Target Department *
-                    </label>
-                    <select
-                      value={form.department}
-                      onChange={e => setForm({ ...form, department: e.target.value })}
-                      className="w-full px-3.5 py-2 bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none cursor-pointer transition-all"
+                <div>
+                  <label className="block text-[12px] font-medium text-[var(--muted)] mb-1.5">
+                    Target department *
+                  </label>
+                  <select
+                    value={form.department}
+                    onChange={e => setForm({ ...form, department: e.target.value })}
+                    className="w-full h-10 px-3 bg-[var(--surface)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] text-[var(--text)] outline-none cursor-pointer transition-all"
+                  >
+                    {DEPARTMENTS.map(d => (
+                      <option key={d} value={d}>{d}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[12px] font-medium text-[var(--muted)] mb-1.5">
+                    Question type *
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div
+                      onClick={() => handleTypeChange('mcq_single')}
+                      className={`p-3.5 rounded-[14px] cursor-pointer transition-all flex items-start gap-3 ${
+                        form.question_type === 'mcq_single'
+                          ? 'bg-[var(--brand-tint)] text-[var(--brand-deep)] font-medium'
+                          : 'bg-[var(--surface)] text-[var(--muted)] hover:bg-[var(--surface)]/80'
+                      }`}
                     >
-                      {DEPARTMENTS.map(d => (
-                        <option key={d} value={d}>{d}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5">
-                      Question Type *
-                    </label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div
-                        onClick={() => handleTypeChange('mcq_single')}
-                        className={`p-3.5 rounded-2xl border cursor-pointer transition-all flex items-start gap-3 ${
-                          form.question_type === 'mcq_single'
-                            ? 'bg-[#e8f0fe] border-[#4285F4] text-[#1a73e8] font-bold shadow-2xs'
-                            : 'bg-white border-[#e0e3e7] text-[#5f6368] hover:border-[#4285F4]'
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name="q_type"
-                          checked={form.question_type === 'mcq_single'}
-                          onChange={() => handleTypeChange('mcq_single')}
-                          className="mt-0.5 text-[#1a73e8] focus:ring-[#1a73e8] cursor-pointer"
-                        />
-                        <div>
-                          <div className="text-xs font-bold flex items-center gap-1.5 text-[#1f1f1f]">
-                            <Disc className="w-3.5 h-3.5 text-[#1a73e8]" />
-                            <span>Single Correct (MCQ)</span>
-                          </div>
-                          <p className="text-[11px] text-[#5f6368] font-normal mt-0.5">
-                            Candidates select exactly 1 correct option.
-                          </p>
+                      <input
+                        type="radio"
+                        name="q_type"
+                        checked={form.question_type === 'mcq_single'}
+                        onChange={() => handleTypeChange('mcq_single')}
+                        className="mt-0.5 text-[var(--brand-deep)] focus:ring-[var(--brand-deep)] cursor-pointer"
+                      />
+                      <div>
+                        <div className="text-[13px] font-medium flex items-center gap-1.5 text-[var(--text)]">
+                          <Disc className="w-3.5 h-3.5 text-[var(--brand-deep)]" />
+                          <span>Single correct (MCQ)</span>
                         </div>
+                        <p className="text-[11px] text-[var(--muted)] font-normal mt-0.5">
+                          Candidates select exactly 1 correct option.
+                        </p>
                       </div>
+                    </div>
 
-                      <div
-                        onClick={() => handleTypeChange('mcq_multiple')}
-                        className={`p-3.5 rounded-2xl border cursor-pointer transition-all flex items-start gap-3 ${
-                          form.question_type === 'mcq_multiple'
-                            ? 'bg-[#f3e8fd] border-[#8430ce] text-[#8430ce] font-bold shadow-2xs'
-                            : 'bg-white border-[#e0e3e7] text-[#5f6368] hover:border-[#8430ce]'
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name="q_type"
-                          checked={form.question_type === 'mcq_multiple'}
-                          onChange={() => handleTypeChange('mcq_multiple')}
-                          className="mt-0.5 text-[#8430ce] focus:ring-[#8430ce] cursor-pointer"
-                        />
-                        <div>
-                          <div className="text-xs font-bold flex items-center gap-1.5 text-[#1f1f1f]">
-                            <CheckSquare className="w-3.5 h-3.5 text-[#8430ce]" />
-                            <span>Multiple Correct</span>
-                          </div>
-                          <p className="text-[11px] text-[#5f6368] font-normal mt-0.5">
-                            One or more options can be valid.
-                          </p>
+                    <div
+                      onClick={() => handleTypeChange('mcq_multiple')}
+                      className={`p-3.5 rounded-[14px] cursor-pointer transition-all flex items-start gap-3 ${
+                        form.question_type === 'mcq_multiple'
+                          ? 'bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)] font-medium'
+                          : 'bg-[var(--surface)] text-[var(--muted)] hover:bg-[var(--surface)]/80'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="q_type"
+                        checked={form.question_type === 'mcq_multiple'}
+                        onChange={() => handleTypeChange('mcq_multiple')}
+                        className="mt-0.5 text-[var(--accent-pink-deep)] focus:ring-[var(--accent-pink-deep)] cursor-pointer"
+                      />
+                      <div>
+                        <div className="text-[13px] font-medium flex items-center gap-1.5 text-[var(--text)]">
+                          <CheckSquare className="w-3.5 h-3.5 text-[var(--accent-pink-deep)]" />
+                          <span>Multiple correct</span>
                         </div>
+                        <p className="text-[11px] text-[var(--muted)] font-normal mt-0.5">
+                          One or more options can be valid.
+                        </p>
                       </div>
                     </div>
                   </div>
                 </div>
+              </div>
 
-                {/* Question Statement */}
-                <div className="bg-[#f8fafd] rounded-2xl border border-[#e0e3e7] p-4 space-y-3">
-                  <div className="flex items-center gap-2 pb-2 border-b border-[#e0e3e7] text-xs font-semibold text-[#1f1f1f]">
-                    <HelpCircle className="w-4 h-4 text-[#1a73e8]" />
-                    <span>Question Statement</span>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5">
-                      Question Text *
-                    </label>
-                    <textarea
-                      rows={3}
-                      value={form.question_text}
-                      onChange={e => setForm({ ...form, question_text: e.target.value })}
-                      placeholder="Type the objective question statement here..."
-                      className="w-full p-3.5 bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs font-medium text-[#1f1f1f] placeholder:text-[#5f6368] outline-none transition-all resize-y"
-                    />
-                  </div>
+              {/* Question Statement */}
+              <div className="bg-[var(--surface-alt)] rounded-[20px] p-4 space-y-3">
+                <div className="flex items-center gap-2 pb-2 border-b border-[var(--line)] text-[13px] font-medium text-[var(--text)]">
+                  <HelpCircle className="w-4 h-4 text-[var(--brand-deep)]" />
+                  <span>Question statement</span>
                 </div>
 
-                {/* 4 Options & Correct Answers */}
-                <div className="bg-[#f8fafd] rounded-2xl border border-[#e0e3e7] p-4 space-y-3">
-                  <div className="flex items-center justify-between pb-2 border-b border-[#e0e3e7]">
-                    <div className="flex items-center gap-2 text-xs font-semibold text-[#1f1f1f]">
-                      <CheckCircle2 className="w-4 h-4 text-[#137333]" />
-                      <span>Answer Choices (Click row to toggle correct answer)</span>
-                    </div>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                      form.question_type === 'mcq_multiple'
-                        ? 'text-[#8430ce] bg-[#f3e8fd] border border-[#e9d5ff]'
-                        : 'text-[#137333] bg-[#e6f4ea] border border-[#ceead6]'
-                    }`}>
-                      {form.question_type === 'mcq_multiple' ? 'Multiple allowed' : 'Single radio choice'}
-                    </span>
-                  </div>
+                <div>
+                  <label className="block text-[12px] font-medium text-[var(--muted)] mb-1.5">
+                    Question text *
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={form.question_text}
+                    onChange={e => setForm({ ...form, question_text: e.target.value })}
+                    placeholder="Type the objective question statement here..."
+                    className="w-full p-3.5 bg-[var(--surface)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] font-normal text-[var(--text)] placeholder:text-[var(--muted)] outline-none transition-all resize-y"
+                  />
+                </div>
+              </div>
 
-                  <div className="space-y-2.5">
-                    {form.options.map((opt, idx) => {
-                      const isCorrect = form.correct_options.includes(idx);
-                      const letter = String.fromCharCode(65 + idx);
-                      return (
-                        <div
-                          key={idx}
-                          onClick={() => handleToggleCorrect(idx)}
-                          className={`flex items-center gap-3 p-2.5 rounded-2xl border transition-all cursor-pointer ${
-                            isCorrect
-                              ? 'bg-[#e6f4ea] border-[#ceead6] shadow-2xs'
-                              : 'bg-white border-[#e0e3e7] hover:border-[#4285F4]'
-                          }`}
-                        >
-                          <div className="flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
-                            {form.question_type === 'mcq_single' ? (
-                              <input
-                                type="radio"
-                                name="correct_option_radio"
-                                checked={isCorrect}
-                                onChange={() => handleToggleCorrect(idx)}
-                                className="w-4 h-4 text-[#137333] focus:ring-[#137333] cursor-pointer"
-                              />
-                            ) : (
-                              <input
-                                type="checkbox"
-                                checked={isCorrect}
-                                onChange={() => handleToggleCorrect(idx)}
-                                className="w-4 h-4 rounded text-[#8430ce] focus:ring-[#8430ce] cursor-pointer"
-                              />
-                            )}
-                          </div>
-                          <span className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
-                            isCorrect ? 'bg-[#137333] text-white shadow-xs' : 'bg-[#f1f3f4] text-[#5f6368]'
-                          }`}>
-                            {letter}
-                          </span>
-                          <input
-                            type="text"
-                            value={opt}
-                            onClick={(e) => e.stopPropagation()}
-                            onChange={(e) => handleOptionChange(idx, e.target.value)}
-                            placeholder={`Option ${letter}`}
-                            className="flex-1 px-3 py-1.5 bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs font-medium text-[#1f1f1f] placeholder:text-[#5f6368] outline-none"
-                          />
-                          {isCorrect && (
-                            <span className="text-[10px] font-bold text-[#137333] bg-white border border-[#ceead6] px-2 py-0.5 rounded-full shrink-0">
-                              Correct Answer
-                            </span>
+              {/* 4 Options & Correct Answers */}
+              <div className="bg-[var(--surface-alt)] rounded-[20px] p-4 space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-[var(--line)]">
+                  <div className="flex items-center gap-2 text-[13px] font-medium text-[var(--text)]">
+                    <CheckCircle2 className="w-4 h-4 text-[var(--success-text)]" />
+                    <span>Answer choices (Click row to toggle correct answer)</span>
+                  </div>
+                  <span className={`text-[11px] font-medium px-2 py-0.5 rounded-[6px] ${
+                    form.question_type === 'mcq_multiple'
+                      ? 'text-[var(--accent-pink-deep)] bg-[var(--accent-pink-tint)]'
+                      : 'text-[var(--success-text)] bg-[var(--success-bg)]'
+                  }`}>
+                    {form.question_type === 'mcq_multiple' ? 'Multiple allowed' : 'Single radio choice'}
+                  </span>
+                </div>
+
+                <div className="space-y-2.5">
+                  {form.options.map((opt, idx) => {
+                    const isCorrect = form.correct_options.includes(idx);
+                    const letter = String.fromCharCode(65 + idx);
+                    return (
+                      <div
+                        key={idx}
+                        onClick={() => handleToggleCorrect(idx)}
+                        className={`flex items-center gap-3 p-2.5 rounded-[14px] transition-all cursor-pointer ${
+                          isCorrect
+                            ? 'bg-[var(--success-bg)]'
+                            : 'bg-[var(--surface)] hover:bg-[var(--line)]/50'
+                        }`}
+                      >
+                        <div className="flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+                          {form.question_type === 'mcq_single' ? (
+                            <input
+                              type="radio"
+                              name="correct_option_radio"
+                              checked={isCorrect}
+                              onChange={() => handleToggleCorrect(idx)}
+                              className="w-4 h-4 text-[var(--success-text)] focus:ring-[var(--success-text)] cursor-pointer"
+                            />
+                          ) : (
+                            <input
+                              type="checkbox"
+                              checked={isCorrect}
+                              onChange={() => handleToggleCorrect(idx)}
+                              className="w-4 h-4 rounded text-[var(--accent-pink-deep)] focus:ring-[var(--accent-pink-deep)] cursor-pointer"
+                            />
                           )}
                         </div>
-                      );
-                    })}
-                  </div>
-
-                  {form.correct_options.length === 0 && (
-                    <p className="text-xs font-bold text-[#c5221f] bg-[#fce8e6] border border-[#fad2cf] p-2 rounded-xl text-center">
-                      Please select at least one correct option answer!
-                    </p>
-                  )}
+                        <span className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[11px] shrink-0 ${
+                          isCorrect ? 'bg-[var(--success-text)] text-white' : 'bg-[var(--surface-alt)] text-[var(--muted)]'
+                        }`}>
+                          {letter}
+                        </span>
+                        <input
+                          type="text"
+                          value={opt}
+                          onClick={(e) => e.stopPropagation()}
+                          onChange={(e) => handleOptionChange(idx, e.target.value)}
+                          placeholder={`Option ${letter}`}
+                          className="flex-1 h-9 px-3 bg-[var(--surface)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[10px] text-[13px] font-normal text-[var(--text)] placeholder:text-[var(--muted)] outline-none"
+                        />
+                        {isCorrect && (
+                          <span className="text-[11px] font-medium text-[var(--success-text)] bg-[var(--surface)] px-2 py-0.5 rounded-[6px] shrink-0">
+                            Correct answer
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-              </div>
 
-              {/* Drawer Footer */}
-              <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex justify-end items-center gap-2.5 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="px-4 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={() => saveMutation.mutate({ formData: form, closeAfterSave: true })}
-                  disabled={
-                    saveMutation.isPending ||
-                    !form.question_text.trim() ||
-                    form.options.some(o => !o.trim()) ||
-                    form.correct_options.length === 0
-                  }
-                  className="px-4 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer disabled:opacity-50"
-                >
-                  Save & Close
-                </button>
-                <button
-                  type="button"
-                  onClick={() => saveMutation.mutate({ formData: form, closeAfterSave: false })}
-                  disabled={
-                    saveMutation.isPending ||
-                    !form.question_text.trim() ||
-                    form.options.some(o => !o.trim()) ||
-                    form.correct_options.length === 0
-                  }
-                  className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs transition-all cursor-pointer disabled:opacity-50"
-                >
-                  {saveMutation.isPending ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
-                  <span>{editingId ? 'Update & Add Another' : 'Save & Add Next'}</span>
-                </button>
+                {form.correct_options.length === 0 && (
+                  <p className="text-[12px] font-medium text-[var(--danger-text)] bg-[var(--danger-bg)] p-2 rounded-[10px] text-center">
+                    Please select at least one correct option answer!
+                  </p>
+                )}
               </div>
-            </motion.div>
-          </div>,
-          document.body
-        )}
+            </div>
+
+            {/* Drawer Footer */}
+            <div className="p-4 border-t border-[var(--line)] bg-[var(--surface)] flex justify-end items-center gap-2.5 shrink-0">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setShowModal(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => saveMutation.mutate({ formData: form, closeAfterSave: true })}
+                disabled={
+                  saveMutation.isPending ||
+                  !form.question_text.trim() ||
+                  form.options.some(o => !o.trim()) ||
+                  form.correct_options.length === 0
+                }
+              >
+                Save & close
+              </Button>
+              <Button
+                type="button"
+                variant="primary"
+                onClick={() => saveMutation.mutate({ formData: form, closeAfterSave: false })}
+                disabled={
+                  saveMutation.isPending ||
+                  !form.question_text.trim() ||
+                  form.options.some(o => !o.trim()) ||
+                  form.correct_options.length === 0
+                }
+              >
+                {saveMutation.isPending ? <RefreshCw className="w-3.5 h-3.5 animate-spin mr-1" /> : <Sparkles className="w-3.5 h-3.5 mr-1" />}
+                <span>{editingId ? 'Update & add another' : 'Save & add next'}</span>
+              </Button>
+            </div>
+          </motion.div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 };

@@ -1,13 +1,11 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import PageLoader from '../components/PageLoader';
 import {
   Shield,
-  Edit2,
   Search,
   X,
   Users,
-  Check,
   Building2,
   Briefcase,
   Calendar,
@@ -16,8 +14,6 @@ import {
   GraduationCap,
   Layers,
   UserCheck,
-  Sparkles,
-  Award,
   Package,
   Clock,
   UserPlus
@@ -26,44 +22,7 @@ import { useAuth } from '../contexts/AuthContext';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-
-const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme }) => {
-  const themes = {
-    blue: {
-      iconBg: 'bg-[#e8f0fe]',
-      iconColor: 'text-[#1a73e8]',
-    },
-    green: {
-      iconBg: 'bg-[#e6f4ea]',
-      iconColor: 'text-[#137333]',
-    },
-    purple: {
-      iconBg: 'bg-[#f3e8fd]',
-      iconColor: 'text-[#8430ce]',
-    },
-    amber: {
-      iconBg: 'bg-[#fef7e0]',
-      iconColor: 'text-[#b06000]',
-    }
-  };
-
-  const theme = themes[colorTheme] || themes.blue;
-
-  return (
-    <div className="bg-white rounded-2xl border border-[#e0e3e7] p-5 shadow-xs transition-all duration-200 hover:shadow-md hover:border-[#dadce0]">
-      <div className="flex items-start justify-between">
-        <div className="space-y-1">
-          <p className="text-xs font-semibold text-[#5f6368] uppercase tracking-wider">{title}</p>
-          <p className="text-2xl font-bold text-[#1f1f1f] tracking-tight">{value}</p>
-          {subtitle && <p className="text-xs text-[#5f6368] font-normal pt-0.5">{subtitle}</p>}
-        </div>
-        <div className={`p-3 rounded-2xl ${theme.iconBg} ${theme.iconColor} shrink-0`}>
-          <Icon className="w-5 h-5" />
-        </div>
-      </div>
-    </div>
-  );
-};
+import { StatCard, Button, Avatar } from '../components/ui';
 
 const featuresList = [
   {
@@ -253,10 +212,6 @@ const AdminFeatureAccess = () => {
     }
   };
 
-  const getInitials = (firstName, lastName) => {
-    return `${(firstName || '').charAt(0)}${(lastName || '').charAt(0)}`.toUpperCase() || 'U';
-  };
-
   // Stats calculation
   const stats = useMemo(() => {
     const totalRoles = featuresList.length;
@@ -282,7 +237,6 @@ const AdminFeatureAccess = () => {
 
       if (!q) return true;
 
-      // Check role title, description, or category
       const matchRole =
         f.title.toLowerCase().includes(q) ||
         f.description.toLowerCase().includes(q) ||
@@ -290,7 +244,6 @@ const AdminFeatureAccess = () => {
 
       if (matchRole) return true;
 
-      // Check if any manager assigned to this feature matches the search (name, email, code, department)
       const matchEmployee = users.some(u => {
         if (!u[f.key]) return false;
         const fullName = `${u.firstName || ''} ${u.lastName || ''}`.toLowerCase();
@@ -319,72 +272,72 @@ const AdminFeatureAccess = () => {
   if (loading) return <PageLoader message="Loading Feature Roles..." />;
 
   return (
-    <div className="space-y-6 pb-12 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+    <div className="space-y-4 font-sans antialiased">
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <div className="flex items-center gap-1.5 mb-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-            <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Access Control &amp; RBAC</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight flex items-center gap-2 font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
-            Feature Access &amp; <span className="font-medium italic text-[#1a73e8]">Manager Roles</span> <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">{featuresList.length} Roles</span>
+          <h1 className="text-2xl font-medium tracking-tight text-[var(--text)]">
+            Feature Access &amp; Manager Roles
           </h1>
-          <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
+          <p className="text-xs text-[var(--muted)] mt-0.5">
             Delegate granular module managerial permissions across employees without granting global superadmin status.
           </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold px-3 py-1.5 rounded-[9px] bg-[var(--brand-tint)] text-[var(--brand-deep)]">
+            {featuresList.length} Roles
+          </span>
         </div>
       </div>
 
       {/* KPI Stats Cards */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3.5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Feature Roles"
           value={stats.totalRoles}
           subtitle="Configured Permission Modules"
           icon={Shield}
-          colorTheme="blue"
         />
         <StatCard
           title="Delegated Staff"
           value={stats.delegatedManagers}
           subtitle="Distinct Managers Assigned"
+          badgeText="Active"
+          badgeType="success"
           icon={UserCheck}
-          colorTheme="green"
         />
         <StatCard
           title="Core HRMS Roles"
           value={stats.coreCount}
           subtitle="Payroll, Leaves, Attendance"
+          badgeText="HRMS"
+          badgeType="info"
           icon={Layers}
-          colorTheme="purple"
         />
         <StatCard
           title="Business Apps"
           value={stats.businessAppsCount}
           subtitle="Loans, Sales, & Branch Ops"
+          badgeText="Apps"
+          badgeType="warning"
           icon={Building2}
-          colorTheme="amber"
         />
       </div>
 
       {/* Main Filter & Search Toolbar */}
-      <div className="rounded-2xl border border-[#e0e3e7] bg-white shadow-xs overflow-hidden flex flex-col">
-        <div className="p-4 sm:p-5 border-b border-[#e0e3e7] bg-[#f8fafd] flex flex-col lg:flex-row gap-3 items-center justify-between">
-
+      <div className="rounded-[24px] bg-[var(--surface)] p-[18px] flex flex-col">
+        <div className="pb-4 border-b border-[var(--line)] flex flex-col lg:flex-row gap-3 items-center justify-between mb-4">
           {/* Category Filter Pills */}
           <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1 max-w-full">
             {['All', 'Core HRMS', 'Assessments & LMS', 'Business Apps'].map(cat => (
               <button
                 key={cat}
                 onClick={() => setCategoryFilter(cat)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all shrink-0 cursor-pointer ${categoryFilter === cat
-                    ? 'bg-[#1a73e8] text-white shadow-xs'
-                    : 'bg-white border border-[#dadce0] text-[#5f6368] hover:bg-[#f1f3f4] hover:text-[#1f1f1f]'
-                  }`}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all shrink-0 cursor-pointer ${
+                  categoryFilter === cat
+                    ? 'bg-[var(--ink)] text-white shadow-xs'
+                    : 'bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)]'
+                }`}
               >
                 {cat}
               </button>
@@ -393,13 +346,13 @@ const AdminFeatureAccess = () => {
 
           {/* Search Bar */}
           <div className="relative w-full lg:w-80 shrink-0">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368] pointer-events-none" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--icon-muted)] pointer-events-none" />
             <input
               type="search"
               placeholder="Search roles, scopes, or employee name..."
               value={searchFilter}
               onChange={(e) => setSearchFilter(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 text-xs bg-[#f1f3f4] hover:bg-[#e8eaed] focus:bg-white border border-transparent focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-full text-[#1f1f1f] placeholder:text-[#5f6368] outline-none transition-all shadow-none focus:shadow-sm"
+              className="w-full h-10 pl-10 pr-4 text-xs bg-[var(--surface-alt)] border border-[var(--line)] rounded-[12px] text-[var(--text)] placeholder:text-[var(--muted)] outline-none focus:ring-2 focus:ring-[var(--brand)] transition-all"
             />
           </div>
         </div>
@@ -407,20 +360,20 @@ const AdminFeatureAccess = () => {
         {/* Roles Table */}
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-xs text-left">
-            <thead className="bg-[#f8fafd] border-b border-[#e0e3e7] text-[#5f6368] uppercase font-semibold tracking-wider text-[11px]">
-              <tr>
-                <th className="px-5 py-3.5 w-1/3 min-w-[260px] whitespace-nowrap">Feature Role &amp; Scope</th>
-                <th className="px-5 py-3.5 min-w-[200px] whitespace-nowrap">Assigned Managers</th>
-                <th className="px-5 py-3.5 text-center w-36 whitespace-nowrap">Action</th>
+            <thead>
+              <tr className="border-b border-[var(--line)] text-[var(--muted)]">
+                <th className="px-4 py-3 font-normal text-xs w-1/3 min-w-[260px] whitespace-nowrap">Feature Role &amp; Scope</th>
+                <th className="px-4 py-3 font-normal text-xs min-w-[200px] whitespace-nowrap">Assigned Managers</th>
+                <th className="px-4 py-3 font-normal text-xs text-center w-36 whitespace-nowrap">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#e0e3e7]">
+            <tbody className="divide-y divide-[var(--line)]">
               {filteredFeatures.length === 0 ? (
                 <tr>
-                  <td colSpan="3" className="p-12 text-center text-[#5f6368]">
-                    <Shield className="w-12 h-12 text-[#dadce0] mx-auto mb-2" />
-                    <p className="text-sm font-semibold text-[#1f1f1f]">No feature roles found</p>
-                    <p className="text-xs text-[#5f6368] mt-0.5">Try adjusting your search query or category filter.</p>
+                  <td colSpan="3" className="p-12 text-center text-[var(--muted)]">
+                    <Shield className="w-12 h-12 text-[var(--icon-muted)] mx-auto mb-2" />
+                    <p className="text-sm font-semibold text-[var(--text)]">No feature roles found</p>
+                    <p className="text-xs text-[var(--muted)] mt-0.5">Try adjusting your search query or category filter.</p>
                   </td>
                 </tr>
               ) : (
@@ -429,42 +382,40 @@ const AdminFeatureAccess = () => {
                   const assignedUsers = users.filter(u => u[feature.key]);
 
                   return (
-                    <tr key={feature.key} className="hover:bg-[#f8fafd] transition-colors">
-                      <td className="px-5 py-4 align-top">
+                    <tr key={feature.key} className="hover:bg-[var(--surface-alt)]/60 transition-colors">
+                      <td className="px-4 py-3.5 align-top">
                         <div className="flex items-start gap-3">
-                          <div className="p-2 rounded-xl bg-[#e8f0fe] text-[#1a73e8] shrink-0 mt-0.5">
+                          <div className="w-8 h-8 rounded-[12px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center shrink-0 mt-0.5">
                             <Icon className="w-4 h-4" />
                           </div>
                           <div>
                             <div className="flex items-center flex-wrap gap-2 mb-1">
-                              <h3 className="font-semibold text-xs text-[#1f1f1f] whitespace-nowrap">{feature.title}</h3>
-                              <span className="text-[10px] font-semibold text-[#5f6368] bg-[#f1f3f4] border border-[#dadce0] px-2 py-0.5 rounded-full whitespace-nowrap shrink-0 inline-block">
+                              <h3 className="font-semibold text-xs text-[var(--text)] whitespace-nowrap">{feature.title}</h3>
+                              <span className="text-[10px] font-semibold text-[var(--muted)] bg-[var(--surface-alt)] px-2 py-0.5 rounded-[6px] whitespace-nowrap shrink-0 inline-block">
                                 {feature.category}
                               </span>
                             </div>
-                            <p className="text-[#5f6368] text-[11px] leading-relaxed max-w-md">
+                            <p className="text-[var(--text-2)] text-[11px] leading-relaxed max-w-md">
                               {feature.description}
                             </p>
                           </div>
                         </div>
                       </td>
 
-                      <td className="px-5 py-4 align-middle">
+                      <td className="px-4 py-3.5 align-middle">
                         <div className="flex flex-wrap gap-2 items-center">
                           {assignedUsers.length === 0 ? (
-                            <span className="text-xs text-[#5f6368] italic bg-[#f8fafd] border border-dashed border-[#dadce0] px-3 py-1 rounded-full whitespace-nowrap">
+                            <span className="text-xs text-[var(--muted)] italic bg-[var(--surface-alt)] border border-dashed border-[var(--line)] px-3 py-1 rounded-full whitespace-nowrap">
                               No managers assigned
                             </span>
                           ) : (
                             assignedUsers.map(u => (
                               <div
                                 key={u.id}
-                                className="inline-flex items-center gap-1.5 bg-white border border-[#dadce0] rounded-full pl-1 pr-2.5 py-0.5 shadow-2xs text-xs whitespace-nowrap shrink-0"
+                                className="inline-flex items-center gap-1.5 bg-[var(--surface-alt)] rounded-full pl-1 pr-2.5 py-0.5 text-xs whitespace-nowrap shrink-0"
                               >
-                                <div className="w-5 h-5 rounded-full bg-[#e8f0fe] text-[#1a73e8] font-bold text-[10px] flex items-center justify-center shrink-0">
-                                  {getInitials(u.firstName, u.lastName)}
-                                </div>
-                                <span className="font-semibold text-[#1f1f1f] text-[11px] whitespace-nowrap">
+                                <Avatar name={`${u.firstName || ''} ${u.lastName || ''}`} size="xs" />
+                                <span className="font-semibold text-[var(--text)] text-[11px] whitespace-nowrap">
                                   {u.firstName} {u.lastName}
                                 </span>
                               </div>
@@ -473,14 +424,16 @@ const AdminFeatureAccess = () => {
                         </div>
                       </td>
 
-                      <td className="px-5 py-4 text-center align-middle whitespace-nowrap">
-                        <button
+                      <td className="px-4 py-3.5 text-center align-middle whitespace-nowrap">
+                        <Button
+                          variant="secondary"
+                          size="sm"
                           onClick={() => openManageModal(feature)}
-                          className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] hover:bg-[#d2e3fc] transition-all cursor-pointer whitespace-nowrap shrink-0"
+                          className="text-xs"
                         >
-                          <UserPlus className="w-3.5 h-3.5 shrink-0" />
-                          <span className="whitespace-nowrap">Manage ({assignedUsers.length})</span>
-                        </button>
+                          <UserPlus className="w-3.5 h-3.5 mr-1" />
+                          <span>Manage ({assignedUsers.length})</span>
+                        </Button>
                       </td>
                     </tr>
                   );
@@ -491,68 +444,67 @@ const AdminFeatureAccess = () => {
         </div>
       </div>
 
-      {/* Slideover Right Drawer: Manage Users (createPortal) */}
+      {/* Slideover Right Drawer: Manage Users */}
       {selectedFeature && createPortal(
-        <div className="fixed inset-0 z-50 overflow-hidden font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+        <div className="fixed inset-0 z-50 overflow-hidden font-sans antialiased">
           <div
             className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity"
             onClick={() => !saving && setSelectedFeature(null)}
           />
           <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-            <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
-
+            <div className="w-screen max-w-md bg-[var(--surface)] shadow-[0_24px_60px_rgba(19,19,21,0.18)] flex flex-col animate-in slide-in-from-right duration-200">
               {/* Header */}
-              <div className="p-5 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd]">
+              <div className="p-5 border-b border-[var(--line)] flex justify-between items-center bg-[var(--surface-alt)]/50">
                 <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-xl bg-[#e8f0fe] text-[#1a73e8]">
-                    <Shield className="w-5 h-5" />
+                  <div className="w-8 h-8 rounded-[12px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center">
+                    <Shield className="w-4 h-4" />
                   </div>
                   <div>
-                    <h3 className="text-base font-medium text-[#1f1f1f] tracking-tight font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
-                      Manage <span className="font-medium italic text-[#1a73e8]">{selectedFeature.title.endsWith('Manager') ? `${selectedFeature.title}s` : selectedFeature.title}</span>
+                    <h3 className="text-base font-semibold text-[var(--text)]">
+                      Manage {selectedFeature.title.endsWith('Manager') ? `${selectedFeature.title}s` : selectedFeature.title}
                     </h3>
-                    <p className="text-xs text-[#5f6368] line-clamp-1">Select staff who should have this permission</p>
+                    <p className="text-xs text-[var(--muted)] line-clamp-1">Select staff who should have this permission</p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => !saving && setSelectedFeature(null)}
-                  className="p-1.5 rounded-full text-[#5f6368] hover:bg-[#e8eaed] transition-colors cursor-pointer"
+                  className="w-8 h-8 flex items-center justify-center text-[var(--muted)] hover:text-[var(--text)] rounded-full hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-4 h-4" />
                 </button>
               </div>
 
               {/* Search and Toggles */}
-              <div className="p-4 border-b border-[#e0e3e7] bg-white space-y-2.5">
+              <div className="p-4 border-b border-[var(--line)] bg-[var(--surface)] space-y-2.5">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#5f6368]" />
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--icon-muted)]" />
                   <input
                     type="search"
                     placeholder="Search staff by name or email..."
                     value={modalSearch}
                     onChange={(e) => setModalSearch(e.target.value)}
-                    className="w-full pl-9 pr-3.5 py-1.5 text-xs bg-[#f1f3f4] focus:bg-white border border-[#dadce0] rounded-full text-[#1f1f1f] placeholder:text-[#5f6368] outline-none"
+                    className="w-full h-10 pl-10 pr-4 text-xs bg-[var(--surface-alt)] border border-[var(--line)] rounded-[12px] text-[var(--text)] placeholder:text-[var(--muted)] outline-none focus:ring-2 focus:ring-[var(--brand)]"
                   />
                 </div>
 
                 <div className="flex items-center justify-between text-xs pt-1">
-                  <span className="text-[#5f6368] font-medium">
+                  <span className="text-[var(--muted)] font-medium">
                     {tempSelection.size} staff member(s) selected
                   </span>
                   <div className="flex gap-2">
                     <button
                       type="button"
                       onClick={() => setTempSelection(new Set(users.map(u => u.id)))}
-                      className="text-[#1a73e8] font-semibold hover:underline cursor-pointer"
+                      className="text-[var(--brand-deep)] font-semibold hover:underline cursor-pointer"
                     >
                       Select All
                     </button>
-                    <span className="text-[#dadce0]">•</span>
+                    <span className="text-[var(--line)]">•</span>
                     <button
                       type="button"
                       onClick={() => setTempSelection(new Set())}
-                      className="text-[#5f6368] font-semibold hover:underline cursor-pointer"
+                      className="text-[var(--muted)] font-semibold hover:underline cursor-pointer"
                     >
                       Deselect
                     </button>
@@ -560,74 +512,74 @@ const AdminFeatureAccess = () => {
                 </div>
               </div>
 
-              {/* Staff List Body */}
+              {/* User Checklist */}
               <div className="p-4 overflow-y-auto flex-1 custom-scrollbar space-y-1.5">
                 {filteredUsersForModal.length === 0 ? (
-                  <p className="text-xs text-[#5f6368] p-4 text-center">No staff found matching search.</p>
+                  <p className="text-xs text-[var(--muted)] p-4 text-center">No matching staff members found.</p>
                 ) : (
                   filteredUsersForModal.map(u => {
                     const isSelected = tempSelection.has(u.id);
-
                     return (
-                      <label
+                      <div
                         key={u.id}
-                        className={`flex items-center gap-3 p-2.5 rounded-2xl border transition-all cursor-pointer ${isSelected
-                            ? 'bg-[#e8f0fe] border-[#4285F4] shadow-2xs'
-                            : 'bg-white border-[#e0e3e7] hover:border-[#dadce0]'
-                          }`}
+                        onClick={() => handleToggleUser(u.id)}
+                        className={`p-3 rounded-[16px] border flex items-center justify-between transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-[var(--brand-tint)] border-[var(--brand)] text-[var(--brand-deep)]'
+                            : 'bg-[var(--surface)] border-[var(--line)] hover:bg-[var(--surface-alt)] text-[var(--text)]'
+                        }`}
                       >
-                        <input
-                          type="checkbox"
-                          className="w-4 h-4 rounded text-[#1a73e8] focus:ring-[#1a73e8] cursor-pointer"
-                          checked={isSelected}
-                          onChange={() => handleToggleUser(u.id)}
-                        />
-                        <div className="w-7 h-7 rounded-full bg-[#e8f0fe] text-[#1a73e8] font-bold text-xs flex items-center justify-center shrink-0">
-                          {getInitials(u.firstName, u.lastName)}
+                        <div className="flex items-center gap-3">
+                          <Avatar name={`${u.firstName || ''} ${u.lastName || ''}`} size="sm" />
+                          <div>
+                            <p className="font-semibold text-xs text-[var(--text)]">
+                              {u.firstName} {u.lastName}
+                            </p>
+                            <p className="text-[11px] text-[var(--muted)]">
+                              {u.employeeCode || u.employeeId || 'ID'} • {u.department || 'General'}
+                            </p>
+                          </div>
                         </div>
-                        <div className="flex-1 truncate text-xs">
-                          <p className="font-semibold text-[#1f1f1f] truncate">{u.firstName} {u.lastName}</p>
-                          <p className="text-[10px] text-[#5f6368] truncate">{u.email} • <span className="capitalize">{u.role || 'Staff'}</span></p>
+
+                        <div className={`w-5 h-5 rounded-[6px] flex items-center justify-center border transition-all ${
+                          isSelected
+                            ? 'bg-[var(--brand-deep)] border-[var(--brand-deep)] text-white'
+                            : 'border-[var(--line)] bg-[var(--surface)]'
+                        }`}>
+                          {isSelected && <span className="text-xs font-bold">✓</span>}
                         </div>
-                      </label>
+                      </div>
                     );
                   })
                 )}
               </div>
 
               {/* Footer */}
-              <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex justify-end items-center gap-2.5 shrink-0">
-                <button
+              <div className="p-4 border-t border-[var(--line)] bg-[var(--surface-alt)]/50 flex justify-end gap-2.5">
+                <Button
                   type="button"
-                  onClick={() => setSelectedFeature(null)}
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => !saving && setSelectedFeature(null)}
                   disabled={saving}
-                  className="px-4 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer"
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="primary"
+                  size="sm"
                   onClick={handleSaveModal}
-                  disabled={saving}
-                  className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs transition-all cursor-pointer disabled:opacity-50"
+                  loading={saving}
                 >
-                  {saving ? (
-                    <>
-                      <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-white border-t-transparent" />
-                      <span>Saving Roles...</span>
-                    </>
-                  ) : (
-                    <span>Save Roles</span>
-                  )}
-                </button>
+                  Save Permissions
+                </Button>
               </div>
-
             </div>
           </div>
         </div>,
         document.body
       )}
-
     </div>
   );
 };

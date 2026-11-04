@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import PageLoader from '../components/PageLoader';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Edit3, Settings, User, Mail, Phone, MapPin, Briefcase,
   CalendarDays, Building2, Shield, CreditCard, HeartHandshake, Globe,
-  Clock, Laptop, Droplets, Heart, Download, Camera, IndianRupee,
-  CheckCircle2, Sparkles, AlertCircle, TrendingUp, Award, X
+  Clock, Laptop, Droplets, Download, Camera,
+  AlertCircle, TrendingUp, X, Sparkles
 } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { pdf } from '@react-pdf/renderer';
@@ -15,6 +15,9 @@ import PayslipPDF from '../components/PayslipPDF';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
+import Button from '../components/ui/Button';
+import StatusBadge from '../components/ui/StatusBadge';
+import Avatar from '../components/ui/Avatar';
 
 const AdminEmployeeView = () => {
   const { id } = useParams();
@@ -52,7 +55,9 @@ const AdminEmployeeView = () => {
         date.setMonth(monthNum - 1);
         return date.toLocaleString('default', { month: 'long' });
       };
-      link.download = `${payslip.employeeName.replace(/[^a-zA-Z0-9 _-]/g, '')} - Payslip - ${getMonthName(payslip.month)} ${payslip.year}.pdf`;
+      link.download = `${payslip.employeeName.replace(/[^a-zA-Z0-9 _-]/g, '')} - Payslip - ${getMonthName(
+        payslip.month
+      )} ${payslip.year}.pdf`;
       link.click();
       URL.revokeObjectURL(url);
     } catch (err) {
@@ -62,20 +67,21 @@ const AdminEmployeeView = () => {
   };
 
   if (loading || (!data && isFetching)) {
-    return <PageLoader message="Loading Employee Details..." />;
+    return <PageLoader message="Loading employee details..." />;
   }
 
   if (!data || !data.employee) {
     return (
-      <div className="text-center py-16 text-[#5f6368]">
-        <AlertCircle className="w-10 h-10 text-[#EA4335] mx-auto mb-2 opacity-80" />
-        <p className="text-sm font-semibold text-[#1f1f1f]">Employee record not found</p>
-        <button
+      <div className="text-center py-16 text-[var(--muted)]">
+        <AlertCircle className="w-10 h-10 text-[#D64550] mx-auto mb-2 opacity-80" />
+        <p className="text-sm font-medium text-[var(--text)]">Employee record not found</p>
+        <Button
+          variant="outline"
           onClick={() => navigate('/admin/employees')}
-          className="mt-3 px-4 py-1.5 text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] rounded-full hover:bg-[#d2e3fc] transition-colors"
+          className="mt-3 h-9 px-4 rounded-[12px] text-xs font-medium"
         >
-          Back to Directory
-        </button>
+          Back to directory
+        </Button>
       </div>
     );
   }
@@ -91,7 +97,6 @@ const AdminEmployeeView = () => {
   } = employee;
 
   const fullName = `${firstName} ${lastName}`.trim();
-  const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
 
   const openPromoteModal = () => {
     setPromoteForm({
@@ -138,26 +143,31 @@ const AdminEmployeeView = () => {
   };
 
   const tabs = [
-    { id: 'personal', label: 'Personal Info', icon: User },
-    { id: 'work', label: 'Work Info', icon: Briefcase },
-    { id: 'work-shift', label: 'Work Shift', icon: Clock },
+    { id: 'personal', label: 'Personal info', icon: User },
+    { id: 'work', label: 'Work info', icon: Briefcase },
+    { id: 'work-shift', label: 'Work shift', icon: Clock },
     { id: 'emergency', label: 'Emergency', icon: Phone },
-    { id: 'asset', label: 'My Assets', icon: Laptop },
+    { id: 'asset', label: 'Assigned assets', icon: Laptop },
     { id: 'timeline', label: 'Timeline', icon: CalendarDays },
   ];
 
   const formatDate = (val) => {
     if (!val) return 'Not set';
-    return new Date(val).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    return new Date(val).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
   };
 
-  const getStatusBadge = (st) => {
-    switch (st?.toLowerCase()) {
-      case 'active': return 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]';
-      case 'on leave': return 'bg-[#fef7e0] text-[#b06000] border-[#feefc3]';
-      case 'inactive': case 'terminated': case 'resigned': case 'absconded': return 'bg-[#fce8e6] text-[#c5221f] border-[#fad2cf]';
-      default: return 'bg-[#f1f3f4] text-[#444746] border-[#dadce0]';
+  const renderStatus = (st) => {
+    const s = (st || '').toLowerCase();
+    if (s === 'active') return <StatusBadge status="Success">Active</StatusBadge>;
+    if (s === 'on leave') return <StatusBadge status="Warning">On leave</StatusBadge>;
+    if (s === 'inactive' || s === 'terminated' || s === 'resigned' || s === 'absconded') {
+      return <StatusBadge status="Danger">{st}</StatusBadge>;
     }
+    return <StatusBadge status="Neutral">{st || 'Inactive'}</StatusBadge>;
   };
 
   const handleImageUpload = async (e) => {
@@ -189,7 +199,7 @@ const AdminEmployeeView = () => {
 
       if (uploadError) throw uploadError;
 
-      const avatarUrl = window.location.origin + "/Avatar/" + fileName;
+      const avatarUrl = window.location.origin + '/Avatar/' + fileName;
 
       await api.put(`/admin/employees/${id}`, { avatar: avatarUrl });
 
@@ -205,14 +215,18 @@ const AdminEmployeeView = () => {
   const renderTimeline = () => {
     let history = [];
     if (timeline) {
-      try { history = JSON.parse(timeline); } catch (e) { history = []; }
+      try {
+        history = JSON.parse(timeline);
+      } catch (e) {
+        history = [];
+      }
     }
     if (!history.length) {
-      history = [{ date: joinDate, title: 'Joined Company', description: `Started as ${position || 'Employee'}` }];
+      history = [{ date: joinDate, title: 'Joined company', description: `Started as ${position || 'Employee'}` }];
     } else {
-      const hasJoined = history.some(e => e.title === 'Joined Company');
+      const hasJoined = history.some((e) => e.title === 'Joined Company' || e.title === 'Joined company');
       if (!hasJoined && joinDate) {
-        history.unshift({ date: joinDate, title: 'Joined Company', description: `Started as ${position || 'Employee'}` });
+        history.unshift({ date: joinDate, title: 'Joined company', description: `Started as ${position || 'Employee'}` });
       }
     }
 
@@ -232,8 +246,10 @@ const AdminEmployeeView = () => {
           if (anniversaryDate > exitDate) break;
         }
 
-        const title = `${yearsCompleted}${yearsCompleted === 1 ? 'st' : yearsCompleted === 2 ? 'nd' : yearsCompleted === 3 ? 'rd' : 'th'} Work Anniversary`;
-        const exists = history.some(e => e.title === title);
+        const title = `${yearsCompleted}${
+          yearsCompleted === 1 ? 'st' : yearsCompleted === 2 ? 'nd' : yearsCompleted === 3 ? 'rd' : 'th'
+        } work anniversary`;
+        const exists = history.some((e) => e.title.toLowerCase() === title.toLowerCase());
 
         if (!exists) {
           history.push({
@@ -248,18 +264,17 @@ const AdminEmployeeView = () => {
     history.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     return (
-      <div className="relative border-l-2 border-[#e0e3e7] ml-3.5 space-y-6 mt-3 py-2">
+      <div className="relative border-l-2 border-[var(--line)] ml-3.5 space-y-6 mt-3 py-2">
         {history.map((event, idx) => (
           <div key={idx} className="relative pl-6">
             <div className="absolute -left-[9px] mt-1 flex h-4 w-4 items-center justify-center">
-              {idx === 0 && <span className="absolute h-6 w-6 animate-ping rounded-full bg-[#4285F4]/30"></span>}
-              <span className="relative h-3.5 w-3.5 rounded-full bg-[#1a73e8] border-2 border-white ring-2 ring-[#e8f0fe]"></span>
+              <span className="relative h-3 w-3 rounded-full bg-[var(--brand)] border-2 border-[var(--surface)]" />
             </div>
             <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between mb-0.5">
-              <h4 className="text-xs font-semibold text-[#1f1f1f]">{event.title}</h4>
-              <time className="text-[11px] text-[#5f6368] font-medium">{formatDate(event.date)}</time>
+              <h4 className="text-xs font-medium text-[var(--text)]">{event.title}</h4>
+              <time className="text-[11px] text-[var(--muted)]">{formatDate(event.date)}</time>
             </div>
-            <p className="text-xs text-[#5f6368] mt-0.5">{event.description}</p>
+            <p className="text-xs text-[var(--muted)] mt-0.5">{event.description}</p>
           </div>
         ))}
       </div>
@@ -267,79 +282,81 @@ const AdminEmployeeView = () => {
   };
 
   return (
-    <div className="space-y-6 w-full pb-8 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+    <div className="space-y-5 w-full pb-8 antialiased">
       {/* Header Bar */}
-      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 w-full">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 w-full">
         <div>
-          <div className="flex items-center gap-1.5 mb-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-            <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Staff Profile & Records</span>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-medium tracking-tight text-[var(--text)]">
+              {fullName}
+            </h1>
+            <span className="text-xs font-mono px-2.5 py-0.5 rounded-full bg-[var(--surface-alt)] text-[var(--text-2)] border border-[var(--line)]">
+              {employeeId}
+            </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
-            <span className="font-medium italic text-[#1a73e8]">{fullName}</span> <span className="text-xs font-medium text-[#5f6368] bg-[#f1f3f4] border border-[#e0e3e7] px-2.5 py-0.5 rounded-full align-middle ml-1.5">{employeeId}</span>
-          </h1>
-          <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
-            {position || 'Staff Member'} &bull; {department || 'General'} &bull; {branch_name || branch || 'Main Branch'}
+          <p className="text-xs text-[var(--muted)] mt-0.5">
+            {position || 'Staff member'} &bull; {department || 'General'} &bull; {branch_name || branch || 'Main Branch'}
           </p>
         </div>
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
-          <button
-            type="button"
+          <Button
+            variant="outline"
             onClick={openPromoteModal}
-            className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[#137333] hover:bg-[#0d652d] text-white px-4 py-2 shadow-md shadow-[#34A853]/25 hover:shadow-lg transition-all cursor-pointer gap-1.5 whitespace-nowrap"
+            className="h-9 px-4 rounded-[12px] font-medium text-xs justify-center"
           >
-            <TrendingUp size={14} />
-            <span>Promote Employee</span>
-          </button>
-          <button
+            <TrendingUp size={14} className="text-[#1F9D55]" />
+            <span>Promote employee</span>
+          </Button>
+          <Button
+            variant="primary"
             onClick={() => navigate(`/admin/employees/${id}/edit`)}
-            className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white px-4 py-2 shadow-md shadow-[#4285F4]/25 hover:shadow-lg transition-all cursor-pointer gap-1.5 whitespace-nowrap"
+            className="h-9 px-4 rounded-[12px] font-medium text-xs justify-center"
           >
             <Edit3 size={14} />
-            <span>Edit Profile</span>
-          </button>
-          <button
+            <span>Edit profile</span>
+          </Button>
+          <Button
+            variant="outline"
             onClick={() => navigate(`/admin/employees/${id}/settings`)}
-            className="inline-flex items-center justify-center rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#444746] px-4 py-2 transition-colors cursor-pointer gap-1.5 shadow-xs whitespace-nowrap"
+            className="h-9 px-3.5 rounded-[12px] font-medium text-xs justify-center"
           >
             <Settings size={14} />
-            <span>Access Settings</span>
-          </button>
-          <button
+            <span>Security</span>
+          </Button>
+          <Button
+            variant="outline"
             onClick={() => navigate('/admin/employees')}
-            className="inline-flex items-center justify-center rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#5f6368] px-3.5 py-2 transition-colors cursor-pointer gap-1.5 shadow-xs whitespace-nowrap"
+            className="h-9 px-3.5 rounded-[12px] font-medium text-xs justify-center"
           >
             <ArrowLeft size={14} />
-            <span>Back To Employees</span>
-          </button>
+            <span>Directory</span>
+          </Button>
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3 w-full">
+      <div className="grid gap-4 md:grid-cols-3 w-full">
         {/* Left Column - Profile Card, Leave Quota & Recent Payslips */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Profile Card */}
-          <div className="rounded-2xl border border-[#e0e3e7] bg-white shadow-xs p-6 flex flex-col items-center text-center relative overflow-hidden">
-            {/* Top Accent Line */}
-            <div className="h-1 w-full bg-[#4285F4] absolute top-0 left-0" />
-
-            {/* Avatar with Camera Upload */}
-            <div className="relative group cursor-pointer h-22 w-22 mx-auto mb-3.5">
-              <div className="h-full w-full overflow-hidden rounded-full bg-[#e8f0fe] border-2 border-[#d2e3fc] text-2xl font-bold text-[#1a73e8] flex items-center justify-center shadow-xs">
-                {avatar ? <img src={avatar} alt="Avatar" className="h-full w-full object-cover" /> : initials}
-              </div>
-              <label className="absolute inset-0 bg-black/50 hidden group-hover:flex flex-col items-center justify-center text-white cursor-pointer transition-all rounded-full">
+          <div className="rounded-[24px] bg-[var(--surface)] p-[18px] flex flex-col items-center text-center relative overflow-hidden">
+            {/* Avatar with Camera Upload (14px rounded square) */}
+            <div className="relative group cursor-pointer h-20 w-20 mx-auto mb-3.5">
+              <Avatar
+                name={fullName}
+                src={avatar}
+                size={80}
+                shape="square"
+                radius={14}
+              />
+              <label className="absolute inset-0 bg-black/50 hidden group-hover:flex flex-col items-center justify-center text-white cursor-pointer transition-all rounded-[14px]">
                 {isUploading ? (
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
                 ) : (
                   <>
-                    <Camera size={18} />
-                    <span className="text-[9px] font-semibold uppercase tracking-wider mt-0.5">Upload</span>
+                    <Camera size={16} />
+                    <span className="text-[9px] font-medium mt-0.5">Upload</span>
                     <input
                       type="file"
                       accept="image/*"
@@ -352,609 +369,617 @@ const AdminEmployeeView = () => {
               </label>
             </div>
 
-            <h2 className="text-lg font-semibold text-[#1f1f1f]">{fullName}</h2>
-            <p className="text-xs text-[#5f6368] mt-0.5">{position || 'Employee'}</p>
+            <h2 className="text-base font-medium text-[var(--text)]">{fullName}</h2>
+            <p className="text-xs text-[var(--muted)] mt-0.5">{position || 'Employee'}</p>
 
             <div className="mt-2.5">
-              <span className={`inline-flex items-center rounded-full border px-3 py-0.5 text-[10.5px] font-semibold capitalize ${getStatusBadge(status)}`}>
-                {status}
-              </span>
+              {renderStatus(status)}
             </div>
 
             {/* Leave Balance Quota */}
-            <div className="w-full mt-6 pt-5 border-t border-[#f1f3f4]">
+            <div className="w-full mt-5 pt-4 border-t border-[var(--line)]">
               <div className="flex items-center justify-between mb-3">
-                <p className="text-xs font-semibold text-[#1f1f1f]">Leave Balance Quota</p>
-                <span className="text-[11px] text-[#5f6368]">Annual</span>
+                <p className="text-xs font-medium text-[var(--text)]">Leave balance quota</p>
+                <span className="text-[11px] text-[var(--muted)]">Annual</span>
               </div>
-              <div className="grid grid-cols-2 gap-2.5">
-                <div className="rounded-xl border border-[#d2e3fc] bg-[#e8f0fe]/50 p-2.5 text-center">
-                  <p className="text-lg font-bold text-[#1a73e8]">{leaveBalance?.paidTotal || 12}</p>
-                  <p className="text-[10.5px] font-medium text-[#5f6368]">Paid Total</p>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-[12px] bg-[var(--surface-alt)] p-2.5 text-center">
+                  <p className="text-base font-medium text-[var(--brand-deep)]">{leaveBalance?.paidTotal || 12}</p>
+                  <p className="text-[10px] text-[var(--muted)]">Paid total</p>
                 </div>
-                <div className="rounded-xl border border-[#ceead6] bg-[#e6f4ea]/50 p-2.5 text-center">
-                  <p className="text-lg font-bold text-[#137333]">{(leaveBalance?.paidTotal || 12) - (leaveBalance?.paidUsed || 0)}</p>
-                  <p className="text-[10.5px] font-medium text-[#5f6368]">Remaining Paid</p>
+                <div className="rounded-[12px] bg-[#E6F6EC] p-2.5 text-center">
+                  <p className="text-base font-medium text-[#1F9D55]">
+                    {(leaveBalance?.paidTotal || 12) - (leaveBalance?.paidUsed || 0)}
+                  </p>
+                  <p className="text-[10px] text-[#1F9D55]">Remaining</p>
                 </div>
-                <div className="rounded-xl border border-[#fad2cf] bg-[#fce8e6]/50 p-2.5 text-center">
-                  <p className="text-lg font-bold text-[#c5221f]">{leaveBalance?.paidUsed || 0}</p>
-                  <p className="text-[10.5px] font-medium text-[#5f6368]">Paid Used</p>
+                <div className="rounded-[12px] bg-[#FDE8EA] p-2.5 text-center">
+                  <p className="text-base font-medium text-[#D64550]">{leaveBalance?.paidUsed || 0}</p>
+                  <p className="text-[10px] text-[#D64550]">Paid used</p>
                 </div>
-                <div className="rounded-xl border border-[#feefc3] bg-[#fef7e0]/50 p-2.5 text-center">
-                  <p className="text-lg font-bold text-[#b06000]">{leaveBalance?.unpaidUsed || 0}</p>
-                  <p className="text-[10.5px] font-medium text-[#5f6368]">Unpaid Used</p>
+                <div className="rounded-[12px] bg-[#FDF3DC] p-2.5 text-center">
+                  <p className="text-base font-medium text-[#B7791F]">{leaveBalance?.unpaidUsed || 0}</p>
+                  <p className="text-[10px] text-[#B7791F]">Unpaid used</p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Recent Payslips Card */}
-          <div className="rounded-2xl border border-[#e0e3e7] bg-white shadow-xs overflow-hidden">
-            <div className="p-4 border-b border-[#f1f3f4] bg-[#f8fafd]/60 flex items-center justify-between">
-              <h3 className="text-xs font-semibold text-[#1f1f1f]">Recent Payslips</h3>
-              <span className="text-[10.5px] font-medium text-[#5f6368]">Payroll History</span>
+          <div className="rounded-[24px] bg-[var(--surface)] p-[18px]">
+            <div className="pb-3 border-b border-[var(--line)] flex items-center justify-between mb-3">
+              <h3 className="text-xs font-medium text-[var(--text)]">Recent payslips</h3>
+              <span className="text-[11px] text-[var(--muted)]">Payroll history</span>
             </div>
-            <div className="p-4">
+            <div>
               {recentPayslips?.length > 0 ? (
-                <div className="space-y-2.5">
+                <div className="space-y-2">
                   {recentPayslips.map((ps, i) => (
-                    <div key={i} className="flex justify-between items-center text-xs border-b border-[#f1f3f4] pb-2.5 last:border-0 last:pb-0">
-                      <span className="text-[#5f6368] font-medium">
-                        {new Date(ps.year, ps.month - 1).toLocaleString('default', { month: 'short', year: 'numeric' })}
+                    <div
+                      key={i}
+                      className="flex justify-between items-center text-xs pb-2 border-b border-[var(--line)] last:border-0 last:pb-0"
+                    >
+                      <span className="text-[var(--muted)]">
+                        {new Date(ps.year, ps.month - 1).toLocaleString('default', {
+                          month: 'short',
+                          year: 'numeric'
+                        })}
                       </span>
-                      <div className="flex items-center gap-2.5">
-                        <span className="font-semibold text-[#1f1f1f]">₹{ps.netSalary}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-[var(--text)]">₹{ps.netSalary}</span>
                         <button
+                          type="button"
                           onClick={() => handleDownload(ps)}
-                          className="text-[#1a73e8] hover:text-[#1557b0] p-1.5 rounded-full hover:bg-[#e8f0fe] transition-colors cursor-pointer"
+                          className="text-[var(--brand-deep)] hover:text-[var(--text)] p-1 rounded-full hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
                           title="Download Payslip PDF"
                         >
-                          <Download size={14} />
+                          <Download size={13} />
                         </button>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-[#5f6368] text-center py-4 italic">No payslips generated yet</p>
+                <p className="text-xs text-[var(--muted)] text-center py-4 italic">
+                  No payslips generated yet
+                </p>
               )}
             </div>
           </div>
         </div>
 
         {/* Right Column - Tabbed Details */}
-        <div className="md:col-span-2 space-y-4">
-          {/* Material 3 Tabs Navigation Bar */}
-          <div className="flex items-center gap-1.5 p-1.5 bg-[#f8fafd] border border-[#e0e3e7] rounded-full overflow-x-auto hide-scrollbar shadow-2xs">
+        <div className="md:col-span-2 space-y-3.5">
+          {/* Tabs Navigation Pills */}
+          <div className="flex items-center gap-1.5 p-1 bg-[var(--surface)] rounded-full overflow-x-auto hide-scrollbar">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
               return (
                 <button
                   key={tab.id}
+                  type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold transition-all whitespace-nowrap cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium transition-all whitespace-nowrap cursor-pointer ${
                     isActive
-                      ? 'bg-[#c2e7ff]/70 text-[#001d35] shadow-xs'
-                      : 'text-[#5f6368] hover:bg-[#f1f3f4] hover:text-[#1f1f1f]'
+                      ? 'bg-[var(--ink)] text-white dark:bg-[var(--text)] dark:text-[var(--surface)] shadow-xs'
+                      : 'text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--surface-alt)]'
                   }`}
                 >
-                  <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-[#001d35]' : 'text-[#5f6368]'}`} />
+                  <Icon size={13} />
                   <span>{tab.label}</span>
                 </button>
               );
             })}
           </div>
 
-          <div className="rounded-2xl border border-[#e0e3e7] bg-white shadow-xs overflow-hidden">
-            {/* Tab Contents */}
-            <div className="p-6">
-              {/* PERSONAL INFO */}
-              {activeTab === 'personal' && (
-                <div className="grid sm:grid-cols-2 gap-5">
-                  <div className="flex items-start gap-3 p-3 rounded-xl border border-[#f1f3f4] bg-[#f8fafd]/40">
-                    <div className="p-2 rounded-lg bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] shrink-0">
-                      <Mail size={16} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[11px] font-medium text-[#5f6368]">Email Address</p>
-                      <p className="text-xs font-semibold text-[#1f1f1f] truncate mt-0.5">{email || 'Not set'}</p>
-                    </div>
+          <div className="rounded-[24px] bg-[var(--surface)] p-[18px]">
+            {/* PERSONAL INFO */}
+            {activeTab === 'personal' && (
+              <div className="grid sm:grid-cols-2 gap-3.5">
+                <div className="flex items-start gap-3 p-3 rounded-[14px] bg-[var(--surface-alt)]">
+                  <div className="p-2 rounded-[10px] bg-[var(--surface)] text-[var(--brand-deep)] shrink-0">
+                    <Mail size={15} />
                   </div>
-
-                  <div className="flex items-start gap-3 p-3 rounded-xl border border-[#f1f3f4] bg-[#f8fafd]/40">
-                    <div className="p-2 rounded-lg bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] shrink-0">
-                      <Phone size={16} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[11px] font-medium text-[#5f6368]">Phone Number</p>
-                      <p className="text-xs font-semibold text-[#1f1f1f] truncate mt-0.5">{phone || 'Not set'}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 p-3 rounded-xl border border-[#f1f3f4] bg-[#f8fafd]/40">
-                    <div className="p-2 rounded-lg bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] shrink-0">
-                      <User size={16} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[11px] font-medium text-[#5f6368]">Gender</p>
-                      <p className="text-xs font-semibold text-[#1f1f1f] capitalize mt-0.5">{gender || 'Not set'}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 p-3 rounded-xl border border-[#f1f3f4] bg-[#f8fafd]/40">
-                    <div className="p-2 rounded-lg bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] shrink-0">
-                      <HeartHandshake size={16} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[11px] font-medium text-[#5f6368]">Marital Status</p>
-                      <p className="text-xs font-semibold text-[#1f1f1f] capitalize mt-0.5">{maritalStatus || 'Not set'}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 p-3 rounded-xl border border-[#f1f3f4] bg-[#f8fafd]/40">
-                    <div className="p-2 rounded-lg bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] shrink-0">
-                      <Globe size={16} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[11px] font-medium text-[#5f6368]">Nationality</p>
-                      <p className="text-xs font-semibold text-[#1f1f1f] capitalize mt-0.5">{nationality || 'Not set'}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 p-3 rounded-xl border border-[#f1f3f4] bg-[#f8fafd]/40">
-                    <div className="p-2 rounded-lg bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] shrink-0">
-                      <MapPin size={16} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[11px] font-medium text-[#5f6368]">Residential Address</p>
-                      <p className="text-xs font-semibold text-[#1f1f1f] mt-0.5">{address || 'Not set'}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 p-3 rounded-xl border border-[#f1f3f4] bg-[#f8fafd]/40">
-                    <div className="p-2 rounded-lg bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] shrink-0">
-                      <CreditCard size={16} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[11px] font-medium text-[#5f6368]">PAN Number</p>
-                      <p className="text-xs font-semibold text-[#1f1f1f] mt-0.5">{panNumber || 'Not set'}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 p-3 rounded-xl border border-[#f1f3f4] bg-[#f8fafd]/40">
-                    <div className="p-2 rounded-lg bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] shrink-0">
-                      <CalendarDays size={16} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[11px] font-medium text-[#5f6368]">Date of Birth</p>
-                      <p className="text-xs font-semibold text-[#1f1f1f] mt-0.5">{formatDate(dateOfBirth)}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 p-3 rounded-xl border border-[#f1f3f4] bg-[#f8fafd]/40">
-                    <div className="p-2 rounded-lg bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] shrink-0">
-                      <Droplets size={16} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[11px] font-medium text-[#5f6368]">Blood Group</p>
-                      <p className="text-xs font-semibold text-[#1f1f1f] mt-0.5">{bloodGroup || 'Not set'}</p>
-                    </div>
+                  <div className="min-w-0">
+                    <p className="text-[11px] text-[var(--muted)]">Email address</p>
+                    <p className="text-xs font-medium text-[var(--text)] truncate mt-0.5">{email || 'Not set'}</p>
                   </div>
                 </div>
-              )}
 
-              {/* WORK INFO */}
-              {activeTab === 'work' && (
-                <div className="grid sm:grid-cols-2 gap-5">
-                  <div className="flex items-start gap-3 p-3 rounded-xl border border-[#f1f3f4] bg-[#f8fafd]/40">
-                    <div className="p-2 rounded-lg bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] shrink-0">
-                      <Shield size={16} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[11px] font-medium text-[#5f6368]">Employee ID</p>
-                      <p className="text-xs font-semibold text-[#1f1f1f] mt-0.5">{employeeId || 'Not set'}</p>
-                    </div>
+                <div className="flex items-start gap-3 p-3 rounded-[14px] bg-[var(--surface-alt)]">
+                  <div className="p-2 rounded-[10px] bg-[var(--surface)] text-[var(--brand-deep)] shrink-0">
+                    <Phone size={15} />
                   </div>
-
-                  <div className="flex items-start gap-3 p-3 rounded-xl border border-[#f1f3f4] bg-[#f8fafd]/40">
-                    <div className="p-2 rounded-lg bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] shrink-0">
-                      <Mail size={16} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[11px] font-medium text-[#5f6368]">Official Work Email</p>
-                      <p className="text-xs font-semibold text-[#1f1f1f] truncate mt-0.5">{workEmail || 'Not set'}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 p-3 rounded-xl border border-[#f1f3f4] bg-[#f8fafd]/40">
-                    <div className="p-2 rounded-lg bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] shrink-0">
-                      <CalendarDays size={16} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[11px] font-medium text-[#5f6368]">Joining Date</p>
-                      <p className="text-xs font-semibold text-[#1f1f1f] mt-0.5">{formatDate(joinDate)}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 p-3 rounded-xl border border-[#f1f3f4] bg-[#f8fafd]/40">
-                    <div className="p-2 rounded-lg bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] shrink-0">
-                      <Briefcase size={16} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[11px] font-medium text-[#5f6368]">Designation / Position</p>
-                      <p className="text-xs font-semibold text-[#1f1f1f] mt-0.5">{position || 'Not set'}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 p-3 rounded-xl border border-[#f1f3f4] bg-[#f8fafd]/40">
-                    <div className="p-2 rounded-lg bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] shrink-0">
-                      <Building2 size={16} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[11px] font-medium text-[#5f6368]">Department</p>
-                      <p className="text-xs font-semibold text-[#1f1f1f] mt-0.5">{department || 'Not set'}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 p-3 rounded-xl border border-[#f1f3f4] bg-[#f8fafd]/40">
-                    <div className="p-2 rounded-lg bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] shrink-0">
-                      <Building2 size={16} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[11px] font-medium text-[#5f6368]">Branch Location</p>
-                      <p className="text-xs font-semibold text-[#1f1f1f] mt-0.5">{branch_name || branch || 'Not set'}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 p-3 rounded-xl border border-[#f1f3f4] bg-[#f8fafd]/40">
-                    <div className="p-2 rounded-lg bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] shrink-0">
-                      <Briefcase size={16} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[11px] font-medium text-[#5f6368]">Employment Type</p>
-                      <p className="text-xs font-semibold text-[#1f1f1f] capitalize mt-0.5">{employmentType || 'Not set'}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 p-3 rounded-xl border border-[#f1f3f4] bg-[#f8fafd]/40">
-                    <div className="p-2 rounded-lg bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] shrink-0">
-                      <Clock size={16} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[11px] font-medium text-[#5f6368]">Notice Period</p>
-                      <p className="text-xs font-semibold text-[#1f1f1f] mt-0.5">{noticePeriod ? `${noticePeriod} days` : 'Not set'}</p>
-                    </div>
+                  <div className="min-w-0">
+                    <p className="text-[11px] text-[var(--muted)]">Phone number</p>
+                    <p className="text-xs font-medium text-[var(--text)] truncate mt-0.5">{phone || 'Not set'}</p>
                   </div>
                 </div>
-              )}
 
-              {/* WORK SHIFT */}
-              {activeTab === 'work-shift' && (
-                <div className="grid sm:grid-cols-2 gap-5">
-                  <div className="flex items-start gap-3 p-3 rounded-xl border border-[#f1f3f4] bg-[#f8fafd]/40">
-                    <div className="p-2 rounded-lg bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] shrink-0">
-                      <Clock size={16} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[11px] font-medium text-[#5f6368]">Daily Shift Hours</p>
-                      <p className="text-xs font-semibold text-[#1f1f1f] mt-0.5">{shiftTime || 'Not set'}</p>
-                    </div>
+                <div className="flex items-start gap-3 p-3 rounded-[14px] bg-[var(--surface-alt)]">
+                  <div className="p-2 rounded-[10px] bg-[var(--surface)] text-[var(--brand-deep)] shrink-0">
+                    <User size={15} />
                   </div>
-
-                  <div className="flex items-start gap-3 p-3 rounded-xl border border-[#f1f3f4] bg-[#f8fafd]/40">
-                    <div className="p-2 rounded-lg bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] shrink-0">
-                      <MapPin size={16} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[11px] font-medium text-[#5f6368]">Working Arrangement</p>
-                      <p className="text-xs font-semibold text-[#1f1f1f] capitalize mt-0.5">{workMode || 'Not set'}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 p-3 rounded-xl border border-[#f1f3f4] bg-[#f8fafd]/40">
-                    <div className="p-2 rounded-lg bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] shrink-0">
-                      <CalendarDays size={16} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[11px] font-medium text-[#5f6368]">Weekly Off</p>
-                      <p className="text-xs font-semibold text-[#1f1f1f] capitalize mt-0.5">{weekOff || 'Not set'}</p>
-                    </div>
+                  <div className="min-w-0">
+                    <p className="text-[11px] text-[var(--muted)]">Gender</p>
+                    <p className="text-xs font-medium text-[var(--text)] capitalize mt-0.5">{gender || 'Not set'}</p>
                   </div>
                 </div>
-              )}
 
-              {/* EMERGENCY */}
-              {activeTab === 'emergency' && (
-                <div className="grid sm:grid-cols-2 gap-5">
-                  <div className="flex items-start gap-3 p-3 rounded-xl border border-[#f1f3f4] bg-[#f8fafd]/40">
-                    <div className="p-2 rounded-lg bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] shrink-0">
-                      <User size={16} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[11px] font-medium text-[#5f6368]">Emergency Contact Name</p>
-                      <p className="text-xs font-semibold text-[#1f1f1f] mt-0.5">{emergencyContact || 'Not set'}</p>
-                    </div>
+                <div className="flex items-start gap-3 p-3 rounded-[14px] bg-[var(--surface-alt)]">
+                  <div className="p-2 rounded-[10px] bg-[var(--surface)] text-[var(--brand-deep)] shrink-0">
+                    <HeartHandshake size={15} />
                   </div>
-
-                  <div className="flex items-start gap-3 p-3 rounded-xl border border-[#f1f3f4] bg-[#f8fafd]/40">
-                    <div className="p-2 rounded-lg bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] shrink-0">
-                      <Phone size={16} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[11px] font-medium text-[#5f6368]">Emergency Phone Number</p>
-                      <p className="text-xs font-semibold text-[#1f1f1f] mt-0.5">{emergencyPhone || 'Not set'}</p>
-                    </div>
+                  <div className="min-w-0">
+                    <p className="text-[11px] text-[var(--muted)]">Marital status</p>
+                    <p className="text-xs font-medium text-[var(--text)] capitalize mt-0.5">{maritalStatus || 'Not set'}</p>
                   </div>
                 </div>
-              )}
 
-              {/* ASSET */}
-              {activeTab === 'asset' && (
-                <div>
-                  {assets && assets.length > 0 ? (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-xs text-left">
-                        <thead className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider border-b border-[#e0e3e7] bg-[#f8fafd]">
-                          <tr>
-                            <th className="px-4 py-2.5">Product Name</th>
-                            <th className="px-4 py-2.5">Serial Number</th>
-                            <th className="px-4 py-2.5">Assigned Date</th>
-                            <th className="px-4 py-2.5">Status</th>
+                <div className="flex items-start gap-3 p-3 rounded-[14px] bg-[var(--surface-alt)]">
+                  <div className="p-2 rounded-[10px] bg-[var(--surface)] text-[var(--brand-deep)] shrink-0">
+                    <Globe size={15} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[11px] text-[var(--muted)]">Nationality</p>
+                    <p className="text-xs font-medium text-[var(--text)] capitalize mt-0.5">{nationality || 'Not set'}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 rounded-[14px] bg-[var(--surface-alt)]">
+                  <div className="p-2 rounded-[10px] bg-[var(--surface)] text-[var(--brand-deep)] shrink-0">
+                    <MapPin size={15} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[11px] text-[var(--muted)]">Residential address</p>
+                    <p className="text-xs font-medium text-[var(--text)] mt-0.5">{address || 'Not set'}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 rounded-[14px] bg-[var(--surface-alt)]">
+                  <div className="p-2 rounded-[10px] bg-[var(--surface)] text-[var(--brand-deep)] shrink-0">
+                    <CreditCard size={15} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[11px] text-[var(--muted)]">PAN number</p>
+                    <p className="text-xs font-medium text-[var(--text)] mt-0.5">{panNumber || 'Not set'}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 rounded-[14px] bg-[var(--surface-alt)]">
+                  <div className="p-2 rounded-[10px] bg-[var(--surface)] text-[var(--brand-deep)] shrink-0">
+                    <CalendarDays size={15} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[11px] text-[var(--muted)]">Date of birth</p>
+                    <p className="text-xs font-medium text-[var(--text)] mt-0.5">{formatDate(dateOfBirth)}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 rounded-[14px] bg-[var(--surface-alt)]">
+                  <div className="p-2 rounded-[10px] bg-[var(--surface)] text-[var(--brand-deep)] shrink-0">
+                    <Droplets size={15} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[11px] text-[var(--muted)]">Blood group</p>
+                    <p className="text-xs font-medium text-[var(--text)] mt-0.5">{bloodGroup || 'Not set'}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* WORK INFO */}
+            {activeTab === 'work' && (
+              <div className="grid sm:grid-cols-2 gap-3.5">
+                <div className="flex items-start gap-3 p-3 rounded-[14px] bg-[var(--surface-alt)]">
+                  <div className="p-2 rounded-[10px] bg-[var(--surface)] text-[var(--brand-deep)] shrink-0">
+                    <Shield size={15} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[11px] text-[var(--muted)]">Employee ID</p>
+                    <p className="text-xs font-medium text-[var(--text)] mt-0.5">{employeeId || 'Not set'}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 rounded-[14px] bg-[var(--surface-alt)]">
+                  <div className="p-2 rounded-[10px] bg-[var(--surface)] text-[var(--brand-deep)] shrink-0">
+                    <Mail size={15} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[11px] text-[var(--muted)]">Official work email</p>
+                    <p className="text-xs font-medium text-[var(--text)] truncate mt-0.5">{workEmail || 'Not set'}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 rounded-[14px] bg-[var(--surface-alt)]">
+                  <div className="p-2 rounded-[10px] bg-[var(--surface)] text-[var(--brand-deep)] shrink-0">
+                    <CalendarDays size={15} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[11px] text-[var(--muted)]">Joining date</p>
+                    <p className="text-xs font-medium text-[var(--text)] mt-0.5">{formatDate(joinDate)}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 rounded-[14px] bg-[var(--surface-alt)]">
+                  <div className="p-2 rounded-[10px] bg-[var(--surface)] text-[var(--brand-deep)] shrink-0">
+                    <Briefcase size={15} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[11px] text-[var(--muted)]">Designation / position</p>
+                    <p className="text-xs font-medium text-[var(--text)] mt-0.5">{position || 'Not set'}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 rounded-[14px] bg-[var(--surface-alt)]">
+                  <div className="p-2 rounded-[10px] bg-[var(--surface)] text-[var(--brand-deep)] shrink-0">
+                    <Building2 size={15} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[11px] text-[var(--muted)]">Department</p>
+                    <p className="text-xs font-medium text-[var(--text)] mt-0.5">{department || 'Not set'}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 rounded-[14px] bg-[var(--surface-alt)]">
+                  <div className="p-2 rounded-[10px] bg-[var(--surface)] text-[var(--brand-deep)] shrink-0">
+                    <Building2 size={15} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[11px] text-[var(--muted)]">Branch location</p>
+                    <p className="text-xs font-medium text-[var(--text)] mt-0.5">{branch_name || branch || 'Not set'}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 rounded-[14px] bg-[var(--surface-alt)]">
+                  <div className="p-2 rounded-[10px] bg-[var(--surface)] text-[var(--brand-deep)] shrink-0">
+                    <Briefcase size={15} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[11px] text-[var(--muted)]">Employment type</p>
+                    <p className="text-xs font-medium text-[var(--text)] capitalize mt-0.5">{employmentType || 'Not set'}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 rounded-[14px] bg-[var(--surface-alt)]">
+                  <div className="p-2 rounded-[10px] bg-[var(--surface)] text-[var(--brand-deep)] shrink-0">
+                    <Clock size={15} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[11px] text-[var(--muted)]">Notice period</p>
+                    <p className="text-xs font-medium text-[var(--text)] mt-0.5">
+                      {noticePeriod ? `${noticePeriod} days` : 'Not set'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* WORK SHIFT */}
+            {activeTab === 'work-shift' && (
+              <div className="grid sm:grid-cols-2 gap-3.5">
+                <div className="flex items-start gap-3 p-3 rounded-[14px] bg-[var(--surface-alt)]">
+                  <div className="p-2 rounded-[10px] bg-[var(--surface)] text-[var(--brand-deep)] shrink-0">
+                    <Clock size={15} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[11px] text-[var(--muted)]">Daily shift hours</p>
+                    <p className="text-xs font-medium text-[var(--text)] mt-0.5">{shiftTime || 'Not set'}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 rounded-[14px] bg-[var(--surface-alt)]">
+                  <div className="p-2 rounded-[10px] bg-[var(--surface)] text-[var(--brand-deep)] shrink-0">
+                    <MapPin size={15} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[11px] text-[var(--muted)]">Working arrangement</p>
+                    <p className="text-xs font-medium text-[var(--text)] capitalize mt-0.5">{workMode || 'Not set'}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 rounded-[14px] bg-[var(--surface-alt)]">
+                  <div className="p-2 rounded-[10px] bg-[var(--surface)] text-[var(--brand-deep)] shrink-0">
+                    <CalendarDays size={15} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[11px] text-[var(--muted)]">Weekly off</p>
+                    <p className="text-xs font-medium text-[var(--text)] capitalize mt-0.5">{weekOff || 'Not set'}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* EMERGENCY */}
+            {activeTab === 'emergency' && (
+              <div className="grid sm:grid-cols-2 gap-3.5">
+                <div className="flex items-start gap-3 p-3 rounded-[14px] bg-[var(--surface-alt)]">
+                  <div className="p-2 rounded-[10px] bg-[var(--surface)] text-[var(--brand-deep)] shrink-0">
+                    <User size={15} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[11px] text-[var(--muted)]">Emergency contact name</p>
+                    <p className="text-xs font-medium text-[var(--text)] mt-0.5">{emergencyContact || 'Not set'}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3 rounded-[14px] bg-[var(--surface-alt)]">
+                  <div className="p-2 rounded-[10px] bg-[var(--surface)] text-[var(--brand-deep)] shrink-0">
+                    <Phone size={15} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[11px] text-[var(--muted)]">Emergency phone number</p>
+                    <p className="text-xs font-medium text-[var(--text)] mt-0.5">{emergencyPhone || 'Not set'}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ASSET */}
+            {activeTab === 'asset' && (
+              <div>
+                {assets && assets.length > 0 ? (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs text-left">
+                      <thead className="text-[12px] font-medium text-[var(--muted)] border-b border-[var(--line)] bg-[var(--surface-alt)]">
+                        <tr>
+                          <th className="px-4 py-2.5">Product name</th>
+                          <th className="px-4 py-2.5">Serial number</th>
+                          <th className="px-4 py-2.5">Assigned date</th>
+                          <th className="px-4 py-2.5">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[var(--line)]">
+                        {assets.map((ast, i) => (
+                          <tr key={i} className="hover:bg-[var(--brand-tint)]/40 transition-colors">
+                            <td className="px-4 py-3 font-medium text-[var(--text)]">{ast.productName}</td>
+                            <td className="px-4 py-3 text-[var(--muted)]">{ast.serialNumber}</td>
+                            <td className="px-4 py-3 text-[var(--muted)]">{formatDate(ast.assignedAt)}</td>
+                            <td className="px-4 py-3">
+                              <span className="px-2.5 py-0.5 rounded-full bg-[var(--surface-alt)] text-[11px] font-medium text-[var(--text-2)] capitalize">
+                                {ast.status}
+                              </span>
+                            </td>
                           </tr>
-                        </thead>
-                        <tbody className="divide-y divide-[#f1f3f4]">
-                          {assets.map((ast, i) => (
-                            <tr key={i} className="hover:bg-[#f8fafd] transition-colors">
-                              <td className="px-4 py-3 font-semibold text-[#1f1f1f]">{ast.productName}</td>
-                              <td className="px-4 py-3 text-[#5f6368]">{ast.serialNumber}</td>
-                              <td className="px-4 py-3 text-[#5f6368]">{formatDate(ast.assignedAt)}</td>
-                              <td className="px-4 py-3">
-                                <span className="px-2.5 py-0.5 rounded-full bg-[#f1f3f4] text-[10.5px] font-semibold text-[#444746] capitalize">
-                                  {ast.status}
-                                </span>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  ) : (
-                    <div className="text-center py-10 text-[#5f6368]">
-                      <Laptop className="w-8 h-8 text-[#dadce0] mx-auto mb-2" />
-                      <p className="text-xs font-medium text-[#1f1f1f]">No corporate assets assigned</p>
-                      <p className="text-[11px] text-[#5f6368]">Hardware and devices assigned to this employee will appear here.</p>
-                    </div>
-                  )}
-                </div>
-              )}
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="text-center py-10 text-[var(--muted)]">
+                    <Laptop className="w-8 h-8 opacity-30 mx-auto mb-2" />
+                    <p className="text-xs font-medium text-[var(--text)]">No corporate assets assigned</p>
+                    <p className="text-[11px] text-[var(--muted)] mt-0.5">
+                      Hardware and devices assigned to this employee will appear here
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
 
-              {/* TIMELINE */}
-              {activeTab === 'timeline' && renderTimeline()}
-            </div>
+            {/* TIMELINE */}
+            {activeTab === 'timeline' && renderTimeline()}
           </div>
         </div>
       </div>
 
-      {/* Slideover Right Drawer (createPortal) */}
-      {isPromoteModalOpen && createPortal(
-        <div 
-          onClick={(e) => { if (e.target === e.currentTarget) setIsPromoteModalOpen(false); }}
-          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-xs font-editorial antialiased"
-          style={{ fontFamily: "'Newsreader', Georgia, serif" }}
-        >
-          <motion.div 
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
-            className="bg-white shadow-2xl w-full max-w-md md:max-w-lg h-[100dvh] flex flex-col overflow-hidden relative z-10 border-l border-[#e0e3e7]"
+      {/* Slideover Right Drawer: Promote Employee */}
+      {isPromoteModalOpen &&
+        createPortal(
+          <div
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setIsPromoteModalOpen(false);
+            }}
+            className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-xs antialiased"
           >
-            {/* Top 4-Color Google Accent Line */}
-            <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
-
-            {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd] mt-1.5 shrink-0">
-              <div>
-                <div className="flex items-center gap-1 mb-0.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-                  <span className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">
-                    {(() => {
-                      const isPosChanged = promoteForm.newPosition.trim() !== (position || '').trim();
-                      const isSalChanged = Math.abs(Number(promoteForm.newSalary) - Number(employee?.salary || 0)) > 0.01;
-                      if (isPosChanged && !isSalChanged) return 'Role Advancement';
-                      if (!isPosChanged && isSalChanged) return 'Compensation Revision';
-                      return 'Employee Advancement';
-                    })()}
-                  </span>
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
+              className="bg-[var(--surface)] shadow-[0_24px_60px_rgba(19,19,21,0.18)] w-full max-w-md md:max-w-lg h-[100dvh] flex flex-col overflow-hidden relative z-10 border-l border-[var(--line)]"
+            >
+              {/* Header */}
+              <div className="px-6 py-4 border-b border-[var(--line)] flex justify-between items-center bg-[var(--surface-alt)] shrink-0">
+                <div>
+                  <h2 className="text-lg font-medium text-[var(--text)] tracking-tight">
+                    Promote employee
+                  </h2>
+                  <p className="text-xs text-[var(--muted)]">Role advancement &amp; compensation revision</p>
                 </div>
-                <h2 className="text-xl font-medium text-[#1f1f1f] tracking-tight font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
-                  {(() => {
-                    const isPosChanged = promoteForm.newPosition.trim() !== (position || '').trim();
-                    const isSalChanged = Math.abs(Number(promoteForm.newSalary) - Number(employee?.salary || 0)) > 0.01;
-                    if (isPosChanged && !isSalChanged) return <>Designation <span className="font-medium italic text-[#1a73e8]">Promotion</span></>;
-                    if (!isPosChanged && isSalChanged) return <>Salary <span className="font-medium italic text-[#1a73e8]">Revision & Appraisal</span></>;
-                    return <>Promote <span className="font-medium italic text-[#1a73e8]">Employee</span></>;
-                  })()}
-                </h2>
+                <button
+                  type="button"
+                  onClick={() => setIsPromoteModalOpen(false)}
+                  className="text-[var(--muted)] hover:text-[var(--text)] p-1.5 rounded-full transition-colors cursor-pointer"
+                >
+                  <X size={18} />
+                </button>
               </div>
-              <button 
-                type="button"
-                onClick={() => setIsPromoteModalOpen(false)} 
-                className="text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4] p-1.5 rounded-full transition-colors cursor-pointer"
+
+              {/* Form Body */}
+              <form
+                id="promote-form"
+                onSubmit={handlePromoteSubmit}
+                className="flex-1 overflow-y-auto p-6 space-y-4 text-xs"
               >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* Modal Form Body */}
-            <form id="promote-form" onSubmit={handlePromoteSubmit} className="flex-1 overflow-y-auto p-6 space-y-4.5 font-sans text-xs">
-              {/* Employee Target Pill */}
-              <div className="p-3 bg-[#f8fafd] rounded-xl border border-[#e0e3e7] flex items-center justify-between">
-                <div>
-                  <p className="text-[11px] text-[#5f6368] font-medium">Employee Target</p>
-                  <p className="text-xs font-semibold text-[#1f1f1f]">{fullName} <span className="font-normal text-[#5f6368]">({employeeId})</span></p>
+                {/* Employee Target */}
+                <div className="p-3 bg-[var(--surface-alt)] rounded-[12px] flex items-center justify-between">
+                  <div>
+                    <p className="text-[11px] text-[var(--muted)]">Employee</p>
+                    <p className="text-xs font-medium text-[var(--text)]">
+                      {fullName} <span className="text-[var(--muted)]">({employeeId})</span>
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[11px] text-[var(--muted)]">Department</p>
+                    <p className="text-xs font-medium text-[var(--brand-deep)]">{department || 'General'}</p>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-[11px] text-[#5f6368] font-medium">Department</p>
-                  <p className="text-xs font-semibold text-[#1a73e8]">{department || 'General'}</p>
-                </div>
-              </div>
 
-              {/* Current Overview Card */}
-              <div className="p-3.5 bg-white rounded-xl border border-[#e0e3e7] grid grid-cols-2 gap-3 shadow-2xs">
-                <div>
-                  <span className="text-[#5f6368] block text-[11px] font-medium">Current Designation</span>
-                  <span className="font-semibold text-[#1f1f1f] text-xs">{position || 'Staff Member'}</span>
-                </div>
-                <div>
-                  <span className="text-[#5f6368] block text-[11px] font-medium">Current Monthly Salary</span>
-                  <span className="font-semibold text-[#1f1f1f] text-xs">₹{Number(employee?.salary || 0).toLocaleString('en-IN')}</span>
-                </div>
-              </div>
-
-              {/* New Position */}
-              <div>
-                <label className="block font-semibold text-[#1f1f1f] mb-1.5">
-                  Designation / Role <span className="text-[#EA4335]">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Senior Software Engineer"
-                  value={promoteForm.newPosition}
-                  onChange={(e) => setPromoteForm({ ...promoteForm, newPosition: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all"
-                />
-              </div>
-
-              {/* Revised Salary */}
-              <div>
-                <label className="block font-semibold text-[#1f1f1f] mb-1.5">
-                  Monthly Salary (₹) <span className="text-[#EA4335]">*</span>
-                </label>
-                <input
-                  type="number"
-                  required
-                  min="0"
-                  step="500"
-                  placeholder="e.g. 75000"
-                  value={promoteForm.newSalary}
-                  onChange={(e) => setPromoteForm({ ...promoteForm, newSalary: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none font-mono transition-all"
-                />
-
-                {/* Hike Calculation Banner */}
-                {Number(promoteForm.newSalary) > 0 && (
-                  <div className={`mt-2 p-2.5 rounded-xl border text-xs flex items-center justify-between transition-all ${
-                    (Number(promoteForm.newSalary) - Number(employee?.salary || 0)) > 0
-                      ? 'bg-[#e6f4ea] border-[#ceead6] text-[#137333]'
-                      : (Number(promoteForm.newSalary) - Number(employee?.salary || 0)) === 0
-                        ? 'bg-[#f1f3f4] border-[#dadce0] text-[#444746]'
-                        : 'bg-[#fef7e0] border-[#feefc3] text-[#b06000]'
-                  }`}>
-                    <span className="font-medium text-[11px]">Compensation Adjustment:</span>
-                    <span className="font-bold">
-                      {(Number(promoteForm.newSalary) - Number(employee?.salary || 0)) > 0
-                        ? `+₹${(Number(promoteForm.newSalary) - Number(employee?.salary || 0)).toLocaleString('en-IN')} (+${Number(employee?.salary || 0) > 0 ? Math.round(((Number(promoteForm.newSalary) - Number(employee?.salary || 0)) / Number(employee?.salary || 1)) * 100) : 0}% Hike)`
-                        : (Number(promoteForm.newSalary) - Number(employee?.salary || 0)) === 0
-                          ? 'No change in base pay (Retained)'
-                          : `-₹${Math.abs(Number(promoteForm.newSalary) - Number(employee?.salary || 0)).toLocaleString('en-IN')} (${Number(employee?.salary || 0) > 0 ? Math.round(((Number(promoteForm.newSalary) - Number(employee?.salary || 0)) / Number(employee?.salary || 1)) * 100) : 0}% Adjustment)`}
+                {/* Current Overview */}
+                <div className="p-3.5 bg-[var(--surface)] rounded-[12px] border border-[var(--line)] grid grid-cols-2 gap-3">
+                  <div>
+                    <span className="text-[var(--muted)] block text-[11px]">Current designation</span>
+                    <span className="font-medium text-[var(--text)] text-xs">{position || 'Staff member'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[var(--muted)] block text-[11px]">Current monthly salary</span>
+                    <span className="font-medium text-[var(--text)] text-xs">
+                      ₹{Number(employee?.salary || 0).toLocaleString('en-IN')}
                     </span>
                   </div>
-                )}
-              </div>
+                </div>
 
-              {/* Effective Date */}
-              <div>
-                <label className="block font-semibold text-[#1f1f1f] mb-1.5">
-                  Effective Date <span className="text-[#EA4335]">*</span>
-                </label>
-                <input
-                  type="date"
-                  required
-                  value={promoteForm.effectiveDate}
-                  onChange={(e) => setPromoteForm({ ...promoteForm, effectiveDate: e.target.value })}
-                  className="w-full px-3.5 py-2.5 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all"
-                />
-              </div>
+                {/* New Position */}
+                <div>
+                  <label className="block font-medium text-[var(--text)] mb-1.5">
+                    Designation / role <span className="text-[#D64550]">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Senior Software Engineer"
+                    value={promoteForm.newPosition}
+                    onChange={(e) => setPromoteForm({ ...promoteForm, newPosition: e.target.value })}
+                    className="w-full h-11 px-3.5 bg-[var(--surface)] border border-[var(--line)] focus:border-[var(--brand)] rounded-[12px] text-xs text-[var(--text)] outline-none transition-all"
+                  />
+                </div>
 
-              {/* Remarks / Promotion Notes */}
-              <div>
-                <label className="block font-semibold text-[#1f1f1f] mb-1.5">
-                  Remarks / Notes <span className="text-[#5f6368] font-normal">(Included in letter)</span>
-                </label>
-                <textarea
-                  rows={3}
-                  value={promoteForm.notes}
-                  onChange={(e) => setPromoteForm({ ...promoteForm, notes: e.target.value })}
-                  placeholder="e.g. In recognition of outstanding contributions, leadership on core initiatives, and mentoring peers..."
-                  className="w-full p-3 bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs text-[#1f1f1f] outline-none transition-all"
-                />
-              </div>
+                {/* Revised Salary */}
+                <div>
+                  <label className="block font-medium text-[var(--text)] mb-1.5">
+                    Monthly salary (₹) <span className="text-[#D64550]">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min="0"
+                    step="500"
+                    placeholder="e.g. 75000"
+                    value={promoteForm.newSalary}
+                    onChange={(e) => setPromoteForm({ ...promoteForm, newSalary: e.target.value })}
+                    className="w-full h-11 px-3.5 bg-[var(--surface)] border border-[var(--line)] focus:border-[var(--brand)] rounded-[12px] text-xs text-[var(--text)] outline-none font-mono transition-all"
+                  />
 
-              {/* Send Promotion Letter Email Checkbox */}
-              <div className="p-3.5 bg-[#e8f0fe]/60 rounded-xl border border-[#d2e3fc] flex items-start gap-3">
-                <input
-                  type="checkbox"
-                  id="sendEmailCheckbox"
-                  checked={promoteForm.sendEmail}
-                  onChange={(e) => setPromoteForm({ ...promoteForm, sendEmail: e.target.checked })}
-                  className="mt-0.5 h-4 w-4 rounded text-[#1a73e8] focus:ring-[#1a73e8] border-[#dadce0] cursor-pointer"
-                />
-                <label htmlFor="sendEmailCheckbox" className="text-xs cursor-pointer select-none">
-                  <span className="font-semibold text-[#1a73e8] block">Send Official Letter to Employee Email</span>
-                  <span className="text-[11px] text-[#5f6368] block mt-0.5 leading-relaxed">
-                    Dispatches an official congratulations and terms breakdown directly to <strong>{email || 'employee address'}</strong>.
-                  </span>
-                </label>
-              </div>
-            </form>
+                  {/* Hike Calculation Banner */}
+                  {Number(promoteForm.newSalary) > 0 && (
+                    <div
+                      className={`mt-2 p-2.5 rounded-[12px] text-xs flex items-center justify-between ${
+                        Number(promoteForm.newSalary) - Number(employee?.salary || 0) > 0
+                          ? 'bg-[#E6F6EC] text-[#1F9D55]'
+                          : Number(promoteForm.newSalary) - Number(employee?.salary || 0) === 0
+                          ? 'bg-[var(--surface-alt)] text-[var(--muted)]'
+                          : 'bg-[#FDF3DC] text-[#B7791F]'
+                      }`}
+                    >
+                      <span className="font-medium text-[11px]">Adjustment:</span>
+                      <span className="font-semibold">
+                        {Number(promoteForm.newSalary) - Number(employee?.salary || 0) > 0
+                          ? `+₹${(
+                              Number(promoteForm.newSalary) - Number(employee?.salary || 0)
+                            ).toLocaleString('en-IN')} (+${
+                              Number(employee?.salary || 0) > 0
+                                ? Math.round(
+                                    ((Number(promoteForm.newSalary) - Number(employee?.salary || 0)) /
+                                      Number(employee?.salary || 1)) *
+                                      100
+                                  )
+                                : 0
+                            }% hike)`
+                          : Number(promoteForm.newSalary) - Number(employee?.salary || 0) === 0
+                          ? 'No change in base pay'
+                          : `-₹${Math.abs(
+                              Number(promoteForm.newSalary) - Number(employee?.salary || 0)
+                            ).toLocaleString('en-IN')} (${
+                              Number(employee?.salary || 0) > 0
+                                ? Math.round(
+                                    ((Number(promoteForm.newSalary) - Number(employee?.salary || 0)) /
+                                      Number(employee?.salary || 1)) *
+                                      100
+                                  )
+                                : 0
+                            }% adjustment)`}
+                      </span>
+                    </div>
+                  )}
+                </div>
 
-            {/* Footer Actions */}
-            <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex justify-end gap-2.5 shrink-0 font-sans">
-              <button
-                type="button"
-                disabled={isPromoting}
-                onClick={() => setIsPromoteModalOpen(false)}
-                className="px-5 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                form="promote-form"
-                disabled={isPromoting}
-                className="inline-flex items-center justify-center gap-2 px-6 py-2 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs hover:shadow-md transition-all cursor-pointer disabled:opacity-50"
-              >
-                {isPromoting ? (
-                  <>
-                    <div className="h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Processing...</span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-3.5 h-3.5" />
-                    <span>
-                      {(() => {
-                        const isPosChanged = promoteForm.newPosition.trim() !== (position || '').trim();
-                        const isSalChanged = Math.abs(Number(promoteForm.newSalary) - Number(employee?.salary || 0)) > 0.01;
-                        if (isPosChanged && !isSalChanged) return 'Promote Role';
-                        if (!isPosChanged && isSalChanged) return 'Update Compensation';
-                        return 'Confirm Promotion';
-                      })()}
+                {/* Effective Date */}
+                <div>
+                  <label className="block font-medium text-[var(--text)] mb-1.5">
+                    Effective date <span className="text-[#D64550]">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={promoteForm.effectiveDate}
+                    onChange={(e) => setPromoteForm({ ...promoteForm, effectiveDate: e.target.value })}
+                    className="w-full h-11 px-3.5 bg-[var(--surface)] border border-[var(--line)] focus:border-[var(--brand)] rounded-[12px] text-xs text-[var(--text)] outline-none transition-all"
+                  />
+                </div>
+
+                {/* Remarks */}
+                <div>
+                  <label className="block font-medium text-[var(--text)] mb-1.5">
+                    Remarks / notes <span className="text-[var(--muted)] font-normal">(Included in letter)</span>
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={promoteForm.notes}
+                    onChange={(e) => setPromoteForm({ ...promoteForm, notes: e.target.value })}
+                    placeholder="e.g. In recognition of outstanding contributions, leadership on core initiatives..."
+                    className="w-full p-3 bg-[var(--surface)] border border-[var(--line)] focus:border-[var(--brand)] rounded-[12px] text-xs text-[var(--text)] outline-none transition-all"
+                  />
+                </div>
+
+                {/* Send Promotion Letter Email */}
+                <div className="p-3 bg-[var(--surface-alt)] rounded-[12px] flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    id="sendEmailCheckbox"
+                    checked={promoteForm.sendEmail}
+                    onChange={(e) => setPromoteForm({ ...promoteForm, sendEmail: e.target.checked })}
+                    className="mt-0.5 h-4 w-4 rounded text-[var(--ink)] focus:ring-[var(--brand)] border-[var(--line)] cursor-pointer"
+                  />
+                  <label htmlFor="sendEmailCheckbox" className="text-xs cursor-pointer select-none">
+                    <span className="font-medium text-[var(--text)] block">
+                      Send official letter to employee email
                     </span>
-                  </>
-                )}
-              </button>
-            </div>
-          </motion.div>
-        </div>,
-        document.body
-      )}
+                    <span className="text-[11px] text-[var(--muted)] block mt-0.5">
+                      Dispatches an official confirmation directly to {email || 'employee address'}.
+                    </span>
+                  </label>
+                </div>
+              </form>
+
+              {/* Footer Actions */}
+              <div className="p-4 border-t border-[var(--line)] bg-[var(--surface-alt)] flex justify-end gap-2.5 shrink-0">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isPromoting}
+                  onClick={() => setIsPromoteModalOpen(false)}
+                  className="h-10 px-5 rounded-[12px] text-xs font-medium"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  form="promote-form"
+                  variant="primary"
+                  disabled={isPromoting}
+                  loading={isPromoting}
+                  className="h-10 px-6 rounded-[12px] text-xs font-medium justify-center"
+                >
+                  <Sparkles size={14} />
+                  <span>Confirm promotion</span>
+                </Button>
+              </div>
+            </motion.div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 };

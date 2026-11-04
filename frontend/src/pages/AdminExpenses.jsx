@@ -1,14 +1,12 @@
-import React, { useState, useEffect, useMemo, Fragment } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import PageLoader from '../components/PageLoader';
 import { 
   Loader2, 
-  FileText, 
   CheckCircle2, 
   XCircle, 
   Clock, 
-  Filter, 
   X, 
   Eye, 
   Search, 
@@ -16,19 +14,14 @@ import {
   ChevronLeft, 
   ChevronRight, 
   Receipt, 
-  User, 
-  Building2, 
   Calendar, 
   ExternalLink, 
-  Sparkles,
-  ArrowUpRight,
-  TrendingUp,
-  Tag,
-  AlertCircle
+  Tag
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
+import { StatCard, StatusBadge, Button, Avatar } from '../components/ui';
 
 function numberToWords(num) {
   const a = ['','One ','Two ','Three ','Four ', 'Five ','Six ','Seven ','Eight ','Nine ','Ten ','Eleven ','Twelve ','Thirteen ','Fourteen ','Fifteen ','Sixteen ','Seventeen ','Eighteen ','Nineteen '];
@@ -52,44 +45,6 @@ function numberToWords(num) {
   str += (n[5] != 0) ? ((str != '') ? 'and ' : '') + (a[Number(n[5])] || b[n[5][0]] + ' ' + a[n[5][1]]) + 'Rupees Only' : 'Rupees Only';
   return str.trim();
 }
-
-const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme }) => {
-  const themes = {
-    blue: {
-      iconBg: 'bg-[#e8f0fe]',
-      iconColor: 'text-[#1a73e8]',
-    },
-    amber: {
-      iconBg: 'bg-[#fef7e0]',
-      iconColor: 'text-[#b06000]',
-    },
-    green: {
-      iconBg: 'bg-[#e6f4ea]',
-      iconColor: 'text-[#137333]',
-    },
-    red: {
-      iconBg: 'bg-[#fce8e6]',
-      iconColor: 'text-[#c5221f]',
-    }
-  };
-
-  const theme = themes[colorTheme] || themes.blue;
-
-  return (
-    <div className="bg-white rounded-2xl border border-[#e0e3e7] p-5 shadow-xs transition-all duration-200 hover:shadow-md hover:border-[#dadce0]">
-      <div className="flex items-start justify-between">
-        <div className="space-y-1">
-          <p className="text-xs font-semibold text-[#5f6368] uppercase tracking-wider">{title}</p>
-          <p className="text-2xl font-bold text-[#1f1f1f] tracking-tight">{value}</p>
-          {subtitle && <p className="text-xs text-[#5f6368] font-normal pt-0.5">{subtitle}</p>}
-        </div>
-        <div className={`p-3 rounded-2xl ${theme.iconBg} ${theme.iconColor} shrink-0`}>
-          <Icon className="w-5 h-5" />
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const AdminExpenses = () => {
   const queryClient = useQueryClient();
@@ -121,7 +76,6 @@ const AdminExpenses = () => {
   const { data: responseData, isLoading, isFetching } = useQuery({
     queryKey: ['admin', 'expenses', page, debouncedSearch, filter, categoryFilter],
     queryFn: async () => {
-      const offset = (page - 1) * limit;
       const res = await api.get(`/admin/expenses?page=${page}&limit=${limit}&search=${encodeURIComponent(debouncedSearch)}&status=${filter}&category=${categoryFilter}`);
       return res.data;
     },
@@ -192,30 +146,18 @@ const AdminExpenses = () => {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'Approved':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">
-            <CheckCircle2 className="w-3.5 h-3.5" /> Approved
-          </span>
-        );
+        return <StatusBadge status="Approved" variant="success" />;
       case 'Rejected':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf]">
-            <XCircle className="w-3.5 h-3.5" /> Rejected
-          </span>
-        );
+        return <StatusBadge status="Rejected" variant="danger" />;
       default:
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#fef7e0] text-[#b06000] border border-[#feefc3]">
-            <Clock className="w-3.5 h-3.5" /> Pending Review
-          </span>
-        );
+        return <StatusBadge status="Pending" variant="warning" />;
     }
   };
 
   const getCategoryBadge = (category) => {
     return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-[#f1f3f4] text-[#3c4043]">
-        <Tag className="w-3 h-3 text-[#5f6368]" />
+      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[8px] text-xs font-medium bg-[var(--surface-alt)] text-[var(--text-2)]">
+        <Tag className="w-3 h-3 text-[var(--icon-muted)]" />
         {category || 'General'}
       </span>
     );
@@ -224,71 +166,71 @@ const AdminExpenses = () => {
   if (isLoading && !responseData && !debouncedSearch) return <PageLoader message="Loading Expenses..." />;
 
   return (
-    <div className="space-y-6 pb-12 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+    <div className="space-y-4 font-sans antialiased">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <div className="flex items-center gap-1.5 mb-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-            <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Finance & Claims</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight flex items-center gap-2 font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
-            Expense <span className="font-medium italic text-[#1a73e8]">Management</span> <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">{totalCount} Claims</span>
+          <h1 className="text-2xl font-medium tracking-tight text-[var(--text)]">
+            Expense Management
           </h1>
-          <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
+          <p className="text-xs text-[var(--muted)] mt-0.5">
             Review and approve employee reimbursement requests, verify supporting bills, and audit disbursements.
           </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold px-3 py-1.5 rounded-[9px] bg-[var(--brand-tint)] text-[var(--brand-deep)]">
+            {totalCount} Claims
+          </span>
         </div>
       </div>
 
       {/* KPI Stats Cards */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3.5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard 
           title="Total Claims" 
           value={formatCurrency(stats.totalAmount)} 
           subtitle={`${stats.totalCount} total submissions`} 
           icon={IndianRupee} 
-          colorTheme="blue" 
         />
         <StatCard 
           title="Pending Approval" 
           value={formatCurrency(stats.pendingAmount)} 
           subtitle={`${stats.pendingCount} awaiting review`} 
+          badgeText="Pending"
+          badgeType="warning"
           icon={Clock} 
-          colorTheme="amber" 
         />
         <StatCard 
           title="Approved Claims" 
           value={formatCurrency(stats.approvedAmount)} 
           subtitle={`${stats.approvedCount} verified & settled`} 
+          badgeText="Approved"
+          badgeType="success"
           icon={CheckCircle2} 
-          colorTheme="green" 
         />
         <StatCard 
           title="Declined Claims" 
           value={formatCurrency(stats.rejectedAmount)} 
           subtitle={`${stats.rejectedCount} claims rejected`} 
+          badgeText="Declined"
+          badgeType="danger"
           icon={XCircle} 
-          colorTheme="red" 
         />
       </div>
 
       {/* Main Expenses Table Card */}
-      <div className="rounded-2xl border border-[#e0e3e7] bg-white shadow-xs overflow-hidden flex flex-col">
+      <div className="rounded-[24px] bg-[var(--surface)] p-[18px] flex flex-col">
         {/* Table Toolbar */}
-        <div className="p-4 sm:p-5 border-b border-[#e0e3e7] bg-[#f8fafd] flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-4 border-b border-[var(--line)] mb-4">
+          <div className="flex flex-wrap items-center gap-1.5">
             {['All', 'Pending', 'Approved', 'Rejected'].map((st) => (
               <button
                 key={st}
                 onClick={() => { setFilter(st); setPage(1); }}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
                   filter === st
-                    ? 'bg-[#1a73e8] text-white shadow-xs'
-                    : 'bg-white border border-[#dadce0] text-[#5f6368] hover:bg-[#f1f3f4] hover:text-[#1f1f1f]'
+                    ? 'bg-[var(--ink)] text-white shadow-xs'
+                    : 'bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)]'
                 }`}
               >
                 {st} {st === 'All' ? `(${stats.totalCount})` : st === 'Pending' ? `(${stats.pendingCount})` : st === 'Approved' ? `(${stats.approvedCount})` : `(${stats.rejectedCount})`}
@@ -301,7 +243,7 @@ const AdminExpenses = () => {
             <select
               value={categoryFilter}
               onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }}
-              className="w-full sm:w-auto px-3.5 py-2 bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-full text-xs text-[#1f1f1f] outline-none cursor-pointer"
+              className="w-full sm:w-auto h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] rounded-[12px] text-xs text-[var(--text)] outline-none focus:ring-2 focus:ring-[var(--brand)] cursor-pointer"
             >
               <option value="All">All Categories</option>
               <option value="Travel">Travel & Fuel</option>
@@ -311,19 +253,19 @@ const AdminExpenses = () => {
               <option value="Other">Other Expenses</option>
             </select>
 
-            {/* Google Pill Search */}
+            {/* Search */}
             <div className="relative w-full sm:w-72">
               {isFetching ? (
-                <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#1a73e8] animate-spin pointer-events-none" />
+                <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--brand-deep)] animate-spin pointer-events-none" />
               ) : (
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368] pointer-events-none" />
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--icon-muted)] pointer-events-none" />
               )}
               <input
                 type="search"
                 placeholder="Search employee, title, category..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 text-xs bg-[#f1f3f4] hover:bg-[#e8eaed] focus:bg-white border border-transparent focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-full text-[#1f1f1f] placeholder:text-[#5f6368] outline-none transition-all shadow-none focus:shadow-sm"
+                className="w-full h-10 pl-10 pr-4 text-xs bg-[var(--surface-alt)] border border-[var(--line)] rounded-[12px] text-[var(--text)] placeholder:text-[var(--muted)] outline-none focus:ring-2 focus:ring-[var(--brand)] transition-all"
               />
             </div>
           </div>
@@ -332,56 +274,54 @@ const AdminExpenses = () => {
         {/* Table Content */}
         <div className="overflow-x-auto custom-scrollbar relative">
           <table className="w-full text-xs text-left">
-            <thead className="bg-[#f8fafd] border-b border-[#e0e3e7] text-[#5f6368] uppercase font-semibold tracking-wider text-[11px]">
-              <tr>
-                <th className="px-5 py-3.5">Employee</th>
-                <th className="px-5 py-3.5">Claim Details</th>
-                <th className="px-5 py-3.5">Category</th>
-                <th className="px-5 py-3.5 text-right">Amount</th>
-                <th className="px-5 py-3.5 text-center">Status</th>
-                <th className="px-5 py-3.5 text-right">Actions</th>
+            <thead>
+              <tr className="border-b border-[var(--line)] text-[var(--muted)]">
+                <th className="px-4 py-3 font-normal text-xs whitespace-nowrap">Employee</th>
+                <th className="px-4 py-3 font-normal text-xs whitespace-nowrap">Claim Details</th>
+                <th className="px-4 py-3 font-normal text-xs whitespace-nowrap">Category</th>
+                <th className="px-4 py-3 font-normal text-xs text-right whitespace-nowrap">Amount</th>
+                <th className="px-4 py-3 font-normal text-xs text-center whitespace-nowrap">Status</th>
+                <th className="px-4 py-3 font-normal text-xs text-right whitespace-nowrap">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#e0e3e7]">
+            <tbody className="divide-y divide-[var(--line)]">
               {isLoading && expenses.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="px-6 py-12 text-center text-[#5f6368]">
+                  <td colSpan="6" className="px-6 py-12 text-center text-[var(--muted)]">
                     <div className="flex flex-col items-center justify-center space-y-2">
-                      <div className="w-6 h-6 border-2 border-[#4285F4] border-t-transparent rounded-full animate-spin"></div>
+                      <div className="w-6 h-6 border-2 border-[var(--brand)] border-t-transparent rounded-full animate-spin"></div>
                       <p className="text-xs">Loading expense claims...</p>
                     </div>
                   </td>
                 </tr>
               ) : expenses.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="px-6 py-12 text-center text-[#5f6368]">
+                  <td colSpan="6" className="px-6 py-12 text-center text-[var(--muted)]">
                     <div className="flex flex-col items-center justify-center space-y-1">
-                      <Receipt className="w-10 h-10 text-[#dadce0] mb-2" />
-                      <p className="text-sm font-medium text-[#1f1f1f]">No expense claims found</p>
-                      <p className="text-xs text-[#5f6368]">Try changing your status filter or search keywords.</p>
+                      <Receipt className="w-10 h-10 text-[var(--icon-muted)] mb-2" />
+                      <p className="text-sm font-semibold text-[var(--text)]">No expense claims found</p>
+                      <p className="text-xs text-[var(--muted)]">Try changing your status filter or search keywords.</p>
                     </div>
                   </td>
                 </tr>
               ) : (
                 expenses.map((exp) => (
-                  <tr key={exp.id} className="hover:bg-[#f8fafd] transition-colors">
-                    <td className="px-5 py-3.5">
+                  <tr key={exp.id} className="hover:bg-[var(--surface-alt)]/60 transition-colors">
+                    <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-[#e8f0fe] border border-[#d2e3fc] flex items-center justify-center text-[#1a73e8] font-bold text-xs shrink-0">
-                          {((exp.firstName?.[0] || '') + (exp.lastName?.[0] || '')).toUpperCase() || 'EM'}
-                        </div>
+                        <Avatar name={`${exp.firstName} ${exp.lastName}`} size="sm" />
                         <div>
-                          <p className="font-semibold text-[#1f1f1f] text-xs">{exp.firstName} {exp.lastName}</p>
-                          <span className="font-mono text-[11px] text-[#5f6368]">{exp.employee_ref || 'EMP'}</span>
+                          <p className="font-semibold text-[var(--text)] text-xs">{exp.firstName} {exp.lastName}</p>
+                          <span className="font-mono text-[11px] text-[var(--muted)]">{exp.employee_ref || 'EMP'}</span>
                         </div>
                       </div>
                     </td>
 
-                    <td className="px-5 py-3.5">
+                    <td className="px-4 py-3">
                       <div>
-                        <p className="font-semibold text-[#1f1f1f] text-xs">{exp.title}</p>
-                        <p className="text-[11px] text-[#5f6368] mt-0.5 flex items-center gap-1">
-                          <Calendar className="w-3 h-3 text-[#5f6368]" />
+                        <p className="font-semibold text-[var(--text)] text-xs">{exp.title}</p>
+                        <p className="text-[11px] text-[var(--muted)] mt-0.5 flex items-center gap-1">
+                          <Calendar className="w-3 h-3 text-[var(--icon-muted)]" />
                           {new Date(exp.created_at).toLocaleDateString('en-IN', {
                             day: 'numeric',
                             month: 'short',
@@ -391,33 +331,37 @@ const AdminExpenses = () => {
                       </div>
                     </td>
 
-                    <td className="px-5 py-3.5">
+                    <td className="px-4 py-3">
                       {getCategoryBadge(exp.category)}
                     </td>
 
-                    <td className="px-5 py-3.5 text-right">
-                      <span className="text-sm font-bold text-[#1f1f1f]">
+                    <td className="px-4 py-3 text-right">
+                      <span className="text-sm font-semibold text-[var(--text)]">
                         {formatCurrency(exp.amount)}
                       </span>
                     </td>
 
-                    <td className="px-5 py-3.5 text-center">
+                    <td className="px-4 py-3 text-center">
                       {getStatusBadge(exp.status)}
                     </td>
 
-                    <td className="px-5 py-3.5 text-right">
+                    <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-1.5">
-                        <button
+                        <Button
+                          variant="secondary"
+                          size="sm"
                           onClick={() => openReviewDrawer(exp, exp.status === 'Pending' ? 'Approved' : exp.status)}
-                          className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer shadow-none hover:shadow-xs"
+                          className="text-xs"
                         >
-                          <Eye className="w-3.5 h-3.5 text-[#5f6368]" />
-                          {exp.status === 'Pending' ? 'Review Claim' : 'View Details'}
-                        </button>
+                          <Eye className="w-3.5 h-3.5 mr-1" />
+                          {exp.status === 'Pending' ? 'Review Claim' : 'Details'}
+                        </Button>
 
                         {exp.status === 'Pending' && (
                           <>
-                            <button
+                            <Button
+                              variant="secondary"
+                              size="sm"
                               onClick={() => {
                                 setSelectedExpense(exp);
                                 setActionType('Approved');
@@ -425,19 +369,21 @@ const AdminExpenses = () => {
                                 handleConfirmAction('Approved');
                               }}
                               disabled={updateStatusMutation.isPending}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-[#e6f4ea] hover:bg-[#ceead6] text-[#137333] border border-[#ceead6] transition-all cursor-pointer"
+                              className="text-xs text-[var(--status-success-text)] hover:bg-[var(--status-success-bg)] border-[var(--status-success-text)]/20"
                               title="Quick Approve"
                             >
-                              <CheckCircle2 className="w-3.5 h-3.5" /> Approve
-                            </button>
-                            <button
+                              <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Approve
+                            </Button>
+                            <Button
+                              variant="secondary"
+                              size="sm"
                               onClick={() => openReviewDrawer(exp, 'Rejected')}
                               disabled={updateStatusMutation.isPending}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-[#fce8e6] hover:bg-[#fad2cf] text-[#c5221f] border border-[#fad2cf] transition-all cursor-pointer"
+                              className="text-xs text-[var(--status-danger-text)] hover:bg-[var(--status-danger-bg)] border-[var(--status-danger-text)]/20"
                               title="Reject Claim"
                             >
-                              <XCircle className="w-3.5 h-3.5" /> Reject
-                            </button>
+                              <XCircle className="w-3.5 h-3.5 mr-1" /> Reject
+                            </Button>
                           </>
                         )}
                       </div>
@@ -451,28 +397,30 @@ const AdminExpenses = () => {
 
         {/* Pagination Footer */}
         {totalPages > 1 && (
-          <div className="p-3.5 sm:p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-            <p className="text-[#5f6368]">
-              Showing <span className="font-semibold text-[#1f1f1f]">{((page - 1) * limit) + 1}</span> to <span className="font-semibold text-[#1f1f1f]">{Math.min(page * limit, totalCount)}</span> of <span className="font-semibold text-[#1f1f1f]">{totalCount}</span> claims
+          <div className="pt-4 border-t border-[var(--line)] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-[var(--muted)]">
+            <p>
+              Showing <span className="font-semibold text-[var(--text)]">{((page - 1) * limit) + 1}</span> to <span className="font-semibold text-[var(--text)]">{Math.min(page * limit, totalCount)}</span> of <span className="font-semibold text-[var(--text)]">{totalCount}</span> claims
             </p>
             <div className="flex items-center gap-1.5 self-end sm:self-auto">
-              <button 
+              <Button 
+                variant="secondary"
+                size="sm"
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="p-1.5 rounded-full text-[#5f6368] hover:bg-[#e8eaed] disabled:opacity-30 disabled:cursor-not-allowed transition-all border border-[#dadce0]"
               >
                 <ChevronLeft className="w-4 h-4" />
-              </button>
-              <span className="px-3 py-1 text-xs font-medium text-[#1f1f1f] bg-white border border-[#dadce0] rounded-full">
-                Page {page} of {totalPages}
+              </Button>
+              <span className="px-3 py-1 text-xs font-medium text-[var(--text)] bg-[var(--surface-alt)] rounded-[8px]">
+                {page} / {totalPages}
               </span>
-              <button 
+              <Button 
+                variant="secondary"
+                size="sm"
                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="p-1.5 rounded-full text-[#5f6368] hover:bg-[#e8eaed] disabled:opacity-30 disabled:cursor-not-allowed transition-all border border-[#dadce0]"
               >
                 <ChevronRight className="w-4 h-4" />
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -482,95 +430,85 @@ const AdminExpenses = () => {
       {isDrawerOpen && selectedExpense && createPortal(
         <div 
           onClick={(e) => { if (e.target === e.currentTarget) closeReviewDrawer(); }}
-          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-sm font-editorial antialiased"
-          style={{ fontFamily: "'Newsreader', Georgia, serif" }}
+          className="fixed inset-0 z-[9999] flex justify-end bg-black/40 backdrop-blur-xs font-sans antialiased"
         >
           <motion.div 
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
-            transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
-            className="bg-white shadow-2xl w-full max-w-lg h-[100dvh] flex flex-col overflow-hidden relative z-10 border-l border-[#e0e3e7]"
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="bg-[var(--surface)] shadow-[0_24px_60px_rgba(19,19,21,0.18)] w-full max-w-lg h-[100dvh] flex flex-col overflow-hidden relative z-10"
           >
-            {/* Top 4-Color Google Accent Line */}
-            <div className="h-1.5 w-full bg-gradient-to-r from-[#4285F4] via-[#EA4335] via-[#FBBC05] to-[#34A853] absolute top-0 left-0" />
-
             {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-[#e0e3e7] flex justify-between items-center bg-[#f8fafd] mt-1 shrink-0">
+            <div className="px-6 py-5 border-b border-[var(--line)] flex justify-between items-center bg-[var(--surface-alt)]/50 shrink-0">
               <div>
-                <div className="flex items-center gap-1 mb-0.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-                  <span className="text-[10.5px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Expense Claim</span>
-                </div>
-                <h2 className="text-lg font-medium text-[#1f1f1f] tracking-tight font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
-                  Expense Claim <span className="font-medium italic text-[#1a73e8]">Details</span>
+                <span className="text-xs font-semibold text-[var(--brand-deep)]">Expense Claim</span>
+                <h2 className="text-lg font-semibold text-[var(--text)]">
+                  Claim Details
                 </h2>
               </div>
               <button 
                 onClick={closeReviewDrawer} 
-                className="text-[#5f6368] hover:text-[#1f1f1f] hover:bg-[#f1f3f4] p-1.5 rounded-full transition-colors cursor-pointer"
+                className="w-8 h-8 flex items-center justify-center text-[var(--muted)] hover:text-[var(--text)] rounded-full hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
               >
                 <X size={18} />
               </button>
             </div>
 
             {/* Drawer Body */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-5 custom-scrollbar text-xs">
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar text-xs">
               {/* Employee Overview Card */}
-              <div className="grid grid-cols-2 gap-3 text-xs bg-[#f8fafd] p-4 rounded-2xl border border-[#e0e3e7]">
+              <div className="grid grid-cols-2 gap-3 text-xs bg-[var(--surface-alt)] p-4 rounded-[16px] border border-[var(--line)]">
                 <div>
-                  <p className="text-[#5f6368] font-medium">Employee Name</p>
-                  <p className="font-semibold text-[#1f1f1f] mt-0.5">{selectedExpense.firstName} {selectedExpense.lastName}</p>
+                  <p className="text-[var(--muted)] font-medium">Employee Name</p>
+                  <p className="font-semibold text-[var(--text)] mt-0.5">{selectedExpense.firstName} {selectedExpense.lastName}</p>
                 </div>
                 <div>
-                  <p className="text-[#5f6368] font-medium">Employee Code</p>
-                  <p className="font-semibold text-[#1f1f1f] mt-0.5">{selectedExpense.employee_ref || 'N/A'}</p>
+                  <p className="text-[var(--muted)] font-medium">Employee Code</p>
+                  <p className="font-semibold text-[var(--text)] mt-0.5">{selectedExpense.employee_ref || 'N/A'}</p>
                 </div>
               </div>
 
               {/* Status & Amount Banner */}
-              <div className="bg-[#e8f0fe] border border-[#d2e3fc] rounded-2xl p-4 space-y-2">
+              <div className="bg-[var(--brand-tint)] border border-[var(--brand)]/20 rounded-[16px] p-4 space-y-2">
                 <div className="flex items-center justify-between">
                   <div>
-                    <span className="text-[11px] font-bold text-[#1a73e8] uppercase tracking-wider block">Claimed Amount</span>
-                    <span className="text-2xl font-extrabold text-[#1a73e8]">{formatCurrency(selectedExpense.amount)}</span>
+                    <span className="text-xs font-semibold text-[var(--brand-deep)] uppercase tracking-wider block">Claimed Amount</span>
+                    <span className="text-2xl font-bold text-[var(--text)]">{formatCurrency(selectedExpense.amount)}</span>
                   </div>
                   <div>
                     {getStatusBadge(selectedExpense.status)}
                   </div>
                 </div>
-                <div className="pt-2 border-t border-[#d2e3fc]/60">
-                  <p className="text-[10px] font-bold text-[#1a73e8] uppercase tracking-wider">Amount in Words</p>
-                  <p className="text-xs font-semibold text-[#1f1f1f] mt-0.5">{numberToWords(selectedExpense.amount)}</p>
+                <div className="pt-2 border-t border-[var(--brand)]/15">
+                  <p className="text-[10px] font-semibold text-[var(--brand-deep)] uppercase tracking-wider">Amount in Words</p>
+                  <p className="text-xs font-semibold text-[var(--text)] mt-0.5">{numberToWords(selectedExpense.amount)}</p>
                 </div>
               </div>
 
               {/* Details List */}
-              <div className="space-y-3 bg-[#f8fafd] p-4 rounded-2xl border border-[#e0e3e7]">
-                <div className="flex justify-between items-center py-1 border-b border-[#e0e3e7]/60">
-                  <span className="text-[#5f6368]">Expense Category</span>
-                  <span className="font-semibold text-[#1f1f1f]">{selectedExpense.category}</span>
+              <div className="space-y-3 bg-[var(--surface-alt)] p-4 rounded-[16px] border border-[var(--line)]">
+                <div className="flex justify-between items-center py-1 border-b border-[var(--line)]">
+                  <span className="text-[var(--muted)]">Expense Category</span>
+                  <span className="font-semibold text-[var(--text)]">{selectedExpense.category}</span>
                 </div>
-                <div className="flex justify-between items-center py-1 border-b border-[#e0e3e7]/60">
-                  <span className="text-[#5f6368]">Expense Date</span>
-                  <span className="font-semibold text-[#1f1f1f]">{new Date(selectedExpense.expense_date).toLocaleDateString()}</span>
+                <div className="flex justify-between items-center py-1 border-b border-[var(--line)]">
+                  <span className="text-[var(--muted)]">Expense Date</span>
+                  <span className="font-semibold text-[var(--text)]">{new Date(selectedExpense.expense_date).toLocaleDateString()}</span>
                 </div>
-                <div className="flex justify-between items-center py-1 border-b border-[#e0e3e7]/60">
-                  <span className="text-[#5f6368]">Submission Date</span>
-                  <span className="font-semibold text-[#1f1f1f]">{new Date(selectedExpense.created_at).toLocaleDateString()}</span>
+                <div className="flex justify-between items-center py-1 border-b border-[var(--line)]">
+                  <span className="text-[var(--muted)]">Submission Date</span>
+                  <span className="font-semibold text-[var(--text)]">{new Date(selectedExpense.created_at).toLocaleDateString()}</span>
                 </div>
                 {selectedExpense.merchant && (
-                  <div className="flex justify-between items-center py-1 border-b border-[#e0e3e7]/60">
-                    <span className="text-[#5f6368]">Merchant / Vendor</span>
-                    <span className="font-semibold text-[#1f1f1f]">{selectedExpense.merchant}</span>
+                  <div className="flex justify-between items-center py-1 border-b border-[var(--line)]">
+                    <span className="text-[var(--muted)]">Merchant / Vendor</span>
+                    <span className="font-semibold text-[var(--text)]">{selectedExpense.merchant}</span>
                   </div>
                 )}
                 <div className="py-1">
-                  <span className="text-[#5f6368] block mb-1">Expense Description</span>
-                  <p className="text-[#1f1f1f] font-medium bg-white p-3 rounded-xl border border-[#dadce0] leading-relaxed">
+                  <span className="text-[var(--muted)] block mb-1">Expense Description</span>
+                  <p className="text-[var(--text)] font-medium bg-[var(--surface)] p-3 rounded-[12px] border border-[var(--line)] leading-relaxed">
                     {selectedExpense.description || 'No description provided.'}
                   </p>
                 </div>
@@ -578,14 +516,14 @@ const AdminExpenses = () => {
 
               {/* Attached Receipt */}
               {selectedExpense.receipt_url && (
-                <div className="border border-[#e0e3e7] rounded-2xl p-4 bg-[#f8fafd] space-y-2">
+                <div className="border border-[var(--line)] rounded-[16px] p-4 bg-[var(--surface-alt)] space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold text-[#1f1f1f]">Attached Receipt Document</span>
+                    <span className="font-semibold text-[var(--text)]">Attached Receipt Document</span>
                     <a
                       href={selectedExpense.receipt_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-[#1a73e8] hover:underline font-semibold"
+                      className="inline-flex items-center gap-1 text-[var(--brand-deep)] hover:underline font-semibold"
                     >
                       <ExternalLink className="w-3.5 h-3.5" /> View Receipt
                     </a>
@@ -595,7 +533,7 @@ const AdminExpenses = () => {
 
               {/* Remarks Field */}
               <div className="space-y-1.5">
-                <label className="block font-semibold text-[#1f1f1f]">
+                <label className="block font-semibold text-[var(--text)]">
                   Admin Review Remarks
                 </label>
                 <textarea
@@ -604,43 +542,47 @@ const AdminExpenses = () => {
                   placeholder={selectedExpense.status !== 'Pending' ? 'No remarks recorded.' : 'Enter approval note, audit comments, or reason for decline...'}
                   rows="3"
                   readOnly={selectedExpense.status !== 'Pending'}
-                  className={`w-full px-3.5 py-2.5 rounded-xl text-xs outline-none transition-all resize-none ${
+                  className={`w-full px-3.5 py-2.5 rounded-[12px] text-xs outline-none transition-all resize-none ${
                     selectedExpense.status !== 'Pending'
-                      ? 'bg-[#f8fafd] text-[#3c4043] border border-[#dadce0] cursor-default focus:border-[#dadce0] focus:ring-0 select-text'
-                      : 'bg-[#f8fafd] hover:bg-[#e8eaed] focus:bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 text-[#1f1f1f]'
+                      ? 'bg-[var(--surface-alt)] text-[var(--muted)] border border-[var(--line)] cursor-default'
+                      : 'bg-[var(--surface-alt)] border border-[var(--line)] focus:ring-2 focus:ring-[var(--brand)] text-[var(--text)]'
                   }`}
                 />
               </div>
             </div>
 
             {/* Drawer Footer Actions */}
-            <div className="p-4 border-t border-[#e0e3e7] bg-[#f8fafd] flex items-center gap-3 shrink-0">
+            <div className="p-4 border-t border-[var(--line)] bg-[var(--surface-alt)]/50 flex items-center gap-3 shrink-0">
               {selectedExpense.status === 'Pending' ? (
                 <>
-                  <button
+                  <Button
+                    variant="primary"
                     onClick={() => handleConfirmAction('Approved')}
                     disabled={updateStatusMutation.isPending}
-                    className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-xs font-semibold bg-[#137333] hover:bg-[#0d652d] text-white shadow-xs transition-all cursor-pointer disabled:opacity-50"
+                    loading={updateStatusMutation.isPending}
+                    className="flex-1"
                   >
-                    {updateStatusMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                    <CheckCircle2 className="w-4 h-4 mr-1.5" />
                     Approve Claim
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="danger"
                     onClick={() => handleConfirmAction('Rejected')}
                     disabled={updateStatusMutation.isPending}
-                    className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-xs font-semibold bg-[#c5221f] hover:bg-[#a51d24] text-white shadow-xs transition-all cursor-pointer disabled:opacity-50"
+                    className="flex-1"
                   >
-                    {updateStatusMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+                    <XCircle className="w-4 h-4 mr-1.5" />
                     Decline Claim
-                  </button>
+                  </Button>
                 </>
               ) : (
-                <button
+                <Button
+                  variant="secondary"
                   onClick={closeReviewDrawer}
-                  className="w-full px-4 py-2.5 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer"
+                  className="w-full"
                 >
                   Close Statement
-                </button>
+                </Button>
               )}
             </div>
           </motion.div>

@@ -1,36 +1,28 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
 import {
-  HelpCircle, 
   ArrowLeft,
   ArrowRight, 
   CheckCircle2, 
   Shield, 
   Clock, 
-  Award,
   Building2, 
   CheckSquare, 
   Disc, 
-  Filter, 
   Layers, 
   Check, 
   Sparkles, 
   RefreshCw,
-  AlertCircle, 
-  Eye, 
-  Lock, 
   FileText, 
   Users,
-  Search,
-  Calendar,
-  Settings,
-  ShieldCheck,
-  CheckCheck
+  Search
 } from 'lucide-react';
 import PageLoader from '../components/PageLoader';
+import Button from '../components/ui/Button';
+import StatusBadge from '../components/ui/StatusBadge';
 
 const DEPARTMENTS = [
   'Engineering',
@@ -212,50 +204,42 @@ const AssessmentCreate = () => {
     saveMutation.mutate(payload);
   };
 
-  if (loadingQuestions || loadingAssessment || loadingEmployees) return <PageLoader message="Loading Assessment Builder..." />;
+  if (loadingQuestions || loadingAssessment || loadingEmployees) return <PageLoader message="Loading assessment builder..." />;
 
   const totalMarks = selectedIds.length * (parseInt(form.marks_per_question) || 1);
 
   const stepsList = [
-    { num: 1, label: 'Choose Questions', desc: `${selectedIds.length} selected` },
-    { num: 2, label: 'Assign Employees', desc: `${form.assigned_employee_ids.length} enrolled` },
-    { num: 3, label: 'Configure Rules', desc: `${form.duration_minutes}m • ${form.passing_percentage}% pass` }
+    { num: 1, label: 'Choose questions', desc: `${selectedIds.length} selected` },
+    { num: 2, label: 'Assign employees', desc: `${form.assigned_employee_ids.length} enrolled` },
+    { num: 3, label: 'Configure rules', desc: `${form.duration_minutes}m • ${form.passing_percentage}% pass` }
   ];
 
   return (
-    <div className="space-y-6 pb-12 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+    <div className="space-y-6 pb-12 antialiased">
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <div className="flex items-center gap-1.5 mb-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-            <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Assessment Builder</span>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[12px] font-medium text-[var(--muted)]">Assessment builder</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
-            {isEditing ? (
-              <>Edit: <span className="font-medium italic text-[#1a73e8]">{form.title || 'Assessment'}</span></>
-            ) : (
-              <>Create <span className="font-medium italic text-[#1a73e8]">New Assessment</span></>
-            )}
+          <h1 className="text-[24px] font-medium text-[var(--text)] tracking-[-0.01em]">
+            {isEditing ? `Edit: ${form.title || 'Assessment'}` : 'Create new assessment'}
           </h1>
-          <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
+          <p className="text-[13px] text-[var(--muted)] mt-1">
             Select questions from bank, assign targeted staff, and set custom timings & anti-cheating controls.
           </p>
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-3 py-1 rounded-full">
-            {selectedIds.length} Qs • {totalMarks} Total Pts
+          <span className="text-[12px] font-medium text-[var(--brand-deep)] bg-[var(--brand-tint)] px-3 py-1 rounded-full">
+            {selectedIds.length} Qs • {totalMarks} Total pts
           </span>
         </div>
       </div>
 
       {/* Stepper Progress Bar */}
-      <div className="rounded-2xl border border-[#e0e3e7] bg-white p-4 shadow-xs">
-        <div className="grid grid-cols-3 gap-2 sm:gap-4">
+      <div className="rounded-[24px] bg-[var(--surface)] p-3">
+        <div className="grid grid-cols-3 gap-2">
           {stepsList.map(s => {
             const isActive = step === s.num;
             const isDone = step > s.num;
@@ -268,28 +252,28 @@ const AssessmentCreate = () => {
                   if (s.num === 2 && selectedIds.length > 0) setStep(2);
                   if (s.num === 3 && selectedIds.length > 0) setStep(3);
                 }}
-                className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center gap-3 ${
+                className={`p-3 rounded-[16px] transition-all cursor-pointer flex items-center gap-3 ${
                   isActive 
-                    ? 'bg-[#e8f0fe] border-[#4285F4] shadow-xs' 
+                    ? 'bg-[var(--brand-tint)] text-[var(--brand-deep)]' 
                     : isDone 
-                      ? 'bg-[#e6f4ea] border-[#ceead6]' 
-                      : 'bg-[#f8fafd] border-[#e0e3e7] opacity-60'
+                      ? 'bg-[var(--success-bg)] text-[var(--success-text)]' 
+                      : 'bg-[var(--surface-alt)] text-[var(--muted)] opacity-60'
                 }`}
               >
-                <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
+                <div className={`w-7 h-7 rounded-[10px] flex items-center justify-center font-medium text-[12px] shrink-0 ${
                   isActive 
-                    ? 'bg-[#1a73e8] text-white' 
+                    ? 'bg-[var(--brand-deep)] text-white' 
                     : isDone 
-                      ? 'bg-[#137333] text-white' 
-                      : 'bg-[#e0e3e7] text-[#5f6368]'
+                      ? 'bg-[var(--success-text)] text-white' 
+                      : 'bg-[var(--line)] text-[var(--muted)]'
                 }`}>
                   {isDone ? <Check className="w-3.5 h-3.5" /> : s.num}
                 </div>
                 <div className="min-w-0 flex-1 truncate">
-                  <p className={`text-xs font-semibold truncate ${isActive ? 'text-[#1a73e8]' : isDone ? 'text-[#137333]' : 'text-[#5f6368]'}`}>
+                  <p className="text-[13px] font-medium truncate">
                     {s.label}
                   </p>
-                  <p className="text-[10px] text-[#5f6368] truncate">{s.desc}</p>
+                  <p className="text-[11px] opacity-80 truncate">{s.desc}</p>
                 </div>
               </div>
             );
@@ -301,23 +285,24 @@ const AssessmentCreate = () => {
       {/* STEP 1: CHOOSE QUESTIONS */}
       {/* ========================================================= */}
       {step === 1 && (
-        <div className="space-y-4 animate-in fade-in duration-300">
+        <div className="space-y-[14px] animate-in fade-in duration-300">
           
           {/* Top Info Banner */}
-          <div className="rounded-2xl border border-[#c2e7ff] bg-[#e8f0fe] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-[#001d35] shadow-xs">
-            <div className="flex items-start gap-3">
-              <div className="p-2 rounded-xl bg-[#c2e7ff] text-[#001d35] shrink-0">
-                <Layers className="w-5 h-5 text-[#1a73e8]" />
+          <div className="rounded-[24px] bg-[var(--surface)] p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3.5">
+              <div className="w-10 h-10 rounded-[14px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center shrink-0">
+                <Layers className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-[#1a73e8]">Step 1: Select Objective Questions</h4>
-                <p className="text-xs text-[#001d35] mt-0.5 leading-relaxed">
+                <h4 className="text-[14px] font-medium text-[var(--text)]">Step 1: Select objective questions</h4>
+                <p className="text-[13px] text-[var(--muted)] mt-0.5 leading-relaxed">
                   Choose questions from your question bank. You will configure uniform or custom mark distributions in Step 3.
                 </p>
               </div>
             </div>
 
-            <button
+            <Button
+              variant="primary"
               onClick={() => {
                 if (selectedIds.length === 0) {
                   toast.error('Please select at least 1 question to proceed');
@@ -326,34 +311,34 @@ const AssessmentCreate = () => {
                 setStep(2);
               }}
               disabled={selectedIds.length === 0}
-              className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs transition-all cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed self-start sm:self-auto"
+              className="shrink-0 self-start sm:self-auto"
             >
-              <span>Next: Assign Staff</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+              <span>Next: Assign staff</span>
+              <ArrowRight className="w-4 h-4 ml-1.5" />
+            </Button>
           </div>
 
           {/* Department Filter & Search Bar */}
-          <div className="rounded-2xl border border-[#e0e3e7] bg-white p-4 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-            <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1 max-w-full">
+          <div className="rounded-[24px] bg-[var(--surface)] p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full">
               <button
                 onClick={() => setSelectedDeptFilter('All')}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all shrink-0 cursor-pointer ${
+                className={`px-3.5 py-1.5 rounded-full text-[12px] font-medium transition-colors shrink-0 cursor-pointer ${
                   selectedDeptFilter === 'All'
-                    ? 'bg-[#1a73e8] text-white shadow-xs'
-                    : 'bg-white border border-[#dadce0] text-[#5f6368] hover:bg-[#f1f3f4]'
+                    ? 'bg-[var(--ink)] text-white'
+                    : 'bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)]'
                 }`}
               >
-                All Departments ({selectedDeptFilter === 'All' ? questionBank.length : 'All'})
+                All departments ({selectedDeptFilter === 'All' ? questionBank.length : 'All'})
               </button>
               {DEPARTMENTS.map((dept) => (
                 <button
                   key={dept}
                   onClick={() => setSelectedDeptFilter(dept)}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all shrink-0 cursor-pointer ${
+                  className={`px-3.5 py-1.5 rounded-full text-[12px] font-medium transition-colors shrink-0 cursor-pointer ${
                     selectedDeptFilter === dept
-                      ? 'bg-[#1a73e8] text-white shadow-xs'
-                      : 'bg-white border border-[#dadce0] text-[#5f6368] hover:bg-[#f1f3f4]'
+                      ? 'bg-[var(--ink)] text-white'
+                      : 'bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)]'
                   }`}
                 >
                   {dept}
@@ -363,41 +348,42 @@ const AssessmentCreate = () => {
 
             <div className="flex items-center gap-2.5">
               <div className="relative w-full sm:w-64">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#5f6368]" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--muted)]" />
                 <input
                   type="search"
                   placeholder="Search question text..."
                   value={questionSearch}
                   onChange={e => setQuestionSearch(e.target.value)}
-                  className="w-full pl-9 pr-3 py-1.5 text-xs bg-[#f1f3f4] focus:bg-white border border-[#dadce0] rounded-full text-[#1f1f1f] placeholder:text-[#5f6368] outline-none"
+                  className="w-full h-9 pl-9 pr-3 text-[12px] bg-[var(--surface-alt)] border border-[var(--line)] rounded-[10px] text-[var(--text)] placeholder:text-[var(--muted)] outline-none"
                 />
               </div>
 
-              <button
+              <Button
                 type="button"
+                variant="secondary"
+                size="sm"
                 onClick={handleSelectAllFiltered}
-                className="px-3 py-1.5 rounded-full text-xs font-semibold bg-[#e8f0fe] text-[#1a73e8] hover:bg-[#d2e3fc] transition-all cursor-pointer shrink-0"
               >
                 {filteredQuestions.length > 0 && filteredQuestions.every(q => selectedIds.includes(q.id))
-                  ? 'Deselect All'
-                  : 'Select All'}
-              </button>
+                  ? 'Deselect all'
+                  : 'Select all'}
+              </Button>
             </div>
           </div>
 
           {/* Questions Selection Table */}
-          <div className="rounded-2xl border border-[#e0e3e7] bg-white shadow-xs overflow-hidden flex flex-col">
-            <div className="overflow-x-auto custom-scrollbar">
-              <table className="w-full text-xs text-left">
-                <thead className="bg-[#f8fafd] border-b border-[#e0e3e7] text-[#5f6368] uppercase font-semibold tracking-wider text-[11px]">
+          <div className="rounded-[24px] bg-[var(--surface)] overflow-hidden flex flex-col">
+            <div className="overflow-x-auto">
+              <table className="w-full text-[13px] text-left">
+                <thead className="bg-[var(--surface-alt)] text-[var(--muted)] font-medium text-[12px]">
                   <tr>
                     <th className="px-4 py-3.5 w-12 text-center">Select</th>
-                    <th className="px-4 py-3.5 w-44">Department & Type</th>
-                    <th className="px-4 py-3.5">Question Statement</th>
-                    <th className="px-4 py-3.5">Options Preview</th>
+                    <th className="px-4 py-3.5 w-44">Department & type</th>
+                    <th className="px-4 py-3.5">Question statement</th>
+                    <th className="px-4 py-3.5">Options preview</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#e0e3e7]">
+                <tbody className="divide-y divide-[var(--line)]">
                   {filteredQuestions.map((item, idx) => {
                     const isChecked = selectedIds.includes(item.id);
                     const isMultiple = item.question_type === 'mcq_multiple';
@@ -411,7 +397,7 @@ const AssessmentCreate = () => {
                         key={item.id}
                         onClick={() => handleToggleQuestion(item.id)}
                         className={`transition-colors cursor-pointer ${
-                          isChecked ? 'bg-[#e8f0fe]/40 hover:bg-[#e8f0fe]/60' : 'hover:bg-[#f8fafd]'
+                          isChecked ? 'bg-[var(--brand-tint)]/60' : 'hover:bg-[var(--surface-alt)]'
                         }`}
                       >
                         <td className="px-4 py-3.5 text-center align-middle" onClick={e => e.stopPropagation()}>
@@ -419,40 +405,40 @@ const AssessmentCreate = () => {
                             type="checkbox"
                             checked={isChecked}
                             onChange={() => handleToggleQuestion(item.id)}
-                            className="w-4 h-4 rounded text-[#1a73e8] focus:ring-[#1a73e8] cursor-pointer"
+                            className="w-4 h-4 rounded text-[var(--brand-deep)] focus:ring-[var(--brand-deep)] cursor-pointer"
                           />
                         </td>
 
                         <td className="px-4 py-3.5 align-top space-y-1">
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[9px] text-[12px] font-medium bg-[var(--brand-tint)] text-[var(--brand-deep)]">
                             <Building2 className="w-3 h-3" /> {item.department}
                           </span>
                           <div>
-                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${
-                              isMultiple ? 'bg-[#f3e8fd] text-[#8430ce] border border-[#e9d5ff]' : 'bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]'
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-[9px] text-[11px] font-medium ${
+                              isMultiple ? 'bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)]' : 'bg-[var(--surface-alt)] text-[var(--muted)]'
                             }`}>
                               {isMultiple ? <CheckSquare className="w-2.5 h-2.5" /> : <Disc className="w-2.5 h-2.5" />}
-                              {isMultiple ? 'Multi-Select' : 'Single MCQ'}
+                              {isMultiple ? 'Multi-select' : 'Single MCQ'}
                             </span>
                           </div>
                         </td>
 
                         <td className="px-4 py-3.5 align-top max-w-md">
                           <div className="flex items-start gap-2">
-                            <span className="font-mono text-[11px] font-bold text-[#5f6368] bg-[#f1f3f4] px-1.5 py-0.5 rounded shrink-0">
+                            <span className="font-mono text-[11px] font-medium text-[var(--muted)] bg-[var(--surface-alt)] px-1.5 py-0.5 rounded-[6px] shrink-0">
                               #{idx + 1}
                             </span>
-                            <span className="font-semibold text-xs text-[#1f1f1f] leading-relaxed whitespace-pre-wrap">
+                            <span className="font-medium text-[13px] text-[var(--text)] leading-relaxed whitespace-pre-wrap">
                               {item.question_text}
                             </span>
                           </div>
                         </td>
 
-                        <td className="px-4 py-3.5 align-top text-xs text-[#5f6368]">
+                        <td className="px-4 py-3.5 align-top text-[12px] text-[var(--muted)]">
                           <div className="flex flex-wrap gap-1.5 max-w-md">
                             {opts.map((o, oIdx) => (
-                              <span key={oIdx} className="px-2 py-0.5 bg-[#f8fafd] border border-[#dadce0] rounded-lg text-[#5f6368] truncate max-w-[140px]">
-                                <strong className="text-[#1a73e8] mr-1">{String.fromCharCode(65 + oIdx)}:</strong>{o}
+                              <span key={oIdx} className="px-2 py-0.5 bg-[var(--surface-alt)] rounded-[8px] text-[var(--muted)] truncate max-w-[140px]">
+                                <strong className="text-[var(--brand-deep)] mr-1">{String.fromCharCode(65 + oIdx)}:</strong>{o}
                               </span>
                             ))}
                           </div>
@@ -462,9 +448,9 @@ const AssessmentCreate = () => {
                   })}
                   {filteredQuestions.length === 0 && (
                     <tr>
-                      <td colSpan="4" className="p-12 text-center text-[#5f6368]">
-                        <p className="font-semibold text-sm text-[#1f1f1f]">No questions found</p>
-                        <p className="text-xs text-[#5f6368] mt-0.5">Please adjust your search or department filter.</p>
+                      <td colSpan="4" className="p-12 text-center text-[var(--muted)]">
+                        <p className="font-medium text-[15px] text-[var(--text)]">No questions found</p>
+                        <p className="text-[12px] text-[var(--muted)] mt-0.5">Please adjust your search or department filter.</p>
                       </td>
                     </tr>
                   )}
@@ -479,56 +465,56 @@ const AssessmentCreate = () => {
       {/* STEP 2: ASSIGN EMPLOYEES */}
       {/* ========================================================= */}
       {step === 2 && (
-        <div className="space-y-4 animate-in fade-in duration-300">
+        <div className="space-y-[14px] animate-in fade-in duration-300">
           
           {/* Top Info Banner */}
-          <div className="rounded-2xl border border-[#e9d5ff] bg-[#f3e8fd] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-[#3b0764] shadow-xs">
-            <div className="flex items-start gap-3">
-              <div className="p-2 rounded-xl bg-[#e9d5ff] text-[#8430ce] shrink-0">
+          <div className="rounded-[24px] bg-[var(--surface)] p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3.5">
+              <div className="w-10 h-10 rounded-[14px] bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)] flex items-center justify-center shrink-0">
                 <Users className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-[#8430ce]">Step 2: Enroll Specific Employees</h4>
-                <p className="text-xs text-[#3b0764] mt-0.5 leading-relaxed">
+                <h4 className="text-[14px] font-medium text-[var(--text)]">Step 2: Enroll specific employees</h4>
+                <p className="text-[13px] text-[var(--muted)] mt-0.5 leading-relaxed">
                   Select the employees who must complete this competency test. (Leave empty to open access by department fallback).
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
-              <button
+              <Button
                 type="button"
+                variant="secondary"
                 onClick={() => setStep(1)}
-                className="inline-flex items-center gap-1 px-4 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer shadow-2xs"
               >
-                <ArrowLeft className="w-3.5 h-3.5" /> Back
-              </button>
-              <button
+                <ArrowLeft className="w-4 h-4 mr-1" /> Back
+              </Button>
+              <Button
                 type="button"
+                variant="primary"
                 onClick={() => setStep(3)}
-                className="inline-flex items-center gap-1.5 px-5 py-2 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs transition-all cursor-pointer"
               >
-                <span>Next: Configure Rules</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
+                <span>Next: Configure rules</span>
+                <ArrowRight className="w-4 h-4 ml-1" />
+              </Button>
             </div>
           </div>
 
           {/* Search & Actions Bar */}
-          <div className="rounded-2xl border border-[#e0e3e7] bg-white p-4 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="rounded-[24px] bg-[var(--surface)] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="relative w-full sm:w-80">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#5f6368]" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--muted)]" />
               <input
                 type="search"
                 placeholder="Search employees by name, email or code..."
                 value={searchEmployee}
                 onChange={e => setSearchEmployee(e.target.value)}
-                className="w-full pl-9 pr-3.5 py-1.5 text-xs bg-[#f1f3f4] focus:bg-white border border-[#dadce0] rounded-full text-[#1f1f1f] placeholder:text-[#5f6368] outline-none"
+                className="w-full h-9 pl-9 pr-3.5 text-[12px] bg-[var(--surface-alt)] border border-[var(--line)] rounded-[10px] text-[var(--text)] placeholder:text-[var(--muted)] outline-none"
               />
             </div>
 
-            <div className="flex items-center gap-3 text-xs">
-              <span className="font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-3 py-1 rounded-full">
+            <div className="flex items-center gap-3 text-[12px]">
+              <span className="font-medium text-[var(--brand-deep)] bg-[var(--brand-tint)] px-3 py-1 rounded-full">
                 {form.assigned_employee_ids.length} Selected
               </span>
               <button
@@ -537,15 +523,15 @@ const AssessmentCreate = () => {
                   const allIds = employees.map(e => e.userId || e.id);
                   setForm(f => ({ ...f, assigned_employee_ids: allIds }));
                 }}
-                className="font-semibold text-[#1a73e8] hover:underline cursor-pointer"
+                className="font-medium text-[var(--brand-deep)] hover:underline cursor-pointer"
               >
-                Select All
+                Select all
               </button>
-              <span className="text-[#dadce0]">•</span>
+              <span className="text-[var(--line)]">•</span>
               <button
                 type="button"
                 onClick={() => setForm(f => ({ ...f, assigned_employee_ids: [] }))}
-                className="font-semibold text-[#5f6368] hover:underline cursor-pointer"
+                className="font-medium text-[var(--muted)] hover:underline cursor-pointer"
               >
                 Clear
               </button>
@@ -553,10 +539,10 @@ const AssessmentCreate = () => {
           </div>
 
           {/* Employees Directory Table */}
-          <div className="rounded-2xl border border-[#e0e3e7] bg-white shadow-xs overflow-hidden flex flex-col">
-            <div className="max-h-[420px] overflow-y-auto custom-scrollbar">
-              <table className="w-full text-xs text-left">
-                <thead className="bg-[#f8fafd] border-b border-[#e0e3e7] text-[#5f6368] uppercase font-semibold tracking-wider text-[11px] sticky top-0 z-10">
+          <div className="rounded-[24px] bg-[var(--surface)] overflow-hidden flex flex-col">
+            <div className="max-h-[420px] overflow-y-auto">
+              <table className="w-full text-[13px] text-left">
+                <thead className="bg-[var(--surface-alt)] text-[var(--muted)] font-medium text-[12px] sticky top-0 z-10">
                   <tr>
                     <th className="px-4 py-3.5 w-12 text-center">Select</th>
                     <th className="px-4 py-3.5">Employee</th>
@@ -564,7 +550,7 @@ const AssessmentCreate = () => {
                     <th className="px-4 py-3.5">Designation</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#e0e3e7]">
+                <tbody className="divide-y divide-[var(--line)]">
                   {employees.filter(e => {
                     if (!searchEmployee) return true;
                     const s = searchEmployee.toLowerCase();
@@ -592,7 +578,7 @@ const AssessmentCreate = () => {
                           });
                         }}
                         className={`transition-colors cursor-pointer ${
-                          isSelected ? 'bg-[#e8f0fe]/40 hover:bg-[#e8f0fe]/60' : 'hover:bg-[#f8fafd]'
+                          isSelected ? 'bg-[var(--brand-tint)]/60' : 'hover:bg-[var(--surface-alt)]'
                         }`}
                       >
                         <td className="px-4 py-3.5 text-center align-middle" onClick={e => e.stopPropagation()}>
@@ -608,30 +594,30 @@ const AssessmentCreate = () => {
                                 }
                               });
                             }}
-                            className="w-4 h-4 rounded text-[#1a73e8] focus:ring-[#1a73e8] cursor-pointer"
+                            className="w-4 h-4 rounded text-[var(--brand-deep)] focus:ring-[var(--brand-deep)] cursor-pointer"
                           />
                         </td>
 
                         <td className="px-4 py-3.5">
                           <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-full bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] flex items-center justify-center font-bold text-xs shrink-0">
+                            <div className="w-8 h-8 rounded-[10px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center font-medium text-[11px] shrink-0">
                               {initials}
                             </div>
                             <div>
-                              <p className="font-semibold text-xs text-[#1f1f1f]">{emp.firstName} {emp.lastName}</p>
-                              <p className="text-[11px] text-[#5f6368]">{emp.email}</p>
+                              <p className="font-medium text-[13px] text-[var(--text)]">{emp.firstName} {emp.lastName}</p>
+                              <p className="text-[11px] text-[var(--muted)]">{emp.email}</p>
                             </div>
                           </div>
                         </td>
 
                         <td className="px-4 py-3.5">
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[#f8fafd] text-[#5f6368] border border-[#dadce0]">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[9px] text-[12px] font-medium bg-[var(--surface-alt)] text-[var(--muted)]">
                             <Building2 className="w-3 h-3" />
                             {emp.department || 'General'}
                           </span>
                         </td>
 
-                        <td className="px-4 py-3.5 text-xs text-[#5f6368]">
+                        <td className="px-4 py-3.5 text-[12px] text-[var(--muted)]">
                           {emp.position || 'Employee'}
                         </td>
                       </tr>
@@ -648,42 +634,43 @@ const AssessmentCreate = () => {
       {/* STEP 3: CONFIGURE BASIC INFO & RULES */}
       {/* ========================================================= */}
       {step === 3 && (
-        <form onSubmit={handleSubmit} className="space-y-6 animate-in fade-in duration-300">
+        <form onSubmit={handleSubmit} className="space-y-[14px] animate-in fade-in duration-300">
           
           {/* Top Info Banner */}
-          <div className="rounded-2xl border border-[#ceead6] bg-[#e6f4ea] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-[#0d5926] shadow-xs">
-            <div className="flex items-start gap-3">
-              <div className="p-2 rounded-xl bg-[#ceead6] text-[#137333] shrink-0">
+          <div className="rounded-[24px] bg-[var(--surface)] p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3.5">
+              <div className="w-10 h-10 rounded-[14px] bg-[var(--success-bg)] text-[var(--success-text)] flex items-center justify-center shrink-0">
                 <CheckCircle2 className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-[#137333]">Step 3: Define Exam Parameters & Rules</h4>
-                <p className="text-xs text-[#0d5926] mt-0.5 leading-relaxed">
-                  Linked <span className="font-bold underline">{selectedIds.length} questions</span> and <span className="font-bold underline">{form.assigned_employee_ids.length > 0 ? `${form.assigned_employee_ids.length} employees` : 'all departmental staff'}</span>. Finalize timings, grading benchmarks, and anti-cheating controls below.
+                <h4 className="text-[14px] font-medium text-[var(--text)]">Step 3: Define exam parameters & rules</h4>
+                <p className="text-[13px] text-[var(--muted)] mt-0.5 leading-relaxed">
+                  Linked <span className="font-medium text-[var(--text)] underline">{selectedIds.length} questions</span> and <span className="font-medium text-[var(--text)] underline">{form.assigned_employee_ids.length > 0 ? `${form.assigned_employee_ids.length} employees` : 'all departmental staff'}</span>. Finalize timings, grading benchmarks, and anti-cheating controls below.
                 </p>
               </div>
             </div>
 
-            <button
+            <Button
               type="button"
+              variant="secondary"
               onClick={() => setStep(2)}
-              className="inline-flex items-center gap-1 px-4 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer shadow-2xs self-start sm:self-auto shrink-0"
+              className="self-start sm:self-auto shrink-0"
             >
-              <ArrowLeft className="w-3.5 h-3.5" /> Back
-            </button>
+              <ArrowLeft className="w-4 h-4 mr-1" /> Back
+            </Button>
           </div>
 
           {/* Section 1: Basic Information */}
-          <div className="bg-white rounded-2xl border border-[#e0e3e7] p-5 shadow-xs space-y-4">
-            <div className="flex items-center gap-2 pb-2.5 border-b border-[#e0e3e7] text-xs font-semibold text-[#1f1f1f]">
-              <FileText className="w-4 h-4 text-[#1a73e8]" />
-              <span>Basic Information</span>
+          <div className="bg-[var(--surface)] rounded-[24px] p-6 space-y-4">
+            <div className="flex items-center gap-2 pb-2.5 border-b border-[var(--line)] text-[13px] font-medium text-[var(--text)]">
+              <FileText className="w-4 h-4 text-[var(--brand-deep)]" />
+              <span>Basic information</span>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5">
-                  Assessment Title / Name *
+                <label className="block text-[12px] font-medium text-[var(--muted)] mb-1.5">
+                  Assessment title / name *
                 </label>
                 <input
                   type="text"
@@ -691,19 +678,19 @@ const AssessmentCreate = () => {
                   value={form.title}
                   onChange={e => setForm({ ...form, title: e.target.value })}
                   placeholder="e.g. Q3 IT Infrastructure & Cybersecurity Competency"
-                  className="w-full px-3.5 py-2.5 bg-white border border-[#dadce0] focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-xl text-xs font-semibold text-[#1f1f1f] placeholder:text-[#5f6368] outline-none transition-all"
+                  className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[13px] font-medium text-[var(--text)] placeholder:text-[var(--muted)] outline-none transition-all"
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5">
-                    Department Category
+                  <label className="block text-[12px] font-medium text-[var(--muted)] mb-1.5">
+                    Department category
                   </label>
                   <select
                     value={form.department}
                     onChange={e => setForm({ ...form, department: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-white border border-[#dadce0] focus:border-[#4285F4] rounded-xl text-xs font-medium text-[#1f1f1f] outline-none cursor-pointer"
+                    className="w-full h-10 px-3 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] rounded-[12px] text-[13px] text-[var(--text)] outline-none cursor-pointer"
                   >
                     {DEPARTMENTS.map(d => (
                       <option key={d} value={d}>{d}</option>
@@ -712,26 +699,26 @@ const AssessmentCreate = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5">
-                    Scheduled Date (Optional)
+                  <label className="block text-[12px] font-medium text-[var(--muted)] mb-1.5">
+                    Scheduled date (Optional)
                   </label>
                   <input
                     type="date"
                     value={form.assessment_date || ''}
                     onChange={e => setForm({ ...form, assessment_date: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-white border border-[#dadce0] focus:border-[#4285F4] rounded-xl text-xs font-medium text-[#1f1f1f] outline-none cursor-pointer"
+                    className="w-full h-10 px-3 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] rounded-[12px] text-[13px] text-[var(--text)] outline-none cursor-pointer"
                   />
-                  <p className="text-[10px] text-[#5f6368] mt-1">Leave empty for anytime access</p>
+                  <p className="text-[11px] text-[var(--muted)] mt-1">Leave empty for anytime access</p>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5">
-                    Assessment Status
+                  <label className="block text-[12px] font-medium text-[var(--muted)] mb-1.5">
+                    Assessment status
                   </label>
                   <select
                     value={form.status}
                     onChange={e => setForm({ ...form, status: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-white border border-[#dadce0] focus:border-[#4285F4] rounded-xl text-xs font-medium text-[#1f1f1f] outline-none cursor-pointer"
+                    className="w-full h-10 px-3 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] rounded-[12px] text-[13px] text-[var(--text)] outline-none cursor-pointer"
                   >
                     <option value="Active">Active & Visible</option>
                     <option value="Draft">Draft (Hidden)</option>
@@ -743,19 +730,19 @@ const AssessmentCreate = () => {
           </div>
 
           {/* Section 2: Timing & Grading + Security Controls */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-[14px] items-start">
             
             {/* Timing & Grading */}
-            <div className="bg-white rounded-2xl border border-[#e0e3e7] p-5 shadow-xs space-y-4">
-              <div className="flex items-center gap-2 pb-2.5 border-b border-[#e0e3e7] text-xs font-semibold text-[#1f1f1f]">
-                <Clock className="w-4 h-4 text-[#1a73e8]" />
-                <span>Timing & Grading Parameters</span>
+            <div className="bg-[var(--surface)] rounded-[24px] p-6 space-y-4">
+              <div className="flex items-center gap-2 pb-2.5 border-b border-[var(--line)] text-[13px] font-medium text-[var(--text)]">
+                <Clock className="w-4 h-4 text-[var(--brand-deep)]" />
+                <span>Timing & grading parameters</span>
               </div>
 
               <div className="space-y-3.5">
                 <div>
-                  <label className="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1">
-                    Exam Duration (Minutes) *
+                  <label className="block text-[12px] font-medium text-[var(--muted)] mb-1">
+                    Exam duration (Minutes) *
                   </label>
                   <input
                     type="number"
@@ -763,13 +750,13 @@ const AssessmentCreate = () => {
                     required
                     value={form.duration_minutes}
                     onChange={e => setForm({ ...form, duration_minutes: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-white border border-[#dadce0] focus:border-[#4285F4] rounded-xl text-xs font-bold text-[#1f1f1f] outline-none"
+                    className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] rounded-[12px] text-[13px] font-medium text-[var(--text)] outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1">
-                    Passing Percentage (%) *
+                  <label className="block text-[12px] font-medium text-[var(--muted)] mb-1">
+                    Passing percentage (%) *
                   </label>
                   <input
                     type="number"
@@ -778,13 +765,13 @@ const AssessmentCreate = () => {
                     required
                     value={form.passing_percentage}
                     onChange={e => setForm({ ...form, passing_percentage: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-white border border-[#dadce0] focus:border-[#4285F4] rounded-xl text-xs font-bold text-[#137333] outline-none"
+                    className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] rounded-[12px] text-[13px] font-medium text-[var(--success-text)] outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1">
-                    Marks Per Question *
+                  <label className="block text-[12px] font-medium text-[var(--muted)] mb-1">
+                    Marks per question *
                   </label>
                   <input
                     type="number"
@@ -792,19 +779,19 @@ const AssessmentCreate = () => {
                     required
                     value={form.marks_per_question}
                     onChange={e => setForm({ ...form, marks_per_question: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-white border border-[#dadce0] focus:border-[#4285F4] rounded-xl text-xs font-bold text-[#1f1f1f] outline-none"
+                    className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] rounded-[12px] text-[13px] font-medium text-[var(--text)] outline-none"
                   />
-                  <div className="mt-2 p-2.5 bg-[#e8f0fe] rounded-xl border border-[#d2e3fc] flex items-center justify-between text-xs text-[#1a73e8] font-semibold">
-                    <span>Total Test Marks:</span>
-                    <span className="text-xs bg-white text-[#1a73e8] px-2.5 py-0.5 rounded-full border border-[#d2e3fc] font-bold">
+                  <div className="mt-2 p-2.5 bg-[var(--brand-tint)] rounded-[12px] flex items-center justify-between text-[12px] text-[var(--brand-deep)] font-medium">
+                    <span>Total test marks:</span>
+                    <span className="bg-[var(--surface)] text-[var(--brand-deep)] px-2.5 py-0.5 rounded-full font-bold">
                       {totalMarks} pts
                     </span>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1">
-                    Max Attempts Allowed *
+                  <label className="block text-[12px] font-medium text-[var(--muted)] mb-1">
+                    Max attempts allowed *
                   </label>
                   <input
                     type="number"
@@ -812,54 +799,54 @@ const AssessmentCreate = () => {
                     required
                     value={form.max_attempts}
                     onChange={e => setForm({ ...form, max_attempts: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-white border border-[#dadce0] focus:border-[#4285F4] rounded-xl text-xs font-bold text-[#1f1f1f] outline-none"
+                    className="w-full h-10 px-3.5 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] rounded-[12px] text-[13px] font-medium text-[var(--text)] outline-none"
                   />
                 </div>
               </div>
             </div>
 
             {/* Security Controls */}
-            <div className="bg-white rounded-2xl border border-[#e0e3e7] p-5 shadow-xs space-y-4">
-              <div className="flex items-center gap-2 pb-2.5 border-b border-[#e0e3e7] text-xs font-semibold text-[#1f1f1f]">
-                <Shield className="w-4 h-4 text-[#8430ce]" />
-                <span>Security & Anti-Cheating Controls</span>
+            <div className="bg-[var(--surface)] rounded-[24px] p-6 space-y-4">
+              <div className="flex items-center gap-2 pb-2.5 border-b border-[var(--line)] text-[13px] font-medium text-[var(--text)]">
+                <Shield className="w-4 h-4 text-[var(--accent-pink-deep)]" />
+                <span>Security & anti-cheating controls</span>
               </div>
 
               <div className="space-y-3">
-                <label className="flex items-center justify-between p-3 rounded-xl border border-[#dadce0] hover:bg-[#f8fafd] transition cursor-pointer">
+                <label className="flex items-center justify-between p-3.5 rounded-[14px] bg-[var(--surface-alt)] hover:bg-[var(--line)]/50 transition cursor-pointer">
                   <div>
-                    <div className="text-xs font-semibold text-[#1f1f1f]">Shuffle Questions</div>
-                    <div className="text-[11px] text-[#5f6368]">Randomize question presentation order</div>
+                    <div className="text-[13px] font-medium text-[var(--text)]">Shuffle questions</div>
+                    <div className="text-[11px] text-[var(--muted)]">Randomize question presentation order</div>
                   </div>
                   <input
                     type="checkbox"
                     checked={form.randomize_questions}
                     onChange={e => setForm({ ...form, randomize_questions: e.target.checked })}
-                    className="w-4 h-4 rounded text-[#1a73e8] focus:ring-[#1a73e8] cursor-pointer"
+                    className="w-4 h-4 rounded text-[var(--brand-deep)] focus:ring-[var(--brand-deep)] cursor-pointer"
                   />
                 </label>
 
-                <label className="flex items-center justify-between p-3 rounded-xl border border-[#dadce0] hover:bg-[#f8fafd] transition cursor-pointer">
+                <label className="flex items-center justify-between p-3.5 rounded-[14px] bg-[var(--surface-alt)] hover:bg-[var(--line)]/50 transition cursor-pointer">
                   <div>
-                    <div className="text-xs font-semibold text-[#1f1f1f]">Shuffle Option Choices</div>
-                    <div className="text-[11px] text-[#5f6368]">Randomize A/B/C/D choices order</div>
+                    <div className="text-[13px] font-medium text-[var(--text)]">Shuffle option choices</div>
+                    <div className="text-[11px] text-[var(--muted)]">Randomize A/B/C/D choices order</div>
                   </div>
                   <input
                     type="checkbox"
                     checked={form.randomize_options}
                     onChange={e => setForm({ ...form, randomize_options: e.target.checked })}
-                    className="w-4 h-4 rounded text-[#1a73e8] focus:ring-[#1a73e8] cursor-pointer"
+                    className="w-4 h-4 rounded text-[var(--brand-deep)] focus:ring-[var(--brand-deep)] cursor-pointer"
                   />
                 </label>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-1.5 mt-2">
-                    Result Visibility
+                  <label className="block text-[12px] font-medium text-[var(--muted)] mb-1.5 mt-2">
+                    Result visibility
                   </label>
                   <select
                     value={form.result_visibility}
                     onChange={e => setForm({ ...form, result_visibility: e.target.value })}
-                    className="w-full px-3.5 py-2 bg-white border border-[#dadce0] focus:border-[#4285F4] rounded-xl text-xs font-medium text-[#1f1f1f] outline-none cursor-pointer"
+                    className="w-full h-10 px-3 bg-[var(--surface-alt)] border border-[var(--line)] focus:border-[var(--brand)] rounded-[12px] text-[13px] text-[var(--text)] outline-none cursor-pointer"
                   >
                     <option value="immediate">Immediate (Show score upon submission)</option>
                     <option value="after_review">After Admin Review</option>
@@ -871,22 +858,22 @@ const AssessmentCreate = () => {
           </div>
 
           {/* Form Actions Footer */}
-          <div className="rounded-2xl border border-[#e0e3e7] bg-[#f8fafd] p-4 flex justify-end items-center gap-2.5">
-            <button
+          <div className="rounded-[24px] bg-[var(--surface)] p-4 flex justify-end items-center gap-3">
+            <Button
               type="button"
+              variant="secondary"
               onClick={() => navigate('/admin/assessments/management')}
-              className="px-5 py-2 rounded-full text-xs font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#1f1f1f] transition-all cursor-pointer"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
+              variant="primary"
               disabled={saveMutation.isPending}
-              className="inline-flex items-center gap-1.5 px-6 py-2 rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white shadow-xs transition-all cursor-pointer disabled:opacity-50"
             >
-              {saveMutation.isPending ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
-              <span>{isEditing ? 'Update Assessment & Rules' : 'Publish Assessment'}</span>
-            </button>
+              {saveMutation.isPending ? <RefreshCw className="w-4 h-4 animate-spin mr-1.5" /> : <Sparkles className="w-4 h-4 mr-1.5" />}
+              <span>{isEditing ? 'Update assessment & rules' : 'Publish assessment'}</span>
+            </Button>
           </div>
         </form>
       )}

@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import axios from '../api/axios';
 import { toast } from 'react-hot-toast';
 import { MapPin, ArrowRightToLine, ArrowLeftFromLine, MapPinOff, ArrowLeft } from 'lucide-react';
+import { Button } from '../components/ui';
 
 const AdminAttendanceLocation = () => {
   const navigate = useNavigate();
@@ -12,7 +13,6 @@ const AdminAttendanceLocation = () => {
   const fromRegularize = location.state?.fromRegularize;
   const [searchParams] = useSearchParams();
   const id = searchParams.get('id');
-  const date = searchParams.get('date');
 
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
@@ -67,24 +67,23 @@ const AdminAttendanceLocation = () => {
       title = isTracker ? `Tracker Punch #${index + 1}` : `Punch In #${index + 1}`;
     }
 
-    let content = `<div style="max-width:320px;font-family:'Google Sans',Arial,sans-serif;color:#1f1f1f;padding:2px;">
-      <div style="font-weight:700;margin-bottom:8px;font-size:13px;color:#1f1f1f;">${title}</div>
+    let content = `<div style="max-width:320px;font-family:Inter,system-ui,sans-serif;color:#131315;padding:4px;">
+      <div style="font-weight:600;margin-bottom:8px;font-size:13px;color:#131315;">${title}</div>
       <div style="display:flex;gap:10px;align-items:flex-start;">`;
 
-    // Helper to detect if photoUrl is a web attendance text label (not a real image URL)
     const isWebLabel = (url) => url && !url.startsWith('http') && !url.startsWith('data:') && !url.startsWith('/');
 
     if (photoUrl && !isWebLabel(photoUrl)) {
-      content += `<div style="flex-shrink:0;width:105px;"><img src="${photoUrl}" alt="${title}" style="width:100%;height:auto;max-height:130px;object-fit:cover;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.12);" /></div>`;
+      content += `<div style="flex-shrink:0;width:105px;"><img src="${photoUrl}" alt="${title}" style="width:100%;height:auto;max-height:130px;object-fit:cover;border-radius:12px;box-shadow:0 4px 12px rgba(19,19,21,0.08);" /></div>`;
     } else if (photoUrl && isWebLabel(photoUrl)) {
-      content += `<div style="flex-shrink:0;width:95px;padding:12px 6px;background:#e8f0fe;border:1px solid #d2e3fc;border-radius:10px;color:#1a73e8;font-size:11px;text-align:center;box-sizing:border-box;font-weight:600;">${photoUrl}</div>`;
+      content += `<div style="flex-shrink:0;width:95px;padding:12px 6px;background:#EAF0FA;border:1px solid #D2E0F5;border-radius:10px;color:#5B86C2;font-size:11px;text-align:center;box-sizing:border-box;font-weight:600;">${photoUrl}</div>`;
     } else {
-      content += `<div style="flex-shrink:0;width:95px;padding:12px 6px;background:#f8fafd;border:1px solid #e0e3e7;border-radius:10px;color:#5f6368;font-size:11px;text-align:center;box-sizing:border-box;">No photo</div>`;
+      content += `<div style="flex-shrink:0;width:95px;padding:12px 6px;background:#F8F8F8;border:1px solid #EFEFF1;border-radius:10px;color:#6B6B75;font-size:11px;text-align:center;box-sizing:border-box;">No photo</div>`;
     }
 
-    content += `<div style="font-size:11.5px;line-height:1.5;color:#5f6368;flex-grow:1;min-width:0;">
-      <div style="word-break:break-word;"><strong style="color:#1f1f1f;">Location:</strong><br/>${lat && lng ? `${parseFloat(lat).toFixed(6)}, ${parseFloat(lng).toFixed(6)}` : 'Not available'}</div>
-      <div style="margin-top:6px;word-break:break-word;"><strong style="color:#1f1f1f;">Address:</strong><br/>${address || 'Not available'}</div>
+    content += `<div style="font-size:11.5px;line-height:1.5;color:#6B6B75;flex-grow:1;min-width:0;">
+      <div style="word-break:break-word;"><strong style="color:#131315;">Location:</strong><br/>${lat && lng ? `${parseFloat(lat).toFixed(6)}, ${parseFloat(lng).toFixed(6)}` : 'Not available'}</div>
+      <div style="margin-top:6px;word-break:break-word;"><strong style="color:#131315;">Address:</strong><br/>${address || 'Not available'}</div>
     </div>
     </div></div>`;
 
@@ -192,7 +191,7 @@ const AdminAttendanceLocation = () => {
         markersRef.current.checkIn = createMarker(
           { lat: parseFloat(record.checkInLat), lng: parseFloat(record.checkInLng) },
           'Check In',
-          '#34A853',
+          '#1F9D55',
           'checkIn'
         );
       }
@@ -201,7 +200,7 @@ const AdminAttendanceLocation = () => {
         markersRef.current.checkOut = createMarker(
           { lat: parseFloat(record.checkOutLat), lng: parseFloat(record.checkOutLng) },
           'Check Out',
-          '#EA4335',
+          '#D64550',
           'checkOut'
         );
       }
@@ -213,7 +212,7 @@ const AdminAttendanceLocation = () => {
             const marker = createMarker(
               { lat: parseFloat(punch.latitude), lng: parseFloat(punch.longitude) },
               isTracker ? `Tracker #${idx + 1}` : `Punch In #${idx + 1}`,
-              isTracker ? '#00897B' : '#4285F4',
+              isTracker ? '#A25C9B' : '#5B86C2',
               'punch',
               idx
             );
@@ -256,7 +255,6 @@ const AdminAttendanceLocation = () => {
     };
 
     loadGoogleMapsScript();
-
   }, [data]);
 
   const showAllMarkers = () => {
@@ -302,61 +300,46 @@ const AdminAttendanceLocation = () => {
   const checkOutCoordsStr = (record.checkOutLat && record.checkOutLng) ? `${parseFloat(record.checkOutLat).toFixed(6)}, ${parseFloat(record.checkOutLng).toFixed(6)}` : 'No location';
 
   return (
-    <div
-      className="flex flex-col overflow-hidden -mx-4 sm:-mx-6 -my-4 sm:-my-6 h-[calc(100vh-61px)] font-editorial antialiased"
-      style={{ fontFamily: "'Newsreader', Georgia, serif" }}
-    >
+    <div className="flex flex-col overflow-hidden rounded-[24px] bg-[var(--surface)] border border-[var(--line)] h-[calc(100vh-140px)] min-h-[520px] font-sans antialiased">
       <style>{`
-        .gm-ui-hover-effect {
-          display: none !important;
-        }
-        .gm-style-iw-c button[title="Close"] {
-          display: none !important;
-        }
-        .gm-style-iw-tc {
-          display: none !important;
-        }
+        .gm-ui-hover-effect { display: none !important; }
+        .gm-style-iw-c button[title="Close"] { display: none !important; }
+        .gm-style-iw-tc { display: none !important; }
       `}</style>
 
-      <div className="grid md:grid-cols-[320px_1fr] lg:grid-cols-[360px_1fr] min-h-0 flex-1 bg-white">
+      <div className="grid md:grid-cols-[320px_1fr] lg:grid-cols-[360px_1fr] min-h-0 flex-1">
         {/* Sidebar Panel */}
-        <aside className="flex flex-col border-r border-[#e0e3e7] bg-white overflow-hidden h-full z-10">
+        <aside className="flex flex-col border-r border-[var(--line)] bg-[var(--surface)] overflow-hidden h-full z-10">
           {/* Sidebar Header */}
-          <div className="border-b border-[#f1f3f4] p-4 bg-[#f8fafd]/80 shrink-0">
-            <div className="flex items-center gap-1.5 mb-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-              <span className="text-[10px] font-bold text-[#5f6368] uppercase tracking-wider ml-1">Map View</span>
-            </div>
-            <h2 className="text-sm font-semibold text-[#1f1f1f] truncate">
+          <div className="border-b border-[var(--line)] p-4 bg-[var(--surface-alt)]/60 shrink-0">
+            <span className="text-[11px] font-medium text-[var(--muted)]">Map View</span>
+            <h2 className="text-base font-semibold text-[var(--text)] truncate mt-0.5">
               {employeeName}
             </h2>
-            <p className="text-[11px] text-[#5f6368] mt-0.5">{displayDate}</p>
+            <p className="text-xs text-[var(--text-2)] mt-0.5">{displayDate}</p>
           </div>
 
           {/* Sidebar Content */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
             {/* Check In / Check Out */}
             <section>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368] mb-2.5">Remote Clock In / Clock Out</p>
+              <p className="text-xs font-medium text-[var(--muted)] mb-2.5">Remote Clock In / Clock Out</p>
               <div className="space-y-2.5">
                 {/* Check In */}
-                <div className="flex items-center justify-between p-3 rounded-xl bg-[#e6f4ea] border border-[#ceead6]">
+                <div className="flex items-center justify-between p-3 rounded-[16px] bg-[var(--status-success-bg)] border border-[var(--status-success-text)]/20">
                   <div className="flex items-center gap-2.5">
-                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#34A853] shadow-xs border border-[#ceead6]">
-                      <ArrowRightToLine size={15} />
+                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-[12px] bg-[var(--surface)] text-[var(--status-success-text)] shadow-xs">
+                      <ArrowRightToLine size={16} />
                     </span>
                     <div>
-                      <p className="text-xs font-semibold text-[#137333]">{checkInTime}</p>
-                      <p className="text-[10px] text-[#137333]/70 truncate max-w-[140px]">{checkInCoordsStr}</p>
+                      <p className="text-xs font-semibold text-[var(--status-success-text)]">{checkInTime}</p>
+                      <p className="text-[11px] text-[var(--status-success-text)]/80 truncate max-w-[140px]">{checkInCoordsStr}</p>
                     </div>
                   </div>
                   {record.checkInLat && record.checkInLng && (
                     <button
                       onClick={() => focusMarker('checkIn')}
-                      className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white text-[#34A853] border border-[#ceead6] hover:bg-[#ceead6] transition-colors cursor-pointer shadow-xs"
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-[10px] bg-[var(--surface)] text-[var(--status-success-text)] hover:bg-[var(--surface)]/80 transition-colors cursor-pointer shadow-xs"
                       title="Focus on map"
                     >
                       <MapPin size={13} />
@@ -365,20 +348,20 @@ const AdminAttendanceLocation = () => {
                 </div>
 
                 {/* Check Out */}
-                <div className="flex items-center justify-between p-3 rounded-xl bg-[#fce8e6] border border-[#fad2cf]">
+                <div className="flex items-center justify-between p-3 rounded-[16px] bg-[var(--status-danger-bg)] border border-[var(--status-danger-text)]/20">
                   <div className="flex items-center gap-2.5">
-                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#EA4335] shadow-xs border border-[#fad2cf]">
-                      <ArrowLeftFromLine size={15} />
+                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-[12px] bg-[var(--surface)] text-[var(--status-danger-text)] shadow-xs">
+                      <ArrowLeftFromLine size={16} />
                     </span>
                     <div>
-                      <p className="text-xs font-semibold text-[#c5221f]">{checkOutTime}</p>
-                      <p className="text-[10px] text-[#c5221f]/70 truncate max-w-[140px]">{checkOutCoordsStr}</p>
+                      <p className="text-xs font-semibold text-[var(--status-danger-text)]">{checkOutTime}</p>
+                      <p className="text-[11px] text-[var(--status-danger-text)]/80 truncate max-w-[140px]">{checkOutCoordsStr}</p>
                     </div>
                   </div>
                   {record.checkOutLat && record.checkOutLng && (
                     <button
                       onClick={() => focusMarker('checkOut')}
-                      className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white text-[#EA4335] border border-[#fad2cf] hover:bg-[#fad2cf] transition-colors cursor-pointer shadow-xs"
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-[10px] bg-[var(--surface)] text-[var(--status-danger-text)] hover:bg-[var(--surface)]/80 transition-colors cursor-pointer shadow-xs"
                       title="Focus on map"
                     >
                       <MapPin size={13} />
@@ -390,30 +373,41 @@ const AdminAttendanceLocation = () => {
 
             {/* Location Punches */}
             <section>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368] mb-2.5">Location Punches</p>
+              <p className="text-xs font-medium text-[var(--muted)] mb-2.5">Location Punches</p>
               {punches && punches.length > 0 ? (
                 <div className="space-y-2">
                   {punches.map((punch, idx) => {
                     const isTracker = punch.photo === 'Tracker';
                     return (
-                      <div key={punch.id} className={`rounded-xl border p-3 ${isTracker ? 'border-[#b2dfdb] bg-[#e0f2f1]' : 'border-[#d2e3fc] bg-[#e8f0fe]'}`}>
+                      <div
+                        key={punch.id}
+                        className={`rounded-[16px] border p-3 ${
+                          isTracker
+                            ? 'border-[var(--accent-pink-deep)]/20 bg-[var(--accent-pink-tint)]'
+                            : 'border-[var(--brand)]/20 bg-[var(--brand-tint)]'
+                        }`}
+                      >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2.5">
-                            <span className={`inline-flex h-7 w-7 items-center justify-center rounded-full bg-white text-[10px] font-bold border shadow-xs ${isTracker ? 'text-[#00897B] border-[#b2dfdb]' : 'text-[#1a73e8] border-[#d2e3fc]'}`}>
+                            <span
+                              className={`inline-flex h-7 w-7 items-center justify-center rounded-[10px] bg-[var(--surface)] text-xs font-semibold shadow-xs ${
+                                isTracker ? 'text-[var(--accent-pink-deep)]' : 'text-[var(--brand-deep)]'
+                              }`}
+                            >
                               {idx + 1}
                             </span>
                             <div>
                               <div className="flex items-center gap-1.5">
-                                <p className={`text-xs font-semibold ${isTracker ? 'text-[#00897B]' : 'text-[#1a73e8]'}`}>
+                                <p className={`text-xs font-semibold ${isTracker ? 'text-[var(--accent-pink-deep)]' : 'text-[var(--brand-deep)]'}`}>
                                   {new Date(punch.punchTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                                 </p>
                                 {isTracker && (
-                                  <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-[#00897B]/15 text-[#00796B] border border-[#00897B]/25">
+                                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-[9px] bg-[var(--surface)] text-[var(--accent-pink-deep)]">
                                     Tracker
                                   </span>
                                 )}
                               </div>
-                              <p className={`text-[10px] truncate max-w-[140px] ${isTracker ? 'text-[#00897B]/80' : 'text-[#1a73e8]/70'}`}>
+                              <p className={`text-[11px] truncate max-w-[140px] ${isTracker ? 'text-[var(--accent-pink-deep)]/80' : 'text-[var(--brand-deep)]/80'}`}>
                                 {(punch.latitude && punch.longitude) ? `${parseFloat(punch.latitude).toFixed(6)}, ${parseFloat(punch.longitude).toFixed(6)}` : 'No location'}
                               </p>
                             </div>
@@ -421,7 +415,9 @@ const AdminAttendanceLocation = () => {
                           {(punch.latitude && punch.longitude) && (
                             <button
                               onClick={() => focusMarker('punch', idx)}
-                              className={`inline-flex h-7 w-7 items-center justify-center rounded-full bg-white border transition-colors cursor-pointer shadow-xs ${isTracker ? 'text-[#00897B] border-[#b2dfdb] hover:bg-[#b2dfdb]' : 'text-[#1a73e8] border-[#d2e3fc] hover:bg-[#d2e3fc]'}`}
+                              className={`inline-flex h-7 w-7 items-center justify-center rounded-[10px] bg-[var(--surface)] transition-colors cursor-pointer shadow-xs ${
+                                isTracker ? 'text-[var(--accent-pink-deep)] hover:bg-[var(--surface)]/80' : 'text-[var(--brand-deep)] hover:bg-[var(--surface)]/80'
+                              }`}
                               title="Focus on map"
                             >
                               <MapPin size={13} />
@@ -433,68 +429,74 @@ const AdminAttendanceLocation = () => {
                   })}
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center py-6 text-center text-[#5f6368] bg-[#f8fafd] rounded-xl border border-[#e0e3e7] border-dashed">
-                  <MapPinOff size={20} className="mb-2 text-[#dadce0]" />
-                  <p className="text-[11px] font-medium">No punches recorded for this day.</p>
+                <div className="flex flex-col items-center justify-center py-6 text-center text-[var(--muted)] bg-[var(--surface-alt)] rounded-[16px] border border-[var(--line)] border-dashed">
+                  <MapPinOff size={20} className="mb-2 text-[var(--icon-muted)]" />
+                  <p className="text-xs font-medium">No punches recorded for this day.</p>
                 </div>
               )}
             </section>
           </div>
 
           {/* Sidebar Footer */}
-          <div className="p-3 border-t border-[#f1f3f4] bg-[#f8fafd]/80 flex gap-2 shrink-0">
-            <button
+          <div className="p-3 border-t border-[var(--line)] bg-[var(--surface-alt)]/60 flex gap-2 shrink-0">
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={showAllMarkers}
-              className="flex-1 inline-flex items-center justify-center rounded-full text-[10px] font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#444746] py-1.5 transition-colors cursor-pointer gap-1"
+              className="flex-1 text-xs"
             >
-              <MapPin size={11} /> Show All Markers
-            </button>
+              <MapPin size={13} className="mr-1" /> Show All
+            </Button>
             {fromRegularize && (
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => navigate(-1)}
-                className="flex-1 inline-flex items-center justify-center rounded-full text-[10px] font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#444746] py-1.5 transition-colors cursor-pointer gap-1"
+                className="flex-1 text-xs"
               >
-                <ArrowLeft size={11} /> Back to Calendar
-              </button>
+                <ArrowLeft size={13} className="mr-1" /> Calendar
+              </Button>
             )}
           </div>
         </aside>
 
         {/* Map Section */}
-        <section className="relative flex flex-col bg-white overflow-hidden h-full min-h-0">
-          <div className="p-4 border-b border-[#f1f3f4] bg-[#f8fafd]/80 flex justify-between items-center shrink-0 z-10">
+        <section className="relative flex flex-col bg-[var(--surface)] overflow-hidden h-full min-h-0">
+          <div className="p-4 border-b border-[var(--line)] bg-[var(--surface-alt)]/60 flex justify-between items-center shrink-0 z-10">
             <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center border border-[#d2e3fc]">
-                <MapPin size={15} />
+              <div className="w-8 h-8 rounded-[12px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center">
+                <MapPin size={16} />
               </div>
               <div>
-                <h2 className="text-sm font-semibold text-[#1f1f1f]">Attendance Map</h2>
-                <p className="text-[11px] text-[#5f6368]">Visual markers for check-in, check-out and punches</p>
+                <h2 className="text-sm font-semibold text-[var(--text)]">Attendance Map</h2>
+                <p className="text-xs text-[var(--muted)]">Visual markers for check-in, check-out and punches</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
               {!data.googleMapsApiKey && (
-                <div className="px-2.5 py-1 bg-[#fef7e0] text-[#b06000] text-[10px] rounded-full border border-[#feefc3] font-semibold">
+                <div className="px-2.5 py-1 bg-[var(--status-warning-bg)] text-[var(--status-warning-text)] text-xs rounded-[9px] font-semibold">
                   API Key Missing
                 </div>
               )}
-              <button
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => navigate('/admin/attendance')}
-                className="inline-flex items-center justify-center rounded-full text-[10px] font-semibold border border-[#dadce0] bg-white hover:bg-[#f1f3f4] text-[#444746] h-7 px-3 transition-colors cursor-pointer gap-1"
+                className="text-xs"
               >
-                <ArrowLeft size={11} /> Attendance
-              </button>
+                <ArrowLeft size={13} className="mr-1" /> Back
+              </Button>
             </div>
           </div>
           <div className="flex-1 min-h-0 relative">
             {data.googleMapsApiKey ? (
               <div ref={mapRef} className="w-full h-full"></div>
             ) : (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#f8fafd] text-[#5f6368]">
-                <MapPinOff size={32} className="mb-3 text-[#dadce0]" />
-                <p className="font-semibold text-sm text-[#1f1f1f]">Map is unavailable</p>
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--surface-alt)] text-[var(--muted)]">
+                <MapPinOff size={32} className="mb-3 text-[var(--icon-muted)]" />
+                <p className="font-semibold text-sm text-[var(--text)]">Map is unavailable</p>
                 <p className="text-xs mt-1 max-w-sm text-center">
-                  Please provide a valid Google Maps API Key in the backend <code className="bg-[#f1f3f4] px-1 py-0.5 rounded text-[#1a73e8] text-[10px]">.env</code> file to view the attendance map.
+                  Please provide a valid Google Maps API Key in the backend environment file to view the attendance map.
                 </p>
               </div>
             )}

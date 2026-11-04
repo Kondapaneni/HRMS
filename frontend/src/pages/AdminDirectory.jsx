@@ -5,6 +5,7 @@ import api from '../api/axios';
 import { Tree, TreeNode } from 'react-organizational-chart';
 import { Search, Building2, User, ChevronDown, ChevronUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import Avatar from '../components/ui/Avatar';
 
 const AdminDirectory = () => {
   const [search, setSearch] = useState('');
@@ -30,15 +31,11 @@ const AdminDirectory = () => {
     },
   });
 
-  const getInitials = (firstName, lastName) => {
-    return `${(firstName || '').charAt(0)}${(lastName || '').charAt(0)}`.toUpperCase();
-  };
-
   const treeData = useMemo(() => {
     if (!employees.length) return [];
 
     const empMap = new Map();
-    employees.forEach(emp => {
+    employees.forEach((emp) => {
       empMap.set(emp.employeeId, { ...emp, children: [] });
       empMap.set(emp.id, empMap.get(emp.employeeId));
     });
@@ -46,7 +43,7 @@ const AdminDirectory = () => {
     const roots = [];
     const uniqueRoots = new Set();
 
-    employees.forEach(emp => {
+    employees.forEach((emp) => {
       const node = empMap.get(emp.employeeId);
       if (emp.managerId && empMap.has(emp.managerId)) {
         const managerNode = empMap.get(emp.managerId);
@@ -70,46 +67,46 @@ const AdminDirectory = () => {
   }, [employees]);
 
   const EmployeeNode = ({ employee, isExpanded, toggleExpand, hasChildren }) => {
-    const isHighlighted = search && (
-      (employee.firstName + ' ' + employee.lastName).toLowerCase().includes(search.toLowerCase()) ||
-      (employee.department || '').toLowerCase().includes(search.toLowerCase()) ||
-      (employee.position || '').toLowerCase().includes(search.toLowerCase()) ||
-      (employee.employeeId || '').toLowerCase().includes(search.toLowerCase())
-    );
+    const isHighlighted =
+      search &&
+      ((employee.firstName + ' ' + employee.lastName).toLowerCase().includes(search.toLowerCase()) ||
+        (employee.department || '').toLowerCase().includes(search.toLowerCase()) ||
+        (employee.position || '').toLowerCase().includes(search.toLowerCase()) ||
+        (employee.employeeId || '').toLowerCase().includes(search.toLowerCase()));
 
     return (
-      <div 
-        id={`node-${employee.id}`} 
-        className={`relative mt-7 mb-3 flex flex-col items-center rounded-2xl border min-w-[210px] max-w-[250px] mx-auto pb-4 ${
-          isHighlighted 
-            ? 'bg-[#e8f0fe] border-[#4285F4] ring-2 ring-[#4285F4]/30 highlighted-node shadow-md' 
-            : 'bg-white border-[#e0e3e7] shadow-xs'
+      <div
+        id={`node-${employee.id}`}
+        className={`relative mt-8 mb-3 flex flex-col items-center rounded-[20px] border min-w-[210px] max-w-[250px] mx-auto pb-4 transition-all ${
+          isHighlighted
+            ? 'bg-[var(--brand-tint)] border-[var(--brand)] ring-2 ring-[var(--brand)]/30 highlighted-node shadow-md'
+            : 'bg-[var(--surface)] border-[var(--line)]'
         }`}
       >
-        {/* Floating Avatar */}
-        <div className="absolute -top-6 w-12 h-12 rounded-full bg-white flex items-center justify-center p-0.5 border border-[#dadce0] shadow-xs z-20">
-          <div className="w-full h-full rounded-full bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center font-bold text-xs overflow-hidden">
-            {employee.avatar ? (
-              <img src={employee.avatar} alt="Avatar" className="w-full h-full object-cover" />
-            ) : (
-              getInitials(employee.firstName, employee.lastName)
-            )}
-          </div>
+        {/* Floating Avatar (14px rounded square) */}
+        <div className="absolute -top-6 w-12 h-12 rounded-[14px] bg-[var(--surface)] flex items-center justify-center p-0.5 border border-[var(--line)] shadow-xs z-20">
+          <Avatar
+            name={`${employee.firstName || ''} ${employee.lastName || ''}`}
+            src={employee.avatar}
+            size={42}
+            shape="square"
+            radius={12}
+          />
         </div>
 
         {/* Card Content */}
-        <div 
+        <div
           onClick={() => navigate(`/admin/employees/${employee.id}`)}
-          className="pt-7 px-3.5 w-full text-center cursor-pointer"
+          className="pt-8 px-3.5 w-full text-center cursor-pointer"
         >
-          <div className="text-xs font-semibold text-[#1f1f1f] truncate">
+          <div className="text-xs font-medium text-[var(--text)] truncate">
             {employee.firstName} {employee.lastName}
           </div>
-          <div className="text-[10.5px] font-medium text-[#5f6368] truncate mt-0.5">
-            {employee.position || 'Staff Member'}
+          <div className="text-[11px] text-[var(--muted)] truncate mt-0.5">
+            {employee.position || 'Staff member'}
           </div>
-          <div className="mt-1.5 flex items-center justify-center gap-1">
-            <span className="text-[9.5px] font-medium px-2 py-0.5 rounded-full bg-[#f1f3f4] text-[#444746] truncate max-w-[150px]">
+          <div className="mt-2 flex items-center justify-center gap-1">
+            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[var(--surface-alt)] text-[var(--text-2)] truncate max-w-[150px]">
               {employee.department || 'General'}
             </span>
           </div>
@@ -119,16 +116,21 @@ const AdminDirectory = () => {
         {hasChildren && (
           <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 z-30">
             <button
+              type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 toggleExpand();
               }}
-              className="flex items-center justify-center gap-1 bg-white border border-[#dadce0] text-[10px] font-semibold text-[#5f6368] px-2.5 py-0.5 rounded-full shadow-xs cursor-pointer whitespace-nowrap"
+              className="flex items-center justify-center gap-1 bg-[var(--surface)] border border-[var(--line)] text-[10px] font-medium text-[var(--muted)] hover:text-[var(--text)] px-2.5 py-0.5 rounded-full shadow-xs cursor-pointer whitespace-nowrap transition-colors"
             >
               {isExpanded ? (
-                <>Collapse <ChevronUp className="w-3 h-3" /></>
+                <>
+                  <span>Collapse</span> <ChevronUp className="w-3 h-3" />
+                </>
               ) : (
-                <>{employee.children.length} Reports <ChevronDown className="w-3 h-3" /></>
+                <>
+                  <span>{employee.children.length} reports</span> <ChevronDown className="w-3 h-3" />
+                </>
               )}
             </button>
           </div>
@@ -138,20 +140,18 @@ const AdminDirectory = () => {
   };
 
   const RootNode = () => (
-    <div className="relative mt-7 mb-3 flex flex-col items-center rounded-2xl border-2 border-[#4285F4] bg-white shadow-md min-w-[210px] max-w-[250px] mx-auto pb-4 pt-7 px-4 text-center">
+    <div className="relative mt-8 mb-3 flex flex-col items-center rounded-[20px] border border-[var(--brand)] bg-[var(--surface)] min-w-[210px] max-w-[250px] mx-auto pb-4 pt-8 px-4 text-center">
       {/* Floating Logo Badge */}
-      <div className="absolute -top-6 w-12 h-12 rounded-full bg-white flex items-center justify-center p-0.5 border border-[#dadce0] shadow-xs z-20">
-        <div className="w-full h-full rounded-full bg-[#e8f0fe] flex items-center justify-center text-[#1a73e8]">
-          <Building2 className="w-5 h-5" />
-        </div>
+      <div className="absolute -top-6 w-12 h-12 rounded-[14px] bg-[var(--ink)] text-white flex items-center justify-center border border-[var(--line)] shadow-xs z-20">
+        <Building2 className="w-5 h-5 text-[var(--brand)]" />
       </div>
 
-      <div className="text-sm font-medium tracking-tight text-[#1f1f1f] truncate w-full flex items-center justify-center gap-1 font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+      <div className="text-sm font-medium tracking-tight text-[var(--text)] truncate w-full flex items-center justify-center gap-1">
         <span>Acme</span>
-        <span className="italic text-[#4285F4]">HRMS</span>
+        <span className="text-[var(--brand-deep)]">HRMS</span>
       </div>
-      <div className="text-[10px] font-medium text-[#5f6368] uppercase tracking-wider mt-0.5 truncate w-full">
-        Root Organization
+      <div className="text-[10px] text-[var(--muted)] mt-0.5 truncate w-full">
+        Root organization
       </div>
     </div>
   );
@@ -169,7 +169,9 @@ const AdminDirectory = () => {
   const hasMatchingDescendant = (emp, query) => {
     if (!query) return false;
     if (!emp.children || emp.children.length === 0) return false;
-    return emp.children.some(child => doesMatchSearch(child, query) || hasMatchingDescendant(child, query));
+    return emp.children.some(
+      (child) => doesMatchSearch(child, query) || hasMatchingDescendant(child, query)
+    );
   };
 
   const OrgTreeNode = ({ node }) => {
@@ -197,7 +199,7 @@ const AdminDirectory = () => {
     if (isExpanded && hasChildren) {
       return (
         <TreeNode label={labelContent}>
-          {node.children.map(child => (
+          {node.children.map((child) => (
             <OrgTreeNode key={child.employeeId} node={child} />
           ))}
         </TreeNode>
@@ -207,59 +209,59 @@ const AdminDirectory = () => {
     return <TreeNode label={labelContent} />;
   };
 
-  if (isLoading) return <PageLoader message="Loading Organization Directory..." />;
+  if (isLoading) return <PageLoader message="Loading organization directory..." />;
 
   return (
-    <div className="space-y-4 h-[calc(100vh-6.5rem)] flex flex-col max-w-7xl mx-auto pb-4 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+    <div className="space-y-4 h-[calc(100vh-6.5rem)] flex flex-col max-w-7xl mx-auto pb-4 antialiased">
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
         <div>
-          <div className="flex items-center gap-1.5 mb-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-            <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Organizational Hierarchy & Tree</span>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-medium tracking-tight text-[var(--text)]">
+              Organization directory
+            </h1>
+            <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-[var(--brand-tint)] text-[var(--brand-deep)]">
+              {employees.length} members
+            </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight font-editorial" style={{ fontFamily: "'Newsreader', Georgia, serif", fontWeight: 500 }}>
-            Organization <span className="font-medium italic text-[#1a73e8]">Directory</span> <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full align-middle ml-1.5">{employees.length} Members</span>
-          </h1>
-          <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
-            Interactive reporting tree and organizational chart.
+          <p className="text-xs text-[var(--muted)] mt-0.5">
+            Interactive organizational reporting tree and hierarchy
           </p>
         </div>
 
-        {/* Google Pill Search */}
+        {/* Search Pill */}
         <div className="relative w-full sm:w-80">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368] pointer-events-none" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)] pointer-events-none" />
           <input
             type="search"
             placeholder="Search by name, role, dept, or ID..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 text-xs bg-[#f1f3f4] hover:bg-[#e8eaed] focus:bg-white border border-transparent focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-full text-[#1f1f1f] placeholder:text-[#5f6368] outline-none transition-all shadow-none focus:shadow-sm"
+            className="w-full pl-10 pr-4 py-2 text-xs bg-[var(--surface)] border border-[var(--line)] focus:border-[var(--brand)] rounded-full text-[var(--text)] placeholder:text-[var(--muted)] outline-none transition-all"
           />
         </div>
       </div>
 
-      {/* Main Scrollable Canvas */}
-      <div className="flex-1 bg-[#f8fafd] border border-[#e0e3e7] rounded-2xl overflow-auto relative shadow-xs custom-scrollbar">
+      {/* Main Canvas */}
+      <div className="flex-1 bg-[var(--surface)] rounded-[24px] overflow-auto relative custom-scrollbar">
         {employees.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-[#5f6368]">
-            <User className="w-10 h-10 text-[#dadce0] mb-3" />
-            <p className="text-xs font-medium text-[#1f1f1f]">No employees in the organization yet</p>
+          <div className="flex flex-col items-center justify-center h-full text-[var(--muted)]">
+            <User className="w-10 h-10 opacity-30 mb-3" />
+            <p className="text-xs font-medium text-[var(--text)]">No employees in the organization yet</p>
           </div>
         ) : (
           <div className="min-w-max min-h-max flex items-start justify-center pt-14 pb-32 px-16">
             <Tree
-              lineWidth={'2px'}
-              lineColor={'#dadce0'}
-              lineBorderRadius={'10px'}
-              lineHeight={'36px'}
-              nodePadding={'16px'}
+              lineWidth="2px"
+              lineColor="var(--line, #EFEFF1)"
+              lineBorderRadius="12px"
+              lineHeight="36px"
+              nodePadding="16px"
               label={<RootNode />}
             >
-              {treeData.map(rootNode => <OrgTreeNode key={rootNode.employeeId} node={rootNode} />)}
+              {treeData.map((rootNode) => (
+                <OrgTreeNode key={rootNode.employeeId} node={rootNode} />
+              ))}
             </Tree>
           </div>
         )}
