@@ -43,6 +43,17 @@
   --info-bg: #E8F0FB;
   --neutral-text: #4A4A52;
   --neutral-bg: #EFEFF1;
+  /* Badge aliases */
+  --badge-success-bg: var(--success-bg);
+  --badge-success-text: var(--success-text);
+  --badge-warning-bg: var(--warning-bg);
+  --badge-warning-text: var(--warning-text);
+  --badge-danger-bg: var(--danger-bg);
+  --badge-danger-text: var(--danger-text);
+  --badge-info-bg: var(--info-bg);
+  --badge-info-text: var(--info-text);
+  --badge-neutral-bg: var(--neutral-bg);
+  --badge-neutral-text: var(--neutral-text);
 
   /* Scrollbar */
   --scrollbar-thumb: #D9D9DE;
