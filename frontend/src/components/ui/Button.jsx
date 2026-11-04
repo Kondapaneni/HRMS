@@ -64,13 +64,17 @@ export const Button = React.forwardRef(({
     >
       {isLoading ? (
         <Loader2 className="w-4 h-4 animate-spin shrink-0" />
-      ) : (
-        LeftIcon && <LeftIcon className="w-4 h-4 shrink-0" strokeWidth={1.7} />
-      )}
+      ) : React.isValidElement(LeftIcon) ? (
+        LeftIcon
+      ) : LeftIcon ? (
+        <LeftIcon className="w-4 h-4 shrink-0" strokeWidth={1.7} />
+      ) : null}
       {children}
-      {!isLoading && RightIcon && (
+      {!isLoading && (React.isValidElement(RightIcon) ? (
+        RightIcon
+      ) : RightIcon ? (
         <RightIcon className="w-4 h-4 shrink-0" strokeWidth={1.7} />
-      )}
+      ) : null)}
     </button>
   );
 });

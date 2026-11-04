@@ -12,6 +12,7 @@ export const StatCard = ({
   title,
   value,
   subtitle,
+  caption,
   delta,
   deltaType, // 'positive' | 'negative' | 'neutral'
   splitBar, // { series1: { value: 60, label: 'Office', color: '#8AADDB' }, series2: { value: 40, label: 'Field', color: '#E3B9DF' } }
@@ -56,7 +57,11 @@ export const StatCard = ({
           {action}
           {Icon && !action && (
             <div className="w-8 h-8 rounded-[10px] bg-[var(--brand-tint)] flex items-center justify-center text-[var(--brand-deep)]">
-              <Icon size={16} strokeWidth={1.7} />
+              {React.isValidElement(Icon) ? (
+                Icon
+              ) : (
+                <Icon size={16} strokeWidth={1.7} />
+              )}
             </div>
           )}
         </div>
@@ -67,9 +72,9 @@ export const StatCard = ({
         <div className="text-[40px] font-normal tracking-[-0.02em] text-[var(--text)] leading-none truncate">
           {value ?? '—'}
         </div>
-        {subtitle && (
+        {(subtitle || caption) && (
           <p className="text-[12px] text-[var(--muted)] mt-1.5 truncate">
-            {subtitle}
+            {subtitle || caption}
           </p>
         )}
       </div>

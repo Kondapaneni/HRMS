@@ -44,7 +44,7 @@ export const Input = React.forwardRef(({
       <div className="relative w-full">
         {LeftIcon && (
           <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--icon-muted)] pointer-events-none">
-            <LeftIcon size={16} strokeWidth={1.7} />
+            {React.isValidElement(LeftIcon) ? LeftIcon : <LeftIcon size={16} strokeWidth={1.7} />}
           </div>
         )}
 
@@ -68,7 +68,7 @@ export const Input = React.forwardRef(({
           </div>
         ) : RightIcon ? (
           <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--icon-muted)] pointer-events-none">
-            <RightIcon size={16} strokeWidth={1.7} />
+            {React.isValidElement(RightIcon) ? RightIcon : <RightIcon size={16} strokeWidth={1.7} />}
           </div>
         ) : null}
       </div>
