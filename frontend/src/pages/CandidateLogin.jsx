@@ -148,39 +148,13 @@ const CandidateLogin = () => {
         <div className="lg:col-span-6 flex flex-col justify-between p-6 sm:p-10 lg:p-12 max-w-md mx-auto w-full">
           <div>
             {/* Header Titles matching Login.jsx */}
-            <div className="text-center sm:text-left mb-6">
+            <div className="text-center sm:text-left mb-8">
               <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#131315]">
                 {isLogin ? 'Welcome back!' : 'Create account'}
               </h1>
               <p className="text-xs sm:text-sm text-neutral-500 mt-2 leading-relaxed font-normal">
                 Simplify your workflow and boost your productivity with <strong className="text-neutral-800 font-semibold">Acme HRMS</strong>.
               </p>
-            </div>
-
-            {/* Pill Mode Switcher */}
-            <div className="flex items-center p-1 bg-neutral-100 rounded-full mb-6">
-              <button
-                type="button"
-                onClick={() => toggleMode(true)}
-                className={`flex-1 py-2 text-xs font-semibold rounded-full transition-all cursor-pointer ${
-                  isLogin
-                    ? 'bg-black text-white shadow-xs'
-                    : 'text-neutral-500 hover:text-black'
-                }`}
-              >
-                Sign in
-              </button>
-              <button
-                type="button"
-                onClick={() => toggleMode(false)}
-                className={`flex-1 py-2 text-xs font-semibold rounded-full transition-all cursor-pointer ${
-                  !isLogin
-                    ? 'bg-black text-white shadow-xs'
-                    : 'text-neutral-500 hover:text-black'
-                }`}
-              >
-                Create account
-              </button>
             </div>
 
             {/* Alerts */}
@@ -310,23 +284,31 @@ const CandidateLogin = () => {
                 </div>
               )}
 
-              {/* Forgot password in Login mode */}
-              {isLogin && (
-                <div className="text-right pt-0.5">
+              {/* Mode Toggle on Left, Forgot Password on Right */}
+              <div className="flex items-center justify-between pt-0.5 text-xs font-medium">
+                <button
+                  type="button"
+                  onClick={() => toggleMode(!isLogin)}
+                  className="text-neutral-500 hover:text-black transition-colors cursor-pointer"
+                >
+                  {isLogin ? 'Create an account' : 'Already have an account? Sign in'}
+                </button>
+
+                {isLogin && (
                   <Link
                     to="/forgot-password?type=candidate"
-                    className="text-xs font-medium text-neutral-500 hover:text-black transition-colors"
+                    className="text-neutral-500 hover:text-black transition-colors"
                   >
                     Forgot Password?
                   </Link>
-                </div>
-              )}
+                )}
+              </div>
 
               {/* Submit button */}
               <button
                 type="submit"
                 disabled={isLoading || lockoutSeconds > 0}
-                className="w-full h-12 rounded-full bg-black hover:bg-neutral-800 text-white font-medium text-sm transition-all duration-200 cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.99]"
+                className="w-full h-12 rounded-full bg-black hover:bg-neutral-800 text-white font-medium text-sm transition-all duration-200 cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.99] mt-2"
               >
                 {isLoading ? (
                   <RefreshCw size={16} className="animate-spin" />
