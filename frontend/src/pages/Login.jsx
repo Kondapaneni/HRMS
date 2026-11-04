@@ -8,15 +8,9 @@ import {
   ArrowLeft, 
   RefreshCw, 
   KeyRound,
-  ShieldCheck,
   Users,
-  Building2,
   CalendarCheck,
-  Wallet,
-  Clock,
-  Sparkles,
-  ChevronLeft,
-  ChevronRight
+  Wallet
 } from 'lucide-react';
 import { useNavigate, Navigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -292,12 +286,6 @@ const Login = () => {
     }
   };
 
-  // Quick preset login helper for testing
-  const handleQuickFill = (presetEmail) => {
-    setEmail(presetEmail);
-    setPassword('Admin@123');
-    setError('');
-  };
 
   const currentSlide = carouselSlides[activeSlide];
 
@@ -513,39 +501,8 @@ const Login = () => {
               </form>
             )}
 
-            {/* "or continue with" Divider */}
-            <div className="relative flex items-center justify-center my-6">
-              <div className="border-t border-neutral-200 w-full" />
-              <span className="bg-white px-3 text-xs text-neutral-400 font-medium whitespace-nowrap">
-                or continue with
-              </span>
-            </div>
-
-            {/* HRMS System Access Icons (Admin, Employee, Email OTP) */}
-            <div className="flex items-center justify-center gap-4 mb-6">
-              {/* HRMS Admin Access Icon */}
-              <button
-                type="button"
-                onClick={() => handleQuickFill('admin@acme.com')}
-                title="Quick Demo: Admin Role"
-                className="w-11 h-11 rounded-full bg-black text-white hover:bg-neutral-800 flex items-center justify-center transition-all cursor-pointer shadow-sm active:scale-95 group relative"
-                aria-label="Admin Portal"
-              >
-                <ShieldCheck size={18} className="group-hover:scale-110 transition-transform text-white" />
-              </button>
-
-              {/* HRMS Employee Access Icon */}
-              <button
-                type="button"
-                onClick={() => handleQuickFill('employee@acme.com')}
-                title="Quick Demo: Employee Role"
-                className="w-11 h-11 rounded-full bg-black text-white hover:bg-neutral-800 flex items-center justify-center transition-all cursor-pointer shadow-sm active:scale-95 group relative"
-                aria-label="Employee Workspace"
-              >
-                <Users size={18} className="group-hover:scale-110 transition-transform text-white" />
-              </button>
-
-              {/* HRMS Email OTP Access Icon */}
+            {/* Toggle between Password and OTP Login */}
+            <div className="text-center pt-3">
               <button
                 type="button"
                 onClick={() => {
@@ -553,11 +510,9 @@ const Login = () => {
                   setError('');
                   setSuccessMessage('');
                 }}
-                title={loginMethod === 'password' ? 'Switch to Email OTP Login' : 'Switch to Password Login'}
-                className="w-11 h-11 rounded-full bg-black text-white hover:bg-neutral-800 flex items-center justify-center transition-all cursor-pointer shadow-sm active:scale-95 group"
-                aria-label="Passwordless Email OTP"
+                className="text-xs text-neutral-400 hover:text-neutral-700 font-medium transition-colors cursor-pointer"
               >
-                <KeyRound size={18} className="group-hover:scale-110 transition-transform text-white" />
+                {loginMethod === 'password' ? 'Sign in with Email OTP instead' : 'Sign in with Password instead'}
               </button>
             </div>
           </div>
