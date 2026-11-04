@@ -199,7 +199,6 @@ const EmployeeLayout = () => {
       isBottom: true,
       chips: [
         { label: 'Profile', path: '/employee/profile' },
-        { label: 'Edit Profile', path: '/employee/profile/edit' },
       ],
       activeMatch: (pathname) => pathname.startsWith('/employee/profile'),
     });
