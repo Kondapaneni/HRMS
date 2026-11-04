@@ -1,75 +1,39 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import FuzzyText from '../components/FuzzyText';
-import { Home, ArrowLeft, AlertCircle, Compass } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Home, ArrowLeft } from 'lucide-react';
+import Button from '../components/ui/Button';
 
 const NotFound = () => {
   return (
-    <div className="min-h-screen bg-[#f8fafd] flex flex-col items-center justify-center p-6 overflow-hidden relative select-none">
-      
-      {/* Background Ambient Glow Blobs */}
-      <motion.div 
-        className="absolute top-[-10%] left-[-10%] w-[30rem] h-[30rem] bg-[#4285F4]/10 rounded-full blur-3xl pointer-events-none"
-        animate={{ 
-          scale: [1, 1.1, 1], 
-          opacity: [0.3, 0.5, 0.3],
-        }}
-        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <motion.div 
-        className="absolute bottom-[-10%] right-[-10%] w-[32rem] h-[32rem] bg-[#34A853]/10 rounded-full blur-3xl pointer-events-none"
-        animate={{ 
-          scale: [1, 1.15, 1], 
-          opacity: [0.3, 0.5, 0.3],
-        }}
-        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-      />
-
-      <div className="relative z-10 flex flex-col items-center max-w-md w-full text-center">
-        
-        {/* Large 404 Text */}
-        <div className="h-36 sm:h-48 mb-3 relative flex items-center justify-center w-full">
-          <FuzzyText 
-            baseIntensity={0.15}
-            hoverIntensity={0.4}
-            enableHover
-            color="#1a73e8"
-            fontSize="7.5rem"
-            fontWeight={900}
-          >
-            404
-          </FuzzyText>
+    <div className="min-h-screen bg-[var(--bg)] flex flex-col items-center justify-center p-6 selection:bg-[var(--brand-tint)] selection:text-[var(--text)]">
+      <div className="w-full max-w-md text-center flex flex-col items-center">
+        {/* Big 404 number */}
+        <div className="text-[96px] sm:text-[120px] font-medium leading-none tracking-tight text-[var(--text)] mb-3 select-none">
+          404
         </div>
 
-        {/* 4 Google Colors Accent Dots */}
-        <div className="flex items-center justify-center gap-1 mb-3">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-          <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-          <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-          <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-          <span className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368] ml-1">
-            Page Not Found • Acme HRMS
-          </span>
-        </div>
-        
-        <h1 className="text-2xl sm:text-3xl font-bold text-[#1f1f1f] mb-2 tracking-tight">
-          Lost in Space?
+        {/* Title */}
+        <h1 className="text-xl sm:text-2xl font-medium text-[var(--text)] tracking-tight mb-2">
+          Page not found
         </h1>
-        
-        <p className="text-[#5f6368] text-xs sm:text-sm mb-8 max-w-sm leading-relaxed">
-          The page you are searching for might have been moved, renamed, or is temporarily inaccessible in your workspace.
+
+        {/* Subline */}
+        <p className="text-xs sm:text-sm text-[var(--muted)] max-w-sm mb-8 leading-relaxed">
+          The page or workspace resource you are searching for might have been moved, renamed, or is temporarily inaccessible.
         </p>
-        
-        <Link 
-          to="/"
-          className="inline-flex items-center gap-2 py-3 px-6 bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold rounded-full transition-all shadow-xs active:scale-98 cursor-pointer"
-        >
-          <Home className="w-4 h-4" />
-          <span>Return to Workspace</span>
+
+        {/* Action Button */}
+        <Link to="/">
+          <Button variant="primary" className="h-11 px-6 rounded-[12px] font-medium text-xs justify-center">
+            <Home size={15} />
+            <span>Return to workspace</span>
+          </Button>
         </Link>
       </div>
 
+      <footer className="mt-16 text-center text-xs text-[var(--muted)]">
+        Acme HRMS &bull; Designed &amp; developed by Gowtham Chowdary Kondapaneni
+      </footer>
     </div>
   );
 };

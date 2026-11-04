@@ -1,36 +1,36 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import FuzzyText from '../components/FuzzyText';
-import { Home } from 'lucide-react';
+import { Sparkles, Home, ArrowLeft } from 'lucide-react';
+import Button from '../components/ui/Button';
 
 const ComingSoon = () => {
   return (
     <div className="min-h-[80vh] flex flex-col items-center justify-center p-4">
-      <div className="h-32 mb-8 relative flex items-center justify-center w-full max-w-3xl">
-        <FuzzyText 
-          baseIntensity={0.2}
-          hoverIntensity={0.5}
-          enableHover
-          color="#3B82F6"
-          fontSize="4.5rem"
-          fontWeight={900}
-        >
-          COMING SOON
-        </FuzzyText>
+      <div className="w-full max-w-md bg-[var(--surface)] rounded-[32px] p-8 sm:p-10 text-center shadow-[0_24px_60px_rgba(19,19,21,0.08)]">
+        {/* Soft Pink Icon Tile */}
+        <div className="w-14 h-14 rounded-2xl bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)] flex items-center justify-center mx-auto mb-5">
+          <Sparkles size={28} />
+        </div>
+
+        <h1 className="text-2xl font-medium text-[var(--text)] tracking-tight mb-2">
+          Under development
+        </h1>
+
+        <p className="text-xs sm:text-sm text-[var(--muted)] mb-8 max-w-sm mx-auto leading-relaxed">
+          This module is currently being built and tested for your workspace. Stay tuned for upcoming feature releases!
+        </p>
+
+        <Link to="/admin">
+          <Button variant="primary" className="h-11 px-6 rounded-[12px] font-medium text-xs justify-center w-full">
+            <Home size={15} />
+            <span>Back to dashboard</span>
+          </Button>
+        </Link>
       </div>
-      
-      <h1 className="text-3xl font-bold text-slate-800 mb-4 text-center">We're Working on It!</h1>
-      <p className="text-slate-500 mb-8 max-w-md text-center leading-relaxed">
-        The Recruitment module is currently under active development. Stay tuned for exciting new features to help you hire the best talent!
-      </p>
-      
-      <Link 
-        to="/admin"
-        className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-xl font-medium hover:bg-slate-800 transition-colors shadow-sm"
-      >
-        <Home className="w-5 h-5" />
-        Back to Dashboard
-      </Link>
+
+      <footer className="mt-8 text-center text-xs text-[var(--muted)]">
+        Acme HRMS &bull; Feature roadmap
+      </footer>
     </div>
   );
 };

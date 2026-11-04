@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { RefreshCcw, WifiOff, Globe } from 'lucide-react';
-import FuzzyText from '../components/FuzzyText';
+import { RefreshCcw, WifiOff } from 'lucide-react';
+import Button from '../components/ui/Button';
 
 const Offline = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -22,8 +22,6 @@ const Offline = () => {
 
   const handleTryAgain = () => {
     setIsChecking(true);
-
-    // Simulate a brief check for UX feedback
     setTimeout(() => {
       if (navigator.onLine) {
         setIsOnline(true);
@@ -39,71 +37,38 @@ const Offline = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[9999] bg-[#f8fafd] flex flex-col items-center justify-center p-6 overflow-hidden select-none"
+          className="fixed inset-0 z-[9999] bg-[var(--bg)] flex flex-col items-center justify-center p-6 select-none"
         >
-          {/* Background Ambient Glow Blobs */}
-          <motion.div 
-            className="absolute top-[-10%] left-[-10%] w-[30rem] h-[30rem] bg-[#EA4335]/10 rounded-full blur-3xl pointer-events-none"
-            animate={{ 
-              scale: [1, 1.1, 1], 
-              opacity: [0.3, 0.5, 0.3],
-            }}
-            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <motion.div 
-            className="absolute bottom-[-10%] right-[-10%] w-[32rem] h-[32rem] bg-[#4285F4]/10 rounded-full blur-3xl pointer-events-none"
-            animate={{ 
-              scale: [1, 1.15, 1], 
-              opacity: [0.3, 0.5, 0.3],
-            }}
-            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          />
-
-          <div className="relative z-10 flex flex-col items-center max-w-md w-full text-center">
-            
-            {/* Animated Large OFFLINE text */}
-            <div className="h-28 sm:h-36 mb-3 relative flex items-center justify-center w-full">
-              <FuzzyText
-                baseIntensity={0.15}
-                hoverIntensity={0.4}
-                enableHover
-                color="#EA4335"
-                fontSize="4.2rem"
-                fontWeight={900}
-              >
-                OFFLINE
-              </FuzzyText>
+          <div className="w-full max-w-md bg-[var(--surface)] rounded-[32px] p-8 sm:p-10 text-center shadow-[0_24px_60px_rgba(19,19,21,0.08)]">
+            {/* Icon Tile */}
+            <div className="w-14 h-14 rounded-2xl bg-[#FDE8EA] text-[#D64550] flex items-center justify-center mx-auto mb-5">
+              <WifiOff size={28} />
             </div>
 
-            {/* 4 Google Colors Accent Dots */}
-            <div className="flex items-center justify-center gap-1 mb-3">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#5f6368] ml-1">
-                Network Status • Acme HRMS
-              </span>
-            </div>
-
-            <h1 className="text-2xl sm:text-3xl font-bold text-[#1f1f1f] mb-2 tracking-tight">
-              You are Offline
+            <h1 className="text-xl sm:text-2xl font-medium text-[var(--text)] tracking-tight mb-2">
+              You are offline
             </h1>
-            
-            <p className="text-[#5f6368] text-xs sm:text-sm mb-8 max-w-sm leading-relaxed">
-              Your internet connection appears to have disconnected. Please check your network or Wi-Fi settings to continue using Acme HRMS.
+
+            <p className="text-xs sm:text-sm text-[var(--muted)] mb-8 leading-relaxed max-w-xs mx-auto">
+              Your internet connection appears to have disconnected. Check your network or Wi-Fi settings to continue using Acme HRMS.
             </p>
 
-            <button
+            <Button
               type="button"
+              variant="primary"
               onClick={handleTryAgain}
               disabled={isChecking}
-              className="inline-flex items-center gap-2 py-3.5 px-8 bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold rounded-full transition-all shadow-xs disabled:opacity-70 cursor-pointer active:scale-98"
+              loading={isChecking}
+              className="w-full h-11 rounded-[12px] font-medium text-xs justify-center"
             >
-              <RefreshCcw className={`w-4 h-4 ${isChecking ? 'animate-spin' : ''}`} />
-              <span>{isChecking ? 'Checking Connection...' : 'Reconnect & Try Again'}</span>
-            </button>
+              <RefreshCcw size={14} className={isChecking ? 'animate-spin' : ''} />
+              <span>{isChecking ? 'Checking connection...' : 'Try again'}</span>
+            </Button>
           </div>
+
+          <footer className="mt-8 text-center text-xs text-[var(--muted)]">
+            Acme HRMS &bull; Network connection monitor
+          </footer>
         </motion.div>
       )}
     </AnimatePresence>
