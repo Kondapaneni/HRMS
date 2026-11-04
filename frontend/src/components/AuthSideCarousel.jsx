@@ -57,13 +57,13 @@ export default function AuthSideCarousel() {
     <div 
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
-      className="hidden lg:flex lg:col-span-6 bg-[#F3F9F1] rounded-[28px] sm:rounded-[36px] m-3 sm:m-4 p-6 sm:p-10 flex-col items-center justify-between min-h-[460px] sm:min-h-[520px] relative overflow-hidden select-none border border-neutral-100"
+      className="order-1 lg:order-2 lg:col-span-6 bg-[#F3F9F1] rounded-[24px] sm:rounded-[36px] m-3 sm:m-4 p-4 sm:p-8 lg:p-10 flex flex-col items-center justify-between min-h-[290px] sm:min-h-[420px] lg:min-h-[520px] relative overflow-hidden select-none border border-neutral-100"
     >
       {/* Subtle green ambient light */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-[#E2F2DE]/60 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 sm:w-80 h-64 sm:h-80 bg-[#E2F2DE]/60 rounded-full blur-3xl pointer-events-none" />
 
       {/* Carousel Slide Animation Container */}
-      <div className="relative w-full max-w-[380px] h-[310px] flex items-center justify-center my-auto">
+      <div className="relative w-full max-w-[320px] sm:max-w-[380px] h-[190px] sm:h-[260px] lg:h-[310px] flex items-center justify-center my-auto">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeSlide}
@@ -77,9 +77,9 @@ export default function AuthSideCarousel() {
             <motion.div 
               animate={{ y: [0, -5, 0] }}
               transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-              className="absolute top-2 left-4 z-20"
+              className="absolute top-1 sm:top-2 left-2 sm:left-4 z-20"
             >
-              <div className="w-11 h-11 rounded-full border-2 border-[#1F2937] bg-[#D1FAE5] p-0.5 shadow-md overflow-hidden flex items-center justify-center">
+              <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-full border-2 border-[#1F2937] bg-[#D1FAE5] p-0.5 shadow-md overflow-hidden flex items-center justify-center">
                 <svg viewBox="0 0 40 40" className="w-full h-full">
                   <circle cx="20" cy="20" r="18" fill="#A7F3D0" />
                   <circle cx="20" cy="18" r="8" fill="#1F2937" />
@@ -97,9 +97,9 @@ export default function AuthSideCarousel() {
             <motion.div 
               animate={{ y: [0, 5, 0] }}
               transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
-              className="absolute top-32 right-4 z-20"
+              className="absolute top-16 sm:top-24 lg:top-32 right-1 sm:right-4 z-20"
             >
-              <div className="w-11 h-11 rounded-full border-2 border-[#1F2937] bg-white p-0.5 shadow-md overflow-hidden flex items-center justify-center">
+              <div className="w-8 h-8 sm:w-11 sm:h-11 rounded-full border-2 border-[#1F2937] bg-white p-0.5 shadow-md overflow-hidden flex items-center justify-center">
                 <svg viewBox="0 0 40 40" className="w-full h-full">
                   <circle cx="20" cy="20" r="18" fill="#FEE2E2" />
                   <circle cx="20" cy="18" r="8" fill="#1F2937" />
@@ -115,7 +115,12 @@ export default function AuthSideCarousel() {
 
             {/* Central Meditating Character Illustration */}
             <div className="relative z-10 flex flex-col items-center">
-              <svg width="220" height="210" viewBox="0 0 240 230" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg 
+                className="w-[145px] h-[135px] sm:w-[185px] sm:h-[175px] lg:w-[220px] lg:h-[210px]" 
+                viewBox="0 0 240 230" 
+                fill="none" 
+                xmlns="http://www.w3.org/2000/svg"
+              >
                 {/* Floating Green Aura Loops */}
                 <path 
                   d="M 50 110 C 25 50, 100 10, 120 45 C 140 10, 215 50, 190 110" 
@@ -216,27 +221,27 @@ export default function AuthSideCarousel() {
             <motion.div 
               animate={{ y: [0, -5, 0] }}
               transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 0.3 }}
-              className="absolute -bottom-1 -left-2 sm:left-1 z-20"
+              className="absolute -bottom-1 -left-1 sm:left-1 z-20"
             >
-              <div className="bg-white rounded-[20px] p-3.5 shadow-xl border border-neutral-200/60 flex flex-col gap-2 min-w-[140px] backdrop-blur-xs">
+              <div className="bg-white rounded-[16px] sm:rounded-[20px] p-2.5 sm:p-3.5 shadow-xl border border-neutral-200/60 flex flex-col gap-1.5 sm:gap-2 min-w-[125px] sm:min-w-[140px] backdrop-blur-xs scale-90 sm:scale-100 origin-bottom-left">
                 <div>
-                  <h4 className="font-bold text-[13px] text-neutral-800 tracking-tight leading-tight">
+                  <h4 className="font-bold text-[11px] sm:text-[13px] text-neutral-800 tracking-tight leading-tight">
                     {currentSlide.cardTitle}
                   </h4>
-                  <p className="text-[10px] text-neutral-400 font-medium">
+                  <p className="text-[9px] sm:text-[10px] text-neutral-400 font-medium">
                     {currentSlide.cardSubtitle}
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between gap-2 pt-0.5">
+                <div className="flex items-center justify-between gap-1.5 sm:gap-2 pt-0.5">
                   {/* HRMS Pill Badge */}
-                  <span className="text-[10px] font-semibold text-neutral-600 border border-neutral-300 rounded-full px-2.5 py-0.5 inline-block">
+                  <span className="text-[9px] sm:text-[10px] font-semibold text-neutral-600 border border-neutral-300 rounded-full px-2 sm:px-2.5 py-0.5 inline-block">
                     {currentSlide.cardBadge}
                   </span>
 
                   {/* Radial Progress Ring */}
-                  <div className="relative w-8 h-8 flex items-center justify-center shrink-0">
-                    <svg className="w-8 h-8 -rotate-90" viewBox="0 0 36 36">
+                  <div className="relative w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center shrink-0">
+                    <svg className="w-6 h-6 sm:w-8 sm:h-8 -rotate-90" viewBox="0 0 36 36">
                       <path
                         className="text-neutral-200"
                         strokeWidth="3.5"
@@ -254,7 +259,7 @@ export default function AuthSideCarousel() {
                         d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                       />
                     </svg>
-                    <span className="absolute text-[8px] font-bold text-neutral-700">
+                    <span className="absolute text-[7px] sm:text-[8px] font-bold text-neutral-700">
                       {currentSlide.cardProgress}
                     </span>
                   </div>
@@ -266,7 +271,7 @@ export default function AuthSideCarousel() {
       </div>
 
       {/* Carousel Pagination Controls */}
-      <div className="flex items-center gap-2 mt-4 z-20">
+      <div className="flex items-center gap-1.5 sm:gap-2 mt-2 sm:mt-4 z-20">
         {carouselSlides.map((slide, idx) => {
           const isActive = activeSlide === idx;
           return (
@@ -276,7 +281,7 @@ export default function AuthSideCarousel() {
               onClick={() => setActiveSlide(idx)}
               className={`transition-all duration-300 cursor-pointer ${
                 isActive 
-                  ? 'w-5 h-1.5 bg-black rounded-full' 
+                  ? 'w-4 sm:w-5 h-1.5 bg-black rounded-full' 
                   : 'w-1.5 h-1.5 bg-neutral-300 hover:bg-neutral-500 rounded-full'
               }`}
               aria-label={`Go to slide ${idx + 1}`}
@@ -286,7 +291,7 @@ export default function AuthSideCarousel() {
       </div>
 
       {/* Bottom Slogan Headline with Smooth Transitions */}
-      <div className="text-center mt-3 max-w-sm z-10 min-h-[56px] flex flex-col justify-center">
+      <div className="text-center mt-2 sm:mt-3 max-w-sm z-10 min-h-[44px] sm:min-h-[56px] flex flex-col justify-center">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeSlide}
@@ -295,10 +300,10 @@ export default function AuthSideCarousel() {
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.25 }}
           >
-            <h2 className="text-lg sm:text-xl font-bold text-neutral-900 leading-snug">
+            <h2 className="text-xs sm:text-base lg:text-xl font-bold text-neutral-900 leading-snug">
               {currentSlide.headline}
             </h2>
-            <p className="text-[11.5px] text-neutral-500 mt-1 line-clamp-2">
+            <p className="text-[10px] sm:text-[11.5px] text-neutral-500 mt-0.5 sm:mt-1 line-clamp-2">
               {currentSlide.description}
             </p>
           </motion.div>

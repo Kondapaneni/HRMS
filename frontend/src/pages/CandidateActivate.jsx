@@ -52,7 +52,7 @@ const CandidateActivate = () => {
         {/* ============================================================
             LEFT COLUMN: Account Activation
             ============================================================ */}
-        <div className="lg:col-span-6 flex flex-col justify-between p-6 sm:p-10 lg:p-12 max-w-md mx-auto w-full text-center">
+        <div className="order-2 lg:order-1 lg:col-span-6 flex flex-col justify-between p-6 sm:p-10 lg:p-12 max-w-md mx-auto w-full text-center">
           <div>
             <div className="flex items-center justify-center gap-2.5 mb-6">
               <div className="w-8 h-8 rounded-xl bg-black text-white flex items-center justify-center font-bold text-sm shadow-xs">

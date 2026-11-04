@@ -91,13 +91,18 @@ const ChangePassword = () => {
         {/* ============================================================
             LEFT COLUMN: Change Password Form
             ============================================================ */}
-        <div className="lg:col-span-6 flex flex-col justify-between p-6 sm:p-10 lg:p-12 max-w-md mx-auto w-full">
+        <div className="order-2 lg:order-1 lg:col-span-6 flex flex-col justify-between p-6 sm:p-10 lg:p-12 max-w-md mx-auto w-full">
           <div>
             {/* Header with sign out action */}
             <div className="flex items-center justify-between mb-6">
-              <span className="text-xs font-semibold uppercase tracking-wider text-[#2F6B38]">
-                Mandatory Security Update
-              </span>
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-black text-white flex items-center justify-center font-bold text-sm shadow-xs">
+                  A
+                </div>
+                <span className="text-xs font-semibold uppercase tracking-wider text-[#2F6B38]">
+                  Mandatory Security Update
+                </span>
+              </div>
 
               <button
                 type="button"

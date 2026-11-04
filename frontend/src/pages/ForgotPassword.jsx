@@ -62,7 +62,7 @@ const ForgotPassword = () => {
         {/* ============================================================
             LEFT COLUMN: Forgot Password Form
             ============================================================ */}
-        <div className="lg:col-span-6 flex flex-col justify-between p-6 sm:p-10 lg:p-12 max-w-md mx-auto w-full">
+        <div className="order-2 lg:order-1 lg:col-span-6 flex flex-col justify-between p-6 sm:p-10 lg:p-12 max-w-md mx-auto w-full">
           <div>
             {/* Back link */}
             <Link
@@ -72,6 +72,16 @@ const ForgotPassword = () => {
               <ArrowLeft size={14} />
               <span>Back to sign in</span>
             </Link>
+
+            {/* Acme HRMS Brand Badge */}
+            <div className="flex items-center gap-2.5 mb-5 sm:mb-6">
+              <div className="w-8 h-8 rounded-xl bg-black text-white flex items-center justify-center font-bold text-sm shadow-xs">
+                A
+              </div>
+              <span className="text-xs font-semibold uppercase tracking-wider text-[#2F6B38]">
+                Acme HRMS
+              </span>
+            </div>
 
             {/* Header Titles */}
             <div className="text-center sm:text-left mb-8">

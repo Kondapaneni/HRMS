@@ -145,8 +145,18 @@ const CandidateLogin = () => {
         {/* ============================================================
             LEFT COLUMN: Candidate Form
             ============================================================ */}
-        <div className="lg:col-span-6 flex flex-col justify-between p-6 sm:p-10 lg:p-12 max-w-md mx-auto w-full">
+        <div className="order-2 lg:order-1 lg:col-span-6 flex flex-col justify-between p-6 sm:p-10 lg:p-12 max-w-md mx-auto w-full">
           <div>
+            {/* Candidate Portal Brand Badge */}
+            <div className="flex items-center justify-center sm:justify-start gap-2.5 mb-5 sm:mb-6">
+              <div className="w-8 h-8 rounded-xl bg-black text-white flex items-center justify-center font-bold text-sm shadow-xs">
+                A
+              </div>
+              <span className="text-xs font-semibold uppercase tracking-wider text-[#2F6B38]">
+                Candidate Portal
+              </span>
+            </div>
+
             {/* Header Titles matching Login.jsx */}
             <div className="text-center sm:text-left mb-8">
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-[#131315]">
