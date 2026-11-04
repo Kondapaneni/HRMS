@@ -448,26 +448,26 @@ const OriginationActivities = () => {
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-wide border ${
-                isSales 
-                  ? 'bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)] border-[var(--accent-pink)]/20' 
-                  : 'bg-[var(--brand-tint)] text-[var(--brand-deep)] border-[var(--brand)]/20'
-              }`}>
-                {isBranchOperations ? (branchInfo?.name ? `${branchInfo.name} Branch` : 'Branch Operations') : 'Origination Pipeline'}
-              </span>
-            </div>
+            <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-1">
+              {isBranchOperations 
+                ? (branchInfo?.name ? `${branchInfo.name} Branch • Activities` : 'Branch Operations • Activities')
+                : isSales 
+                ? 'Sales Origination • Activities Directory' 
+                : 'Loan Origination • Activities Directory'}
+            </p>
             <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight flex items-center gap-2.5">
-              <span>Activities &amp; <span className={isSales ? 'text-[var(--accent-pink-deep)]' : isBranchOperations ? 'text-[var(--branch-deep)]' : 'text-[var(--brand-deep)]'}>Follow-Ups</span></span>
-              <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${
+              <span>Activities &amp; Follow-Ups</span>
+              <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${
                 isSales 
-                  ? 'text-[var(--accent-pink-deep)] bg-[var(--accent-pink-tint)] border-[var(--accent-pink)]/20' 
-                  : isBranchOperations ? 'text-[var(--branch-deep)] bg-[var(--branch-tint)] border-[var(--branch)]/20' : 'text-[var(--brand-deep)] bg-[var(--brand-tint)] border-[var(--brand)]/20'
+                  ? 'text-[var(--accent-pink-deep)] bg-[var(--accent-pink-tint)]' 
+                  : isBranchOperations 
+                  ? 'text-[var(--branch-deep)] bg-[var(--branch-tint)]' 
+                  : 'text-[var(--brand-deep)] bg-[var(--brand-tint)]'
               }`}>
                 {stats.total} Total Tasks
               </span>
             </h1>
-            <p className="text-xs sm:text-sm text-[var(--muted)] mt-1">
+            <p className="text-xs sm:text-sm text-[var(--muted)] mt-0.5">
               {isBranchOperations
                 ? 'View, assign and coordinate scheduled activities, visits, and follow-ups across your branch team.'
                 : 'Manage scheduled customer calls, KYC verification visits, document collections, and follow-ups.'}

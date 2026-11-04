@@ -41,10 +41,7 @@ const OriginationLoansLayout = () => {
       icon: FileText,
       label: 'Applications',
       path: '/employee/loans/origination/applications',
-      chips: [
-        { label: 'Applications', path: '/employee/loans/origination/applications' },
-        { label: 'Loan Form', path: '/employee/loans/form' },
-      ],
+      chips: [{ label: 'Applications', path: '/employee/loans/origination/applications' }],
       activeMatch: (pathname) =>
         pathname.startsWith('/employee/loans/origination/applications') ||
         pathname.startsWith('/employee/loans/form') ||

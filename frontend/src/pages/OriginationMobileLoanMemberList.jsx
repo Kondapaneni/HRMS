@@ -90,7 +90,7 @@ const OriginationMobileLoanMemberList = () => {
           </p>
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-2xl font-semibold text-[var(--text)] tracking-tight leading-tight min-w-0">
-              Converted Members
+              Converted Loan Members
             </h2>
           </div>
           <p className="text-xs font-medium text-[var(--muted)] mt-1">

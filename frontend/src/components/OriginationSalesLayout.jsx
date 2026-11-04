@@ -32,10 +32,7 @@ const OriginationSalesLayout = () => {
       icon: UserCheck,
       label: 'Members',
       path: '/employee/sales/origination/members',
-      chips: [
-        { label: 'Members', path: '/employee/sales/origination/members' },
-        { label: 'Sales Form', path: '/employee/sales/form' },
-      ],
+      chips: [{ label: 'Members', path: '/employee/sales/origination/members' }],
       activeMatch: (pathname) =>
         pathname.startsWith('/employee/sales/origination/members') ||
         pathname.startsWith('/employee/sales/form'),

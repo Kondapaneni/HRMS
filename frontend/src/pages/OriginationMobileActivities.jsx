@@ -398,8 +398,8 @@ const OriginationMobileActivities = () => {
             {theme.tagText}
           </p>
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight leading-tight min-w-0">
-              All <span className="text-[var(--brand-deep)]">Activities</span>
+            <h2 className="text-2xl font-semibold text-[var(--text)] tracking-tight leading-tight min-w-0">
+              Activities &amp; Follow-Ups
             </h2>
 
             <button

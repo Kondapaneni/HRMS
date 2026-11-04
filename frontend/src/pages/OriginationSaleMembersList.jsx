@@ -82,7 +82,7 @@ const OriginationSaleMembersList = () => {
               Converted Members Directory
             </p>
             <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight flex items-center gap-2">
-              <span>Sales Members</span> 
+              <span>Converted Sales Members</span> 
               <span className="text-xs font-semibold text-[var(--accent-pink-deep)] bg-[var(--accent-pink-tint)] px-2.5 py-0.5 rounded-full">
                 {members.length} Converted
               </span>
