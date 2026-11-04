@@ -313,7 +313,7 @@ const BranchOperationsMobileDashboard = () => {
                   {Math.abs(stats.percent_change_active)}%
                 </span>
               </div>
-              <p className="text-xs text-[var(--muted)] font-normal pt-0.5">Under pipeline review</p>
+              <p className="text-xs text-[var(--muted)] font-normal pt-0.5">In active pipeline</p>
             </div>
             <div className="p-3 rounded-[12px] bg-[var(--badge-warning-bg)] text-[var(--badge-warning-text)] shrink-0">
               <TrendingUp className="w-5 h-5" />
@@ -339,7 +339,7 @@ const BranchOperationsMobileDashboard = () => {
                   {Math.abs(stats.percent_change_converted)}%
                 </span>
               </div>
-              <p className="text-xs text-[var(--muted)] font-normal pt-0.5">Successfully closed</p>
+              <p className="text-xs text-[var(--muted)] font-normal pt-0.5">Closed deals</p>
             </div>
             <div className="p-3 rounded-[12px] bg-[var(--badge-success-bg)] text-[var(--badge-success-text)] shrink-0">
               <CheckCircle2 className="w-5 h-5" />
@@ -358,7 +358,7 @@ const BranchOperationsMobileDashboard = () => {
                 </p>
                 <span className="text-xs font-semibold text-[var(--badge-success-text)]">Active</span>
               </div>
-              <p className="text-xs text-[var(--muted)] font-normal pt-0.5">{recentApplications.length} applications total</p>
+              <p className="text-xs text-[var(--muted)] font-normal pt-0.5">Total funnel conversion</p>
             </div>
             <div className="p-3 rounded-[12px] bg-[var(--branch-tint)] text-[var(--branch-deep)] shrink-0">
               <Award className="w-5 h-5" />

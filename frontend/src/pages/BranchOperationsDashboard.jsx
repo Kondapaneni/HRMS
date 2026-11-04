@@ -3,7 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { getBranchDashboardData } from '../services/loanServices';
 import PageLoader from '../components/PageLoader';
 import { 
-  Users, 
+  Users,
+  Calendar, 
   TrendingUp, 
   CheckCircle2, 
   Clock, 
@@ -30,7 +31,7 @@ import {
   Legend
 } from 'recharts';
 import { format } from 'date-fns';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import BranchOperationsMobileDashboard from './BranchOperationsMobileDashboard';
 import { maskPhoneNumber, maskAddress } from '../utils/phoneUtils';
 
@@ -135,15 +136,13 @@ const BranchOperationsDashboard = () => {
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">
-                Branch Operations Overview
-              </span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight flex items-center gap-2.5">
+            <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-1">
+              Branch Operations Overview
+            </p>
+            <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight flex items-center gap-2">
               <span>Branch Operations Dashboard</span>
               <span className="text-xs font-semibold text-[var(--branch-deep)] bg-[var(--branch-tint)] px-2.5 py-0.5 rounded-full">
-                {branch.name}
+                {branch.name || 'Active Hub'}
               </span>
             </h1>
             <p className="text-xs sm:text-sm text-[var(--muted)] mt-0.5">
@@ -151,8 +150,16 @@ const BranchOperationsDashboard = () => {
             </p>
           </div>
 
-          {/* Dual Dynamic Filter Dropdowns (Pipeline & Employee) */}
+          {/* Dual Dynamic Filter Dropdowns & Activities Button */}
           <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+            <Link
+              to="/employee/branch-operations/activities"
+              className="px-4 py-2 rounded-[12px] bg-[var(--surface)] border border-[var(--line)] hover:bg-[var(--surface-alt)] text-xs font-semibold text-[var(--text)] shadow-xs flex items-center gap-2 transition-all cursor-pointer h-9"
+            >
+              <Calendar className="w-4 h-4 text-[var(--branch-deep)]" />
+              <span>Activities &amp; Tasks</span>
+            </Link>
+
             {/* 1. Pipeline Selector */}
             <div className="relative">
               <select
@@ -192,17 +199,17 @@ const BranchOperationsDashboard = () => {
           </div>
         </div>
 
-        {/* 4 KPI Metric Cards Grid */}
+        {/* 4 Metric Cards Grid */}
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           {/* Card 1: Total Leads */}
-          <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-5 shadow-xs flex items-center justify-between">
+          <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-5 shadow-xs transition-all duration-200 hover:shadow-sm flex items-center justify-between">
             <div className="space-y-1">
               <p className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">Total Leads (This Month)</p>
               <div className="flex items-baseline gap-2">
-                <p className="text-2xl font-bold text-[var(--text)] tracking-tight">
-                  {stats.total_leads_month}
+                <p className="text-2xl font-semibold text-[var(--text)] tracking-tight">
+                  {isLoading ? '...' : stats.total_leads_month}
                 </p>
-                <span className={`inline-flex items-center text-xs font-bold ${stats.percent_change_total >= 0 ? 'text-[var(--badge-success-text)]' : 'text-[var(--badge-danger-text)]'}`}>
+                <span className={`inline-flex items-center text-xs font-semibold ${stats.percent_change_total >= 0 ? 'text-[var(--badge-success-text)]' : 'text-[var(--badge-danger-text)]'}`}>
                   {stats.percent_change_total >= 0 ? (
                     <ArrowUpRight className="w-3.5 h-3.5" />
                   ) : (
@@ -211,22 +218,22 @@ const BranchOperationsDashboard = () => {
                   {Math.abs(stats.percent_change_total)}%
                 </span>
               </div>
-              <p className="text-xs text-[var(--muted)] pt-0.5">Vs previous month</p>
+              <p className="text-xs text-[var(--muted)] font-normal pt-0.5">Vs previous month</p>
             </div>
-            <div className="w-10 h-10 rounded-[12px] bg-[var(--branch-tint)] text-[var(--branch-deep)] flex items-center justify-center shrink-0">
+            <div className="p-3 rounded-[12px] bg-[var(--branch-tint)] text-[var(--branch-deep)] shrink-0">
               <Users className="w-5 h-5" />
             </div>
           </div>
 
           {/* Card 2: Active Opportunities */}
-          <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-5 shadow-xs flex items-center justify-between">
+          <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-5 shadow-xs transition-all duration-200 hover:shadow-sm flex items-center justify-between">
             <div className="space-y-1">
               <p className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">Active Opportunities</p>
               <div className="flex items-baseline gap-2">
-                <p className="text-2xl font-bold text-[var(--text)] tracking-tight">
-                  {stats.active_opportunities}
+                <p className="text-2xl font-semibold text-[var(--text)] tracking-tight">
+                  {isLoading ? '...' : stats.active_opportunities}
                 </p>
-                <span className={`inline-flex items-center text-xs font-bold ${stats.percent_change_active >= 0 ? 'text-[var(--badge-success-text)]' : 'text-[var(--badge-danger-text)]'}`}>
+                <span className={`inline-flex items-center text-xs font-semibold ${stats.percent_change_active >= 0 ? 'text-[var(--badge-success-text)]' : 'text-[var(--badge-danger-text)]'}`}>
                   {stats.percent_change_active >= 0 ? (
                     <ArrowUpRight className="w-3.5 h-3.5" />
                   ) : (
@@ -235,22 +242,22 @@ const BranchOperationsDashboard = () => {
                   {Math.abs(stats.percent_change_active)}%
                 </span>
               </div>
-              <p className="text-xs text-[var(--muted)] pt-0.5">Under pipeline review</p>
+              <p className="text-xs text-[var(--muted)] font-normal pt-0.5">In active pipeline</p>
             </div>
-            <div className="w-10 h-10 rounded-[12px] bg-[var(--badge-warning-bg)] text-[var(--badge-warning-text)] flex items-center justify-center shrink-0">
+            <div className="p-3 rounded-[12px] bg-[var(--badge-warning-bg)] text-[var(--badge-warning-text)] shrink-0">
               <TrendingUp className="w-5 h-5" />
             </div>
           </div>
 
           {/* Card 3: Converted Leads */}
-          <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-5 shadow-xs flex items-center justify-between">
+          <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-5 shadow-xs transition-all duration-200 hover:shadow-sm flex items-center justify-between">
             <div className="space-y-1">
               <p className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">Converted Leads</p>
               <div className="flex items-baseline gap-2">
-                <p className="text-2xl font-bold text-[var(--text)] tracking-tight">
-                  {stats.converted_leads}
+                <p className="text-2xl font-semibold text-[var(--text)] tracking-tight">
+                  {isLoading ? '...' : stats.converted_leads}
                 </p>
-                <span className={`inline-flex items-center text-xs font-bold ${stats.percent_change_converted >= 0 ? 'text-[var(--badge-success-text)]' : 'text-[var(--badge-danger-text)]'}`}>
+                <span className={`inline-flex items-center text-xs font-semibold ${stats.percent_change_converted >= 0 ? 'text-[var(--badge-success-text)]' : 'text-[var(--badge-danger-text)]'}`}>
                   {stats.percent_change_converted >= 0 ? (
                     <ArrowUpRight className="w-3.5 h-3.5" />
                   ) : (
@@ -259,29 +266,27 @@ const BranchOperationsDashboard = () => {
                   {Math.abs(stats.percent_change_converted)}%
                 </span>
               </div>
-              <p className="text-xs text-[var(--muted)] pt-0.5">Successfully closed</p>
+              <p className="text-xs text-[var(--muted)] font-normal pt-0.5">Closed deals</p>
             </div>
-            <div className="w-10 h-10 rounded-[12px] bg-[var(--badge-success-bg)] text-[var(--badge-success-text)] flex items-center justify-center shrink-0">
+            <div className="p-3 rounded-[12px] bg-[var(--badge-success-bg)] text-[var(--badge-success-text)] shrink-0">
               <CheckCircle2 className="w-5 h-5" />
             </div>
           </div>
 
-          {/* Card 4: Applications Pipeline */}
-          <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-5 shadow-xs flex items-center justify-between">
+          {/* Card 4: Conversion Rate */}
+          <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-5 shadow-xs transition-all duration-200 hover:shadow-sm flex items-center justify-between">
             <div className="space-y-1">
-              <p className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">Recent Applications</p>
+              <p className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider">Conversion Rate</p>
               <div className="flex items-baseline gap-2">
-                <p className="text-2xl font-bold text-[var(--text)] tracking-tight">
-                  {recentApplications.length}
+                <p className="text-2xl font-semibold text-[var(--branch-deep)] tracking-tight">
+                  {conversionRate}%
                 </p>
-                <span className="text-xs font-semibold text-[var(--branch-deep)] bg-[var(--branch-tint)] px-2.5 py-0.5 rounded-full">
-                  {conversionRate}% Conv.
-                </span>
+                <span className="text-xs font-semibold text-[var(--badge-success-text)]">Active</span>
               </div>
-              <p className="text-xs text-[var(--muted)] pt-0.5">Recorded this cycle</p>
+              <p className="text-xs text-[var(--muted)] font-normal pt-0.5">Total funnel conversion</p>
             </div>
-            <div className="w-10 h-10 rounded-[12px] bg-[var(--branch-tint)] text-[var(--branch-deep)] flex items-center justify-center shrink-0">
-              <Briefcase className="w-5 h-5" />
+            <div className="p-3 rounded-[12px] bg-[var(--branch-tint)] text-[var(--branch-deep)] shrink-0">
+              <Award className="w-5 h-5" />
             </div>
           </div>
         </div>
@@ -289,65 +294,65 @@ const BranchOperationsDashboard = () => {
         {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Daily Trends Chart */}
-          <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] shadow-xs p-5">
-            <div className="flex items-center justify-between mb-4">
+          <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-5 sm:p-6 shadow-xs space-y-4">
+            <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-semibold text-[var(--text)]">Daily Leads Trend</h3>
-                <p className="text-xs text-[var(--muted)]">Performance activity for the last 7 days</p>
+                <h3 className="text-base font-semibold text-[var(--text)]">
+                  Daily Leads Trend
+                </h3>
+                <p className="text-xs text-[var(--muted)]">Velocity over the last 7 days</p>
               </div>
+              <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-[var(--branch-tint)] text-[var(--branch-deep)]">
+                Daily Activity
+              </span>
             </div>
-            <div className="h-[280px] w-full">
+
+            <div className="h-[280px] w-full pt-2">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={dailyData} margin={{ top: 10, right: 20, bottom: 5, left: 0 }}>
+                <LineChart data={dailyData} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--line)" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--muted)', fontSize: 11 }} dy={8} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--muted)', fontSize: 11 }} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#6B6B75', fontSize: 11 }} dy={8} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6B6B75', fontSize: 11 }} />
                   <Tooltip 
-                    contentStyle={{ 
-                      borderRadius: '12px', 
-                      border: 'none', 
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                      backgroundColor: 'var(--ink)',
-                      color: '#ffffff',
-                      fontSize: '12px'
-                    }}
+                    contentStyle={{ borderRadius: '10px', border: 'none', backgroundColor: '#131315', color: '#ffffff', fontSize: '12px' }}
+                    itemStyle={{ color: '#ffffff' }}
                   />
-                  <Legend wrapperStyle={{ paddingTop: '16px', fontSize: '12px' }} />
-                  <Line type="monotone" dataKey="leads" name="Total Leads" stroke="#14B8A6" strokeWidth={2.5} dot={{ r: 3, fill: '#14B8A6' }} activeDot={{ r: 5 }} />
-                  <Line type="monotone" dataKey="converted" name="Converted" stroke="#1F9D55" strokeWidth={2.5} dot={{ r: 3, fill: '#1F9D55' }} activeDot={{ r: 5 }} />
+                  <Legend iconType="circle" wrapperStyle={{ paddingTop: '15px', fontSize: '12px' }} />
+                  <Line type="monotone" dataKey="leads" name="Total Leads" stroke="#14B8A6" strokeWidth={2.5} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6, strokeWidth: 0, fill: '#14B8A6' }} />
+                  <Line type="monotone" dataKey="converted" name="Converted" stroke="#0D9488" strokeWidth={2.5} dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} activeDot={{ r: 6, strokeWidth: 0, fill: '#0D9488' }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
           </div>
 
           {/* Monthly Trends Chart */}
-          <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] shadow-xs p-5">
-            <div className="flex items-center justify-between mb-4">
+          <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-5 sm:p-6 shadow-xs space-y-4">
+            <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-semibold text-[var(--text)]">Monthly Leads Trend</h3>
-                <p className="text-xs text-[var(--muted)]">Pipeline generation for the last 6 months</p>
+                <h3 className="text-base font-semibold text-[var(--text)]">
+                  Monthly Performance
+                </h3>
+                <p className="text-xs text-[var(--muted)]">Historical volumes across last 6 months</p>
               </div>
+              <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-[var(--branch-tint)] text-[var(--branch-deep)]">
+                6-Month Growth
+              </span>
             </div>
-            <div className="h-[280px] w-full">
+
+            <div className="h-[280px] w-full pt-2">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={monthlyData} margin={{ top: 10, right: 20, bottom: 5, left: 0 }}>
+                <BarChart data={monthlyData} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--line)" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--muted)', fontSize: 11 }} dy={8} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--muted)', fontSize: 11 }} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#6B6B75', fontSize: 11 }} dy={8} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6B6B75', fontSize: 11 }} />
                   <Tooltip 
-                    contentStyle={{ 
-                      borderRadius: '12px', 
-                      border: 'none', 
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                      backgroundColor: 'var(--ink)',
-                      color: '#ffffff',
-                      fontSize: '12px'
-                    }}
-                    cursor={{ fill: 'var(--brand-tint)', opacity: 0.5 }}
+                    contentStyle={{ borderRadius: '10px', border: 'none', backgroundColor: '#131315', color: '#ffffff', fontSize: '12px' }}
+                    itemStyle={{ color: '#ffffff' }}
+                    cursor={{ fill: 'var(--branch-tint)', opacity: 0.4 }}
                   />
-                  <Legend wrapperStyle={{ paddingTop: '16px', fontSize: '12px' }} />
-                  <Bar dataKey="leads" name="Total Leads" fill="#14B8A6" radius={[6, 6, 0, 0]} barSize={16} />
-                  <Bar dataKey="converted" name="Converted" fill="#1F9D55" radius={[6, 6, 0, 0]} barSize={16} />
+                  <Legend iconType="circle" wrapperStyle={{ paddingTop: '15px', fontSize: '12px' }} />
+                  <Bar dataKey="leads" name="Total Leads" fill="#14B8A6" radius={[6, 6, 0, 0]} barSize={26} />
+                  <Bar dataKey="converted" name="Converted" fill="#0D9488" radius={[6, 6, 0, 0]} barSize={26} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
