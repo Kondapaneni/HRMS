@@ -4,19 +4,16 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { createPortal } from 'react-dom';
 import {
   ArrowLeft,
-  Calendar,
   Clock,
   CheckCircle2,
   Camera,
   Loader2,
   X,
-  FileText,
   Copy,
   Building2,
   FileEdit,
   Send
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import { supabase } from '../lib/supabase';
@@ -205,8 +202,8 @@ export default function OriginationMobileLoanViewApplications({
 
   if (!application && isLoading) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-slate-500">
-        <Loader2 className="animate-spin h-8 w-8 text-blue-600 mb-3" />
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-[var(--muted)]">
+        <Loader2 className="animate-spin h-8 w-8 text-[var(--brand-deep)] mb-3" />
         <p className="text-sm font-medium">Loading application details...</p>
       </div>
     );
@@ -214,11 +211,11 @@ export default function OriginationMobileLoanViewApplications({
 
   if (!application && !isLoading) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-slate-500">
-        <p className="text-sm font-medium mb-4">No application details found.</p>
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-[var(--muted)]">
+        <p className="text-sm font-medium mb-4 text-[var(--text)]">No application details found.</p>
         <button
           onClick={() => navigate(fromPath)}
-          className="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors"
+          className="px-4 py-2 bg-[var(--ink)] text-white rounded-[12px] text-sm font-semibold hover:bg-[var(--ink-2)] transition-colors"
         >
           Back to Applications
         </button>
@@ -227,74 +224,74 @@ export default function OriginationMobileLoanViewApplications({
   }
 
   return (
-    <div className="space-y-4 pb-14 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
-      {/* Clean White Header & Back Action */}
+    <div className="space-y-4 pb-14 font-sans antialiased text-[var(--text)]">
+      {/* Header & Back Action */}
       <section className="relative z-30 pt-1 pb-1">
         <div className="pt-0.5">
-          <p className="text-[10.5px] font-bold text-[#5f6368] uppercase tracking-wider mb-1">
+          <p className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-1">
             Origination &bull; Loan Pipeline
           </p>
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight leading-tight min-w-0" style={{ fontWeight: 500 }}>
-              Application <span className="font-medium italic text-[#1a73e8]">Details</span>
+            <h2 className="text-2xl font-semibold text-[var(--text)] tracking-tight leading-tight min-w-0">
+              Application Details
             </h2>
 
             <button
               type="button"
               onClick={() => navigate(fromPath)}
-              className="shrink-0 h-10 px-4 inline-flex items-center justify-center gap-1.5 rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] shadow-xs active:scale-95 transition-all cursor-pointer whitespace-nowrap"
+              className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 rounded-[12px] text-xs font-semibold bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-alt)] border border-[var(--line)] shadow-xs active:scale-95 transition-all cursor-pointer whitespace-nowrap"
             >
-              <ArrowLeft size={14} className="text-[#5f6368]" />
+              <ArrowLeft size={14} className="text-[var(--icon-muted)]" />
               <span>Back</span>
             </button>
           </div>
-          <p className="text-xs sm:text-sm font-medium text-[#5f6368] mt-1">
+          <p className="text-xs font-medium text-[var(--muted)] mt-1">
             Review and Verification
           </p>
         </div>
       </section>
 
       {/* 2. Content Layer */}
-      <div className="relative z-20 mx-0.5 space-y-4">
+      <div className="relative z-20 space-y-4">
         {/* Application Overview & Status Card */}
-        <div className="bg-white p-5 rounded-3xl shadow-xs border border-[#e0e3e7] space-y-4">
-          <div className="flex items-center justify-between gap-3 pb-4 border-b border-[#f1f3f4]">
+        <div className="bg-[var(--surface)] p-5 rounded-[20px] shadow-xs border border-[var(--line)] space-y-4">
+          <div className="flex items-center justify-between gap-3 pb-4 border-b border-[var(--line)]">
             <div className="min-w-0 space-y-0.5">
               <div className="flex items-center gap-2">
-                <span className="text-lg font-bold text-[#1f1f1f] tracking-tight font-mono">
+                <span className="text-lg font-bold text-[var(--text)] tracking-tight font-mono">
                   {appId}
                 </span>
                 {appId !== 'LA-DRAFT' && (
                   <button
                     type="button"
                     onClick={handleCopyId}
-                    className="p-1 rounded-full text-[#5f6368] hover:bg-[#f1f3f4] transition-colors cursor-pointer"
+                    className="p-1 rounded-[6px] text-[var(--muted)] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
                     title="Copy App ID"
                   >
                     <Copy size={13} />
                   </button>
                 )}
               </div>
-              <p className="text-xs font-semibold text-[#1a73e8] truncate">{loanType}</p>
+              <p className="text-xs font-semibold text-[var(--brand-deep)] truncate">{loanType}</p>
             </div>
 
-            <span className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-bold shrink-0 shadow-2xs border ${
+            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-[8px] text-[12px] font-semibold shrink-0 ${
               appStatus === 'Created' || appStatus === 'Approved'
-                ? 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]'
+                ? 'bg-[var(--badge-success-bg)] text-[var(--badge-success-text)]'
                 : appStatus === 'Under Review'
-                ? 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc]'
-                : 'bg-[#fef7e0] text-[#b06000] border-[#feefc3]'
+                ? 'bg-[var(--badge-info-bg)] text-[var(--badge-info-text)]'
+                : 'bg-[var(--badge-warning-bg)] text-[var(--badge-warning-text)]'
             }`}>
-              {appStatus === 'Created' || appStatus === 'Approved' ? <CheckCircle2 size={15} /> : <Clock size={15} />}
+              {appStatus === 'Created' || appStatus === 'Approved' ? <CheckCircle2 size={14} /> : <Clock size={14} />}
               <span>{appStatus}</span>
             </span>
           </div>
 
-          <div className="text-[11px] text-[#5f6368] space-y-1">
+          <div className="text-[11px] text-[var(--muted)] space-y-1">
             <p>{isCreated ? `Created on ${formattedDate}` : `Draft saved on ${formattedDate}`}</p>
             {branchName && (
               <p className="flex items-center gap-1.5 truncate">
-                <Building2 size={12} className="text-[#80868b] shrink-0" />
+                <Building2 size={12} className="text-[var(--icon-muted)] shrink-0" />
                 <span className="truncate">{branchName}</span>
               </p>
             )}
@@ -302,7 +299,7 @@ export default function OriginationMobileLoanViewApplications({
 
           {/* Action Controls for Draft / Created Applications */}
           {isDraft && (
-            <div className="pt-2 border-t border-[#f1f3f4]">
+            <div className="pt-2 border-t border-[var(--line)]">
               <button
                 type="button"
                 onClick={() => {
@@ -317,7 +314,7 @@ export default function OriginationMobileLoanViewApplications({
                     }
                   });
                 }}
-                className="w-full inline-flex items-center justify-center rounded-full text-xs font-bold bg-[#1a73e8] text-white hover:bg-[#1557b0] py-3.5 px-4 transition-all gap-1.5 shadow-xs cursor-pointer active:scale-[0.98]"
+                className="w-full inline-flex items-center justify-center rounded-[12px] text-xs font-semibold bg-[var(--ink)] text-white hover:bg-[var(--ink-2)] py-3 px-4 transition-all gap-1.5 shadow-xs cursor-pointer active:scale-[0.98]"
               >
                 <FileEdit size={14} />
                 <span>Continue / Complete Application</span>
@@ -326,11 +323,11 @@ export default function OriginationMobileLoanViewApplications({
           )}
 
           {isCreated && !hasTransferred && (
-            <div className="pt-2 border-t border-[#f1f3f4] flex flex-col gap-2.5">
+            <div className="pt-2 border-t border-[var(--line)] flex flex-col gap-2.5">
               <button
                 type="button"
                 onClick={() => setIsDocsOpen(true)}
-                className="w-full inline-flex items-center justify-center rounded-full text-xs font-bold bg-[#e8f0fe] text-[#1a73e8] hover:bg-[#d2e3fc] border border-[#d2e3fc] py-3 px-4 transition-all gap-1.5 shadow-2xs cursor-pointer active:scale-[0.98]"
+                className="w-full inline-flex items-center justify-center rounded-[12px] text-xs font-semibold bg-[var(--surface-alt)] text-[var(--brand-deep)] hover:bg-[var(--brand-tint)] border border-[var(--line)] py-2.5 px-4 transition-all gap-1.5 shadow-xs cursor-pointer active:scale-[0.98]"
               >
                 <Camera size={15} />
                 <span>Upload Photos ({uploadedCount}/{requiredSlots})</span>
@@ -341,7 +338,7 @@ export default function OriginationMobileLoanViewApplications({
                   type="button"
                   onClick={() => setIsSignatureModalOpen(true)}
                   disabled={isTransferring}
-                  className="w-full inline-flex items-center justify-center rounded-full text-xs font-bold bg-[#137333] text-white hover:bg-[#0d5926] py-3.5 px-4 transition-all gap-1.5 shadow-xs disabled:opacity-50 cursor-pointer active:scale-[0.98]"
+                  className="w-full inline-flex items-center justify-center rounded-[12px] text-xs font-semibold bg-[var(--badge-success-text)] text-white hover:opacity-90 py-3 px-4 transition-all gap-1.5 shadow-xs disabled:opacity-50 cursor-pointer active:scale-[0.98]"
                 >
                   {isTransferring ? (
                     <>
@@ -358,14 +355,16 @@ export default function OriginationMobileLoanViewApplications({
           )}
         </div>
 
-        {/* ━━━ Loan Details Content rendered from LoanDetailView ━━━ */}
-        <LoanDetailView
-          formData={formData || {}}
-          application={application || {}}
-          currentDocs={currentDocs}
-          onPreviewDoc={setPreviewDoc}
-          localTimeline={localTimeline}
-        />
+        {/* Loan Details Content */}
+        <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] shadow-xs overflow-hidden">
+          <LoanDetailView
+            formData={formData || {}}
+            application={application || {}}
+            currentDocs={currentDocs}
+            onPreviewDoc={setPreviewDoc}
+            localTimeline={localTimeline}
+          />
+        </div>
       </div>
 
       {/* Loan Documents Sidebar */}
@@ -381,7 +380,7 @@ export default function OriginationMobileLoanViewApplications({
       {previewDoc &&
         createPortal(
           <div
-            className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/95 backdrop-blur-md animate-in fade-in duration-200 cursor-pointer"
+            className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/95 backdrop-blur-xs animate-in fade-in duration-200 cursor-pointer"
             onClick={() => setPreviewDoc(null)}
           >
             <button
@@ -393,7 +392,7 @@ export default function OriginationMobileLoanViewApplications({
               <X size={24} />
             </button>
             <div
-              className="max-w-3xl max-h-[85vh] overflow-hidden rounded-2xl shadow-2xl border border-white/10"
+              className="max-w-3xl max-h-[85vh] overflow-hidden rounded-[20px] shadow-2xl border border-white/10"
               onClick={(e) => e.stopPropagation()}
             >
               <img

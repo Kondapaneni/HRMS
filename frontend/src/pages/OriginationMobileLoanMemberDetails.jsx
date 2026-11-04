@@ -11,7 +11,6 @@ import {
   Loader2,
   FileEdit
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { useNavigate, useLocation, useParams, Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
@@ -77,8 +76,8 @@ const OriginationMobileLoanMemberDetails = ({ member: propMember }) => {
 
   if (isLoadingLeads && !member) {
     return (
-      <div className="w-full min-h-[60vh] flex flex-col items-center justify-center p-6 text-[#5f6368]">
-        <Loader2 className="w-8 h-8 text-[#1a73e8] animate-spin mb-3" />
+      <div className="w-full min-h-[60vh] flex flex-col items-center justify-center p-6 text-[var(--muted)]">
+        <Loader2 className="w-8 h-8 text-[var(--brand-deep)] animate-spin mb-3" />
         <p className="text-xs font-semibold">Loading member details...</p>
       </div>
     );
@@ -86,12 +85,12 @@ const OriginationMobileLoanMemberDetails = ({ member: propMember }) => {
 
   if (!member) {
     return (
-      <div className="w-full min-h-[60vh] flex flex-col items-center justify-center p-6 text-center text-[#5f6368] space-y-3">
-        <p className="text-sm font-semibold text-[#1f1f1f]">Member profile not found.</p>
+      <div className="w-full min-h-[60vh] flex flex-col items-center justify-center p-6 text-center text-[var(--muted)] space-y-3">
+        <p className="text-sm font-semibold text-[var(--text)]">Member profile not found.</p>
         <button
           type="button"
           onClick={() => navigate('/employee/loans/origination/members')}
-          className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[#1a73e8] rounded-full shadow-xs cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[var(--ink)] rounded-[12px] shadow-xs cursor-pointer"
         >
           <ArrowLeft size={14} /> Back to Members
         </button>
@@ -103,59 +102,59 @@ const OriginationMobileLoanMemberDetails = ({ member: propMember }) => {
   const isMemberDefaultCreated = createdLeadIds.has(defaultLeadId);
 
   return (
-    <div className="space-y-4 pb-14 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+    <div className="space-y-4 pb-14 font-sans antialiased text-[var(--text)]">
 
-      {/* Clean White Header & Back Action */}
+      {/* Header & Back Action */}
       <section className="relative z-30 pt-1 pb-1">
         <div className="pt-0.5">
-          <p className="text-[10.5px] font-bold text-[#5f6368] uppercase tracking-wider mb-1">
+          <p className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-1">
             Origination &bull; Loan Pipeline
           </p>
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight leading-tight min-w-0" style={{ fontWeight: 500 }}>
-              Member <span className="font-medium italic text-[#1a73e8]">Details</span>
+            <h2 className="text-2xl font-semibold text-[var(--text)] tracking-tight leading-tight min-w-0">
+              Member Details
             </h2>
 
             <button
               type="button"
               onClick={() => navigate('/employee/loans/origination/members')}
-              className="shrink-0 h-10 px-4 inline-flex items-center justify-center gap-1.5 rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] shadow-xs active:scale-95 transition-all cursor-pointer whitespace-nowrap"
+              className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 rounded-[12px] text-xs font-semibold bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-alt)] border border-[var(--line)] shadow-xs active:scale-95 transition-all cursor-pointer whitespace-nowrap"
             >
-              <ArrowLeft size={14} className="text-[#5f6368]" />
+              <ArrowLeft size={14} className="text-[var(--icon-muted)]" />
               <span>Back</span>
             </button>
           </div>
-          <p className="text-xs sm:text-sm font-medium text-[#5f6368] mt-1">
+          <p className="text-xs font-medium text-[var(--muted)] mt-1">
             Verified Borrower Profile
           </p>
         </div>
       </section>
 
       {/* 2. Content Layer */}
-      <div className="relative z-20 mx-0.5 space-y-4">
+      <div className="relative z-20 space-y-4">
 
         {/* Member Profile Card */}
-        <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs space-y-4">
+        <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-5 shadow-xs space-y-4">
         
           {/* Avatar, Name & Status Pill */}
-          <div className="flex items-center justify-between gap-3 pb-4 border-b border-[#f1f3f4]">
+          <div className="flex items-center justify-between gap-3 pb-4 border-b border-[var(--line)]">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-14 h-14 rounded-full bg-[#e8f0fe] border-2 border-[#d2e3fc] flex items-center justify-center text-lg font-bold text-[#1a73e8] shrink-0 shadow-2xs">
+              <div className="w-12 h-12 rounded-[14px] bg-[var(--brand-tint)] flex items-center justify-center text-base font-semibold text-[var(--brand-deep)] shrink-0">
                 {member.name ? member.name.charAt(0).toUpperCase() : 'M'}
               </div>
               <div className="min-w-0">
-                <h2 className="text-base font-bold text-[#1f1f1f] truncate">
+                <h2 className="text-base font-semibold text-[var(--text)] truncate">
                   {member.name}
                 </h2>
-                <p className="text-xs text-[#1a73e8] font-semibold truncate mt-0.5">
+                <p className="text-xs text-[var(--brand-deep)] font-medium truncate mt-0.5">
                   Verified Borrower
                 </p>
               </div>
             </div>
 
             <div className="shrink-0">
-              <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-bold shrink-0 shadow-2xs bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">
-                <CheckCircle2 size={15} /> Member
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-[8px] text-[12px] font-semibold shrink-0 bg-[var(--badge-success-bg)] text-[var(--badge-success-text)]">
+                <CheckCircle2 size={14} /> Member
               </span>
             </div>
           </div>
@@ -164,54 +163,54 @@ const OriginationMobileLoanMemberDetails = ({ member: propMember }) => {
           <div className="space-y-3 pt-1">
             {/* Phone with Call Action */}
             <div>
-              <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider block mb-1 pl-1">
+              <span className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider block mb-1 pl-1">
                 Contact Number
               </span>
               {member.phone ? (
                 <a
                   href={`tel:${member.phone}`}
-                  className="flex items-center justify-between pl-3.5 pr-1.5 py-1.5 rounded-full bg-[#f8fafd] hover:bg-[#f1f3f4] border border-[#e0e3e7] transition-all cursor-pointer group active:scale-98"
+                  className="flex items-center justify-between pl-3.5 pr-1.5 py-1.5 rounded-[12px] bg-[var(--surface-alt)] hover:bg-[var(--line)] border border-[var(--line)] transition-all cursor-pointer group active:scale-98"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-8 h-8 rounded-full bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center shrink-0">
+                    <div className="w-8 h-8 rounded-[8px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center shrink-0">
                       <Phone size={14} />
                     </div>
-                    <span className="font-bold text-sm text-[#1f1f1f]">
+                    <span className="font-semibold text-sm text-[var(--text)]">
                       {maskPhoneNumber(member.phone)}
                     </span>
                   </div>
-                  <span className="text-[13px] font-bold text-[#1a73e8] bg-white px-4 py-2 rounded-full border border-[#d2e3fc] shadow-xs flex items-center gap-1.5">
-                    <Phone className="w-3.5 h-3.5 fill-[#1a73e8]" />
+                  <span className="text-xs font-semibold text-[var(--brand-deep)] bg-[var(--surface)] px-3.5 py-1.5 rounded-[8px] border border-[var(--line)] shadow-xs flex items-center gap-1.5">
+                    <Phone className="w-3.5 h-3.5" />
                     <span>Call</span>
                   </span>
                 </a>
               ) : (
-                <p className="text-xs text-[#80868b] pl-1">—</p>
+                <p className="text-xs text-[var(--muted)] pl-1">—</p>
               )}
             </div>
 
             {/* Address */}
             {member.address && (
-              <div className="pt-2 border-t border-[#f1f3f4]">
-                <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider block mb-1 pl-1">
+              <div className="pt-2 border-t border-[var(--line)]">
+                <span className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider block mb-1 pl-1">
                   Residential Address
                 </span>
-                <div className="flex items-start gap-2.5 px-4 py-3 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7] text-xs text-[#1f1f1f]">
-                  <MapPin size={15} className="text-[#1a73e8] shrink-0 mt-0.5" />
-                  <span className="leading-relaxed font-medium">{member.address}</span>
+                <div className="flex items-start gap-2.5 px-3.5 py-2.5 rounded-[12px] bg-[var(--surface-alt)] border border-[var(--line)] text-xs text-[var(--text)]">
+                  <MapPin size={15} className="text-[var(--brand-deep)] shrink-0 mt-0.5" />
+                  <span className="leading-relaxed font-normal">{member.address}</span>
                 </div>
               </div>
             )}
 
             {/* Member Since */}
             {member.created_at && (
-              <div className="pt-2 border-t border-[#f1f3f4]">
-                <span className="text-[10px] font-semibold text-[#5f6368] uppercase tracking-wider block mb-1 pl-1">
+              <div className="pt-2 border-t border-[var(--line)]">
+                <span className="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider block mb-1 pl-1">
                   Member Since
                 </span>
-                <div className="flex items-center gap-2.5 px-4 py-3 rounded-full bg-[#f8fafd] border border-[#e0e3e7] text-xs text-[#1f1f1f]">
-                  <Calendar size={15} className="text-[#1a73e8] shrink-0" />
-                  <span className="font-medium">{format(new Date(member.created_at), 'MMMM d, yyyy - h:mm a')}</span>
+                <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-[12px] bg-[var(--surface-alt)] border border-[var(--line)] text-xs text-[var(--text)]">
+                  <Calendar size={15} className="text-[var(--brand-deep)] shrink-0" />
+                  <span className="font-normal">{format(new Date(member.created_at), 'MMMM d, yyyy - h:mm a')}</span>
                 </div>
               </div>
             )}
@@ -220,19 +219,19 @@ const OriginationMobileLoanMemberDetails = ({ member: propMember }) => {
         </div>
 
         {/* 3. Loan Origination Applications History */}
-        <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-[#f1f3f4]">
+        <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-5 shadow-xs space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-[var(--line)]">
             <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-xl bg-[#e8f0fe] text-[#1a73e8]">
+              <div className="p-2 rounded-[8px] bg-[var(--brand-tint)] text-[var(--brand-deep)]">
                 <Briefcase className="w-4.5 h-4.5" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-[#1f1f1f]">Loan Applications</h3>
-                <p className="text-[11px] text-[#5f6368]">Pipeline Requests on Record</p>
+                <h3 className="text-sm font-semibold text-[var(--text)]">Loan Applications</h3>
+                <p className="text-[11px] text-[var(--muted)]">Pipeline Requests on Record</p>
               </div>
             </div>
 
-            <span className="inline-flex items-center px-3.5 py-1.5 rounded-full text-[12.5px] font-bold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] shadow-2xs">
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-[var(--brand-tint)] text-[var(--brand-deep)]">
               {member.loans?.length || 0} Total
             </span>
           </div>
@@ -246,36 +245,36 @@ const OriginationMobileLoanMemberDetails = ({ member: propMember }) => {
                 return (
                   <div 
                     key={loan.id} 
-                    className="p-4 rounded-2xl bg-[#f8fafd] border border-[#e0e3e7] space-y-3 shadow-2xs"
+                    className="p-4 rounded-[16px] bg-[var(--surface-alt)] border border-[var(--line)] space-y-3 shadow-2xs"
                   >
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-bold text-[#1f1f1f]">
+                        <p className="text-sm font-semibold text-[var(--text)]">
                           {loan.loan_type || 'Personal Loan'}
                         </p>
-                        <p className="text-[11px] font-medium text-[#5f6368] mt-0.5">
+                        <p className="text-[11px] font-medium text-[var(--muted)] mt-0.5">
                           Lead Ref: #{loan.id ? String(loan.id).slice(0, 8) : 'Direct'}
                         </p>
                       </div>
 
                       {isLoadingApps && !appsResponse ? (
-                        <div className="h-6 w-20 bg-[#e0e3e7] animate-pulse rounded-full" />
+                        <div className="h-6 w-20 bg-[var(--line)] animate-pulse rounded-[8px]" />
                       ) : (
-                        <span className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold shadow-2xs ${
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-[8px] text-[12px] font-semibold ${
                           isCreated 
-                            ? 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6]' 
-                            : 'bg-[#fef7e0] text-[#b06000] border border-[#feefc3]'
+                            ? 'bg-[var(--badge-success-bg)] text-[var(--badge-success-text)]' 
+                            : 'bg-[var(--badge-warning-bg)] text-[var(--badge-warning-text)]'
                         }`}>
                           <CheckCircle2 size={13} /> {isCreated ? 'Created' : (loan.status || 'Draft')}
                         </span>
                       )}
                     </div>
 
-                    <div className="pt-2.5 border-t border-[#e0e3e7] flex items-center justify-end">
+                    <div className="pt-2.5 border-t border-[var(--line)] flex items-center justify-end">
                       {isLoadingApps && !appsResponse ? (
-                        <div className="h-8 w-32 bg-[#e0e3e7] animate-pulse rounded-full" />
+                        <div className="h-8 w-32 bg-[var(--line)] animate-pulse rounded-[10px]" />
                       ) : isCreated ? (
-                        <span className="inline-flex items-center gap-1.5 text-xs font-bold px-4 py-2 rounded-full bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]">
+                        <span className="inline-flex items-center gap-1.5 text-xs font-medium px-3.5 py-1.5 rounded-[10px] bg-[var(--surface)] text-[var(--muted)] border border-[var(--line)]">
                           <Lock size={12} /> Application Created
                         </span>
                       ) : (
@@ -288,7 +287,7 @@ const OriginationMobileLoanMemberDetails = ({ member: propMember }) => {
                             loan_type: loan.loan_type,
                             from: '/employee/loans/origination/members'
                           }}
-                          className="inline-flex items-center justify-center gap-1.5 rounded-full text-xs font-bold bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white px-5 py-2.5 shadow-xs transition-all active:scale-95 cursor-pointer"
+                          className="inline-flex items-center justify-center gap-1.5 rounded-[12px] text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white px-4 py-2 shadow-xs transition-all active:scale-95 cursor-pointer"
                         >
                           <FileEdit size={13} />
                           <span>Fill Application</span>
@@ -300,10 +299,10 @@ const OriginationMobileLoanMemberDetails = ({ member: propMember }) => {
                 );
               })
             ) : (
-              <div className="p-6 text-center text-xs text-[#5f6368] font-medium bg-[#f8fafd] rounded-2xl border border-[#e0e3e7] space-y-3">
+              <div className="p-6 text-center text-xs text-[var(--muted)] font-medium bg-[var(--surface-alt)] rounded-[16px] border border-[var(--line)] space-y-3">
                 <p>No loan history on record.</p>
                 {isMemberDefaultCreated ? (
-                  <span className="inline-flex items-center gap-1.5 text-xs font-bold px-4 py-2 rounded-full bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-medium px-3.5 py-1.5 rounded-[10px] bg-[var(--surface)] text-[var(--muted)] border border-[var(--line)]">
                     <Lock size={12} /> Application Created
                   </span>
                 ) : (
@@ -315,7 +314,7 @@ const OriginationMobileLoanMemberDetails = ({ member: propMember }) => {
                       lead_id: member.lead_id,
                       from: '/employee/loans/origination/members'
                     }}
-                    className="inline-flex items-center justify-center gap-1.5 rounded-full text-xs font-bold bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white px-5 py-2.5 shadow-xs transition-all active:scale-95 cursor-pointer"
+                    className="inline-flex items-center justify-center gap-1.5 rounded-[12px] text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white px-4 py-2 shadow-xs transition-all active:scale-95 cursor-pointer"
                   >
                     <FileEdit size={13} />
                     <span>Start New Application</span>

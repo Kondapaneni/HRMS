@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getLeads, getLoanApplications } from '../services/loanServices';
-import { Search, CheckCircle2, Users, Loader2, Eye, Phone, MapPin, X } from 'lucide-react';
+import { Search, Loader2, Eye, Phone, MapPin } from 'lucide-react';
 import { format } from 'date-fns';
 import MemberDetailsSidebar from '../components/MemberDetailsSidebar';
 import OriginationMobileLoanMemberList from './OriginationMobileLoanMemberList';
@@ -66,38 +66,37 @@ const OriginationLoanMembersList = () => {
         <OriginationMobileLoanMemberList />
       </div>
 
-      {/* Web Desktop Experience (Google Material 3 Workspace UI) */}
-      <div className="hidden md:block space-y-6 pb-12">
+      {/* Web Desktop Experience */}
+      <div className="hidden md:block space-y-6 pb-12 font-sans text-[var(--text)]">
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <div className="flex items-center gap-1.5 mb-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-              <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Converted Members Directory</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight flex items-center gap-2" style={{ fontWeight: 500 }}>
-              <span>Converted <span className="font-medium italic text-[#1a73e8]">Members</span></span> <span className="text-xs font-semibold text-[#137333] bg-[#e6f4ea] border border-[#ceead6] px-2.5 py-0.5 rounded-full">{members.length} Converted</span>
+            <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-1">
+              Converted Members Directory
+            </p>
+            <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight flex items-center gap-2">
+              <span>Converted Members</span> 
+              <span className="text-xs font-semibold text-[var(--badge-success-text)] bg-[var(--badge-success-bg)] px-2.5 py-0.5 rounded-full">
+                {members.length} Converted
+              </span>
             </h1>
-            <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
+            <p className="text-xs sm:text-sm text-[var(--muted)] mt-0.5">
               Comprehensive list of borrower prospects converted into active members.
             </p>
           </div>
         </div>
 
         {/* Search Bar */}
-        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-4 shadow-xs flex items-center justify-between gap-3">
+        <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-3.5 shadow-xs flex items-center justify-between gap-3">
           <div className="relative w-full sm:w-80">
             {isFetching ? (
-              <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#1a73e8] animate-spin pointer-events-none" />
+              <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--brand-deep)] animate-spin pointer-events-none" />
             ) : (
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368] pointer-events-none" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--icon-muted)] pointer-events-none" />
             )}
             <input
               type="search"
-              className="w-full pl-10 pr-4 py-2 text-xs bg-[#f1f3f4] hover:bg-[#e8eaed] focus:bg-white border border-transparent focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-full text-[#1f1f1f] placeholder:text-[#5f6368] outline-none transition-all shadow-none focus:shadow-sm"
+              className="w-full pl-10 pr-4 py-2 text-xs bg-[var(--surface-alt)] hover:bg-[var(--surface)] focus:bg-[var(--surface)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[var(--text)] placeholder:text-[var(--muted)] outline-none transition-all shadow-none"
               placeholder="Search members by name, phone..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -106,15 +105,15 @@ const OriginationLoanMembersList = () => {
         </div>
 
         {/* Data Table */}
-        <div className="bg-white rounded-2xl border border-[#e0e3e7] shadow-xs overflow-hidden">
+        <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] shadow-xs overflow-hidden">
           {error ? (
-            <div className="p-8 text-center text-xs text-[#c5221f] bg-[#fce8e6]/30">
+            <div className="p-8 text-center text-xs text-[var(--badge-danger-text)] bg-[var(--badge-danger-bg)]">
               Failed to load members. Please check your network connection.
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-[#f8fafd] border-b border-[#e0e3e7] text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider">
+                <thead className="bg-[var(--surface-alt)] border-b border-[var(--line)] text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">
                   <tr>
                     <th className="py-3 px-3.5 whitespace-nowrap">Member Name</th>
                     <th className="py-3 px-3.5 whitespace-nowrap">Contact</th>
@@ -124,17 +123,17 @@ const OriginationLoanMembersList = () => {
                     <th className="py-3 px-3.5 text-right whitespace-nowrap">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#f1f3f4]">
+                <tbody className="divide-y divide-[var(--line)]">
                   {isLoading ? (
                     <tr>
                       <td colSpan="6" className="p-12 text-center">
-                        <Loader2 className="animate-spin h-6 w-6 text-[#1a73e8] mx-auto mb-2" />
-                        <p className="text-xs text-[#5f6368]">Loading members directory...</p>
+                        <Loader2 className="animate-spin h-6 w-6 text-[var(--brand-deep)] mx-auto mb-2" />
+                        <p className="text-xs text-[var(--muted)]">Loading members directory...</p>
                       </td>
                     </tr>
                   ) : members.length === 0 ? (
                     <tr>
-                      <td colSpan="6" className="text-center py-12 text-xs text-[#5f6368]">
+                      <td colSpan="6" className="text-center py-12 text-xs text-[var(--muted)]">
                         No converted members found.
                       </td>
                     </tr>
@@ -142,42 +141,42 @@ const OriginationLoanMembersList = () => {
                     members.map((member) => (
                       <tr 
                         key={member.id} 
-                        className="hover:bg-[#f8fafd] transition-colors cursor-pointer"
+                        className="hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
                         onClick={() => setSelectedMember(member)}
                       >
-                        <td className="py-3 px-3.5 font-semibold text-[#1f1f1f] whitespace-nowrap">
+                        <td className="py-3 px-3.5 font-semibold text-[var(--text)] whitespace-nowrap">
                           <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-full bg-[#e6f4ea] text-[#137333] font-bold flex items-center justify-center text-[11px] shrink-0 border border-[#ceead6]">
+                            <div className="w-7 h-7 rounded-[8px] bg-[var(--brand-tint)] text-[var(--brand-deep)] font-semibold flex items-center justify-center text-[11px] shrink-0">
                               {(member.name || 'M').charAt(0).toUpperCase()}
                             </div>
                             <span className="truncate max-w-[135px]">{member.name || 'Unnamed Member'}</span>
                           </div>
                         </td>
-                        <td className="py-3 px-3.5 text-[#5f6368] whitespace-nowrap">
+                        <td className="py-3 px-3.5 text-[var(--muted)] whitespace-nowrap">
                           <span className="inline-flex items-center gap-1.5">
-                            <Phone className="w-3.5 h-3.5 text-[#80868b]" />
+                            <Phone className="w-3.5 h-3.5 text-[var(--icon-muted)]" />
                             {maskPhoneNumber(member.phone)}
                           </span>
                         </td>
-                        <td className="py-3 px-3.5 text-[#5f6368] max-w-[160px] truncate" title={member.address}>
+                        <td className="py-3 px-3.5 text-[var(--muted)] max-w-[160px] truncate" title={member.address}>
                           <span className="inline-flex items-center gap-1.5">
-                            <MapPin className="w-3.5 h-3.5 text-[#80868b] shrink-0" />
+                            <MapPin className="w-3.5 h-3.5 text-[var(--icon-muted)] shrink-0" />
                             <span className="truncate max-w-[145px]">{member.address || '—'}</span>
                           </span>
                         </td>
-                        <td className="py-3 px-3.5 text-[#1f1f1f] font-medium whitespace-nowrap">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] bg-[#f8fafd] border border-[#e0e3e7] text-[#1f1f1f] whitespace-nowrap font-medium">
+                        <td className="py-3 px-3.5 text-[var(--text)] font-medium whitespace-nowrap">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-[8px] text-[11px] bg-[var(--surface-alt)] border border-[var(--line)] text-[var(--text)] whitespace-nowrap font-medium">
                             {formatLoanTypes(member.loans)}
                           </span>
                         </td>
-                        <td className="py-3 px-3.5 text-[#5f6368] whitespace-nowrap">
+                        <td className="py-3 px-3.5 text-[var(--muted)] whitespace-nowrap">
                           {member.updated_at || member.created_at ? format(new Date(member.updated_at || member.created_at), 'MMM d, yyyy') : '—'}
                         </td>
                         <td className="py-3 px-3.5 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                           <button 
                             type="button"
                             onClick={() => setSelectedMember(member)}
-                            className="px-3 py-1 text-xs font-semibold text-[#1a73e8] hover:bg-[#e8f0fe] rounded-full transition-colors cursor-pointer inline-flex items-center gap-1 whitespace-nowrap"
+                            className="px-3 py-1 text-xs font-semibold text-[var(--brand-deep)] hover:bg-[var(--brand-tint)] rounded-[8px] transition-colors cursor-pointer inline-flex items-center gap-1 whitespace-nowrap"
                           >
                             <Eye size={13} />
                             <span>Details</span>

@@ -16,7 +16,6 @@ import {
   Calendar,
   ChevronDown
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { getLoanApplications } from '../services/loanServices';
 import { maskPhoneNumber } from '../utils/phoneUtils';
@@ -79,37 +78,37 @@ const OriginationMobileLoanApplicationsList = () => {
     switch (status) {
       case 'Created':
         return (
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold shrink-0 shadow-2xs bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[8px] text-[12px] font-semibold bg-[var(--badge-info-bg)] text-[var(--badge-info-text)] shrink-0">
             <CheckCircle2 size={13} /> Created
           </span>
         );
       case 'Under Review':
         return (
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold shrink-0 shadow-2xs bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[8px] text-[12px] font-semibold bg-[var(--badge-info-bg)] text-[var(--badge-info-text)] shrink-0">
             <Clock size={13} /> Under Review
           </span>
         );
       case 'Approved':
         return (
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold shrink-0 shadow-2xs bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[8px] text-[12px] font-semibold bg-[var(--badge-success-bg)] text-[var(--badge-success-text)] shrink-0">
             <CheckCircle2 size={13} /> Approved
           </span>
         );
       case 'Draft':
         return (
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold shrink-0 shadow-2xs bg-[#fef7e0] text-[#b06000] border border-[#feefc3]">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[8px] text-[12px] font-semibold bg-[var(--badge-warning-bg)] text-[var(--badge-warning-text)] shrink-0">
             <Clock size={13} /> Draft
           </span>
         );
       case 'Rejected':
         return (
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold shrink-0 shadow-2xs bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf]">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[8px] text-[12px] font-semibold bg-[var(--badge-danger-bg)] text-[var(--badge-danger-text)] shrink-0">
             <XCircle size={13} /> Rejected
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold shrink-0 shadow-2xs bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[8px] text-[12px] font-semibold bg-[var(--badge-neutral-bg)] text-[var(--badge-neutral-text)] shrink-0">
             {status || '—'}
           </span>
         );
@@ -138,96 +137,96 @@ const OriginationMobileLoanApplicationsList = () => {
   ];
 
   return (
-    <div className="space-y-4 pb-14 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+    <div className="space-y-4 pb-14 font-sans antialiased text-[var(--text)]">
 
-      {/* Clean White Header (Direct Page Layout) */}
+      {/* Header */}
       <section className="relative z-30 pt-1 pb-1">
         <div className="pt-0.5">
-          <p className="text-[10.5px] font-bold text-[#5f6368] uppercase tracking-wider mb-1">
+          <p className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-1">
             Origination &bull; Loan Pipeline
           </p>
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight leading-tight min-w-0" style={{ fontWeight: 500 }}>
-              Loan <span className="font-medium italic text-[#1a73e8]">Applications</span>
+            <h2 className="text-2xl font-semibold text-[var(--text)] tracking-tight leading-tight min-w-0">
+              Loan Applications
             </h2>
 
             <button
               onClick={() => navigate('/employee/loans/origination/members')}
-              className="shrink-0 h-10 px-4 inline-flex items-center justify-center gap-1.5 bg-[#1a73e8] hover:bg-[#1557b0] active:scale-95 text-white rounded-full text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
+              className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-95 text-white rounded-[12px] text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
             >
               <Plus size={14} />
               <span>New Loan</span>
             </button>
           </div>
-          <p className="text-xs sm:text-sm font-medium text-[#5f6368] mt-1">
+          <p className="text-xs font-medium text-[var(--muted)] mt-1">
             {applications.length} Total Applications
           </p>
         </div>
       </section>
 
       {/* 2. Content Layer */}
-      <div className="relative z-20 mx-0.5 space-y-3.5">
+      <div className="relative z-20 space-y-3.5">
 
         {/* Search & Loan Type Filter Controls */}
         <div className="space-y-2.5">
           {/* Search Box */}
-          <div className="bg-white rounded-full border border-[#e0e3e7] px-4 py-2.5 shadow-xs flex items-center gap-2.5">
-            <Search className="w-4.5 h-4.5 text-[#5f6368] shrink-0" />
+          <div className="bg-[var(--surface)] rounded-[12px] border border-[var(--line)] px-3.5 py-2.5 shadow-xs flex items-center gap-2.5">
+            <Search className="w-4 h-4 text-[var(--icon-muted)] shrink-0" />
             <input
               type="text"
               placeholder="Search by name, phone, App ID..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full text-[13.5px] font-medium bg-transparent border-none outline-none text-[#1f1f1f] placeholder:text-[#80868b] placeholder:text-[13px] pr-1"
+              className="w-full text-xs font-normal bg-transparent border-none outline-none text-[var(--text)] placeholder:text-[var(--muted)] pr-1"
             />
             {searchTerm && (
               <button
                 type="button"
                 onClick={() => setSearchTerm('')}
-                className="p-1 rounded-full text-[#5f6368] hover:bg-[#f1f3f4] hover:text-[#1f1f1f] shrink-0 cursor-pointer transition-colors"
+                className="p-1 rounded-full text-[var(--muted)] hover:bg-[var(--surface-alt)] hover:text-[var(--text)] shrink-0 cursor-pointer transition-colors"
               >
                 <X size={14} />
               </button>
             )}
           </div>
 
-          {/* Loan Type Pill Select */}
-          <div className="bg-white rounded-full border border-[#e0e3e7] px-4 py-2.5 shadow-xs flex items-center gap-2.5 relative">
-            <div className="text-[#1a73e8] shrink-0">
-              <Briefcase size={16} />
+          {/* Loan Type Select */}
+          <div className="bg-[var(--surface)] rounded-[12px] border border-[var(--line)] px-3.5 py-2 shadow-xs flex items-center gap-2.5 relative">
+            <div className="text-[var(--brand-deep)] shrink-0">
+              <Briefcase size={15} />
             </div>
             <div className="relative flex-1">
               <select
                 value={loanTypeFilter}
                 onChange={(e) => setLoanTypeFilter(e.target.value)}
-                className="w-full bg-transparent text-[13px] font-semibold text-[#1f1f1f] appearance-none cursor-pointer outline-none pr-6"
+                className="w-full bg-transparent text-xs font-semibold text-[var(--text)] appearance-none cursor-pointer outline-none pr-6"
               >
                 <option value="All">All Loan Types ({applications.length})</option>
                 <option value="Personal Loan">Personal Loans</option>
                 <option value="Business Loan">Business Loans</option>
               </select>
-              <ChevronDown size={14} className="absolute right-0 top-1/2 -translate-y-1/2 text-[#5f6368] pointer-events-none" />
+              <ChevronDown size={14} className="absolute right-0 top-1/2 -translate-y-1/2 text-[var(--muted)] pointer-events-none" />
             </div>
           </div>
         </div>
 
         {/* Horizontal Scrollable Status Filter Chips */}
-        <div className="flex overflow-x-auto gap-2 py-0.5 hide-scrollbar">
+        <div className="flex overflow-x-auto gap-2 py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {filterTabs.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setStatusFilter(tab.key)}
-              className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
                 statusFilter === tab.key
-                  ? 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc] shadow-2xs font-bold'
-                  : 'bg-white text-[#5f6368] border-[#e0e3e7] hover:bg-[#f8fafd]'
+                  ? 'bg-[var(--ink)] text-white border-transparent shadow-xs'
+                  : 'bg-[var(--surface)] text-[var(--muted)] border-[var(--line)] hover:bg-[var(--surface-alt)]'
               }`}
             >
               <span>{tab.label}</span>
-              <span className={`inline-flex items-center justify-center h-[18px] min-w-[18px] px-1.5 rounded-full text-[11px] font-bold leading-none tabular-nums ${
+              <span className={`inline-flex items-center justify-center h-[18px] min-w-[18px] px-1.5 rounded-full text-[10px] font-bold leading-none tabular-nums ${
                 statusFilter === tab.key
-                  ? 'bg-[#1a73e8] text-white'
-                  : 'bg-[#f1f3f4] text-[#5f6368]'
+                  ? 'bg-white/20 text-white'
+                  : 'bg-[var(--surface-alt)] text-[var(--muted)]'
               }`}>
                 {tab.count}
               </span>
@@ -238,26 +237,26 @@ const OriginationMobileLoanApplicationsList = () => {
         {/* Applications Card List */}
         <div className="space-y-3">
           {error ? (
-            <div className="bg-[#fce8e6] text-[#c5221f] p-4 rounded-2xl text-center border border-[#fad2cf] text-xs">
+            <div className="bg-[var(--badge-danger-bg)] text-[var(--badge-danger-text)] p-4 rounded-[16px] text-center text-xs">
               Failed to load loan applications. Please try again.
             </div>
           ) : isLoading ? (
             <div className="flex justify-center items-center py-16">
-              <Loader2 className="animate-spin h-7 w-7 text-[#1a73e8]" />
+              <Loader2 className="animate-spin h-7 w-7 text-[var(--brand-deep)]" />
             </div>
           ) : filteredApps.length === 0 ? (
-            <div className="bg-white rounded-3xl border border-[#e0e3e7] p-8 text-center space-y-2 shadow-xs">
-              <div className="w-12 h-12 rounded-full bg-[#f8fafd] border border-[#e0e3e7] flex items-center justify-center mx-auto text-[#80868b]">
+            <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-8 text-center space-y-2 shadow-xs">
+              <div className="w-12 h-12 rounded-[14px] bg-[var(--surface-alt)] border border-[var(--line)] flex items-center justify-center mx-auto text-[var(--icon-muted)]">
                 <FileText size={20} />
               </div>
-              <p className="text-sm font-bold text-[#1f1f1f]">No applications found</p>
-              <p className="text-xs text-[#5f6368]">
+              <p className="text-sm font-semibold text-[var(--text)]">No applications found</p>
+              <p className="text-xs text-[var(--muted)]">
                 {searchTerm ? 'No results matched your search query.' : 'No loan applications in this filter status.'}
               </p>
               {searchTerm && (
                 <button
                   onClick={() => setSearchTerm('')}
-                  className="mt-2 inline-flex items-center text-xs font-semibold text-[#1a73e8] hover:underline cursor-pointer"
+                  className="mt-2 inline-flex items-center text-xs font-semibold text-[var(--brand-deep)] hover:underline cursor-pointer"
                 >
                   Clear search query
                 </button>
@@ -276,20 +275,20 @@ const OriginationMobileLoanApplicationsList = () => {
                 <div 
                   key={app.id || app.application_id} 
                   onClick={() => handleViewDetails(app)}
-                  className="bg-white rounded-2xl border border-[#e0e3e7] hover:border-[#dadce0] p-4 shadow-xs transition-all active:scale-[0.99] active:bg-[#f8fafd] cursor-pointer space-y-2.5 group"
+                  className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] hover:border-[var(--brand)]/30 p-4 shadow-xs transition-all active:scale-[0.99] active:bg-[var(--surface-alt)] cursor-pointer space-y-2.5 group"
                 >
                   {/* Top Row: Avatar, Name, Phone & Status */}
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-3 min-w-0 flex-1">
-                      <div className="w-10 h-10 rounded-full bg-[#e8f0fe] text-[#1a73e8] font-bold text-xs flex items-center justify-center shrink-0 border border-[#d2e3fc] shadow-2xs">
+                      <div className="w-10 h-10 rounded-[12px] bg-[var(--brand-tint)] text-[var(--brand-deep)] font-semibold text-xs flex items-center justify-center shrink-0">
                         {initials}
                       </div>
                       <div className="min-w-0 flex-1 space-y-0.5">
-                        <h3 className="font-bold text-[#1f1f1f] text-sm truncate group-hover:text-[#1a73e8] transition-colors">
+                        <h3 className="font-semibold text-[var(--text)] text-sm truncate group-hover:text-[var(--brand-deep)] transition-colors">
                           {name}
                         </h3>
-                        <div className="flex items-center gap-1 font-medium text-[11px] text-[#5f6368]">
-                          <Phone size={10} className="text-[#80868b] shrink-0" />
+                        <div className="flex items-center gap-1 font-medium text-[11px] text-[var(--muted)]">
+                          <Phone size={10} className="text-[var(--icon-muted)] shrink-0" />
                           <span className="truncate">{phone ? maskPhoneNumber(phone) : '—'}</span>
                         </div>
                       </div>
@@ -301,31 +300,31 @@ const OriginationMobileLoanApplicationsList = () => {
                   </div>
 
                   {/* Middle Row: Prominent Loan Type & Creation Date */}
-                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#f1f3f4] text-[11px] text-[#5f6368]">
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[var(--line)] text-[11px] text-[var(--muted)]">
                     <div className="flex items-center gap-1.5 min-w-0">
-                      <Briefcase size={12} className="text-[#1a73e8] shrink-0" />
-                      <span className="font-bold text-[#1a73e8] text-xs truncate">{loanType}</span>
+                      <Briefcase size={12} className="text-[var(--brand-deep)] shrink-0" />
+                      <span className="font-semibold text-[var(--brand-deep)] text-xs truncate">{loanType}</span>
                     </div>
-                    <div className="flex items-center justify-end gap-1.5 text-right min-w-0 text-[#80868b]">
-                      <Calendar size={11} className="text-[#80868b] shrink-0" />
+                    <div className="flex items-center justify-end gap-1.5 text-right min-w-0 text-[var(--muted)]">
+                      <Calendar size={11} className="text-[var(--icon-muted)] shrink-0" />
                       <span>{formatDateSafe(app.created_at || app.updated_at)}</span>
                     </div>
                   </div>
 
                   {/* Bottom Row: App ID, Requested Amount & Arrow */}
-                  <div className="pt-2 border-t border-[#f1f3f4] flex items-center justify-between text-xs">
+                  <div className="pt-2 border-t border-[var(--line)] flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="font-mono font-bold text-[#1a73e8] bg-[#e8f0fe] px-2.5 py-0.5 rounded-full border border-[#d2e3fc] text-[10.5px] shrink-0">
+                      <span className="font-mono font-semibold text-[var(--brand-deep)] bg-[var(--brand-tint)] px-2.5 py-0.5 rounded-[6px] text-[10.5px] shrink-0">
                         {appId}
                       </span>
                       {loanAmount && (
-                        <span className="font-bold text-[#137333] text-[11px] truncate">
+                        <span className="font-semibold text-[var(--badge-success-text)] text-[11px] truncate">
                           ₹{Number(loanAmount).toLocaleString('en-IN')}
                         </span>
                       )}
                     </div>
 
-                    <div className="w-6 h-6 rounded-full bg-[#f8fafd] border border-[#dadce0] flex items-center justify-center text-[#5f6368] group-hover:bg-[#e8f0fe] group-hover:text-[#1a73e8] group-hover:border-[#d2e3fc] transition-colors shrink-0">
+                    <div className="w-6 h-6 rounded-[8px] bg-[var(--surface-alt)] flex items-center justify-center text-[var(--muted)] group-hover:bg-[var(--brand-tint)] group-hover:text-[var(--brand-deep)] transition-colors shrink-0">
                       <ChevronRight size={13} />
                     </div>
                   </div>

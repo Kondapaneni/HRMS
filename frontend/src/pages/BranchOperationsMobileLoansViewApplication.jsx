@@ -121,37 +121,37 @@ export default function BranchOperationsMobileLoansViewApplication({
     switch (status) {
       case 'Created':
         return (
-          <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-bold shrink-0 shadow-2xs bg-[#e0f2fe] text-[#0369a1] border border-[#bae6fd]">
-            <CheckCircle2 size={15} /> Created
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold shrink-0 bg-[var(--brand-tint)] text-[var(--brand-deep)] border border-[var(--brand)]/20">
+            <CheckCircle2 size={13} /> Created
           </span>
         );
       case 'Under Review':
         return (
-          <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-bold shrink-0 shadow-2xs bg-[#7C4DFF]/10 text-[#7C4DFF] border border-[#7C4DFF]/20">
-            <Clock size={15} /> Under Review
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold shrink-0 bg-[var(--badge-info-bg)] text-[var(--badge-info-text)] border border-[var(--badge-info-text)]/15">
+            <Clock size={13} /> Under Review
           </span>
         );
       case 'Approved':
         return (
-          <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-bold shrink-0 shadow-2xs bg-[#e6f4ea] text-[#137333] border border-[#ceead6]">
-            <CheckCircle2 size={15} /> Approved
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold shrink-0 bg-[var(--badge-success-bg)] text-[var(--badge-success-text)] border border-[var(--badge-success-text)]/15">
+            <CheckCircle2 size={13} /> Approved
           </span>
         );
       case 'Draft':
         return (
-          <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-bold shrink-0 shadow-2xs bg-[#fef7e0] text-[#b06000] border border-[#feefc3]">
-            <Clock size={15} /> Draft
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold shrink-0 bg-[var(--badge-warning-bg)] text-[var(--badge-warning-text)] border border-[var(--badge-warning-text)]/15">
+            <Clock size={13} /> Draft
           </span>
         );
       case 'Rejected':
         return (
-          <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-bold shrink-0 shadow-2xs bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf]">
-            <XCircle size={15} /> Rejected
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold shrink-0 bg-[var(--badge-danger-bg)] text-[var(--badge-danger-text)] border border-[var(--badge-danger-text)]/15">
+            <XCircle size={13} /> Rejected
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-bold shrink-0 shadow-2xs bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold shrink-0 bg-[var(--badge-neutral-bg)] text-[var(--badge-neutral-text)] border border-[var(--line)]">
             {status || '—'}
           </span>
         );
@@ -182,72 +182,72 @@ export default function BranchOperationsMobileLoansViewApplication({
   }
 
   return (
-    <div className="space-y-4 pb-14 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
-      {/* Clean White Header & Back Action */}
+    <div className="space-y-4 pb-14 font-sans antialiased text-[var(--text)]">
+      {/* Header & Back Action */}
       <section className="relative z-30 pt-1 pb-1">
         <div className="pt-0.5">
-          <p className="text-[10.5px] font-bold text-[#5f6368] uppercase tracking-wider mb-1">
+          <p className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-1">
             Branch Operations &bull; Loan Pipeline
           </p>
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight leading-tight min-w-0" style={{ fontWeight: 500 }}>
-              Application <span className="font-medium italic text-[#7C4DFF]">Details</span>
+            <h2 className="text-2xl font-semibold text-[var(--text)] tracking-tight leading-tight min-w-0">
+              Application Details
             </h2>
 
             <button
               type="button"
               onClick={() => navigate(fromPath)}
-              className="shrink-0 h-10 px-4 inline-flex items-center justify-center gap-1.5 rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] shadow-xs active:scale-95 transition-all cursor-pointer whitespace-nowrap"
+              className="shrink-0 h-9 px-3.5 inline-flex items-center justify-center gap-1.5 rounded-[10px] text-xs font-medium bg-[var(--surface-alt)] text-[var(--text)] hover:bg-[var(--line)] border border-[var(--line)] shadow-xs active:scale-95 transition-all cursor-pointer whitespace-nowrap"
             >
-              <ArrowLeft size={14} className="text-[#5f6368]" />
+              <ArrowLeft size={14} className="text-[var(--muted)]" />
               <span>Back</span>
             </button>
           </div>
-          <p className="text-xs sm:text-sm font-medium text-[#5f6368] mt-1">
+          <p className="text-xs font-medium text-[var(--muted)] mt-1">
             Review and Verification
           </p>
         </div>
       </section>
 
       {/* 2. Content Layer */}
-      <div className="relative z-20 mx-0.5 space-y-4">
+      <div className="relative z-20 space-y-3.5">
         {/* Application Overview & Status Card */}
-        <div className="bg-white p-5 rounded-3xl shadow-xs border border-[#e0e3e7] space-y-4">
-          <div className="flex items-center justify-between gap-3 pb-4 border-b border-[#f1f3f4]">
+        <div className="bg-[var(--surface)] p-4.5 rounded-[20px] shadow-xs border border-[var(--line)] space-y-3.5">
+          <div className="flex items-center justify-between gap-3 pb-3 border-b border-[var(--line)]">
             <div className="min-w-0 space-y-0.5">
               <div className="flex items-center gap-2">
-                <span className="text-lg font-bold text-[#1f1f1f] tracking-tight font-mono">
+                <span className="text-base font-semibold text-[var(--text)] tracking-tight font-mono">
                   {appId}
                 </span>
                 {appId !== 'LA-DRAFT' && (
                   <button
                     type="button"
                     onClick={handleCopyId}
-                    className="p-1 rounded-full text-[#5f6368] hover:bg-[#f1f3f4] transition-colors cursor-pointer"
+                    className="p-1 rounded-[6px] text-[var(--muted)] hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
                     title="Copy App ID"
                   >
                     <Copy size={13} />
                   </button>
                 )}
               </div>
-              <p className="text-xs font-semibold text-[#7C4DFF] truncate">{loanType}</p>
+              <p className="text-xs font-medium text-[var(--brand-deep)] truncate">{loanType}</p>
             </div>
 
             {getStatusBadge(appStatus)}
           </div>
 
-          <div className="text-[11px] text-[#5f6368] space-y-1">
+          <div className="text-[11px] text-[var(--muted)] space-y-1">
             <p>Processed on {formattedDate}</p>
             {branchName && (
               <p className="flex items-center gap-1.5 truncate">
-                <Building2 size={12} className="text-[#80868b] shrink-0" />
+                <Building2 size={12} className="text-[var(--muted)] shrink-0" />
                 <span className="truncate">{branchName}</span>
               </p>
             )}
           </div>
 
           {/* Action Controls for Edit */}
-          <div className="pt-2 border-t border-[#f1f3f4]">
+          <div className="pt-2 border-t border-[var(--line)]">
             <button
               type="button"
               onClick={() => {
@@ -260,7 +260,7 @@ export default function BranchOperationsMobileLoansViewApplication({
                   }
                 });
               }}
-              className="w-full inline-flex items-center justify-center rounded-full text-xs font-bold bg-[#7C4DFF] text-white hover:bg-[#673AB7] py-3.5 px-4 transition-all gap-1.5 shadow-xs cursor-pointer active:scale-[0.98]"
+              className="w-full inline-flex items-center justify-center rounded-[12px] text-xs font-semibold bg-[var(--ink)] text-white hover:bg-[var(--ink)]/90 py-3 px-4 transition-all gap-1.5 shadow-xs cursor-pointer active:scale-[0.98]"
             >
               <FileEdit size={14} />
               <span>Edit Application</span>
@@ -269,13 +269,15 @@ export default function BranchOperationsMobileLoansViewApplication({
         </div>
 
         {/* ━━━ Loan Details Content rendered from LoanDetailView ━━━ */}
-        <LoanDetailView
-          formData={formData || {}}
-          application={application || {}}
-          currentDocs={currentDocs}
-          onPreviewDoc={setPreviewDoc}
-          localTimeline={localTimeline}
-        />
+        <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] overflow-hidden">
+          <LoanDetailView
+            formData={formData || {}}
+            application={application || {}}
+            currentDocs={currentDocs}
+            onPreviewDoc={setPreviewDoc}
+            localTimeline={localTimeline}
+          />
+        </div>
       </div>
 
       {/* Fullscreen Photo Lightbox Preview Portal */}

@@ -6,12 +6,10 @@ import {
   CheckCircle2, 
   ArrowUpRight, 
   ArrowDownRight,
-  ShoppingBag,
   Award,
   Clock,
   Phone,
   ChevronRight,
-  MapPin,
   Plus
 } from 'lucide-react';
 import {
@@ -28,7 +26,6 @@ import {
 } from 'recharts';
 import { Link, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import { getSalesDashboardData, getSalesLeads } from '../services/salesServices';
 import PageLoader from '../components/PageLoader';
@@ -85,33 +82,33 @@ const OriginationMobileSaleDashboard = () => {
     switch (status) {
       case 'New':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] shrink-0 shadow-2xs">
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[8px] text-[11px] font-semibold bg-[var(--badge-info-bg)] text-[var(--badge-info-text)] shrink-0">
             <Clock size={12} /> New
           </span>
         );
       case 'Follow Up':
       case 'Contacted':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#f3e8fd] text-[#8430ce] border border-[#e9d5ff] shrink-0 shadow-2xs">
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[8px] text-[11px] font-semibold bg-[var(--badge-warning-bg)] text-[var(--badge-warning-text)] shrink-0">
             <TrendingUp size={12} /> Follow Up
           </span>
         );
       case 'Active':
       case 'In Progress':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#fef7e0] text-[#b06000] border border-[#feefc3] shrink-0 shadow-2xs">
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[8px] text-[11px] font-semibold bg-[var(--badge-info-bg)] text-[var(--badge-info-text)] shrink-0">
             <Clock size={12} /> {status}
           </span>
         );
       case 'Converted':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#e6f4ea] text-[#137333] border border-[#ceead6] shrink-0 shadow-2xs">
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[8px] text-[11px] font-semibold bg-[var(--badge-success-bg)] text-[var(--badge-success-text)] shrink-0">
             <CheckCircle2 size={12} /> Converted
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0] shrink-0 shadow-2xs">
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[8px] text-[11px] font-semibold bg-[var(--badge-neutral-bg)] text-[var(--badge-neutral-text)] shrink-0">
             {status || 'Pending'}
           </span>
         );
@@ -123,45 +120,45 @@ const OriginationMobileSaleDashboard = () => {
   }
 
   return (
-    <div className="space-y-4 pb-12 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
-      {/* Clean White Header (Direct Page Layout) */}
+    <div className="space-y-4 pb-12 font-sans antialiased text-[var(--text)]">
+      {/* Header */}
       <section className="relative z-30 pt-1 pb-1">
         <div className="pt-0.5">
-          <p className="text-[10.5px] font-bold text-[#5f6368] uppercase tracking-wider mb-1">
+          <p className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-1">
             {getGreeting()} &bull; Sales Origination
           </p>
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight leading-tight min-w-0" style={{ fontWeight: 500 }}>
-              Hello, <span className="font-medium italic text-[#137333]">{profile?.firstName || profile?.name?.split(' ')[0] || 'Sales'}</span>
+            <h2 className="text-2xl font-semibold text-[var(--text)] tracking-tight leading-tight min-w-0">
+              Hello, {profile?.firstName || profile?.name?.split(' ')[0] || 'Sales'}
             </h2>
 
             <button
               onClick={() => navigate('/employee/sales/origination/leads/add')}
-              className="shrink-0 h-10 px-4 inline-flex items-center justify-center gap-1.5 bg-[#1a73e8] hover:bg-[#1557b0] active:scale-95 text-white rounded-full text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
+              className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-95 text-white rounded-[12px] text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
             >
               <Plus size={14} />
               <span>Add Lead</span>
             </button>
           </div>
-          <p className="text-xs sm:text-sm font-medium text-[#5f6368] mt-1">
+          <p className="text-xs font-medium text-[var(--muted)] mt-1">
             {currentTime.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })} &bull; Performance &amp; Leads
           </p>
         </div>
       </section>
 
       {/* 2. Exactly the 4 KPI Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 relative z-20 mx-0.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 relative z-20">
         {/* Card 1: Total Leads */}
-        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-4.5 shadow-xs flex items-center justify-between">
+        <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4.5 shadow-xs flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider">
+            <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">
               Total Leads (This Month)
             </p>
             <div className="flex items-baseline gap-2">
-              <p className="text-2xl font-bold text-[#1f1f1f] tracking-tight">
+              <p className="text-2xl font-semibold text-[var(--text)] tracking-tight">
                 {stats.total_leads_month}
               </p>
-              <span className={`inline-flex items-center text-xs font-bold ${stats.percent_change_total >= 0 ? 'text-[#137333]' : 'text-[#c5221f]'}`}>
+              <span className={`inline-flex items-center text-xs font-semibold ${stats.percent_change_total >= 0 ? 'text-[var(--badge-success-text)]' : 'text-[var(--badge-danger-text)]'}`}>
                 {stats.percent_change_total >= 0 ? (
                   <ArrowUpRight className="w-3.5 h-3.5" />
                 ) : (
@@ -170,24 +167,24 @@ const OriginationMobileSaleDashboard = () => {
                 {Math.abs(stats.percent_change_total)}%
               </span>
             </div>
-            <p className="text-xs text-[#5f6368] font-normal pt-0.5">Vs previous month</p>
+            <p className="text-xs text-[var(--muted)] font-normal pt-0.5">Vs previous month</p>
           </div>
-          <div className="p-3 rounded-2xl bg-[#e6f4ea] text-[#137333] shrink-0">
+          <div className="p-3 rounded-[12px] bg-[var(--brand-tint)] text-[var(--brand-deep)] shrink-0">
             <Users className="w-5 h-5" />
           </div>
         </div>
 
         {/* Card 2: Active Opportunities */}
-        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-4.5 shadow-xs flex items-center justify-between">
+        <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4.5 shadow-xs flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider">
+            <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">
               Active Opportunities
             </p>
             <div className="flex items-baseline gap-2">
-              <p className="text-2xl font-bold text-[#1f1f1f] tracking-tight">
+              <p className="text-2xl font-semibold text-[var(--text)] tracking-tight">
                 {stats.active_opportunities}
               </p>
-              <span className={`inline-flex items-center text-xs font-bold ${stats.percent_change_active >= 0 ? 'text-[#137333]' : 'text-[#c5221f]'}`}>
+              <span className={`inline-flex items-center text-xs font-semibold ${stats.percent_change_active >= 0 ? 'text-[var(--badge-success-text)]' : 'text-[var(--badge-danger-text)]'}`}>
                 {stats.percent_change_active >= 0 ? (
                   <ArrowUpRight className="w-3.5 h-3.5" />
                 ) : (
@@ -196,24 +193,24 @@ const OriginationMobileSaleDashboard = () => {
                 {Math.abs(stats.percent_change_active)}%
               </span>
             </div>
-            <p className="text-xs text-[#5f6368] font-normal pt-0.5">In active pipeline</p>
+            <p className="text-xs text-[var(--muted)] font-normal pt-0.5">In active pipeline</p>
           </div>
-          <div className="p-3 rounded-2xl bg-[#fef7e0] text-[#b06000] shrink-0">
+          <div className="p-3 rounded-[12px] bg-[var(--badge-warning-bg)] text-[var(--badge-warning-text)] shrink-0">
             <TrendingUp className="w-5 h-5" />
           </div>
         </div>
 
         {/* Card 3: Converted Leads */}
-        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-4.5 shadow-xs flex items-center justify-between">
+        <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4.5 shadow-xs flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider">
+            <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">
               Converted Leads
             </p>
             <div className="flex items-baseline gap-2">
-              <p className="text-2xl font-bold text-[#137333] tracking-tight">
+              <p className="text-2xl font-semibold text-[var(--text)] tracking-tight">
                 {stats.converted_leads}
               </p>
-              <span className={`inline-flex items-center text-xs font-bold ${stats.percent_change_converted >= 0 ? 'text-[#137333]' : 'text-[#c5221f]'}`}>
+              <span className={`inline-flex items-center text-xs font-semibold ${stats.percent_change_converted >= 0 ? 'text-[var(--badge-success-text)]' : 'text-[var(--badge-danger-text)]'}`}>
                 {stats.percent_change_converted >= 0 ? (
                   <ArrowUpRight className="w-3.5 h-3.5" />
                 ) : (
@@ -222,53 +219,53 @@ const OriginationMobileSaleDashboard = () => {
                 {Math.abs(stats.percent_change_converted)}%
               </span>
             </div>
-            <p className="text-xs text-[#5f6368] font-normal pt-0.5">Closed deals</p>
+            <p className="text-xs text-[var(--muted)] font-normal pt-0.5">Closed deals</p>
           </div>
-          <div className="p-3 rounded-2xl bg-[#e6f4ea] text-[#137333] shrink-0">
+          <div className="p-3 rounded-[12px] bg-[var(--badge-success-bg)] text-[var(--badge-success-text)] shrink-0">
             <CheckCircle2 className="w-5 h-5" />
           </div>
         </div>
 
         {/* Card 4: Conversion Rate */}
-        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-4.5 shadow-xs flex items-center justify-between">
+        <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4.5 shadow-xs flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider">
+            <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">
               Conversion Rate
             </p>
             <div className="flex items-baseline gap-2">
-              <p className="text-2xl font-bold text-[#137333] tracking-tight">
+              <p className="text-2xl font-semibold text-[var(--accent-pink-deep)] tracking-tight">
                 {conversionRate}%
               </p>
-              <span className="text-xs font-semibold text-[#137333]">Active</span>
+              <span className="text-xs font-semibold text-[var(--badge-success-text)]">Active</span>
             </div>
-            <p className="text-xs text-[#5f6368] font-normal pt-0.5">Total funnel conversion</p>
+            <p className="text-xs text-[var(--muted)] font-normal pt-0.5">Total funnel conversion</p>
           </div>
-          <div className="p-3 rounded-2xl bg-[#f3e8fd] text-[#8430ce] shrink-0">
+          <div className="p-3 rounded-[12px] bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)] shrink-0">
             <Award className="w-5 h-5" />
           </div>
         </div>
       </div>
 
       {/* 3. Switchable Chart Card */}
-      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs">
+      <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4 shadow-xs">
         <div className="flex items-center justify-between gap-2 mb-4">
           <div className="min-w-0 pr-1">
-            <h3 className="text-sm font-bold text-[#1f1f1f] truncate">
+            <h3 className="text-sm font-semibold text-[var(--text)] tracking-tight truncate">
               {chartTab === 'daily' ? 'Daily Leads (7 Days)' : 'Monthly Performance'}
             </h3>
-            <p className="text-[11px] text-[#5f6368] truncate">
+            <p className="text-[11px] text-[var(--muted)] truncate">
               {chartTab === 'daily' ? 'Acquisition & Conversion' : '6-Month Performance Trend'}
             </p>
           </div>
 
-          <div className="flex items-center bg-[#f1f3f4] p-1 rounded-full shrink-0">
+          <div className="flex items-center bg-[var(--surface-alt)] p-1 rounded-full border border-[var(--line)] shrink-0">
             <button
               type="button"
               onClick={() => setChartTab('daily')}
-              className={`whitespace-nowrap px-3 py-[7px] rounded-full text-[11.5px] font-semibold transition-all cursor-pointer ${
+              className={`whitespace-nowrap px-3 py-[6px] rounded-full text-[11.5px] font-semibold transition-all cursor-pointer ${
                 chartTab === 'daily'
-                  ? 'bg-white text-[#137333] shadow-2xs font-bold'
-                  : 'text-[#5f6368] hover:text-[#1f1f1f]'
+                  ? 'bg-[var(--surface)] text-[var(--text)] shadow-xs'
+                  : 'text-[var(--muted)] hover:text-[var(--text)]'
               }`}
             >
               7 Days
@@ -276,10 +273,10 @@ const OriginationMobileSaleDashboard = () => {
             <button
               type="button"
               onClick={() => setChartTab('monthly')}
-              className={`whitespace-nowrap px-3 py-[7px] rounded-full text-[11.5px] font-semibold transition-all cursor-pointer ${
+              className={`whitespace-nowrap px-3 py-[6px] rounded-full text-[11.5px] font-semibold transition-all cursor-pointer ${
                 chartTab === 'monthly'
-                  ? 'bg-white text-[#137333] shadow-2xs font-bold'
-                  : 'text-[#5f6368] hover:text-[#1f1f1f]'
+                  ? 'bg-[var(--surface)] text-[var(--text)] shadow-xs'
+                  : 'text-[var(--muted)] hover:text-[var(--text)]'
               }`}
             >
               6 Months
@@ -293,48 +290,52 @@ const OriginationMobileSaleDashboard = () => {
               <AreaChart data={dailyData} margin={{ top: 10, right: 10, bottom: 5, left: -20 }}>
                 <defs>
                   <linearGradient id="salesLeadsGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.25}/>
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#8AADDB" stopOpacity={0.35}/>
+                    <stop offset="95%" stopColor="#8AADDB" stopOpacity={0}/>
                   </linearGradient>
                   <linearGradient id="salesConvertedGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#059669" stopOpacity={0.25}/>
-                    <stop offset="95%" stopColor="#059669" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#E3B9DF" stopOpacity={0.35}/>
+                    <stop offset="95%" stopColor="#E3B9DF" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f3f4" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#5f6368', fontSize: 10 }} dy={5} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#5f6368', fontSize: 10 }} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--line)" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#6B6B75', fontSize: 10 }} dy={5} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6B6B75', fontSize: 10 }} />
                 <Tooltip 
                   contentStyle={{ 
-                    borderRadius: '12px', 
-                    border: '1px solid #dadce0', 
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                    backgroundColor: '#ffffff',
-                    fontSize: '11px'
+                    borderRadius: '10px', 
+                    border: 'none', 
+                    backgroundColor: '#131315',
+                    color: '#ffffff',
+                    fontSize: '11px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
                   }}
+                  itemStyle={{ color: '#ffffff' }}
                 />
                 <Legend iconType="circle" wrapperStyle={{ paddingTop: '10px', fontSize: '11px' }} />
-                <Area type="monotone" dataKey="leads" name="Total Leads" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#salesLeadsGradient)" />
-                <Area type="monotone" dataKey="converted" name="Converted" stroke="#059669" strokeWidth={2} fillOpacity={1} fill="url(#salesConvertedGradient)" />
+                <Area type="monotone" dataKey="leads" name="Total Leads" stroke="#8AADDB" strokeWidth={2} fillOpacity={1} fill="url(#salesLeadsGradient)" />
+                <Area type="monotone" dataKey="converted" name="Converted" stroke="#E3B9DF" strokeWidth={2} fillOpacity={1} fill="url(#salesConvertedGradient)" />
               </AreaChart>
             ) : (
               <BarChart data={monthlyData} margin={{ top: 10, right: 10, bottom: 5, left: -20 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f3f4" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#5f6368', fontSize: 10 }} dy={5} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#5f6368', fontSize: 10 }} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--line)" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#6B6B75', fontSize: 10 }} dy={5} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6B6B75', fontSize: 10 }} />
                 <Tooltip 
                   contentStyle={{ 
-                    borderRadius: '12px', 
-                    border: '1px solid #dadce0', 
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                    backgroundColor: '#ffffff',
-                    fontSize: '11px'
+                    borderRadius: '10px', 
+                    border: 'none', 
+                    backgroundColor: '#131315',
+                    color: '#ffffff',
+                    fontSize: '11px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
                   }}
-                  cursor={{ fill: '#f8fafd' }}
+                  itemStyle={{ color: '#ffffff' }}
+                  cursor={{ fill: 'var(--brand-tint)', opacity: 0.4 }}
                 />
                 <Legend iconType="circle" wrapperStyle={{ paddingTop: '10px', fontSize: '11px' }} />
-                <Bar dataKey="leads" name="Leads" fill="#10b981" radius={[4, 4, 0, 0]} barSize={12} />
-                <Bar dataKey="converted" name="Converted" fill="#059669" radius={[4, 4, 0, 0]} barSize={12} />
+                <Bar dataKey="leads" name="Leads" fill="#8AADDB" radius={[6, 6, 0, 0]} barSize={12} />
+                <Bar dataKey="converted" name="Converted" fill="#E3B9DF" radius={[6, 6, 0, 0]} barSize={12} />
               </BarChart>
             )}
           </ResponsiveContainer>
@@ -342,32 +343,32 @@ const OriginationMobileSaleDashboard = () => {
       </div>
 
       {/* 4. Recent Pipeline Leads Feed */}
-      <div className="bg-white rounded-3xl border border-[#e0e3e7] p-5 shadow-xs space-y-3">
-        <div className="flex items-center justify-between border-b border-[#f1f3f4] pb-3">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-[#e6f4ea] text-[#137333] flex items-center justify-center shrink-0">
-              <TrendingUp size={16} />
+      <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-4 shadow-xs space-y-3">
+        <div className="flex items-center justify-between border-b border-[var(--line)] pb-3">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-[8px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center">
+              <TrendingUp size={14} />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-[#1f1f1f]">Recent Pipeline Leads</h3>
-              <p className="text-[11px] text-[#5f6368]">Latest prospects registered</p>
+              <h3 className="text-sm font-semibold text-[var(--text)] tracking-tight">Recent Pipeline Leads</h3>
+              <p className="text-[11px] text-[var(--muted)]">Latest prospects registered</p>
             </div>
           </div>
 
           <Link
             to="/employee/sales/origination/leads"
-            className="inline-flex items-center gap-1 text-[13px] font-bold text-[#137333] hover:text-[#0b5324] transition-colors shrink-0"
+            className="inline-flex items-center gap-1 text-[13px] font-semibold text-[var(--brand-deep)] hover:underline transition-colors shrink-0"
           >
             <span>View All</span>
             <ChevronRight size={15} />
           </Link>
         </div>
 
-        <div className="divide-y divide-[#f1f3f4]">
+        <div className="divide-y divide-[var(--line)]">
           {leadsLoading ? (
-            <p className="text-center py-6 text-xs text-[#5f6368]">Loading recent leads...</p>
+            <p className="text-center py-6 text-xs text-[var(--muted)]">Loading recent leads...</p>
           ) : recentLeads.length === 0 ? (
-            <p className="text-center py-6 text-xs text-[#5f6368]">No pipeline leads recorded yet.</p>
+            <p className="text-center py-6 text-xs text-[var(--muted)]">No pipeline leads recorded yet.</p>
           ) : (
             recentLeads.map((lead) => {
               const displayName = lead.name || lead.full_name || 'Unnamed Prospect';
@@ -377,25 +378,25 @@ const OriginationMobileSaleDashboard = () => {
                 <div 
                   key={lead.id} 
                   onClick={() => navigate('/employee/sales/origination/leads/details', { state: { lead } })}
-                  className="py-3.5 flex items-center justify-between gap-2 cursor-pointer hover:bg-[#f8fafd] transition-colors rounded-xl px-1.5 -mx-1.5"
+                  className="py-3 flex items-center justify-between gap-2 cursor-pointer hover:bg-[var(--surface-alt)] transition-colors rounded-[12px] px-2 -mx-1"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-10 h-10 rounded-full bg-[#e6f4ea] text-[#137333] font-bold text-xs flex items-center justify-center shrink-0 border border-[#ceead6]">
+                    <div className="w-9 h-9 rounded-[10px] bg-[var(--brand-tint)] text-[var(--brand-deep)] font-semibold text-xs flex items-center justify-center shrink-0">
                       {initials}
                     </div>
                     <div className="min-w-0 space-y-0.5">
-                      <h4 className="font-bold text-[#1f1f1f] text-sm truncate">
+                      <h4 className="font-semibold text-[var(--text)] text-sm truncate">
                         {displayName}
                       </h4>
-                      <div className="flex items-center gap-2 text-[10.5px] text-[#5f6368]">
-                        <span className="inline-flex items-center gap-1 font-medium text-[#5f6368]">
-                          <Phone size={10} className="text-[#80868b]" />
+                      <div className="flex items-center gap-2 text-[10.5px] text-[var(--muted)]">
+                        <span className="inline-flex items-center gap-1 font-medium">
+                          <Phone size={10} className="text-[var(--icon-muted)]" />
                           {lead.phone ? maskPhoneNumber(lead.phone) : '—'}
                         </span>
                         {lead.product_type && (
                           <>
                             <span>&bull;</span>
-                            <span className="truncate text-[#137333] font-semibold">{lead.product_type}</span>
+                            <span className="truncate text-[var(--brand-deep)] font-medium">{lead.product_type}</span>
                           </>
                         )}
                       </div>
@@ -404,7 +405,7 @@ const OriginationMobileSaleDashboard = () => {
 
                   <div className="flex flex-col items-end shrink-0 gap-1.5">
                     {getStatusBadge(lead.status)}
-                    <span className="text-[10.5px] font-medium text-[#80868b]">
+                    <span className="text-[10.5px] font-medium text-[var(--muted)]">
                       {lead.created_at ? format(new Date(lead.created_at), 'dd MMM') : ''}
                     </span>
                   </div>

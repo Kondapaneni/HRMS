@@ -3,21 +3,15 @@ import { useQuery } from '@tanstack/react-query';
 import { getLeads } from '../services/loanServices';
 import { 
   Search, 
-  Filter, 
   Phone, 
   MapPin, 
-  Calendar, 
   CheckCircle2, 
   Clock, 
-  FileText, 
   Loader2, 
   Plus, 
-  MoreVertical, 
   XCircle, 
   RefreshCw,
-  Eye,
-  SlidersHorizontal,
-  X
+  Eye
 } from 'lucide-react';
 import { format } from 'date-fns';
 import OriginationMobileLoanLeadsList from './OriginationMobileLoanLeadsList';
@@ -38,7 +32,7 @@ const OriginationLoanLeadsList = () => {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  const { data: response, isLoading, isFetching, error, refetch } = useQuery({
+  const { data: response, isLoading, isFetching, error } = useQuery({
     queryKey: ['origination', 'leads', 'list', debouncedSearch],
     queryFn: getLeads,
   });
@@ -86,18 +80,42 @@ const OriginationLoanLeadsList = () => {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'New':
-        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]"><Clock size={11} /> New</span>;
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[8px] text-[11px] font-semibold bg-[var(--badge-info-bg)] text-[var(--badge-info-text)]">
+            <Clock size={11} /> New
+          </span>
+        );
       case 'Follow Up':
-        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#f3e8fd] text-[#8430ce] border border-[#e9d5ff]"><RefreshCw size={11} /> Follow Up</span>;
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[8px] text-[11px] font-semibold bg-[var(--badge-warning-bg)] text-[var(--badge-warning-text)]">
+            <RefreshCw size={11} /> Follow Up
+          </span>
+        );
       case 'Active':
       case 'In Progress':
-        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#fef7e0] text-[#b06000] border border-[#feefc3]"><Clock size={11} /> {status}</span>;
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[8px] text-[11px] font-semibold bg-[var(--badge-info-bg)] text-[var(--badge-info-text)]">
+            <Clock size={11} /> {status}
+          </span>
+        );
       case 'Converted':
-        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#e6f4ea] text-[#137333] border border-[#ceead6]"><CheckCircle2 size={11} /> Converted</span>;
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[8px] text-[11px] font-semibold bg-[var(--badge-success-bg)] text-[var(--badge-success-text)]">
+            <CheckCircle2 size={11} /> Converted
+          </span>
+        );
       case 'Not Interested':
-        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf]"><XCircle size={11} /> Not Interested</span>;
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[8px] text-[11px] font-semibold bg-[var(--badge-danger-bg)] text-[var(--badge-danger-text)]">
+            <XCircle size={11} /> Not Interested
+          </span>
+        );
       default:
-        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]">{status || '—'}</span>;
+        return (
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[8px] text-[11px] font-semibold bg-[var(--badge-neutral-bg)] text-[var(--badge-neutral-text)]">
+            {status || '—'}
+          </span>
+        );
     }
   };
 
@@ -108,22 +126,21 @@ const OriginationLoanLeadsList = () => {
         <OriginationMobileLoanLeadsList />
       </div>
 
-      {/* Web Desktop Experience (Google Material 3 Workspace UI) */}
+      {/* Web Desktop Experience */}
       <div className="hidden md:block space-y-6 pb-12">
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <div className="flex items-center gap-1.5 mb-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-              <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Loan Pipeline Directory</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight flex items-center gap-2" style={{ fontWeight: 500 }}>
-              <span>All <span className="font-medium italic text-[#1a73e8]">Leads</span></span> <span className="text-xs font-semibold text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc] px-2.5 py-0.5 rounded-full">{rawLeads.length} Total</span>
+            <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-1">
+              Loan Pipeline Directory
+            </p>
+            <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight flex items-center gap-2">
+              <span>All Leads</span> 
+              <span className="text-xs font-semibold text-[var(--brand-deep)] bg-[var(--brand-tint)] px-2.5 py-0.5 rounded-full">
+                {rawLeads.length} Total
+              </span>
             </h1>
-            <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
+            <p className="text-xs sm:text-sm text-[var(--muted)] mt-0.5">
               Manage, qualify, and track your loan origination prospects and conversion stages.
             </p>
           </div>
@@ -131,7 +148,7 @@ const OriginationLoanLeadsList = () => {
           <button 
             type="button"
             onClick={() => setIsAddLeadOpen(true)}
-            className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white h-9 px-4.5 transition-all gap-1.5 shadow-xs cursor-pointer active:scale-95 shrink-0 self-start sm:self-auto"
+            className="inline-flex items-center justify-center rounded-[12px] text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white h-9 px-4.5 transition-all gap-1.5 shadow-xs cursor-pointer active:scale-95 shrink-0 self-start sm:self-auto"
           >
             <Plus size={15} />
             <span>Add Lead</span>
@@ -139,7 +156,7 @@ const OriginationLoanLeadsList = () => {
         </div>
 
         {/* Search & Filter Bar */}
-        <div className="bg-white rounded-2xl border border-[#e0e3e7] p-4 shadow-xs flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+        <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-3.5 shadow-xs flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
           {/* Status Filter Chips */}
           <div className="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {[
@@ -155,16 +172,16 @@ const OriginationLoanLeadsList = () => {
                   key={tab.id}
                   type="button"
                   onClick={() => setSelectedStatusFilter(tab.id)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+                  className={`px-3 py-1.5 rounded-[10px] text-xs font-semibold transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
                     isSelected
-                      ? 'bg-[#c2e7ff]/70 text-[#001d35] border border-[#b2d7ff]/80 shadow-2xs'
-                      : 'bg-[#f8fafd] text-[#5f6368] hover:bg-[#f1f3f4] hover:text-[#1f1f1f] border border-[#dadce0]'
+                      ? 'bg-[var(--ink)] text-white shadow-xs'
+                      : 'bg-[var(--surface-alt)] text-[var(--muted)] hover:text-[var(--text)] hover:bg-[var(--line)] border border-[var(--line)]'
                   }`}
                 >
                   <span>{tab.label}</span>
                   {tab.count !== undefined && (
                     <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                      isSelected ? 'bg-[#1a73e8] text-white' : 'bg-[#e0e3e7] text-[#5f6368]'
+                      isSelected ? 'bg-white/20 text-white' : 'bg-[var(--line)] text-[var(--muted)]'
                     }`}>
                       {tab.count}
                     </span>
@@ -177,13 +194,13 @@ const OriginationLoanLeadsList = () => {
           {/* Search Box */}
           <div className="relative w-full lg:w-72 shrink-0">
             {isFetching ? (
-              <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#1a73e8] animate-spin pointer-events-none" />
+              <Loader2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--brand-deep)] animate-spin pointer-events-none" />
             ) : (
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368] pointer-events-none" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--icon-muted)] pointer-events-none" />
             )}
             <input
               type="search"
-              className="w-full pl-10 pr-4 py-2 text-xs bg-[#f1f3f4] hover:bg-[#e8eaed] focus:bg-white border border-transparent focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-full text-[#1f1f1f] placeholder:text-[#5f6368] outline-none transition-all shadow-none focus:shadow-sm"
+              className="w-full pl-10 pr-4 py-2 text-xs bg-[var(--surface-alt)] hover:bg-[var(--surface)] focus:bg-[var(--surface)] border border-[var(--line)] focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20 rounded-[12px] text-[var(--text)] placeholder:text-[var(--muted)] outline-none transition-all shadow-none"
               placeholder="Search by name, phone, loan type..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -192,15 +209,15 @@ const OriginationLoanLeadsList = () => {
         </div>
 
         {/* Data Table */}
-        <div className="bg-white rounded-2xl border border-[#e0e3e7] shadow-xs overflow-hidden">
+        <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] shadow-xs overflow-hidden">
           {error ? (
-            <div className="p-8 text-center text-xs text-[#c5221f] bg-[#fce8e6]/30">
+            <div className="p-8 text-center text-xs text-[var(--badge-danger-text)] bg-[var(--badge-danger-bg)]">
               Failed to load leads. Please check your network or try refreshing.
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-[#f8fafd] border-b border-[#e0e3e7] text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider">
+                <thead className="bg-[var(--surface-alt)] border-b border-[var(--line)] text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">
                   <tr>
                     <th className="py-3 px-3.5 whitespace-nowrap">Applicant Name</th>
                     <th className="py-3 px-3.5 whitespace-nowrap">Contact</th>
@@ -211,17 +228,17 @@ const OriginationLoanLeadsList = () => {
                     <th className="py-3 px-3.5 text-right whitespace-nowrap">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#f1f3f4]">
+                <tbody className="divide-y divide-[var(--line)]">
                   {isLoading ? (
                     <tr>
                       <td colSpan="7" className="p-12 text-center">
-                        <Loader2 className="animate-spin h-6 w-6 text-[#1a73e8] mx-auto mb-2" />
-                        <p className="text-xs text-[#5f6368]">Loading leads directory...</p>
+                        <Loader2 className="animate-spin h-6 w-6 text-[var(--brand-deep)] mx-auto mb-2" />
+                        <p className="text-xs text-[var(--muted)]">Loading leads directory...</p>
                       </td>
                     </tr>
                   ) : filteredLeads.length === 0 ? (
                     <tr>
-                      <td colSpan="7" className="text-center py-12 text-xs text-[#5f6368]">
+                      <td colSpan="7" className="text-center py-12 text-xs text-[var(--muted)]">
                         No leads found matching current filter or search criteria.
                       </td>
                     </tr>
@@ -229,49 +246,49 @@ const OriginationLoanLeadsList = () => {
                     filteredLeads.map((lead) => (
                       <tr 
                         key={lead.id} 
-                        className="hover:bg-[#f8fafd] transition-colors cursor-pointer"
+                        className="hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
                         onClick={() => setSelectedLead(lead)}
                       >
-                        <td className="py-3 px-3.5 font-semibold text-[#1f1f1f] whitespace-nowrap">
+                        <td className="py-3 px-3.5 font-semibold text-[var(--text)] whitespace-nowrap">
                           <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-full bg-[#e8f0fe] text-[#1a73e8] font-bold flex items-center justify-center text-[11px] shrink-0 border border-[#d2e3fc]">
+                            <div className="w-7 h-7 rounded-[8px] bg-[var(--brand-tint)] text-[var(--brand-deep)] font-semibold flex items-center justify-center text-[11px] shrink-0">
                               {(lead.name || 'L').charAt(0).toUpperCase()}
                             </div>
                             <span className="truncate max-w-[135px]">{lead.name || 'Unnamed Prospect'}</span>
                           </div>
                         </td>
-                        <td className="py-3 px-3.5 text-[#5f6368] whitespace-nowrap">
+                        <td className="py-3 px-3.5 text-[var(--muted)] whitespace-nowrap">
                           <span className="inline-flex items-center gap-1.5">
-                            <Phone className="w-3.5 h-3.5 text-[#80868b]" />
+                            <Phone className="w-3.5 h-3.5 text-[var(--icon-muted)]" />
                             {maskPhoneNumber(lead.phone)}
                           </span>
                         </td>
-                        <td className="py-3 px-3.5 text-[#5f6368] max-w-[160px] truncate" title={lead.address}>
+                        <td className="py-3 px-3.5 text-[var(--muted)] max-w-[160px] truncate" title={lead.address}>
                           <span className="inline-flex items-center gap-1.5">
-                            <MapPin className="w-3.5 h-3.5 text-[#80868b] shrink-0" />
+                            <MapPin className="w-3.5 h-3.5 text-[var(--icon-muted)] shrink-0" />
                             <span className="truncate max-w-[145px]">{lead.address || '—'}</span>
                           </span>
                         </td>
                         <td className="py-3 px-3.5 text-center whitespace-nowrap">
                           {lead.loan_type ? (
-                            <span className="inline-flex items-center justify-center px-3 py-1 rounded-full text-[11px] bg-[#f8fafd] border border-[#e0e3e7] text-[#1f1f1f] whitespace-nowrap font-medium text-center">
+                            <span className="inline-flex items-center justify-center px-3 py-1 rounded-[8px] text-[11px] bg-[var(--surface-alt)] border border-[var(--line)] text-[var(--text)] whitespace-nowrap font-medium text-center">
                               {lead.loan_type}
                             </span>
                           ) : (
-                            <span className="text-[#80868b]">—</span>
+                            <span className="text-[var(--icon-muted)]">—</span>
                           )}
                         </td>
                         <td className="py-3 px-3.5 whitespace-nowrap">
                           {getStatusBadge(lead.status)}
                         </td>
-                        <td className="py-3 px-3.5 text-[#5f6368] whitespace-nowrap">
+                        <td className="py-3 px-3.5 text-[var(--muted)] whitespace-nowrap">
                           {lead.created_at ? format(new Date(lead.created_at), 'MMM d, yyyy') : '—'}
                         </td>
                         <td className="py-3 px-3.5 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                           <button 
                             type="button"
                             onClick={() => setSelectedLead(lead)}
-                            className="px-3 py-1 text-xs font-semibold text-[#1a73e8] hover:bg-[#e8f0fe] rounded-full transition-colors cursor-pointer inline-flex items-center gap-1 whitespace-nowrap"
+                            className="px-3 py-1 text-xs font-semibold text-[var(--brand-deep)] hover:bg-[var(--brand-tint)] rounded-[8px] transition-colors cursor-pointer inline-flex items-center gap-1 whitespace-nowrap"
                           >
                             <Eye size={13} />
                             <span>Details</span>

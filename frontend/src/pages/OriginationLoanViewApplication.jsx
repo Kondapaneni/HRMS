@@ -9,17 +9,8 @@ import {
   Loader2,
   X,
   ArrowLeft,
-  Briefcase,
-  Building2,
-  User,
-  Phone,
-  Calendar,
-  ShieldCheck,
-  CheckCircle2,
-  Copy,
   FileEdit,
-  Send,
-  Sparkles
+  Send
 } from 'lucide-react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
@@ -30,18 +21,6 @@ import { LoanDetailView } from '../components/forms';
 import { LoanDocumentsSidebar } from '../components/forms/LoanDocumentsSidebar';
 import { SignatureModal } from '../components/forms/SignatureModal';
 import OriginationMobileLoanViewApplications from './OriginationMobileLoanViewApplications';
-import { maskPhoneNumber } from '../utils/phoneUtils';
-
-// Helper: Safe date formatter
-const formatDateSafe = (dateStr, formatPattern = 'MMM d, yyyy') => {
-  if (!dateStr) return '—';
-  try {
-    const d = new Date(dateStr);
-    return isNaN(d.getTime()) ? '—' : format(d, formatPattern);
-  } catch (e) {
-    return '—';
-  }
-};
 
 export default function OriginationLoanViewApplication() {
   const location = useLocation();
@@ -153,7 +132,6 @@ export default function OriginationLoanViewApplication() {
     try {
       setIsPrinting(true);
 
-      // Preload & decode all photos before triggering native print so Chrome/Edge renders the preview instantaneously
       const docKeys = [
         'applicant_photo',
         'co_applicant_photo',
@@ -186,13 +164,6 @@ export default function OriginationLoanViewApplication() {
       window.print();
     } finally {
       setIsPrinting(false);
-    }
-  };
-
-  const handleCopyId = () => {
-    if (appId) {
-      navigator.clipboard.writeText(appId);
-      toast.success(`Copied Application ID: ${appId}`);
     }
   };
 
@@ -243,23 +214,6 @@ export default function OriginationLoanViewApplication() {
     }
   };
 
-  // Status Badge Styling
-  const getStatusBadgeStyle = (status) => {
-    switch (status) {
-      case 'Approved':
-        return 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]';
-      case 'Created':
-        return 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc]';
-      case 'Under Review':
-        return 'bg-[#f3e8fd] text-[#8430ce] border-[#e9d2fd]';
-      case 'Rejected':
-        return 'bg-[#fce8e6] text-[#c5221f] border-[#fad2cf]';
-      case 'Draft':
-      default:
-        return 'bg-[#fef7e0] text-[#b06000] border-[#fce8b2]';
-    }
-  };
-
   // Fetch all company branches to map branch IDs to human-readable names
   const { data: branches = [] } = useQuery({
     queryKey: ['branches', 'list'],
@@ -281,8 +235,8 @@ export default function OriginationLoanViewApplication() {
 
   if (!application && isLoading) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-[#5f6368]">
-        <Loader2 className="animate-spin h-8 w-8 text-[#1a73e8] mb-3" />
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-[var(--muted)]">
+        <Loader2 className="animate-spin h-8 w-8 text-[var(--brand-deep)] mb-3" />
         <p className="text-xs font-semibold">Loading application details...</p>
       </div>
     );
@@ -290,11 +244,11 @@ export default function OriginationLoanViewApplication() {
 
   if (!application && !isLoading) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-[#5f6368]">
-        <p className="text-sm font-semibold mb-4 text-[#1f1f1f]">No application details found.</p>
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-[var(--muted)]">
+        <p className="text-sm font-semibold mb-4 text-[var(--text)]">No application details found.</p>
         <button
           onClick={() => navigate(fromPath)}
-          className="px-5 py-2.5 bg-[#1a73e8] text-white rounded-full text-xs font-semibold hover:bg-[#1557b0] transition-colors cursor-pointer shadow-xs"
+          className="px-5 py-2.5 bg-[var(--ink)] text-white rounded-[12px] text-xs font-semibold hover:bg-[var(--ink-2)] transition-colors cursor-pointer shadow-xs"
         >
           Back to Applications List
         </button>
@@ -302,10 +256,6 @@ export default function OriginationLoanViewApplication() {
     );
   }
 
-  const applicantName = formData?.applicant_name || application?.applicant_name || 'Unnamed Applicant';
-  const applicantPhone = formData?.phone_number || application?.phone_number || '';
-  
-  // Resolve friendly branch name from branches table or application data
   const rawBranch = String(application?.branch || formData?.branch || '').trim();
   const branchName =
     application?.branch_name ||
@@ -313,8 +263,6 @@ export default function OriginationLoanViewApplication() {
     branchMap[rawBranch.toLowerCase()] ||
     (rawBranch && !/^[0-9a-fA-F-]{32,36}$/.test(rawBranch) ? rawBranch : null) ||
     'Corporate Office';
-
-  const createdAt = application?.created_at || formData?.created_at;
 
   return (
     <>
@@ -328,44 +276,40 @@ export default function OriginationLoanViewApplication() {
         />
       </div>
 
-      {/* Desktop View Component (Visible ONLY on Desktop >= 768px, forced in Print) */}
-      <div className="hidden md:block print:block w-full max-w-full space-y-6 pb-16">
-        {/* Top Google Workspace Header Bar */}
+      {/* Desktop View Component */}
+      <div className="hidden md:block print:block w-full max-w-full space-y-6 pb-16 font-sans text-[var(--text)]">
+        {/* Top Header Bar */}
         <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 print:hidden">
           <div className="min-w-0">
-            <div className="flex items-center gap-1.5 mb-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-              <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">Origination Loans Workspace</span>
-            </div>
+            <p className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-1">
+              Origination Loans Workspace
+            </p>
             
             <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
-              <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight whitespace-nowrap" style={{ fontWeight: 500 }}>
-                <span>{loanType} <span className="font-medium italic text-[#1a73e8]">Application</span></span>
+              <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight whitespace-nowrap">
+                {loanType} Application
               </h1>
 
               {/* Read Only Indicator */}
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-[#f8fafd] text-[#5f6368] border border-[#dadce0] whitespace-nowrap">
-                <Lock size={12} className="text-[#5f6368]" /> Read-Only
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[8px] text-xs font-semibold bg-[var(--surface-alt)] text-[var(--muted)] border border-[var(--line)] whitespace-nowrap">
+                <Lock size={12} className="text-[var(--icon-muted)]" /> Read-Only
               </span>
             </div>
 
-            <p className="text-xs text-[#5f6368] mt-1">
+            <p className="text-xs text-[var(--muted)] mt-1">
               Inspect applicant verified profile, documents, and submit stage approvals to Branch Operations.
             </p>
           </div>
 
-          {/* Top Right Action Toolbar - Wrapped into clean flex container with whitespace-nowrap buttons */}
+          {/* Top Right Action Toolbar */}
           <div className="flex flex-wrap items-center gap-2 xl:justify-end">
             {/* Back Button */}
             <button
               type="button"
               onClick={() => navigate(fromPath)}
-              className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1f1f1f] hover:bg-[#f1f3f4] border border-[#dadce0] px-4 py-2 transition-all gap-1.5 shadow-2xs cursor-pointer whitespace-nowrap shrink-0"
+              className="inline-flex items-center justify-center rounded-[12px] text-xs font-semibold bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--surface-alt)] border border-[var(--line)] px-4 py-2 transition-all gap-1.5 shadow-2xs cursor-pointer whitespace-nowrap shrink-0"
             >
-              <ArrowLeft className="w-4 h-4 text-[#5f6368]" />
+              <ArrowLeft className="w-4 h-4 text-[var(--icon-muted)]" />
               <span>Back to Applications</span>
             </button>
 
@@ -386,7 +330,7 @@ export default function OriginationLoanViewApplication() {
                     from: '/employee/loans/view-application'
                   }
                 })}
-                className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1a73e8] hover:bg-[#e8f0fe] border border-[#d2e3fc] px-4 py-2 transition-all gap-1.5 shadow-2xs cursor-pointer whitespace-nowrap shrink-0"
+                className="inline-flex items-center justify-center rounded-[12px] text-xs font-semibold bg-[var(--brand-tint)] text-[var(--brand-deep)] hover:bg-[var(--brand-tint)]/80 px-4 py-2 transition-all gap-1.5 shadow-2xs cursor-pointer whitespace-nowrap shrink-0"
               >
                 <FileEdit className="w-4 h-4" />
                 <span>{localStatus === 'Draft' ? 'Continue Draft' : 'Edit Application'}</span>
@@ -398,7 +342,7 @@ export default function OriginationLoanViewApplication() {
               <button
                 type="button"
                 onClick={() => setIsDocsOpen(true)}
-                className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-white text-[#1a73e8] hover:bg-[#e8f0fe] border border-[#d2e3fc] px-4 py-2 transition-all gap-1.5 shadow-2xs cursor-pointer whitespace-nowrap shrink-0"
+                className="inline-flex items-center justify-center rounded-[12px] text-xs font-semibold bg-[var(--surface)] text-[var(--brand-deep)] hover:bg-[var(--brand-tint)] border border-[var(--line)] px-4 py-2 transition-all gap-1.5 shadow-2xs cursor-pointer whitespace-nowrap shrink-0"
               >
                 <Camera className="w-4 h-4" />
                 <span>Upload Photos ({uploadedCount}/{requiredSlots})</span>
@@ -411,7 +355,7 @@ export default function OriginationLoanViewApplication() {
                 type="button"
                 onClick={() => setIsSignatureModalOpen(true)}
                 disabled={isTransferring}
-                className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[#137333] hover:bg-[#0d652d] text-white px-5 py-2 transition-all gap-1.5 shadow-xs cursor-pointer disabled:opacity-50 whitespace-nowrap shrink-0"
+                className="inline-flex items-center justify-center rounded-[12px] text-xs font-semibold bg-[var(--badge-success-text)] hover:opacity-90 text-white px-5 py-2 transition-all gap-1.5 shadow-xs cursor-pointer disabled:opacity-50 whitespace-nowrap shrink-0"
               >
                 {isTransferring ? (
                   <>
@@ -432,7 +376,7 @@ export default function OriginationLoanViewApplication() {
               type="button"
               onClick={handlePrint}
               disabled={isPrinting}
-              className="inline-flex items-center justify-center rounded-full text-xs font-semibold bg-[#1a73e8] hover:bg-[#1557b0] text-white px-4 py-2 transition-all gap-1.5 shadow-xs cursor-pointer disabled:opacity-75 whitespace-nowrap shrink-0"
+              className="inline-flex items-center justify-center rounded-[12px] text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white px-4 py-2 transition-all gap-1.5 shadow-xs cursor-pointer disabled:opacity-75 whitespace-nowrap shrink-0"
             >
               {isPrinting ? (
                 <>
@@ -449,9 +393,8 @@ export default function OriginationLoanViewApplication() {
           </div>
         </div>
 
-
         {/* Main Loan Application Detail Paper View Component */}
-        <div className="bg-white rounded-2xl border border-[#e0e3e7] shadow-xs overflow-hidden">
+        <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] shadow-xs overflow-hidden">
           <LoanDetailView
             formData={formData || {}}
             application={application || {}}
@@ -474,7 +417,7 @@ export default function OriginationLoanViewApplication() {
         {previewDoc &&
           createPortal(
             <div
-              className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-in fade-in duration-200 cursor-pointer"
+              className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xs animate-in fade-in duration-200 cursor-pointer"
               onClick={() => setPreviewDoc(null)}
             >
               <button
@@ -486,7 +429,7 @@ export default function OriginationLoanViewApplication() {
                 <X size={24} />
               </button>
               <div
-                className="max-w-3xl max-h-[85vh] overflow-hidden rounded-2xl shadow-2xl border border-white/10"
+                className="max-w-3xl max-h-[85vh] overflow-hidden rounded-[20px] shadow-2xl border border-white/10"
                 onClick={(e) => e.stopPropagation()}
               >
                 <img

@@ -9,26 +9,15 @@ import {
   Plus, 
   Clock, 
   CheckCircle2, 
-  Circle, 
-  AlertCircle, 
   MapPin,
-  User,
-  Building2,
-  ChevronRight,
-  Filter,
   Check,
   CalendarDays,
-  Sparkles,
-  SlidersHorizontal,
-  RefreshCw,
   Loader2,
   Calendar
 } from 'lucide-react';
 import { format, parseISO, isToday, isTomorrow, startOfDay } from 'date-fns';
-import { motion } from 'framer-motion';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
-import PageLoader from '../components/PageLoader';
 import { MobileActivityCreatePage, MobileActivityDetailsModal } from '../components/calendar/MobileActivityModals';
 
 const OriginationMobileActivities = () => {
@@ -67,7 +56,7 @@ const OriginationMobileActivities = () => {
   }, [selectedEvent, viewMode]);
 
   // Fetch activities
-  const { data = {}, isLoading, error, refetch, isRefetching } = useQuery({
+  const { data = {}, isLoading, error } = useQuery({
     queryKey: ['origination', 'activities', workspaceScope],
     queryFn: async () => {
       const response = await api.get('/origination/activities', {
@@ -87,19 +76,18 @@ const OriginationMobileActivities = () => {
       return {
         moduleName: 'Sales',
         tagText: 'ORIGINATION • SALES ACTIVITIES',
-        titleAccent: 'text-[#34d399]',
-        orbs: ['bg-emerald-600', 'bg-green-600', 'bg-emerald-700'],
-        activeChip: 'bg-[#e6f4ea] text-[#137333] border-[#ceead6] shadow-2xs font-bold',
-        activeBadgeText: 'bg-[#137333] text-white',
-        todayDotColor: '#059669',
-        todayBadgeStyle: 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]',
-        titleHover: 'group-hover:text-emerald-700',
-        clockColor: 'text-[#137333]',
-        scheduleBtnHover: 'hover:bg-emerald-700',
-        scheduleBtnBg: 'bg-emerald-600',
-        primaryBtn: 'bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white',
-        borderHighlight: 'hover:border-emerald-500',
-        ringHighlight: 'focus:ring-emerald-500 focus:border-emerald-500'
+        titleAccent: 'text-[var(--accent-pink-deep)]',
+        activeChip: 'bg-[var(--ink)] text-white border-[var(--ink)] shadow-2xs font-semibold',
+        activeBadgeText: 'bg-[var(--surface)] text-[var(--ink)]',
+        todayDotColor: '#A25C9B',
+        todayBadgeStyle: 'bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)] border-[var(--accent-pink)]/20',
+        titleHover: 'group-hover:text-[var(--accent-pink-deep)]',
+        clockColor: 'text-[var(--accent-pink-deep)]',
+        scheduleBtnHover: 'hover:bg-[var(--ink-2)]',
+        scheduleBtnBg: 'bg-[var(--ink)]',
+        primaryBtn: 'bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white',
+        borderHighlight: 'hover:border-[var(--accent-pink)]',
+        ringHighlight: 'focus:ring-[var(--accent-pink)] focus:border-[var(--accent-pink)]'
       };
     }
 
@@ -107,19 +95,18 @@ const OriginationMobileActivities = () => {
       return {
         moduleName: 'Branch',
         tagText: branchInfo?.name ? `${branchInfo.name.toUpperCase()} BRANCH` : 'BRANCH ACTIVITIES',
-        titleAccent: 'text-[#7C4DFF]',
-        orbs: ['bg-[#7C4DFF]', 'bg-[#9575FF]', 'bg-[#B388FF]'],
-        activeChip: 'bg-[#f3e8fd] text-[#7C4DFF] border-[#e9d5ff] shadow-2xs font-bold',
-        activeBadgeText: 'bg-[#7C4DFF] text-white',
-        todayDotColor: '#7C4DFF',
-        todayBadgeStyle: 'bg-[#f3e8fd] text-[#7C4DFF] border-[#e9d5ff]',
-        titleHover: 'group-hover:text-[#651fff]',
-        clockColor: 'text-[#7C4DFF]',
-        scheduleBtnHover: 'hover:bg-[#651fff]',
-        scheduleBtnBg: 'bg-[#7C4DFF]',
-        primaryBtn: 'bg-[#7C4DFF] hover:bg-[#651fff] active:bg-[#5319e0] text-white',
-        borderHighlight: 'hover:border-[#7C4DFF]',
-        ringHighlight: 'focus:ring-[#7C4DFF] focus:border-[#7C4DFF]'
+        titleAccent: 'text-[var(--brand-deep)]',
+        activeChip: 'bg-[var(--ink)] text-white border-[var(--ink)] shadow-2xs font-semibold',
+        activeBadgeText: 'bg-[var(--surface)] text-[var(--ink)]',
+        todayDotColor: '#5B86C2',
+        todayBadgeStyle: 'bg-[var(--brand-tint)] text-[var(--brand-deep)] border-[var(--brand)]/20',
+        titleHover: 'group-hover:text-[var(--brand-deep)]',
+        clockColor: 'text-[var(--brand-deep)]',
+        scheduleBtnHover: 'hover:bg-[var(--ink-2)]',
+        scheduleBtnBg: 'bg-[var(--ink)]',
+        primaryBtn: 'bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white',
+        borderHighlight: 'hover:border-[var(--brand)]',
+        ringHighlight: 'focus:ring-[var(--brand)] focus:border-[var(--brand)]'
       };
     }
 
@@ -127,19 +114,18 @@ const OriginationMobileActivities = () => {
     return {
       moduleName: 'Loans',
       tagText: 'ORIGINATION • LOAN ACTIVITIES',
-      titleAccent: 'text-[#38bdf8]',
-      orbs: ['bg-blue-500', 'bg-indigo-500', 'bg-sky-400'],
-      activeChip: 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc] shadow-2xs font-bold',
-      activeBadgeText: 'bg-[#1a73e8] text-white',
-      todayDotColor: '#1a73e8',
-      todayBadgeStyle: 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc]',
-      titleHover: 'group-hover:text-[#1557b0]',
-      clockColor: 'text-[#1a73e8]',
-      scheduleBtnHover: 'hover:bg-[#1557b0]',
-      scheduleBtnBg: 'bg-[#1a73e8]',
-      primaryBtn: 'bg-[#1a73e8] hover:bg-[#1557b0] active:bg-[#174ea6] text-white',
-      borderHighlight: 'hover:border-[#1a73e8]',
-      ringHighlight: 'focus:ring-[#1a73e8] focus:border-[#1a73e8]'
+      titleAccent: 'text-[var(--brand-deep)]',
+      activeChip: 'bg-[var(--ink)] text-white border-[var(--ink)] shadow-2xs font-semibold',
+      activeBadgeText: 'bg-[var(--surface)] text-[var(--ink)]',
+      todayDotColor: '#5B86C2',
+      todayBadgeStyle: 'bg-[var(--brand-tint)] text-[var(--brand-deep)] border-[var(--brand)]/20',
+      titleHover: 'group-hover:text-[var(--brand-deep)]',
+      clockColor: 'text-[var(--brand-deep)]',
+      scheduleBtnHover: 'hover:bg-[var(--ink-2)]',
+      scheduleBtnBg: 'bg-[var(--ink)]',
+      primaryBtn: 'bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white',
+      borderHighlight: 'hover:border-[var(--brand)]',
+      ringHighlight: 'focus:ring-[var(--brand)] focus:border-[var(--brand)]'
     };
   }, [isSales, isBranchOperations, branchInfo]);
 
@@ -313,9 +299,9 @@ const OriginationMobileActivities = () => {
       result.push({
         id: 'upcoming',
         title: 'Upcoming Activities',
-        dotColor: '#f29900',
+        dotColor: '#B7791F',
         badge: `${upcomingItems.length} Upcoming`,
-        badgeStyle: 'bg-[#fef7e0] text-[#b06000] border-[#feefc3]',
+        badgeStyle: 'bg-[#FDF3DC] text-[#B7791F] border-[#FCE6B8]',
         items: upcomingItems,
       });
     }
@@ -324,9 +310,9 @@ const OriginationMobileActivities = () => {
       result.push({
         id: 'completed',
         title: 'Completed Activities',
-        dotColor: '#1e8e3e',
+        dotColor: '#1F9D55',
         badge: `${completedItems.length} Done`,
-        badgeStyle: 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]',
+        badgeStyle: 'bg-[#E6F6EC] text-[#1F9D55] border-[#CEEAD6]',
         items: completedItems,
       });
     }
@@ -338,21 +324,15 @@ const OriginationMobileActivities = () => {
     switch (status) {
       case 'Completed':
         return (
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold bg-[#e6f4ea] text-[#137333] border border-[#ceead6] shrink-0 shadow-2xs">
-            <CheckCircle2 size={14} /> Completed
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-semibold bg-[#E6F6EC] text-[#1F9D55] border border-[#CEEAD6] shrink-0">
+            <CheckCircle2 size={13} /> Completed
           </span>
         );
       case 'Scheduled':
       default:
         return (
-          <span className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold shrink-0 shadow-2xs ${
-            isSales 
-              ? 'bg-[#e6f4ea] text-[#137333] border border-[#ceead6]' 
-              : isBranchOperations
-              ? 'bg-[#f3e8fd] text-[#7C4DFF] border border-[#e9d5ff]'
-              : 'bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]'
-          }`}>
-            <Clock size={14} /> Scheduled
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-semibold shrink-0 bg-[var(--brand-tint)] text-[var(--brand-deep)] border border-[var(--brand)]/20">
+            <Clock size={13} /> Scheduled
           </span>
         );
     }
@@ -362,29 +342,25 @@ const OriginationMobileActivities = () => {
     switch (priority) {
       case 'Urgent':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf] shrink-0">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#FDE8EA] text-[#D64550] border border-[#FCD0D4] shrink-0">
             Urgent
           </span>
         );
       case 'High':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#fef7e0] text-[#b06000] border border-[#feefc3] shrink-0">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#FDF3DC] text-[#B7791F] border border-[#FCE6B8] shrink-0">
             High
           </span>
         );
       case 'Low':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0] shrink-0">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#EFEFF1] text-[#4A4A52] border border-[#E3E3E7] shrink-0">
             Low
           </span>
         );
       default:
         return (
-          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold shrink-0 ${
-            isSales 
-              ? 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]' 
-              : 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc]'
-          }`}>
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold shrink-0 bg-[var(--brand-tint)] text-[var(--brand-deep)] border border-[var(--brand)]/20">
             Medium
           </span>
         );
@@ -397,7 +373,6 @@ const OriginationMobileActivities = () => {
     toggleMutation.mutate({ id: act.id, status: act.status });
   };
 
-  // Render Full-Page Mobile Creation Form when in create mode
   if (viewMode === 'create') {
     return (
       <MobileActivityCreatePage
@@ -413,59 +388,52 @@ const OriginationMobileActivities = () => {
     );
   }
 
-  // Render Activities Feed
   return (
-    <div className="space-y-4 pb-14 select-none font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+    <div className="space-y-4 pb-14 select-none font-sans antialiased">
 
-      {/* Clean White Header (Direct Page Layout) */}
+      {/* Header */}
       <section className="relative z-30 pt-1 pb-1">
         <div className="pt-0.5">
-          <p className="text-[10.5px] font-bold text-[#5f6368] uppercase tracking-wider mb-1">
+          <p className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-1">
             {theme.tagText}
           </p>
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight leading-tight min-w-0" style={{ fontWeight: 500 }}>
-              All <span className={`font-medium italic ${isSales ? 'text-[#137333]' : isBranchOperations ? 'text-[#7C4DFF]' : 'text-[#1a73e8]'}`}>Activities</span>
+            <h2 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight leading-tight min-w-0">
+              All <span className="text-[var(--brand-deep)]">Activities</span>
             </h2>
 
             <button
               onClick={() => setViewMode('create')}
-              className={`shrink-0 h-10 px-4 inline-flex items-center justify-center gap-1.5 ${
-                isSales 
-                  ? 'bg-[#137333] hover:bg-[#0d652d]' 
-                  : isBranchOperations 
-                  ? 'bg-[#7C4DFF] hover:bg-[#651fff]' 
-                  : 'bg-[#1a73e8] hover:bg-[#1557b0]'
-              } active:scale-95 text-white rounded-full text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap`}
+              className="shrink-0 h-9.5 px-4 inline-flex items-center justify-center gap-1.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-95 text-white rounded-full text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
             >
               <Plus size={14} />
               <span>Schedule</span>
             </button>
           </div>
-          <p className="text-xs sm:text-sm font-medium text-[#5f6368] mt-1">
+          <p className="text-xs sm:text-sm font-medium text-[var(--muted)] mt-1">
             {rawEvents.length} Total Scheduled Tasks
           </p>
         </div>
       </section>
 
-      {/* 2. Content Layer */}
+      {/* Content Layer */}
       <div className="relative z-20 mx-0.5 space-y-3.5">
 
         {/* Search Box */}
-        <div className="bg-white rounded-full border border-[#e0e3e7] px-4 py-2.5 shadow-xs flex items-center gap-2.5">
-          <Search className="w-4.5 h-4.5 text-[#5f6368] shrink-0" />
+        <div className="bg-[var(--surface)] rounded-full border border-[var(--line)] px-4 py-2.5 shadow-xs flex items-center gap-2.5">
+          <Search className="w-4.5 h-4.5 text-[var(--muted)] shrink-0" />
           <input
             type="text"
             placeholder="Search activities by title, notes, location..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full text-[13.5px] font-medium bg-transparent border-none outline-none text-[#1f1f1f] placeholder:text-[#80868b] placeholder:text-[13px] pr-1"
+            className="w-full text-[13.5px] font-medium bg-transparent border-none outline-none text-[var(--text)] placeholder:text-[var(--muted)] placeholder:text-[13px] pr-1"
           />
           {searchTerm && (
             <button
               type="button"
               onClick={() => setSearchTerm('')}
-              className="p-1 rounded-full text-[#5f6368] hover:bg-[#f1f3f4] hover:text-[#1f1f1f] shrink-0 cursor-pointer transition-colors"
+              className="p-1 rounded-full text-[var(--muted)] hover:bg-[var(--surface-alt)] hover:text-[var(--text)] shrink-0 cursor-pointer transition-colors"
             >
               <X size={14} />
             </button>
@@ -481,12 +449,12 @@ const OriginationMobileActivities = () => {
               className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
                 selectedStatusFilter === tab.key
                   ? theme.activeChip
-                  : 'bg-white text-[#5f6368] border-[#e0e3e7] hover:bg-[#f8fafd]'
+                  : 'bg-[var(--surface)] text-[var(--muted)] border-[var(--line)] hover:bg-[var(--surface-alt)]'
               }`}
             >
               <span>{tab.label}</span>
               <span className={`inline-flex items-center justify-center h-[18px] min-w-[18px] px-1.5 rounded-full text-[11px] font-bold leading-none tabular-nums ${
-                selectedStatusFilter === tab.key ? theme.activeBadgeText : 'bg-slate-100 text-[#5f6368]'
+                selectedStatusFilter === tab.key ? theme.activeBadgeText : 'bg-[var(--surface-alt)] text-[var(--muted)]'
               }`}>
                 {tab.count}
               </span>
@@ -497,33 +465,33 @@ const OriginationMobileActivities = () => {
         {/* Sectional Groups with Line Separators & Cards */}
         <div className="space-y-6 pt-1">
           {error ? (
-            <div className="bg-[#fce8e6] text-[#c5221f] p-4 rounded-2xl text-center border border-[#fad2cf] text-xs">
+            <div className="bg-[#FDE8EA] text-[#D64550] p-4 rounded-[16px] text-center border border-[#FCD0D4] text-xs">
               Failed to load activities. Please refresh or try again.
             </div>
           ) : isLoading ? (
             <div className="flex justify-center items-center py-16">
-              <Loader2 className={`animate-spin h-7 w-7 ${isSales ? 'text-emerald-600' : isBranchOperations ? 'text-[#7C4DFF]' : 'text-[#1a73e8]'}`} />
+              <Loader2 className="animate-spin h-7 w-7 text-[var(--brand-deep)]" />
             </div>
           ) : sections.length === 0 ? (
-            <div className="bg-white rounded-3xl border border-[#e0e3e7] p-8 text-center space-y-2 shadow-xs">
-              <div className="w-12 h-12 rounded-full bg-[#f8fafd] border border-[#e0e3e7] flex items-center justify-center mx-auto text-[#80868b]">
+            <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-8 text-center space-y-2 shadow-xs">
+              <div className="w-12 h-12 rounded-[14px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center mx-auto">
                 <CalendarDays size={20} />
               </div>
-              <p className="text-sm font-bold text-[#1f1f1f]">No activities found</p>
-              <p className="text-xs text-[#5f6368]">
+              <p className="text-sm font-semibold text-[var(--text)]">No activities found</p>
+              <p className="text-xs text-[var(--muted)]">
                 {searchTerm ? 'No results matched your search query.' : 'No scheduled tasks in this category.'}
               </p>
               {searchTerm ? (
                 <button
                   onClick={() => setSearchTerm('')}
-                  className={`mt-2 inline-flex items-center text-xs font-semibold ${isSales ? 'text-emerald-600' : isBranchOperations ? 'text-[#7C4DFF]' : 'text-[#1a73e8]'} hover:underline cursor-pointer`}
+                  className="mt-2 inline-flex items-center text-xs font-semibold text-[var(--brand-deep)] hover:underline cursor-pointer"
                 >
                   Clear search query
                 </button>
               ) : (
                 <button
                   onClick={() => setViewMode('create')}
-                  className={`mt-2 inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-white text-xs font-semibold ${theme.scheduleBtnBg} ${theme.scheduleBtnHover} transition-colors cursor-pointer`}
+                  className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-white text-xs font-semibold bg-[var(--ink)] hover:bg-[var(--ink-2)] transition-colors cursor-pointer"
                 >
                   <Plus size={14} />
                   <span>Schedule Activity</span>
@@ -535,10 +503,10 @@ const OriginationMobileActivities = () => {
               <div key={section.id} className="space-y-3">
                 
                 {/* Line Separator Header */}
-                <div className="flex items-center justify-between pb-2 border-b border-[#dadce0]/80">
+                <div className="flex items-center justify-between pb-2 border-b border-[var(--line)]">
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: section.dotColor }} />
-                    <h3 className="text-sm font-bold text-[#1f1f1f]">
+                    <h3 className="text-sm font-semibold text-[var(--text)]">
                       {section.title}
                     </h3>
                   </div>
@@ -556,83 +524,75 @@ const OriginationMobileActivities = () => {
                       <div 
                         key={act.id} 
                         onClick={() => setSelectedEvent(act)}
-                        className="bg-white rounded-2xl border border-[#e0e3e7] hover:border-[#dadce0] p-4 shadow-xs transition-all active:scale-[0.99] active:bg-[#f8fafd] cursor-pointer space-y-2.5 group"
+                        className="bg-[var(--surface)] rounded-[16px] border border-[var(--line)] hover:border-[var(--brand)]/40 p-4 shadow-xs transition-all active:scale-[0.99] active:bg-[var(--surface-alt)] cursor-pointer space-y-2.5 group"
                       >
                         {/* Top Row: Left Round Tickmark Box + Title & Subtitle, Right: Status Badge */}
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex items-center gap-3 min-w-0 flex-1">
-                            {/* Round Action / Tickmark Box */}
+                            {/* Action / Tickmark Box */}
                             <button
                               type="button"
                               disabled={isCompleted}
                               onClick={(e) => handleToggleStatus(e, act)}
-                              className={`w-10 h-10 rounded-full font-bold text-xs flex items-center justify-center shrink-0 border transition-all ${
+                              className={`w-9 h-9 rounded-full font-semibold text-xs flex items-center justify-center shrink-0 border transition-all ${
                                 isCompleted
-                                  ? 'bg-[#e6f4ea] text-[#137333] border-[#ceead6] cursor-default'
-                                  : isSales
-                                    ? 'bg-[#e6f4ea] text-[#137333] border-[#ceead6] hover:bg-emerald-100 cursor-pointer active:scale-95'
-                                    : isBranchOperations
-                                      ? 'bg-[#f3e8fd] text-[#7C4DFF] border-[#e9d5ff] hover:bg-[#ede0fd] cursor-pointer active:scale-95'
-                                      : 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc] hover:bg-blue-100 cursor-pointer active:scale-95'
+                                  ? 'bg-[#E6F6EC] text-[#1F9D55] border-[#CEEAD6] cursor-default'
+                                  : 'bg-[var(--surface-alt)] text-[var(--muted)] border-[var(--line)] hover:border-[var(--brand)] hover:text-[var(--brand-deep)] cursor-pointer active:scale-95'
                               }`}
                               title={isCompleted ? 'Completed' : 'Click to complete'}
                             >
                               {isCompleted ? (
-                                <Check size={18} strokeWidth={2.5} />
+                                <Check size={16} strokeWidth={2.5} />
                               ) : (
-                                <Clock size={17} />
+                                <Clock size={15} />
                               )}
                             </button>
 
                             {/* Title & Time Subtitle */}
                             <div className="min-w-0 space-y-0.5 flex-1">
-                              <h3 className={`font-bold text-[#1f1f1f] text-sm truncate transition-colors ${
+                              <h3 className={`font-semibold text-[var(--text)] text-sm truncate transition-colors ${
                                 isCompleted 
-                                  ? 'line-through text-[#80868b]' 
-                                  : isSales
-                                    ? 'group-hover:text-emerald-700'
-                                    : isBranchOperations
-                                      ? 'group-hover:text-[#7C4DFF]'
-                                      : 'group-hover:text-[#1a73e8]'
+                                  ? 'line-through text-[var(--muted)]' 
+                                  : 'group-hover:text-[var(--brand-deep)]'
                               }`}>
                                 {act.title}
                               </h3>
-                              <div className="flex items-center gap-2 text-[10.5px] text-[#5f6368]">
-                                <span className="inline-flex items-center gap-1 font-medium text-[#5f6368]">
-                                  <Clock size={10} className="text-[#80868b]" />
+                              <div className="flex items-center gap-2 text-[10.5px] text-[var(--muted)]">
+                                <span className="inline-flex items-center gap-1 font-medium text-[var(--muted)]">
+                                  <Clock size={10} className="text-[var(--muted)]" />
                                   {formatEventTime(act)}
                                 </span>
                                 {isBranchOperations && act.assignedToName && (
                                   <>
                                     <span>&bull;</span>
-                                    <span className="truncate text-[#7C4DFF] font-semibold">{act.assignedToName}</span>
+                                    <span className="truncate text-[var(--brand-deep)] font-semibold">{act.assignedToName}</span>
                                   </>
                                 )}
                               </div>
 
-                              {/* Notes directly below the time without card format */}
+                              {/* Notes */}
                               {act.notes && (
-                                <p className="text-[11px] text-[#5f6368] line-clamp-1 italic pt-0.5">
+                                <p className="text-[11px] text-[var(--muted)] line-clamp-1 italic pt-0.5">
                                   "{act.notes}"
                                 </p>
                               )}
                             </div>
                           </div>
 
-                          {/* Top Right Status Badge (Matching Leads page badges) */}
+                          {/* Top Right Status Badge */}
                           <div className="shrink-0 flex items-center gap-1.5 pt-0.5">
                             {getStatusBadge(act.status)}
                           </div>
                         </div>
 
-                        {/* Bottom Row: Location & Date Details (Matching Leads page layout) */}
-                        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#f1f3f4] text-[11px] text-[#5f6368]">
+                        {/* Bottom Row: Location & Date Details */}
+                        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[var(--line)] text-[11px] text-[var(--muted)]">
                           <div className="flex items-center gap-1.5 min-w-0">
-                            <MapPin size={11} className="text-[#80868b] shrink-0" />
+                            <MapPin size={11} className="text-[var(--muted)] shrink-0" />
                             <span className="truncate">{act.address || 'Location Not Specified'}</span>
                           </div>
                           <div className="flex items-center justify-end gap-1.5 text-right min-w-0">
-                            <Calendar size={11} className="text-[#80868b] shrink-0" />
+                            <Calendar size={11} className="text-[var(--muted)] shrink-0" />
                             <span>{formatEventDate(act)}</span>
                           </div>
                         </div>

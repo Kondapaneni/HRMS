@@ -21,56 +21,51 @@ import ActivitySidebar from '../components/calendar/ActivitySidebar';
 import EventDetailsSidebar from '../components/calendar/EventDetailsSidebar';
 import OriginationMobileActivities from './OriginationMobileActivities';
 
-const StatCard = ({ title, value, subtitle, icon: Icon, colorTheme = 'blue' }) => {
+const StatCard = ({ title, value, subtitle, icon: Icon, theme = 'blue' }) => {
   const themeClasses = {
     blue: {
-      bg: 'bg-[#e8f0fe]',
-      text: 'text-[#1a73e8]',
-      border: 'border-[#d2e3fc]',
+      bg: 'bg-[var(--brand-tint)]',
+      text: 'text-[var(--brand-deep)]',
+      border: 'border-[var(--brand)]/20',
     },
     green: {
-      bg: 'bg-[#e6f4ea]',
-      text: 'text-[#137333]',
-      border: 'border-[#ceead6]',
+      bg: 'bg-[#E6F6EC]',
+      text: 'text-[#1F9D55]',
+      border: 'border-[#CEEAD6]',
     },
     amber: {
-      bg: 'bg-[#fef7e0]',
-      text: 'text-[#b06000]',
-      border: 'border-[#feefc3]',
-    },
-    purple: {
-      bg: 'bg-[#f3e8fd]',
-      text: 'text-[#8430ce]',
-      border: 'border-[#e9d5ff]',
+      bg: 'bg-[#FDF3DC]',
+      text: 'text-[#B7791F]',
+      border: 'border-[#FCE6B8]',
     },
     red: {
-      bg: 'bg-[#fce8e6]',
-      text: 'text-[#c5221f]',
-      border: 'border-[#fad2cf]',
+      bg: 'bg-[#FDE8EA]',
+      text: 'text-[#D64550]',
+      border: 'border-[#FCD0D4]',
     }
-  }[colorTheme] || {
-    bg: 'bg-[#e8f0fe]',
-    text: 'text-[#1a73e8]',
-    border: 'border-[#d2e3fc]',
+  }[theme] || {
+    bg: 'bg-[var(--brand-tint)]',
+    text: 'text-[var(--brand-deep)]',
+    border: 'border-[var(--brand)]/20',
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-[#e0e3e7] p-4.5 shadow-xs flex flex-col justify-between hover:shadow-sm transition-shadow">
+    <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-5 shadow-xs flex flex-col justify-between hover:shadow-sm transition-all duration-200">
       <div className="flex items-start justify-between">
         <div>
-          <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider block mb-1">
+          <span className="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider block mb-1">
             {title}
           </span>
-          <h3 className="text-2xl font-normal text-[#1f1f1f] tracking-tight">
+          <h3 className="text-2xl font-semibold text-[var(--text)] tracking-tight">
             {value}
           </h3>
         </div>
-        <div className={`p-2.5 rounded-2xl ${themeClasses.bg} ${themeClasses.text} border ${themeClasses.border} shrink-0`}>
+        <div className={`p-2.5 rounded-[12px] ${themeClasses.bg} ${themeClasses.text} border ${themeClasses.border} shrink-0`}>
           <Icon className="w-5 h-5" />
         </div>
       </div>
       {subtitle && (
-        <div className="mt-3 pt-2.5 border-t border-[#f1f3f4] flex items-center justify-between text-xs text-[#5f6368]">
+        <div className="mt-3 pt-2.5 border-t border-[var(--line)] flex items-center justify-between text-xs text-[var(--muted)]">
           <span>{subtitle}</span>
         </div>
       )}
@@ -144,7 +139,7 @@ const OriginationActivities = () => {
       const response = await api.patch(`/origination/activities/${id}/reassign`, { assignedTo });
       return response.data?.activity;
     },
-    onSuccess: (resp) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['origination', 'activities'] });
       toast.success('Activity reassigned successfully');
       setIsDetailsSidebarOpen(false);
@@ -158,8 +153,8 @@ const OriginationActivities = () => {
 
   // Filter & Search States
   const [searchQuery, setSearchQuery] = useState('');
-  const [priorityFilter, setPriorityFilter] = useState('ALL'); // 'ALL' | 'Urgent' | 'High' | 'Medium' | 'Low'
-  const [employeeFilter, setEmployeeFilter] = useState('ALL'); // 'ALL' | 'MINE' | specific userId
+  const [priorityFilter, setPriorityFilter] = useState('ALL');
+  const [employeeFilter, setEmployeeFilter] = useState('ALL');
 
   // Extract unique branch employees present in the activities list or assignable list
   const branchEmployees = useMemo(() => {
@@ -344,41 +339,41 @@ const OriginationActivities = () => {
         id: 'overdue',
         title: 'Past Due / Action Required',
         badge: `${grouped.overdue.length} Overdue`,
-        badgeStyle: 'bg-[#fce8e6] text-[#c5221f] border-[#fad2cf]',
+        badgeStyle: 'bg-[#FDE8EA] text-[#D64550] border-[#FCD0D4]',
         items: grouped.overdue,
-        dotColor: '#ea4335'
+        dotColor: '#D64550'
       },
       {
         id: 'today',
         title: "Today's Schedule",
         badge: `${grouped.today.length} Today`,
-        badgeStyle: 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc]',
+        badgeStyle: 'bg-[#E8F0FB] text-[#3B6FB6] border-[#D2E3FC]',
         items: grouped.today,
-        dotColor: '#1a73e8'
+        dotColor: '#3B6FB6'
       },
       {
         id: 'tomorrow',
         title: 'Tomorrow',
         badge: `${grouped.tomorrow.length} Scheduled`,
-        badgeStyle: 'bg-[#fef7e0] text-[#b06000] border-[#feefc3]',
+        badgeStyle: 'bg-[#FDF3DC] text-[#B7791F] border-[#FCE6B8]',
         items: grouped.tomorrow,
-        dotColor: '#fbbc05'
+        dotColor: '#B7791F'
       },
       {
         id: 'upcoming',
         title: 'Upcoming Activities',
         badge: `${grouped.upcoming.length} Later`,
-        badgeStyle: 'bg-[#f1f3f4] text-[#5f6368] border-[#dadce0]',
+        badgeStyle: 'bg-[#EFEFF1] text-[#4A4A52] border-[#E3E3E7]',
         items: grouped.upcoming,
-        dotColor: '#5f6368'
+        dotColor: '#6B6B75'
       },
       {
         id: 'completed',
         title: 'Completed Activities',
         badge: `${grouped.completed.length} Done`,
-        badgeStyle: 'bg-[#e6f4ea] text-[#137333] border-[#ceead6]',
+        badgeStyle: 'bg-[#E6F6EC] text-[#1F9D55] border-[#CEEAD6]',
         items: grouped.completed,
-        dotColor: '#34a853'
+        dotColor: '#1F9D55'
       }
     ].filter((s) => s.items.length > 0);
   }, [filteredEvents]);
@@ -420,13 +415,13 @@ const OriginationActivities = () => {
   const getPriorityBadge = (priority) => {
     switch (priority) {
       case 'Urgent':
-        return <span className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf]">Urgent</span>;
+        return <span className="px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-[#FDE8EA] text-[#D64550] border border-[#FCD0D4]">Urgent</span>;
       case 'High':
-        return <span className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-[#fef7e0] text-[#b06000] border border-[#feefc3]">High</span>;
+        return <span className="px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-[#FDF3DC] text-[#B7791F] border border-[#FCE6B8]">High</span>;
       case 'Low':
-        return <span className="px-2 py-0.5 rounded-full text-[10.5px] font-medium bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0]">Low</span>;
+        return <span className="px-2 py-0.5 rounded-full text-[10.5px] font-medium bg-[#EFEFF1] text-[#4A4A52] border border-[#E3E3E7]">Low</span>;
       default:
-        return <span className="px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc]">Medium</span>;
+        return <span className="px-2 py-0.5 rounded-full text-[10.5px] font-semibold bg-[#E8F0FB] text-[#3B6FB6] border border-[#D2E3FC]">Medium</span>;
     }
   };
 
@@ -441,290 +436,284 @@ const OriginationActivities = () => {
       <div className="hidden md:block space-y-6 pb-12 select-none">
         
         {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-1.5 mb-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#4285F4]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#EA4335]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#FBBC05]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#34A853]" />
-            <span className="text-[11px] font-semibold text-[#5f6368] uppercase tracking-wider ml-1">
-              {isBranchOperations ? (branchInfo?.name ? `${branchInfo.name} Branch` : 'Branch Operations') : 'Origination Pipeline'}
-            </span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight flex items-center gap-2.5" style={{ fontWeight: 500 }}>
-            <span>Activities &amp; <span className={`font-medium italic ${isSales ? 'text-[#137333]' : 'text-[#1a73e8]'}`}>Follow-Ups</span></span>
-            <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${
-              isSales 
-                ? 'text-[#137333] bg-[#e6f4ea] border border-[#ceead6]' 
-                : 'text-[#1a73e8] bg-[#e8f0fe] border border-[#d2e3fc]'
-            }`}>
-              {stats.total} Total Tasks
-            </span>
-          </h1>
-          <p className="text-xs sm:text-sm text-[#5f6368] mt-0.5">
-            {isBranchOperations
-              ? 'View, assign and coordinate scheduled activities, visits, and follow-ups across your branch team.'
-              : 'Manage scheduled customer calls, KYC verification visits, document collections, and follow-ups.'}
-          </p>
-        </div>
-
-        {/* Top Right Action Button */}
-        <div className="flex items-center gap-2.5">
-          <button
-            type="button"
-            onClick={handleOpenNew}
-            className={`px-4.5 py-2 rounded-full text-white text-xs sm:text-sm font-semibold shadow-xs flex items-center gap-2 cursor-pointer active:scale-95 transition-all ${
-              isSales ? 'bg-[#137333] hover:bg-[#0b5324]' : 'bg-[#1a73e8] hover:bg-[#1557b0]'
-            }`}
-          >
-            <Plus size={16} />
-            <span>Schedule Activity</span>
-          </button>
-        </div>
-      </div>
-
-      {/* 4 KPI Metric Cards Grid */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          title="Today's Due"
-          value={stats.todayCount}
-          subtitle="Scheduled for today"
-          icon={Clock}
-          colorTheme="blue"
-        />
-        <StatCard
-          title="Upcoming Schedule"
-          value={stats.upcomingCount}
-          subtitle="Scheduled visits & calls"
-          icon={CalendarIcon}
-          colorTheme="amber"
-        />
-        <StatCard
-          title="High Priority"
-          value={stats.urgentCount}
-          subtitle="Urgent & critical tasks"
-          icon={AlertCircle}
-          colorTheme="red"
-        />
-        <StatCard
-          title="Completed Activities"
-          value={stats.completedCount}
-          subtitle={`${stats.completionRate}% completion rate`}
-          icon={CheckCircle2}
-          colorTheme="green"
-        />
-      </div>
-
-      {/* Main Activities Unified Container Card (No Gap) */}
-      <div className="bg-white rounded-2xl border border-[#e0e3e7] shadow-xs overflow-hidden">
-        
-        {/* Search & Priority Filter Toolbar as Header of Card */}
-        <div className="p-4 border-b border-[#e0e3e7] flex flex-col md:flex-row items-center justify-between gap-3 bg-white">
-          {/* Search Box */}
-          <div className="relative w-full md:w-80">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f6368] pointer-events-none" />
-            <input
-              type="search"
-              placeholder={isBranchOperations ? "Search task, assignee, remarks..." : "Search tasks, address, remarks..."}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 text-xs bg-[#f1f3f4] hover:bg-[#e8eaed] focus:bg-white border border-transparent focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 rounded-full text-[#1f1f1f] placeholder:text-[#5f6368] outline-none transition-all shadow-none focus:shadow-sm"
-            />
-          </div>
-
-          {/* Filters Area */}
-          <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto justify-end">
-            {/* Branch Staff Filter (Only shown in Branch Operations if colleagues exist) */}
-            {isBranchOperations && branchEmployees.length > 0 && (
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs font-semibold text-[#5f6368]">Assigned:</span>
-                <select
-                  value={employeeFilter}
-                  onChange={(e) => setEmployeeFilter(e.target.value)}
-                  className="h-8 px-3 rounded-full border border-[#dadce0] bg-[#f8fafd] text-xs font-semibold text-[#1f1f1f] focus:outline-none focus:ring-2 focus:ring-[#1a73e8]/30 cursor-pointer"
-                >
-                  <option value="ALL">All Branch Staff ({events.length})</option>
-                  <option value="MINE">Assigned to Me</option>
-                  {branchEmployees.filter((emp) => !emp.isOwn).map((emp) => (
-                    <option key={emp.id} value={emp.id}>
-                      {emp.name} {emp.empId ? `(${emp.empId})` : ''}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {/* Priority Filter */}
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs font-semibold text-[#5f6368]">Priority:</span>
-              <select
-                value={priorityFilter}
-                onChange={(e) => setPriorityFilter(e.target.value)}
-                className="h-8 px-3 rounded-full border border-[#dadce0] bg-[#f8fafd] text-xs font-semibold text-[#1f1f1f] focus:outline-none focus:ring-2 focus:ring-[#1a73e8]/30 cursor-pointer"
-              >
-                <option value="ALL">All Priorities ({events.length})</option>
-                <option value="Urgent">Urgent Priority</option>
-                <option value="High">High Priority</option>
-                <option value="Medium">Medium Priority</option>
-                <option value="Low">Low Priority</option>
-              </select>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-wide border ${
+                isSales 
+                  ? 'bg-[var(--accent-pink-tint)] text-[var(--accent-pink-deep)] border-[var(--accent-pink)]/20' 
+                  : 'bg-[var(--brand-tint)] text-[var(--brand-deep)] border-[var(--brand)]/20'
+              }`}>
+                {isBranchOperations ? (branchInfo?.name ? `${branchInfo.name} Branch` : 'Branch Operations') : 'Origination Pipeline'}
+              </span>
             </div>
-          </div>
-        </div>
-
-        {/* Activities List Area (Flows Directly Inside Same Box) */}
-        {filteredEvents.length === 0 ? (
-          <div className="flex flex-col items-center justify-center p-12 text-center bg-[#fcfdfe]">
-            <div className="w-16 h-16 rounded-2xl bg-[#e8f0fe] text-[#1a73e8] flex items-center justify-center mb-4">
-              <CalendarIcon size={32} />
-            </div>
-            <h3 className="text-lg font-bold text-[#1f1f1f]">No Activities Scheduled</h3>
-            <p className="text-xs text-[#5f6368] max-w-sm mt-1 mb-6">
+            <h1 className="text-2xl sm:text-3xl font-semibold text-[var(--text)] tracking-tight flex items-center gap-2.5">
+              <span>Activities &amp; <span className="text-[var(--brand-deep)]">Follow-Ups</span></span>
+              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full text-[var(--brand-deep)] bg-[var(--brand-tint)] border border-[var(--brand)]/20">
+                {stats.total} Total Tasks
+              </span>
+            </h1>
+            <p className="text-xs sm:text-sm text-[var(--muted)] mt-1">
               {isBranchOperations
-                ? 'No activities found for the selected filter. Create or assign tasks to your team.'
-                : 'Schedule follow-up calls, client visits, or document collections for your leads.'}
+                ? 'View, assign and coordinate scheduled activities, visits, and follow-ups across your branch team.'
+                : 'Manage scheduled customer calls, KYC verification visits, document collections, and follow-ups.'}
             </p>
+          </div>
+
+          {/* Top Right Action Button */}
+          <div className="flex items-center gap-2.5">
             <button
               type="button"
               onClick={handleOpenNew}
-              className="px-5 py-2.5 rounded-full bg-[#1a73e8] hover:bg-[#1557b0] text-white text-xs font-semibold shadow-xs flex items-center gap-2 cursor-pointer active:scale-95 transition-all"
+              className="px-4.5 py-2.5 rounded-full bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white text-xs sm:text-sm font-semibold shadow-xs flex items-center gap-2 cursor-pointer active:scale-95 transition-all"
             >
               <Plus size={16} />
               <span>Schedule Activity</span>
             </button>
           </div>
-        ) : (
-          <div className="p-4 sm:p-6 space-y-8 bg-[#fcfdfe]">
-            {sections.map((section) => (
-              <div key={section.id} className="space-y-3.5">
-                
-                {/* Section Header */}
-                <div className="flex items-center justify-between pb-2 border-b border-[#dadce0]/80">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: section.dotColor }} />
-                    <h2 className="text-sm sm:text-base font-bold text-[#1f1f1f]">
-                      {section.title}
-                    </h2>
-                  </div>
-                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${section.badgeStyle}`}>
-                    {section.badge}
-                  </span>
+        </div>
+
+        {/* 4 KPI Metric Cards Grid */}
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard
+            title="Today's Due"
+            value={stats.todayCount}
+            subtitle="Scheduled for today"
+            icon={Clock}
+            theme="blue"
+          />
+          <StatCard
+            title="Upcoming Schedule"
+            value={stats.upcomingCount}
+            subtitle="Scheduled visits & calls"
+            icon={CalendarIcon}
+            theme="amber"
+          />
+          <StatCard
+            title="High Priority"
+            value={stats.urgentCount}
+            subtitle="Urgent & critical tasks"
+            icon={AlertCircle}
+            theme="red"
+          />
+          <StatCard
+            title="Completed Activities"
+            value={stats.completedCount}
+            subtitle={`${stats.completionRate}% completion rate`}
+            icon={CheckCircle2}
+            theme="green"
+          />
+        </div>
+
+        {/* Main Activities Unified Container Card */}
+        <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] shadow-xs overflow-hidden">
+          
+          {/* Search & Priority Filter Toolbar */}
+          <div className="p-4 border-b border-[var(--line)] flex flex-col md:flex-row items-center justify-between gap-3 bg-[var(--surface)]">
+            {/* Search Box */}
+            <div className="relative w-full md:w-80">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)] pointer-events-none" />
+              <input
+                type="search"
+                placeholder={isBranchOperations ? "Search task, assignee, remarks..." : "Search tasks, address, remarks..."}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 text-xs bg-[var(--surface-alt)] hover:bg-[var(--line)]/50 focus:bg-[var(--surface)] border border-[var(--line)] focus:border-[var(--brand)] rounded-full text-[var(--text)] placeholder:text-[var(--muted)] outline-none transition-all shadow-none"
+              />
+            </div>
+
+            {/* Filters Area */}
+            <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto justify-end">
+              {/* Branch Staff Filter (Only shown in Branch Operations if colleagues exist) */}
+              {isBranchOperations && branchEmployees.length > 0 && (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-semibold text-[var(--muted)]">Assigned:</span>
+                  <select
+                    value={employeeFilter}
+                    onChange={(e) => setEmployeeFilter(e.target.value)}
+                    className="h-8.5 px-3 rounded-full border border-[var(--line)] bg-[var(--surface-alt)] text-xs font-semibold text-[var(--text)] focus:outline-none focus:border-[var(--brand)] cursor-pointer"
+                  >
+                    <option value="ALL">All Branch Staff ({events.length})</option>
+                    <option value="MINE">Assigned to Me</option>
+                    {branchEmployees.filter((emp) => !emp.isOwn).map((emp) => (
+                      <option key={emp.id} value={emp.id}>
+                        {emp.name} {emp.empId ? `(${emp.empId})` : ''}
+                      </option>
+                    ))}
+                  </select>
                 </div>
+              )}
 
-                {/* Cards List */}
-                <div className="grid grid-cols-1 gap-3">
-                  {section.items.map((evt) => {
-                    const isCompleted = evt.status === 'Completed';
-                    const displayName = evt.assigneeName || evt.creatorName;
+              {/* Priority Filter */}
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs font-semibold text-[var(--muted)]">Priority:</span>
+                <select
+                  value={priorityFilter}
+                  onChange={(e) => setPriorityFilter(e.target.value)}
+                  className="h-8.5 px-3 rounded-full border border-[var(--line)] bg-[var(--surface-alt)] text-xs font-semibold text-[var(--text)] focus:outline-none focus:border-[var(--brand)] cursor-pointer"
+                >
+                  <option value="ALL">All Priorities ({events.length})</option>
+                  <option value="Urgent">Urgent Priority</option>
+                  <option value="High">High Priority</option>
+                  <option value="Medium">Medium Priority</option>
+                  <option value="Low">Low Priority</option>
+                </select>
+              </div>
+            </div>
+          </div>
 
-                    return (
-                      <div
-                        key={evt.id}
-                        onClick={() => {
-                          setSelectedEvent(evt);
-                          setIsDetailsSidebarOpen(true);
-                        }}
-                        className={`bg-white rounded-2xl border transition-all duration-200 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer hover:shadow-md hover:border-[#1a73e8]/40 group ${
-                          isCompleted 
-                            ? 'bg-[#fcfdfe] border-[#e0e3e7] opacity-75' 
-                            : 'border-[#dadce0] shadow-2xs'
-                        }`}
-                      >
-                        {/* Left: Checkbox + Title & Details */}
-                        <div className="flex items-start gap-3.5 flex-1 min-w-0">
-                          {/* 1-Click Complete Button */}
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleToggleComplete(evt.id);
-                            }}
-                            className="mt-0.5 text-[#5f6368] hover:text-[#1a73e8] transition-colors shrink-0 cursor-pointer"
-                            title={isCompleted ? 'Mark Pending' : 'Mark Completed'}
-                          >
-                            {isCompleted ? (
-                              <CheckCircle2 size={20} className="text-[#137333] fill-[#e6f4ea]" />
-                            ) : (
-                              <Circle size={20} className="hover:scale-110 transition-transform" />
-                            )}
-                          </button>
+          {/* Activities List Area */}
+          {filteredEvents.length === 0 ? (
+            <div className="flex flex-col items-center justify-center p-12 text-center bg-[var(--surface)]">
+              <div className="w-16 h-16 rounded-[16px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center mb-4">
+                <CalendarIcon size={32} />
+              </div>
+              <h3 className="text-lg font-semibold text-[var(--text)]">No Activities Scheduled</h3>
+              <p className="text-xs text-[var(--muted)] max-w-sm mt-1 mb-6">
+                {isBranchOperations
+                  ? 'No activities found for the selected filter. Create or assign tasks to your team.'
+                  : 'Schedule follow-up calls, client visits, or document collections for your leads.'}
+              </p>
+              <button
+                type="button"
+                onClick={handleOpenNew}
+                className="px-5 py-2.5 rounded-full bg-[var(--ink)] hover:bg-[var(--ink-2)] text-white text-xs font-semibold shadow-xs flex items-center gap-2 cursor-pointer active:scale-95 transition-all"
+              >
+                <Plus size={16} />
+                <span>Schedule Activity</span>
+              </button>
+            </div>
+          ) : (
+            <div className="p-4 sm:p-6 space-y-8 bg-[var(--surface)]">
+              {sections.map((section) => (
+                <div key={section.id} className="space-y-3.5">
+                  
+                  {/* Section Header */}
+                  <div className="flex items-center justify-between pb-2 border-b border-[var(--line)]">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: section.dotColor }} />
+                      <h2 className="text-sm sm:text-base font-semibold text-[var(--text)]">
+                        {section.title}
+                      </h2>
+                    </div>
+                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${section.badgeStyle}`}>
+                      {section.badge}
+                    </span>
+                  </div>
 
-                          {/* Content Details */}
-                          <div className="space-y-1.5 flex-1 min-w-0">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <h3 className={`text-sm sm:text-base font-bold text-[#1f1f1f] group-hover:text-[#1a73e8] transition-colors truncate ${
-                                isCompleted ? 'line-through text-[#80868b]' : ''
-                              }`}>
-                                {evt.title}
-                              </h3>
-                              {evt.priority && getPriorityBadge(evt.priority)}
+                  {/* Cards List */}
+                  <div className="grid grid-cols-1 gap-3">
+                    {section.items.map((evt) => {
+                      const isCompleted = evt.status === 'Completed';
+                      const displayName = evt.assigneeName || evt.creatorName;
 
-                              {/* Assignee Badge */}
-                              {isBranchOperations && displayName && (
-                                <span className={`inline-flex items-center gap-1 text-[10.5px] font-medium px-2 py-0.5 rounded-full border ${
-                                  evt.isAssignedToMe 
-                                    ? 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc]' 
-                                    : 'bg-[#f1f3f4] text-[#3c4043] border-[#dadce0]'
+                      return (
+                        <div
+                          key={evt.id}
+                          onClick={() => {
+                            setSelectedEvent(evt);
+                            setIsDetailsSidebarOpen(true);
+                          }}
+                          className={`bg-[var(--surface)] rounded-[16px] border transition-all duration-200 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer hover:shadow-xs hover:border-[var(--brand)]/40 group ${
+                            isCompleted 
+                              ? 'bg-[var(--surface-alt)]/50 border-[var(--line)] opacity-75' 
+                              : 'border-[var(--line)]'
+                          }`}
+                        >
+                          {/* Left: Checkbox + Title & Details */}
+                          <div className="flex items-start gap-3.5 flex-1 min-w-0">
+                            {/* 1-Click Complete Button */}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleToggleComplete(evt.id);
+                              }}
+                              className="mt-0.5 text-[var(--muted)] hover:text-[var(--brand-deep)] transition-colors shrink-0 cursor-pointer"
+                              title={isCompleted ? 'Mark Pending' : 'Mark Completed'}
+                            >
+                              {isCompleted ? (
+                                <CheckCircle2 size={20} className="text-[#1F9D55] fill-[#E6F6EC]" />
+                              ) : (
+                                <Circle size={20} className="hover:scale-110 transition-transform" />
+                              )}
+                            </button>
+
+                            {/* Content Details */}
+                            <div className="space-y-1.5 flex-1 min-w-0">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <h3 className={`text-sm sm:text-base font-semibold text-[var(--text)] group-hover:text-[var(--brand-deep)] transition-colors truncate ${
+                                  isCompleted ? 'line-through text-[var(--muted)]' : ''
                                 }`}>
-                                  <User size={11} className={evt.isAssignedToMe ? 'text-[#1a73e8]' : 'text-[#5f6368]'} />
-                                  <span>{displayName} {evt.isAssignedToMe ? '(You)' : (evt.assigneeEmployeeId ? `• ${evt.assigneeEmployeeId}` : '')}</span>
+                                  {evt.title}
+                                </h3>
+                                {evt.priority && getPriorityBadge(evt.priority)}
+
+                                {/* Assignee Badge */}
+                                {isBranchOperations && displayName && (
+                                  <span className={`inline-flex items-center gap-1 text-[10.5px] font-medium px-2 py-0.5 rounded-full border ${
+                                    evt.isAssignedToMe 
+                                      ? 'bg-[var(--brand-tint)] text-[var(--brand-deep)] border-[var(--brand)]/20' 
+                                      : 'bg-[var(--surface-alt)] text-[var(--text-2)] border-[var(--line)]'
+                                  }`}>
+                                    <User size={11} className={evt.isAssignedToMe ? 'text-[var(--brand-deep)]' : 'text-[var(--muted)]'} />
+                                    <span>{displayName} {evt.isAssignedToMe ? '(You)' : (evt.assigneeEmployeeId ? `• ${evt.assigneeEmployeeId}` : '')}</span>
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Meta: Time, Date, Location */}
+                              <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-[var(--muted)]">
+                                <span className="flex items-center gap-1 font-medium text-[var(--text)]">
+                                  <Clock size={13} className="text-[var(--brand-deep)]" />
+                                  {formatEventTime(evt)} • {formatEventDate(evt)}
                                 </span>
+
+                                {evt.address && (
+                                  <span className="flex items-center gap-1 truncate max-w-xs">
+                                    <MapPin size={13} className="text-[#D64550] shrink-0" />
+                                    <span className="truncate">{evt.address}</span>
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Optional Notes snippet */}
+                              {evt.notes && (
+                                <p className="text-xs text-[var(--muted)] line-clamp-1 italic bg-[var(--surface-alt)] px-2.5 py-1 rounded-[8px] border border-[var(--line)] max-w-xl">
+                                  "{evt.notes}"
+                                </p>
                               )}
                             </div>
-
-                            {/* Meta: Time, Date, Location */}
-                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-[#5f6368]">
-                              <span className="flex items-center gap-1 font-medium text-[#1f1f1f]">
-                                <Clock size={13} className="text-[#1a73e8]" />
-                                {formatEventTime(evt)} • {formatEventDate(evt)}
-                              </span>
-
-                              {evt.address && (
-                                <span className="flex items-center gap-1 truncate max-w-xs">
-                                  <MapPin size={13} className="text-[#ea4335] shrink-0" />
-                                  <span className="truncate">{evt.address}</span>
-                                </span>
-                              )}
-                            </div>
-
-                            {/* Optional Notes snippet */}
-                            {evt.notes && (
-                              <p className="text-xs text-[#5f6368] line-clamp-1 italic bg-[#f8fafd] px-2.5 py-1 rounded-lg border border-[#e0e3e7]/60 max-w-xl">
-                                "{evt.notes}"
-                              </p>
-                            )}
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+              ))}
+            </div>
+          )}
+        </div>
 
-      {/* Slide-over Form Drawer */}
-      <ActivitySidebar
-        isOpen={isActivitySidebarOpen}
-        onClose={() => setIsActivitySidebarOpen(false)}
-        onSave={handleCreateActivity}
-        isSales={isSales}
-        assignableEmployees={isBranchOperations ? assignableEmployees : []}
-        showAssigneeSelector={isBranchOperations}
-      />
+        {/* Slide-over Form Drawer */}
+        <ActivitySidebar
+          isOpen={isActivitySidebarOpen}
+          onClose={() => setIsActivitySidebarOpen(false)}
+          onSave={handleCreateActivity}
+          isSales={isSales}
+          assignableEmployees={isBranchOperations ? assignableEmployees : []}
+          showAssigneeSelector={isBranchOperations}
+        />
 
-      {/* Slide-over Details Drawer */}
-      <EventDetailsSidebar
-        isOpen={isDetailsSidebarOpen}
-        onClose={() => setIsDetailsSidebarOpen(false)}
-        event={selectedEvent}
-        onToggleComplete={handleToggleComplete}
-        onReassign={isBranchOperations ? handleReassignActivity : null}
-        assignableEmployees={isBranchOperations ? assignableEmployees : []}
-      />
+        {/* Slide-over Details Drawer */}
+        <EventDetailsSidebar
+          isOpen={isDetailsSidebarOpen}
+          onClose={() => setIsDetailsSidebarOpen(false)}
+          event={selectedEvent}
+          onToggleComplete={handleToggleComplete}
+          onReassign={isBranchOperations ? handleReassignActivity : null}
+          assignableEmployees={isBranchOperations ? assignableEmployees : []}
+        />
 
       </div>
     </>
@@ -732,4 +721,3 @@ const OriginationActivities = () => {
 };
 
 export default OriginationActivities;
-

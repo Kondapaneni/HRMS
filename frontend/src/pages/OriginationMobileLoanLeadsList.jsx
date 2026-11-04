@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Search, 
   Phone, 
@@ -13,12 +12,8 @@ import {
   Plus, 
   XCircle, 
   RefreshCw,
-  ChevronRight,
-  SlidersHorizontal,
   X,
-  UserPlus,
-  Users,
-  Briefcase
+  Users
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { getLeads } from '../services/loanServices';
@@ -36,7 +31,7 @@ const OriginationMobileLoanLeadsList = () => {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  const { data: response, isLoading, error, refetch } = useQuery({
+  const { data: response, isLoading, error } = useQuery({
     queryKey: ['origination', 'leads', 'list', debouncedSearch],
     queryFn: getLeads,
   });
@@ -85,38 +80,38 @@ const OriginationMobileLoanLeadsList = () => {
     switch (status) {
       case 'New':
         return (
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold bg-[#e8f0fe] text-[#1a73e8] border border-[#d2e3fc] shrink-0 shadow-2xs">
-            <Clock size={14} /> New
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[8px] text-[12px] font-semibold bg-[var(--badge-info-bg)] text-[var(--badge-info-text)] shrink-0">
+            <Clock size={13} /> New
           </span>
         );
       case 'Follow Up':
         return (
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold bg-[#f3e8fd] text-[#8430ce] border border-[#e9d5ff] shrink-0 shadow-2xs">
-            <RefreshCw size={14} /> Follow Up
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[8px] text-[12px] font-semibold bg-[var(--badge-warning-bg)] text-[var(--badge-warning-text)] shrink-0">
+            <RefreshCw size={13} /> Follow Up
           </span>
         );
       case 'Active':
       case 'In Progress':
         return (
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold bg-[#fef7e0] text-[#b06000] border border-[#feefc3] shrink-0 shadow-2xs">
-            <Clock size={14} /> {status}
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[8px] text-[12px] font-semibold bg-[var(--badge-info-bg)] text-[var(--badge-info-text)] shrink-0">
+            <Clock size={13} /> {status}
           </span>
         );
       case 'Converted':
         return (
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold bg-[#e6f4ea] text-[#137333] border border-[#ceead6] shrink-0 shadow-2xs">
-            <CheckCircle2 size={14} /> Converted
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[8px] text-[12px] font-semibold bg-[var(--badge-success-bg)] text-[var(--badge-success-text)] shrink-0">
+            <CheckCircle2 size={13} /> Converted
           </span>
         );
       case 'Not Interested':
         return (
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold bg-[#fce8e6] text-[#c5221f] border border-[#fad2cf] shrink-0 shadow-2xs">
-            <XCircle size={14} /> Not Interested
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[8px] text-[12px] font-semibold bg-[var(--badge-danger-bg)] text-[var(--badge-danger-text)] shrink-0">
+            <XCircle size={13} /> Not Interested
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[12.5px] font-bold bg-[#f1f3f4] text-[#5f6368] border border-[#dadce0] shrink-0 shadow-2xs">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[8px] text-[12px] font-semibold bg-[var(--badge-neutral-bg)] text-[var(--badge-neutral-text)] shrink-0">
             {status || '—'}
           </span>
         );
@@ -132,51 +127,51 @@ const OriginationMobileLoanLeadsList = () => {
   ];
 
   return (
-    <div className="space-y-4 pb-14 font-editorial antialiased" style={{ fontFamily: "'Newsreader', Georgia, serif" }}>
+    <div className="space-y-4 pb-14 font-sans antialiased text-[var(--text)]">
 
-      {/* Clean White Header (Direct Page Layout) */}
+      {/* Header */}
       <section className="relative z-30 pt-1 pb-1">
         <div className="pt-0.5">
-          <p className="text-[10.5px] font-bold text-[#5f6368] uppercase tracking-wider mb-1">
+          <p className="text-[10.5px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-1">
             Origination &bull; Loan Pipeline
           </p>
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-2xl sm:text-3xl font-medium text-[#1f1f1f] tracking-tight leading-tight min-w-0" style={{ fontWeight: 500 }}>
-              All <span className="font-medium italic text-[#1a73e8]">Leads</span>
+            <h2 className="text-2xl font-semibold text-[var(--text)] tracking-tight leading-tight min-w-0">
+              All Leads
             </h2>
 
             <button
               onClick={() => navigate('/employee/loans/origination/leads/add')}
-              className="shrink-0 h-10 px-4 inline-flex items-center justify-center gap-1.5 bg-[#1a73e8] hover:bg-[#1557b0] active:scale-95 text-white rounded-full text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
+              className="shrink-0 h-9 px-4 inline-flex items-center justify-center gap-1.5 bg-[var(--ink)] hover:bg-[var(--ink-2)] active:scale-95 text-white rounded-[12px] text-xs font-semibold tracking-wide shadow-xs transition-all cursor-pointer whitespace-nowrap"
             >
               <Plus size={14} />
               <span>Add Lead</span>
             </button>
           </div>
-          <p className="text-xs sm:text-sm font-medium text-[#5f6368] mt-1">
+          <p className="text-xs font-medium text-[var(--muted)] mt-1">
             {rawLeads.length} Total Prospect Entries
           </p>
         </div>
       </section>
 
       {/* 2. Content Layer */}
-      <div className="relative z-20 mx-0.5 space-y-3.5">
+      <div className="relative z-20 space-y-3.5">
 
         {/* Search Box */}
-        <div className="bg-white rounded-full border border-[#e0e3e7] px-4 py-2.5 shadow-xs flex items-center gap-2.5">
-          <Search className="w-4.5 h-4.5 text-[#5f6368] shrink-0" />
+        <div className="bg-[var(--surface)] rounded-[12px] border border-[var(--line)] px-3.5 py-2.5 shadow-xs flex items-center gap-2.5">
+          <Search className="w-4 h-4 text-[var(--icon-muted)] shrink-0" />
           <input
             type="text"
             placeholder="Search by name, phone, address, loan type..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full text-[13.5px] font-medium bg-transparent border-none outline-none text-[#1f1f1f] placeholder:text-[#80868b] placeholder:text-[13px] pr-1"
+            className="w-full text-xs font-normal bg-transparent border-none outline-none text-[var(--text)] placeholder:text-[var(--muted)] pr-1"
           />
           {searchTerm && (
             <button
               type="button"
               onClick={() => setSearchTerm('')}
-              className="p-1 rounded-full text-[#5f6368] hover:bg-[#f1f3f4] hover:text-[#1f1f1f] shrink-0 cursor-pointer transition-colors"
+              className="p-1 rounded-full text-[var(--muted)] hover:bg-[var(--surface-alt)] hover:text-[var(--text)] shrink-0 cursor-pointer transition-colors"
             >
               <X size={14} />
             </button>
@@ -184,22 +179,22 @@ const OriginationMobileLoanLeadsList = () => {
         </div>
 
         {/* Horizontal Scrollable Status Filter Chips */}
-        <div className="flex overflow-x-auto gap-2 py-0.5 hide-scrollbar">
+        <div className="flex overflow-x-auto gap-2 py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {filterTabs.map((tab) => (
             <button
               key={tab.key}
               onClick={() => setSelectedStatusFilter(tab.key)}
-              className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
                 selectedStatusFilter === tab.key
-                  ? 'bg-[#e8f0fe] text-[#1a73e8] border-[#d2e3fc] shadow-2xs font-bold'
-                  : 'bg-white text-[#5f6368] border-[#e0e3e7] hover:bg-[#f8fafd]'
+                  ? 'bg-[var(--ink)] text-white border-transparent shadow-xs'
+                  : 'bg-[var(--surface)] text-[var(--muted)] border-[var(--line)] hover:bg-[var(--surface-alt)]'
               }`}
             >
               <span>{tab.label}</span>
-              <span className={`inline-flex items-center justify-center h-[18px] min-w-[18px] px-1.5 rounded-full text-[11px] font-bold leading-none tabular-nums ${
+              <span className={`inline-flex items-center justify-center h-[18px] min-w-[18px] px-1.5 rounded-full text-[10px] font-bold leading-none tabular-nums ${
                 selectedStatusFilter === tab.key
-                  ? 'bg-[#1a73e8] text-white'
-                  : 'bg-[#f1f3f4] text-[#5f6368]'
+                  ? 'bg-white/20 text-white'
+                  : 'bg-[var(--surface-alt)] text-[var(--muted)]'
               }`}>
                 {tab.count}
               </span>
@@ -210,26 +205,26 @@ const OriginationMobileLoanLeadsList = () => {
         {/* Leads Card List */}
         <div className="space-y-3">
           {error ? (
-            <div className="bg-[#fce8e6] text-[#c5221f] p-4 rounded-2xl text-center border border-[#fad2cf] text-xs">
+            <div className="bg-[var(--badge-danger-bg)] text-[var(--badge-danger-text)] p-4 rounded-[16px] text-center text-xs">
               Failed to load leads. Please refresh or try again.
             </div>
           ) : isLoading ? (
             <div className="flex justify-center items-center py-16">
-              <Loader2 className="animate-spin h-7 w-7 text-[#1a73e8]" />
+              <Loader2 className="animate-spin h-7 w-7 text-[var(--brand-deep)]" />
             </div>
           ) : filteredLeads.length === 0 ? (
-            <div className="bg-white rounded-3xl border border-[#e0e3e7] p-8 text-center space-y-2 shadow-xs">
-              <div className="w-12 h-12 rounded-full bg-[#f8fafd] border border-[#e0e3e7] flex items-center justify-center mx-auto text-[#80868b]">
+            <div className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] p-8 text-center space-y-2 shadow-xs">
+              <div className="w-12 h-12 rounded-[14px] bg-[var(--surface-alt)] border border-[var(--line)] flex items-center justify-center mx-auto text-[var(--icon-muted)]">
                 <Users size={20} />
               </div>
-              <p className="text-sm font-bold text-[#1f1f1f]">No leads found</p>
-              <p className="text-xs text-[#5f6368]">
+              <p className="text-sm font-semibold text-[var(--text)]">No leads found</p>
+              <p className="text-xs text-[var(--muted)]">
                 {searchTerm ? 'No results matched your search query.' : 'No prospect entries in this filter category.'}
               </p>
               {searchTerm && (
                 <button
                   onClick={() => setSearchTerm('')}
-                  className="mt-2 inline-flex items-center text-xs font-semibold text-[#1a73e8] hover:underline cursor-pointer"
+                  className="mt-2 inline-flex items-center text-xs font-semibold text-[var(--brand-deep)] hover:underline cursor-pointer"
                 >
                   Clear search query
                 </button>
@@ -244,27 +239,27 @@ const OriginationMobileLoanLeadsList = () => {
                 <div 
                   key={lead.id} 
                   onClick={() => navigate('/employee/loans/origination/leads/details', { state: { lead } })}
-                  className="bg-white rounded-2xl border border-[#e0e3e7] hover:border-[#dadce0] p-4 shadow-xs transition-all active:scale-[0.99] active:bg-[#f8fafd] cursor-pointer space-y-2.5 group"
+                  className="bg-[var(--surface)] rounded-[20px] border border-[var(--line)] hover:border-[var(--brand)]/30 p-4 shadow-xs transition-all active:scale-[0.99] active:bg-[var(--surface-alt)] cursor-pointer space-y-2.5 group"
                 >
                   {/* Top Row: Name and Status */}
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-10 h-10 rounded-full bg-[#e8f0fe] text-[#1a73e8] font-bold text-xs flex items-center justify-center shrink-0 border border-[#d2e3fc]">
+                      <div className="w-10 h-10 rounded-[12px] bg-[var(--brand-tint)] text-[var(--brand-deep)] font-semibold text-xs flex items-center justify-center shrink-0">
                         {initials}
                       </div>
                       <div className="min-w-0 space-y-0.5">
-                        <h3 className="font-bold text-[#1f1f1f] text-sm truncate group-hover:text-[#1a73e8] transition-colors">
+                        <h3 className="font-semibold text-[var(--text)] text-sm truncate group-hover:text-[var(--brand-deep)] transition-colors">
                           {displayName}
                         </h3>
-                        <div className="flex items-center gap-2 text-[10.5px] text-[#5f6368]">
-                          <span className="inline-flex items-center gap-1 font-medium text-[#5f6368]">
-                            <Phone size={10} className="text-[#80868b]" />
+                        <div className="flex items-center gap-2 text-[10.5px] text-[var(--muted)]">
+                          <span className="inline-flex items-center gap-1 font-medium">
+                            <Phone size={10} className="text-[var(--icon-muted)]" />
                             {lead.phone ? maskPhoneNumber(lead.phone) : '—'}
                           </span>
                           {lead.loan_type && (
                             <>
                               <span>&bull;</span>
-                              <span className="truncate text-[#1a73e8] font-semibold">{lead.loan_type}</span>
+                              <span className="truncate text-[var(--brand-deep)] font-medium">{lead.loan_type}</span>
                             </>
                           )}
                         </div>
@@ -277,13 +272,13 @@ const OriginationMobileLoanLeadsList = () => {
                   </div>
 
                   {/* Middle Row: Address & Date Details */}
-                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#f1f3f4] text-[11px] text-[#5f6368]">
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[var(--line)] text-[11px] text-[var(--muted)]">
                     <div className="flex items-center gap-1.5 min-w-0">
-                      <MapPin size={11} className="text-[#80868b] shrink-0" />
+                      <MapPin size={11} className="text-[var(--icon-muted)] shrink-0" />
                       <span className="truncate">{lead.address || 'Location Not Specified'}</span>
                     </div>
                     <div className="flex items-center justify-end gap-1.5 text-right min-w-0">
-                      <Calendar size={11} className="text-[#80868b] shrink-0" />
+                      <Calendar size={11} className="text-[var(--icon-muted)] shrink-0" />
                       <span>{lead.created_at ? format(new Date(lead.created_at), 'dd MMM yyyy') : 'Recent'}</span>
                     </div>
                   </div>
