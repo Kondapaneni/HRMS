@@ -140,7 +140,7 @@ export const AppShell = ({
             </Link>
 
             {/* Rail Groups (Scrollable middle container) */}
-            <nav className="flex flex-col items-center gap-2 w-full pt-1 flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden min-h-0 py-1">
+            <nav className="flex flex-col items-center gap-2 w-full pt-1 flex-1 overflow-y-auto overflow-x-hidden no-scrollbar min-h-0 py-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
               {railGroups.filter((g) => !g.isBottom).map((group) => {
                 const isGroupActive = activeGroup?.id === group.id;
                 const Icon = group.icon;
