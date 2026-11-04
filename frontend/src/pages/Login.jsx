@@ -517,15 +517,21 @@ const Login = () => {
             </div>
           </div>
 
-          {/* Bottom Link: "Not a member? Register now" */}
-          <div className="text-center text-xs text-neutral-600 font-medium pt-2">
-            <span>Not a member? </span>
-            <Link 
-              to="/candidate/login" 
-              className="text-[#2F6B38] hover:text-[#1E4D27] hover:underline font-semibold transition-colors"
-            >
-              Register now
-            </Link>
+          {/* Footer Information & Credits */}
+          <div className="text-center space-y-2.5 pt-6">
+            <p className="text-xs text-neutral-500 font-medium">
+              Don't have Access?{' '}
+              <a
+                href="mailto:hr@acme.com?subject=HRMS%20Access%20Request"
+                className="text-[#2F6B38] hover:text-[#1E4D27] hover:underline font-semibold transition-colors"
+              >
+                Contact HR Admin
+              </a>
+            </p>
+            <p className="text-[11px] text-neutral-400 font-normal">
+              Designed and developed by{' '}
+              <span className="text-neutral-700 font-semibold">Gowtham Chowdary Kondapaneni</span>
+            </p>
           </div>
         </div>
 
