@@ -5,18 +5,13 @@ import {
   EyeOff,
   AlertCircle,
   CheckCircle2,
-  Compass,
-  FileCheck,
-  ShieldCheck,
-  Briefcase,
-  RefreshCw,
-  Sparkles,
-  ArrowRight
+  RefreshCw
 } from 'lucide-react';
 import { useNavigate, Link, Navigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
+import AuthSideCarousel from '../components/AuthSideCarousel';
 
 const CandidateLogin = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -46,6 +41,7 @@ const CandidateLogin = () => {
     return () => clearInterval(timer);
   }, [lockoutSeconds]);
 
+  // Password requirements for registration
   const passwordRequirements = [
     { id: 'length', text: 'At least 8 characters', regex: /.{8,}/ },
     { id: 'uppercase', text: 'One uppercase letter', regex: /[A-Z]/ },
@@ -139,6 +135,7 @@ const CandidateLogin = () => {
 
   return (
     <div className="min-h-screen w-full bg-[#ECEEEA] flex items-center justify-center p-4 sm:p-6 lg:p-10 font-sans antialiased text-[#131315]">
+      {/* Main 2-Column Card matching Login page */}
       <motion.div
         initial={{ opacity: 0, scale: 0.98, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -150,23 +147,13 @@ const CandidateLogin = () => {
             ============================================================ */}
         <div className="lg:col-span-6 flex flex-col justify-between p-6 sm:p-10 lg:p-12 max-w-md mx-auto w-full">
           <div>
-            {/* Header Titles */}
+            {/* Header Titles matching Login.jsx */}
             <div className="text-center sm:text-left mb-6">
-              <div className="flex items-center gap-2.5 mb-3">
-                <div className="w-8 h-8 rounded-xl bg-black text-white flex items-center justify-center font-bold text-sm shadow-xs">
-                  A
-                </div>
-                <span className="text-xs font-semibold uppercase tracking-wider text-[#2F6B38]">
-                  Candidate Portal
-                </span>
-              </div>
               <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#131315]">
                 {isLogin ? 'Welcome back!' : 'Create account'}
               </h1>
               <p className="text-xs sm:text-sm text-neutral-500 mt-2 leading-relaxed font-normal">
-                {isLogin
-                  ? 'Track your job applications, assessments, and offer statuses.'
-                  : 'Start your application journey with Acme HRMS talent network.'}
+                Simplify your workflow and boost your productivity with <strong className="text-neutral-800 font-semibold">Acme HRMS</strong>.
               </p>
             </div>
 
@@ -226,7 +213,7 @@ const CandidateLogin = () => {
             </AnimatePresence>
 
             {/* Form */}
-            <form onSubmit={handleAuth} className="space-y-3.5">
+            <form onSubmit={handleAuth} className="space-y-4">
               {!isLogin && (
                 <div className="grid grid-cols-2 gap-3">
                   <div>
@@ -258,7 +245,7 @@ const CandidateLogin = () => {
                 <input
                   name="email"
                   type="email"
-                  placeholder="Email address"
+                  placeholder="Username"
                   value={formData.email}
                   onChange={handleInputChange}
                   required
@@ -339,14 +326,14 @@ const CandidateLogin = () => {
               <button
                 type="submit"
                 disabled={isLoading || lockoutSeconds > 0}
-                className="w-full h-12 rounded-full bg-black hover:bg-neutral-800 text-white font-medium text-sm transition-all duration-200 cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.99] mt-2"
+                className="w-full h-12 rounded-full bg-black hover:bg-neutral-800 text-white font-medium text-sm transition-all duration-200 cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.99]"
               >
                 {isLoading ? (
                   <RefreshCw size={16} className="animate-spin" />
                 ) : lockoutSeconds > 0 ? (
                   `Locked (${Math.floor(lockoutSeconds / 60)}:${(lockoutSeconds % 60).toString().padStart(2, '0')})`
                 ) : isLogin ? (
-                  'Sign in to portal'
+                  'Login'
                 ) : (
                   'Create account'
                 )}
@@ -382,64 +369,9 @@ const CandidateLogin = () => {
         </div>
 
         {/* ============================================================
-            RIGHT COLUMN: Calming Sage Green Candidate Showcase Panel
+            RIGHT COLUMN: Calming Sage Green Interactive HRMS Carousel
             ============================================================ */}
-        <div className="lg:col-span-6 bg-[#F3F9F1] rounded-[28px] sm:rounded-[36px] m-3 sm:m-4 p-6 sm:p-10 flex flex-col justify-between min-h-[460px] sm:min-h-[520px] relative overflow-hidden select-none border border-neutral-100">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-[#E2F2DE]/60 rounded-full blur-3xl pointer-events-none" />
-
-          {/* Top Tag */}
-          <div className="relative z-10">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-white border border-neutral-200/80 text-neutral-700 shadow-2xs">
-              <Briefcase size={12} className="text-[#2F6B38]" />
-              <span>Careers &amp; Talent Portal</span>
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-bold text-[#131315] mt-4 tracking-tight leading-snug">
-              Launch your career journey with Acme HRMS
-            </h2>
-            <p className="text-xs sm:text-sm text-neutral-600 mt-2 leading-relaxed">
-              Experience transparent hiring, interactive assessments, and seamless onboarding with our modern talent platform.
-            </p>
-          </div>
-
-          {/* Feature Highlights Grid */}
-          <div className="relative z-10 space-y-3 my-6">
-            <div className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-white/90 backdrop-blur-xs border border-neutral-200/70 shadow-2xs">
-              <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
-                <Compass size={18} />
-              </div>
-              <div>
-                <h4 className="text-xs font-bold text-neutral-900">Live Application Tracking</h4>
-                <p className="text-[11px] text-neutral-500">Real-time status updates at every stage of the pipeline</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-white/90 backdrop-blur-xs border border-neutral-200/70 shadow-2xs">
-              <div className="w-10 h-10 rounded-xl bg-[#E2F2DE] text-[#2F6B38] flex items-center justify-center shrink-0">
-                <FileCheck size={18} />
-              </div>
-              <div>
-                <h4 className="text-xs font-bold text-neutral-900">Interactive Assessments</h4>
-                <p className="text-[11px] text-neutral-500">Structured online evaluations with instant feedback</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-white/90 backdrop-blur-xs border border-neutral-200/70 shadow-2xs">
-              <div className="w-10 h-10 rounded-xl bg-neutral-100 text-neutral-800 flex items-center justify-center shrink-0">
-                <ShieldCheck size={18} />
-              </div>
-              <div>
-                <h4 className="text-xs font-bold text-neutral-900">Verified Digital Records</h4>
-                <p className="text-[11px] text-neutral-500">Fast, secure document verification upon selection</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Bottom Trust Badge */}
-          <div className="relative z-10 pt-4 border-t border-neutral-200/60 flex items-center justify-between text-xs text-neutral-500">
-            <span className="font-medium">Acme Enterprise Talent System</span>
-            <span className="font-semibold text-[#2F6B38]">Official Applicant Portal</span>
-          </div>
-        </div>
+        <AuthSideCarousel />
       </motion.div>
     </div>
   );
