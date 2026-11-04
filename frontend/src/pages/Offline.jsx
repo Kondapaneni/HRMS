@@ -37,13 +37,13 @@ const Offline = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[9999] bg-[#ECEEEA] flex items-center justify-center p-4 sm:p-6 lg:p-10 font-sans antialiased text-[#131315] select-none"
+          className="fixed inset-0 z-[9999] bg-[#ECEEEA] flex flex-col items-center justify-start sm:justify-center overflow-y-auto p-4 sm:p-6 lg:p-10 font-sans antialiased text-[#131315] select-none"
         >
           {/* Main 2-Column Card matching Login page */}
           <motion.div
             initial={{ opacity: 0, scale: 0.98, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="w-full max-w-[1080px] bg-white rounded-[32px] sm:rounded-[36px] shadow-xl border border-neutral-200/70 overflow-hidden grid grid-cols-1 lg:grid-cols-12 items-stretch"
+            className="my-auto w-full max-w-md sm:max-w-lg lg:max-w-[1080px] bg-white rounded-[28px] sm:rounded-[36px] shadow-xl border border-neutral-200/70 overflow-hidden grid grid-cols-1 lg:grid-cols-12 items-stretch shrink-0"
           >
             {/* ============================================================
                 LEFT COLUMN: Offline Notice

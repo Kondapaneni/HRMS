@@ -290,13 +290,13 @@ const Login = () => {
   const currentSlide = carouselSlides[activeSlide];
 
   return (
-    <div className="min-h-screen w-full bg-[#ECEEEA] flex items-center justify-center p-4 sm:p-6 lg:p-10 font-sans antialiased text-[#131315]">
+    <div className="min-h-screen w-full overflow-y-auto bg-[#ECEEEA] flex flex-col items-center justify-start sm:justify-center p-4 sm:p-6 lg:p-10 font-sans antialiased text-[#131315]">
       {/* Main 2-Column Card (Clean container without fake browser chrome bar) */}
       <motion.div 
         initial={{ opacity: 0, scale: 0.98, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.35, ease: 'easeOut' }}
-        className="w-full max-w-[1080px] bg-white rounded-[32px] sm:rounded-[36px] shadow-xl border border-neutral-200/70 overflow-hidden grid grid-cols-1 lg:grid-cols-12 items-stretch"
+        className="my-auto w-full max-w-md sm:max-w-lg lg:max-w-[1080px] bg-white rounded-[28px] sm:rounded-[36px] shadow-xl border border-neutral-200/70 overflow-hidden grid grid-cols-1 lg:grid-cols-12 items-stretch shrink-0"
       >
         {/* ============================================================
             LEFT COLUMN: Clean Minimalist Login Form
@@ -305,7 +305,7 @@ const Login = () => {
           <div>
             {/* Header Titles */}
             <div className="text-center sm:text-left mb-8">
-              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#131315]">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-[#131315]">
                 Welcome back!
               </h1>
               <p className="text-xs sm:text-sm text-neutral-500 mt-2 leading-relaxed font-normal">
@@ -449,7 +449,7 @@ const Login = () => {
                           value={digit}
                           onChange={(e) => handleOtpChange(idx, e.target.value)}
                           onKeyDown={(e) => handleOtpKeyDown(idx, e.key)}
-                          className="w-10 sm:w-11 h-12 rounded-xl bg-neutral-50 text-neutral-900 text-center text-lg font-mono font-semibold border border-neutral-300 outline-none focus:border-black focus:ring-1 focus:ring-black transition-all"
+                          className="flex-1 min-w-0 max-w-11 h-11 sm:h-12 rounded-xl bg-neutral-50 text-neutral-900 text-center text-base sm:text-lg font-mono font-semibold border border-neutral-300 outline-none focus:border-black focus:ring-1 focus:ring-black transition-all"
                         />
                       ))}
                     </div>
@@ -541,7 +541,7 @@ const Login = () => {
         <div 
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
-          className="lg:col-span-6 bg-[#F3F9F1] rounded-[28px] sm:rounded-[36px] m-3 sm:m-4 p-6 sm:p-10 flex flex-col items-center justify-between min-h-[460px] sm:min-h-[520px] relative overflow-hidden select-none border border-neutral-100"
+          className="hidden lg:flex lg:col-span-6 bg-[#F3F9F1] rounded-[28px] sm:rounded-[36px] m-3 sm:m-4 p-6 sm:p-10 flex-col items-center justify-between min-h-[460px] sm:min-h-[520px] relative overflow-hidden select-none border border-neutral-100"
         >
           {/* Subtle green ambient light */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-[#E2F2DE]/60 rounded-full blur-3xl pointer-events-none" />

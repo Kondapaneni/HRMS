@@ -57,7 +57,7 @@ export default function AuthSideCarousel() {
     <div 
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
-      className="lg:col-span-6 bg-[#F3F9F1] rounded-[28px] sm:rounded-[36px] m-3 sm:m-4 p-6 sm:p-10 flex flex-col items-center justify-between min-h-[460px] sm:min-h-[520px] relative overflow-hidden select-none border border-neutral-100"
+      className="hidden lg:flex lg:col-span-6 bg-[#F3F9F1] rounded-[28px] sm:rounded-[36px] m-3 sm:m-4 p-6 sm:p-10 flex-col items-center justify-between min-h-[460px] sm:min-h-[520px] relative overflow-hidden select-none border border-neutral-100"
     >
       {/* Subtle green ambient light */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-[#E2F2DE]/60 rounded-full blur-3xl pointer-events-none" />

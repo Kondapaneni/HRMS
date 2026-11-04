@@ -51,13 +51,13 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#ECEEEA] flex items-center justify-center p-4 sm:p-6 lg:p-10 font-sans antialiased text-[#131315]">
+    <div className="min-h-screen w-full overflow-y-auto bg-[#ECEEEA] flex flex-col items-center justify-start sm:justify-center p-4 sm:p-6 lg:p-10 font-sans antialiased text-[#131315]">
       {/* Main 2-Column Card matching Login page */}
       <motion.div
         initial={{ opacity: 0, scale: 0.98, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.35, ease: 'easeOut' }}
-        className="w-full max-w-[1080px] bg-white rounded-[32px] sm:rounded-[36px] shadow-xl border border-neutral-200/70 overflow-hidden grid grid-cols-1 lg:grid-cols-12 items-stretch"
+        className="my-auto w-full max-w-md sm:max-w-lg lg:max-w-[1080px] bg-white rounded-[28px] sm:rounded-[36px] shadow-xl border border-neutral-200/70 overflow-hidden grid grid-cols-1 lg:grid-cols-12 items-stretch shrink-0"
       >
         {/* ============================================================
             LEFT COLUMN: Forgot Password Form
@@ -75,7 +75,7 @@ const ForgotPassword = () => {
 
             {/* Header Titles */}
             <div className="text-center sm:text-left mb-8">
-              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#131315]">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-[#131315]">
                 Reset password
               </h1>
               <p className="text-xs sm:text-sm text-neutral-500 mt-2 leading-relaxed font-normal">

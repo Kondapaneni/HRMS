@@ -134,13 +134,13 @@ const CandidateLogin = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#ECEEEA] flex items-center justify-center p-4 sm:p-6 lg:p-10 font-sans antialiased text-[#131315]">
+    <div className="min-h-screen w-full overflow-y-auto bg-[#ECEEEA] flex flex-col items-center justify-start sm:justify-center p-4 sm:p-6 lg:p-10 font-sans antialiased text-[#131315]">
       {/* Main 2-Column Card matching Login page */}
       <motion.div
         initial={{ opacity: 0, scale: 0.98, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.35, ease: 'easeOut' }}
-        className="w-full max-w-[1080px] bg-white rounded-[32px] sm:rounded-[36px] shadow-xl border border-neutral-200/70 overflow-hidden grid grid-cols-1 lg:grid-cols-12 items-stretch"
+        className="my-auto w-full max-w-md sm:max-w-lg lg:max-w-[1080px] bg-white rounded-[28px] sm:rounded-[36px] shadow-xl border border-neutral-200/70 overflow-hidden grid grid-cols-1 lg:grid-cols-12 items-stretch shrink-0"
       >
         {/* ============================================================
             LEFT COLUMN: Candidate Form
@@ -149,7 +149,7 @@ const CandidateLogin = () => {
           <div>
             {/* Header Titles matching Login.jsx */}
             <div className="text-center sm:text-left mb-8">
-              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#131315]">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-[#131315]">
                 {isLogin ? 'Welcome back!' : 'Create account'}
               </h1>
               <p className="text-xs sm:text-sm text-neutral-500 mt-2 leading-relaxed font-normal">
@@ -189,7 +189,7 @@ const CandidateLogin = () => {
             {/* Form */}
             <form onSubmit={handleAuth} className="space-y-4">
               {!isLogin && (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <input
                       name="firstName"
@@ -262,7 +262,7 @@ const CandidateLogin = () => {
                       />
                     ))}
                   </div>
-                  <div className="grid grid-cols-2 gap-x-2 gap-y-1 pt-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-2 gap-y-1 pt-1">
                     {passwordRequirements.map((req) => {
                       const passed = req.regex.test(formData.password);
                       return (
@@ -285,7 +285,7 @@ const CandidateLogin = () => {
               )}
 
               {/* Mode Toggle on Left, Forgot Password on Right */}
-              <div className="flex items-center justify-between pt-0.5 text-xs font-medium">
+              <div className="flex items-center justify-between flex-wrap gap-2 pt-0.5 text-xs font-medium">
                 <button
                   type="button"
                   onClick={() => toggleMode(!isLogin)}
