@@ -5,12 +5,10 @@ import {
   CheckCircle2,
   AlertCircle,
   ArrowRight,
-  ShieldCheck,
-  Compass,
-  FileCheck
+  ShieldCheck
 } from 'lucide-react';
 import api from '../api/axios';
-import Button from '../components/ui/Button';
+import AuthSideCarousel from '../components/AuthSideCarousel';
 
 const CandidateActivate = () => {
   const [searchParams] = useSearchParams();
@@ -43,92 +41,106 @@ const CandidateActivate = () => {
   }, [token]);
 
   return (
-    <div className="min-h-screen w-full flex flex-col justify-between bg-[var(--bg)] text-[var(--text)] font-sans antialiased p-4 sm:p-6 md:p-8 selection:bg-[var(--brand-tint)] selection:text-[var(--text)]">
-      <div className="flex-1 flex items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.25, ease: 'easeOut' }}
-          className="w-full max-w-[500px] bg-[var(--surface)] rounded-[32px] p-6 sm:p-8 md:p-10 shadow-[0_24px_60px_rgba(19,19,21,0.08)] text-center"
-        >
-          {/* Brand Header */}
-          <div className="flex items-center justify-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-[14px] bg-[var(--ink)] text-white flex items-center justify-center font-semibold text-lg">
-              A
-            </div>
-            <div className="text-left">
-              <div className="text-lg font-medium tracking-tight text-[var(--text)]">
-                Acme <span className="text-[var(--accent-pink-deep)]">HRMS</span>
+    <div className="min-h-screen w-full bg-[#ECEEEA] flex items-center justify-center p-4 sm:p-6 lg:p-10 font-sans antialiased text-[#131315]">
+      {/* Main 2-Column Card matching Login page */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.98, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: 'easeOut' }}
+        className="w-full max-w-[1080px] bg-white rounded-[32px] sm:rounded-[36px] shadow-xl border border-neutral-200/70 overflow-hidden grid grid-cols-1 lg:grid-cols-12 items-stretch"
+      >
+        {/* ============================================================
+            LEFT COLUMN: Account Activation
+            ============================================================ */}
+        <div className="lg:col-span-6 flex flex-col justify-between p-6 sm:p-10 lg:p-12 max-w-md mx-auto w-full text-center">
+          <div>
+            <div className="flex items-center justify-center gap-2.5 mb-6">
+              <div className="w-8 h-8 rounded-xl bg-black text-white flex items-center justify-center font-bold text-sm shadow-xs">
+                A
               </div>
-              <div className="text-[11px] text-[var(--muted)]">Candidate Portal</div>
+              <span className="text-xs font-semibold uppercase tracking-wider text-[#2F6B38]">
+                Candidate Portal
+              </span>
             </div>
-          </div>
 
-          {/* Status content */}
-          {status === 'loading' && (
-            <div className="py-8">
-              <div className="w-10 h-10 border-3 border-[var(--brand)] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-              <h2 className="text-lg font-medium text-[var(--text)] mb-1">Activating your account...</h2>
-              <p className="text-xs text-[var(--muted)] max-w-xs mx-auto">
-                Please wait while we verify your activation link and configure your candidate workspace.
-              </p>
-            </div>
-          )}
-
-          {status === 'success' && (
-            <div className="py-4">
-              <div className="w-14 h-14 rounded-2xl bg-[#E6F6EC] text-[#1F9D55] flex items-center justify-center mx-auto mb-4">
-                <CheckCircle2 size={30} />
+            {/* Status content */}
+            {status === 'loading' && (
+              <div className="py-8">
+                <div className="w-12 h-12 border-3 border-black border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                <h2 className="text-xl sm:text-2xl font-bold text-[#131315] mb-2">Activating your account...</h2>
+                <p className="text-xs sm:text-sm text-neutral-500 max-w-xs mx-auto leading-relaxed">
+                  Please wait while we verify your activation link and configure your candidate workspace.
+                </p>
               </div>
-              <h2 className="text-xl font-medium text-[var(--text)] mb-2">Account activated!</h2>
-              <p className="text-xs text-[var(--muted)] mb-6 max-w-sm mx-auto leading-relaxed">
-                {message}
-              </p>
-              <Link to="/candidate/login">
-                <Button variant="primary" className="w-full h-11 rounded-[12px] font-medium text-xs justify-center">
-                  <span>Sign in to candidate portal</span>
-                  <ArrowRight size={14} />
-                </Button>
-              </Link>
-            </div>
-          )}
+            )}
 
-          {status === 'error' && (
-            <div className="py-4">
-              <div className="w-14 h-14 rounded-2xl bg-[#FDE8EA] text-[#D64550] flex items-center justify-center mx-auto mb-4">
-                <AlertCircle size={30} />
-              </div>
-              <h2 className="text-xl font-medium text-[var(--text)] mb-2">Activation failed</h2>
-              <p className="text-xs text-[#D64550] mb-6 max-w-sm mx-auto leading-relaxed font-medium">
-                {message}
-              </p>
-              <div className="space-y-2.5">
+            {status === 'success' && (
+              <div className="py-4">
+                <div className="w-16 h-16 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto mb-4 shadow-sm">
+                  <CheckCircle2 size={32} />
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-bold text-[#131315] mb-2">Account activated!</h2>
+                <p className="text-xs sm:text-sm text-neutral-500 mb-6 max-w-sm mx-auto leading-relaxed">
+                  {message}
+                </p>
                 <Link to="/candidate/login">
-                  <Button variant="primary" className="w-full h-11 rounded-[12px] font-medium text-xs justify-center">
-                    Return to sign in
-                  </Button>
+                  <button className="w-full h-12 rounded-full bg-black hover:bg-neutral-800 text-white font-medium text-sm transition-all duration-200 cursor-pointer shadow-md flex items-center justify-center gap-2 active:scale-[0.99]">
+                    <span>Sign in to candidate portal</span>
+                    <ArrowRight size={14} />
+                  </button>
                 </Link>
-                <a
-                  href="mailto:gowthamkondapaneni2003@gmail.com"
-                  className="inline-block text-xs text-[var(--muted)] hover:text-[var(--text)] transition-colors py-1"
-                >
-                  Contact support team
-                </a>
               </div>
+            )}
+
+            {status === 'error' && (
+              <div className="py-4">
+                <div className="w-16 h-16 rounded-full bg-red-50 border border-red-200 text-red-600 flex items-center justify-center mx-auto mb-4 shadow-sm">
+                  <AlertCircle size={32} />
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-bold text-[#131315] mb-2">Activation failed</h2>
+                <p className="text-xs sm:text-sm text-red-600 mb-6 max-w-sm mx-auto leading-relaxed font-medium">
+                  {message}
+                </p>
+                <div className="space-y-3">
+                  <Link to="/candidate/login">
+                    <button className="w-full h-12 rounded-full bg-black hover:bg-neutral-800 text-white font-medium text-sm transition-all duration-200 cursor-pointer shadow-md flex items-center justify-center active:scale-[0.99]">
+                      Return to sign in
+                    </button>
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            {/* Security badge note */}
+            <div className="mt-8 pt-5 border-t border-neutral-200/70 flex items-center justify-center gap-2 text-[11px] text-neutral-500 font-medium">
+              <ShieldCheck size={14} className="text-[#2F6B38]" />
+              <span>End-to-end encrypted candidate verification</span>
             </div>
-          )}
-
-          {/* Security badge note */}
-          <div className="mt-8 pt-4 border-t border-[var(--line)] flex items-center justify-center gap-2 text-[11px] text-[var(--muted)]">
-            <ShieldCheck size={14} className="text-[#1F9D55]" />
-            <span>End-to-end encrypted candidate verification</span>
           </div>
-        </motion.div>
-      </div>
 
-      <footer className="mt-6 text-center text-xs text-[var(--muted)]">
-        Acme HRMS &bull; Designed &amp; developed by Gowtham Chowdary Kondapaneni
-      </footer>
+          {/* Footer Support & Credits */}
+          <div className="text-center space-y-2.5 pt-6">
+            <p className="text-xs text-neutral-500 font-medium">
+              Don't have Access?{' '}
+              <a
+                href="mailto:hr@acme.com?subject=HRMS%20Access%20Request"
+                className="text-[#2F6B38] hover:text-[#1E4D27] hover:underline font-semibold transition-colors"
+              >
+                Contact HR Admin
+              </a>
+            </p>
+            <p className="text-[11px] text-neutral-400 font-normal">
+              Designed and developed by{' '}
+              <span className="text-neutral-700 font-semibold">Gowtham Chowdary Kondapaneni</span>
+            </p>
+          </div>
+        </div>
+
+        {/* ============================================================
+            RIGHT COLUMN: Calming Sage Green Interactive HRMS Carousel
+            ============================================================ */}
+        <AuthSideCarousel />
+      </motion.div>
     </div>
   );
 };

@@ -20,12 +20,15 @@ export default function LandscapeOverlay() {
       <div 
         className="orientation-warning fixed inset-0 z-[99999] flex-col items-center justify-center bg-[#131315]/45 backdrop-blur-md p-6 text-center select-none"
       >
-        {/* Card Container */}
-        <div className="relative z-10 bg-[var(--surface)] border border-[var(--line)]/50 rounded-[24px] shadow-[var(--shadow-modal)] p-6 sm:p-8 max-w-sm w-full mx-auto flex flex-col items-center text-center">
-          
+        {/* Card Container matching Login UI */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95, y: 8 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          className="relative z-10 bg-white border border-neutral-200/70 rounded-[32px] sm:rounded-[36px] shadow-2xl p-6 sm:p-8 max-w-sm w-full mx-auto flex flex-col items-center text-center"
+        >
           {/* Animated Device Rotation Graphic */}
           <div className="relative w-16 h-16 mb-4 flex items-center justify-center">
-            <div className="w-16 h-16 rounded-[16px] bg-[var(--brand-tint)] flex items-center justify-center">
+            <div className="w-16 h-16 rounded-2xl bg-[#F3F9F1] border border-[#2F6B38]/20 flex items-center justify-center">
               <motion.div
                 animate={{ 
                   rotate: [-90, 0, 0, -90],
@@ -38,28 +41,28 @@ export default function LandscapeOverlay() {
                   times: [0, 0.45, 0.8, 1],
                 }}
               >
-                <Smartphone className="w-8 h-8 text-[var(--brand-deep)]" strokeWidth={1.7} />
+                <Smartphone className="w-8 h-8 text-[#2F6B38]" strokeWidth={1.8} />
               </motion.div>
             </div>
             {/* Rotate badge */}
-            <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-[var(--surface)] border border-[var(--line)] shadow-sm flex items-center justify-center text-[var(--brand-deep)]">
-              <RotateCw className="w-3.5 h-3.5 animate-spin" style={{ animationDuration: '4s' }} strokeWidth={1.7} />
+            <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-white border border-neutral-200 shadow-sm flex items-center justify-center text-black">
+              <RotateCw className="w-3.5 h-3.5 animate-spin" style={{ animationDuration: '4s' }} strokeWidth={1.8} />
             </div>
           </div>
 
-          <h3 className="text-[18px] font-medium text-[var(--text)] mb-1.5 leading-snug">
+          <h3 className="text-xl font-bold text-[#131315] mb-1.5 leading-snug">
             Rotate back to portrait
           </h3>
 
-          <p className="text-[13px] text-[var(--muted)] max-w-xs font-normal leading-relaxed mb-4">
-            Acme HRMS is designed for portrait orientation. Please rotate your device upright to continue.
+          <p className="text-xs sm:text-sm text-neutral-500 max-w-xs font-normal leading-relaxed mb-5">
+            Acme HRMS is optimized for portrait orientation. Please rotate your device upright to continue.
           </p>
 
-          <div className="text-[11px] font-medium text-[var(--success-text)] bg-[var(--success-bg)] px-3 py-1 rounded-[9px] flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-[var(--success-text)] animate-ping" />
+          <div className="text-xs font-semibold text-[#2F6B38] bg-[#E6F6EC] border border-emerald-200 px-3.5 py-1.5 rounded-full flex items-center gap-2 shadow-2xs">
+            <span className="w-2 h-2 rounded-full bg-[#2F6B38] animate-ping" />
             <span>Resumes automatically when upright</span>
           </div>
-        </div>
+        </motion.div>
       </div>
     </>
   );

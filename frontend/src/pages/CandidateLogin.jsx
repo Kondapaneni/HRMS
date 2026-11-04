@@ -7,18 +7,16 @@ import {
   CheckCircle2,
   Compass,
   FileCheck,
-  FileText,
   ShieldCheck,
-  LogIn,
-  UserPlus,
-  ArrowRight,
-  Briefcase
+  Briefcase,
+  RefreshCw,
+  Sparkles,
+  ArrowRight
 } from 'lucide-react';
 import { useNavigate, Link, Navigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import api from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
-import Button from '../components/ui/Button';
 
 const CandidateLogin = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -27,8 +25,6 @@ const CandidateLogin = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [lockoutSeconds, setLockoutSeconds] = useState(0);
-
-  const [focusedField, setFocusedField] = useState(null);
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -50,7 +46,6 @@ const CandidateLogin = () => {
     return () => clearInterval(timer);
   }, [lockoutSeconds]);
 
-  // Password requirements for registration
   const passwordRequirements = [
     { id: 'length', text: 'At least 8 characters', regex: /.{8,}/ },
     { id: 'uppercase', text: 'One uppercase letter', regex: /[A-Z]/ },
@@ -70,9 +65,9 @@ const CandidateLogin = () => {
   const strengthScore = calculateStrength(formData.password);
 
   const getStrengthBarColor = (score) => {
-    if (score <= 2) return 'bg-[#D64550]';
-    if (score <= 4) return 'bg-[#B7791F]';
-    return 'bg-[#1F9D55]';
+    if (score <= 2) return 'bg-red-500';
+    if (score <= 4) return 'bg-amber-500';
+    return 'bg-[#2F6B38]';
   };
 
   const isPasswordValid = strengthScore === passwordRequirements.length;
@@ -143,370 +138,309 @@ const CandidateLogin = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col justify-between bg-[var(--bg)] text-[var(--text)] font-sans antialiased selection:bg-[var(--brand-tint)] selection:text-[var(--text)] p-3 sm:p-5 md:p-8">
-      <div className="flex-1 flex items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.25, ease: 'easeOut' }}
-          className="w-full max-w-[1020px] bg-[var(--surface)] rounded-[32px] overflow-hidden grid grid-cols-1 md:grid-cols-12 shadow-[0_24px_60px_rgba(19,19,21,0.08)]"
-        >
-          {/* Left Hero Panel (Dark with Soft Pink & Blue Accents) */}
-          <div className="md:col-span-5 bg-[var(--ink)] text-[var(--sidebar-text)] p-6 sm:p-8 md:p-10 flex flex-col justify-between relative overflow-hidden">
-            {/* Ambient Accent Shapes */}
-            <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full bg-[var(--accent-pink)]/15 blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-16 -left-16 w-56 h-56 rounded-full bg-[var(--brand)]/15 blur-3xl pointer-events-none" />
-
-            <div className="relative z-10">
-              {/* Brand Header */}
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-[14px] bg-[var(--ink-2)] border border-[#2A2A30] flex items-center justify-center text-[var(--brand)] font-semibold text-lg">
+    <div className="min-h-screen w-full bg-[#ECEEEA] flex items-center justify-center p-4 sm:p-6 lg:p-10 font-sans antialiased text-[#131315]">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.98, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: 'easeOut' }}
+        className="w-full max-w-[1080px] bg-white rounded-[32px] sm:rounded-[36px] shadow-xl border border-neutral-200/70 overflow-hidden grid grid-cols-1 lg:grid-cols-12 items-stretch"
+      >
+        {/* ============================================================
+            LEFT COLUMN: Candidate Form
+            ============================================================ */}
+        <div className="lg:col-span-6 flex flex-col justify-between p-6 sm:p-10 lg:p-12 max-w-md mx-auto w-full">
+          <div>
+            {/* Header Titles */}
+            <div className="text-center sm:text-left mb-6">
+              <div className="flex items-center gap-2.5 mb-3">
+                <div className="w-8 h-8 rounded-xl bg-black text-white flex items-center justify-center font-bold text-sm shadow-xs">
                   A
                 </div>
-                <div>
-                  <div className="text-xl font-medium tracking-tight text-white flex items-center gap-1.5">
-                    Acme <span className="text-[var(--accent-pink)]">HRMS</span>
-                  </div>
-                  <div className="text-[11px] text-[var(--sidebar-muted)]">Candidate Portal</div>
-                </div>
-              </div>
-
-              {/* Tagline & Title */}
-              <div className="mt-8 md:mt-12">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium bg-[var(--ink-2)] text-[var(--accent-pink)] border border-[var(--accent-pink)]/20 mb-3">
-                  <Briefcase size={12} />
-                  <span>Careers &amp; Opportunities</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-[#2F6B38]">
+                  Candidate Portal
                 </span>
-                <h1 className="text-2xl sm:text-3xl font-medium text-white tracking-tight leading-tight">
-                  {isLogin ? 'Welcome to your career journey' : 'Start your story at Acme'}
-                </h1>
-                <p className="mt-2 text-xs sm:text-sm text-[var(--sidebar-muted)] leading-relaxed">
-                  {isLogin
-                    ? 'Track your applications, complete assessments, and collaborate with our hiring team in real time.'
-                    : 'Create your candidate profile in under a minute and explore open positions across teams.'}
-                </p>
               </div>
-
-              {/* Feature Highlights */}
-              <div className="mt-8 space-y-2.5 hidden sm:block">
-                <div className="flex items-center gap-3 p-3 rounded-[16px] bg-[var(--ink-2)] border border-[#26262B]">
-                  <div className="w-8 h-8 rounded-[10px] bg-[var(--brand)]/15 text-[var(--brand)] flex items-center justify-center shrink-0">
-                    <Compass size={16} />
-                  </div>
-                  <div>
-                    <div className="text-xs font-medium text-white">Live application tracking</div>
-                    <div className="text-[11px] text-[var(--sidebar-muted)]">Real-time status updates at every stage</div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-3 rounded-[16px] bg-[var(--ink-2)] border border-[#26262B]">
-                  <div className="w-8 h-8 rounded-[10px] bg-[var(--accent-pink)]/15 text-[var(--accent-pink)] flex items-center justify-center shrink-0">
-                    <FileCheck size={16} />
-                  </div>
-                  <div>
-                    <div className="text-xs font-medium text-white">Interactive assessments</div>
-                    <div className="text-[11px] text-[var(--sidebar-muted)]">Fast, structured skills evaluations</div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-3 rounded-[16px] bg-[var(--ink-2)] border border-[#26262B]">
-                  <div className="w-8 h-8 rounded-[10px] bg-white/10 text-white flex items-center justify-center shrink-0">
-                    <ShieldCheck size={16} />
-                  </div>
-                  <div>
-                    <div className="text-xs font-medium text-white">Verified digital documents</div>
-                    <div className="text-[11px] text-[var(--sidebar-muted)]">Seamless onboarding upon selection</div>
-                  </div>
-                </div>
-              </div>
+              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#131315]">
+                {isLogin ? 'Welcome back!' : 'Create account'}
+              </h1>
+              <p className="text-xs sm:text-sm text-neutral-500 mt-2 leading-relaxed font-normal">
+                {isLogin
+                  ? 'Track your job applications, assessments, and offer statuses.'
+                  : 'Start your application journey with Acme HRMS talent network.'}
+              </p>
             </div>
 
-            {/* Bottom Footer on Left Rail */}
-            <div className="mt-8 pt-4 border-t border-[#26262B] text-[11px] text-[var(--sidebar-muted)] relative z-10 flex items-center justify-between">
-              <span>Candidate Access</span>
-              <Link to="/login" className="text-[var(--brand)] hover:underline">
-                Employee sign in &rarr;
+            {/* Pill Mode Switcher */}
+            <div className="flex items-center p-1 bg-neutral-100 rounded-full mb-6">
+              <button
+                type="button"
+                onClick={() => toggleMode(true)}
+                className={`flex-1 py-2 text-xs font-semibold rounded-full transition-all cursor-pointer ${
+                  isLogin
+                    ? 'bg-black text-white shadow-xs'
+                    : 'text-neutral-500 hover:text-black'
+                }`}
+              >
+                Sign in
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleMode(false)}
+                className={`flex-1 py-2 text-xs font-semibold rounded-full transition-all cursor-pointer ${
+                  !isLogin
+                    ? 'bg-black text-white shadow-xs'
+                    : 'text-neutral-500 hover:text-black'
+                }`}
+              >
+                Create account
+              </button>
+            </div>
+
+            {/* Alerts */}
+            <AnimatePresence>
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  className="mb-5 p-3 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-start gap-2.5 shadow-2xs font-medium"
+                >
+                  <AlertCircle size={15} className="shrink-0 mt-0.5 text-red-500" />
+                  <span>{error}</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {success && (
+                <motion.div
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  className="mb-5 p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-start gap-2.5 shadow-2xs font-medium"
+                >
+                  <CheckCircle2 size={16} className="shrink-0 mt-0.5 text-emerald-600" />
+                  <span>{success}</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Form */}
+            <form onSubmit={handleAuth} className="space-y-3.5">
+              {!isLogin && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <input
+                      name="firstName"
+                      type="text"
+                      placeholder="First name"
+                      value={formData.firstName}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full h-12 px-5 py-3 rounded-full border border-neutral-300 bg-white text-sm text-[#131315] placeholder:text-neutral-400 outline-none focus:border-black focus:ring-1 focus:ring-black transition-all shadow-2xs"
+                    />
+                  </div>
+                  <div>
+                    <input
+                      name="lastName"
+                      type="text"
+                      placeholder="Last name"
+                      value={formData.lastName}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full h-12 px-5 py-3 rounded-full border border-neutral-300 bg-white text-sm text-[#131315] placeholder:text-neutral-400 outline-none focus:border-black focus:ring-1 focus:ring-black transition-all shadow-2xs"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <input
+                  name="email"
+                  type="email"
+                  placeholder="Email address"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  required
+                  autoComplete="email"
+                  className="w-full h-12 px-5 py-3 rounded-full border border-neutral-300 bg-white text-sm text-[#131315] placeholder:text-neutral-400 outline-none focus:border-black focus:ring-1 focus:ring-black transition-all shadow-2xs"
+                />
+              </div>
+
+              <div className="relative">
+                <input
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  required
+                  autoComplete={isLogin ? 'current-password' : 'new-password'}
+                  className="w-full h-12 pl-5 pr-12 py-3 rounded-full border border-neutral-300 bg-white text-sm text-[#131315] placeholder:text-neutral-400 outline-none focus:border-black focus:ring-1 focus:ring-black transition-all shadow-2xs"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700 transition-colors p-1 cursor-pointer"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+
+              {/* Password strength in registration */}
+              {!isLogin && formData.password.length > 0 && (
+                <div className="p-3 bg-neutral-50 rounded-2xl space-y-2 border border-neutral-200/70">
+                  <div className="flex items-center gap-1.5 h-1.5">
+                    {[1, 2, 3, 4, 5].map((lvl) => (
+                      <div
+                        key={lvl}
+                        className={`flex-1 h-full rounded-full transition-all duration-200 ${
+                          strengthScore >= lvl ? getStrengthBarColor(strengthScore) : 'bg-neutral-200'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-2 gap-x-2 gap-y-1 pt-1">
+                    {passwordRequirements.map((req) => {
+                      const passed = req.regex.test(formData.password);
+                      return (
+                        <div key={req.id} className="flex items-center gap-1.5 text-[11px]">
+                          <span
+                            className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 ${
+                              passed ? 'bg-emerald-100 text-emerald-700' : 'bg-neutral-200 text-neutral-400'
+                            }`}
+                          >
+                            ✓
+                          </span>
+                          <span className={passed ? 'text-neutral-800 font-medium' : 'text-neutral-400'}>
+                            {req.text}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Forgot password in Login mode */}
+              {isLogin && (
+                <div className="text-right pt-0.5">
+                  <Link
+                    to="/forgot-password?type=candidate"
+                    className="text-xs font-medium text-neutral-500 hover:text-black transition-colors"
+                  >
+                    Forgot Password?
+                  </Link>
+                </div>
+              )}
+
+              {/* Submit button */}
+              <button
+                type="submit"
+                disabled={isLoading || lockoutSeconds > 0}
+                className="w-full h-12 rounded-full bg-black hover:bg-neutral-800 text-white font-medium text-sm transition-all duration-200 cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.99] mt-2"
+              >
+                {isLoading ? (
+                  <RefreshCw size={16} className="animate-spin" />
+                ) : lockoutSeconds > 0 ? (
+                  `Locked (${Math.floor(lockoutSeconds / 60)}:${(lockoutSeconds % 60).toString().padStart(2, '0')})`
+                ) : isLogin ? (
+                  'Sign in to portal'
+                ) : (
+                  'Create account'
+                )}
+              </button>
+            </form>
+
+            <div className="text-center pt-3">
+              <Link
+                to="/login"
+                className="text-xs text-neutral-500 hover:text-black font-medium transition-colors"
+              >
+                Staff or employee? Sign in to Workspace &rarr;
               </Link>
             </div>
           </div>
 
-          {/* Right Form Panel */}
-          <div className="md:col-span-7 p-6 sm:p-8 md:p-10 flex flex-col justify-between">
-            <div>
-              {/* Sign In vs Create Account Pill Switcher */}
-              <div className="flex items-center justify-center mb-6">
-                <div className="inline-flex p-1 bg-[var(--surface-alt)] rounded-full border border-[var(--line)] w-full sm:w-auto">
-                  <button
-                    type="button"
-                    onClick={() => toggleMode(true)}
-                    className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-5 py-2 rounded-full text-xs font-medium transition-all ${
-                      isLogin
-                        ? 'bg-[var(--ink)] text-white shadow-xs dark:bg-white dark:text-[#131315]'
-                        : 'text-[var(--muted)] hover:text-[var(--text)]'
-                    }`}
-                  >
-                    <LogIn size={14} />
-                    <span>Sign in</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => toggleMode(false)}
-                    className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-5 py-2 rounded-full text-xs font-medium transition-all ${
-                      !isLogin
-                        ? 'bg-[var(--ink)] text-white shadow-xs dark:bg-white dark:text-[#131315]'
-                        : 'text-[var(--muted)] hover:text-[var(--text)]'
-                    }`}
-                  >
-                    <UserPlus size={14} />
-                    <span>Create account</span>
-                  </button>
-                </div>
+          {/* Footer Support & Credits */}
+          <div className="text-center space-y-2.5 pt-6">
+            <p className="text-xs text-neutral-500 font-medium">
+              Don't have Access?{' '}
+              <a
+                href="mailto:hr@acme.com?subject=HRMS%20Access%20Request"
+                className="text-[#2F6B38] hover:text-[#1E4D27] hover:underline font-semibold transition-colors"
+              >
+                Contact HR Admin
+              </a>
+            </p>
+            <p className="text-[11px] text-neutral-400 font-normal">
+              Designed and developed by{' '}
+              <span className="text-neutral-700 font-semibold">Gowtham Chowdary Kondapaneni</span>
+            </p>
+          </div>
+        </div>
+
+        {/* ============================================================
+            RIGHT COLUMN: Calming Sage Green Candidate Showcase Panel
+            ============================================================ */}
+        <div className="lg:col-span-6 bg-[#F3F9F1] rounded-[28px] sm:rounded-[36px] m-3 sm:m-4 p-6 sm:p-10 flex flex-col justify-between min-h-[460px] sm:min-h-[520px] relative overflow-hidden select-none border border-neutral-100">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-[#E2F2DE]/60 rounded-full blur-3xl pointer-events-none" />
+
+          {/* Top Tag */}
+          <div className="relative z-10">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-white border border-neutral-200/80 text-neutral-700 shadow-2xs">
+              <Briefcase size={12} className="text-[#2F6B38]" />
+              <span>Careers &amp; Talent Portal</span>
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-bold text-[#131315] mt-4 tracking-tight leading-snug">
+              Launch your career journey with Acme HRMS
+            </h2>
+            <p className="text-xs sm:text-sm text-neutral-600 mt-2 leading-relaxed">
+              Experience transparent hiring, interactive assessments, and seamless onboarding with our modern talent platform.
+            </p>
+          </div>
+
+          {/* Feature Highlights Grid */}
+          <div className="relative z-10 space-y-3 my-6">
+            <div className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-white/90 backdrop-blur-xs border border-neutral-200/70 shadow-2xs">
+              <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
+                <Compass size={18} />
               </div>
-
-              {/* Form Heading */}
-              <div className="mb-5 text-center sm:text-left">
-                <h2 className="text-xl sm:text-2xl font-medium text-[var(--text)] tracking-tight">
-                  {isLogin ? 'Sign in to candidate portal' : 'Create your candidate account'}
-                </h2>
-                <p className="text-xs text-[var(--muted)] mt-1">
-                  {isLogin ? 'Enter your registered credentials below' : 'Please provide your details to get started'}
-                </p>
+              <div>
+                <h4 className="text-xs font-bold text-neutral-900">Live Application Tracking</h4>
+                <p className="text-[11px] text-neutral-500">Real-time status updates at every stage of the pipeline</p>
               </div>
-
-              {/* Error Alert */}
-              <AnimatePresence>
-                {error && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -4 }}
-                    className="mb-4 p-3 bg-[#FDE8EA] text-[#D64550] rounded-[12px] flex items-start gap-2.5 text-xs font-medium"
-                  >
-                    <AlertCircle size={15} className="shrink-0 mt-0.5" />
-                    <span>{error}</span>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {/* Success Alert */}
-              <AnimatePresence>
-                {success && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -4 }}
-                    className="mb-4 p-3 bg-[#E6F6EC] text-[#1F9D55] rounded-[12px] flex items-start gap-2.5 text-xs font-medium"
-                  >
-                    <CheckCircle2 size={15} className="shrink-0 mt-0.5" />
-                    <span>{success}</span>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {/* Form */}
-              <form onSubmit={handleAuth} className="space-y-3.5">
-                {!isLogin && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {/* First Name */}
-                    <div className="relative">
-                      <input
-                        id="firstName"
-                        type="text"
-                        name="firstName"
-                        value={formData.firstName}
-                        onChange={handleInputChange}
-                        onFocus={() => setFocusedField('firstName')}
-                        onBlur={() => setFocusedField(null)}
-                        placeholder=" "
-                        required={!isLogin}
-                        className="peer w-full h-11 px-3.5 pt-4 pb-1 text-xs text-[var(--text)] bg-[var(--surface)] border border-[var(--line)] rounded-[12px] outline-none transition-all focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20"
-                      />
-                      <label
-                        htmlFor="firstName"
-                        className="absolute left-3.5 top-1 text-[11px] text-[var(--muted)] pointer-events-none transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-xs peer-placeholder-shown:text-[var(--muted)] peer-focus:top-1 peer-focus:text-[10px] peer-focus:text-[var(--brand-deep)] font-normal"
-                      >
-                        First name
-                      </label>
-                    </div>
-
-                    {/* Last Name */}
-                    <div className="relative">
-                      <input
-                        id="lastName"
-                        type="text"
-                        name="lastName"
-                        value={formData.lastName}
-                        onChange={handleInputChange}
-                        onFocus={() => setFocusedField('lastName')}
-                        onBlur={() => setFocusedField(null)}
-                        placeholder=" "
-                        required={!isLogin}
-                        className="peer w-full h-11 px-3.5 pt-4 pb-1 text-xs text-[var(--text)] bg-[var(--surface)] border border-[var(--line)] rounded-[12px] outline-none transition-all focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20"
-                      />
-                      <label
-                        htmlFor="lastName"
-                        className="absolute left-3.5 top-1 text-[11px] text-[var(--muted)] pointer-events-none transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-xs peer-placeholder-shown:text-[var(--muted)] peer-focus:top-1 peer-focus:text-[10px] peer-focus:text-[var(--brand-deep)] font-normal"
-                      >
-                        Last name
-                      </label>
-                    </div>
-                  </div>
-                )}
-
-                {/* Email Address */}
-                <div className="relative">
-                  <input
-                    id="email"
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    onFocus={() => setFocusedField('email')}
-                    onBlur={() => setFocusedField(null)}
-                    placeholder=" "
-                    required
-                    autoComplete="email"
-                    className="peer w-full h-11 px-3.5 pt-4 pb-1 text-xs text-[var(--text)] bg-[var(--surface)] border border-[var(--line)] rounded-[12px] outline-none transition-all focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20"
-                  />
-                  <label
-                    htmlFor="email"
-                    className="absolute left-3.5 top-1 text-[11px] text-[var(--muted)] pointer-events-none transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-xs peer-placeholder-shown:text-[var(--muted)] peer-focus:top-1 peer-focus:text-[10px] peer-focus:text-[var(--brand-deep)] font-normal"
-                  >
-                    Email address
-                  </label>
-                </div>
-
-                {/* Password */}
-                <div className="relative">
-                  <input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    name="password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    onFocus={() => setFocusedField('password')}
-                    onBlur={() => setFocusedField(null)}
-                    placeholder=" "
-                    required
-                    autoComplete={isLogin ? 'current-password' : 'new-password'}
-                    className="peer w-full h-11 pl-3.5 pr-10 pt-4 pb-1 text-xs text-[var(--text)] bg-[var(--surface)] border border-[var(--line)] rounded-[12px] outline-none transition-all focus:border-[var(--brand)] focus:ring-2 focus:ring-[var(--brand)]/20"
-                  />
-                  <label
-                    htmlFor="password"
-                    className="absolute left-3.5 top-1 text-[11px] text-[var(--muted)] pointer-events-none transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-xs peer-placeholder-shown:text-[var(--muted)] peer-focus:top-1 peer-focus:text-[10px] peer-focus:text-[var(--brand-deep)] font-normal"
-                  >
-                    {isLogin ? 'Password' : 'Create strong password'}
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-3 text-[var(--muted)] hover:text-[var(--text)] transition-colors"
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                </div>
-
-                {/* Password Strength Checklist (Sign Up only) */}
-                {!isLogin && formData.password.length > 0 && (
-                  <div className="p-3 bg-[var(--surface-alt)] rounded-[12px] space-y-2 border border-[var(--line)]">
-                    <div className="flex items-center gap-1 h-1.5">
-                      {[1, 2, 3, 4, 5].map((lvl) => (
-                        <div
-                          key={lvl}
-                          className={`flex-1 h-full rounded-full transition-all duration-200 ${
-                            strengthScore >= lvl ? getStrengthBarColor(strengthScore) : 'bg-[var(--line)]'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <div className="grid grid-cols-2 gap-x-2 gap-y-1 pt-1">
-                      {passwordRequirements.map((req) => {
-                        const passed = req.regex.test(formData.password);
-                        return (
-                          <div key={req.id} className="flex items-center gap-1.5 text-[11px]">
-                            <span
-                              className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px] shrink-0 ${
-                                passed
-                                  ? 'bg-[#E6F6EC] text-[#1F9D55]'
-                                  : 'bg-[var(--line)] text-[var(--muted)]'
-                              }`}
-                            >
-                              ✓
-                            </span>
-                            <span className={passed ? 'text-[var(--text)]' : 'text-[var(--muted)]'}>
-                              {req.text}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Forgot Password link (Sign In only) */}
-                {isLogin && (
-                  <div className="flex items-center justify-between text-xs pt-1">
-                    <label className="inline-flex items-center gap-2 cursor-pointer text-[var(--muted)] hover:text-[var(--text)]">
-                      <input
-                        type="checkbox"
-                        className="rounded-[4px] border-[var(--line)] text-[var(--ink)] focus:ring-[var(--brand)] cursor-pointer"
-                      />
-                      <span>Remember me</span>
-                    </label>
-                    <Link
-                      to="/forgot-password?type=candidate"
-                      className="text-[var(--brand-deep)] hover:underline font-medium"
-                    >
-                      Forgot password?
-                    </Link>
-                  </div>
-                )}
-
-                {/* Submit Button */}
-                <div className="pt-2">
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    disabled={isLoading || lockoutSeconds > 0}
-                    loading={isLoading}
-                    className="w-full h-11 rounded-[12px] font-medium text-xs justify-center"
-                  >
-                    {lockoutSeconds > 0
-                      ? `Locked (${Math.floor(lockoutSeconds / 60)}:${(lockoutSeconds % 60).toString().padStart(2, '0')})`
-                      : isLogin
-                      ? 'Sign in to portal'
-                      : 'Create account'}
-                  </Button>
-                </div>
-              </form>
             </div>
 
-            {/* Bottom Actions & Support */}
-            <div className="mt-8 pt-4 border-t border-[var(--line)] flex flex-wrap items-center justify-between gap-2 text-xs text-[var(--muted)]">
-              <div className="flex items-center gap-2">
-                <span>Need assistance?</span>
-                <a
-                  href="mailto:gowthamkondapaneni2003@gmail.com"
-                  className="text-[var(--brand-deep)] hover:underline font-medium"
-                >
-                  Contact HR team
-                </a>
+            <div className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-white/90 backdrop-blur-xs border border-neutral-200/70 shadow-2xs">
+              <div className="w-10 h-10 rounded-xl bg-[#E2F2DE] text-[#2F6B38] flex items-center justify-center shrink-0">
+                <FileCheck size={18} />
               </div>
-              <div className="flex items-center gap-3 text-[11px]">
-                <Link to="/login" className="text-[var(--text)] hover:underline font-medium">
-                  Staff sign in
-                </Link>
+              <div>
+                <h4 className="text-xs font-bold text-neutral-900">Interactive Assessments</h4>
+                <p className="text-[11px] text-neutral-500">Structured online evaluations with instant feedback</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-white/90 backdrop-blur-xs border border-neutral-200/70 shadow-2xs">
+              <div className="w-10 h-10 rounded-xl bg-neutral-100 text-neutral-800 flex items-center justify-center shrink-0">
+                <ShieldCheck size={18} />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-neutral-900">Verified Digital Records</h4>
+                <p className="text-[11px] text-neutral-500">Fast, secure document verification upon selection</p>
               </div>
             </div>
           </div>
-        </motion.div>
-      </div>
 
-      {/* Footer */}
-      <footer className="mt-6 text-center text-xs text-[var(--muted)]">
-        Acme HRMS &bull; Designed &amp; developed by Gowtham Chowdary Kondapaneni
-      </footer>
+          {/* Bottom Trust Badge */}
+          <div className="relative z-10 pt-4 border-t border-neutral-200/60 flex items-center justify-between text-xs text-neutral-500">
+            <span className="font-medium">Acme Enterprise Talent System</span>
+            <span className="font-semibold text-[#2F6B38]">Official Applicant Portal</span>
+          </div>
+        </div>
+      </motion.div>
     </div>
   );
 };

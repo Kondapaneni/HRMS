@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Settings, RefreshCw, Terminal, KeyRound, AlertCircle, X, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Button from './ui/Button';
 
 const MaintenanceOverlay = ({ message, onBypassSuccess }) => {
   const [clickCount, setClickCount] = useState(0);
@@ -50,37 +49,35 @@ const MaintenanceOverlay = ({ message, onBypassSuccess }) => {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         role="dialog"
         aria-modal="true"
-        className="bg-[var(--surface)] text-[var(--text)] rounded-[24px] shadow-[var(--shadow-modal)] max-w-sm sm:max-w-md w-full p-6 sm:p-8 text-center relative overflow-hidden border border-[var(--line)]/50"
+        className="bg-white text-[#131315] rounded-[32px] sm:rounded-[36px] shadow-2xl max-w-sm sm:max-w-md w-full p-6 sm:p-8 text-center relative overflow-hidden border border-neutral-200/70"
       >
         {/* Clickable Maintenance Icon Container (5-click secret trigger) */}
         <div 
           onClick={handleIconClick}
-          className="w-14 h-14 bg-[var(--warning-bg)] text-[var(--warning-text)] rounded-[14px] flex items-center justify-center mx-auto mb-4 cursor-pointer select-none transition-transform active:scale-95 group relative"
+          className="w-16 h-16 bg-[#F3F9F1] border border-neutral-200 text-[#2F6B38] rounded-full flex items-center justify-center mx-auto mb-4 cursor-pointer select-none transition-transform active:scale-95 group relative shadow-xs"
           title="Maintenance Mode"
         >
-          <Settings size={26} className="animate-[spin_6s_linear_infinite]" strokeWidth={1.7} />
+          <Settings size={28} className="animate-[spin_6s_linear_infinite]" strokeWidth={1.8} />
         </div>
 
-        <h2 className="text-[18px] sm:text-[20px] font-medium text-[var(--text)] mb-1.5 leading-snug">
+        <h2 className="text-2xl font-bold text-[#131315] mb-2 tracking-tight">
           Scheduled maintenance
         </h2>
         
-        <p className="text-[13px] text-[var(--muted)] mb-6 leading-relaxed">
+        <p className="text-xs sm:text-sm text-neutral-500 mb-6 leading-relaxed max-w-xs mx-auto font-normal">
           {message || "The Acme HRMS platform is currently undergoing scheduled maintenance. Please check back shortly."}
         </p>
 
         <div className="flex flex-col items-center gap-2.5 w-full">
-          <Button
-            variant="secondary"
-            size="md"
+          <button
+            type="button"
             onClick={handleRefresh}
             disabled={isRefreshing}
-            isLoading={isRefreshing}
-            leftIcon={!isRefreshing ? RefreshCw : undefined}
-            className="w-full"
+            className="w-full h-12 rounded-full bg-black hover:bg-neutral-800 text-white font-medium text-sm transition-all duration-200 cursor-pointer shadow-md disabled:opacity-50 flex items-center justify-center gap-2 active:scale-[0.99]"
           >
-            {isRefreshing ? 'Checking status...' : 'Check again / Refresh'}
-          </Button>
+            <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
+            <span>{isRefreshing ? 'Checking status...' : 'Check again / Refresh'}</span>
+          </button>
 
           {/* Secret Developer Bypass Button (Revealed after 5 clicks) */}
           {showBypassBtn && (
@@ -89,15 +86,14 @@ const MaintenanceOverlay = ({ message, onBypassSuccess }) => {
               animate={{ opacity: 1, y: 0 }}
               className="w-full"
             >
-              <Button
-                variant="primary"
-                size="md"
+              <button
+                type="button"
                 onClick={() => setShowModal(true)}
-                leftIcon={Terminal}
-                className="w-full"
+                className="w-full h-12 rounded-full border border-neutral-300 hover:bg-neutral-50 text-neutral-800 font-medium text-sm transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 active:scale-[0.99]"
               >
-                Developer bypass
-              </Button>
+                <Terminal size={16} />
+                <span>Developer bypass</span>
+              </button>
             </motion.div>
           )}
         </div>
@@ -106,68 +102,66 @@ const MaintenanceOverlay = ({ message, onBypassSuccess }) => {
       {/* Developer Password Authentication Modal */}
       <AnimatePresence>
         {showModal && (
-          <div className="fixed inset-0 z-[110] bg-[#131315]/45 backdrop-blur-[2px] flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[110] bg-[#131315]/50 backdrop-blur-[2px] flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 8 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 8 }}
-              className="bg-[var(--surface)] text-[var(--text)] rounded-[24px] shadow-[var(--shadow-modal)] max-w-sm w-full p-6 relative overflow-hidden border border-[var(--line)]/50"
+              className="bg-white text-[#131315] rounded-[32px] sm:rounded-[36px] shadow-2xl max-w-sm w-full p-6 sm:p-7 relative overflow-hidden border border-neutral-200/70"
             >
               <button
                 type="button"
                 onClick={() => setShowModal(false)}
-                className="absolute top-4 right-4 text-[var(--icon-muted)] hover:text-[var(--text)] w-8 h-8 rounded-full flex items-center justify-center hover:bg-[var(--surface-alt)] transition-colors cursor-pointer"
+                className="absolute top-4 right-4 text-neutral-400 hover:text-black w-8 h-8 rounded-full flex items-center justify-center hover:bg-neutral-100 transition-colors cursor-pointer"
               >
-                <X size={16} strokeWidth={1.7} />
+                <X size={18} strokeWidth={1.8} />
               </button>
 
-              <div className="w-12 h-12 bg-[var(--brand-tint)] text-[var(--brand-deep)] rounded-[14px] flex items-center justify-center mx-auto mb-3 mt-1">
-                <ShieldCheck size={22} strokeWidth={1.7} />
+              <div className="w-12 h-12 bg-[#F3F9F1] border border-neutral-200 text-[#2F6B38] rounded-full flex items-center justify-center mx-auto mb-3 mt-1">
+                <ShieldCheck size={22} strokeWidth={1.8} />
               </div>
 
-              <h3 className="text-[16px] font-medium text-[var(--text)] text-center mb-0.5">
+              <h3 className="text-lg font-bold text-[#131315] text-center mb-1">
                 Developer authentication
               </h3>
-              <p className="text-[12px] text-[var(--muted)] text-center mb-5">
+              <p className="text-xs text-neutral-500 text-center mb-5">
                 Enter developer credentials to bypass maintenance mode
               </p>
 
               <form onSubmit={handleBypassSubmit} className="space-y-4">
                 <div>
                   <div className="relative">
-                    <KeyRound size={16} strokeWidth={1.7} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--icon-muted)]" />
+                    <KeyRound size={16} strokeWidth={1.8} className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
                     <input 
                       type="password"
                       autoFocus
                       placeholder="Developer Password..."
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full h-[40px] pl-10 pr-4 bg-[var(--surface-alt)] border border-[var(--line)] rounded-[12px] text-[13px] outline-none focus:border-[var(--brand)] focus:ring-3 focus:ring-[var(--brand-tint)] transition-all text-[var(--text)]"
+                      className="w-full h-12 pl-11 pr-4 bg-white border border-neutral-300 rounded-full text-sm outline-none focus:border-black focus:ring-1 focus:ring-black transition-all text-[#131315] shadow-2xs"
                     />
                   </div>
                   {error && (
-                    <p className="text-[12px] text-[var(--danger-text)] font-medium mt-1.5 flex items-center gap-1">
-                      <AlertCircle size={13} /> {error}
+                    <p className="text-xs text-red-600 font-medium mt-2 flex items-center gap-1 justify-center">
+                      <AlertCircle size={14} /> {error}
                     </p>
                   )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-2.5 pt-1">
-                  <Button
+                  <button
                     type="button"
-                    variant="secondary"
-                    size="md"
                     onClick={() => setShowModal(false)}
+                    className="w-full h-11 rounded-full border border-neutral-300 hover:bg-neutral-50 text-neutral-700 font-medium text-xs transition-all cursor-pointer"
                   >
                     Cancel
-                  </Button>
-                  <Button
+                  </button>
+                  <button
                     type="submit"
-                    variant="primary"
-                    size="md"
+                    className="w-full h-11 rounded-full bg-black hover:bg-neutral-800 text-white font-medium text-xs transition-all cursor-pointer shadow-sm"
                   >
                     Authenticate
-                  </Button>
+                  </button>
                 </div>
               </form>
             </motion.div>

@@ -4,7 +4,6 @@ import { RefreshCw, Download, Sparkles } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'react-router-dom';
 import api, { REMOTE_ORIGIN, isNativeApp } from '../api/axios';
-import Button from './ui/Button';
 
 export default function UpdateOverlay() {
   const location = useLocation();
@@ -126,35 +125,42 @@ export default function UpdateOverlay() {
             transition={{ duration: 0.18, ease: 'easeOut' }}
             role="dialog"
             aria-modal="true"
-            className="bg-[var(--surface)] text-[var(--text)] rounded-[24px] p-6 sm:p-7 max-w-sm w-full shadow-[var(--shadow-modal)] flex flex-col items-center text-center border border-[var(--line)]/50 relative overflow-hidden"
+            className="bg-white text-[#131315] rounded-[32px] sm:rounded-[36px] p-6 sm:p-8 max-w-sm w-full shadow-2xl flex flex-col items-center text-center border border-neutral-200/70 relative overflow-hidden"
           >
             {/* Icon Container */}
-            <div className="w-14 h-14 bg-[var(--brand-tint)] text-[var(--brand-deep)] rounded-[14px] flex items-center justify-center mb-4 relative">
-              <RefreshCw size={24} className={isUpdating ? 'animate-spin' : ''} strokeWidth={1.7} />
-              <div className="absolute -bottom-1 -right-1 bg-[var(--brand)] text-[var(--ink)] rounded-full p-1 shadow-sm border-2 border-[var(--surface)]">
+            <div className="w-16 h-16 bg-[#F3F9F1] border border-neutral-200 text-[#2F6B38] rounded-full flex items-center justify-center mb-4 relative shadow-xs">
+              <RefreshCw size={26} className={isUpdating ? 'animate-spin' : ''} strokeWidth={1.8} />
+              <div className="absolute -bottom-1 -right-1 bg-black text-white rounded-full p-1 shadow-sm border-2 border-white">
                 <Sparkles size={11} strokeWidth={2} />
               </div>
             </div>
 
-            <h2 className="text-[18px] font-medium text-[var(--text)] mb-1 leading-snug">
+            <h2 className="text-2xl font-bold text-[#131315] mb-2 tracking-tight">
               Update available
             </h2>
 
-            <p className="text-[13px] text-[var(--muted)] mb-6 leading-relaxed">
+            <p className="text-xs sm:text-sm text-neutral-500 mb-6 leading-relaxed max-w-xs font-normal">
               A newer version of Acme HRMS is ready. Please update now to receive the latest features, security fixes, and design updates.
             </p>
 
-            <Button
-              variant="primary"
-              size="md"
+            <button
+              type="button"
               onClick={handleUpdate}
               disabled={isUpdating}
-              isLoading={isUpdating}
-              leftIcon={!isUpdating ? Download : undefined}
-              className="w-full"
+              className="w-full h-12 rounded-full bg-black hover:bg-neutral-800 text-white font-medium text-sm transition-all duration-200 cursor-pointer shadow-md disabled:opacity-50 flex items-center justify-center gap-2 active:scale-[0.99]"
             >
-              {isUpdating ? 'Updating workspace...' : 'Update & reload'}
-            </Button>
+              {isUpdating ? (
+                <>
+                  <RefreshCw size={16} className="animate-spin" />
+                  <span>Updating workspace...</span>
+                </>
+              ) : (
+                <>
+                  <Download size={16} />
+                  <span>Update &amp; reload</span>
+                </>
+              )}
+            </button>
           </motion.div>
         </div>
       )}
