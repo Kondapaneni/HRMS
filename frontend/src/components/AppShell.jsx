@@ -259,9 +259,8 @@ export const AppShell = ({
             <ThemeToggle />
 
             {/* Profile Avatar Pill / Tile */}
-            <Link
-              to={location.pathname.startsWith('/candidate') ? '/candidate/profile' : '/employee/profile'}
-              className="flex items-center gap-2 pl-1 pr-1 sm:pr-3 py-1 rounded-full bg-[var(--surface)] border border-[var(--line)] transition-colors hover:bg-[var(--surface-alt)] cursor-pointer"
+            <div
+              className="flex items-center gap-2 pl-1 pr-1 sm:pr-3 py-1 rounded-full bg-[var(--surface)] border border-[var(--line)] select-none"
               title={`Signed in as ${displayName}`}
             >
               <Avatar
@@ -272,7 +271,7 @@ export const AppShell = ({
               <span className="hidden sm:inline text-[13px] font-medium text-[var(--text)] truncate max-w-[120px]">
                 {displayName}
               </span>
-            </Link>
+            </div>
 
             {headerAction}
           </div>
