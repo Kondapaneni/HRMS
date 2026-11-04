@@ -4,20 +4,22 @@ import {
   Eye, 
   EyeOff, 
   AlertCircle, 
-  KeyRound, 
-  ShieldCheck, 
-  Users, 
-  CalendarCheck, 
-  Sparkles, 
-  MailCheck, 
-  Send, 
   CheckCircle2, 
+  ArrowLeft, 
   RefreshCw, 
-  ArrowLeft 
+  Lock, 
+  ChevronLeft, 
+  ChevronRight, 
+  RotateCw, 
+  Share2, 
+  Plus, 
+  Copy,
+  KeyRound,
+  ShieldCheck,
+  Sparkles
 } from 'lucide-react';
 import { useNavigate, Navigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import Button from '../components/ui/Button';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -31,8 +33,6 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loginMethod, setLoginMethod] = useState('password'); // 'password' or 'otp'
   const [lockoutSeconds, setLockoutSeconds] = useState(0);
-  const [emailFocused, setEmailFocused] = useState(false);
-  const [passwordFocused, setPasswordFocused] = useState(false);
 
   const otpInputsRef = useRef([]);
   const navigate = useNavigate();
@@ -88,9 +88,9 @@ const Login = () => {
   if (user) {
     if (profileLoading || !profile) {
       return (
-        <div className="h-screen w-full flex flex-col items-center justify-center bg-[var(--bg)] text-[var(--muted)] text-sm">
-          <div className="w-9 h-9 border-3 border-[var(--brand)] border-t-transparent rounded-full animate-spin mb-4" />
-          <span className="font-medium text-[var(--text)]">Signing in to Acme HRMS...</span>
+        <div className="h-screen w-full flex flex-col items-center justify-center bg-[#F9FAF8] text-neutral-600 text-sm">
+          <div className="w-9 h-9 border-3 border-black border-t-transparent rounded-full animate-spin mb-4" />
+          <span className="font-medium text-neutral-800">Signing in to Acme HRMS...</span>
         </div>
       );
     }
@@ -242,407 +242,559 @@ const Login = () => {
     }
   };
 
+  // Quick preset login helper for testing
+  const handleQuickFill = (presetEmail) => {
+    setEmail(presetEmail);
+    setPassword('Admin@123');
+  };
+
   return (
-    <div className="min-h-[100dvh] w-full flex flex-col justify-between bg-[var(--bg)] text-[var(--text)] select-none overflow-y-auto p-4 sm:p-6 lg:p-8">
-      {/* Centered Main Viewport */}
-      <div className="flex-1 flex items-center justify-center my-auto">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.98, y: 10 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 0.35, ease: 'easeOut' }}
-          className="w-full max-w-[1020px] grid grid-cols-1 md:grid-cols-12 gap-5 items-stretch"
-        >
+    <div className="min-h-screen w-full bg-[#E8ECE9] flex items-center justify-center p-3 sm:p-6 lg:p-10 font-sans antialiased text-[#131315]">
+      {/* Outer macOS Browser Mockup Window */}
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.98, y: 12 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: 'easeOut' }}
+        className="w-full max-w-[1100px] bg-white rounded-[24px] sm:rounded-[32px] shadow-2xl border border-neutral-200/80 overflow-hidden flex flex-col"
+      >
+        {/* Browser Top Navigation Chrome Bar */}
+        <div className="bg-[#FAFBF9] border-b border-neutral-200/70 px-4 sm:px-6 py-3 flex items-center justify-between text-neutral-400 select-none">
+          {/* Traffic Lights */}
+          <div className="flex items-center gap-2 w-20">
+            <span className="w-3 h-3 rounded-full bg-[#FF5F56] border border-[#E0443E]/40 inline-block shadow-2xs" />
+            <span className="w-3 h-3 rounded-full bg-[#FFBD2E] border border-[#DEA123]/40 inline-block shadow-2xs" />
+            <span className="w-3 h-3 rounded-full bg-[#27C93F] border border-[#1AAB29]/40 inline-block shadow-2xs" />
+          </div>
+
+          {/* Browser Navigation Arrows */}
+          <div className="hidden sm:flex items-center gap-2 text-neutral-400">
+            <ChevronLeft size={16} className="cursor-pointer hover:text-neutral-700 transition-colors" />
+            <ChevronRight size={16} className="cursor-pointer hover:text-neutral-700 transition-colors" />
+          </div>
+
+          {/* Browser Address Bar */}
+          <div className="flex-1 max-w-md mx-3">
+            <div className="bg-white rounded-full border border-neutral-200/80 px-3.5 py-1.5 flex items-center justify-center gap-2 text-xs text-neutral-500 shadow-2xs">
+              <Lock size={12} className="text-[#10B981] shrink-0" />
+              <span className="font-mono text-[11.5px] truncate text-neutral-700">https://acme-hrms.workspace.internal</span>
+              <RotateCw size={11} className="text-neutral-400 ml-auto hidden sm:block hover:text-neutral-700 cursor-pointer" />
+            </div>
+          </div>
+
+          {/* Right Action Icons */}
+          <div className="flex items-center gap-3 text-neutral-400">
+            <Share2 size={15} className="cursor-pointer hover:text-neutral-700 transition-colors hidden sm:block" />
+            <Plus size={16} className="cursor-pointer hover:text-neutral-700 transition-colors hidden sm:block" />
+            <Copy size={15} className="cursor-pointer hover:text-neutral-700 transition-colors" />
+          </div>
+        </div>
+
+        {/* Browser Content Area: 2-Column Split */}
+        <div className="p-6 sm:p-10 lg:p-12 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center bg-white">
+          
           {/* ============================================================
-              LEFT PANEL (Section 9.1: #131315 rounded panel, radius 32px)
+              LEFT COLUMN: Clean Minimalist Login Form
               ============================================================ */}
-          <div className="md:col-span-5 bg-[#131315] text-white rounded-[32px] p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden border border-white/5 min-h-[360px] md:min-h-[560px]">
-            {/* Soft Ambient Blurred Shapes */}
-            <div className="absolute -top-24 -left-24 w-72 h-72 bg-[#8AADDB]/15 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-24 -right-24 w-72 h-72 bg-[#E3B9DF]/15 rounded-full blur-3xl pointer-events-none" />
-
-            {/* Top Brand Header */}
-            <div className="relative z-10">
-              <div className="w-12 h-12 rounded-[14px] bg-[#1F1F23] border border-white/10 flex items-center justify-center mb-6">
-                <div className="w-6 h-6 rounded-[6px] bg-[#8AADDB] text-[#131315] font-bold text-xs flex items-center justify-center">
-                  A
-                </div>
-              </div>
-
-              <h2 className="text-[26px] sm:text-[30px] font-medium text-white tracking-[-0.01em] leading-tight mb-2">
-                Acme <span className="text-[#8AADDB]">HRMS</span>
-              </h2>
-              <p className="text-[13px] text-[#8B8B95] font-normal leading-relaxed">
-                Enterprise Human Resource & Workspace Management
+          <div className="lg:col-span-6 flex flex-col justify-center px-1 sm:px-4 max-w-md mx-auto w-full">
+            {/* Header Titles */}
+            <div className="text-center sm:text-left mb-7 sm:mb-8">
+              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#131315]">
+                Welcome back!
+              </h1>
+              <p className="text-xs sm:text-sm text-neutral-500 mt-2 max-w-sm mx-auto sm:mx-0 leading-relaxed font-normal">
+                Simplify your workflow and boost your productivity with <strong className="text-neutral-800 font-semibold">Acme HRMS</strong>. Get started for free.
               </p>
             </div>
 
-            {/* Raised Feature Tiles (#1F1F23) */}
-            <div className="relative z-10 space-y-2.5 my-6">
-              <div className="flex items-center gap-3 p-3 rounded-[14px] bg-[#1F1F23] border border-white/5 text-[13px]">
-                <div className="w-8 h-8 rounded-[10px] bg-[#8AADDB]/15 text-[#8AADDB] flex items-center justify-center shrink-0">
-                  <ShieldCheck size={16} strokeWidth={1.7} />
-                </div>
-                <div>
-                  <p className="font-medium text-white text-[12.5px]">Zero-Trust Security</p>
-                  <p className="text-[11px] text-[#8B8B95]">Role-guarded workspace</p>
-                </div>
-              </div>
+            {/* Error & Success Alerts */}
+            <AnimatePresence>
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  className="mb-5 p-3 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-start gap-2.5 shadow-2xs"
+                >
+                  <AlertCircle size={15} className="shrink-0 mt-0.5 text-red-500" />
+                  <span className="font-medium leading-tight">{error}</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-              <div className="flex items-center gap-3 p-3 rounded-[14px] bg-[#1F1F23] border border-white/5 text-[13px]">
-                <div className="w-8 h-8 rounded-[10px] bg-[#E3B9DF]/15 text-[#E3B9DF] flex items-center justify-center shrink-0">
-                  <MailCheck size={16} strokeWidth={1.7} />
-                </div>
-                <div>
-                  <p className="font-medium text-white text-[12.5px]">Secure Email OTP</p>
-                  <p className="text-[11px] text-[#8B8B95]">Passwordless 1-click login</p>
-                </div>
-              </div>
+            <AnimatePresence>
+              {successMessage && (
+                <motion.div
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  className="mb-5 p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-start gap-2.5 shadow-2xs"
+                >
+                  <CheckCircle2 size={15} className="shrink-0 mt-0.5 text-emerald-600" />
+                  <span className="font-medium leading-tight">{successMessage}</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-              <div className="flex items-center gap-3 p-3 rounded-[14px] bg-[#1F1F23] border border-white/5 text-[13px]">
-                <div className="w-8 h-8 rounded-[10px] bg-[#8AADDB]/15 text-[#8AADDB] flex items-center justify-center shrink-0">
-                  <CalendarCheck size={16} strokeWidth={1.7} />
-                </div>
+            {/* PASSWORD SIGN-IN FORM */}
+            {loginMethod === 'password' && (
+              <form onSubmit={handlePasswordLogin} className="space-y-4">
+                {/* Username / Email Pill Input */}
                 <div>
-                  <p className="font-medium text-white text-[12.5px]">Smart Attendance</p>
-                  <p className="text-[11px] text-[#8B8B95]">Geofenced check-in</p>
+                  <input
+                    id="login-email"
+                    type="email"
+                    placeholder="Username"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    autoComplete="email"
+                    className="w-full h-12 px-5 py-3 rounded-full border border-neutral-300 bg-white text-sm text-[#131315] placeholder:text-neutral-400 outline-none focus:border-black focus:ring-1 focus:ring-black transition-all shadow-2xs"
+                  />
                 </div>
-              </div>
+
+                {/* Password Pill Input with Eye toggle */}
+                <div className="relative">
+                  <input
+                    id="login-password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    autoComplete="current-password"
+                    className="w-full h-12 pl-5 pr-12 py-3 rounded-full border border-neutral-300 bg-white text-sm text-[#131315] placeholder:text-neutral-400 outline-none focus:border-black focus:ring-1 focus:ring-black transition-all shadow-2xs"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700 transition-colors p-1 cursor-pointer"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+
+                {/* Forgot Password link */}
+                <div className="text-right pt-0.5">
+                  <Link
+                    to="/forgot-password"
+                    className="text-xs font-medium text-neutral-500 hover:text-black transition-colors"
+                  >
+                    Forgot Password?
+                  </Link>
+                </div>
+
+                {/* Full-width Black Pill Login Button */}
+                <button
+                  type="submit"
+                  disabled={isLoading || lockoutSeconds > 0}
+                  className="w-full h-12 rounded-full bg-black hover:bg-neutral-800 text-white font-medium text-sm transition-all duration-200 cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.99]"
+                >
+                  {isLoading ? (
+                    <RefreshCw size={16} className="animate-spin" />
+                  ) : lockoutSeconds > 0 ? (
+                    `Locked (${Math.floor(lockoutSeconds / 60)}:${(lockoutSeconds % 60).toString().padStart(2, '0')})`
+                  ) : (
+                    'Login'
+                  )}
+                </button>
+              </form>
+            )}
+
+            {/* OTP SIGN-IN FORM */}
+            {loginMethod === 'otp' && (
+              <form onSubmit={otpSent ? handleVerifyOtp : handleSendOtp} className="space-y-4">
+                {/* Email Pill Input */}
+                <div>
+                  <input
+                    id="otp-email"
+                    type="email"
+                    placeholder="Enter email address"
+                    value={email}
+                    disabled={otpSent}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    autoComplete="email"
+                    className="w-full h-12 px-5 py-3 rounded-full border border-neutral-300 bg-white text-sm text-[#131315] placeholder:text-neutral-400 outline-none focus:border-black focus:ring-1 focus:ring-black transition-all shadow-2xs disabled:opacity-60"
+                  />
+                </div>
+
+                {/* OTP 6-box input */}
+                {otpSent && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="space-y-2.5 pt-1"
+                  >
+                    <label className="block text-xs font-medium text-neutral-600 text-center">
+                      Enter 6-digit verification code
+                    </label>
+
+                    <div className="flex items-center justify-between gap-1.5 sm:gap-2" onPaste={handleOtpPaste}>
+                      {otp.map((digit, idx) => (
+                        <input
+                          key={idx}
+                          ref={(el) => (otpInputsRef.current[idx] = el)}
+                          type="text"
+                          inputMode="numeric"
+                          maxLength={1}
+                          value={digit}
+                          onChange={(e) => handleOtpChange(idx, e.target.value)}
+                          onKeyDown={(e) => handleOtpKeyDown(idx, e.key)}
+                          className="w-10 sm:w-11 h-12 rounded-xl bg-neutral-50 text-neutral-900 text-center text-lg font-mono font-semibold border border-neutral-300 outline-none focus:border-black focus:ring-1 focus:ring-black transition-all"
+                        />
+                      ))}
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs text-neutral-500 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setOtpSent(false);
+                          setOtp(['', '', '', '', '', '']);
+                          setError('');
+                        }}
+                        className="inline-flex items-center gap-1 text-neutral-500 hover:text-black cursor-pointer"
+                      >
+                        <ArrowLeft size={13} />
+                        <span>Change email</span>
+                      </button>
+
+                      {otpCountdown > 0 ? (
+                        <span>Resend in <strong>{otpCountdown}s</strong></span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={handleSendOtp}
+                          disabled={isLoading}
+                          className="text-black font-semibold hover:underline inline-flex items-center gap-1 cursor-pointer"
+                        >
+                          <RefreshCw size={12} />
+                          <span>Resend code</span>
+                        </button>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={isLoading || (otpSent && otp.join('').length < 6) || lockoutSeconds > 0}
+                  className="w-full h-12 rounded-full bg-black hover:bg-neutral-800 text-white font-medium text-sm transition-all duration-200 cursor-pointer shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.99]"
+                >
+                  {isLoading ? (
+                    <RefreshCw size={16} className="animate-spin" />
+                  ) : !otpSent ? (
+                    'Send verification code'
+                  ) : (
+                    'Verify & Sign In'
+                  )}
+                </button>
+              </form>
+            )}
+
+            {/* "or continue with" Divider */}
+            <div className="relative flex items-center justify-center my-6">
+              <div className="border-t border-neutral-200 w-full" />
+              <span className="bg-white px-3 text-xs text-neutral-400 font-medium whitespace-nowrap">
+                or continue with
+              </span>
             </div>
 
-            {/* Bottom Note */}
-            <div className="relative z-10 pt-2 text-[11px] text-[#8B8B95]">
-              <span>Need access? </span>
-              <a href="mailto:support@acme.com" className="text-[#8AADDB] hover:underline">
-                Contact administrator
-              </a>
+            {/* Social / SSO Auth Circles */}
+            <div className="flex items-center justify-center gap-3.5 mb-8">
+              {/* Google Button */}
+              <button
+                type="button"
+                onClick={() => handleQuickFill('admin@acme.com')}
+                title="Quick Demo: Fill Admin Login"
+                className="w-11 h-11 rounded-full bg-black text-white hover:bg-neutral-800 flex items-center justify-center transition-all cursor-pointer shadow-sm active:scale-95 group"
+                aria-label="Continue with Google"
+              >
+                <svg className="w-4 h-4 fill-current group-hover:scale-105 transition-transform" viewBox="0 0 24 24">
+                  <path d="M12.24 10.285V13.4h6.887C18.2 16.14 15.645 18 12.24 18c-3.315 0-6-2.685-6-6s2.685-6 6-6c1.64 0 3.125.66 4.22 1.725l2.36-2.36C17.385 3.87 14.975 3 12.24 3 7.27 3 3.24 7.03 3.24 12s4.03 9 9 9c5.205 0 8.655-3.66 8.655-8.805 0-.615-.06-1.22-.165-1.91H12.24z"/>
+                </svg>
+              </button>
+
+              {/* Apple Button */}
+              <button
+                type="button"
+                onClick={() => handleQuickFill('employee@acme.com')}
+                title="Quick Demo: Fill Employee Login"
+                className="w-11 h-11 rounded-full bg-black text-white hover:bg-neutral-800 flex items-center justify-center transition-all cursor-pointer shadow-sm active:scale-95 group"
+                aria-label="Continue with Apple"
+              >
+                <svg className="w-4 h-4 fill-current group-hover:scale-105 transition-transform" viewBox="0 0 24 24">
+                  <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.84c.67-.82 1.13-1.96 1.01-3.1-.98.04-2.16.65-2.86 1.47-.61.71-1.15 1.88-1.01 2.99 1.1.09 2.2-.56 2.86-1.36"/>
+                </svg>
+              </button>
+
+              {/* Facebook / Email OTP Switcher Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  setLoginMethod(loginMethod === 'password' ? 'otp' : 'password');
+                  setError('');
+                  setSuccessMessage('');
+                }}
+                title={loginMethod === 'password' ? 'Switch to Email OTP Login' : 'Switch to Password Login'}
+                className="w-11 h-11 rounded-full bg-black text-white hover:bg-neutral-800 flex items-center justify-center transition-all cursor-pointer shadow-sm active:scale-95 group font-bold text-sm"
+                aria-label="Social / Alternative Login"
+              >
+                {loginMethod === 'password' ? (
+                  <svg className="w-4 h-4 fill-current group-hover:scale-105 transition-transform" viewBox="0 0 24 24">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                  </svg>
+                ) : (
+                  <KeyRound size={16} className="text-white" />
+                )}
+              </button>
+            </div>
+
+            {/* Bottom Link: "Not a member? Register now" */}
+            <div className="text-center text-xs text-neutral-600 font-medium">
+              <span>Not a member? </span>
+              <Link 
+                to="/candidate/login" 
+                className="text-[#2F6B38] hover:text-[#1E4D27] hover:underline font-semibold transition-colors"
+              >
+                Register now
+              </Link>
             </div>
           </div>
 
           {/* ============================================================
-              RIGHT PANEL (Section 9.1: White card, radius 24px)
+              RIGHT COLUMN: Calming Sage Green Illustration Card
               ============================================================ */}
-          <div className="md:col-span-7 bg-[var(--surface)] text-[var(--text)] rounded-[24px] p-6 sm:p-9 flex flex-col justify-between border border-[var(--line)] shadow-none">
-            <div>
-              {/* Header: Title & Method Switcher */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                <div>
-                  <h3 className="text-[22px] font-medium text-[var(--text)] tracking-tight">
-                    Welcome back
-                  </h3>
-                  <p className="text-[13px] text-[var(--muted)] mt-0.5">
-                    Sign in to access your dashboard
-                  </p>
-                </div>
+          <div className="lg:col-span-6 bg-[#F3F9F1] rounded-[28px] sm:rounded-[36px] p-6 sm:p-10 flex flex-col items-center justify-between min-h-[460px] sm:min-h-[540px] relative overflow-hidden select-none border border-neutral-100">
+            {/* Soft subtle green gradient aura */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-[#E2F2DE]/60 rounded-full blur-3xl pointer-events-none" />
 
-                {/* Method Switcher Pills */}
-                <div className="inline-flex p-1 bg-[var(--surface-alt)] rounded-full border border-[var(--line)] self-start sm:self-auto">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setLoginMethod('password');
-                      setError('');
-                      setSuccessMessage('');
-                    }}
-                    className={`px-3.5 py-1.5 rounded-full text-[12px] font-medium transition-all cursor-pointer ${
-                      loginMethod === 'password'
-                        ? 'bg-[#131315] text-white dark:bg-white dark:text-[#131315] shadow-sm'
-                        : 'text-[var(--muted)] hover:text-[var(--text)]'
-                    }`}
-                  >
-                    Password
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setLoginMethod('otp');
-                      setError('');
-                      setSuccessMessage('');
-                    }}
-                    className={`px-3.5 py-1.5 rounded-full text-[12px] font-medium transition-all cursor-pointer ${
-                      loginMethod === 'otp'
-                        ? 'bg-[#131315] text-white dark:bg-white dark:text-[#131315] shadow-sm'
-                        : 'text-[var(--muted)] hover:text-[var(--text)]'
-                    }`}
-                  >
-                    Email OTP
-                  </button>
+            {/* Illustration Graphic Container */}
+            <div className="relative w-full max-w-[380px] h-[320px] flex items-center justify-center my-auto">
+              
+              {/* Floating Avatar 1 (Top Left) */}
+              <motion.div 
+                animate={{ y: [0, -6, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                className="absolute top-2 left-4 z-20"
+              >
+                <div className="w-12 h-12 rounded-full border-2 border-[#1F2937] bg-[#D1FAE5] p-0.5 shadow-md overflow-hidden flex items-center justify-center">
+                  <svg viewBox="0 0 40 40" className="w-full h-full">
+                    <circle cx="20" cy="20" r="18" fill="#A7F3D0" />
+                    {/* Person Face */}
+                    <circle cx="20" cy="18" r="8" fill="#1F2937" />
+                    <circle cx="20" cy="17" r="7.5" fill="#FDE68A" />
+                    <circle cx="17.5" cy="16.5" r="1.2" fill="#1F2937" />
+                    <circle cx="22.5" cy="16.5" r="1.2" fill="#1F2937" />
+                    <path d="M18 20 Q20 22 22 20" stroke="#1F2937" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+                    {/* Hair */}
+                    <path d="M15 13 Q20 8 25 13 Q22 10 18 11 Z" fill="#1F2937" />
+                    {/* Shirt */}
+                    <path d="M12 36 C12 28 28 28 28 36 Z" fill="#10B981" />
+                  </svg>
                 </div>
+              </motion.div>
+
+              {/* Floating Avatar 2 (Mid Right) */}
+              <motion.div 
+                animate={{ y: [0, 6, 0] }}
+                transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+                className="absolute top-36 right-4 z-20"
+              >
+                <div className="w-12 h-12 rounded-full border-2 border-[#1F2937] bg-white p-0.5 shadow-md overflow-hidden flex items-center justify-center">
+                  <svg viewBox="0 0 40 40" className="w-full h-full">
+                    <circle cx="20" cy="20" r="18" fill="#FEE2E2" />
+                    {/* Person Face */}
+                    <circle cx="20" cy="18" r="8" fill="#1F2937" />
+                    <circle cx="20" cy="17" r="7.5" fill="#FED7AA" />
+                    <circle cx="17.5" cy="16" r="1.2" fill="#1F2937" />
+                    <circle cx="22.5" cy="16" r="1.2" fill="#1F2937" />
+                    <circle cx="20" cy="20.5" r="2" fill="#1F2937" />
+                    {/* Black Bob Hair */}
+                    <path d="M12 18 C12 10 28 10 28 18 C28 22 26 24 26 24 L24 17 C22 14 18 14 16 17 L14 24 C14 24 12 22 12 18 Z" fill="#1F2937" />
+                    {/* Shirt */}
+                    <path d="M11 36 C11 28 29 28 29 36 Z" fill="#1F2937" />
+                  </svg>
+                </div>
+              </motion.div>
+
+              {/* Central Meditating Character in Sage-Green Sweater */}
+              <div className="relative z-10 flex flex-col items-center">
+                <svg width="240" height="230" viewBox="0 0 240 230" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  {/* Floating Green Ribbon Loop Behind Head */}
+                  <path 
+                    d="M 50 110 C 25 50, 100 10, 120 45 C 140 10, 215 50, 190 110" 
+                    stroke="#86EFAC" 
+                    strokeWidth="3.5" 
+                    strokeLinecap="round" 
+                    fill="none" 
+                    strokeDasharray="4 2"
+                  />
+                  <path 
+                    d="M 45 105 C 15 45, 100 5, 120 40 C 140 5, 225 45, 195 105" 
+                    stroke="#A7F3D0" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    fill="none" 
+                  />
+
+                  {/* Character Hair Back */}
+                  <ellipse cx="120" cy="95" rx="22" ry="24" fill="#1F2937" />
+
+                  {/* Character Neck */}
+                  <path d="M114 105 L114 120 L126 120 L126 105 Z" fill="#FCD34D" stroke="#1F2937" strokeWidth="2" />
+
+                  {/* Character Face */}
+                  <ellipse cx="120" cy="92" rx="16" ry="17" fill="#FDE68A" stroke="#1F2937" strokeWidth="2" />
+
+                  {/* Hair Front with Center Part */}
+                  <path d="M104 88 C104 74 136 74 136 88 C136 88 126 82 120 84 C114 82 104 88 104 88 Z" fill="#1F2937" stroke="#1F2937" strokeWidth="1.5" />
+                  <path d="M104 88 C104 98 107 106 107 106 C107 106 110 94 113 90 Z" fill="#1F2937" />
+                  <path d="M136 88 C136 98 133 106 133 106 C133 106 130 94 127 90 Z" fill="#1F2937" />
+
+                  {/* Closed Serene Eyes */}
+                  <path d="M111 92 Q114 94 116 92" stroke="#1F2937" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+                  <path d="M124 92 Q126 94 129 92" stroke="#1F2937" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+
+                  {/* Small Smile */}
+                  <path d="M117 99 Q120 102 123 99" stroke="#1F2937" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+
+                  {/* Green Sweater Body */}
+                  <path 
+                    d="M 96 122 C 84 126, 75 140, 78 178 L 162 178 C 165 140, 156 126, 144 122 Z" 
+                    fill="#9FE1B8" 
+                    stroke="#1F2937" 
+                    strokeWidth="2.5" 
+                    strokeLinejoin="round"
+                  />
+                  {/* Sweater Collar */}
+                  <path d="M110 120 C110 126 130 126 130 120" stroke="#1F2937" strokeWidth="2.5" fill="none" />
+
+                  {/* White Heart on Sweater */}
+                  <path 
+                    d="M 120 148 C 120 148, 110 141, 110 134 C 110 129, 115 127, 120 131 C 125 127, 130 129, 130 134 C 130 141, 120 148, 120 148 Z" 
+                    fill="none" 
+                    stroke="#FFFFFF" 
+                    strokeWidth="2.5" 
+                    strokeLinejoin="round" 
+                  />
+
+                  {/* Left Arm in Meditation Mudra */}
+                  <path 
+                    d="M 85 130 C 65 145, 55 175, 66 186 C 72 192, 85 186, 96 172" 
+                    stroke="#1F2937" 
+                    strokeWidth="2.5" 
+                    fill="#9FE1B8" 
+                    strokeLinejoin="round"
+                  />
+                  {/* Left Hand in Mudra */}
+                  <circle cx="68" cy="188" r="5" fill="#FDE68A" stroke="#1F2937" strokeWidth="2" />
+                  <path d="M65 184 Q62 188 66 191" stroke="#1F2937" strokeWidth="2" fill="none" />
+
+                  {/* Right Arm in Meditation Mudra */}
+                  <path 
+                    d="M 155 130 C 175 145, 185 175, 174 186 C 168 192, 155 186, 144 172" 
+                    stroke="#1F2937" 
+                    strokeWidth="2.5" 
+                    fill="#9FE1B8" 
+                    strokeLinejoin="round"
+                  />
+                  {/* Right Hand in Mudra */}
+                  <circle cx="172" cy="188" r="5" fill="#FDE68A" stroke="#1F2937" strokeWidth="2" />
+                  <path d="M175 184 Q178 188 174 191" stroke="#1F2937" strokeWidth="2" fill="none" />
+
+                  {/* White Trousers / Legs Crossed */}
+                  {/* Left Leg */}
+                  <path 
+                    d="M 80 178 C 65 182, 45 200, 75 210 C 98 218, 120 205, 120 195" 
+                    fill="#FFFFFF" 
+                    stroke="#1F2937" 
+                    strokeWidth="2.5" 
+                    strokeLinejoin="round"
+                  />
+                  {/* Right Leg */}
+                  <path 
+                    d="M 160 178 C 175 182, 195 200, 165 210 C 142 218, 120 205, 120 195" 
+                    fill="#FFFFFF" 
+                    stroke="#1F2937" 
+                    strokeWidth="2.5" 
+                    strokeLinejoin="round"
+                  />
+
+                  {/* Bare Feet */}
+                  <ellipse cx="100" cy="206" rx="6" ry="4" fill="#FDE68A" stroke="#1F2937" strokeWidth="1.8" />
+                  <ellipse cx="140" cy="206" rx="6" ry="4" fill="#FDE68A" stroke="#1F2937" strokeWidth="1.8" />
+                </svg>
               </div>
 
-              {/* Error Message */}
-              <AnimatePresence>
-                {error && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -6 }}
-                    className="mb-4 p-3 bg-[var(--danger-bg)] text-[var(--danger-text)] rounded-[12px] flex items-start gap-2.5 text-[12px]"
-                  >
-                    <AlertCircle size={15} className="shrink-0 mt-0.5" />
-                    <span className="font-medium">{error}</span>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              {/* Floating Task Card (Bottom Left of Graphic) */}
+              <motion.div 
+                animate={{ y: [0, -5, 0] }}
+                transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+                className="absolute -bottom-2 -left-2 sm:left-2 z-20"
+              >
+                <div className="bg-white rounded-[20px] p-3.5 shadow-xl border border-neutral-200/60 flex flex-col gap-2 min-w-[136px] backdrop-blur-xs">
+                  <div>
+                    <h4 className="font-bold text-[13px] text-neutral-800 tracking-tight leading-tight">
+                      Canva Design
+                    </h4>
+                    <p className="text-[10px] text-neutral-400 font-medium">
+                      10 Task
+                    </p>
+                  </div>
 
-              {/* Success Message */}
-              <AnimatePresence>
-                {successMessage && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -6 }}
-                    className="mb-4 p-3 bg-[var(--success-bg)] text-[var(--success-text)] rounded-[12px] flex items-start gap-2.5 text-[12px]"
-                  >
-                    <CheckCircle2 size={15} className="shrink-0 mt-0.5" />
-                    <span className="font-medium">{successMessage}</span>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                  <div className="flex items-center justify-between gap-2 pt-0.5">
+                    {/* Design Pill Badge */}
+                    <span className="text-[10px] font-semibold text-neutral-600 border border-neutral-300 rounded-full px-2.5 py-0.5 inline-block">
+                      Design
+                    </span>
 
-              {/* PASSWORD SIGN-IN FORM */}
-              {loginMethod === 'password' && (
-                <form onSubmit={handlePasswordLogin} className="space-y-4">
-                  {/* Floating Email Field */}
-                  <div className="relative">
-                    <div
-                      className={`relative rounded-[12px] border transition-all bg-[var(--surface-alt)] floating-input-group ${
-                        emailFocused
-                          ? 'border-[var(--brand)] ring-3 ring-[var(--brand-tint)]'
-                          : 'border-[var(--line)]'
-                      }`}
-                    >
-                      <input
-                        id="login-email"
-                        type="email"
-                        placeholder=" "
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        onFocus={() => setEmailFocused(true)}
-                        onBlur={() => setEmailFocused(false)}
-                        className="w-full px-3.5 pt-4 pb-2.5 bg-transparent outline-none text-[var(--text)] text-[14px]"
-                        required
-                        autoComplete="email"
-                      />
-                      <label
-                        htmlFor="login-email"
-                        className={`absolute left-3.5 transition-all duration-150 pointer-events-none px-1 rounded font-medium select-none ${
-                          emailFocused || email
-                            ? '-top-2.5 text-[11px] bg-[var(--surface)] text-[var(--brand-deep)]'
-                            : 'top-3.5 text-[13px] text-[var(--muted)]'
-                        }`}
-                      >
-                        Email address
-                      </label>
+                    {/* Radial Progress Ring (84%) */}
+                    <div className="relative w-8 h-8 flex items-center justify-center shrink-0">
+                      <svg className="w-8 h-8 -rotate-90" viewBox="0 0 36 36">
+                        <path
+                          className="text-neutral-200"
+                          strokeWidth="3.5"
+                          stroke="currentColor"
+                          fill="none"
+                          d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        />
+                        <path
+                          className="text-[#10B981]"
+                          strokeDasharray="84, 100"
+                          strokeWidth="3.5"
+                          strokeLinecap="round"
+                          stroke="currentColor"
+                          fill="none"
+                          d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        />
+                      </svg>
+                      <span className="absolute text-[8px] font-bold text-neutral-700">84%</span>
                     </div>
                   </div>
-
-                  {/* Floating Password Field */}
-                  <div className="relative">
-                    <div
-                      className={`relative rounded-[12px] border transition-all bg-[var(--surface-alt)] flex items-center floating-input-group ${
-                        passwordFocused
-                          ? 'border-[var(--brand)] ring-3 ring-[var(--brand-tint)]'
-                          : 'border-[var(--line)]'
-                      }`}
-                    >
-                      <input
-                        id="login-password"
-                        type={showPassword ? 'text' : 'password'}
-                        placeholder=" "
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        onFocus={() => setPasswordFocused(true)}
-                        onBlur={() => setPasswordFocused(false)}
-                        className="w-full pl-3.5 pr-10 pt-4 pb-2.5 bg-transparent outline-none text-[var(--text)] text-[14px]"
-                        required
-                        autoComplete="current-password"
-                      />
-                      <label
-                        htmlFor="login-password"
-                        className={`absolute left-3.5 transition-all duration-150 pointer-events-none px-1 rounded font-medium select-none ${
-                          passwordFocused || password
-                            ? '-top-2.5 text-[11px] bg-[var(--surface)] text-[var(--brand-deep)]'
-                            : 'top-3.5 text-[13px] text-[var(--muted)]'
-                        }`}
-                      >
-                        Password
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 p-1 text-[var(--icon-muted)] hover:text-[var(--text)] transition-colors cursor-pointer"
-                        aria-label={showPassword ? 'Hide password' : 'Show password'}
-                      >
-                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Forgot Password link in #5B86C2 */}
-                  <div className="flex justify-end">
-                    <Link
-                      to="/forgot-password"
-                      className="text-[12px] font-medium text-[#5B86C2] hover:underline"
-                    >
-                      Forgot password?
-                    </Link>
-                  </div>
-
-                  {/* Primary Button */}
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    size="lg"
-                    disabled={isLoading || lockoutSeconds > 0}
-                    isLoading={isLoading}
-                    className="w-full h-[44px]"
-                  >
-                    {lockoutSeconds > 0
-                      ? `Locked (${Math.floor(lockoutSeconds / 60)}:${(lockoutSeconds % 60).toString().padStart(2, '0')})`
-                      : 'Sign in'}
-                  </Button>
-                </form>
-              )}
-
-              {/* OTP SIGN-IN FORM */}
-              {loginMethod === 'otp' && (
-                <form onSubmit={otpSent ? handleVerifyOtp : handleSendOtp} className="space-y-4">
-                  {/* Email Field */}
-                  <div className="relative">
-                    <div
-                      className={`relative rounded-[12px] border transition-all bg-[var(--surface-alt)] floating-input-group ${
-                        emailFocused
-                          ? 'border-[var(--brand)] ring-3 ring-[var(--brand-tint)]'
-                          : 'border-[var(--line)]'
-                      }`}
-                    >
-                      <input
-                        id="otp-email"
-                        type="email"
-                        placeholder=" "
-                        value={email}
-                        disabled={otpSent}
-                        onChange={(e) => setEmail(e.target.value)}
-                        onFocus={() => setEmailFocused(true)}
-                        onBlur={() => setEmailFocused(false)}
-                        className="w-full px-3.5 pt-4 pb-2.5 bg-transparent outline-none text-[var(--text)] text-[14px] disabled:opacity-50"
-                        required
-                        autoComplete="email"
-                      />
-                      <label
-                        htmlFor="otp-email"
-                        className={`absolute left-3.5 transition-all duration-150 pointer-events-none px-1 rounded font-medium select-none ${
-                          emailFocused || email
-                            ? '-top-2.5 text-[11px] bg-[var(--surface)] text-[var(--brand-deep)]'
-                            : 'top-3.5 text-[13px] text-[var(--muted)]'
-                        }`}
-                      >
-                        Email address
-                      </label>
-                    </div>
-                  </div>
-
-                  {/* OTP Step: Six 48px rounded input boxes with #8AADDB focus */}
-                  {otpSent && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="space-y-3 pt-1"
-                    >
-                      <label className="block text-[13px] font-normal text-[var(--muted)]">
-                        Enter 6-digit verification code
-                      </label>
-
-                      <div className="flex items-center justify-between gap-2" onPaste={handleOtpPaste}>
-                        {otp.map((digit, idx) => (
-                          <input
-                            key={idx}
-                            ref={(el) => (otpInputsRef.current[idx] = el)}
-                            type="text"
-                            inputMode="numeric"
-                            maxLength={1}
-                            value={digit}
-                            onChange={(e) => handleOtpChange(idx, e.target.value)}
-                            onKeyDown={(e) => handleOtpKeyDown(idx, e.key)}
-                            className="w-11 sm:w-12 h-12 rounded-[12px] bg-[var(--surface-alt)] text-[var(--text)] text-center text-lg font-mono font-semibold border border-[var(--line)] outline-none focus:border-[#8AADDB] focus:ring-3 focus:ring-[#8AADDB]/20 transition-all"
-                          />
-                        ))}
-                      </div>
-
-                      <div className="flex items-center justify-between text-[12px] text-[var(--muted)] pt-1">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setOtpSent(false);
-                            setOtp(['', '', '', '', '', '']);
-                            setError('');
-                          }}
-                          className="inline-flex items-center gap-1 text-[var(--muted)] hover:text-[var(--text)] cursor-pointer"
-                        >
-                          <ArrowLeft size={13} />
-                          <span>Change email</span>
-                        </button>
-
-                        {otpCountdown > 0 ? (
-                          <span>Resend in <strong>{otpCountdown}s</strong></span>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={handleSendOtp}
-                            disabled={isLoading}
-                            className="text-[#5B86C2] hover:underline font-medium inline-flex items-center gap-1 cursor-pointer"
-                          >
-                            <RefreshCw size={12} />
-                            <span>Resend code</span>
-                          </button>
-                        )}
-                      </div>
-                    </motion.div>
-                  )}
-
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    size="lg"
-                    disabled={isLoading || (otpSent && otp.join('').length < 6) || lockoutSeconds > 0}
-                    isLoading={isLoading}
-                    className="w-full h-[44px]"
-                  >
-                    {!otpSent ? 'Send verification code' : 'Verify & sign in'}
-                  </Button>
-                </form>
-              )}
+                </div>
+              </motion.div>
             </div>
 
-            {/* Bottom Links: Candidate portal & Admin assistance */}
-            <div className="pt-6 mt-6 border-t border-[var(--line)] flex flex-wrap items-center justify-between gap-3 text-[12px] text-[var(--muted)]">
-              <Link
-                to="/candidate/login"
-                className="font-medium text-[var(--text)] hover:text-[#5B86C2] transition-colors"
-              >
-                Candidate portal →
-              </Link>
-              <a
-                href="mailto:gowthamkondapaneni2003@gmail.com"
-                className="hover:underline text-[var(--muted)]"
-              >
-                Contact HR support
-              </a>
+            {/* Carousel Pagination Dots */}
+            <div className="flex items-center gap-1.5 mt-4">
+              <span className="w-1.5 h-1.5 rounded-full bg-neutral-300 inline-block" />
+              <span className="w-1.5 h-1.5 rounded-full bg-neutral-300 inline-block" />
+              <span className="w-4 h-1.5 rounded-full bg-black inline-block" />
+            </div>
+
+            {/* Bottom Slogan Headline */}
+            <div className="text-center mt-3 max-w-sm">
+              <h2 className="text-lg sm:text-xl font-bold text-neutral-900 leading-snug">
+                Make your work easier and organized with <span className="font-extrabold text-black">Acme HRMS</span>
+              </h2>
             </div>
           </div>
-        </motion.div>
-      </div>
 
-      {/* Footer */}
-      <footer className="w-full max-w-[1020px] mx-auto pt-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-[12px] text-[var(--muted)]">
-        <p>© Acme HRMS • Enterprise Workspace</p>
-        <div className="flex items-center gap-4">
-          <a href="mailto:support@acme.com" className="hover:text-[var(--text)]">Help</a>
-          <span>Privacy</span>
-          <span>Terms</span>
         </div>
-      </footer>
+      </motion.div>
     </div>
   );
 };
