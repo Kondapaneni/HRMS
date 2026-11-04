@@ -164,29 +164,35 @@ const EmployeeLayout = () => {
       },
     ];
 
-    // Business apps under "Work"
-    const businessChips = [];
+    // Authorized Business Apps (individual rail items)
     if (profile?.featureAccess?.canLoanOrigination) {
-      businessChips.push({ label: 'Loans Origination', path: '/employee/loans/origination' });
+      groups.push({
+        id: 'loans',
+        icon: Briefcase,
+        label: 'Loans Origination',
+        path: '/employee/loans/origination',
+        chips: [{ label: 'Loans Origination', path: '/employee/loans/origination' }],
+        activeMatch: (pathname) => pathname.startsWith('/employee/loans'),
+      });
     }
     if (profile?.featureAccess?.canSalesOrigination) {
-      businessChips.push({ label: 'Sales Origination', path: '/employee/sales/origination' });
+      groups.push({
+        id: 'sales',
+        icon: ShoppingBag,
+        label: 'Sales Origination',
+        path: '/employee/sales/origination',
+        chips: [{ label: 'Sales Origination', path: '/employee/sales/origination' }],
+        activeMatch: (pathname) => pathname.startsWith('/employee/sales'),
+      });
     }
     if (profile?.featureAccess?.canBranchOperations) {
-      businessChips.push({ label: 'Branch Operations', path: '/employee/branch-operations' });
-    }
-
-    if (businessChips.length > 0) {
       groups.push({
-        id: 'work',
-        icon: Briefcase,
-        label: 'Work',
-        path: businessChips[0].path,
-        chips: businessChips,
-        activeMatch: (pathname) =>
-          pathname.startsWith('/employee/loans') ||
-          pathname.startsWith('/employee/sales') ||
-          pathname.startsWith('/employee/branch-operations'),
+        id: 'branch-operations',
+        icon: Building2,
+        label: 'Branch Operations',
+        path: '/employee/branch-operations',
+        chips: [{ label: 'Branch Operations', path: '/employee/branch-operations' }],
+        activeMatch: (pathname) => pathname.startsWith('/employee/branch-operations'),
       });
     }
 

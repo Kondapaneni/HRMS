@@ -15,7 +15,10 @@ import {
   CheckCircle2,
   Wallet,
   TrendingUp,
-  ExternalLink
+  ExternalLink,
+  Briefcase,
+  ShoppingBag,
+  Building2
 } from 'lucide-react';
 import api from '../api/axios';
 import toast from 'react-hot-toast';
@@ -555,6 +558,88 @@ const EmployeeDashboard = () => {
                 </Link>
               </div>
             </div>
+
+            {/* Business Applications Card */}
+            {(profile?.featureAccess?.canLoanOrigination || profile?.featureAccess?.canSalesOrigination || profile?.featureAccess?.canBranchOperations) && (
+              <div className="bg-[var(--surface)] rounded-[24px] p-5 space-y-3.5">
+                <div className="flex items-center justify-between pb-3 border-b border-[var(--line)]">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-[10px] bg-[var(--brand-tint)] text-[var(--brand-deep)] flex items-center justify-center">
+                      <Briefcase className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="text-[13px] font-medium text-[var(--text)]">Business Applications</h4>
+                      <p className="text-[11px] text-[var(--muted)]">Authorized workspace tools</p>
+                    </div>
+                  </div>
+                  <span className="text-[11px] font-medium text-[var(--brand-deep)] bg-[var(--brand-tint)] px-2.5 py-0.5 rounded-full">
+                    Active
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 gap-2">
+                  {profile?.featureAccess?.canLoanOrigination && (
+                    <Link
+                      to="/employee/loans/origination"
+                      className="flex items-center justify-between p-3 rounded-[14px] bg-[var(--surface-alt)] hover:bg-[var(--brand-tint)] transition-colors group"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-[10px] bg-[var(--surface)] text-[var(--brand-deep)] flex items-center justify-center border border-[var(--line)]">
+                          <Briefcase className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-[var(--text)] group-hover:text-[var(--brand-deep)] transition-colors">
+                            Loans Origination
+                          </p>
+                          <p className="text-[10px] text-[var(--muted)]">Loan pipeline & borrower KYC</p>
+                        </div>
+                      </div>
+                      <ExternalLink className="w-3.5 h-3.5 text-[var(--muted)] group-hover:text-[var(--brand-deep)] transition-colors" />
+                    </Link>
+                  )}
+
+                  {profile?.featureAccess?.canSalesOrigination && (
+                    <Link
+                      to="/employee/sales/origination"
+                      className="flex items-center justify-between p-3 rounded-[14px] bg-[var(--surface-alt)] hover:bg-[var(--brand-tint)] transition-colors group"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-[10px] bg-[var(--surface)] text-[var(--success-text)] flex items-center justify-center border border-[var(--line)]">
+                          <ShoppingBag className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-[var(--text)] group-hover:text-[var(--brand-deep)] transition-colors">
+                            Sales Origination
+                          </p>
+                          <p className="text-[10px] text-[var(--muted)]">Sales pipeline & lead records</p>
+                        </div>
+                      </div>
+                      <ExternalLink className="w-3.5 h-3.5 text-[var(--muted)] group-hover:text-[var(--brand-deep)] transition-colors" />
+                    </Link>
+                  )}
+
+                  {profile?.featureAccess?.canBranchOperations && (
+                    <Link
+                      to="/employee/branch-operations"
+                      className="flex items-center justify-between p-3 rounded-[14px] bg-[var(--surface-alt)] hover:bg-[var(--brand-tint)] transition-colors group"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-[10px] bg-[var(--surface)] text-[var(--accent-pink-deep,#c026d3)] flex items-center justify-center border border-[var(--line)]">
+                          <Building2 className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium text-[var(--text)] group-hover:text-[var(--brand-deep)] transition-colors">
+                            Branch Operations
+                          </p>
+                          <p className="text-[10px] text-[var(--muted)]">Branch desk, leads & applications</p>
+                        </div>
+                      </div>
+                      <ExternalLink className="w-3.5 h-3.5 text-[var(--muted)] group-hover:text-[var(--brand-deep)] transition-colors" />
+                    </Link>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Latest Payslip Quick Banner */}
             {latestPayslip && (
